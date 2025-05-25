@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
-import type { DeviceFrameElementProps as DeviceFrameElementType } from '@/types/artboard';
+import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType } from '@/types/artboard';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -62,6 +62,10 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   let deviceLabel = "Device";
   let deviceFrameBgColor = '#111';
   let deviceFrameOuterBorderRadius = '1rem';
+
+  // Declare baseElementWidth and baseElementHeight before use
+  const baseElementWidth = element.size.width;
+  const baseElementHeight = element.size.height;
 
   if (element.deviceType !== 'custom') {
     switch (element.deviceType) {
@@ -120,8 +124,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       visualFrameStyle.height = `${(baseElementWidth / deviceNativeAspectRatio) / baseElementHeight * 100}%`;
     }
   }
-  const baseElementWidth = element.size.width;
-  const baseElementHeight = element.size.height;
 
 
   const screenStyle: React.CSSProperties = {
@@ -169,10 +171,12 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                 layout="fill"
                 objectFit={element.screenshotObjectFit || "contain"}
                 style={{
+                  position: 'absolute',
+                  inset: 0,
                   objectPosition: element.screenshotObjectPosition || "50% 50%",
                   opacity: 0, // Faded in by onLoadingComplete
                 }}
-                className="absolute inset-0 transition-opacity duration-300 ease-in-out"
+                className="transition-opacity duration-300 ease-in-out"
                 onLoadingComplete={(img) => { img.style.opacity = '1'; }}
                 data-ai-hint="app interface general"
                 draggable={false}
@@ -185,8 +189,12 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               alt="Custom Mockup Frame"
               layout="fill"
               objectFit="contain" // Ensure the whole mockup frame is visible
-              className="absolute inset-0 transition-opacity duration-300 ease-in-out opacity-0"
-              style={{ opacity: 0 }} // Faded in by onLoadingComplete
+              style={{
+                position: 'absolute',
+                inset: 0,
+                opacity: 0, // Faded in by onLoadingComplete
+              }}
+              className="transition-opacity duration-300 ease-in-out"
               onLoadingComplete={(img) => { img.style.opacity = '1'; }}
               data-ai-hint="device mockup custom"
               draggable={false}
@@ -272,3 +280,4 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     </div>
   );
 }
+
