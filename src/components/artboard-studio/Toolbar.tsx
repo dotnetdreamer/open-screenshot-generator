@@ -1,0 +1,170 @@
+
+"use client";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { PlusSquareIcon, LayoutTemplateIcon, DownloadIcon, ZoomInIcon, ZoomOutIcon, HandIcon, MousePointerIcon, UndoIcon, RedoIcon, Trash2Icon } from "lucide-react";
+
+interface ToolbarProps {
+  onNewArtboard: () => void;
+  onSelectTemplate: () => void;
+  onExport: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  currentZoom: number;
+  canUndo: boolean;
+  canRedo: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
+  onDeleteSelected?: () => void; // Optional: only if an element is selected
+  isElementSelected?: boolean;
+}
+
+export function Toolbar({
+  onNewArtboard,
+  onSelectTemplate,
+  onExport,
+  onZoomIn,
+  onZoomOut,
+  currentZoom,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+  onDeleteSelected,
+  isElementSelected
+}: ToolbarProps) {
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2 sticky top-0 z-40">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onNewArtboard}>
+              <PlusSquareIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>New Artboard</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onSelectTemplate}>
+              <LayoutTemplateIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Select Template</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        {/* Placeholder for tool selection (Select, Hand) */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-primary"> {/* Example active tool */}
+              <MousePointerIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Select Tool (V)</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <HandIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Hand Tool (H)</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Separator orientation="vertical" className="h-6" />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onUndo} disabled={!canUndo}>
+              <UndoIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Undo (Ctrl+Z)</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onRedo} disabled={!canRedo}>
+              <RedoIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Redo (Ctrl+Y)</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {isElementSelected && onDeleteSelected && (
+          <>
+            <Separator orientation="vertical" className="h-6" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onDeleteSelected} className="text-destructive hover:text-destructive">
+                  <Trash2Icon className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete Selected (Del)</p>
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
+
+
+        <div className="flex-grow" /> {/* Spacer */}
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onZoomOut}>
+              <ZoomOutIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Zoom Out (-)</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Button variant="ghost" className="w-20 tabular-nums" onClick={() => {/* reset zoom potentially */}}>
+          {Math.round(currentZoom * 100)}%
+        </Button>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" onClick={onZoomIn}>
+              <ZoomInIcon className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Zoom In (+)</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button onClick={onExport} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              <DownloadIcon className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Export Artboard(s)</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  );
+}
