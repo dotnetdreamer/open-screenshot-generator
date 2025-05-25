@@ -13,7 +13,7 @@ interface DraggableElementProps {
   onSelect: (elementId: string, e: React.MouseEvent) => void;
   onUpdateElement: (element: ArtboardElement) => void;
   onDeleteElement: (elementId: string) => void;
-  artboardZoom: number; // Zoom of the artboard's content
+  artboardZoom: number; 
   boundary: { width: number; height: number }; 
   children: React.ReactNode;
 }
@@ -34,13 +34,13 @@ export function DraggableElement({
 
   const [interactionMode, setInteractionMode] = useState<'move' | 'rotate' | 'scale' | null>(null);
   const [interactionStart, setInteractionStart] = useState<{
-    mouseX: number; // Mouse position in artboard's unzoomed space
+    mouseX: number; 
     mouseY: number;
-    initialX: number; // Element's initial position
+    initialX: number; 
     initialY: number;
     initialRotation?: number;
     initialScale?: number;
-    elementCenterX?: number; // Element center in artboard's unzoomed space
+    elementCenterX?: number; 
     elementCenterY?: number;
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -53,24 +53,20 @@ export function DraggableElement({
   }, [element.position, element.rotation, element.scale]);
 
   const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
-    // This function assumes artboardZoom correctly reflects the scaling of the artboard content area
-    // and that e.clientX/Y are viewport coordinates.
-    // If the artboard itself is on a panned/zoomed canvas, further transformations would be needed here.
-    // For now, assuming artboardZoom is the primary factor for mouse coordinate transformation.
-    
-    // If the artboard itself (the parent of DraggableElement) has a getBoundingClientRect,
-    // we should use it to make mouse positions relative to the artboard.
-    // const artboardRect = elementRef.current?.parentElement?.parentElement?.getBoundingClientRect(); // a bit fragile
-    // if (artboardRect) {
-    //   return {
-    //     x: (e.clientX - artboardRect.left) / artboardZoom,
-    //     y: (e.clientY - artboardRect.top) / artboardZoom,
-    //   };
-    // }
-    // Simplified: assumes clientX/Y can be scaled directly by artboardZoom
-    // This works if the artboard's top-left is effectively (0,0) in the coordinate system artboardZoom applies to.
+    const artboardRect = elementRef.current?.offsetParent?.getBoundingClientRect();
+    if (artboardRect) {
+        // mouse clientX/Y - artboard's screen top/left = mouse relative to artboard top/left on screen
+        // then divide by artboardZoom to get coords in artboard's unzoomed space
+        return {
+            x: (e.clientX - artboardRect.left) / artboardZoom,
+            y: (e.clientY - artboardRect.top) / artboardZoom,
+        };
+    }
+    // Fallback if offsetParent isn't the artboard div (should ideally not happen if DOM structure is consistent)
+    // This simplified version assumes the artboard itself is at (0,0) of the zoomed canvas area,
+    // which is true if the canvas isn't panned.
     return {
-        x: e.clientX / artboardZoom,
+        x: e.clientX / artboardZoom, 
         y: e.clientY / artboardZoom,
     }
   };
@@ -81,13 +77,13 @@ export function DraggableElement({
     e.stopPropagation();
     if (!elementRef.current) return;
     
-    onSelect(element.id, e); // Select element on interaction start
+    onSelect(element.id, e); 
     setInteractionMode(mode);
 
     const mousePosArtboard = getMousePositionInArtboardSpace(e);
     
-    const elCurrentScale = element.scale; // Use current scale from prop for initial calculations
-    const elCurrentRotation = element.rotation; // Use current rotation from prop
+    const elCurrentScale = element.scale; 
+    const elCurrentRotation = element.rotation;
 
     const scaledWidth = element.size.width * elCurrentScale;
     const scaledHeight = element.size.height * elCurrentScale;
@@ -125,8 +121,7 @@ export function DraggableElement({
         newX = Math.max(0, Math.min(newX, boundary.width - scaledWidth));
         newY = Math.max(0, Math.min(newY, boundary.height - scaledHeight));
         
-        setPosition({ x: newX, y: newY }); // Local update for smooth feedback
-        // Parent update will happen on mouseUp
+        setPosition({ x: newX, y: newY });
       } else if (interactionMode === 'rotate' && interactionStart.initialRotation !== undefined && interactionStart.elementCenterX !== undefined && interactionStart.elementCenterY !== undefined) {
         const angle = Math.atan2(
           mousePosArtboard.y - interactionStart.elementCenterY,
@@ -138,19 +133,21 @@ export function DraggableElement({
         ) * (180 / Math.PI);
         
         let newRotation = interactionStart.initialRotation + (angle - startAngle);
-        newRotation = Math.round(newRotation / 1) * 1; // Snap to 1 degree, can be adjusted
-        setCurrentRotation(newRotation); // Local update
-        // onUpdateElement({ ...element, rotation: newRotation }); // Update parent immediately
+        newRotation = Math.round(newRotation / 1) * 1; 
+        setCurrentRotation(newRotation);
       } else if (interactionMode === 'scale' && interactionStart.initialScale !== undefined && interactionStart.elementCenterX !== undefined && interactionStart.elementCenterY !== undefined) {
         const dx = mousePosArtboard.x - interactionStart.mouseX;
-        const dy = mousePosArtboard.y - interactionStart.mouseY;
-        // Using distance from center might be more intuitive for scaling
-        // For simplicity, let's use horizontal distance from start for now
-        const scaleChangeFactor = dx / 100; // 100px drag = 1.0 scale change
-        let newScale = interactionStart.initialScale + scaleChangeFactor;
-        newScale = Math.max(0.1, Math.min(newScale, 10)); // Min 10%, Max 1000% scale
+        // const dy = mousePosArtboard.y - interactionStart.mouseY; // Could use dy or distance for more complex scaling
         
-        // Boundary checks for scaling (centered)
+        // Scale sensitivity: how much mouse movement affects scale.
+        // Adjust this factor for more or less sensitivity.
+        // A smaller divisor means more sensitivity (faster scaling).
+        const scaleSensitivity = element.size.width > 0 ? element.size.width / 2 : 50; // Base on initial width
+        const scaleChangeFactor = dx / scaleSensitivity; 
+
+        let newScale = interactionStart.initialScale + scaleChangeFactor * interactionStart.initialScale; // Make change relative
+        newScale = Math.max(0.05, Math.min(newScale, 20)); 
+        
         const elCenterX = interactionStart.elementCenterX;
         const elCenterY = interactionStart.elementCenterY;
         const baseWidth = element.size.width;
@@ -159,15 +156,31 @@ export function DraggableElement({
         let clampedScale = newScale;
         const newHalfWidth = (baseWidth * clampedScale) / 2;
         const newHalfHeight = (baseHeight * clampedScale) / 2;
-
-        if (elCenterX - newHalfWidth < 0) clampedScale = Math.min(clampedScale, (2 * elCenterX) / baseWidth);
-        if (elCenterX + newHalfWidth > boundary.width) clampedScale = Math.min(clampedScale, (2 * (boundary.width - elCenterX)) / baseWidth);
-        if (elCenterY - newHalfHeight < 0) clampedScale = Math.min(clampedScale, (2 * elCenterY) / baseHeight);
-        if (elCenterY + newHalfHeight > boundary.height) clampedScale = Math.min(clampedScale, (2 * (boundary.height - elCenterY)) / baseHeight);
         
-        newScale = Math.max(0.1, Math.min(clampedScale, 10));
-        setCurrentScale(newScale); // Local update
-        // onUpdateElement({ ...element, scale: newScale }); // Update parent immediately
+        const newPosX = elCenterX - newHalfWidth;
+        const newPosY = elCenterY - newHalfHeight;
+
+        if (newPosX < 0) clampedScale = Math.min(clampedScale, (elCenterX * 2) / baseWidth);
+        if (elCenterX + newHalfWidth > boundary.width) clampedScale = Math.min(clampedScale, ((boundary.width - elCenterX) * 2) / baseWidth);
+        if (newPosY < 0) clampedScale = Math.min(clampedScale, (elCenterY * 2) / baseHeight);
+        if (elCenterY + newHalfHeight > boundary.height) clampedScale = Math.min(clampedScale, ((boundary.height - elCenterY) * 2) / baseHeight);
+        
+        newScale = Math.max(0.05, Math.min(clampedScale, 20)); // Re-clamp after boundary check
+
+        if (newScale !== currentScale) {
+           // Adjust position to keep element centered during scale, if necessary
+           const newScaledWidth = element.size.width * newScale;
+           const newScaledHeight = element.size.height * newScale;
+           const newPositionX = interactionStart.initialX + (element.size.width * interactionStart.initialScale - newScaledWidth) / 2;
+           const newPositionY = interactionStart.initialY + (element.size.height * interactionStart.initialScale - newScaledHeight) / 2;
+           
+           // Ensure new position is within bounds
+           const finalPosX = Math.max(0, Math.min(newPositionX, boundary.width - newScaledWidth));
+           const finalPosY = Math.max(0, Math.min(newPositionY, boundary.height - newScaledHeight));
+          
+           setPosition({x: finalPosX, y: finalPosY});
+           setCurrentScale(newScale);
+        }
       }
     };
 
@@ -175,12 +188,6 @@ export function DraggableElement({
       if (!interactionMode || !interactionStart) return;
       
       let finalElementState = { ...element, position, rotation: currentRotation, scale: currentScale };
-
-      if (interactionMode === 'move') {
-         finalElementState.position = position; // Use the locally updated position
-      }
-      // For rotate and scale, currentRotation and currentScale hold the latest values
-      
       onUpdateElement(finalElementState);
 
       setInteractionMode(null);
@@ -190,11 +197,17 @@ export function DraggableElement({
     if (interactionMode) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = interactionMode === 'move' ? 'grabbing': (interactionMode === 'rotate' ? 'crosshair' : 'ew-resize');
+    } else {
+      document.body.style.cursor = 'default';
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      if (document.body.style.cursor !== 'default') {
+        document.body.style.cursor = 'default';
+      }
     };
   }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, position, currentRotation, currentScale]);
 
@@ -204,31 +217,19 @@ export function DraggableElement({
     height: element.size.height * currentScale,
   };
 
-  // Calculate the scale factor for UI controls so they appear consistent regardless of artboardZoom or element scale
-  // The goal is for the control icons to be roughly same visual size on screen.
-  // ArtboardZoom scales the entire artboard. Element's own scale scales the element.
-  // Controls are children of element, so they are affected by element.scale.
-  // Controls are also affected by artboardZoom.
-  // To counteract both, divide by (artboardZoom * currentScale).
-  // However, artboardZoom is for the artboard's canvas, element.scale is for the element.
-  // The controls are positioned relative to the element, which is then scaled by artboardZoom.
-  // So, transform: `scale(${1 / (artboardZoom * currentScale)})` is too much.
-  // Just `scale(${1 / artboardZoom})` was for when controls were outside the element's own scale.
-  // Now, since `currentScale` affects the element size, and controls are positioned relative to that,
-  // we need to make them smaller if `currentScale` is large.
-  // The controls are inside a div that has element.scale applied to it.
-  // So, the base size of the controls is already scaled by currentScale.
-  // We only need to counteract artboardZoom for the controls to appear fixed size on screen.
-  // However, if element.scale is very small, 1/artboardZoom could make controls too large relative to element.
-  // Let's try `scale(${1 / Math.max(artboardZoom, 0.1)})` for toolbar, and icons inside are fixed size.
-  // The parent div is scaled by `element.scale`. So if icons are 10px, they become `10 * element.scale` px.
-  // Then the whole thing is scaled by artboardZoom. So `10 * element.scale * artboardZoom`.
-  // We want them to be `10px` on screen. So `10 / (element.scale * artboardZoom)`.
-  const controlToolbarScale = 1 / Math.max(artboardZoom, 0.25); // Make controls less affected by extreme zoom out
-  const controlIconScale = 1 / Math.max(currentScale, 0.25); // Make icons smaller if element is huge, larger if element is tiny
-  const finalControlIconTransform = `scale(${controlIconScale})`;
-  const finalToolbarTransform = `scale(${controlToolbarScale})`;
+  // Calculate scale factor for UI controls so they appear consistent regardless of artboardZoom or element scale
+  const effectiveArtboardZoom = Math.max(artboardZoom, 0.1); // Prevent division by zero or excessively large scales
+  const effectiveCurrentScale = Math.max(currentScale, 0.05); // Prevent division by zero or excessively large scales for element's own scale
+  
+  // We want the controls to appear as if they are their base CSS size on screen.
+  // Their actual rendered size without correction would be: BaseCssSize * effectiveCurrentScale * effectiveArtboardZoom
+  // So, the correction factor is: 1 / (effectiveCurrentScale * effectiveArtboardZoom)
+  const visualCorrectionScaleFactor = 1 / (effectiveCurrentScale * effectiveArtboardZoom);
 
+  const handleContainerStyle: React.CSSProperties = {
+    transform: `scale(${visualCorrectionScaleFactor})`,
+    // transformOrigin will be set per handle/toolbar
+  };
 
   return (
     <div
@@ -243,13 +244,12 @@ export function DraggableElement({
         transformOrigin: 'center center',
         cursor: interactionMode ? 'grabbing' : (isSelected ? 'default' : 'pointer'),
         outline: isSelected ? `2px solid hsl(var(--primary))` : 'none',
-        outlineOffset: '2px',
+        // Increased outlineOffset for better visibility, especially with scaled controls
+        outlineOffset: `${Math.max(2, 2 * visualCorrectionScaleFactor)}px`, 
         transition: interactionMode ? 'none' : 'outline 0.1s ease-in-out',
         boxSizing: 'border-box',
       }}
       onMouseDown={(e) => {
-        // Allow click-to-select anywhere on element if not on a handle
-        // Actual dragging is initiated by specific handles now.
         if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
             onSelect(element.id, e);
         }
@@ -257,51 +257,50 @@ export function DraggableElement({
       data-element-id={element.id}
       className="group"
     >
-      {/* Render children with a wrapper that ensures they don't capture drag events unless intended */}
       <div style={{width: '100%', height: '100%', pointerEvents: interactionMode ? 'none' : 'auto'}}>
         {children}
       </div>
 
       {isSelected && (
         <>
-          {/* Drag Handle */}
+          {/* Drag Handle (Top-Left) */}
           <div 
             data-interaction-handle 
-            className="absolute -top-2 -left-2 p-0.5 bg-background border border-primary rounded-full shadow-lg cursor-grab active:cursor-grabbing opacity-80 group-hover:opacity-100 transition-opacity"
-            title="Move"
-            style={{ transform: finalToolbarTransform, transformOrigin: 'top left' }}
+            className="absolute -top-1 -left-1 p-1 bg-background border border-primary rounded-full shadow-lg cursor-grab active:cursor-grabbing opacity-80 group-hover:opacity-100 transition-opacity"
+            title="Move (M)"
+            style={{ ...handleContainerStyle, transformOrigin: 'top left' }}
             onMouseDown={(e) => handleInteractionStart(e, 'move')}
           >
-            <MoveIcon className="w-3 h-3 text-primary" style={{transform: finalControlIconTransform}} />
+            <MoveIcon className="w-4 h-4 text-primary" />
           </div>
           
-          {/* Toolbar for selected element */}
+          {/* Toolbar (Bottom-Right) */}
           <div 
-            className="absolute -bottom-2 -right-2 flex space-x-0.5 bg-background border border-gray-300 rounded-md shadow-lg p-0.5 opacity-80 group-hover:opacity-100 transition-opacity"
-            style={{ transform: finalToolbarTransform, transformOrigin: 'bottom right' }}
-            onMouseDown={(e) => e.stopPropagation()} // Prevent drag when clicking toolbar itself
+            className="absolute -bottom-1 -right-1 flex space-x-1 bg-background border border-gray-300 rounded-md shadow-lg p-1 opacity-80 group-hover:opacity-100 transition-opacity"
+            style={{ ...handleContainerStyle, transformOrigin: 'bottom right' }}
+            onMouseDown={(e) => e.stopPropagation()} 
           >
             <Button 
-              data-interaction-handle
-              variant="ghost" size="icon" className="w-5 h-5 p-0.5 cursor-pointer" title="Edit (N/A)">
-              <Edit2Icon className="w-3 h-3" style={{transform: finalControlIconTransform}} />
+              data-interaction-handle="edit" // Keep data-attribute for clarity if needed
+              variant="ghost" size="icon" className="w-6 h-6 p-1 cursor-pointer" title="Edit (E)">
+              <Edit2Icon className="w-4 h-4" />
             </Button>
             <Button 
               data-interaction-handle
-              variant="ghost" size="icon" className="w-5 h-5 p-0.5 cursor-[grab] active:cursor-[grabbing]" title="Rotate" 
+              variant="ghost" size="icon" className="w-6 h-6 p-1 cursor-[grab] active:cursor-[grabbing]" title="Rotate (R)" 
               onMouseDown={(e) => handleInteractionStart(e, 'rotate')}>
-              <RotateCcwIcon className="w-3 h-3" style={{transform: finalControlIconTransform}}/>
+              <RotateCcwIcon className="w-4 h-4" />
             </Button>
             <Button 
               data-interaction-handle
-              variant="ghost" size="icon" className="w-5 h-5 p-0.5 cursor-[grab] active:cursor-[grabbing]" title="Scale" 
+              variant="ghost" size="icon" className="w-6 h-6 p-1 cursor-[grab] active:cursor-[grabbing]" title="Scale (S)" 
               onMouseDown={(e) => handleInteractionStart(e, 'scale')}>
-              <ScaleIcon className="w-3 h-3" style={{transform: finalControlIconTransform}} />
+              <ScaleIcon className="w-4 h-4" />
             </Button>
             <Button 
-              variant="ghost" size="icon" className="w-5 h-5 p-0.5 text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer" title="Delete" 
+              variant="ghost" size="icon" className="w-6 h-6 p-1 text-destructive hover:text-destructive-foreground hover:bg-destructive cursor-pointer" title="Delete (Del)" 
               onClick={() => onDeleteElement(element.id)}>
-              <Trash2Icon className="w-3 h-3" style={{transform: finalControlIconTransform}}/>
+              <Trash2Icon className="w-4 h-4"/>
             </Button>
           </div>
         </>
@@ -309,5 +308,4 @@ export function DraggableElement({
     </div>
   );
 }
-
     
