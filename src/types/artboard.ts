@@ -42,6 +42,7 @@ export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
+  screenshotObjectPosition?: string; // e.g., "50% 50%", "0 0", "10px 20px"
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;
