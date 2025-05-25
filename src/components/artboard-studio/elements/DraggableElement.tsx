@@ -1,11 +1,10 @@
 
 "use client";
 import type React from 'react';
-import { useState, useEffect, useRef }
-from 'react';
-import { RotateCcwIcon, Trash2Icon, Maximize2Icon } from 'lucide-react'; // Using Maximize2 for scale for now
+import { useState, useEffect, useRef } from 'react';
+import { RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { ArtboardElement, Point } from '@/types/artboard';
+import type { ArtboardElement, Point, Size } from '@/types/artboard';
 
 interface DraggableElementProps {
   element: ArtboardElement;
@@ -18,8 +17,11 @@ interface DraggableElementProps {
   children: React.ReactNode;
 }
 
-const HANDLE_SIZE_BASE = 16; // Base size for handles in pixels (will be scaled)
+const HANDLE_SIZE_BASE = 10; // Base size for handles in pixels
 const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2; // For centering handles on the outline
+const MIN_DISPLAY_SIZE = 20; // Minimum display width/height in pixels
+
+type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
 export function DraggableElement({
   element,
@@ -32,86 +34,87 @@ export function DraggableElement({
   children
 }: DraggableElementProps) {
   const [position, setPosition] = useState<Point>(element.position);
+  const [currentSize, setCurrentSize] = useState<Size>(element.size);
   const [currentRotation, setCurrentRotation] = useState<number>(element.rotation);
-  const [currentScale, setCurrentScale] = useState<number>(element.scale);
+  const [currentScale, setCurrentScale] = useState<number>(element.scale); // Uniform scale
 
-  const [interactionMode, setInteractionMode] = useState<'move' | 'rotate' | 'scale' | null>(null);
+  const [interactionMode, setInteractionMode] = useState<'move' | 'rotate' | 'scale' | 'resize' | null>(null);
   const [interactionStart, setInteractionStart] = useState<{
     mouseX: number;
     mouseY: number;
-    initialX: number;
-    initialY: number;
-    initialRotation?: number;
-    initialScale?: number;
-    initialWidth?: number;
-    initialHeight?: number;
-    elementCenterX?: number;
-    elementCenterY?: number;
-    aspectRatio?: number;
-    handleType?: 'corner' | 'rotate'; // To know which scale handle is used
+    initialPosition: Point;
+    initialSize: Size;
+    initialRotation: number;
+    initialScale: number;
+    elementCenter: Point;
+    handleType?: HandleType;
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
 
-
   useEffect(() => {
     setPosition(element.position);
+    setCurrentSize(element.size);
     setCurrentRotation(element.rotation);
     setCurrentScale(element.scale);
-  }, [element.position, element.rotation, element.scale]);
+  }, [element.position, element.size, element.rotation, element.scale]);
 
   const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
-    const artboardRect = elementRef.current?.offsetParent?.getBoundingClientRect();
-    if (artboardRect) {
+    const artboardDiv = elementRef.current?.offsetParent; // This should be the div with artboard.zoom scale
+    if (artboardDiv) {
+      const artboardRect = artboardDiv.getBoundingClientRect();
+      // The artboard itself is scaled by artboard.zoom, which is different from canvasZoom.
+      // Here, we are interested in positions *within* an artboard, relative to its top-left.
+      // The DraggableElement positions (element.position.x/y) are in the artboard's own coordinate system.
+      // The artboard's content is scaled by artboard.zoom (internal artboard zoom, not canvasZoom).
+      // However, DraggableElement itself receives artboardZoom, which seems to be the canvasZoom.
+      // For calculations within DraggableElement, we need positions relative to the artboard's unscaled coordinate system.
+      
+      // Let's assume the artboardZoom prop IS the zoom level of the container holding this DraggableElement (i.e., canvasZoom).
+      // The element.position is already in unscaled artboard coordinates.
+      // So, clientX/Y needs to be mapped to that.
       return {
         x: (e.clientX - artboardRect.left) / artboardZoom,
         y: (e.clientY - artboardRect.top) / artboardZoom,
       };
     }
+    // Fallback, less accurate if artboardRef's parent is not the direct scaled container
     return { x: e.clientX / artboardZoom, y: e.clientY / artboardZoom };
   };
 
+
   const handleInteractionStart = (
     e: React.MouseEvent,
-    mode: 'move' | 'rotate' | 'scale',
-    handleType?: 'corner' | 'rotate'
+    mode: 'move' | 'rotate' | 'scale' | 'resize',
+    handleType?: HandleType
   ) => {
     e.preventDefault();
     e.stopPropagation();
     if (!elementRef.current) return;
 
-    if (mode !== 'move' || !isSelected) { // Select if not already selected, or if interacting with a handle
-        onSelect(element.id, e);
+    if (mode !== 'move' || !isSelected) {
+      onSelect(element.id, e);
     }
     setInteractionMode(mode);
 
     const mousePosArtboard = getMousePositionInArtboardSpace(e);
-    const elCurrentScale = element.scale;
-    const elCurrentRotation = element.rotation;
-
-    const baseWidth = element.size.width;
-    const baseHeight = element.size.height;
-    const scaledWidth = baseWidth * elCurrentScale;
-    const scaledHeight = baseHeight * elCurrentScale;
-
-    const elCenterX = element.position.x + scaledWidth / 2;
-    const elCenterY = element.position.y + scaledHeight / 2;
+    
+    const initialDisplayWidth = currentSize.width * currentScale;
+    const initialDisplayHeight = currentSize.height * currentScale;
 
     setInteractionStart({
       mouseX: mousePosArtboard.x,
       mouseY: mousePosArtboard.y,
-      initialX: element.position.x,
-      initialY: element.position.y,
-      initialRotation: elCurrentRotation,
-      initialScale: elCurrentScale,
-      initialWidth: baseWidth, // Store base width/height for scaling
-      initialHeight: baseHeight,
-      elementCenterX: elCenterX,
-      elementCenterY: elCenterY,
-      aspectRatio: baseWidth / baseHeight,
+      initialPosition: { ...position },
+      initialSize: { ...currentSize },
+      initialRotation: currentRotation,
+      initialScale: currentScale,
+      elementCenter: {
+        x: position.x + initialDisplayWidth / 2,
+        y: position.y + initialDisplayHeight / 2,
+      },
       handleType: handleType,
     });
   };
-
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -119,89 +122,145 @@ export function DraggableElement({
       e.preventDefault();
 
       const mousePosArtboard = getMousePositionInArtboardSpace(e);
-      const { initialX, initialY, initialRotation, initialScale, initialWidth, initialHeight, elementCenterX, elementCenterY, aspectRatio, handleType } = interactionStart;
+      const { initialPosition, initialSize, initialRotation, initialScale, elementCenter, handleType } = interactionStart;
+      
+      const rad = currentRotation * (Math.PI / 180);
+      const cosR = Math.cos(rad);
+      const sinR = Math.sin(rad);
 
+      const dxScreen = mousePosArtboard.x - interactionStart.mouseX;
+      const dyScreen = mousePosArtboard.y - interactionStart.mouseY;
 
       if (interactionMode === 'move') {
-        let newX = initialX + (mousePosArtboard.x - interactionStart.mouseX);
-        let newY = initialY + (mousePosArtboard.y - interactionStart.mouseY);
+        let newX = initialPosition.x + dxScreen;
+        let newY = initialPosition.y + dyScreen;
+        
+        const displayW = currentSize.width * currentScale;
+        const displayH = currentSize.height * currentScale;
 
-        const scaledWidth = initialWidth! * currentScale;
-        const scaledHeight = initialHeight! * currentScale;
-
-        newX = Math.max(0, Math.min(newX, boundary.width - scaledWidth));
-        newY = Math.max(0, Math.min(newY, boundary.height - scaledHeight));
-
+        newX = Math.max(0, Math.min(newX, boundary.width - displayW));
+        newY = Math.max(0, Math.min(newY, boundary.height - displayH));
         setPosition({ x: newX, y: newY });
 
-      } else if (interactionMode === 'rotate' && initialRotation !== undefined && elementCenterX !== undefined && elementCenterY !== undefined) {
-        const angle = Math.atan2(
-          mousePosArtboard.y - elementCenterY,
-          mousePosArtboard.x - elementCenterX
-        ) * (180 / Math.PI);
-        const startAngle = Math.atan2(
-          interactionStart.mouseY - elementCenterY,
-          interactionStart.mouseX - elementCenterX
-        ) * (180 / Math.PI);
-
+      } else if (interactionMode === 'rotate') {
+        const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
+        const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
         let newRotation = initialRotation + (angle - startAngle);
-        newRotation = Math.round(newRotation / 1) * 1; // Snap to 1 degree
-        setCurrentRotation(newRotation);
+        setCurrentRotation(Math.round(newRotation / 1) * 1);
 
-      } else if (interactionMode === 'scale' && initialScale !== undefined && elementCenterX !== undefined && elementCenterY !== undefined && initialWidth !== undefined && initialHeight !== undefined && aspectRatio !== undefined) {
-        // Calculate distance from element center to initial mouse down on handle
-        const initialDistToCenter = Math.sqrt(
-            Math.pow(interactionStart.mouseX - elementCenterX, 2) + Math.pow(interactionStart.mouseY - elementCenterY, 2)
-        );
-        // Calculate distance from element center to current mouse position
-        const currentDistToCenter = Math.sqrt(
-            Math.pow(mousePosArtboard.x - elementCenterX, 2) + Math.pow(mousePosArtboard.y - elementCenterY, 2)
-        );
+      } else if (interactionMode === 'scale' && handleType && ['tl', 'tr', 'bl', 'br'].includes(handleType)) { // Proportional corner scaling
+        const initialDistToCenter = Math.sqrt(Math.pow(interactionStart.mouseX - elementCenter.x, 2) + Math.pow(interactionStart.mouseY - elementCenter.y, 2));
+        const currentDistToCenter = Math.sqrt(Math.pow(mousePosArtboard.x - elementCenter.x, 2) + Math.pow(mousePosArtboard.y - elementCenter.y, 2));
 
-        if (initialDistToCenter === 0) return; // Avoid division by zero
-
+        if (initialDistToCenter === 0) return;
         let scaleFactor = currentDistToCenter / initialDistToCenter;
-        let newScale = initialScale * scaleFactor;
-        newScale = Math.max(0.05, Math.min(newScale, 20));
+        let newUniformScale = initialScale * scaleFactor;
+        newUniformScale = Math.max(0.05, Math.min(newUniformScale, 20)); // Min/max uniform scale
 
-        // Calculate new dimensions and position based on center anchor
-        const newScaledWidth = initialWidth * newScale;
-        const newScaledHeight = initialHeight * newScale;
-
-        let newPositionX = elementCenterX - newScaledWidth / 2;
-        let newPositionY = elementCenterY - newScaledHeight / 2;
-        
-        // Boundary checks for scaling
-        if (newPositionX < 0 || newPositionX + newScaledWidth > boundary.width || newPositionY < 0 || newPositionY + newScaledHeight > boundary.height) {
-            // If scaling makes it go out of bounds, try to clamp the scale
-            let scaleXBound = newScale;
-            let scaleYBound = newScale;
-
-            if (newPositionX < 0) scaleXBound = (elementCenterX * 2) / initialWidth;
-            if (newPositionX + newScaledWidth > boundary.width) scaleXBound = ((boundary.width - elementCenterX) * 2) / initialWidth;
-            if (newPositionY < 0) scaleYBound = (elementCenterY * 2) / initialHeight;
-            if (newPositionY + newScaledHeight > boundary.height) scaleYBound = ((boundary.height - elementCenterY) * 2) / initialHeight;
-            
-            newScale = Math.min(scaleXBound, scaleYBound, newScale);
-            newScale = Math.max(0.05, newScale); // Re-apply min scale
+        // Ensure minimum display size
+        if (initialSize.width * newUniformScale < MIN_DISPLAY_SIZE) {
+            newUniformScale = MIN_DISPLAY_SIZE / initialSize.width;
         }
-        
-        const finalScaledWidth = initialWidth * newScale;
-        const finalScaledHeight = initialHeight * newScale;
-        const finalPositionX = elementCenterX - finalScaledWidth / 2;
-        const finalPositionY = elementCenterY - finalScaledHeight / 2;
+        if (initialSize.height * newUniformScale < MIN_DISPLAY_SIZE) {
+            newUniformScale = MIN_DISPLAY_SIZE / initialSize.height;
+        }
+        newUniformScale = Math.max(0.05, newUniformScale); // re-check min scale
 
-        setPosition({ x: finalPositionX, y: finalPositionY });
-        setCurrentScale(newScale);
+        const newDisplayWidth = initialSize.width * newUniformScale;
+        const newDisplayHeight = initialSize.height * newUniformScale;
+
+        let newPosX = elementCenter.x - newDisplayWidth / 2;
+        let newPosY = elementCenter.y - newDisplayHeight / 2;
+
+        // Boundary checks - adjust scale if necessary
+        if (newPosX < 0) { newUniformScale = (elementCenter.x * 2) / initialSize.width; newPosX = 0; }
+        if (newPosY < 0) { newUniformScale = (elementCenter.y * 2) / initialSize.height; newPosY = 0; }
+        if (newPosX + (initialSize.width * newUniformScale) > boundary.width) { newUniformScale = ((boundary.width - elementCenter.x) * 2) / initialSize.width; }
+        if (newPosY + (initialSize.height * newUniformScale) > boundary.height) { newUniformScale = ((boundary.height - elementCenter.y) * 2) / initialSize.height; }
+        newUniformScale = Math.max(0.05, newUniformScale);
+
+
+        const finalNewDisplayWidth = initialSize.width * newUniformScale;
+        const finalNewDisplayHeight = initialSize.height * newUniformScale;
+        newPosX = elementCenter.x - finalNewDisplayWidth / 2;
+        newPosY = elementCenter.y - finalNewDisplayHeight / 2;
+        
+        // Clamp position after scale adjustment
+        newPosX = Math.max(0, Math.min(newPosX, boundary.width - finalNewDisplayWidth));
+        newPosY = Math.max(0, Math.min(newPosY, boundary.height - finalNewDisplayHeight));
+
+        setCurrentScale(newUniformScale);
+        setPosition({ x: newPosX, y: newPosY });
+        // currentSize remains initialSize for uniform scaling
+
+      } else if (interactionMode === 'resize' && handleType) { // Non-proportional edge resizing
+        let newPos = { ...position };
+        let newSize = { ...currentSize };
+
+        // Deltas in element's local unrotated coordinate system
+        // (approximated for now, works best for unrotated elements)
+        const localDx = dxScreen * cosR + dyScreen * sinR;
+        const localDy = -dxScreen * sinR + dyScreen * cosR;
+
+        const initialDisplayW = initialSize.width * initialScale;
+        const initialDisplayH = initialSize.height * initialScale;
+
+        if (handleType === 'r') {
+            let newDisplayW = initialDisplayW + localDx;
+            newDisplayW = Math.max(MIN_DISPLAY_SIZE, newDisplayW);
+            newSize.width = newDisplayW / initialScale;
+        } else if (handleType === 'l') {
+            let newDisplayW = initialDisplayW - localDx;
+            newDisplayW = Math.max(MIN_DISPLAY_SIZE, newDisplayW);
+            newSize.width = newDisplayW / initialScale;
+            // Adjust position to keep right edge fixed (approximately)
+            newPos.x = initialPosition.x + (initialDisplayW - newDisplayW) * cosR / initialScale;
+            newPos.y = initialPosition.y + (initialDisplayW - newDisplayW) * sinR / initialScale;
+        } else if (handleType === 'b') {
+            let newDisplayH = initialDisplayH + localDy;
+            newDisplayH = Math.max(MIN_DISPLAY_SIZE, newDisplayH);
+            newSize.height = newDisplayH / initialScale;
+        } else if (handleType === 't') {
+            let newDisplayH = initialDisplayH - localDy;
+            newDisplayH = Math.max(MIN_DISPLAY_SIZE, newDisplayH);
+            newSize.height = newDisplayH / initialScale;
+            // Adjust position to keep bottom edge fixed (approximately)
+            newPos.x = initialPosition.x - (initialDisplayH - newDisplayH) * sinR / initialScale;
+            newPos.y = initialPosition.y + (initialDisplayH - newDisplayH) * cosR / initialScale;
+        }
+
+        // Boundary checks for size and position
+        const finalDisplayW = newSize.width * currentScale;
+        const finalDisplayH = newSize.height * currentScale;
+
+        if (newPos.x < 0) { newPos.x = 0; }
+        if (newPos.y < 0) { newPos.y = 0; }
+        if (newPos.x + finalDisplayW > boundary.width) {
+            if (handleType === 'l') { // Resizing from left, width shrinks
+                 newSize.width = (boundary.width - newPos.x) / currentScale;
+            } else { // Resizing from right, position fixed or width shrinks
+                 newSize.width = (boundary.width - newPos.x) / currentScale;
+            }
+        }
+        if (newPos.y + finalDisplayH > boundary.height) {
+             if (handleType === 't') {
+                 newSize.height = (boundary.height - newPos.y) / currentScale;
+             } else {
+                 newSize.height = (boundary.height - newPos.y) / currentScale;
+             }
+        }
+        // Ensure minimum base size if scale is applied
+        newSize.width = Math.max(MIN_DISPLAY_SIZE / currentScale, newSize.width);
+        newSize.height = Math.max(MIN_DISPLAY_SIZE / currentScale, newSize.height);
+        
+        setCurrentSize(newSize);
+        setPosition(newPos);
       }
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
+    const handleMouseUp = () => {
       if (!interactionMode || !interactionStart) return;
-
-      let finalElementState = { ...element, position, rotation: currentRotation, scale: currentScale };
-      onUpdateElement(finalElementState);
-
+      onUpdateElement({ ...element, position, size: currentSize, rotation: currentRotation, scale: currentScale });
       setInteractionMode(null);
       setInteractionStart(null);
       document.body.style.cursor = 'default';
@@ -210,11 +269,17 @@ export function DraggableElement({
     if (interactionMode) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 
-        interactionMode === 'move' ? 'grabbing' :
-        interactionMode === 'rotate' ? 'crosshair' : // Or a specific rotate cursor
-        interactionMode === 'scale' ? 'nwse-resize' : // Default for corner scaling
-        'default';
+      let cursor = 'default';
+      if (interactionMode === 'move') cursor = 'grabbing';
+      else if (interactionMode === 'rotate') cursor = 'crosshair'; // Or specific rotate cursor
+      else if (interactionMode === 'scale' || interactionMode === 'resize') {
+        const ht = interactionStart?.handleType;
+        if (ht === 'tr' || ht === 'bl') cursor = 'nesw-resize';
+        else if (ht === 'tl' || ht === 'br') cursor = 'nwse-resize';
+        else if (ht === 't' || ht === 'b') cursor = 'ns-resize';
+        else if (ht === 'l' || ht === 'r') cursor = 'ew-resize';
+      }
+      document.body.style.cursor = cursor;
     } else {
       document.body.style.cursor = 'default';
     }
@@ -222,41 +287,43 @@ export function DraggableElement({
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      if (document.body.style.cursor !== 'default' && !interactionMode) { // Check if cursor was set by this effect
+      if (document.body.style.cursor !== 'default' && !interactionMode) {
         document.body.style.cursor = 'default';
       }
     };
-  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, position, currentRotation, currentScale]);
+  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, position, currentSize, currentRotation, currentScale, onSelect]);
 
 
-  const displayScaledSize = {
-    width: element.size.width * currentScale,
-    height: element.size.height * currentScale,
+  const displaySize = {
+    width: currentSize.width * currentScale,
+    height: currentSize.height * currentScale,
   };
 
-  // Inverse scale for handles to keep them visually consistent
-  // This scale is applied to the handle elements themselves
-  const handleVisualScale = 1 / (artboardZoom * currentScale);
-  const outlineThickness = Math.max(1, 1 / artboardZoom); // Thinner outline when zoomed out
+  const handleVisualScale = 1 / artboardZoom; // Handles should visually stay same size on canvas zoom
+  const outlineThickness = Math.max(1, 1 / (artboardZoom * currentScale));
 
 
   const HandleComponent: React.FC<{
     positionStyle: React.CSSProperties;
     onMouseDown: (e: React.MouseEvent) => void;
     title: string;
-    children: React.ReactNode;
+    cursor: string;
+    children?: React.ReactNode;
     className?: string;
-  }> = ({ positionStyle, onMouseDown, title, children, className }) => (
+    isCorner?: boolean;
+  }> = ({ positionStyle, onMouseDown, title, cursor, children, className, isCorner = false }) => (
     <div
       data-interaction-handle
       className={cn(
-        "absolute flex items-center justify-center bg-background border border-primary rounded-sm shadow-md cursor-pointer opacity-90 hover:opacity-100",
+        "absolute flex items-center justify-center bg-background border border-primary shadow-md opacity-90 hover:opacity-100",
+        isCorner ? "rounded-full" : "rounded-sm", // Circles for corners, squares for edges
         className
       )}
       style={{
         width: `${HANDLE_SIZE_BASE}px`,
         height: `${HANDLE_SIZE_BASE}px`,
-        transform: `scale(${handleVisualScale})`, // Scale the handle itself
+        transform: `scale(${handleVisualScale})`,
+        cursor: cursor,
         ...positionStyle,
       }}
       onMouseDown={onMouseDown}
@@ -266,8 +333,7 @@ export function DraggableElement({
     </div>
   );
   
-  const iconSizeClass = "w-3 h-3"; // Smaller icons for handles
-
+  const iconSizeClass = "w-[6px] h-[6px]"; // Smaller icons for handles
 
   return (
     <div
@@ -276,20 +342,20 @@ export function DraggableElement({
         position: 'absolute',
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: `${displayScaledSize.width}px`,
-        height: `${displayScaledSize.height}px`,
+        width: `${displaySize.width}px`,
+        height: `${displaySize.height}px`,
         transform: `rotate(${currentRotation}deg)`,
         transformOrigin: 'center center',
         cursor: isSelected && interactionMode === null ? 'grab' : (interactionMode ? document.body.style.cursor : 'pointer'),
         boxSizing: 'border-box',
-        // The outline is now a separate div for better control
       }}
       onMouseDown={(e) => {
-        // If the click is directly on the element and not a handle, initiate move.
-        if (!(e.target as HTMLElement).closest('[data-interaction-handle]') && isSelected) {
+        if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
+          if (isSelected) {
             handleInteractionStart(e, 'move');
-        } else if (!isSelected) {
+          } else {
             onSelect(element.id, e);
+          }
         }
       }}
       data-element-id={element.id}
@@ -301,7 +367,7 @@ export function DraggableElement({
           className="absolute inset-0 pointer-events-none"
           style={{
             outline: `${outlineThickness}px solid hsl(var(--primary))`,
-            outlineOffset: `${outlineThickness * 2}px`, // Keep offset proportional to thickness
+            outlineOffset: `${outlineThickness}px`,
           }}
         />
       )}
@@ -311,37 +377,56 @@ export function DraggableElement({
         {children}
       </div>
 
-      {/* Handles - only show if selected */}
       {isSelected && (
         <>
-          {/* Scale Handles (Corners) */}
-          {['tl', 'tr', 'bl', 'br'].map(corner => {
+          {/* Corner Scale Handles */}
+          {(['tl', 'tr', 'bl', 'br'] as HandleType[]).map(corner => {
             let posStyle: React.CSSProperties = {};
-            if (corner === 'tl') posStyle = { top: `${HANDLE_OFFSET}px`, left: `${HANDLE_OFFSET}px`, transformOrigin: 'top left', cursor: 'nwse-resize' };
-            if (corner === 'tr') posStyle = { top: `${HANDLE_OFFSET}px`, right: `${HANDLE_OFFSET}px`, transformOrigin: 'top right', cursor: 'nesw-resize' };
-            if (corner === 'bl') posStyle = { bottom: `${HANDLE_OFFSET}px`, left: `${HANDLE_OFFSET}px`, transformOrigin: 'bottom left', cursor: 'nesw-resize' };
-            if (corner === 'br') posStyle = { bottom: `${HANDLE_OFFSET}px`, right: `${HANDLE_OFFSET}px`, transformOrigin: 'bottom right', cursor: 'nwse-resize' };
+            let cursor = 'default';
+            if (corner === 'tl') { posStyle = { top: `${HANDLE_OFFSET}px`, left: `${HANDLE_OFFSET}px` }; cursor = 'nwse-resize'; }
+            if (corner === 'tr') { posStyle = { top: `${HANDLE_OFFSET}px`, right: `${HANDLE_OFFSET}px` }; cursor = 'nesw-resize'; }
+            if (corner === 'bl') { posStyle = { bottom: `${HANDLE_OFFSET}px`, left: `${HANDLE_OFFSET}px` }; cursor = 'nesw-resize'; }
+            if (corner === 'br') { posStyle = { bottom: `${HANDLE_OFFSET}px`, right: `${HANDLE_OFFSET}px` }; cursor = 'nwse-resize'; }
             
             return (
               <HandleComponent
                 key={corner}
                 positionStyle={posStyle}
-                onMouseDown={(e) => handleInteractionStart(e, 'scale', 'corner')}
-                title="Scale"
-                className="rounded-full bg-primary hover:bg-primary/80" // Make scale handles distinct (e.g. circles)
-              >
-                {/* <Maximize2Icon className={cn(iconSizeClass, "text-primary-foreground")} /> */}
-              </HandleComponent>
+                onMouseDown={(e) => handleInteractionStart(e, 'scale', corner)}
+                title="Scale Proportional"
+                cursor={cursor}
+                className="bg-primary"
+                isCorner
+              />
             );
           })}
 
-          {/* Rotate Handle (Top Middle) */}
+          {/* Edge Resize Handles */}
+          {(['t', 'b', 'l', 'r'] as HandleType[]).map(edge => {
+            let posStyle: React.CSSProperties = {};
+            let cursor = 'default';
+            if (edge === 't') { posStyle = { top: `${HANDLE_OFFSET}px`, left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`}; cursor = 'ns-resize'; }
+            if (edge === 'b') { posStyle = { bottom: `${HANDLE_OFFSET}px`, left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`}; cursor = 'ns-resize'; }
+            if (edge === 'l') { posStyle = { left: `${HANDLE_OFFSET}px`, top: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`}; cursor = 'ew-resize'; }
+            if (edge === 'r') { posStyle = { right: `${HANDLE_OFFSET}px`, top: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`}; cursor = 'ew-resize'; }
+
+             return (
+              <HandleComponent
+                key={edge}
+                positionStyle={posStyle}
+                onMouseDown={(e) => handleInteractionStart(e, 'resize', edge)}
+                title="Resize"
+                cursor={cursor}
+              />
+            );
+          })}
+
+          {/* Rotate Handle */}
           <HandleComponent
             positionStyle={{
-              top: `${HANDLE_OFFSET - HANDLE_SIZE_BASE}px`, // Position above the element
-              left: `calc(50% + ${HANDLE_OFFSET}px)`,
-              transformOrigin: 'center center',
-              cursor: 'crosshair', // Or a custom rotate cursor
+              top: `${HANDLE_OFFSET - (HANDLE_SIZE_BASE * 1.5)}px`, // Position further above
+              left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`,
+              cursor: 'crosshair',
             }}
             onMouseDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
             title="Rotate"
@@ -350,16 +435,15 @@ export function DraggableElement({
             <RotateCcwIcon className={cn(iconSizeClass, "text-primary")} />
           </HandleComponent>
           
-          {/* Delete Handle (Top Right, slightly offset from scale handle) */}
+          {/* Delete Handle */}
           <HandleComponent
              positionStyle={{
                 top: `${HANDLE_OFFSET}px`, 
-                right: `${HANDLE_OFFSET - HANDLE_SIZE_BASE - (HANDLE_SIZE_BASE * 0.2)}px`, // Offset further right
-                transformOrigin: 'top right',
+                right: `${HANDLE_OFFSET - HANDLE_SIZE_BASE - (HANDLE_SIZE_BASE * 0.5)}px`, // Offset from corner
                 cursor: 'pointer',
              }}
              onMouseDown={(e) => {
-                e.stopPropagation(); // Prevent move/select
+                e.stopPropagation();
                 onDeleteElement(element.id);
              }}
              title="Delete Element"
@@ -372,5 +456,3 @@ export function DraggableElement({
     </div>
   );
 }
-
-    
