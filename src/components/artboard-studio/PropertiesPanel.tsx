@@ -3,13 +3,14 @@
 
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps } from '@/types/artboard';
+import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea'; // Using Textarea for multi-line text content
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { UploadCloudIcon } from 'lucide-react';
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -18,6 +19,9 @@ interface PropertiesPanelProps {
 
 export function PropertiesPanel({ selectedElement, onUpdateElement }: PropertiesPanelProps) {
   const [localContent, setLocalContent] = useState('');
+  const hiddenFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadPurpose, setUploadPurpose] = useState<'customFrame' | 'screenshot' | null>(null);
+
 
   useEffect(() => {
     if (selectedElement?.type === 'text') {
@@ -32,6 +36,31 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
   const handleTextContentBlur = () => {
     if (selectedElement?.type === 'text' && localContent !== (selectedElement as TextElementProps).content) {
       onUpdateElement({ content: localContent });
+    }
+  };
+
+  const handleImageUploadButtonClick = (purpose: 'customFrame' | 'screenshot') => {
+    setUploadPurpose(purpose);
+    hiddenFileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && uploadPurpose) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        if (uploadPurpose === 'customFrame') {
+          onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined }); // Reset screenshot if frame changes
+        } else if (uploadPurpose === 'screenshot') {
+          onUpdateElement({ screenshotSrc: dataUrl });
+        }
+        setUploadPurpose(null);
+      };
+      reader.readAsDataURL(file);
+    }
+     if (hiddenFileInputRef.current) {
+        hiddenFileInputRef.current.value = ""; // Allow re-uploading same file
     }
   };
 
@@ -128,40 +157,93 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
 
   const renderDeviceProperties = (element: DeviceFrameElementProps) => (
     <>
+      {element.deviceType === 'custom' && (
+        <div className="flex items-end space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleImageUploadButtonClick('customFrame')}
+            className="text-xs h-8"
+          >
+            <UploadCloudIcon className="w-3 h-3 mr-1.5" /> 
+            {element.customFrameSrc ? 'Change Mockup' : 'Upload Mockup'}
+          </Button>
+          {element.customFrameSrc && (
+             <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handleImageUploadButtonClick('screenshot')}
+                className="text-xs h-8"
+            >
+                <UploadCloudIcon className="w-3 h-3 mr-1.5" /> 
+                {element.screenshotSrc ? 'Change Screenshot' : 'Upload Screenshot'}
+            </Button>
+          )}
+        </div>
+      )}
+       {element.deviceType !== 'custom' && !element.screenshotSrc && (
+         <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleImageUploadButtonClick('screenshot')}
+            className="text-xs h-8"
+        >
+            <UploadCloudIcon className="w-3 h-3 mr-1.5" /> Upload Screenshot
+        </Button>
+      )}
+       {element.deviceType !== 'custom' && element.screenshotSrc && (
+         <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleImageUploadButtonClick('screenshot')}
+            className="text-xs h-8"
+        >
+            <UploadCloudIcon className="w-3 h-3 mr-1.5" /> Change Screenshot
+        </Button>
+      )}
+
+
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="deviceScale" className="text-xs">
-          Scale: {Math.round(element.scale * 100)}%
+          Scale: {Math.round((element.scale || 1) * 100)}%
         </Label>
         <Slider
           id="deviceScale"
-          min={10} // Represents 0.1
-          max={500} // Represents 5.0
-          step={1} // Represents 0.01
-          value={[element.scale * 100]}
+          min={10} 
+          max={500} 
+          step={1} 
+          value={[(element.scale || 1) * 100]}
           onValueChange={(value) => onUpdateElement({ scale: value[0] / 100 })}
           className="my-2"
         />
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="deviceRotation" className="text-xs">
-          Rotation: {Math.round(element.rotation)}°
+          Rotation: {Math.round(element.rotation || 0)}°
         </Label>
         <Slider
           id="deviceRotation"
           min={-180}
           max={180}
           step={1}
-          value={[element.rotation]}
+          value={[element.rotation || 0]}
           onValueChange={(value) => onUpdateElement({ rotation: value[0] })}
           className="my-2"
         />
       </div>
+      <Input 
+        type="file" 
+        ref={hiddenFileInputRef} 
+        onChange={handleFileSelected} 
+        className="hidden"
+        accept="image/*"
+      />
     </>
   );
 
   return (
     <div className="h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 space-x-4 text-sm flex-wrap gap-y-2">
-      <span className="font-semibold capitalize text-muted-foreground">{selectedElement.type} Properties:</span>
+      <span className="font-semibold capitalize text-muted-foreground">{selectedElement.type}{selectedElement.type === 'device' ? ` (${selectedElement.deviceType})`: ''} Properties:</span>
       {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
       {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
       {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}

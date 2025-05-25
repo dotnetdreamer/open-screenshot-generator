@@ -67,23 +67,9 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
             <DraggableItem onDragStart={handleDragStart} type="device" subType="android-phone" label="Android" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} />
             <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} />
             <DraggableItem onDragStart={handleDragStart} type="device" subType="desktop" label="Desktop" icon={<MonitorIcon className="w-6 h-6 text-primary" />} />
+            <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
           </CardContent>
         </Card>
-
-        {/* Placeholder for future categories like 'Images' or 'Icons' */}
-        {/* 
-        <Card>
-          <CardHeader>
-            <CardTitle>Media</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-2">
-             <Button variant="outline" className="w-full h-16 flex-col" onClick={() => console.log('Add Image Placeholder')}>
-              <ImagePlusIcon className="w-5 h-5 mb-1" />
-              <span className="text-xs">Image</span>
-            </Button>
-          </CardContent>
-        </Card>
-        */}
       </div>
     </ScrollArea>
   );

@@ -37,12 +37,13 @@ export interface ShapeElementProps extends BaseElement {
   strokeWidth: number;
 }
 
-export type DeviceType = 'iphone' | 'android-phone' | 'tablet' | 'desktop';
+export type DeviceType = 'iphone' | 'android-phone' | 'tablet' | 'desktop' | 'custom'; // Added 'custom'
 export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
   screenshotObjectPosition?: string; // e.g., "50% 50%", "0 0", "10px 20px"
+  customFrameSrc?: string; // URL or base64 for user-uploaded mockup
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;
