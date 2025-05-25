@@ -32,7 +32,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { ExportDialog } from './ExportDialog'; // Reverted to direct relative import
+import { ExportDialog } from '@/components/artboard-studio/ExportDialog';
 
 const sampleTemplates: Template[] = [
   {
@@ -215,7 +215,7 @@ export function ArtboardStudioLayout() {
       name: `Artboard ${artboards.length + 1}`,
       position: { x: 0, y: 0 }, 
       size: newSize,
-      elements: [], // New artboards are empty
+      elements: [], 
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
     };
@@ -236,7 +236,7 @@ export function ArtboardStudioLayout() {
       name: `Artboard ${artboards.length + 1}`,
       position: { x: 0, y: 0 }, 
       size: newSize,
-      elements: [], // New artboards are empty
+      elements: [], 
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
     };
@@ -353,14 +353,51 @@ export function ArtboardStudioLayout() {
   };
 
   const handleConfirmExport = (store: TargetStore, deviceTypes: ExportDeviceCategory[]) => {
-    setExportConfig({ store, deviceTypes });
+    // This is where the actual image generation, resizing, and zipping would happen.
+    // For now, we'll simulate a download of a text file with the configuration.
+
+    console.log("Exporting for:", store, "Device types:", deviceTypes, "Artboards:", artboards);
+
+    // 1. Placeholder: Iterate through artboards and selected device types
+    //    In a real implementation, for each combination, you would:
+    //    a. Get the artboard's DOM element (or a representation of it).
+    //    b. Use a library like html2canvas to capture it as an image.
+    //    c. Resize the image based on store guidelines for the specific deviceType.
+    //    d. Add the processed image (e.g., as a Blob) to a JSZip instance.
+    
+    let reportContent = `Export Configuration:\n\nTarget Store: ${store}\nSelected Device Types: ${deviceTypes.join(', ')}\n\nArtboards to Process (${artboards.length}):\n`;
+    
+    artboards.forEach(artboard => {
+      reportContent += `\nArtboard: ${artboard.name} (ID: ${artboard.id}, Size: ${artboard.size.width}x${artboard.size.height})\n`;
+      deviceTypes.forEach(deviceType => {
+        // Placeholder for specific image generation and naming
+        reportContent += `  - Would generate image for ${deviceType} (e.g., ${artboard.name.replace(/\s+/g, '_')}_${deviceType}.png)\n`;
+        // Here you would call functions to get image data and add to zip.
+        // e.g., const imageData = await generateImageForArtboard(artboard, deviceType, storeGuidelines);
+        //       zip.file(`${artboard.name}_${deviceType}.png`, imageData);
+      });
+    });
+
+    reportContent += "\n\nActual image processing and zipping require further implementation using libraries like html2canvas for rendering and JSZip for creating the zip archive.";
+
+    // 2. Simulate Zipping and Download with a text file
+    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `artboard_export_${store}_${new Date().toISOString().slice(0,10)}.txt`; // Simulating a zip filename with .txt
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
     toast({
-      title: "Exporting...",
-      description: `Preparing export for ${store} targeting: ${deviceTypes.join(', ')}. (Actual export not implemented)`,
-      variant: "default"
+      title: "Export Process Initiated",
+      description: `A configuration summary has been downloaded. Full image export and zipping require dedicated libraries.`,
+      variant: "default",
+      duration: 5000,
     });
     setIsExportDialogOpen(false);
-    console.log("Exporting for:", store, "Device types:", deviceTypes, "Artboards:", artboards);
   };
 
 
@@ -608,4 +645,5 @@ export function ArtboardStudioLayout() {
     </SidebarProvider>
   );
 }
+
 
