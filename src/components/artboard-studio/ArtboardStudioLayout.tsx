@@ -16,7 +16,7 @@ import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
 import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Template, ArtboardElement, DeviceFrameElementProps } from '@/types/artboard';
+import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Template, ArtboardElement, DeviceFrameElementProps, TargetStore, ExportDeviceCategory } from '@/types/artboard';
 import { Button } from '@/components/ui/button';
 import { SettingsIcon, InfoIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +32,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { ExportDialog } from './ExportDialog'; // Reverted to direct relative import
 
 const sampleTemplates: Template[] = [
   {
@@ -83,7 +84,7 @@ const sampleTemplates: Template[] = [
         backgroundColor: 'hsl(var(--card))',
         zoom:1,
         position: {x:50, y:50},
-        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: { left: 0, top: 0, width: 100, height: 100 }} as DeviceFrameElementProps]
+        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1 } as DeviceFrameElementProps]
       },
       {
         id: 'artboard_app_2',
@@ -92,7 +93,7 @@ const sampleTemplates: Template[] = [
         backgroundColor: 'hsl(var(--card))',
         zoom:1,
         position: {x:490, y:50},
-        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: { left: 0, top: 0, width: 100, height: 100 }} as DeviceFrameElementProps]
+        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as DeviceFrameElementProps]
       },
     ],
   }
@@ -122,6 +123,9 @@ export function ArtboardStudioLayout() {
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
+  
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportConfig, setExportConfig] = useState<{ store: TargetStore | null; deviceTypes: ExportDeviceCategory[] }>({ store: null, deviceTypes: [] });
 
 
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
@@ -211,7 +215,7 @@ export function ArtboardStudioLayout() {
       name: `Artboard ${artboards.length + 1}`,
       position: { x: 0, y: 0 }, 
       size: newSize,
-      elements: [],
+      elements: [], // New artboards are empty
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
     };
@@ -232,7 +236,7 @@ export function ArtboardStudioLayout() {
       name: `Artboard ${artboards.length + 1}`,
       position: { x: 0, y: 0 }, 
       size: newSize,
-      elements: [],
+      elements: [], // New artboards are empty
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
     };
@@ -313,22 +317,30 @@ export function ArtboardStudioLayout() {
 
 
   const handleSelectTemplate = (template: Template) => {
-    const templateArtboards: ArtboardState[] = template.artboards.map((abConfig, index) => ({
+    const templateArtboards: ArtboardState[] = template.artboards.map((abConfig, index) => {
+       const baseElements = abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements)) : [];
+       const processedElements = baseElements.map((el: ArtboardElement) => {
+         if (el.type === 'device') {
+           const deviceEl = el as DeviceFrameElementProps;
+           if (!deviceEl.screenshotRect && deviceEl.deviceType !== 'custom') { 
+             deviceEl.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
+           } else if (!deviceEl.screenshotRect && deviceEl.deviceType === 'custom') {
+             deviceEl.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };
+           }
+         }
+         return el;
+       });
+
+      return {
         id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
         name: abConfig.name || `Artboard ${index + 1}`,
         position: {x:0, y:0}, 
         size: abConfig.size || { width: 1024, height: 768 },
-        elements: abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements.map(el => {
-          if (el.type === 'device' && el.deviceType !== 'custom' && !(el as DeviceFrameElementProps).screenshotRect) {
-            return {...el, screenshotRect: { left: 0, top: 0, width: 100, height: 100 }};
-          } else if (el.type === 'device' && el.deviceType === 'custom' && !(el as DeviceFrameElementProps).screenshotRect) {
-             return {...el, screenshotRect: { left: 5, top: 5, width: 90, height: 90 }};
-          }
-          return el;
-        }))) : [],
+        elements: processedElements,
         backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
         zoom: abConfig.zoom || 1,
-    } as ArtboardState));
+      } as ArtboardState
+    });
 
     const finalArtboards = calculateArtboardPositions(templateArtboards);
     setArtboards(finalArtboards);
@@ -340,9 +352,17 @@ export function ArtboardStudioLayout() {
     toast({ title: "Template Loaded", description: `Template "${template.name}" applied.` });
   };
 
-  const handleExport = () => {
-    toast({ title: "Export Initiated", description: "Exporting artboard... (Not implemented)", variant: "default" });
+  const handleConfirmExport = (store: TargetStore, deviceTypes: ExportDeviceCategory[]) => {
+    setExportConfig({ store, deviceTypes });
+    toast({
+      title: "Exporting...",
+      description: `Preparing export for ${store} targeting: ${deviceTypes.join(', ')}. (Actual export not implemented)`,
+      variant: "default"
+    });
+    setIsExportDialogOpen(false);
+    console.log("Exporting for:", store, "Device types:", deviceTypes, "Artboards:", artboards);
   };
+
 
   const handleUndo = () => {
     if (historyIndex > 0) {
@@ -541,7 +561,7 @@ export function ArtboardStudioLayout() {
         <Toolbar
           onNewArtboard={handleNewArtboardFromMainToolbar}
           onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
-          onExport={handleExport}
+          onExport={() => setIsExportDialogOpen(true)}
           onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
           onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
           currentZoom={canvasZoom}
@@ -559,7 +579,7 @@ export function ArtboardStudioLayout() {
         <PropertiesPanel
             selectedElement={selectedElementDetails}
             onUpdateElement={handleUpdateSelectedElement}
-            className="sticky top-14 z-40 bg-card border-b"
+            className="sticky top-14 z-40 bg-card border-b" 
         />
         <div className="flex-grow relative overflow-hidden"> 
           <CanvasArea
@@ -580,6 +600,11 @@ export function ArtboardStudioLayout() {
           />
         </div>
       </SidebarInset>
+      <ExportDialog
+        isOpen={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        onConfirmExport={handleConfirmExport}
+      />
     </SidebarProvider>
   );
 }
