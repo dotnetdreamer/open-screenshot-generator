@@ -108,8 +108,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           ...newElementBase,
           type: 'device',
           deviceType: subType as DeviceType,
-          size: { width: 150, height: 300 }, 
           screenshotRect: { left: 5, top: 5, width: 90, height: 90 },
+          size: { width: 150, height: 300 }, // Default size for devices
         } as ArtboardElement;
       }
 
@@ -171,18 +171,16 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
   return (
     <div className="relative"> {/* Wrapper for artboard and its toolbar */}
-      {isSelected && (
-        <ArtboardToolbar
-          artboardId={artboard.id}
-          onAddNew={onAddNewArtboard}
-          onDuplicate={onDuplicateArtboard}
-          onDelete={onDeleteArtboard}
-          onMove={onMoveArtboard}
-          canDelete={canDeleteArtboard}
-          canMoveLeft={canMoveArtboardLeft}
-          canMoveRight={canMoveArtboardRight}
-        />
-      )}
+      <ArtboardToolbar
+        artboardId={artboard.id}
+        onAddNew={() => onAddNewArtboard()} // Ensure this is correctly calling the prop
+        onDuplicate={onDuplicateArtboard}
+        onDelete={onDeleteArtboard}
+        onMove={onMoveArtboard}
+        canDelete={canDeleteArtboard}
+        canMoveLeft={canMoveArtboardLeft}
+        canMoveRight={canMoveArtboardRight}
+      />
       <div
         ref={artboardDivRef}
         className={cn(
@@ -195,7 +193,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           backgroundColor: artboard.backgroundColor,
           transform: `scale(${artboard.zoom})`,
           transformOrigin: 'top left',
-          marginTop: isSelected ? '2.5rem' : '0', // Add margin-top if toolbar is visible
+          marginTop: '2.5rem', // Always add margin-top for the toolbar
         }}
         onClick={handleArtboardClick}
         onDrop={(e) => {
