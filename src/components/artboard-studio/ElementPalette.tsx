@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, TabletIcon, MonitorIcon, ImagePlusIcon } from "lucide-react";
-import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
+import type { ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
+import { LayersPanel } from './LayersPanel'; // Import the new LayersPanel
 
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType) => void;
+  activeArtboardElements: ArtboardElement[];
+  selectedElementIdOnActiveArtboard: string | null;
+  onSelectElementInLayerPanel: (elementId: string) => void;
+  activeArtboardName?: string;
 }
 
 const DraggableItem: React.FC<{ onDragStart: (e: React.DragEvent<HTMLDivElement>, type: ElementType, subType?: ShapeType | DeviceType) => void, type: ElementType, subType?: ShapeType | DeviceType, label: string, icon: React.ReactNode, className?: string }> = 
@@ -31,7 +36,13 @@ const DraggableItem: React.FC<{ onDragStart: (e: React.DragEvent<HTMLDivElement>
 }
 
 
-export function ElementPalette({ onAddElement }: ElementPaletteProps) {
+export function ElementPalette({ 
+  onAddElement,
+  activeArtboardElements,
+  selectedElementIdOnActiveArtboard,
+  onSelectElementInLayerPanel,
+  activeArtboardName 
+}: ElementPaletteProps) {
   const handleDragStart = (e: React.DragEvent<HTMLDivElement> | null, type: ElementType, subType?: ShapeType | DeviceType) => {
     if (e) { // Drag event
       e.dataTransfer.setData('application/artboard-element-type', type);
@@ -44,8 +55,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
   };
 
   return (
-    <ScrollArea className="h-full p-1">
-      <div className="space-y-4 p-2">
+    <ScrollArea className="h-full p-1 flex flex-col"> {/* Ensure ScrollArea allows flex column layout */}
+      <div className="space-y-4 p-2 flex-shrink-0"> {/* Basic elements and mockups should not grow beyond content */}
         <Card className="shadow-md">
           <CardHeader className="p-3">
             <CardTitle className="text-base">Basic Elements</CardTitle>
@@ -72,6 +83,16 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
             <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Layers Panel takes up remaining space */}
+      <div className="flex-grow p-2 min-h-0"> {/* Added p-2 to match other cards, min-h-0 for flex-grow in scrollable */}
+        <LayersPanel 
+          elements={activeArtboardElements}
+          selectedElementId={selectedElementIdOnActiveArtboard}
+          onSelectElement={onSelectElementInLayerPanel}
+          activeArtboardName={activeArtboardName}
+        />
       </div>
     </ScrollArea>
   );
