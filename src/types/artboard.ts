@@ -45,6 +45,8 @@ export interface DeviceFrameElementProps extends BaseElement {
   screenshotObjectPosition?: string; // e.g., "50% 50%", "0 0", "10px 20px"
   screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits
   customFrameSrc?: string; // URL or base64 for user-uploaded mockup
+  customScreenPadding?: { top: number; right: number; bottom: number; left: number }; // Percentages, e.g., { top: 5, right: 5, bottom: 5, left: 5 }
+  customScreenBorderRadius?: string; // e.g., '20px', '1.5rem'
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;

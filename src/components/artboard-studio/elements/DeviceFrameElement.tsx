@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
-import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType } from '@/types/artboard';
+import type { DeviceFrameElementProps as DeviceFrameElementType } from '@/types/artboard';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -37,8 +37,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         const newImageSrc = reader.result as string;
         if (uploadTarget === 'customFrame') {
           setCustomFrame(newImageSrc);
-          // When a new custom frame is uploaded, clear the existing screenshot 
-          // as it might not be relevant to the new frame.
           setScreenshot(undefined); 
           onUpdate({ customFrameSrc: newImageSrc, screenshotSrc: undefined }); 
         } else if (uploadTarget === 'screenshot') {
@@ -50,7 +48,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       reader.readAsDataURL(file);
     }
     if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // Allow re-uploading the same file
+        fileInputRef.current.value = ""; 
     }
   };
 
@@ -59,16 +57,16 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     fileInputRef.current?.click();
   };
 
-  let deviceNativeAspectRatio = 9 / 16;
-  let framePaddingPercent = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 };
-  let screenBorderRadius = '0.8rem';
-  let deviceLabel = "Device";
-  let deviceFrameBgColor = '#111'; // Default bezel color for predefined devices
-  let deviceFrameOuterBorderRadius = '1rem';
-  
   const baseElementWidth = element.size.width;
   const baseElementHeight = element.size.height;
 
+  // Default values for predefined devices
+  let deviceNativeAspectRatio = 9 / 16;
+  let framePaddingPercent = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 }; // Default for iPhone-like
+  let screenBorderRadius = 'calc(0.8rem * var(--scale-factor, 1))'; // Scalable radius
+  let deviceFrameOuterBorderRadius = 'calc(1rem * var(--scale-factor, 1))';
+  let deviceLabel = "Device";
+  let deviceFrameBgColor = '#111';
 
   if (element.deviceType !== 'custom') {
     switch (element.deviceType) {
@@ -81,9 +79,9 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         break;
       case 'android-phone':
         deviceNativeAspectRatio = 1080 / 2400;
-        framePaddingPercent = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 };
-        screenBorderRadius = 'calc(0.8rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(1rem * var(--scale-factor, 1))';
+        framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
+        screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
+        deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
         deviceLabel = "Android Phone";
         break;
       case 'tablet':
@@ -95,7 +93,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         break;
       case 'desktop':
         deviceNativeAspectRatio = 16 / 9;
-        framePaddingPercent = { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 }; // More bottom bezel for stand
+        framePaddingPercent = { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 };
         screenBorderRadius = 'calc(0.35rem * var(--scale-factor, 1))';
         deviceFrameOuterBorderRadius = 'calc(0.5rem * var(--scale-factor, 1))';
         deviceFrameBgColor = '#333';
@@ -105,47 +103,44 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   }
 
   const visualFrameStyle: React.CSSProperties = {
-    width: '100%', // Visual frame should attempt to fill the draggable element
+    width: '100%',
     height: '100%',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative', // For positioning screen content within it
+    position: 'relative',
     borderRadius: deviceFrameOuterBorderRadius,
-    backgroundColor: deviceFrameBgColor, 
-    ['--scale-factor' as any]: element.scale || 1, // For calc() in border-radius
+    backgroundColor: deviceFrameBgColor,
+    ['--scale-factor' as any]: element.scale || 1,
   };
 
-  // Adjust visual frame size to maintain native aspect ratio for predefined devices
   if (element.deviceType !== 'custom') {
-    const elementAspectRatio = element.size.width / element.size.height;
-    // If element is wider than native, height is 100%, width adjusts
+    const elementAspectRatio = baseElementWidth / baseElementHeight;
     if (elementAspectRatio > deviceNativeAspectRatio) {
       visualFrameStyle.height = '100%';
       visualFrameStyle.width = `${(baseElementHeight * deviceNativeAspectRatio) / baseElementWidth * 100}%`;
-    } else { // If element is taller (or same), width is 100%, height adjusts
+    } else {
       visualFrameStyle.width = '100%';
       visualFrameStyle.height = `${(baseElementWidth / deviceNativeAspectRatio) / baseElementHeight * 100}%`;
     }
   }
 
-
   const screenStyle: React.CSSProperties = {
-    // Screen dimensions relative to its direct parent (visualFrameStyle div)
     width: `calc(100% - ${framePaddingPercent.left + framePaddingPercent.right}%)`,
     height: `calc(100% - ${framePaddingPercent.top + framePaddingPercent.bottom}%)`,
-    backgroundColor: '#000', // Fallback if screenshot doesn't load
+    backgroundColor: '#000',
     overflow: 'hidden',
-    position: 'relative', // For screenshot image positioning
+    position: 'relative',
     borderRadius: screenBorderRadius,
-    // Margin centers the screen within the visualFrame based on padding percentages
     margin: `${framePaddingPercent.top}% ${framePaddingPercent.right}% ${framePaddingPercent.bottom}% ${framePaddingPercent.left}%`,
   };
 
-  const placeholderText = `Mockup: ${deviceLabel}`;
-
   if (element.deviceType === 'custom') {
+    // Defaults for custom screen clipping if not provided
+    const padding = element.customScreenPadding || { top: 5, right: 5, bottom: 5, left: 5 }; // 5% default padding
+    const radius = element.customScreenBorderRadius || '20px'; // 20px default radius
+
     return (
       <div
         className="w-full h-full flex items-center justify-center bg-transparent group relative"
@@ -153,36 +148,47 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       >
         {customFrame ? (
           <>
-            {/* Screenshot Layer - Rendered first, so it's underneath the frame */}
+            {/* Clipped Screenshot Container */}
             {screenshot && (
-              <Image
-                src={screenshot}
-                alt="Screenshot"
-                layout="fill"
-                objectFit={element.screenshotObjectFit || "contain"}
-                className="transition-opacity duration-300 ease-in-out"
-                onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-                style={{ opacity: 0 }}
-                data-ai-hint="app interface general"
-                draggable={false}
-              />
+              <div
+                className="absolute" // Will be sized by padding below
+                style={{
+                  top: `${padding.top}%`,
+                  right: `${padding.right}%`,
+                  bottom: `${padding.bottom}%`,
+                  left: `${padding.left}%`,
+                  overflow: 'hidden',
+                  borderRadius: radius,
+                }}
+              >
+                <Image
+                  src={screenshot}
+                  alt="Screenshot"
+                  layout="fill" // Fill the padded, rounded container
+                  objectFit={element.screenshotObjectFit || "contain"}
+                  className="transition-opacity duration-300 ease-in-out"
+                  onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+                  style={{ opacity: 0 }}
+                  data-ai-hint="app interface general"
+                  draggable={false}
+                />
+              </div>
             )}
 
-            {/* Custom Mockup Frame Layer - Rendered second, so it's on top */}
-            {/* This image MUST have transparency for the screen area */}
+            {/* Custom Mockup Frame Visual Layer (On Top) */}
+            {/* This image provides the bezels. Its screen area should be transparent. */}
             <Image
               src={customFrame}
               alt="Custom Mockup Frame"
-              layout="fill"
-              objectFit="contain" // The frame image itself should be contained
+              layout="fill" // Fill the entire element bounds
+              objectFit="contain" // The frame visual should also be contained
               className="transition-opacity duration-300 ease-in-out"
               onLoadingComplete={(img) => { img.style.opacity = '1'; }}
               style={{
                 opacity: 0,
-                // This layer should not capture pointer events if a screenshot is also present,
-                // allowing the DraggableElement to handle interactions.
-                // If no screenshot, it can be interactive to show the upload button.
-                pointerEvents: screenshot ? 'none' : 'auto', 
+                position: 'absolute', // Ensure it covers the screenshot container
+                top: 0, left: 0, width: '100%', height: '100%',
+                pointerEvents: 'none', // So it doesn't block interaction with buttons below
               }}
               data-ai-hint="device mockup custom"
               draggable={false}
@@ -196,7 +202,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   size="sm"
                   className="text-xs py-1 px-2 h-auto"
                   onClick={() => triggerFileUpload('screenshot')}
-                  onMouseDown={(e) => e.stopPropagation()} // Prevent drag start on button click
+                  onMouseDown={(e) => e.stopPropagation()} 
                 >
                   <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
                 </Button>
@@ -214,7 +220,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                 size="sm"
                 className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background z-10"
                 onClick={() => triggerFileUpload('customFrame')}
-                onMouseDown={(e) => e.stopPropagation()} // Prevent drag start
+                onMouseDown={(e) => e.stopPropagation()} 
               >
                 Upload Mockup Image
               </Button>
@@ -236,38 +242,36 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   return (
     <div
       className="w-full h-full flex items-center justify-center bg-transparent group"
-      style={{ cursor: 'default', position: 'relative' }} // Ensure parent has context for absolute children
+      style={{ cursor: 'default', position: 'relative' }} 
     >
-      <div style={visualFrameStyle}> {/* This div now correctly scales and maintains aspect ratio */}
-        <div style={screenStyle}> {/* Screen is positioned and sized within visualFrameStyle */}
+      <div style={visualFrameStyle}> 
+        <div style={screenStyle}> 
           {screenshot ? (
             <Image
               src={screenshot}
               alt={`${element.deviceType} screenshot`}
-              layout="fill" // Fill the screenStyle div
-              objectFit={element.screenshotObjectFit || "cover"} // Cover or contain within screenStyle
+              layout="fill" 
+              objectFit={element.screenshotObjectFit || "cover"} 
               style={{
                 cursor: 'default',
-                opacity: 0, // For fade-in effect
+                opacity: 0, 
               }}
               className="transition-opacity duration-300 ease-in-out"
-              onLoadingComplete={(img) => { img.style.opacity = '1'; }} // Fade-in on load
+              onLoadingComplete={(img) => { img.style.opacity = '1'; }} 
               data-ai-hint="app interface mobile"
               draggable={false}
             />
           ) : (
-            // Placeholder for when no screenshot is uploaded
             <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
               <UploadCloudIcon className="w-1/4 h-1/4 opacity-50 mb-2" data-ai-hint="upload cloud arrow"/>
-              <p className="text-xs">{placeholderText}</p>
-              {/* Upload button appears only if the element is selected */}
+              <p className="text-xs">{`Mockup: ${deviceLabel}`}</p>
               {isSelected && (
               <Button
                 variant="outline"
                 size="sm"
                 className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background z-10"
                 onClick={() => triggerFileUpload('screenshot')}
-                onMouseDown={(e) => e.stopPropagation()} // Prevent drag start on button click
+                onMouseDown={(e) => e.stopPropagation()} 
               >
                 Upload Screenshot
               </Button>
@@ -276,7 +280,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
           )}
         </div>
       </div>
-      {/* Hidden file input for image uploads */}
       <Input
         type="file"
         ref={fileInputRef}
