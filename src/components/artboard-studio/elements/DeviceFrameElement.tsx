@@ -38,8 +38,10 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         const newImageSrc = reader.result as string;
         if (uploadTarget === 'customFrame') {
           setCustomFrame(newImageSrc);
-          setScreenshot(undefined); // Reset screenshot if custom frame changes
-          onUpdate({ customFrameSrc: newImageSrc, screenshotSrc: undefined }); 
+          // Optionally reset screenshot if custom frame changes, or keep it.
+          // For now, let's keep it, user can change screenshot separately.
+          // setScreenshot(undefined); 
+          onUpdate({ customFrameSrc: newImageSrc }); 
         } else if (uploadTarget === 'screenshot') {
           setScreenshot(newImageSrc);
           onUpdate({ screenshotSrc: newImageSrc });
@@ -130,12 +132,13 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   const screenStyle: React.CSSProperties = {
     width: `calc(100% - ${framePaddingPercent.left + framePaddingPercent.right}%)`,
     height: `calc(100% - ${framePaddingPercent.top + framePaddingPercent.bottom}%)`,
-    backgroundColor: '#000',
+    backgroundColor: '#000', // Fallback if screenshot doesn't load
     overflow: 'hidden',
     position: 'relative',
     borderRadius: screenBorderRadius,
     margin: `${framePaddingPercent.top}% ${framePaddingPercent.right}% ${framePaddingPercent.bottom}% ${framePaddingPercent.left}%`,
   };
+
 
   if (element.deviceType === 'custom') {
     return (
@@ -143,84 +146,78 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         className="w-full h-full flex items-center justify-center bg-transparent group relative"
         style={{ cursor: 'default' }}
       >
-        {customFrame ? (
-          <>
-            {/* Screenshot, masked by customFrame */}
-            {screenshot && (
-              <Image
-                src={screenshot}
-                alt="Screenshot"
-                layout="fill"
-                objectFit={element.screenshotObjectFit || "contain"}
-                className="transition-opacity duration-300 ease-in-out"
-                style={{
-                  opacity: 0,
-                  position: 'absolute', // Critical for layout="fill"
-                  maskImage: `url(${customFrame})`,
-                  WebkitMaskImage: `url(${customFrame})`,
-                  maskSize: 'contain',
-                  WebkitMaskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskRepeat: 'no-repeat',
-                  maskPosition: 'center',
-                  WebkitMaskPosition: 'center',
-                }}
-                onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-                data-ai-hint="app interface general"
-                draggable={false}
-              />
-            )}
-
-            {/* Custom Mockup Frame Visual Layer (On Top, provides bezels, screen area should be transparent) */}
-            <Image
-              src={customFrame}
-              alt="Custom Mockup Frame"
-              layout="fill"
-              objectFit="contain" 
-              className="transition-opacity duration-300 ease-in-out"
-              style={{
-                opacity: 0,
-                position: 'absolute', // Ensures it overlays correctly
-                pointerEvents: 'none', // So it doesn't block interaction with buttons below
-              }}
-              onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-              data-ai-hint="device mockup custom"
-              draggable={false}
-            />
-            
-            {/* Screenshot Upload Button (appears if no screenshot, overlays the custom frame) */}
-            {!screenshot && isSelected && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors z-10">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="text-xs py-1 px-2 h-auto"
-                  onClick={() => triggerFileUpload('screenshot')}
-                  onMouseDown={(e) => e.stopPropagation()} 
-                >
-                  <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
-                </Button>
-              </div>
-            )}
-          </>
-        ) : (
-          // Initial state: "Upload Mockup Image" button
-          <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-4">
-            <ImagePlusIcon className="w-1/3 h-1/3 opacity-50 mb-3" data-ai-hint="upload image plus" />
-            <p className="text-sm mb-3 text-center">Custom Mockup Area</p>
-            {isSelected && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background z-10"
-                onClick={() => triggerFileUpload('customFrame')}
-                onMouseDown={(e) => e.stopPropagation()} 
-              >
-                Upload Mockup Image
-              </Button>
-            )}
-          </div>
+        {/* Screenshot Layer (Behind) */}
+        {screenshot && (
+          <Image
+            src={screenshot}
+            alt="Screenshot"
+            layout="fill"
+            objectFit={element.screenshotObjectFit || "contain"}
+            className="transition-opacity duration-300 ease-in-out"
+            style={{
+              opacity: 0,
+              position: 'absolute',
+              zIndex: 1, 
+            }}
+            onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+            data-ai-hint="app interface general"
+            draggable={false}
+          />
         )}
+
+        {/* Custom Mockup Frame Visual Layer (On Top) */}
+        {customFrame && (
+          <Image
+            src={customFrame}
+            alt="Custom Mockup Frame"
+            layout="fill"
+            objectFit="contain" 
+            className="transition-opacity duration-300 ease-in-out"
+            style={{
+              opacity: 0,
+              position: 'absolute', 
+              zIndex: 2, 
+              pointerEvents: 'none', 
+            }}
+            onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+            data-ai-hint="device mockup custom"
+            draggable={false}
+          />
+        )}
+        
+        {/* Upload Buttons Layer (Highest z-index) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
+          {!customFrame && isSelected && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
+              onClick={() => triggerFileUpload('customFrame')}
+              onMouseDown={(e) => e.stopPropagation()} 
+            >
+              <ImagePlusIcon className="w-4 h-4 mr-1.5" /> Upload Mockup Image
+            </Button>
+          )}
+          {customFrame && !screenshot && isSelected && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background" // Ensuring button is visible
+              onClick={() => triggerFileUpload('screenshot')}
+              onMouseDown={(e) => e.stopPropagation()} 
+            >
+              <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
+            </Button>
+          )}
+           {/* Placeholder if no custom frame and not selected */}
+          {!customFrame && !isSelected && (
+             <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-4 pointer-events-none">
+                <ImagePlusIcon className="w-1/3 h-1/3 opacity-50 mb-3" data-ai-hint="upload image plus" />
+                <p className="text-sm mb-3 text-center">Custom Mockup Area</p>
+            </div>
+          )}
+        </div>
+
         <Input
           type="file"
           ref={fileInputRef}
@@ -263,7 +260,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background z-10"
+                className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
+                style={{zIndex: 10}}
                 onClick={() => triggerFileUpload('screenshot')}
                 onMouseDown={(e) => e.stopPropagation()} 
               >
