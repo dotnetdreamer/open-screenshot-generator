@@ -113,7 +113,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         if (subType === 'custom') {
           deviceElement.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };
         } else {
-          deviceElement.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
+           deviceElement.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
         }
         newElementToAdd = deviceElement as ArtboardElement;
       }
@@ -188,6 +188,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       />
       <div
         ref={artboardDivRef}
+        data-artboard-dom-id={artboard.id} // Added for html2canvas selection
         className={cn(
           "artboard relative shadow-lg overflow-hidden bg-card",
           isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"

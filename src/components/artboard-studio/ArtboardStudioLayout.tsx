@@ -1,6 +1,7 @@
 
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import html2canvas from 'html2canvas'; // Import html2canvas
 import {
   SidebarProvider,
   Sidebar,
@@ -32,7 +33,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { ExportDialog } from '@/components/artboard-studio/ExportDialog';
+import { ExportDialog } from './ExportDialog'; 
 
 const sampleTemplates: Template[] = [
   {
@@ -125,7 +126,8 @@ export function ArtboardStudioLayout() {
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [exportConfig, setExportConfig] = useState<{ store: TargetStore | null; deviceTypes: ExportDeviceCategory[] }>({ store: null, deviceTypes: [] });
+  // exportConfig state is not strictly needed if not used beyond the dialog confirmation
+  // const [exportConfig, setExportConfig] = useState<{ store: TargetStore | null; deviceTypes: ExportDeviceCategory[] }>({ store: null, deviceTypes: [] });
 
 
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
@@ -156,7 +158,7 @@ export function ArtboardStudioLayout() {
         }
     }
     pushToHistory(repositionedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard]);
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, history, historyIndex]); // Added history and historyIndex to deps
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -322,10 +324,12 @@ export function ArtboardStudioLayout() {
        const processedElements = baseElements.map((el: ArtboardElement) => {
          if (el.type === 'device') {
            const deviceEl = el as DeviceFrameElementProps;
-           if (!deviceEl.screenshotRect && deviceEl.deviceType !== 'custom') { 
-             deviceEl.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
-           } else if (!deviceEl.screenshotRect && deviceEl.deviceType === 'custom') {
-             deviceEl.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };
+           if (!deviceEl.screenshotRect) { 
+            if (deviceEl.deviceType === 'custom') {
+              deviceEl.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };
+            } else {
+              deviceEl.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
+            }
            }
          }
          return el;
@@ -352,51 +356,67 @@ export function ArtboardStudioLayout() {
     toast({ title: "Template Loaded", description: `Template "${template.name}" applied.` });
   };
 
-  const handleConfirmExport = (store: TargetStore, deviceTypes: ExportDeviceCategory[]) => {
-    // This is where the actual image generation, resizing, and zipping would happen.
-    // For now, we'll simulate a download of a text file with the configuration.
-
-    console.log("Exporting for:", store, "Device types:", deviceTypes, "Artboards:", artboards);
-
-    // 1. Placeholder: Iterate through artboards and selected device types
-    //    In a real implementation, for each combination, you would:
-    //    a. Get the artboard's DOM element (or a representation of it).
-    //    b. Use a library like html2canvas to capture it as an image.
-    //    c. Resize the image based on store guidelines for the specific deviceType.
-    //    d. Add the processed image (e.g., as a Blob) to a JSZip instance.
-    
-    let reportContent = `Export Configuration:\n\nTarget Store: ${store}\nSelected Device Types: ${deviceTypes.join(', ')}\n\nArtboards to Process (${artboards.length}):\n`;
-    
-    artboards.forEach(artboard => {
-      reportContent += `\nArtboard: ${artboard.name} (ID: ${artboard.id}, Size: ${artboard.size.width}x${artboard.size.height})\n`;
-      deviceTypes.forEach(deviceType => {
-        // Placeholder for specific image generation and naming
-        reportContent += `  - Would generate image for ${deviceType} (e.g., ${artboard.name.replace(/\s+/g, '_')}_${deviceType}.png)\n`;
-        // Here you would call functions to get image data and add to zip.
-        // e.g., const imageData = await generateImageForArtboard(artboard, deviceType, storeGuidelines);
-        //       zip.file(`${artboard.name}_${deviceType}.png`, imageData);
-      });
-    });
-
-    reportContent += "\n\nActual image processing and zipping require further implementation using libraries like html2canvas for rendering and JSZip for creating the zip archive.";
-
-    // 2. Simulate Zipping and Download with a text file
-    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `artboard_export_${store}_${new Date().toISOString().slice(0,10)}.txt`; // Simulating a zip filename with .txt
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
+  const handleConfirmExport = async (store: TargetStore, deviceTypes: ExportDeviceCategory[]) => {
     toast({
       title: "Export Process Initiated",
-      description: `A configuration summary has been downloaded. Full image export and zipping require dedicated libraries.`,
+      description: `Generating images... This might take a moment.`,
       variant: "default",
-      duration: 5000,
     });
+  
+    for (const artboard of artboards) {
+      // Find the DOM element for the artboard content
+      const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
+  
+      if (!artboardElement) {
+        console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
+        toast({
+          title: "Export Warning",
+          description: `Could not find artboard '${artboard.name}' to export.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+  
+      try {
+        // Use html2canvas to capture the artboard
+        const canvas = await html2canvas(artboardElement, {
+          allowTaint: true, // Allows cross-origin images if server headers permit
+          useCORS: true,    // Attempts to load cross-origin images via CORS
+          scale: 2,         // Increase scale for better quality (e.g., 2x resolution)
+          backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor, // Ensure background is captured, defaults to white if card color
+          logging: true,    // Enable logging for debugging
+          // Note: html2canvas captures the current scaled version from the DOM.
+          // For true "export at original size", you'd ideally render the artboard off-screen at 100% zoom.
+        });
+        
+        const imageDataUrl = canvas.toDataURL('image/png');
+  
+        // Create a link to download the image
+        const link = document.createElement('a');
+        link.href = imageDataUrl;
+        // Create a filename (can be more sophisticated later)
+        const filename = `${artboard.name.replace(/\s+/g, '_')}_${store}_${deviceTypes.join('-')}.png`;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        // No need to revoke object URL for data URLs
+  
+        toast({
+          title: "Artboard Exported",
+          description: `"${artboard.name}" has been downloaded.`,
+          variant: "default",
+        });
+  
+      } catch (error) {
+        console.error("Error exporting artboard:", artboard.name, error);
+        toast({
+          title: "Export Error",
+          description: `Failed to export artboard "${artboard.name}". See console for details.`,
+          variant: "destructive",
+        });
+      }
+    }
     setIsExportDialogOpen(false);
   };
 
@@ -468,13 +488,13 @@ export function ArtboardStudioLayout() {
 
         if (elementIndex === -1) return ab;
 
-        if (direction === 'up') {
+        if (direction === 'up') { // Move towards end of array (visually front)
           if (elementIndex < elements.length - 1) {
             const temp = elements[elementIndex];
             elements[elementIndex] = elements[elementIndex + 1];
             elements[elementIndex + 1] = temp;
           }
-        } else { // 'down'
+        } else { // 'down' (Move towards start of array (visually back))
           if (elementIndex > 0) {
             const temp = elements[elementIndex];
             elements[elementIndex] = elements[elementIndex - 1];
@@ -485,7 +505,7 @@ export function ArtboardStudioLayout() {
       }
       return ab;
     });
-    handleArtboardsUpdate(updatedArtboards);
+    handleArtboardsUpdate(updatedArtboards); // Use handleArtboardsUpdate to ensure history and positioning
   };
 
 
@@ -645,5 +665,4 @@ export function ArtboardStudioLayout() {
     </SidebarProvider>
   );
 }
-
 
