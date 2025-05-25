@@ -42,8 +42,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
           img.onload = () => {
              onUpdate({ 
                 customFrameSrc: newImageSrc, 
-                screenshotSrc: undefined, 
-                screenshotRect: undefined,
+                screenshotSrc: undefined, // Reset screenshot if frame changes
+                screenshotRect: undefined, // Reset rect if frame changes
                 naturalScreenshotWidth: undefined,
                 naturalScreenshotHeight: undefined,
              });
@@ -56,38 +56,16 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             const naturalWidth = img.naturalWidth;
             const naturalHeight = img.naturalHeight;
             
-            const deviceElementWidth = element.size.width;
-            const deviceElementHeight = element.size.height;
-
-            let ssWidth, ssHeight, ssLeft, ssTop;
-
-            // Default to 90% of device width, centered, maintain aspect ratio
-            const targetContainerWidth = deviceElementWidth * 0.9; 
-            const targetContainerHeight = deviceElementHeight * 0.9;
-
-            const imageAspectRatio = naturalWidth / naturalHeight;
-            const containerAspectRatio = targetContainerWidth / targetContainerHeight;
-
-            if (imageAspectRatio > containerAspectRatio) { // Image is wider
-                ssWidth = targetContainerWidth;
-                ssHeight = targetContainerWidth / imageAspectRatio;
-            } else { // Image is taller or same aspect
-                ssHeight = targetContainerHeight;
-                ssWidth = targetContainerHeight * imageAspectRatio;
-            }
-            
-            ssLeft = (deviceElementWidth - ssWidth) / 2;
-            ssTop = (deviceElementHeight - ssHeight) / 2;
-
+            // Default screenshotRect to 90% width/height, centered
             onUpdate({ 
                 screenshotSrc: newImageSrc,
                 naturalScreenshotWidth: naturalWidth,
                 naturalScreenshotHeight: naturalHeight,
-                screenshotRect: {
-                    left: `${ssLeft}px`,
-                    top: `${ssTop}px`,
-                    width: `${ssWidth}px`,
-                    height: `${ssHeight}px`,
+                screenshotRect: { // Default to 90% centered
+                    left: 5, // 5% from left
+                    top: 5,  // 5% from top
+                    width: 90, // 90% width
+                    height: 90 // 90% height
                 }
             });
           };
@@ -131,7 +109,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         break;
       case 'android-bar':
         deviceNativeAspectRatio = 1080 / 2340;
-        framePaddingPercent = { top: 6, right: 3, bottom: 3, left: 3 }; // Increased top padding for bar
+        framePaddingPercent = { top: 6, right: 3, bottom: 3, left: 3 }; 
         screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
         deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
         deviceLabel = "Android (Bar)";
@@ -196,8 +174,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   }
 
   const visualFrameStyle: React.CSSProperties = {
-    width: '100%', // Will be scaled by DraggableElement's container
-    height: '100%', // Will be scaled by DraggableElement's container
+    width: '100%', 
+    height: '100%', 
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
     justifyContent: 'center',
@@ -205,11 +183,11 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     position: 'relative', 
     borderRadius: deviceFrameOuterBorderRadius,
     backgroundColor: deviceFrameBgColor,
-    ['--scale-factor' as any]: element.scale || 1, // For CSS var usage if needed
-    overflow: 'visible', // Ensure children like notch aren't clipped by this frame
+    ['--scale-factor' as any]: element.scale || 1, 
+    overflow: 'visible', 
   };
 
-  // Adjust visualFrameStyle aspect ratio for predefined devices
+  
   if (element.deviceType !== 'custom') {
     const elementAspectRatio = baseElementWidth / baseElementHeight;
     if (elementAspectRatio > deviceNativeAspectRatio) { 
@@ -234,24 +212,28 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
 
 
   if (element.deviceType === 'custom') {
+    const screenshotWrapperStyle: React.CSSProperties = {
+        position: 'absolute',
+        overflow: 'hidden',
+        zIndex: 1, // Screenshot behind custom frame visual
+    };
+    if (element.screenshotRect) {
+        screenshotWrapperStyle.left = `${element.screenshotRect.left}%`;
+        screenshotWrapperStyle.top = `${element.screenshotRect.top}%`;
+        screenshotWrapperStyle.width = `${element.screenshotRect.width}%`;
+        screenshotWrapperStyle.height = `${element.screenshotRect.height}%`;
+    } else { // Default if no rect (e.g. before screenshot upload)
+        screenshotWrapperStyle.inset = '0'; // Fills the container
+    }
+
      return (
       <div
         className="w-full h-full flex items-center justify-center bg-transparent group relative"
         style={{ cursor: 'default' }}
       >
         {/* Screenshot Layer (Behind or Masked) */}
-        {element.screenshotSrc && element.screenshotRect && (
-          <div 
-            style={{
-              position: 'absolute',
-              left: element.screenshotRect.left,
-              top: element.screenshotRect.top,
-              width: element.screenshotRect.width,
-              height: element.screenshotRect.height,
-              overflow: 'hidden',
-              zIndex: 1, // Screenshot behind custom frame
-            }}
-          >
+        {element.screenshotSrc && (
+          <div style={screenshotWrapperStyle}>
             <Image
               src={element.screenshotSrc}
               alt="Screenshot"
@@ -307,10 +289,13 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
             </Button>
           )}
-          {!customFrame && !isSelected && (
+           {/* Display if no custom frame and not selected, or if frame exists but no screenshot and not selected */}
+          {((!customFrame && !isSelected) || (customFrame && !element.screenshotSrc && !isSelected)) && (
              <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-4 pointer-events-none">
                 <ImagePlusIcon className="w-1/3 h-1/3 opacity-50 mb-3" data-ai-hint="upload image plus" />
-                <p className="text-sm mb-3 text-center">Custom Mockup Area</p>
+                <p className="text-sm mb-3 text-center">
+                    {!customFrame ? "Custom Mockup Area" : "Upload Screenshot"}
+                </p>
             </div>
           )}
         </div>

@@ -50,10 +50,10 @@ export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
-  screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits, defaults to 'contain'
+  screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits
   customFrameSrc?: string; // URL or base64 for user-uploaded mockup
-  // For custom mockups, to define the screenshot's viewport
-  screenshotRect?: { left: string; top: string; width: string; height: string };
+  // For custom mockups, to define the screenshot's viewport using percentages (0-100)
+  screenshotRect?: { left: number; top: number; width: number; height: number }; 
   naturalScreenshotWidth?: number;
   naturalScreenshotHeight?: number;
 }

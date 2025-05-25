@@ -22,10 +22,23 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
   const [uploadPurpose, setUploadPurpose] = useState<'customFrame' | 'screenshot' | null>(null);
 
+  // Local state for screenshotRect sliders to provide immediate feedback
+  const [screenshotLeft, setScreenshotLeft] = useState(5);
+  const [screenshotTop, setScreenshotTop] = useState(5);
+  const [screenshotWidth, setScreenshotWidth] = useState(90);
+  const [screenshotHeight, setScreenshotHeight] = useState(90);
+
 
   useEffect(() => {
     if (selectedElement?.type === 'text') {
       setLocalContent((selectedElement as TextElementProps).content);
+    }
+    if (selectedElement?.type === 'device' && (selectedElement as DeviceFrameElementProps).screenshotRect) {
+        const rect = (selectedElement as DeviceFrameElementProps).screenshotRect;
+        setScreenshotLeft(rect?.left || 5);
+        setScreenshotTop(rect?.top || 5);
+        setScreenshotWidth(rect?.width || 90);
+        setScreenshotHeight(rect?.height || 90);
     }
   }, [selectedElement]);
 
@@ -62,6 +75,22 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
      if (hiddenFileInputRef.current) {
         hiddenFileInputRef.current.value = ""; // Allow re-uploading same file
     }
+  };
+  
+  const handleScreenshotRectChange = (type: 'left' | 'top' | 'width' | 'height', value: number) => {
+    const newRect = {
+        left: type === 'left' ? value : screenshotLeft,
+        top: type === 'top' ? value : screenshotTop,
+        width: type === 'width' ? value : screenshotWidth,
+        height: type === 'height' ? value : screenshotHeight,
+    };
+    // Update local state for immediate slider feedback
+    if (type === 'left') setScreenshotLeft(value);
+    if (type === 'top') setScreenshotTop(value);
+    if (type === 'width') setScreenshotWidth(value);
+    if (type === 'height') setScreenshotHeight(value);
+
+    onUpdateElement({ screenshotRect: newRect });
   };
 
 
@@ -231,6 +260,26 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
           className="my-2"
         />
       </div>
+      {element.deviceType === 'custom' && element.screenshotSrc && (
+        <>
+            <div className="flex flex-col space-y-1 min-w-[120px]">
+                <Label htmlFor="ssLeft" className="text-xs">Screenshot Left: {screenshotLeft}%</Label>
+                <Slider id="ssLeft" min={-50} max={150} step={0.5} value={[screenshotLeft]} onValueChange={(val) => handleScreenshotRectChange('left', val[0])} />
+            </div>
+            <div className="flex flex-col space-y-1 min-w-[120px]">
+                <Label htmlFor="ssTop" className="text-xs">Screenshot Top: {screenshotTop}%</Label>
+                <Slider id="ssTop" min={-50} max={150} step={0.5} value={[screenshotTop]} onValueChange={(val) => handleScreenshotRectChange('top', val[0])} />
+            </div>
+            <div className="flex flex-col space-y-1 min-w-[120px]">
+                <Label htmlFor="ssWidth" className="text-xs">Screenshot Width: {screenshotWidth}%</Label>
+                <Slider id="ssWidth" min={10} max={200} step={0.5} value={[screenshotWidth]} onValueChange={(val) => handleScreenshotRectChange('width', val[0])} />
+            </div>
+            <div className="flex flex-col space-y-1 min-w-[120px]">
+                <Label htmlFor="ssHeight" className="text-xs">Screenshot Height: {screenshotHeight}%</Label>
+                <Slider id="ssHeight" min={10} max={200} step={0.5} value={[screenshotHeight]} onValueChange={(val) => handleScreenshotRectChange('height', val[0])} />
+            </div>
+        </>
+      )}
       <Input 
         type="file" 
         ref={hiddenFileInputRef} 

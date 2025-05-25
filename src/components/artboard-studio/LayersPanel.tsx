@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ArtboardElement } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LayersPanelProps {
   elements: ArtboardElement[];
   selectedElementId: string | null;
   onSelectElement: (elementId: string) => void;
+  onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   activeArtboardName?: string;
 }
 
@@ -50,7 +51,7 @@ const getElementLabel = (element: ArtboardElement): string => {
     return label;
 };
 
-export function LayersPanel({ elements, selectedElementId, onSelectElement, activeArtboardName }: LayersPanelProps) {
+export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, activeArtboardName }: LayersPanelProps) {
   if (!activeArtboardName) {
     return (
       <Card className="shadow-md mt-4">
@@ -64,6 +65,8 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, acti
     );
   }
 
+  const reversedElements = [...elements].reverse(); // Display top-most element at the top of the list
+
   return (
     <Card className="shadow-md mt-4">
       <CardHeader className="p-3">
@@ -73,28 +76,50 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, acti
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-[200px] max-h-[calc(100vh_-_550px)]"> {/* Adjusted max-height */}
-          {elements.length === 0 ? (
+          {reversedElements.length === 0 ? (
             <div className="p-3 text-sm text-muted-foreground">No elements on this artboard.</div>
           ) : (
             <div className="p-2 space-y-1">
-              {[...elements].reverse().map((element) => (
-                <Button
+              {reversedElements.map((element, index) => (
+                <div
                   key={element.id}
-                  variant="ghost"
                   className={cn(
-                    "w-full justify-start p-2 h-auto text-left text-sm items-center", // Changed text-xs to text-sm
+                    "flex items-center w-full justify-start p-1 rounded-md text-sm", 
                     element.id === selectedElementId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
                   )}
-                  onClick={() => onSelectElement(element.id)}
-                  title={`Select ${getElementLabel(element)}`}
                 >
-                  {getElementIcon(element)}
-                  <span className="truncate flex-grow">{getElementLabel(element)}</span>
-                  {/* Visibility toggle - Placeholder for future */}
-                  {/* <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto p-0 shrink-0 opacity-50 hover:opacity-100">
-                    <EyeIcon className="w-4 h-4" />
-                  </Button> */}
-                </Button>
+                  <Button
+                    variant="ghost"
+                    className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0"
+                    onClick={() => onSelectElement(element.id)}
+                    title={`Select ${getElementLabel(element)}`}
+                  >
+                    {getElementIcon(element)}
+                    <span className="truncate flex-grow ml-1">{getElementLabel(element)}</span>
+                  </Button>
+                  <div className="flex-shrink-0 ml-auto space-x-0.5">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 p-0" 
+                      title="Move layer up"
+                      onClick={() => onMoveElementLayer(element.id, 'up')}
+                      disabled={index === 0} // Cannot move top-most element further up
+                    >
+                      <ArrowUpIcon className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 p-0"
+                      title="Move layer down"
+                      onClick={() => onMoveElementLayer(element.id, 'down')}
+                      disabled={index === reversedElements.length - 1} // Cannot move bottom-most element further down
+                    >
+                      <ArrowDownIcon className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
               ))}
             </div>
           )}

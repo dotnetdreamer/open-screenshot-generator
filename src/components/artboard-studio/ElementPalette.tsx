@@ -13,6 +13,7 @@ interface ElementPaletteProps {
   activeArtboardElements: ArtboardElement[];
   selectedElementIdOnActiveArtboard: string | null;
   onSelectElementInLayerPanel: (elementId: string) => void;
+  onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   activeArtboardName?: string;
 }
 
@@ -41,6 +42,7 @@ export function ElementPalette({
   activeArtboardElements,
   selectedElementIdOnActiveArtboard,
   onSelectElementInLayerPanel,
+  onMoveElementLayer,
   activeArtboardName 
 }: ElementPaletteProps) {
   const handleDragStart = (e: React.DragEvent<HTMLDivElement> | null, type: ElementType, subType?: ShapeType | DeviceType) => {
@@ -91,6 +93,7 @@ export function ElementPalette({
           elements={activeArtboardElements}
           selectedElementId={selectedElementIdOnActiveArtboard}
           onSelectElement={onSelectElementInLayerPanel}
+          onMoveElementLayer={onMoveElementLayer}
           activeArtboardName={activeArtboardName}
         />
       </div>

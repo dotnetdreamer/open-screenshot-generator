@@ -76,8 +76,8 @@ const sampleTemplates: Template[] = [
     previewImage: 'https://placehold.co/300x200/D4AF37/333333?text=App',
     dataAiHint: 'app store mobile',
     artboards: [
-      { id: 'artboard_app_1', name: 'iPhone Screen 1', size: { width: 390, height: 844 }, backgroundColor: 'hsl(var(--card))', zoom:1, position: {x:50, y:50}, elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as ArtboardElement] },
-      { id: 'artboard_app_2', name: 'iPhone Screen 2', size: { width: 390, height: 844 }, backgroundColor: 'hsl(var(--card))', zoom:1, position: {x:490, y:50}, elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as ArtboardElement] },
+      { id: 'artboard_app_1', name: 'iPhone Screen 1', size: { width: 390, height: 844 }, backgroundColor: 'hsl(var(--card))', zoom:1, position: {x:50, y:50}, elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: {left:5, top:5, width:90, height:90}} as ArtboardElement] },
+      { id: 'artboard_app_2', name: 'iPhone Screen 2', size: { width: 390, height: 844 }, backgroundColor: 'hsl(var(--card))', zoom:1, position: {x:490, y:50}, elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: {left:5, top:5, width:90, height:90}} as ArtboardElement] },
     ],
   }
 ];
@@ -168,7 +168,7 @@ export function ArtboardStudioLayout() {
     } else {
       toast({ title: "Error", description: "Could not add element. Artboard not found or not active.", variant: "destructive" });
     }
-  }, [toast, handleArtboardsUpdate]);
+  }, [toast]); // Removed handleArtboardsUpdate from deps as it's stable via useCallback
 
 
   const handleNewArtboard = () => {
@@ -298,24 +298,39 @@ export function ArtboardStudioLayout() {
   
   const handleSelectElementFromLayerPanel = (elementId: string) => {
     setSelectedElementIdOnActiveArtboard(elementId);
+    // Do NOT bring to front automatically from layer panel selection to avoid "jumping"
+  };
 
-    if (activeArtboardId) {
-      const updatedArtboards = artboards.map(ab => {
-        if (ab.id === activeArtboardId) {
-          const elementToMove = ab.elements.find(el => el.id === elementId);
-          if (elementToMove) {
-            const otherElements = ab.elements.filter(el => el.id !== elementId);
-            return {
-              ...ab,
-              elements: [...otherElements, elementToMove] // Move to end (top of render stack)
-            };
+  const handleMoveElementLayer = (elementId: string, direction: 'up' | 'down') => {
+    if (!activeArtboardId) return;
+
+    const updatedArtboards = artboards.map(ab => {
+      if (ab.id === activeArtboardId) {
+        const elements = [...ab.elements];
+        const elementIndex = elements.findIndex(el => el.id === elementId);
+
+        if (elementIndex === -1) return ab; // Element not found
+
+        if (direction === 'up') { // Move towards end of array (rendered on top)
+          if (elementIndex < elements.length - 1) {
+            const temp = elements[elementIndex];
+            elements[elementIndex] = elements[elementIndex + 1];
+            elements[elementIndex + 1] = temp;
+          }
+        } else { // Move towards start of array (rendered underneath)
+          if (elementIndex > 0) {
+            const temp = elements[elementIndex];
+            elements[elementIndex] = elements[elementIndex - 1];
+            elements[elementIndex - 1] = temp;
           }
         }
-        return ab;
-      });
-      handleArtboardsUpdate(updatedArtboards);
-    }
+        return { ...ab, elements };
+      }
+      return ab;
+    });
+    handleArtboardsUpdate(updatedArtboards);
   };
+
 
   const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
@@ -398,6 +413,7 @@ export function ArtboardStudioLayout() {
             activeArtboardElements={activeArtboardElements}
             selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
             onSelectElementInLayerPanel={handleSelectElementFromLayerPanel}
+            onMoveElementLayer={handleMoveElementLayer}
             activeArtboardName={activeArtboardName}
           />
         </SidebarContent>
