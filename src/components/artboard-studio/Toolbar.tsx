@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { PlusSquareIcon, LayoutTemplateIcon, DownloadIcon, ZoomInIcon, ZoomOutIcon, HandIcon, MousePointerIcon, UndoIcon, RedoIcon, Trash2Icon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ToolbarProps {
   onNewArtboard: () => void;
@@ -18,7 +19,10 @@ interface ToolbarProps {
   onRedo: () => void;
   onDeleteSelected?: () => void;
   isElementSelected?: boolean;
-  isArtboardSelected?: boolean; // Added to enable delete button for artboards too
+  isArtboardSelected?: boolean; 
+  activeTool: 'select' | 'pan';
+  onSetActiveTool: (tool: 'select' | 'pan') => void;
+  className?: string;
 }
 
 export function Toolbar({
@@ -34,11 +38,14 @@ export function Toolbar({
   onRedo,
   onDeleteSelected,
   isElementSelected,
-  isArtboardSelected
+  isArtboardSelected,
+  activeTool,
+  onSetActiveTool,
+  className,
 }: ToolbarProps) {
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2 sticky top-0 z-40">
+      <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2", className)}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={onNewArtboard}>
@@ -65,7 +72,11 @@ export function Toolbar({
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-primary"> 
+            <Button 
+              variant={activeTool === 'select' ? 'secondary' : 'ghost'} 
+              size="icon" 
+              onClick={() => onSetActiveTool('select')}
+            > 
               <MousePointerIcon className="w-5 h-5" />
             </Button>
           </TooltipTrigger>
@@ -75,7 +86,11 @@ export function Toolbar({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button 
+              variant={activeTool === 'pan' ? 'secondary' : 'ghost'} 
+              size="icon" 
+              onClick={() => onSetActiveTool('pan')}
+            >
               <HandIcon className="w-5 h-5" />
             </Button>
           </TooltipTrigger>

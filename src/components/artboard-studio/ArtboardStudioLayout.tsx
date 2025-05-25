@@ -76,23 +76,23 @@ const sampleTemplates: Template[] = [
     previewImage: 'https://placehold.co/300x200/D4AF37/333333?text=App',
     dataAiHint: 'app store mobile',
     artboards: [
-      { 
-        id: 'artboard_app_1', 
-        name: 'iPhone Screen 1', 
-        size: { width: 390, height: 844 }, 
-        backgroundColor: 'hsl(var(--card))', 
-        zoom:1, 
-        position: {x:50, y:50}, 
-        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as DeviceFrameElementProps] 
+      {
+        id: 'artboard_app_1',
+        name: 'iPhone Screen 1',
+        size: { width: 390, height: 844 },
+        backgroundColor: 'hsl(var(--card))',
+        zoom:1,
+        position: {x:50, y:50},
+        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: { left: 0, top: 0, width: 100, height: 100 }} as DeviceFrameElementProps]
       },
-      { 
-        id: 'artboard_app_2', 
-        name: 'iPhone Screen 2', 
-        size: { width: 390, height: 844 }, 
-        backgroundColor: 'hsl(var(--card))', 
-        zoom:1, 
-        position: {x:490, y:50}, 
-        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as DeviceFrameElementProps] 
+      {
+        id: 'artboard_app_2',
+        name: 'iPhone Screen 2',
+        size: { width: 390, height: 844 },
+        backgroundColor: 'hsl(var(--card))',
+        zoom:1,
+        position: {x:490, y:50},
+        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: { left: 0, top: 0, width: 100, height: 100 }} as DeviceFrameElementProps]
       },
     ],
   }
@@ -121,6 +121,7 @@ export function ArtboardStudioLayout() {
   const artboardRefs = useRef<Record<string, any>>({});
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
+  const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
 
 
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
@@ -151,7 +152,7 @@ export function ArtboardStudioLayout() {
         }
     }
     pushToHistory(repositionedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard]); // Removed history and historyIndex from deps
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard]);
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -200,11 +201,16 @@ export function ArtboardStudioLayout() {
   }, [toast]);
 
   const handleNewArtboardFromMainToolbar = () => {
+    const defaultSize = { width: 1024, height: 768 };
+    const newSize = artboards.length > 0 && artboards[artboards.length - 1] 
+                    ? artboards[artboards.length - 1].size 
+                    : defaultSize;
+
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
       name: `Artboard ${artboards.length + 1}`,
       position: { x: 0, y: 0 }, 
-      size: { width: 1024, height: 768 },
+      size: newSize,
       elements: [],
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
@@ -217,11 +223,15 @@ export function ArtboardStudioLayout() {
   };
 
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
+    const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
+    const defaultSize = { width: 1024, height: 768 };
+    const newSize = currentArtboard ? currentArtboard.size : defaultSize;
+    
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
       name: `Artboard ${artboards.length + 1}`,
       position: { x: 0, y: 0 }, 
-      size: { width: 1024, height: 768 },
+      size: newSize,
       elements: [],
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
@@ -542,6 +552,8 @@ export function ArtboardStudioLayout() {
           onDeleteSelected={handleDeleteSelected}
           isElementSelected={!!selectedElementIdOnActiveArtboard}
           isArtboardSelected={!!activeArtboardId}
+          activeTool={activeTool}
+          onSetActiveTool={setActiveTool}
           className="sticky top-0 z-50 bg-card border-b"
         />
         <PropertiesPanel
@@ -564,6 +576,7 @@ export function ArtboardStudioLayout() {
             onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
             onDeleteArtboardFromToolbar={handleDeleteArtboard}
             onMoveArtboardFromToolbar={handleMoveArtboard}
+            activeTool={activeTool}
           />
         </div>
       </SidebarInset>

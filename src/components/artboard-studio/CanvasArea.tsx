@@ -17,11 +17,11 @@ interface CanvasAreaProps {
   setSelectedElementIdOnActiveArtboard: (elementId: string | null) => void;
   canvasZoom: number;
   artboardRefs: React.MutableRefObject<Record<string, any>>;
-  // Props for ArtboardToolbar actions
   onAddNewArtboardFromToolbar: (currentArtboardId: string) => void;
   onDuplicateArtboardFromToolbar: (artboardId: string) => void;
   onDeleteArtboardFromToolbar: (artboardId: string) => void;
   onMoveArtboardFromToolbar: (artboardId: string, direction: 'left' | 'right') => void;
+  activeTool: 'select' | 'pan';
 }
 
 const initialArtboardState: ArtboardState = {
@@ -73,10 +73,16 @@ export function CanvasArea({
     onDuplicateArtboardFromToolbar,
     onDeleteArtboardFromToolbar,
     onMoveArtboardFromToolbar,
+    activeTool,
 }: CanvasAreaProps) {
   const [artboards, setArtboards] = useState<ArtboardState[]>(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const [isPanning, setIsPanning] = useState(false);
+  const panStartCoords = useRef<{ x: number, y: number, scrollLeft: number, scrollTop: number } | null>(null);
+
 
   useEffect(() => {
     setArtboards(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
@@ -102,12 +108,58 @@ export function CanvasArea({
     setActiveArtboardId(artboardId);
   };
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === canvasRef.current) {
-      setActiveArtboardId(null);
-      setSelectedElementIdOnActiveArtboard(null);
+  const handleMouseDownOnContentArea = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (activeTool === 'pan') {
+      if (e.target === contentAreaRef.current && scrollViewportRef.current) {
+        e.preventDefault();
+        setIsPanning(true);
+        panStartCoords.current = {
+            x: e.clientX,
+            y: e.clientY,
+            scrollLeft: scrollViewportRef.current.scrollLeft,
+            scrollTop: scrollViewportRef.current.scrollTop,
+        };
+        if (contentAreaRef.current) contentAreaRef.current.style.cursor = 'grabbing';
+      }
+    } else if (activeTool === 'select') {
+      // Only deselect if the click is on the direct background of the content area
+      if (e.target === contentAreaRef.current) { 
+        setActiveArtboardId(null);
+        setSelectedElementIdOnActiveArtboard(null);
+      }
     }
   };
+
+  useEffect(() => {
+    const scrollViewport = scrollViewportRef.current;
+    const contentArea = contentAreaRef.current;
+
+    const handleMouseMove = (e: MouseEvent) => {
+        if (!isPanning || !panStartCoords.current || !scrollViewport) return;
+        const dx = e.clientX - panStartCoords.current.x;
+        const dy = e.clientY - panStartCoords.current.y;
+        scrollViewport.scrollLeft = panStartCoords.current.scrollLeft - dx;
+        scrollViewport.scrollTop = panStartCoords.current.scrollTop - dy;
+    };
+
+    const handleMouseUp = () => {
+        setIsPanning(false);
+        if (contentArea) {
+            contentArea.style.cursor = activeTool === 'pan' ? 'grab' : 'default';
+        }
+        panStartCoords.current = null;
+    };
+
+    if (isPanning) {
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+        };
+    }
+  }, [isPanning, activeTool]);
+
 
   const handleDropOnCanvas = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -131,16 +183,24 @@ export function CanvasArea({
     e.preventDefault(); 
   };
 
+  const getCursorStyle = () => {
+    if (activeTool === 'pan') {
+      return isPanning ? 'grabbing' : 'grab';
+    }
+    return 'default';
+  }
+
   return (
-    <ScrollArea className="h-full w-full bg-background flex-grow" viewportRef={canvasRef}>
+    <ScrollArea className="h-full w-full bg-background flex-grow" viewportRef={scrollViewportRef}>
       <div
-        ref={canvasRef}
+        ref={contentAreaRef}
         className="relative w-max min-w-full min-h-full p-12" 
         style={{ 
           transform: `scale(${canvasZoom})`, 
           transformOrigin: 'top left',
+          cursor: getCursorStyle(),
         }}
-        onClick={handleCanvasClick}
+        onMouseDown={handleMouseDownOnContentArea}
         onDrop={handleDropOnCanvas}
         onDragOver={handleDragOverCanvas}
       >
@@ -163,7 +223,6 @@ export function CanvasArea({
               globalZoom={canvasZoom}
               selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
               setSelectedElementId={setSelectedElementIdOnActiveArtboard}
-              // Toolbar props
               onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
               onDuplicateArtboard={onDuplicateArtboardFromToolbar}
               onDeleteArtboard={onDeleteArtboardFromToolbar}
@@ -178,3 +237,4 @@ export function CanvasArea({
     </ScrollArea>
   );
 }
+
