@@ -110,8 +110,10 @@ export function CanvasArea({
 
   const handleMouseDownOnContentArea = (e: React.MouseEvent<HTMLDivElement>) => {
     if (activeTool === 'pan') {
-      if (e.target === contentAreaRef.current && scrollViewportRef.current) {
-        e.preventDefault();
+      // If pan tool is active, initiate panning regardless of the exact target within contentArea,
+      // as long as the scroll viewport exists.
+      if (scrollViewportRef.current) {
+        e.preventDefault(); // Prevent default actions like text selection or artboard interaction
         setIsPanning(true);
         panStartCoords.current = {
             x: e.clientX,
@@ -136,13 +138,15 @@ export function CanvasArea({
 
     const handleMouseMove = (e: MouseEvent) => {
         if (!isPanning || !panStartCoords.current || !scrollViewport) return;
+        e.preventDefault(); // Prevent other interactions during pan
         const dx = e.clientX - panStartCoords.current.x;
         const dy = e.clientY - panStartCoords.current.y;
         scrollViewport.scrollLeft = panStartCoords.current.scrollLeft - dx;
         scrollViewport.scrollTop = panStartCoords.current.scrollTop - dy;
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+        if (!isPanning) return;
         setIsPanning(false);
         if (contentArea) {
             contentArea.style.cursor = activeTool === 'pan' ? 'grab' : 'default';
@@ -211,6 +215,9 @@ export function CanvasArea({
               position: 'absolute', 
               left: `${artboard.position.x}px`,
               top: `${artboard.position.y}px`,
+              // When pan tool is active, prevent pointer events on individual artboards
+              // to ensure the pan gesture on contentAreaRef is captured.
+              pointerEvents: activeTool === 'pan' && isPanning ? 'none' : 'auto',
             }}
           >
             <Artboard
