@@ -37,13 +37,13 @@ export interface ShapeElementProps extends BaseElement {
   strokeWidth: number;
 }
 
-export type DeviceType = 
-  | 'iphone' 
-  | 'android-punch-hole' 
-  | 'android-notch' 
-  | 'android-bar' 
-  | 'tablet' 
-  | 'desktop' 
+export type DeviceType =
+  | 'iphone'
+  | 'android-punch-hole'
+  | 'android-notch'
+  | 'android-bar'
+  | 'tablet'
+  | 'desktop'
   | 'custom';
 
 export interface DeviceFrameElementProps extends BaseElement {
@@ -51,9 +51,10 @@ export interface DeviceFrameElementProps extends BaseElement {
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
   screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits
-  customFrameSrc?: string; // URL or base64 for user-uploaded mockup
-  // For custom mockups, to define the screenshot's viewport using percentages (0-100)
-  screenshotRect?: { left: number; top: number; width: number; height: number }; 
+  customFrameSrc?: string; // URL or base64 for user-uploaded mockup for 'custom' type
+  // For ALL device types, to define the screenshot's viewport using percentages (0-100)
+  // relative to the device's screen area (for predefined) or element bounds (for custom with mask)
+  screenshotRect?: { left: number; top: number; width: number; height: number };
   naturalScreenshotWidth?: number;
   naturalScreenshotHeight?: number;
 }
@@ -78,5 +79,3 @@ export interface Template {
   dataAiHint?: string; // for placeholder images
   artboards: Partial<ArtboardState>[];
 }
-
-    

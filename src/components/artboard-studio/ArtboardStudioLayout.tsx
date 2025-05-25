@@ -123,7 +123,7 @@ export function ArtboardStudioLayout() {
         }
     }
     pushToHistory(updatedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard]);
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, history, historyIndex]); // Added history & historyIndex to deps
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -308,15 +308,15 @@ export function ArtboardStudioLayout() {
         const elements = [...ab.elements];
         const elementIndex = elements.findIndex(el => el.id === elementId);
 
-        if (elementIndex === -1) return ab; // Element not found
+        if (elementIndex === -1) return ab;
 
-        if (direction === 'up') { // Move towards end of array (rendered on top)
+        if (direction === 'up') {
           if (elementIndex < elements.length - 1) {
             const temp = elements[elementIndex];
             elements[elementIndex] = elements[elementIndex + 1];
             elements[elementIndex + 1] = temp;
           }
-        } else { // Move towards start of array (rendered underneath)
+        } else {
           if (elementIndex > 0) {
             const temp = elements[elementIndex];
             elements[elementIndex] = elements[elementIndex - 1];
@@ -451,17 +451,14 @@ export function ArtboardStudioLayout() {
           onDeleteSelected={handleDeleteSelectedElement}
           isElementSelected={!!selectedElementIdOnActiveArtboard}
           isArtboardSelected={!!activeArtboardId}
-          className="sticky top-0 z-50 bg-card"
+          className="sticky top-0 z-50 bg-card border-b"
         />
         <PropertiesPanel
             selectedElement={selectedElementDetails}
             onUpdateElement={handleUpdateSelectedElement}
-            // className="sticky top-14 z-40 bg-card" // h-14 for toolbar
+            // className="sticky top-14 z-40 bg-card border-b" // Toolbar is h-14 (56px)
         />
-        {/* The PropertiesPanel itself has border-b. If we make it sticky, it needs a background. */}
-        {/* For sticky behavior, it needs to be a direct child of a scrollable container or have sticky on its own scroll container. */}
-        {/* Alternative: PropertiesPanel is part of the normal flow, and CanvasArea's ScrollArea adapts. */}
-        <div className="flex-grow relative overflow-hidden"> {/* This container allows CanvasArea to fill remaining space */}
+        <div className="flex-grow relative overflow-hidden">
           <CanvasArea
             artboards={artboards}
             onUpdateArtboards={handleArtboardsUpdate}

@@ -22,7 +22,6 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
   const [uploadPurpose, setUploadPurpose] = useState<'customFrame' | 'screenshot' | null>(null);
 
-  // Local state for screenshotRect sliders to provide immediate feedback
   const [screenshotLeft, setScreenshotLeft] = useState(5);
   const [screenshotTop, setScreenshotTop] = useState(5);
   const [screenshotWidth, setScreenshotWidth] = useState(90);
@@ -35,14 +34,17 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
     }
     if (selectedElement?.type === 'device') {
       const deviceElement = selectedElement as DeviceFrameElementProps;
-      if (deviceElement.screenshotRect && deviceElement.deviceType === 'custom') { // Ensure rect exists for custom devices
+      if (deviceElement.screenshotRect) { // Applies to all device types if rect exists
         setScreenshotLeft(deviceElement.screenshotRect.left);
         setScreenshotTop(deviceElement.screenshotRect.top);
         setScreenshotWidth(deviceElement.screenshotRect.width);
         setScreenshotHeight(deviceElement.screenshotRect.height);
       } else {
-        // Optionally reset if not a custom device with a rect, or if rect is removed
-        // For now, retain previous values if not applicable, they won't be shown
+        // Default values if no rect (e.g. before screenshot upload)
+        setScreenshotLeft(5);
+        setScreenshotTop(5);
+        setScreenshotWidth(90);
+        setScreenshotHeight(90);
       }
     }
   }, [selectedElement]);
@@ -68,45 +70,37 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
-        if (uploadPurpose === 'customFrame') {
-          onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined, screenshotRect: undefined }); // Reset screenshot if frame changes
+        if (uploadPurpose === 'customFrame' && selectedElement?.deviceType === 'custom') {
+          onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined, screenshotRect: undefined, naturalScreenshotHeight: undefined, naturalScreenshotWidth: undefined });
         } else if (uploadPurpose === 'screenshot') {
-           const img = new window.Image();
-            img.onload = () => {
-                onUpdateElement({ 
-                    screenshotSrc: dataUrl,
-                    naturalScreenshotWidth: img.naturalWidth,
-                    naturalScreenshotHeight: img.naturalHeight,
-                    screenshotRect: { left: 5, top: 5, width: 90, height: 90 } // Default rect
-                });
-            };
-            img.src = dataUrl;
+          const img = new window.Image();
+          img.onload = () => {
+            onUpdateElement({
+              screenshotSrc: dataUrl,
+              naturalScreenshotWidth: img.naturalWidth,
+              naturalScreenshotHeight: img.naturalHeight,
+              screenshotRect: { left: 5, top: 5, width: 90, height: 90 } // Default rect for all
+            });
+          };
+          img.src = dataUrl;
         }
         setUploadPurpose(null);
       };
       reader.readAsDataURL(file);
     }
-     if (hiddenFileInputRef.current) {
-        hiddenFileInputRef.current.value = ""; // Allow re-uploading same file
+    if (hiddenFileInputRef.current) {
+      hiddenFileInputRef.current.value = "";
     }
   };
-  
-  const handleScreenshotRectChange = (type: 'left' | 'top' | 'width' | 'height', value: number) => {
-    // Ensure current values for other properties are used
-    const currentRect = (selectedElement as DeviceFrameElementProps)?.screenshotRect || { left: 5, top: 5, width: 90, height: 90};
-    
-    const newRect = {
-        left: type === 'left' ? value : currentRect.left,
-        top: type === 'top' ? value : currentRect.top,
-        width: type === 'width' ? value : currentRect.width,
-        height: type === 'height' ? value : currentRect.height,
-    };
 
-    // Update local state for immediate slider feedback
-    if (type === 'left') setScreenshotLeft(value);
-    if (type === 'top') setScreenshotTop(value);
-    if (type === 'width') setScreenshotWidth(value);
-    if (type === 'height') setScreenshotHeight(value);
+  const handleScreenshotRectChange = (type: 'left' | 'top' | 'width' | 'height', value: number) => {
+    const currentRect = (selectedElement as DeviceFrameElementProps)?.screenshotRect || { left: 5, top: 5, width: 90, height: 90 };
+    const newRect = { ...currentRect };
+
+    if (type === 'left') { setScreenshotLeft(value); newRect.left = value; }
+    if (type === 'top') { setScreenshotTop(value); newRect.top = value; }
+    if (type === 'width') { setScreenshotWidth(value); newRect.width = value; }
+    if (type === 'height') { setScreenshotHeight(value); newRect.height = value; }
 
     onUpdateElement({ screenshotRect: newRect });
   };
@@ -114,7 +108,7 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
 
   if (!selectedElement) {
     return (
-      <div className="h-14 bg-card border-b shadow-sm flex items-center px-4 text-sm text-muted-foreground">
+      <div className="h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 text-sm text-muted-foreground min-h-[56px]"> {/* Ensure min height */}
         No element selected. Select an element to see its properties.
       </div>
     );
@@ -205,50 +199,25 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
   const renderDeviceProperties = (element: DeviceFrameElementProps) => (
     <>
       {element.deviceType === 'custom' && (
-        <div className="flex items-end space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleImageUploadButtonClick('customFrame')}
-            className="text-xs h-8"
-          >
-            <UploadCloudIcon className="w-3 h-3 mr-1.5" /> 
-            {element.customFrameSrc ? 'Change Mockup' : 'Upload Mockup'}
-          </Button>
-          {element.customFrameSrc && (
-             <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleImageUploadButtonClick('screenshot')}
-                className="text-xs h-8"
-            >
-                <UploadCloudIcon className="w-3 h-3 mr-1.5" /> 
-                {element.screenshotSrc ? 'Change Screenshot' : 'Upload Screenshot'}
-            </Button>
-          )}
-        </div>
-      )}
-       {element.deviceType !== 'custom' && !element.screenshotSrc && (
-         <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleImageUploadButtonClick('screenshot')}
-            className="text-xs h-8"
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleImageUploadButtonClick('customFrame')}
+          className="text-xs h-8"
         >
-            <UploadCloudIcon className="w-3 h-3 mr-1.5" /> Upload Screenshot
+          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+          {element.customFrameSrc ? 'Change Mockup' : 'Upload Mockup'}
         </Button>
       )}
-       {element.deviceType !== 'custom' && element.screenshotSrc && (
-         <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleImageUploadButtonClick('screenshot')}
-            className="text-xs h-8"
-        >
-            <UploadCloudIcon className="w-3 h-3 mr-1.5" /> Change Screenshot
-        </Button>
-      )}
-
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleImageUploadButtonClick('screenshot')}
+        className="text-xs h-8"
+      >
+        <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+        {element.screenshotSrc ? 'Change Screenshot' : 'Upload Screenshot'}
+      </Button>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="deviceScale" className="text-xs">
@@ -256,9 +225,9 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
         </Label>
         <Slider
           id="deviceScale"
-          min={10} 
-          max={500} 
-          step={1} 
+          min={10}
+          max={500}
+          step={1}
           value={[(element.scale || 1) * 100]}
           onValueChange={(value) => onUpdateElement({ scale: value[0] / 100 })}
           className="my-2"
@@ -278,30 +247,31 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
           className="my-2"
         />
       </div>
-      {element.deviceType === 'custom' && element.screenshotSrc && element.screenshotRect && (
+      {/* Screenshot adjustment sliders for ALL device types if screenshotSrc and screenshotRect exist */}
+      {element.screenshotSrc && element.screenshotRect && (
         <>
-            <div className="flex flex-col space-y-1 min-w-[120px]">
-                <Label htmlFor="ssLeft" className="text-xs">Screenshot Left: {screenshotLeft}%</Label>
-                <Slider id="ssLeft" min={-50} max={150} step={0.5} value={[screenshotLeft]} onValueChange={(val) => handleScreenshotRectChange('left', val[0])} />
-            </div>
-            <div className="flex flex-col space-y-1 min-w-[120px]">
-                <Label htmlFor="ssTop" className="text-xs">Screenshot Top: {screenshotTop}%</Label>
-                <Slider id="ssTop" min={-50} max={150} step={0.5} value={[screenshotTop]} onValueChange={(val) => handleScreenshotRectChange('top', val[0])} />
-            </div>
-            <div className="flex flex-col space-y-1 min-w-[120px]">
-                <Label htmlFor="ssWidth" className="text-xs">Screenshot Width: {screenshotWidth}%</Label>
-                <Slider id="ssWidth" min={10} max={200} step={0.5} value={[screenshotWidth]} onValueChange={(val) => handleScreenshotRectChange('width', val[0])} />
-            </div>
-            <div className="flex flex-col space-y-1 min-w-[120px]">
-                <Label htmlFor="ssHeight" className="text-xs">Screenshot Height: {screenshotHeight}%</Label>
-                <Slider id="ssHeight" min={10} max={200} step={0.5} value={[screenshotHeight]} onValueChange={(val) => handleScreenshotRectChange('height', val[0])} />
-            </div>
+          <div className="flex flex-col space-y-1 min-w-[120px]">
+            <Label htmlFor="ssLeft" className="text-xs">Screenshot Left: {screenshotLeft}%</Label>
+            <Slider id="ssLeft" min={-50} max={150} step={0.5} value={[screenshotLeft]} onValueChange={(val) => handleScreenshotRectChange('left', val[0])} />
+          </div>
+          <div className="flex flex-col space-y-1 min-w-[120px]">
+            <Label htmlFor="ssTop" className="text-xs">Screenshot Top: {screenshotTop}%</Label>
+            <Slider id="ssTop" min={-50} max={150} step={0.5} value={[screenshotTop]} onValueChange={(val) => handleScreenshotRectChange('top', val[0])} />
+          </div>
+          <div className="flex flex-col space-y-1 min-w-[120px]">
+            <Label htmlFor="ssWidth" className="text-xs">Screenshot Width: {screenshotWidth}%</Label>
+            <Slider id="ssWidth" min={10} max={200} step={0.5} value={[screenshotWidth]} onValueChange={(val) => handleScreenshotRectChange('width', val[0])} />
+          </div>
+          <div className="flex flex-col space-y-1 min-w-[120px]">
+            <Label htmlFor="ssHeight" className="text-xs">Screenshot Height: {screenshotHeight}%</Label>
+            <Slider id="ssHeight" min={10} max={200} step={0.5} value={[screenshotHeight]} onValueChange={(val) => handleScreenshotRectChange('height', val[0])} />
+          </div>
         </>
       )}
-      <Input 
-        type="file" 
-        ref={hiddenFileInputRef} 
-        onChange={handleFileSelected} 
+      <Input
+        type="file"
+        ref={hiddenFileInputRef}
+        onChange={handleFileSelected}
         className="hidden"
         accept="image/*"
       />
@@ -309,8 +279,12 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
   );
 
   return (
-    <div className="h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 space-x-4 text-sm flex-wrap gap-y-2">
-      <span className="font-semibold capitalize text-muted-foreground">{selectedElement.type}{selectedElement.type === 'device' ? ` (${selectedElement.deviceType})`: ''} Properties:</span>
+    <div className="h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]"> {/* Ensure min height */}
+      <span className="font-semibold capitalize text-muted-foreground">
+        {selectedElement.type}
+        {selectedElement.type === 'device' ? ` (${selectedElement.deviceType})` : ''}
+        {' '}Properties:
+      </span>
       {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
       {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
       {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
