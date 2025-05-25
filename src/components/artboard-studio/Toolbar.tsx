@@ -16,8 +16,9 @@ interface ToolbarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
-  onDeleteSelected?: () => void; // Optional: only if an element is selected
+  onDeleteSelected?: () => void;
   isElementSelected?: boolean;
+  isArtboardSelected?: boolean; // Added to enable delete button for artboards too
 }
 
 export function Toolbar({
@@ -32,7 +33,8 @@ export function Toolbar({
   onUndo,
   onRedo,
   onDeleteSelected,
-  isElementSelected
+  isElementSelected,
+  isArtboardSelected
 }: ToolbarProps) {
   return (
     <TooltipProvider delayDuration={200}>
@@ -61,10 +63,9 @@ export function Toolbar({
 
         <Separator orientation="vertical" className="h-6" />
 
-        {/* Placeholder for tool selection (Select, Hand) */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-primary"> {/* Example active tool */}
+            <Button variant="ghost" size="icon" className="text-primary"> 
               <MousePointerIcon className="w-5 h-5" />
             </Button>
           </TooltipTrigger>
@@ -79,7 +80,7 @@ export function Toolbar({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Hand Tool (H)</p>
+            <p>Pan Tool (H)</p>
           </TooltipContent>
         </Tooltip>
         
@@ -106,17 +107,17 @@ export function Toolbar({
           </TooltipContent>
         </Tooltip>
 
-        {isElementSelected && onDeleteSelected && (
+        {(isElementSelected || isArtboardSelected) && onDeleteSelected && (
           <>
             <Separator orientation="vertical" className="h-6" />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onDeleteSelected} className="text-destructive hover:text-destructive">
+                <Button variant="ghost" size="icon" onClick={onDeleteSelected} className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90">
                   <Trash2Icon className="w-5 h-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Delete Selected (Del)</p>
+                <p>Delete Selected (Del/Backspace)</p>
               </TooltipContent>
             </Tooltip>
           </>
@@ -136,7 +137,7 @@ export function Toolbar({
           </TooltipContent>
         </Tooltip>
         
-        <Button variant="ghost" className="w-20 tabular-nums" onClick={() => {/* reset zoom potentially */}}>
+        <Button variant="ghost" className="w-20 tabular-nums" onClick={() => {/* TODO: reset zoom potentially */}}>
           {Math.round(currentZoom * 100)}%
         </Button>
 
@@ -168,3 +169,4 @@ export function Toolbar({
     </TooltipProvider>
   );
 }
+
