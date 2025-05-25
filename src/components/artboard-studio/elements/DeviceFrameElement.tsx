@@ -38,13 +38,48 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         const newImageSrc = reader.result as string;
         if (uploadTarget === 'customFrame') {
           setCustomFrame(newImageSrc);
-          // Optionally reset screenshot if custom frame changes, or keep it.
-          // For now, let's keep it, user can change screenshot separately.
-          // setScreenshot(undefined); 
-          onUpdate({ customFrameSrc: newImageSrc }); 
+          onUpdate({ customFrameSrc: newImageSrc, screenshotRect: undefined, naturalScreenshotHeight: undefined, naturalScreenshotWidth: undefined }); 
         } else if (uploadTarget === 'screenshot') {
           setScreenshot(newImageSrc);
-          onUpdate({ screenshotSrc: newImageSrc });
+          const img = new window.Image();
+          img.onload = () => {
+            const naturalWidth = img.naturalWidth;
+            const naturalHeight = img.naturalHeight;
+            const elementAspectRatio = element.size.width / element.size.height;
+            const imageAspectRatio = naturalWidth / naturalHeight;
+            
+            let ssWidth, ssHeight, ssLeft, ssTop;
+
+            // Calculate initial fit, similar to 'contain' but using percentages/pixels relative to element size
+            // This is a simplified fit.
+            let containerWidth = element.size.width * 0.9; // Default to 90% of element width
+            let containerHeight = element.size.height * 0.9; // Default to 90% of element height
+
+            if (imageAspectRatio > (containerWidth / containerHeight)) { // Image is wider than container
+                ssWidth = containerWidth;
+                ssHeight = containerWidth / imageAspectRatio;
+            } else { // Image is taller or same aspect ratio
+                ssHeight = containerHeight;
+                ssWidth = containerHeight * imageAspectRatio;
+            }
+            
+            ssLeft = (element.size.width - ssWidth) / 2;
+            ssTop = (element.size.height - ssHeight) / 2;
+
+            onUpdate({ 
+                screenshotSrc: newImageSrc,
+                naturalScreenshotWidth: naturalWidth,
+                naturalScreenshotHeight: naturalHeight,
+                screenshotRect: {
+                    left: `${ssLeft}px`,
+                    top: `${ssTop}px`,
+                    width: `${ssWidth}px`,
+                    height: `${ssHeight}px`,
+                }
+            });
+
+          };
+          img.src = newImageSrc;
         }
         setUploadTarget(null); 
       };
@@ -69,7 +104,9 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   let screenBorderRadius = 'calc(0.8rem * var(--scale-factor, 1))'; // Scalable radius
   let deviceFrameOuterBorderRadius = 'calc(1rem * var(--scale-factor, 1))';
   let deviceLabel = "Device";
-  let deviceFrameBgColor = '#111';
+  let deviceFrameBgColor = '#111'; // Default bezel color for predefined
+  let notchElement: React.ReactNode = null;
+
 
   if (element.deviceType !== 'custom') {
     switch (element.deviceType) {
@@ -80,12 +117,55 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         deviceFrameOuterBorderRadius = 'calc(1rem * var(--scale-factor, 1))';
         deviceLabel = "iPhone";
         break;
-      case 'android-phone':
+      case 'android-bar':
+        deviceNativeAspectRatio = 1080 / 2340;
+        framePaddingPercent = { top: 6, right: 3, bottom: 3, left: 3 }; // Increased top padding for bar
+        screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
+        deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
+        deviceLabel = "Android (Bar)";
+        break;
+      case 'android-notch':
+        deviceNativeAspectRatio = 1080 / 2340;
+        framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
+        screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
+        deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
+        deviceLabel = "Android (Notch)";
+        notchElement = (
+          <div style={{
+            position: 'absolute',
+            top: `${framePaddingPercent.top * 0.5}%`, // Position within the top padding area
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '25%', // Example width
+            height: `${baseElementHeight * 0.03}px`, // Example height, relative to element
+            minHeight: '15px',
+            maxHeight: '25px',
+            backgroundColor: deviceFrameBgColor,
+            borderBottomLeftRadius: '8px',
+            borderBottomRightRadius: '8px',
+            zIndex: 3, // Above screenshot but below potential frame overlay
+          }} />
+        );
+        break;
+      case 'android-punch-hole':
         deviceNativeAspectRatio = 1080 / 2400;
         framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
         screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
         deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
-        deviceLabel = "Android Phone";
+        deviceLabel = "Android (Punch Hole)";
+        notchElement = (
+          <div style={{
+            position: 'absolute',
+            top: `${framePaddingPercent.top * 1.2}%`, // Position within the top padding area
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: `${Math.max(10, baseElementHeight * 0.015)}px`, // Example size, relative
+            height: `${Math.max(10, baseElementHeight * 0.015)}px`,
+            backgroundColor: deviceFrameBgColor,
+            borderRadius: '50%',
+            zIndex: 3,
+          }} />
+        );
         break;
       case 'tablet':
         deviceNativeAspectRatio = 768 / 1024;
@@ -96,7 +176,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         break;
       case 'desktop':
         deviceNativeAspectRatio = 16 / 9;
-        framePaddingPercent = { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 };
+        framePaddingPercent = { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 }; // More bottom padding for stand illusion
         screenBorderRadius = 'calc(0.35rem * var(--scale-factor, 1))';
         deviceFrameOuterBorderRadius = 'calc(0.5rem * var(--scale-factor, 1))';
         deviceFrameBgColor = '#333';
@@ -104,6 +184,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         break;
     }
   }
+
 
   const visualFrameStyle: React.CSSProperties = {
     width: '100%',
@@ -118,18 +199,20 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     ['--scale-factor' as any]: element.scale || 1,
   };
 
+  // Adjust dimensions to maintain native aspect ratio for predefined devices
   if (element.deviceType !== 'custom') {
     const elementAspectRatio = baseElementWidth / baseElementHeight;
-    if (elementAspectRatio > deviceNativeAspectRatio) {
+    if (elementAspectRatio > deviceNativeAspectRatio) { // Element is wider than native
       visualFrameStyle.height = '100%';
       visualFrameStyle.width = `${(baseElementHeight * deviceNativeAspectRatio) / baseElementWidth * 100}%`;
-    } else {
+    } else { // Element is taller or same aspect ratio as native
       visualFrameStyle.width = '100%';
       visualFrameStyle.height = `${(baseElementWidth / deviceNativeAspectRatio) / baseElementHeight * 100}%`;
     }
   }
-
-  const screenStyle: React.CSSProperties = {
+  
+  // Screen style for predefined devices
+  const screenStyle: React.CSSProperties = element.deviceType !== 'custom' ? {
     width: `calc(100% - ${framePaddingPercent.left + framePaddingPercent.right}%)`,
     height: `calc(100% - ${framePaddingPercent.top + framePaddingPercent.bottom}%)`,
     backgroundColor: '#000', // Fallback if screenshot doesn't load
@@ -137,7 +220,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     position: 'relative',
     borderRadius: screenBorderRadius,
     margin: `${framePaddingPercent.top}% ${framePaddingPercent.right}% ${framePaddingPercent.bottom}% ${framePaddingPercent.left}%`,
-  };
+    zIndex: 1,
+  } : {};
 
 
   if (element.deviceType === 'custom') {
@@ -146,43 +230,48 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         className="w-full h-full flex items-center justify-center bg-transparent group relative"
         style={{ cursor: 'default' }}
       >
-        {/* Screenshot Layer (Behind) */}
-        {screenshot && (
-          <Image
-            src={screenshot}
-            alt="Screenshot"
-            layout="fill"
-            objectFit={element.screenshotObjectFit || "contain"}
-            className="transition-opacity duration-300 ease-in-out"
+        {/* Screenshot Layer (Behind or Masked) */}
+        {element.screenshotRect && screenshot && (
+          <div
             style={{
-              opacity: 0,
               position: 'absolute',
-              zIndex: 1, 
+              left: element.screenshotRect.left,
+              top: element.screenshotRect.top,
+              width: element.screenshotRect.width,
+              height: element.screenshotRect.height,
+              overflow: 'hidden',
+              zIndex: 1,
             }}
-            onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-            data-ai-hint="app interface general"
-            draggable={false}
-          />
+          >
+            <Image
+              src={screenshot}
+              alt="Screenshot"
+              layout="fill"
+              objectFit={element.screenshotObjectFit || "contain"}
+              className="transition-opacity duration-300 ease-in-out"
+              style={{ opacity: 0 }}
+              onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+              data-ai-hint="app interface general"
+              draggable={false}
+            />
+          </div>
         )}
 
         {/* Custom Mockup Frame Visual Layer (On Top) */}
         {customFrame && (
-          <Image
-            src={customFrame}
-            alt="Custom Mockup Frame"
-            layout="fill"
-            objectFit="contain" 
-            className="transition-opacity duration-300 ease-in-out"
-            style={{
-              opacity: 0,
-              position: 'absolute', 
-              zIndex: 2, 
-              pointerEvents: 'none', 
-            }}
-            onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-            data-ai-hint="device mockup custom"
-            draggable={false}
-          />
+          <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none'}}>
+            <Image
+              src={customFrame}
+              alt="Custom Mockup Frame"
+              layout="fill"
+              objectFit="contain" 
+              className="transition-opacity duration-300 ease-in-out"
+              style={{ opacity: 0 }}
+              onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+              data-ai-hint="device mockup custom"
+              draggable={false}
+            />
+          </div>
         )}
         
         {/* Upload Buttons Layer (Highest z-index) */}
@@ -202,7 +291,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             <Button
               variant="secondary"
               size="sm"
-              className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background" // Ensuring button is visible
+              className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
               onClick={() => triggerFileUpload('screenshot')}
               onMouseDown={(e) => e.stopPropagation()} 
             >
@@ -236,6 +325,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       style={{ cursor: 'default', position: 'relative' }} 
     >
       <div style={visualFrameStyle}> 
+        {notchElement}
         <div style={screenStyle}> 
           {screenshot ? (
             <Image
@@ -261,7 +351,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                 variant="outline"
                 size="sm"
                 className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
-                style={{zIndex: 10}}
+                style={{zIndex: 10}} // Ensure button is clickable
                 onClick={() => triggerFileUpload('screenshot')}
                 onMouseDown={(e) => e.stopPropagation()} 
               >
@@ -282,4 +372,3 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     </div>
   );
 }
-

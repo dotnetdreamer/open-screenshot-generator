@@ -37,13 +37,25 @@ export interface ShapeElementProps extends BaseElement {
   strokeWidth: number;
 }
 
-export type DeviceType = 'iphone' | 'android-phone' | 'tablet' | 'desktop' | 'custom';
+export type DeviceType = 
+  | 'iphone' 
+  | 'android-punch-hole' 
+  | 'android-notch' 
+  | 'android-bar' 
+  | 'tablet' 
+  | 'desktop' 
+  | 'custom';
+
 export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
   screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits, defaults to 'contain'
   customFrameSrc?: string; // URL or base64 for user-uploaded mockup
+  // For custom mockups, to define the screenshot's viewport
+  screenshotRect?: { left: string; top: string; width: string; height: string };
+  naturalScreenshotWidth?: number;
+  naturalScreenshotHeight?: number;
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;
