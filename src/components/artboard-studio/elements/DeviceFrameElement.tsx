@@ -38,24 +38,32 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         const newImageSrc = reader.result as string;
         if (uploadTarget === 'customFrame') {
           setCustomFrame(newImageSrc);
-          onUpdate({ customFrameSrc: newImageSrc, screenshotRect: undefined, naturalScreenshotHeight: undefined, naturalScreenshotWidth: undefined }); 
+          onUpdate({ 
+            customFrameSrc: newImageSrc, 
+            screenshotSrc: undefined, // Reset screenshot when custom frame changes
+            screenshotRect: undefined, 
+            naturalScreenshotHeight: undefined, 
+            naturalScreenshotWidth: undefined 
+          }); 
         } else if (uploadTarget === 'screenshot') {
           setScreenshot(newImageSrc);
           const img = new window.Image();
           img.onload = () => {
             const naturalWidth = img.naturalWidth;
             const naturalHeight = img.naturalHeight;
-            const elementAspectRatio = element.size.width / element.size.height;
-            const imageAspectRatio = naturalWidth / naturalHeight;
             
+            // Default fitting logic (e.g., 90% width, centered, maintain aspect ratio)
+            // This can be refined based on the mockup's transparent area if we can detect it,
+            // or provide manual adjustment tools.
+            const elementRect = element.size; // Assuming this is the custom mockup's display size
             let ssWidth, ssHeight, ssLeft, ssTop;
 
-            // Calculate initial fit, similar to 'contain' but using percentages/pixels relative to element size
-            // This is a simplified fit.
-            let containerWidth = element.size.width * 0.9; // Default to 90% of element width
-            let containerHeight = element.size.height * 0.9; // Default to 90% of element height
+            const containerWidth = elementRect.width * 0.9; // Example: 90% of device element width
+            const containerHeight = elementRect.height * 0.9; // Example: 90% of device element height
+            const imageAspectRatio = naturalWidth / naturalHeight;
+            const containerAspectRatio = containerWidth / containerHeight;
 
-            if (imageAspectRatio > (containerWidth / containerHeight)) { // Image is wider than container
+            if (imageAspectRatio > containerAspectRatio) { // Image is wider than container
                 ssWidth = containerWidth;
                 ssHeight = containerWidth / imageAspectRatio;
             } else { // Image is taller or same aspect ratio
@@ -63,8 +71,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                 ssWidth = containerHeight * imageAspectRatio;
             }
             
-            ssLeft = (element.size.width - ssWidth) / 2;
-            ssTop = (element.size.height - ssHeight) / 2;
+            ssLeft = (elementRect.width - ssWidth) / 2;
+            ssTop = (elementRect.height - ssHeight) / 2;
 
             onUpdate({ 
                 screenshotSrc: newImageSrc,
@@ -77,7 +85,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                     height: `${ssHeight}px`,
                 }
             });
-
           };
           img.src = newImageSrc;
         }
@@ -133,17 +140,15 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.5}%`, // Position within the top padding area
+            top: `${framePaddingPercent.top * 0.5}%`, 
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '25%', // Example width
-            height: `${baseElementHeight * 0.03}px`, // Example height, relative to element
-            minHeight: '15px',
-            maxHeight: '25px',
+            width: '25%', 
+            height: `${Math.max(15, baseElementHeight * 0.03)}px`, // Use baseElementHeight for unscaled design, then scales with parent
             backgroundColor: deviceFrameBgColor,
-            borderBottomLeftRadius: '8px',
+            borderBottomLeftRadius: '8px', // These pixel values will scale with the element
             borderBottomRightRadius: '8px',
-            zIndex: 3, // Above screenshot but below potential frame overlay
+            zIndex: 3, 
           }} />
         );
         break;
@@ -156,11 +161,11 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 1.2}%`, // Position within the top padding area
+            top: `${framePaddingPercent.top * 1.2}%`, 
             left: '50%',
             transform: 'translateX(-50%)',
-            width: `${Math.max(10, baseElementHeight * 0.015)}px`, // Example size, relative
-            height: `${Math.max(10, baseElementHeight * 0.015)}px`,
+            width: `${Math.max(10, baseElementHeight * 0.018)}px`, // Scaled with parent
+            height: `${Math.max(10, baseElementHeight * 0.018)}px`, // Scaled with parent
             backgroundColor: deviceFrameBgColor,
             borderRadius: '50%',
             zIndex: 3,
@@ -193,31 +198,29 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    position: 'relative', // Needed for notch/punch-hole absolute positioning
     borderRadius: deviceFrameOuterBorderRadius,
     backgroundColor: deviceFrameBgColor,
     ['--scale-factor' as any]: element.scale || 1,
   };
 
-  // Adjust dimensions to maintain native aspect ratio for predefined devices
   if (element.deviceType !== 'custom') {
     const elementAspectRatio = baseElementWidth / baseElementHeight;
-    if (elementAspectRatio > deviceNativeAspectRatio) { // Element is wider than native
+    if (elementAspectRatio > deviceNativeAspectRatio) { 
       visualFrameStyle.height = '100%';
       visualFrameStyle.width = `${(baseElementHeight * deviceNativeAspectRatio) / baseElementWidth * 100}%`;
-    } else { // Element is taller or same aspect ratio as native
+    } else { 
       visualFrameStyle.width = '100%';
       visualFrameStyle.height = `${(baseElementWidth / deviceNativeAspectRatio) / baseElementHeight * 100}%`;
     }
   }
   
-  // Screen style for predefined devices
   const screenStyle: React.CSSProperties = element.deviceType !== 'custom' ? {
     width: `calc(100% - ${framePaddingPercent.left + framePaddingPercent.right}%)`,
     height: `calc(100% - ${framePaddingPercent.top + framePaddingPercent.bottom}%)`,
-    backgroundColor: '#000', // Fallback if screenshot doesn't load
+    backgroundColor: '#000', 
     overflow: 'hidden',
-    position: 'relative',
+    position: 'relative', // For screenshot absolute positioning
     borderRadius: screenBorderRadius,
     margin: `${framePaddingPercent.top}% ${framePaddingPercent.right}% ${framePaddingPercent.bottom}% ${framePaddingPercent.left}%`,
     zIndex: 1,
@@ -225,14 +228,14 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
 
 
   if (element.deviceType === 'custom') {
-    return (
+     return (
       <div
         className="w-full h-full flex items-center justify-center bg-transparent group relative"
         style={{ cursor: 'default' }}
       >
         {/* Screenshot Layer (Behind or Masked) */}
-        {element.screenshotRect && screenshot && (
-          <div
+        {element.screenshotSrc && element.screenshotRect && (
+          <div 
             style={{
               position: 'absolute',
               left: element.screenshotRect.left,
@@ -240,11 +243,11 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               width: element.screenshotRect.width,
               height: element.screenshotRect.height,
               overflow: 'hidden',
-              zIndex: 1,
+              zIndex: 1, // Screenshot behind custom frame
             }}
           >
             <Image
-              src={screenshot}
+              src={element.screenshotSrc}
               alt="Screenshot"
               layout="fill"
               objectFit={element.screenshotObjectFit || "contain"}
@@ -274,7 +277,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
           </div>
         )}
         
-        {/* Upload Buttons Layer (Highest z-index) */}
+        {/* Upload Buttons Layer */}
         <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 10 }}>
           {!customFrame && isSelected && (
             <Button
@@ -287,7 +290,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               <ImagePlusIcon className="w-4 h-4 mr-1.5" /> Upload Mockup Image
             </Button>
           )}
-          {customFrame && !screenshot && isSelected && (
+          {customFrame && !element.screenshotSrc && isSelected && (
             <Button
               variant="secondary"
               size="sm"
@@ -298,7 +301,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
             </Button>
           )}
-           {/* Placeholder if no custom frame and not selected */}
           {!customFrame && !isSelected && (
              <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-4 pointer-events-none">
                 <ImagePlusIcon className="w-1/3 h-1/3 opacity-50 mb-3" data-ai-hint="upload image plus" />
@@ -333,11 +335,11 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               alt={`${element.deviceType} screenshot`}
               layout="fill" 
               objectFit={element.screenshotObjectFit || "cover"} 
+              className="transition-opacity duration-300 ease-in-out"
               style={{
                 cursor: 'default',
                 opacity: 0, 
               }}
-              className="transition-opacity duration-300 ease-in-out"
               onLoadingComplete={(img) => { img.style.opacity = '1'; }} 
               data-ai-hint="app interface mobile"
               draggable={false}
@@ -372,3 +374,5 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     </div>
   );
 }
+
+    
