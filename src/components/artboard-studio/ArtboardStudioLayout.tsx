@@ -47,7 +47,7 @@ const sampleTemplates: Template[] = [
       elements: [],
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
-      position: {x:50, y:50}, 
+      position: {x:50, y:50},
     }],
   },
   {
@@ -98,14 +98,14 @@ export function ArtboardStudioLayout() {
 
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); 
+    newHistory.push(JSON.parse(JSON.stringify(newArtboardsState)));
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   };
 
   useEffect(() => {
     if (artboards.length === 0 && !isTemplateSelectorOpen && sampleTemplates.length > 0) {
-        handleSelectTemplate(sampleTemplates[0]); 
+        handleSelectTemplate(sampleTemplates[0]);
     }
   }, [isTemplateSelectorOpen, artboards.length]);
 
@@ -163,12 +163,12 @@ export function ArtboardStudioLayout() {
       const newElementId = artboardComponent.addElement(type, subType, dropPosition);
       if (newElementId) {
         setSelectedElementIdOnActiveArtboard(newElementId);
-        setActiveArtboardId(artboardId); 
+        setActiveArtboardId(artboardId);
       }
     } else {
       toast({ title: "Error", description: "Could not add element. Artboard not found or not active.", variant: "destructive" });
     }
-  }, [toast]); // Removed handleArtboardsUpdate from deps as it's stable via useCallback
+  }, [toast]);
 
 
   const handleNewArtboard = () => {
@@ -180,7 +180,7 @@ export function ArtboardStudioLayout() {
       const lastArtboardActualWidth = (lastArtboard.size.width * lastArtboard.zoom);
       newPosition = {
         x: lastArtboard.position.x + lastArtboardActualWidth + artboardMargin,
-        y: lastArtboard.position.y, 
+        y: lastArtboard.position.y,
       };
     } else {
       newPosition = { x: artboardMargin, y: artboardMargin };
@@ -210,7 +210,7 @@ export function ArtboardStudioLayout() {
     template.artboards.forEach((abConfig, index) => {
         const artboardWidth = (abConfig.size?.width || 1024) * (abConfig.zoom || 1);
         const position: Point = abConfig.position ? abConfig.position : { x: currentX, y: artboardMargin };
-        
+
         processedTemplateArtboards.push({
             id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
             name: abConfig.name || `Artboard ${index + 1}`,
@@ -220,13 +220,13 @@ export function ArtboardStudioLayout() {
             backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
             zoom: abConfig.zoom || 1,
         } as ArtboardState);
-        
+
         if (!abConfig.position) {
             currentX += artboardWidth + artboardMargin;
         }
     });
-    
-    setArtboards(JSON.parse(JSON.stringify(processedTemplateArtboards))); 
+
+    setArtboards(JSON.parse(JSON.stringify(processedTemplateArtboards)));
     setHistory([JSON.parse(JSON.stringify(processedTemplateArtboards))]);
     setHistoryIndex(0);
     setActiveArtboardId(processedTemplateArtboards.length > 0 ? processedTemplateArtboards[0].id : null);
@@ -238,7 +238,7 @@ export function ArtboardStudioLayout() {
   const handleExport = () => {
     toast({ title: "Export Initiated", description: "Exporting artboard... (Not implemented)", variant: "default" });
   };
-  
+
   const handleUndo = () => {
     if (historyIndex > 0) {
       const newHistoryIndex = historyIndex - 1;
@@ -261,7 +261,7 @@ export function ArtboardStudioLayout() {
        if (activeArtboardId && !nextState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
         setActiveArtboardId(nextState.length > 0 ? nextState[0].id : null);
       }
-      setSelectedElementIdOnActiveArtboard(null); 
+      setSelectedElementIdOnActiveArtboard(null);
     }
   };
 
@@ -270,13 +270,13 @@ export function ArtboardStudioLayout() {
         const artboardComponent = artboardRefs.current[activeArtboardId];
         if(artboardComponent && artboardComponent.deleteElementByIdG) {
             artboardComponent.deleteElementByIdG(selectedElementIdOnActiveArtboard);
-            setSelectedElementIdOnActiveArtboard(null); 
+            setSelectedElementIdOnActiveArtboard(null);
         } else {
             toast({title: "Cannot Delete", description: "Artboard or element ref not found.", variant: "destructive"});
         }
     } else if (activeArtboardId) {
              const newArtboards = artboards.filter(ab => ab.id !== activeArtboardId);
-             handleArtboardsUpdate(newArtboards); 
+             handleArtboardsUpdate(newArtboards);
              setActiveArtboardId(newArtboards.length > 0 ? newArtboards[0].id : null);
              setSelectedElementIdOnActiveArtboard(null);
              toast({ title: "Artboard Deleted", description: "The active artboard has been deleted." });
@@ -284,10 +284,10 @@ export function ArtboardStudioLayout() {
             toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
     }
   };
-  
+
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
-    if (artboardId !== activeArtboardId) { 
+    if (artboardId !== activeArtboardId) {
         setSelectedElementIdOnActiveArtboard(null);
     }
   }
@@ -295,10 +295,9 @@ export function ArtboardStudioLayout() {
   const handleElementSelectionOnArtboard = (elementId: string | null) => {
     setSelectedElementIdOnActiveArtboard(elementId);
   }
-  
+
   const handleSelectElementFromLayerPanel = (elementId: string) => {
     setSelectedElementIdOnActiveArtboard(elementId);
-    // Do NOT bring to front automatically from layer panel selection to avoid "jumping"
   };
 
   const handleMoveElementLayer = (elementId: string, direction: 'up' | 'down') => {
@@ -339,11 +338,11 @@ export function ArtboardStudioLayout() {
 
   if (isTemplateSelectorOpen) {
     return (
-      <Dialog 
-        open={isTemplateSelectorOpen} 
+      <Dialog
+        open={isTemplateSelectorOpen}
         onOpenChange={(newOpenState) => {
           if (!newOpenState && artboards.length === 0 && sampleTemplates.length > 0) {
-             handleSelectTemplate(sampleTemplates[0]); // Default to blank if dialog closed without selection
+             handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
           }
           setIsTemplateSelectorOpen(newOpenState);
         }}
@@ -356,19 +355,19 @@ export function ArtboardStudioLayout() {
           <ScrollArea className="max-h-[70vh]">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
               {sampleTemplates.map(template => (
-                <Card 
-                  key={template.id} 
+                <Card
+                  key={template.id}
                   className="hover:shadow-xl transition-shadow cursor-pointer"
                   onClick={() => handleSelectTemplate(template)}
                 >
                   <CardHeader className="p-0">
                     {template.previewImage && (
-                       <Image 
-                        src={template.previewImage} 
-                        alt={template.name} 
-                        width={300} height={200} 
+                       <Image
+                        src={template.previewImage}
+                        alt={template.name}
+                        width={300} height={200}
                         className="rounded-t-lg object-cover w-full h-40"
-                        data-ai-hint={template.dataAiHint || "abstract design"} 
+                        data-ai-hint={template.dataAiHint || "abstract design"}
                       />
                     )}
                   </CardHeader>
@@ -402,7 +401,7 @@ export function ArtboardStudioLayout() {
           <span className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">Artboard Studio</span>
         </SidebarHeader>
         <SidebarContent>
-          <ElementPalette 
+          <ElementPalette
             onAddElement={(type, subType) => {
               if (activeArtboardId) {
                 handleAddElementToArtboard(activeArtboardId, type, subType);
@@ -453,7 +452,7 @@ export function ArtboardStudioLayout() {
           isElementSelected={!!selectedElementIdOnActiveArtboard}
           isArtboardSelected={!!activeArtboardId}
         />
-        <PropertiesPanel 
+        <PropertiesPanel
             selectedElement={selectedElementDetails}
             onUpdateElement={handleUpdateSelectedElement}
         />
