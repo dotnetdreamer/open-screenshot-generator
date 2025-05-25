@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
 import type { DeviceFrameElementProps as DeviceFrameElementType } from '@/types/artboard';
+import { cn } from '@/lib/utils';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -37,7 +38,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         const newImageSrc = reader.result as string;
         if (uploadTarget === 'customFrame') {
           setCustomFrame(newImageSrc);
-          setScreenshot(undefined); 
+          setScreenshot(undefined); // Reset screenshot if custom frame changes
           onUpdate({ customFrameSrc: newImageSrc, screenshotSrc: undefined }); 
         } else if (uploadTarget === 'screenshot') {
           setScreenshot(newImageSrc);
@@ -137,10 +138,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   };
 
   if (element.deviceType === 'custom') {
-    // Defaults for custom screen clipping if not provided
-    const padding = element.customScreenPadding || { top: 5, right: 5, bottom: 5, left: 5 }; // 5% default padding
-    const radius = element.customScreenBorderRadius || '20px'; // 20px default radius
-
     return (
       <div
         className="w-full h-full flex items-center justify-center bg-transparent group relative"
@@ -148,48 +145,45 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       >
         {customFrame ? (
           <>
-            {/* Clipped Screenshot Container */}
+            {/* Screenshot, masked by customFrame */}
             {screenshot && (
-              <div
-                className="absolute" // Will be sized by padding below
+              <Image
+                src={screenshot}
+                alt="Screenshot"
+                layout="fill"
+                objectFit={element.screenshotObjectFit || "contain"}
+                className="transition-opacity duration-300 ease-in-out"
                 style={{
-                  top: `${padding.top}%`,
-                  right: `${padding.right}%`,
-                  bottom: `${padding.bottom}%`,
-                  left: `${padding.left}%`,
-                  overflow: 'hidden',
-                  borderRadius: radius,
+                  opacity: 0,
+                  position: 'absolute', // Critical for layout="fill"
+                  maskImage: `url(${customFrame})`,
+                  WebkitMaskImage: `url(${customFrame})`,
+                  maskSize: 'contain',
+                  WebkitMaskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskPosition: 'center',
+                  WebkitMaskPosition: 'center',
                 }}
-              >
-                <Image
-                  src={screenshot}
-                  alt="Screenshot"
-                  layout="fill" // Fill the padded, rounded container
-                  objectFit={element.screenshotObjectFit || "contain"}
-                  className="transition-opacity duration-300 ease-in-out"
-                  onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-                  style={{ opacity: 0 }}
-                  data-ai-hint="app interface general"
-                  draggable={false}
-                />
-              </div>
+                onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+                data-ai-hint="app interface general"
+                draggable={false}
+              />
             )}
 
-            {/* Custom Mockup Frame Visual Layer (On Top) */}
-            {/* This image provides the bezels. Its screen area should be transparent. */}
+            {/* Custom Mockup Frame Visual Layer (On Top, provides bezels, screen area should be transparent) */}
             <Image
               src={customFrame}
               alt="Custom Mockup Frame"
-              layout="fill" // Fill the entire element bounds
-              objectFit="contain" // The frame visual should also be contained
+              layout="fill"
+              objectFit="contain" 
               className="transition-opacity duration-300 ease-in-out"
-              onLoadingComplete={(img) => { img.style.opacity = '1'; }}
               style={{
                 opacity: 0,
-                position: 'absolute', // Ensure it covers the screenshot container
-                top: 0, left: 0, width: '100%', height: '100%',
+                position: 'absolute', // Ensures it overlays correctly
                 pointerEvents: 'none', // So it doesn't block interaction with buttons below
               }}
+              onLoadingComplete={(img) => { img.style.opacity = '1'; }}
               data-ai-hint="device mockup custom"
               draggable={false}
             />

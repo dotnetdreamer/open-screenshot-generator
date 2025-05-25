@@ -23,7 +23,7 @@ export interface BaseElement {
 export interface TextElementProps extends BaseElement {
   type: 'text';
   content: string;
-  fontSize: number; // Base font size, actual display is fontSize * scale (potentially, or handled by text component)
+  fontSize: number; // Base font size, actual display is fontSize * element.scale
   color: string;
   fontFamily: string;
 }
@@ -37,16 +37,13 @@ export interface ShapeElementProps extends BaseElement {
   strokeWidth: number;
 }
 
-export type DeviceType = 'iphone' | 'android-phone' | 'tablet' | 'desktop' | 'custom'; // Added 'custom'
+export type DeviceType = 'iphone' | 'android-phone' | 'tablet' | 'desktop' | 'custom';
 export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
-  screenshotObjectPosition?: string; // e.g., "50% 50%", "0 0", "10px 20px"
-  screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits
+  screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits, defaults to 'contain'
   customFrameSrc?: string; // URL or base64 for user-uploaded mockup
-  customScreenPadding?: { top: number; right: number; bottom: number; left: number }; // Percentages, e.g., { top: 5, right: 5, bottom: 5, left: 5 }
-  customScreenBorderRadius?: string; // e.g., '20px', '1.5rem'
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;
