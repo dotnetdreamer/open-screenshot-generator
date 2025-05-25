@@ -100,7 +100,7 @@ const sampleTemplates: Template[] = [
   }
 ];
 
-const ARTBOARD_MARGIN = 50;
+const ARTBOARD_MARGIN = 15;
 
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
