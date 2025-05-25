@@ -16,7 +16,7 @@ import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
 import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Template, ArtboardElement } from '@/types/artboard';
+import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Template, ArtboardElement, DeviceFrameElementProps } from '@/types/artboard';
 import { Button } from '@/components/ui/button';
 import { SettingsIcon, InfoIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -76,8 +76,24 @@ const sampleTemplates: Template[] = [
     previewImage: 'https://placehold.co/300x200/D4AF37/333333?text=App',
     dataAiHint: 'app store mobile',
     artboards: [
-      { id: 'artboard_app_1', name: 'iPhone Screen 1', size: { width: 390, height: 844 }, backgroundColor: 'hsl(var(--card))', zoom:1, position: {x:50, y:50}, elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: {left:5, top:5, width:90, height:90}} as ArtboardElement] },
-      { id: 'artboard_app_2', name: 'iPhone Screen 2', size: { width: 390, height: 844 }, backgroundColor: 'hsl(var(--card))', zoom:1, position: {x:490, y:50}, elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1, screenshotRect: {left:5, top:5, width:90, height:90}} as ArtboardElement] },
+      { 
+        id: 'artboard_app_1', 
+        name: 'iPhone Screen 1', 
+        size: { width: 390, height: 844 }, 
+        backgroundColor: 'hsl(var(--card))', 
+        zoom:1, 
+        position: {x:50, y:50}, 
+        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as DeviceFrameElementProps] 
+      },
+      { 
+        id: 'artboard_app_2', 
+        name: 'iPhone Screen 2', 
+        size: { width: 390, height: 844 }, 
+        backgroundColor: 'hsl(var(--card))', 
+        zoom:1, 
+        position: {x:490, y:50}, 
+        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as DeviceFrameElementProps] 
+      },
     ],
   }
 ];
@@ -135,7 +151,7 @@ export function ArtboardStudioLayout() {
         }
     }
     pushToHistory(repositionedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, history, historyIndex]); 
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard]); // Removed history and historyIndex from deps
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -165,9 +181,8 @@ export function ArtboardStudioLayout() {
       }
       return ab;
     });
-    // No need to call calculateArtboardPositions here, as element updates don't change artboard positions
-    setArtboards(updatedArtboards); // Directly set, history push will happen in handleArtboardsUpdate if needed
-    pushToHistory(updatedArtboards); // Manually push if not going through full handleArtboardsUpdate
+    setArtboards(updatedArtboards); 
+    pushToHistory(updatedArtboards); 
   };
 
 
@@ -188,7 +203,7 @@ export function ArtboardStudioLayout() {
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
       name: `Artboard ${artboards.length + 1}`,
-      position: { x: 0, y: 0 }, // Position will be recalculated
+      position: { x: 0, y: 0 }, 
       size: { width: 1024, height: 768 },
       elements: [],
       backgroundColor: 'hsl(var(--card))',
@@ -205,7 +220,7 @@ export function ArtboardStudioLayout() {
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
       name: `Artboard ${artboards.length + 1}`,
-      position: { x: 0, y: 0 }, // Position will be recalculated
+      position: { x: 0, y: 0 }, 
       size: { width: 1024, height: 768 },
       elements: [],
       backgroundColor: 'hsl(var(--card))',
@@ -217,7 +232,7 @@ export function ArtboardStudioLayout() {
     if (currentIndex !== -1) {
       newArtboardsArray.splice(currentIndex + 1, 0, newArtboard);
     } else {
-      newArtboardsArray.push(newArtboard); // Fallback: add to end if current not found
+      newArtboardsArray.push(newArtboard); 
     }
     
     handleArtboardsUpdate(newArtboardsArray);
@@ -230,10 +245,9 @@ export function ArtboardStudioLayout() {
     const artboardToDuplicate = artboards.find(ab => ab.id === artboardId);
     if (!artboardToDuplicate) return;
   
-    const duplicatedArtboard: ArtboardState = JSON.parse(JSON.stringify(artboardToDuplicate)); // Deep copy
+    const duplicatedArtboard: ArtboardState = JSON.parse(JSON.stringify(artboardToDuplicate)); 
     duplicatedArtboard.id = `artboard_${Date.now()}`;
     duplicatedArtboard.name = `${artboardToDuplicate.name} Copy`;
-    // Position will be recalculated by handleArtboardsUpdate
   
     const currentIndex = artboards.findIndex(ab => ab.id === artboardId);
     let newArtboardsArray = [...artboards];
@@ -280,10 +294,10 @@ export function ArtboardStudioLayout() {
       newArtboardsArray.splice(currentIndex, 1);
       newArtboardsArray.splice(currentIndex + 1, 0, targetArtboard);
     } else {
-      return; // Cannot move further
+      return; 
     }
   
-    handleArtboardsUpdate(newArtboardsArray); // This will also recalculate positions
+    handleArtboardsUpdate(newArtboardsArray); 
     toast({ title: "Artboard Moved", description: `Artboard "${targetArtboard.name}" moved ${direction}.` });
   };
 
@@ -292,16 +306,23 @@ export function ArtboardStudioLayout() {
     const templateArtboards: ArtboardState[] = template.artboards.map((abConfig, index) => ({
         id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
         name: abConfig.name || `Artboard ${index + 1}`,
-        position: {x:0, y:0}, // Will be recalculated
+        position: {x:0, y:0}, 
         size: abConfig.size || { width: 1024, height: 768 },
-        elements: abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements)) : [],
+        elements: abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements.map(el => {
+          if (el.type === 'device' && el.deviceType !== 'custom' && !(el as DeviceFrameElementProps).screenshotRect) {
+            return {...el, screenshotRect: { left: 0, top: 0, width: 100, height: 100 }};
+          } else if (el.type === 'device' && el.deviceType === 'custom' && !(el as DeviceFrameElementProps).screenshotRect) {
+             return {...el, screenshotRect: { left: 5, top: 5, width: 90, height: 90 }};
+          }
+          return el;
+        }))) : [],
         backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
         zoom: abConfig.zoom || 1,
     } as ArtboardState));
 
     const finalArtboards = calculateArtboardPositions(templateArtboards);
     setArtboards(finalArtboards);
-    setHistory([JSON.parse(JSON.stringify(finalArtboards))]); // Deep copy for history
+    setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
     setHistoryIndex(0);
     setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
     setSelectedElementIdOnActiveArtboard(null);
@@ -318,7 +339,7 @@ export function ArtboardStudioLayout() {
       const newHistoryIndex = historyIndex - 1;
       setHistoryIndex(newHistoryIndex);
       const prevState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(prevState); // Positions are already stored correctly in history
+      setArtboards(prevState); 
        if (activeArtboardId && !prevState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
         setActiveArtboardId(prevState.length > 0 ? prevState[0].id : null);
       }
@@ -331,7 +352,7 @@ export function ArtboardStudioLayout() {
       const newHistoryIndex = historyIndex + 1;
       setHistoryIndex(newHistoryIndex);
       const nextState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(nextState); // Positions are already stored correctly in history
+      setArtboards(nextState); 
        if (activeArtboardId && !nextState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
         setActiveArtboardId(nextState.length > 0 ? nextState[0].id : null);
       }
@@ -339,17 +360,17 @@ export function ArtboardStudioLayout() {
     }
   };
 
-  const handleDeleteSelected = () => { // This function handles both element and artboard deletion from Toolbar
+  const handleDeleteSelected = () => { 
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
         const artboardComponent = artboardRefs.current[activeArtboardId];
         if(artboardComponent && artboardComponent.deleteElementByIdG) {
             artboardComponent.deleteElementByIdG(selectedElementIdOnActiveArtboard);
-            setSelectedElementIdOnActiveArtboard(null); // Deselect element
+            setSelectedElementIdOnActiveArtboard(null); 
         } else {
             toast({title: "Cannot Delete Element", description: "Artboard or element ref not found.", variant: "destructive"});
         }
-    } else if (activeArtboardId) { // No element selected, but an artboard is active
-        handleDeleteArtboard(activeArtboardId); // Use the new artboard delete handler
+    } else if (activeArtboardId) { 
+        handleDeleteArtboard(activeArtboardId); 
     } else {
         toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
     }
@@ -528,10 +549,10 @@ export function ArtboardStudioLayout() {
             onUpdateElement={handleUpdateSelectedElement}
             className="sticky top-14 z-40 bg-card border-b"
         />
-        <div className="flex-grow relative overflow-hidden"> {/* This container will scroll */}
+        <div className="flex-grow relative overflow-hidden"> 
           <CanvasArea
             artboards={artboards}
-            onUpdateArtboards={handleArtboardsUpdate} // Central update function
+            onUpdateArtboards={handleArtboardsUpdate} 
             onAddElementToArtboard={handleAddElementToArtboard}
             activeArtboardId={activeArtboardId}
             setActiveArtboardId={handleArtboardSelection}
@@ -539,7 +560,6 @@ export function ArtboardStudioLayout() {
             setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
             canvasZoom={canvasZoom}
             artboardRefs={artboardRefs}
-            // Pass artboard action handlers
             onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
             onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
             onDeleteArtboardFromToolbar={handleDeleteArtboard}
@@ -550,3 +570,4 @@ export function ArtboardStudioLayout() {
     </SidebarProvider>
   );
 }
+

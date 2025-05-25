@@ -6,7 +6,7 @@ import { DraggableElement } from './elements/DraggableElement';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
-import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType } from '@/types/artboard';
+import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
@@ -104,13 +104,18 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           size: { width: 100, height: 100 },
         } as ArtboardElement;
       } else if (type === 'device' && subType) {
-        newElementToAdd = {
+        const deviceElement: DeviceFrameElementProps = {
           ...newElementBase,
           type: 'device',
           deviceType: subType as DeviceType,
-          screenshotRect: { left: 5, top: 5, width: 90, height: 90 },
           size: { width: 150, height: 300 }, // Default size for devices
-        } as ArtboardElement;
+        };
+        if (subType === 'custom') {
+          deviceElement.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };
+        } else {
+          deviceElement.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
+        }
+        newElementToAdd = deviceElement as ArtboardElement;
       }
 
       if (newElementToAdd) {
@@ -173,7 +178,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     <div className="relative"> {/* Wrapper for artboard and its toolbar */}
       <ArtboardToolbar
         artboardId={artboard.id}
-        onAddNew={() => onAddNewArtboard()} // Ensure this is correctly calling the prop
+        onAddNew={() => onAddNewArtboard()} 
         onDuplicate={onDuplicateArtboard}
         onDelete={onDeleteArtboard}
         onMove={onMoveArtboard}
@@ -247,3 +252,4 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 });
 
 Artboard.displayName = "Artboard";
+
