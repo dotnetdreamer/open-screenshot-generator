@@ -105,7 +105,7 @@ export function ArtboardStudioLayout() {
 
   useEffect(() => {
     if (artboards.length === 0 && !isTemplateSelectorOpen && sampleTemplates.length > 0) {
-        handleSelectTemplate(sampleTemplates[0]);
+        handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
     }
   }, [isTemplateSelectorOpen, artboards.length]);
 
@@ -451,12 +451,17 @@ export function ArtboardStudioLayout() {
           onDeleteSelected={handleDeleteSelectedElement}
           isElementSelected={!!selectedElementIdOnActiveArtboard}
           isArtboardSelected={!!activeArtboardId}
+          className="sticky top-0 z-50 bg-card"
         />
         <PropertiesPanel
             selectedElement={selectedElementDetails}
             onUpdateElement={handleUpdateSelectedElement}
+            // className="sticky top-14 z-40 bg-card" // h-14 for toolbar
         />
-        <div className="flex-grow relative overflow-hidden">
+        {/* The PropertiesPanel itself has border-b. If we make it sticky, it needs a background. */}
+        {/* For sticky behavior, it needs to be a direct child of a scrollable container or have sticky on its own scroll container. */}
+        {/* Alternative: PropertiesPanel is part of the normal flow, and CanvasArea's ScrollArea adapts. */}
+        <div className="flex-grow relative overflow-hidden"> {/* This container allows CanvasArea to fill remaining space */}
           <CanvasArea
             artboards={artboards}
             onUpdateArtboards={handleArtboardsUpdate}

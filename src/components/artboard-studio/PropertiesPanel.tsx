@@ -33,12 +33,17 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
     if (selectedElement?.type === 'text') {
       setLocalContent((selectedElement as TextElementProps).content);
     }
-    if (selectedElement?.type === 'device' && (selectedElement as DeviceFrameElementProps).screenshotRect) {
-        const rect = (selectedElement as DeviceFrameElementProps).screenshotRect;
-        setScreenshotLeft(rect?.left || 5);
-        setScreenshotTop(rect?.top || 5);
-        setScreenshotWidth(rect?.width || 90);
-        setScreenshotHeight(rect?.height || 90);
+    if (selectedElement?.type === 'device') {
+      const deviceElement = selectedElement as DeviceFrameElementProps;
+      if (deviceElement.screenshotRect && deviceElement.deviceType === 'custom') { // Ensure rect exists for custom devices
+        setScreenshotLeft(deviceElement.screenshotRect.left);
+        setScreenshotTop(deviceElement.screenshotRect.top);
+        setScreenshotWidth(deviceElement.screenshotRect.width);
+        setScreenshotHeight(deviceElement.screenshotRect.height);
+      } else {
+        // Optionally reset if not a custom device with a rect, or if rect is removed
+        // For now, retain previous values if not applicable, they won't be shown
+      }
     }
   }, [selectedElement]);
 
@@ -64,9 +69,18 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
         if (uploadPurpose === 'customFrame') {
-          onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined }); // Reset screenshot if frame changes
+          onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined, screenshotRect: undefined }); // Reset screenshot if frame changes
         } else if (uploadPurpose === 'screenshot') {
-          onUpdateElement({ screenshotSrc: dataUrl });
+           const img = new window.Image();
+            img.onload = () => {
+                onUpdateElement({ 
+                    screenshotSrc: dataUrl,
+                    naturalScreenshotWidth: img.naturalWidth,
+                    naturalScreenshotHeight: img.naturalHeight,
+                    screenshotRect: { left: 5, top: 5, width: 90, height: 90 } // Default rect
+                });
+            };
+            img.src = dataUrl;
         }
         setUploadPurpose(null);
       };
@@ -78,12 +92,16 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
   };
   
   const handleScreenshotRectChange = (type: 'left' | 'top' | 'width' | 'height', value: number) => {
+    // Ensure current values for other properties are used
+    const currentRect = (selectedElement as DeviceFrameElementProps)?.screenshotRect || { left: 5, top: 5, width: 90, height: 90};
+    
     const newRect = {
-        left: type === 'left' ? value : screenshotLeft,
-        top: type === 'top' ? value : screenshotTop,
-        width: type === 'width' ? value : screenshotWidth,
-        height: type === 'height' ? value : screenshotHeight,
+        left: type === 'left' ? value : currentRect.left,
+        top: type === 'top' ? value : currentRect.top,
+        width: type === 'width' ? value : currentRect.width,
+        height: type === 'height' ? value : currentRect.height,
     };
+
     // Update local state for immediate slider feedback
     if (type === 'left') setScreenshotLeft(value);
     if (type === 'top') setScreenshotTop(value);
@@ -260,7 +278,7 @@ export function PropertiesPanel({ selectedElement, onUpdateElement }: Properties
           className="my-2"
         />
       </div>
-      {element.deviceType === 'custom' && element.screenshotSrc && (
+      {element.deviceType === 'custom' && element.screenshotSrc && element.screenshotRect && (
         <>
             <div className="flex flex-col space-y-1 min-w-[120px]">
                 <Label htmlFor="ssLeft" className="text-xs">Screenshot Left: {screenshotLeft}%</Label>
