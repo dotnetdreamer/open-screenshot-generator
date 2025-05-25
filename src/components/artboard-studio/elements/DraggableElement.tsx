@@ -19,7 +19,7 @@ interface DraggableElementProps {
 
 const HANDLE_SIZE_BASE = 10; // Base size for handles in pixels
 const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2; // For centering handles on the outline
-const MIN_DISPLAY_SIZE = 20; // Minimum display width/height in pixels
+const MIN_DISPLAY_SIZE = 20; // Minimum display width/height in pixels (for base size or scaled size)
 
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
@@ -34,7 +34,7 @@ export function DraggableElement({
   children
 }: DraggableElementProps) {
   const [position, setPosition] = useState<Point>(element.position);
-  const [currentSize, setCurrentSize] = useState<Size>(element.size);
+  const [currentSize, setCurrentSize] = useState<Size>(element.size); // Base size
   const [currentRotation, setCurrentRotation] = useState<number>(element.rotation);
   const [currentScale, setCurrentScale] = useState<number>(element.scale); // Uniform scale
 
@@ -43,9 +43,9 @@ export function DraggableElement({
     mouseX: number;
     mouseY: number;
     initialPosition: Point;
-    initialSize: Size;
+    initialSize: Size; // base size at start
     initialRotation: number;
-    initialScale: number;
+    initialScale: number; // uniform scale at start
     elementCenter: Point;
     handleType?: HandleType;
   } | null>(null);
@@ -56,28 +56,17 @@ export function DraggableElement({
     setCurrentSize(element.size);
     setCurrentRotation(element.rotation);
     setCurrentScale(element.scale);
-  }, [element.position, element.size, element.rotation, element.scale]);
+  }, [element.id, element.position, element.size, element.rotation, element.scale]); // Added element.id to reset on element change
 
   const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
-    const artboardDiv = elementRef.current?.offsetParent; // This should be the div with artboard.zoom scale
+    const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
-      // The artboard itself is scaled by artboard.zoom, which is different from canvasZoom.
-      // Here, we are interested in positions *within* an artboard, relative to its top-left.
-      // The DraggableElement positions (element.position.x/y) are in the artboard's own coordinate system.
-      // The artboard's content is scaled by artboard.zoom (internal artboard zoom, not canvasZoom).
-      // However, DraggableElement itself receives artboardZoom, which seems to be the canvasZoom.
-      // For calculations within DraggableElement, we need positions relative to the artboard's unscaled coordinate system.
-      
-      // Let's assume the artboardZoom prop IS the zoom level of the container holding this DraggableElement (i.e., canvasZoom).
-      // The element.position is already in unscaled artboard coordinates.
-      // So, clientX/Y needs to be mapped to that.
       return {
         x: (e.clientX - artboardRect.left) / artboardZoom,
         y: (e.clientY - artboardRect.top) / artboardZoom,
       };
     }
-    // Fallback, less accurate if artboardRef's parent is not the direct scaled container
     return { x: e.clientX / artboardZoom, y: e.clientY / artboardZoom };
   };
 
@@ -91,26 +80,27 @@ export function DraggableElement({
     e.stopPropagation();
     if (!elementRef.current) return;
 
-    if (mode !== 'move' || !isSelected) {
+    if (!isSelected) { // Select if not already selected, unless it's a move on an already selected element
       onSelect(element.id, e);
     }
     setInteractionMode(mode);
 
     const mousePosArtboard = getMousePositionInArtboardSpace(e);
     
-    const initialDisplayWidth = currentSize.width * currentScale;
-    const initialDisplayHeight = currentSize.height * currentScale;
+    // Current display size for center calculation
+    const displayWidth = currentSize.width * currentScale;
+    const displayHeight = currentSize.height * currentScale;
 
     setInteractionStart({
       mouseX: mousePosArtboard.x,
       mouseY: mousePosArtboard.y,
       initialPosition: { ...position },
-      initialSize: { ...currentSize },
+      initialSize: { ...currentSize }, // Store base size
       initialRotation: currentRotation,
-      initialScale: currentScale,
+      initialScale: currentScale, // Store uniform scale
       elementCenter: {
-        x: position.x + initialDisplayWidth / 2,
-        y: position.y + initialDisplayHeight / 2,
+        x: position.x + displayWidth / 2,
+        y: position.y + displayHeight / 2,
       },
       handleType: handleType,
     });
@@ -124,29 +114,35 @@ export function DraggableElement({
       const mousePosArtboard = getMousePositionInArtboardSpace(e);
       const { initialPosition, initialSize, initialRotation, initialScale, elementCenter, handleType } = interactionStart;
       
-      const rad = currentRotation * (Math.PI / 180);
+      const rad = currentRotation * (Math.PI / 180); // Use currentRotation for dynamic updates if needed
       const cosR = Math.cos(rad);
       const sinR = Math.sin(rad);
 
       const dxScreen = mousePosArtboard.x - interactionStart.mouseX;
       const dyScreen = mousePosArtboard.y - interactionStart.mouseY;
 
+      let newPos = { ...position };
+      let newSize = { ...currentSize };
+      let newScale = currentScale;
+      let newRotation = currentRotation;
+
+
       if (interactionMode === 'move') {
         let newX = initialPosition.x + dxScreen;
         let newY = initialPosition.y + dyScreen;
         
-        const displayW = currentSize.width * currentScale;
-        const displayH = currentSize.height * currentScale;
+        const displayW = newSize.width * newScale; // Use current newSize and newScale
+        const displayH = newSize.height * newScale;
 
         newX = Math.max(0, Math.min(newX, boundary.width - displayW));
         newY = Math.max(0, Math.min(newY, boundary.height - displayH));
-        setPosition({ x: newX, y: newY });
+        newPos = { x: newX, y: newY };
 
       } else if (interactionMode === 'rotate') {
         const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
         const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
-        let newRotation = initialRotation + (angle - startAngle);
-        setCurrentRotation(Math.round(newRotation / 1) * 1);
+        newRotation = initialRotation + (angle - startAngle);
+        newRotation = Math.round(newRotation / 1) * 1; // Snap to 1 degree
 
       } else if (interactionMode === 'scale' && handleType && ['tl', 'tr', 'bl', 'br'].includes(handleType)) { // Proportional corner scaling
         const initialDistToCenter = Math.sqrt(Math.pow(interactionStart.mouseX - elementCenter.x, 2) + Math.pow(interactionStart.mouseY - elementCenter.y, 2));
@@ -154,113 +150,124 @@ export function DraggableElement({
 
         if (initialDistToCenter === 0) return;
         let scaleFactor = currentDistToCenter / initialDistToCenter;
-        let newUniformScale = initialScale * scaleFactor;
-        newUniformScale = Math.max(0.05, Math.min(newUniformScale, 20)); // Min/max uniform scale
+        let proposedNewUniformScale = initialScale * scaleFactor;
+        
+        // Clamp scale factor
+        proposedNewUniformScale = Math.max(0.05, Math.min(proposedNewUniformScale, 20));
+
+        let newDisplayWidth = initialSize.width * proposedNewUniformScale;
+        let newDisplayHeight = initialSize.height * proposedNewUniformScale;
 
         // Ensure minimum display size
-        if (initialSize.width * newUniformScale < MIN_DISPLAY_SIZE) {
-            newUniformScale = MIN_DISPLAY_SIZE / initialSize.width;
+        if (newDisplayWidth < MIN_DISPLAY_SIZE) {
+            proposedNewUniformScale = MIN_DISPLAY_SIZE / initialSize.width;
+            newDisplayWidth = MIN_DISPLAY_SIZE;
         }
-        if (initialSize.height * newUniformScale < MIN_DISPLAY_SIZE) {
-            newUniformScale = MIN_DISPLAY_SIZE / initialSize.height;
+        if (newDisplayHeight < MIN_DISPLAY_SIZE) {
+            proposedNewUniformScale = MIN_DISPLAY_SIZE / initialSize.height;
+            newDisplayHeight = MIN_DISPLAY_SIZE;
         }
-        newUniformScale = Math.max(0.05, newUniformScale); // re-check min scale
+        proposedNewUniformScale = Math.max(0.05, proposedNewUniformScale); // Re-check min scale after MIN_DISPLAY_SIZE enforcement
 
-        const newDisplayWidth = initialSize.width * newUniformScale;
-        const newDisplayHeight = initialSize.height * newUniformScale;
-
+        newDisplayWidth = initialSize.width * proposedNewUniformScale;
+        newDisplayHeight = initialSize.height * proposedNewUniformScale;
+        
         let newPosX = elementCenter.x - newDisplayWidth / 2;
         let newPosY = elementCenter.y - newDisplayHeight / 2;
 
-        // Boundary checks - adjust scale if necessary
-        if (newPosX < 0) { newUniformScale = (elementCenter.x * 2) / initialSize.width; newPosX = 0; }
-        if (newPosY < 0) { newUniformScale = (elementCenter.y * 2) / initialSize.height; newPosY = 0; }
-        if (newPosX + (initialSize.width * newUniformScale) > boundary.width) { newUniformScale = ((boundary.width - elementCenter.x) * 2) / initialSize.width; }
-        if (newPosY + (initialSize.height * newUniformScale) > boundary.height) { newUniformScale = ((boundary.height - elementCenter.y) * 2) / initialSize.height; }
-        newUniformScale = Math.max(0.05, newUniformScale);
-
-
-        const finalNewDisplayWidth = initialSize.width * newUniformScale;
-        const finalNewDisplayHeight = initialSize.height * newUniformScale;
-        newPosX = elementCenter.x - finalNewDisplayWidth / 2;
-        newPosY = elementCenter.y - finalNewDisplayHeight / 2;
+        // Boundary checks - adjust scale if necessary to fit
+        if (newPosX < 0) { 
+            newPosX = 0; 
+            // Recalculate scale if pinned to left edge
+            if (initialSize.width > 0) proposedNewUniformScale = (elementCenter.x - newPosX) * 2 / initialSize.width;
+        }
+        if (newPosY < 0) { 
+            newPosY = 0; 
+            if (initialSize.height > 0) proposedNewUniformScale = (elementCenter.y - newPosY) * 2 / initialSize.height;
+        }
         
-        // Clamp position after scale adjustment
-        newPosX = Math.max(0, Math.min(newPosX, boundary.width - finalNewDisplayWidth));
-        newPosY = Math.max(0, Math.min(newPosY, boundary.height - finalNewDisplayHeight));
+        // Recalculate display dimensions with potentially adjusted scale
+        newDisplayWidth = initialSize.width * proposedNewUniformScale;
+        newDisplayHeight = initialSize.height * proposedNewUniformScale;
 
-        setCurrentScale(newUniformScale);
-        setPosition({ x: newPosX, y: newPosY });
-        // currentSize remains initialSize for uniform scaling
+        if (newPosX + newDisplayWidth > boundary.width) {
+            if (initialSize.width > 0) proposedNewUniformScale = (boundary.width - newPosX) / initialSize.width;
+            // If scaling caused center to shift, it might need complex adjustment.
+            // For simplicity, try to ensure right edge is within bounds.
+            // A more robust solution would consider the center point relative to the fixed edge.
+        }
+        if (newPosY + newDisplayHeight > boundary.height) {
+            if (initialSize.height > 0) proposedNewUniformScale = (boundary.height - newPosY) / initialSize.height;
+        }
+        
+        // Final check on scale and recalculate derived values
+        newScale = Math.max(0.05, Math.min(proposedNewUniformScale, 20));
+        newDisplayWidth = initialSize.width * newScale;
+        newDisplayHeight = initialSize.height * newScale;
+        newPosX = elementCenter.x - newDisplayWidth / 2;
+        newPosY = elementCenter.y - newDisplayHeight / 2;
+        
+        // Clamp position after all scale adjustments
+        newPos.x = Math.max(0, Math.min(newPosX, boundary.width - newDisplayWidth));
+        newPos.y = Math.max(0, Math.min(newPosY, boundary.height - newDisplayHeight));
+        // newSize remains initialSize for uniform scaling
 
       } else if (interactionMode === 'resize' && handleType) { // Non-proportional edge resizing
-        let newPos = { ...position };
-        let newSize = { ...currentSize };
-
-        // Deltas in element's local unrotated coordinate system
-        // (approximated for now, works best for unrotated elements)
-        const localDx = dxScreen * cosR + dyScreen * sinR;
-        const localDy = -dxScreen * sinR + dyScreen * cosR;
-
-        const initialDisplayW = initialSize.width * initialScale;
-        const initialDisplayH = initialSize.height * initialScale;
+        // Deltas in screen space, need to be applied to size considering rotation.
+        // This simple approach works best for unrotated or slightly rotated elements for direct edge manipulation.
+        // For heavily rotated elements, it effectively resizes the bounding box in screen space.
+        
+        let currentDisplayWidth = initialSize.width * initialScale;
+        let currentDisplayHeight = initialSize.height * initialScale;
 
         if (handleType === 'r') {
-            let newDisplayW = initialDisplayW + localDx;
-            newDisplayW = Math.max(MIN_DISPLAY_SIZE, newDisplayW);
-            newSize.width = newDisplayW / initialScale;
+            let newW = currentDisplayWidth + dxScreen;
+            newW = Math.max(MIN_DISPLAY_SIZE, newW);
+            if (initialPosition.x + newW > boundary.width) newW = boundary.width - initialPosition.x;
+            newSize.width = newW / initialScale;
         } else if (handleType === 'l') {
-            let newDisplayW = initialDisplayW - localDx;
-            newDisplayW = Math.max(MIN_DISPLAY_SIZE, newDisplayW);
-            newSize.width = newDisplayW / initialScale;
-            // Adjust position to keep right edge fixed (approximately)
-            newPos.x = initialPosition.x + (initialDisplayW - newDisplayW) * cosR / initialScale;
-            newPos.y = initialPosition.y + (initialDisplayW - newDisplayW) * sinR / initialScale;
+            let newW = currentDisplayWidth - dxScreen;
+            let newX = initialPosition.x + dxScreen;
+            if (newX < 0) { newW += newX; newX = 0; } // newX becomes negative, add it to newW to shrink
+            newW = Math.max(MIN_DISPLAY_SIZE, newW);
+            if (newX + newW > boundary.width) newW = boundary.width - newX; // Ensure it doesn't go past boundary
+            
+            newSize.width = newW / initialScale;
+            newPos.x = newX;
         } else if (handleType === 'b') {
-            let newDisplayH = initialDisplayH + localDy;
-            newDisplayH = Math.max(MIN_DISPLAY_SIZE, newDisplayH);
-            newSize.height = newDisplayH / initialScale;
+            let newH = currentDisplayHeight + dyScreen;
+            newH = Math.max(MIN_DISPLAY_SIZE, newH);
+            if (initialPosition.y + newH > boundary.height) newH = boundary.height - initialPosition.y;
+            newSize.height = newH / initialScale;
         } else if (handleType === 't') {
-            let newDisplayH = initialDisplayH - localDy;
-            newDisplayH = Math.max(MIN_DISPLAY_SIZE, newDisplayH);
-            newSize.height = newDisplayH / initialScale;
-            // Adjust position to keep bottom edge fixed (approximately)
-            newPos.x = initialPosition.x - (initialDisplayH - newDisplayH) * sinR / initialScale;
-            newPos.y = initialPosition.y + (initialDisplayH - newDisplayH) * cosR / initialScale;
-        }
+            let newH = currentDisplayHeight - dyScreen;
+            let newY = initialPosition.y + dyScreen;
+            if (newY < 0) { newH += newY; newY = 0; }
+            newH = Math.max(MIN_DISPLAY_SIZE, newH);
+            if (newY + newH > boundary.height) newH = boundary.height - newY;
 
-        // Boundary checks for size and position
-        const finalDisplayW = newSize.width * currentScale;
-        const finalDisplayH = newSize.height * currentScale;
-
-        if (newPos.x < 0) { newPos.x = 0; }
-        if (newPos.y < 0) { newPos.y = 0; }
-        if (newPos.x + finalDisplayW > boundary.width) {
-            if (handleType === 'l') { // Resizing from left, width shrinks
-                 newSize.width = (boundary.width - newPos.x) / currentScale;
-            } else { // Resizing from right, position fixed or width shrinks
-                 newSize.width = (boundary.width - newPos.x) / currentScale;
-            }
+            newSize.height = newH / initialScale;
+            newPos.y = newY;
         }
-        if (newPos.y + finalDisplayH > boundary.height) {
-             if (handleType === 't') {
-                 newSize.height = (boundary.height - newPos.y) / currentScale;
-             } else {
-                 newSize.height = (boundary.height - newPos.y) / currentScale;
-             }
-        }
-        // Ensure minimum base size if scale is applied
-        newSize.width = Math.max(MIN_DISPLAY_SIZE / currentScale, newSize.width);
-        newSize.height = Math.max(MIN_DISPLAY_SIZE / currentScale, newSize.height);
-        
-        setCurrentSize(newSize);
-        setPosition(newPos);
       }
+      
+      // Update state for continuous feedback
+      setPosition(newPos);
+      setCurrentSize(newSize);
+      setCurrentScale(newScale);
+      setCurrentRotation(newRotation);
     };
 
     const handleMouseUp = () => {
       if (!interactionMode || !interactionStart) return;
-      onUpdateElement({ ...element, position, size: currentSize, rotation: currentRotation, scale: currentScale });
+      // Final update to parent
+      onUpdateElement({ 
+        ...element, 
+        position, 
+        size: currentSize, 
+        rotation: currentRotation, 
+        scale: currentScale 
+      });
       setInteractionMode(null);
       setInteractionStart(null);
       document.body.style.cursor = 'default';
@@ -271,7 +278,7 @@ export function DraggableElement({
       document.addEventListener('mouseup', handleMouseUp);
       let cursor = 'default';
       if (interactionMode === 'move') cursor = 'grabbing';
-      else if (interactionMode === 'rotate') cursor = 'crosshair'; // Or specific rotate cursor
+      else if (interactionMode === 'rotate') cursor = 'grabbing'; // Using 'grabbing' for rotate too
       else if (interactionMode === 'scale' || interactionMode === 'resize') {
         const ht = interactionStart?.handleType;
         if (ht === 'tr' || ht === 'bl') cursor = 'nesw-resize';
@@ -294,13 +301,17 @@ export function DraggableElement({
   }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, position, currentSize, currentRotation, currentScale, onSelect]);
 
 
+  // Calculate the actual display size after uniform scaling
   const displaySize = {
     width: currentSize.width * currentScale,
     height: currentSize.height * currentScale,
   };
 
-  const handleVisualScale = 1 / artboardZoom; // Handles should visually stay same size on canvas zoom
-  const outlineThickness = Math.max(1, 1 / (artboardZoom * currentScale));
+  // Handles should visually stay same size on canvas zoom
+  // The transform: scale() on handles makes them appear consistent.
+  // The outline thickness should also visually appear consistent.
+  const handleVisualScale = 1 / artboardZoom; 
+  const outlineThickness = Math.max(1, 1 * handleVisualScale);
 
 
   const HandleComponent: React.FC<{
@@ -313,7 +324,7 @@ export function DraggableElement({
     isCorner?: boolean;
   }> = ({ positionStyle, onMouseDown, title, cursor, children, className, isCorner = false }) => (
     <div
-      data-interaction-handle
+      data-interaction-handle // Important: prevents move start on handle click
       className={cn(
         "absolute flex items-center justify-center bg-background border border-primary shadow-md opacity-90 hover:opacity-100",
         isCorner ? "rounded-full" : "rounded-sm", // Circles for corners, squares for edges
@@ -322,7 +333,7 @@ export function DraggableElement({
       style={{
         width: `${HANDLE_SIZE_BASE}px`,
         height: `${HANDLE_SIZE_BASE}px`,
-        transform: `scale(${handleVisualScale})`,
+        transform: `scale(${handleVisualScale})`, // Apply visual scale here
         cursor: cursor,
         ...positionStyle,
       }}
@@ -333,7 +344,7 @@ export function DraggableElement({
     </div>
   );
   
-  const iconSizeClass = "w-[6px] h-[6px]"; // Smaller icons for handles
+  const iconSizeClass = "w-2 h-2"; // Tailwind class for 0.5rem, e.g., 8px
 
   return (
     <div
@@ -342,44 +353,49 @@ export function DraggableElement({
         position: 'absolute',
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: `${displaySize.width}px`,
-        height: `${displaySize.height}px`,
+        width: `${displaySize.width}px`, // Use scaled display size
+        height: `${displaySize.height}px`, // Use scaled display size
         transform: `rotate(${currentRotation}deg)`,
         transformOrigin: 'center center',
         cursor: isSelected && interactionMode === null ? 'grab' : (interactionMode ? document.body.style.cursor : 'pointer'),
         boxSizing: 'border-box',
       }}
       onMouseDown={(e) => {
+        // Only initiate move if not clicking on a handle
         if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
           if (isSelected) {
             handleInteractionStart(e, 'move');
           } else {
-            onSelect(element.id, e);
+            onSelect(element.id, e); // Select if not selected and not on a handle
           }
         }
       }}
       data-element-id={element.id}
-      className="group"
+      className="group" // For potential group-hover states if needed later
     >
-      {/* Selection Outline */}
+      {/* Selection Outline - visual only, pointer events none */}
       {isSelected && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            outline: `${outlineThickness}px solid hsl(var(--primary))`,
-            outlineOffset: `${outlineThickness}px`,
+            // Adjust outline based on handleVisualScale for consistent appearance
+            outline: `${outlineThickness}px solid hsl(var(--primary))`, 
+            // Negative offset to make it sit "on" the border, not outside
+            outlineOffset: `${-outlineThickness}px`, 
           }}
         />
       )}
 
-      {/* Element Content */}
+      {/* Element Content Itself */}
+      {/* Child needs to fill this div. pointerEvents managed by interactionMode */}
       <div style={{ width: '100%', height: '100%', pointerEvents: interactionMode || !isSelected ? 'none' : 'auto' }}>
         {children}
       </div>
 
+      {/* Interaction Handles - only show if selected */}
       {isSelected && (
         <>
-          {/* Corner Scale Handles */}
+          {/* Corner Scale Handles (Proportional) */}
           {(['tl', 'tr', 'bl', 'br'] as HandleType[]).map(corner => {
             let posStyle: React.CSSProperties = {};
             let cursor = 'default';
@@ -395,13 +411,13 @@ export function DraggableElement({
                 onMouseDown={(e) => handleInteractionStart(e, 'scale', corner)}
                 title="Scale Proportional"
                 cursor={cursor}
-                className="bg-primary"
-                isCorner
+                className="bg-primary" // Make corner handles distinct
+                isCorner // True for circular style
               />
             );
           })}
 
-          {/* Edge Resize Handles */}
+          {/* Edge Resize Handles (Non-Proportional) */}
           {(['t', 'b', 'l', 'r'] as HandleType[]).map(edge => {
             let posStyle: React.CSSProperties = {};
             let cursor = 'default';
@@ -417,6 +433,7 @@ export function DraggableElement({
                 onMouseDown={(e) => handleInteractionStart(e, 'resize', edge)}
                 title="Resize"
                 cursor={cursor}
+                isCorner={false} // Square style
               />
             );
           })}
@@ -426,7 +443,7 @@ export function DraggableElement({
             positionStyle={{
               top: `${HANDLE_OFFSET - (HANDLE_SIZE_BASE * 1.5)}px`, // Position further above
               left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`,
-              cursor: 'crosshair',
+              cursor: 'grab', // Changed from crosshair to grab
             }}
             onMouseDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
             title="Rotate"
@@ -438,16 +455,17 @@ export function DraggableElement({
           {/* Delete Handle */}
           <HandleComponent
              positionStyle={{
+                // Position it away from a corner scale handle, e.g., top-right but offset
                 top: `${HANDLE_OFFSET}px`, 
-                right: `${HANDLE_OFFSET - HANDLE_SIZE_BASE - (HANDLE_SIZE_BASE * 0.5)}px`, // Offset from corner
+                right: `${HANDLE_OFFSET - HANDLE_SIZE_BASE - (HANDLE_SIZE_BASE * 0.5)}px`, // Further offset from TR corner
                 cursor: 'pointer',
              }}
              onMouseDown={(e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // Prevent triggering artboard/element selection
                 onDeleteElement(element.id);
              }}
              title="Delete Element"
-             className="bg-destructive hover:bg-destructive/80"
+             className="bg-destructive hover:bg-destructive/80 rounded-full" // Make it circular too
            >
             <Trash2Icon className={cn(iconSizeClass, "text-destructive-foreground")} />
           </HandleComponent>
@@ -456,3 +474,4 @@ export function DraggableElement({
     </div>
   );
 }
+
