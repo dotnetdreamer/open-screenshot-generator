@@ -82,6 +82,17 @@ const sampleTemplates: Template[] = [
   }
 ];
 
+const ARTBOARD_MARGIN = 50;
+
+function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
+  let currentX = ARTBOARD_MARGIN;
+  return artboards.map(ab => {
+    const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
+    currentX += (ab.size.width * ab.zoom) + ARTBOARD_MARGIN;
+    return { ...ab, position: newPosition };
+  });
+}
+
 
 export function ArtboardStudioLayout() {
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
@@ -98,7 +109,7 @@ export function ArtboardStudioLayout() {
 
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(newArtboardsState)));
+    newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); // Deep copy
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   };
@@ -111,19 +122,20 @@ export function ArtboardStudioLayout() {
 
 
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[]) => {
-    setArtboards(updatedArtboards);
-    if (activeArtboardId && !updatedArtboards.find(ab => ab.id === activeArtboardId)) {
+    const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
+    setArtboards(repositionedArtboards);
+    if (activeArtboardId && !repositionedArtboards.find(ab => ab.id === activeArtboardId)) {
         setActiveArtboardId(null);
         setSelectedElementIdOnActiveArtboard(null);
     }
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-        const currentAb = updatedArtboards.find(ab => ab.id === activeArtboardId);
+        const currentAb = repositionedArtboards.find(ab => ab.id === activeArtboardId);
         if (currentAb && !currentAb.elements.find(el => el.id === selectedElementIdOnActiveArtboard)) {
             setSelectedElementIdOnActiveArtboard(null);
         }
     }
-    pushToHistory(updatedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, history, historyIndex]); // Added history & historyIndex to deps
+    pushToHistory(repositionedArtboards);
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, history, historyIndex]); 
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -153,7 +165,9 @@ export function ArtboardStudioLayout() {
       }
       return ab;
     });
-    handleArtboardsUpdate(updatedArtboards);
+    // No need to call calculateArtboardPositions here, as element updates don't change artboard positions
+    setArtboards(updatedArtboards); // Directly set, history push will happen in handleArtboardsUpdate if needed
+    pushToHistory(updatedArtboards); // Manually push if not going through full handleArtboardsUpdate
   };
 
 
@@ -170,26 +184,11 @@ export function ArtboardStudioLayout() {
     }
   }, [toast]);
 
-
-  const handleNewArtboard = () => {
-    const artboardMargin = 50;
-    let newPosition: Point;
-
-    if (artboards.length > 0) {
-      const lastArtboard = artboards[artboards.length - 1];
-      const lastArtboardActualWidth = (lastArtboard.size.width * lastArtboard.zoom);
-      newPosition = {
-        x: lastArtboard.position.x + lastArtboardActualWidth + artboardMargin,
-        y: lastArtboard.position.y,
-      };
-    } else {
-      newPosition = { x: artboardMargin, y: artboardMargin };
-    }
-
+  const handleNewArtboardFromMainToolbar = () => {
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
       name: `Artboard ${artboards.length + 1}`,
-      position: newPosition,
+      position: { x: 0, y: 0 }, // Position will be recalculated
       size: { width: 1024, height: 768 },
       elements: [],
       backgroundColor: 'hsl(var(--card))',
@@ -202,34 +201,109 @@ export function ArtboardStudioLayout() {
     toast({ title: "Artboard Created", description: `Artboard "${newArtboard.name}" added.` });
   };
 
+  const handleAddNewArtboardAfter = (currentArtboardId: string) => {
+    const newArtboard: ArtboardState = {
+      id: `artboard_${Date.now()}`,
+      name: `Artboard ${artboards.length + 1}`,
+      position: { x: 0, y: 0 }, // Position will be recalculated
+      size: { width: 1024, height: 768 },
+      elements: [],
+      backgroundColor: 'hsl(var(--card))',
+      zoom: 1,
+    };
+
+    const currentIndex = artboards.findIndex(ab => ab.id === currentArtboardId);
+    let newArtboardsArray = [...artboards];
+    if (currentIndex !== -1) {
+      newArtboardsArray.splice(currentIndex + 1, 0, newArtboard);
+    } else {
+      newArtboardsArray.push(newArtboard); // Fallback: add to end if current not found
+    }
+    
+    handleArtboardsUpdate(newArtboardsArray);
+    setActiveArtboardId(newArtboard.id);
+    setSelectedElementIdOnActiveArtboard(null);
+    toast({ title: "Artboard Added", description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".` });
+  };
+  
+  const handleDuplicateArtboard = (artboardId: string) => {
+    const artboardToDuplicate = artboards.find(ab => ab.id === artboardId);
+    if (!artboardToDuplicate) return;
+  
+    const duplicatedArtboard: ArtboardState = JSON.parse(JSON.stringify(artboardToDuplicate)); // Deep copy
+    duplicatedArtboard.id = `artboard_${Date.now()}`;
+    duplicatedArtboard.name = `${artboardToDuplicate.name} Copy`;
+    // Position will be recalculated by handleArtboardsUpdate
+  
+    const currentIndex = artboards.findIndex(ab => ab.id === artboardId);
+    let newArtboardsArray = [...artboards];
+    if (currentIndex !== -1) {
+      newArtboardsArray.splice(currentIndex + 1, 0, duplicatedArtboard);
+    } else {
+      newArtboardsArray.push(duplicatedArtboard);
+    }
+  
+    handleArtboardsUpdate(newArtboardsArray);
+    setActiveArtboardId(duplicatedArtboard.id);
+    toast({ title: "Artboard Duplicated", description: `Artboard "${artboardToDuplicate.name}" duplicated.` });
+  };
+  
+  const handleDeleteArtboard = (artboardId: string) => {
+    if (artboards.length <= 1) {
+      toast({ title: "Cannot Delete", description: "You must have at least one artboard.", variant: "destructive" });
+      return;
+    }
+    const artboardToDelete = artboards.find(ab => ab.id === artboardId);
+    if (!artboardToDelete) return;
+
+    const newArtboardsArray = artboards.filter(ab => ab.id !== artboardId);
+    handleArtboardsUpdate(newArtboardsArray);
+  
+    if (activeArtboardId === artboardId) {
+      setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
+      setSelectedElementIdOnActiveArtboard(null);
+    }
+    toast({ title: "Artboard Deleted", description: `Artboard "${artboardToDelete.name}" deleted.` });
+  };
+  
+  const handleMoveArtboard = (artboardId: string, direction: 'left' | 'right') => {
+    const currentIndex = artboards.findIndex(ab => ab.id === artboardId);
+    if (currentIndex === -1) return;
+  
+    let newArtboardsArray = [...artboards];
+    const targetArtboard = newArtboardsArray[currentIndex];
+  
+    if (direction === 'left' && currentIndex > 0) {
+      newArtboardsArray.splice(currentIndex, 1);
+      newArtboardsArray.splice(currentIndex - 1, 0, targetArtboard);
+    } else if (direction === 'right' && currentIndex < newArtboardsArray.length - 1) {
+      newArtboardsArray.splice(currentIndex, 1);
+      newArtboardsArray.splice(currentIndex + 1, 0, targetArtboard);
+    } else {
+      return; // Cannot move further
+    }
+  
+    handleArtboardsUpdate(newArtboardsArray); // This will also recalculate positions
+    toast({ title: "Artboard Moved", description: `Artboard "${targetArtboard.name}" moved ${direction}.` });
+  };
+
+
   const handleSelectTemplate = (template: Template) => {
-    const artboardMargin = 50;
-    const processedTemplateArtboards: ArtboardState[] = [];
-    let currentX = artboardMargin;
+    const templateArtboards: ArtboardState[] = template.artboards.map((abConfig, index) => ({
+        id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
+        name: abConfig.name || `Artboard ${index + 1}`,
+        position: {x:0, y:0}, // Will be recalculated
+        size: abConfig.size || { width: 1024, height: 768 },
+        elements: abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements)) : [],
+        backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
+        zoom: abConfig.zoom || 1,
+    } as ArtboardState));
 
-    template.artboards.forEach((abConfig, index) => {
-        const artboardWidth = (abConfig.size?.width || 1024) * (abConfig.zoom || 1);
-        const position: Point = abConfig.position ? abConfig.position : { x: currentX, y: artboardMargin };
-
-        processedTemplateArtboards.push({
-            id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
-            name: abConfig.name || `Artboard ${index + 1}`,
-            position: position,
-            size: abConfig.size || { width: 1024, height: 768 },
-            elements: abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements)) : [],
-            backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
-            zoom: abConfig.zoom || 1,
-        } as ArtboardState);
-
-        if (!abConfig.position) {
-            currentX += artboardWidth + artboardMargin;
-        }
-    });
-
-    setArtboards(JSON.parse(JSON.stringify(processedTemplateArtboards)));
-    setHistory([JSON.parse(JSON.stringify(processedTemplateArtboards))]);
+    const finalArtboards = calculateArtboardPositions(templateArtboards);
+    setArtboards(finalArtboards);
+    setHistory([JSON.parse(JSON.stringify(finalArtboards))]); // Deep copy for history
     setHistoryIndex(0);
-    setActiveArtboardId(processedTemplateArtboards.length > 0 ? processedTemplateArtboards[0].id : null);
+    setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
     setSelectedElementIdOnActiveArtboard(null);
     setIsTemplateSelectorOpen(false);
     toast({ title: "Template Loaded", description: `Template "${template.name}" applied.` });
@@ -244,8 +318,8 @@ export function ArtboardStudioLayout() {
       const newHistoryIndex = historyIndex - 1;
       setHistoryIndex(newHistoryIndex);
       const prevState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(prevState);
-      if (activeArtboardId && !prevState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
+      setArtboards(prevState); // Positions are already stored correctly in history
+       if (activeArtboardId && !prevState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
         setActiveArtboardId(prevState.length > 0 ? prevState[0].id : null);
       }
       setSelectedElementIdOnActiveArtboard(null);
@@ -257,7 +331,7 @@ export function ArtboardStudioLayout() {
       const newHistoryIndex = historyIndex + 1;
       setHistoryIndex(newHistoryIndex);
       const nextState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(nextState);
+      setArtboards(nextState); // Positions are already stored correctly in history
        if (activeArtboardId && !nextState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
         setActiveArtboardId(nextState.length > 0 ? nextState[0].id : null);
       }
@@ -265,23 +339,19 @@ export function ArtboardStudioLayout() {
     }
   };
 
-  const handleDeleteSelectedElement = () => {
+  const handleDeleteSelected = () => { // This function handles both element and artboard deletion from Toolbar
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
         const artboardComponent = artboardRefs.current[activeArtboardId];
         if(artboardComponent && artboardComponent.deleteElementByIdG) {
             artboardComponent.deleteElementByIdG(selectedElementIdOnActiveArtboard);
-            setSelectedElementIdOnActiveArtboard(null);
+            setSelectedElementIdOnActiveArtboard(null); // Deselect element
         } else {
-            toast({title: "Cannot Delete", description: "Artboard or element ref not found.", variant: "destructive"});
+            toast({title: "Cannot Delete Element", description: "Artboard or element ref not found.", variant: "destructive"});
         }
-    } else if (activeArtboardId) {
-             const newArtboards = artboards.filter(ab => ab.id !== activeArtboardId);
-             handleArtboardsUpdate(newArtboards);
-             setActiveArtboardId(newArtboards.length > 0 ? newArtboards[0].id : null);
-             setSelectedElementIdOnActiveArtboard(null);
-             toast({ title: "Artboard Deleted", description: "The active artboard has been deleted." });
+    } else if (activeArtboardId) { // No element selected, but an artboard is active
+        handleDeleteArtboard(activeArtboardId); // Use the new artboard delete handler
     } else {
-            toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
+        toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
     }
   };
 
@@ -316,7 +386,7 @@ export function ArtboardStudioLayout() {
             elements[elementIndex] = elements[elementIndex + 1];
             elements[elementIndex + 1] = temp;
           }
-        } else {
+        } else { // 'down'
           if (elementIndex > 0) {
             const temp = elements[elementIndex];
             elements[elementIndex] = elements[elementIndex - 1];
@@ -438,7 +508,7 @@ export function ArtboardStudioLayout() {
 
       <SidebarInset className="flex flex-col overflow-hidden">
         <Toolbar
-          onNewArtboard={handleNewArtboard}
+          onNewArtboard={handleNewArtboardFromMainToolbar}
           onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
           onExport={handleExport}
           onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
@@ -448,7 +518,7 @@ export function ArtboardStudioLayout() {
           canRedo={historyIndex < history.length - 1}
           onUndo={handleUndo}
           onRedo={handleRedo}
-          onDeleteSelected={handleDeleteSelectedElement}
+          onDeleteSelected={handleDeleteSelected}
           isElementSelected={!!selectedElementIdOnActiveArtboard}
           isArtboardSelected={!!activeArtboardId}
           className="sticky top-0 z-50 bg-card border-b"
@@ -456,12 +526,12 @@ export function ArtboardStudioLayout() {
         <PropertiesPanel
             selectedElement={selectedElementDetails}
             onUpdateElement={handleUpdateSelectedElement}
-            // className="sticky top-14 z-40 bg-card border-b" // Toolbar is h-14 (56px)
+            className="sticky top-14 z-40 bg-card border-b"
         />
-        <div className="flex-grow relative overflow-hidden">
+        <div className="flex-grow relative overflow-hidden"> {/* This container will scroll */}
           <CanvasArea
             artboards={artboards}
-            onUpdateArtboards={handleArtboardsUpdate}
+            onUpdateArtboards={handleArtboardsUpdate} // Central update function
             onAddElementToArtboard={handleAddElementToArtboard}
             activeArtboardId={activeArtboardId}
             setActiveArtboardId={handleArtboardSelection}
@@ -469,6 +539,11 @@ export function ArtboardStudioLayout() {
             setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
             canvasZoom={canvasZoom}
             artboardRefs={artboardRefs}
+            // Pass artboard action handlers
+            onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
+            onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
+            onDeleteArtboardFromToolbar={handleDeleteArtboard}
+            onMoveArtboardFromToolbar={handleMoveArtboard}
           />
         </div>
       </SidebarInset>

@@ -1,7 +1,7 @@
 
 "use client";
 import type React from 'react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Artboard } from './Artboard';
 import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,7 +16,12 @@ interface CanvasAreaProps {
   selectedElementIdOnActiveArtboard: string | null;
   setSelectedElementIdOnActiveArtboard: (elementId: string | null) => void;
   canvasZoom: number;
-  artboardRefs: React.MutableRefObject<Record<string, any>>; // Pass down from layout
+  artboardRefs: React.MutableRefObject<Record<string, any>>;
+  // Props for ArtboardToolbar actions
+  onAddNewArtboardFromToolbar: (currentArtboardId: string) => void;
+  onDuplicateArtboardFromToolbar: (artboardId: string) => void;
+  onDeleteArtboardFromToolbar: (artboardId: string) => void;
+  onMoveArtboardFromToolbar: (artboardId: string, direction: 'left' | 'right') => void;
 }
 
 const initialArtboardState: ArtboardState = {
@@ -63,11 +68,14 @@ export function CanvasArea({
     selectedElementIdOnActiveArtboard,
     setSelectedElementIdOnActiveArtboard,
     canvasZoom,
-    artboardRefs // Use the passed ref
+    artboardRefs,
+    onAddNewArtboardFromToolbar,
+    onDuplicateArtboardFromToolbar,
+    onDeleteArtboardFromToolbar,
+    onMoveArtboardFromToolbar,
 }: CanvasAreaProps) {
   const [artboards, setArtboards] = useState<ArtboardState[]>(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
   const canvasRef = useRef<HTMLDivElement>(null);
-  // artboardRefs is now a prop, managed by ArtboardStudioLayout
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,7 +100,6 @@ export function CanvasArea({
   
   const handleSelectArtboard = (artboardId: string) => {
     setActiveArtboardId(artboardId);
-    // setSelectedElementIdOnActiveArtboard(null); // Deselect element when artboard changes
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -108,8 +115,8 @@ export function CanvasArea({
     const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
     
     if (activeArtboardId && type) {
-        const artboardDiv = artboardRefs.current[activeArtboardId];
-        if (artboardDiv && (artboardDiv as any).addElement) { // addElement is on Artboard component instance
+        const artboardComponent = artboardRefs.current[activeArtboardId];
+        if (artboardComponent && (artboardComponent as any).addElement) {
             const dropPosition = { x: e.clientX, y: e.clientY };
             onAddElementToArtboard(activeArtboardId, type, subType, dropPosition);
         } else {
@@ -137,7 +144,7 @@ export function CanvasArea({
         onDrop={handleDropOnCanvas}
         onDragOver={handleDragOverCanvas}
       >
-        {artboards.map((artboard) => (
+        {artboards.map((artboard, index) => (
           <div
             key={artboard.id}
             style={{
@@ -147,7 +154,7 @@ export function CanvasArea({
             }}
           >
             <Artboard
-              ref={el => artboardRefs.current[artboard.id] = el} // Assign to the passed ref
+              ref={el => artboardRefs.current[artboard.id] = el}
               artboard={artboard}
               isSelected={activeArtboardId === artboard.id}
               onUpdateArtboardElements={(elements) => handleUpdateArtboardElements(artboard.id, elements)}
@@ -156,6 +163,14 @@ export function CanvasArea({
               globalZoom={canvasZoom}
               selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
               setSelectedElementId={setSelectedElementIdOnActiveArtboard}
+              // Toolbar props
+              onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
+              onDuplicateArtboard={onDuplicateArtboardFromToolbar}
+              onDeleteArtboard={onDeleteArtboardFromToolbar}
+              onMoveArtboard={onMoveArtboardFromToolbar}
+              canDeleteArtboard={artboards.length > 1}
+              canMoveArtboardLeft={index > 0}
+              canMoveArtboardRight={index < artboards.length - 1}
             />
           </div>
         ))}
@@ -163,5 +178,3 @@ export function CanvasArea({
     </ScrollArea>
   );
 }
-
-    

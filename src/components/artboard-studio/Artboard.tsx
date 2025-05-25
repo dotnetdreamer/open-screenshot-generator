@@ -9,6 +9,7 @@ import { DeviceFrameElement } from './elements/DeviceFrameElement';
 import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 
 interface ArtboardProps {
   artboard: ArtboardType;
@@ -19,11 +20,19 @@ interface ArtboardProps {
   globalZoom: number;
   selectedElementId: string | null;
   setSelectedElementId: (id: string | null) => void;
+  // Props for the ArtboardToolbar
+  onAddNewArtboard: () => void;
+  onDuplicateArtboard: (artboardId: string) => void;
+  onDeleteArtboard: (artboardId: string) => void;
+  onMoveArtboard: (artboardId: string, direction: 'left' | 'right') => void;
+  canDeleteArtboard: boolean;
+  canMoveArtboardLeft: boolean;
+  canMoveArtboardRight: boolean;
 }
 
 export interface ArtboardRef {
   addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => string | undefined;
-  deleteElementByIdG: (elementId: string) => void; // Renamed to avoid conflicts
+  deleteElementByIdG: (elementId: string) => void;
 }
 
 export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({ 
@@ -34,17 +43,23 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   onSelectArtboard, 
   globalZoom,
   selectedElementId,
-  setSelectedElementId
+  setSelectedElementId,
+  onAddNewArtboard,
+  onDuplicateArtboard,
+  onDeleteArtboard,
+  onMoveArtboard,
+  canDeleteArtboard,
+  canMoveArtboardLeft,
+  canMoveArtboardRight,
 }, ref) => {
   const [elements, setElements] = useState<ArtboardElement[]>(artboard.elements);
-  const artboardDivRef = useRef<HTMLDivElement>(null); // Renamed from artboardRef to avoid confusion with forwardRef
+  const artboardDivRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     setElements(artboard.elements);
   }, [artboard.elements]);
 
-  // Expose methods via ref
   useImperativeHandle(ref, () => ({
     addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => {
       const artboardRect = artboardDivRef.current?.getBoundingClientRect();
@@ -52,8 +67,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       let newElementY = artboard.size.height / 2 - 25;
       
       if (dropPosition && artboardRect) {
-        newElementX = (dropPosition.x - artboardRect.left) / artboard.zoom - 50; // Adjust for element size (assuming 100 width)
-        newElementY = (dropPosition.y - artboardRect.top) / artboard.zoom - 25; // Adjust for element size (assuming 50 height)
+        newElementX = (dropPosition.x - artboardRect.left) / artboard.zoom - 50;
+        newElementY = (dropPosition.y - artboardRect.top) / artboard.zoom - 25;
       }
       
       newElementX = Math.max(0, Math.min(newElementX, artboard.size.width - 100));
@@ -94,6 +109,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           type: 'device',
           deviceType: subType as DeviceType,
           size: { width: 150, height: 300 }, 
+          screenshotRect: { left: 5, top: 5, width: 90, height: 90 },
         } as ArtboardElement;
       }
 
@@ -107,7 +123,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       }
       return undefined;
     },
-    deleteElementByIdG: (elementId: string) => { // Renamed method
+    deleteElementByIdG: (elementId: string) => {
         handleDeleteElement(elementId);
     }
   }));
@@ -141,10 +157,12 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   const handleSelectElement = (elementId: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
     setSelectedElementId(elementId);
-    onSelectArtboard(); // Also ensure artboard is selected
+    onSelectArtboard(); 
   };
 
   const handleArtboardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only deselect element if the click is directly on the artboard background,
+    // not on the toolbar or other child elements within the artboard wrapper.
     if (e.target === artboardDivRef.current) {
       setSelectedElementId(null);
     }
@@ -152,69 +170,82 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   };
 
   return (
-    <div
-      ref={artboardDivRef}
-      className={cn(
-        "artboard relative shadow-lg overflow-hidden bg-card",
-        isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
+    <div className="relative"> {/* Wrapper for artboard and its toolbar */}
+      {isSelected && (
+        <ArtboardToolbar
+          artboardId={artboard.id}
+          onAddNew={onAddNewArtboard}
+          onDuplicate={onDuplicateArtboard}
+          onDelete={onDeleteArtboard}
+          onMove={onMoveArtboard}
+          canDelete={canDeleteArtboard}
+          canMoveLeft={canMoveArtboardLeft}
+          canMoveRight={canMoveArtboardRight}
+        />
       )}
-      style={{
-        width: `${artboard.size.width}px`,
-        height: `${artboard.size.height}px`,
-        backgroundColor: artboard.backgroundColor,
-        transform: `scale(${artboard.zoom})`, // This is artboard's internal zoom
-        transformOrigin: 'top left',
-      }}
-      onClick={handleArtboardClick}
-      onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
-        const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
-        if (type && typeof (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement === 'function') {
-          const dropX = e.clientX;
-          const dropY = e.clientY;
-          (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY});
-        }
-      }}
-      onDragOver={(e) => {
-        e.preventDefault(); 
-        e.stopPropagation();
-      }}
-    >
-      {elements.map(element => (
-        <DraggableElement
-          key={element.id}
-          element={element}
-          isSelected={selectedElementId === element.id}
-          onSelect={handleSelectElement}
-          onUpdateElement={handleUpdateElement}
-          onDeleteElement={handleDeleteElement}
-          artboardZoom={artboard.zoom} // This is the artboard's own content zoom
-          boundary={{width: artboard.size.width, height: artboard.size.height}}
-        >
-          {element.type === 'text' && (
-            <TextElement 
-              element={element} 
-              onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-              isSelected={selectedElementId === element.id}
-              artboardZoom={artboard.zoom * element.scale} // Text needs combined zoom/scale
-            />
-          )}
-          {element.type === 'shape' && <ShapeElement element={element} />}
-          {element.type === 'device' && (
-            <DeviceFrameElement 
-              element={element} 
-              onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-              isSelected={selectedElementId === element.id} 
-            />
-          )}
-        </DraggableElement>
-      ))}
+      <div
+        ref={artboardDivRef}
+        className={cn(
+          "artboard relative shadow-lg overflow-hidden bg-card",
+          isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
+        )}
+        style={{
+          width: `${artboard.size.width}px`,
+          height: `${artboard.size.height}px`,
+          backgroundColor: artboard.backgroundColor,
+          transform: `scale(${artboard.zoom})`,
+          transformOrigin: 'top left',
+          marginTop: isSelected ? '2.5rem' : '0', // Add margin-top if toolbar is visible
+        }}
+        onClick={handleArtboardClick}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
+          const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
+          if (type && typeof (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement === 'function') {
+            const dropX = e.clientX;
+            const dropY = e.clientY;
+            (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY});
+          }
+        }}
+        onDragOver={(e) => {
+          e.preventDefault(); 
+          e.stopPropagation();
+        }}
+      >
+        {elements.map(element => (
+          <DraggableElement
+            key={element.id}
+            element={element}
+            isSelected={selectedElementId === element.id}
+            onSelect={handleSelectElement}
+            onUpdateElement={handleUpdateElement}
+            onDeleteElement={handleDeleteElement}
+            artboardZoom={artboard.zoom}
+            boundary={{width: artboard.size.width, height: artboard.size.height}}
+          >
+            {element.type === 'text' && (
+              <TextElement 
+                element={element} 
+                onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
+                isSelected={selectedElementId === element.id}
+                artboardZoom={artboard.zoom * element.scale}
+              />
+            )}
+            {element.type === 'shape' && <ShapeElement element={element} />}
+            {element.type === 'device' && (
+              <DeviceFrameElement 
+                element={element} 
+                onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
+                isSelected={selectedElementId === element.id} 
+              />
+            )}
+          </DraggableElement>
+        ))}
+      </div>
     </div>
   );
 });
 
 Artboard.displayName = "Artboard";
-
-    
