@@ -103,7 +103,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   const baseElementHeight = element.size.height;
 
   let visualFrameStyle: React.CSSProperties = {
-    width: '100%', // For custom, the frame image dictates aspect within this box
+    width: '100%', 
     height: '100%',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
@@ -164,55 +164,56 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             </div>
           ) : (
             <div className="relative w-full h-full">
-              <Image
-                src={customFrame}
-                alt="Custom Mockup Frame"
-                layout="fill"
-                objectFit="contain" // Show the whole custom mockup
-                className="transition-opacity duration-300 ease-in-out" 
-                onLoadingComplete={(img) => img.style.opacity = '1'}
-                draggable={false}
-              />
-              {screenshot ? (
+              {/* Render Screenshot First (to be in the background) */}
+              {screenshot && (
                  <div style={{
                     position: 'absolute',
-                    top: '50%', 
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    // Screenshot area is 90% of the custom frame's container, adjust as needed
-                    width: '90%', 
-                    height: '90%', 
+                    top: 0, 
+                    left: 0,
+                    width: '100%', 
+                    height: '100%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    overflow: 'hidden', // Clip screenshot if it's larger than this area
                   }}>
                     <Image
                       src={screenshot}
-                      alt={`Screenshot`}
-                      layout="fill" // Fill the 90% container
-                      objectFit="contain" // Contain screenshot within that 90% area
-                      style={{ objectPosition: "50% 50%", cursor: 'default' }}
+                      alt="Screenshot"
+                      layout="fill"
+                      objectFit="contain" 
+                      style={{ objectPosition: element.screenshotObjectPosition || "50% 50%" }}
                       className="transition-opacity duration-300 ease-in-out" 
                       onLoadingComplete={(img) => img.style.opacity = '1'}
                       data-ai-hint="app interface general"
                       draggable={false} 
                     />
                 </div>
-              ) : (
-                isSelected && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="text-xs py-1 px-2 h-auto"
-                      onClick={() => triggerFileUpload('screenshot')}
-                      onMouseDown={(e) => e.stopPropagation()} 
-                    >
-                      <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
-                    </Button>
-                  </div>
-                )
+              )}
+
+              {/* Render Custom Frame Image on top */}
+              <Image
+                src={customFrame}
+                alt="Custom Mockup Frame"
+                layout="fill"
+                objectFit="contain"
+                className="transition-opacity duration-300 ease-in-out relative" 
+                onLoadingComplete={(img) => img.style.opacity = '1'}
+                draggable={false}
+              />
+              
+              {/* Screenshot Upload Button (only if no screenshot yet, but custom frame exists and element is selected) */}
+              {!screenshot && isSelected && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="text-xs py-1 px-2 h-auto"
+                    onClick={() => triggerFileUpload('screenshot')}
+                    onMouseDown={(e) => e.stopPropagation()} 
+                  >
+                    <UploadCloudIcon className="w-4 h-4 mr-1.5" /> Upload Screenshot
+                  </Button>
+                </div>
               )}
             </div>
           )}
@@ -279,3 +280,4 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     </div>
   );
 }
+
