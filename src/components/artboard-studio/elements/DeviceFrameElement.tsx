@@ -37,12 +37,12 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         const newImageSrc = reader.result as string;
         if (uploadTarget === 'customFrame') {
           setCustomFrame(newImageSrc);
-          onUpdate({ customFrameSrc: newImageSrc, screenshotSrc: undefined }); // Reset screenshot when custom frame changes
+          onUpdate({ customFrameSrc: newImageSrc, screenshotSrc: undefined }); 
         } else if (uploadTarget === 'screenshot') {
           setScreenshot(newImageSrc);
           onUpdate({ screenshotSrc: newImageSrc });
         }
-        setUploadTarget(null); // Reset upload target
+        setUploadTarget(null); 
       };
       reader.readAsDataURL(file);
     }
@@ -63,7 +63,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   let deviceFrameBgColor = '#111';
   let deviceFrameOuterBorderRadius = '1rem';
 
-  // Declare baseElementWidth and baseElementHeight before use
   const baseElementWidth = element.size.width;
   const baseElementHeight = element.size.height;
 
@@ -110,7 +109,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     alignItems: 'center',
     position: 'relative',
     borderRadius: deviceFrameOuterBorderRadius,
-    backgroundColor: deviceFrameBgColor, // For standard devices
+    backgroundColor: deviceFrameBgColor, 
     ['--scale-factor' as any]: element.scale || 1,
   };
 
@@ -138,68 +137,60 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
 
   const placeholderText = `Mockup: ${deviceLabel}`;
 
-  // Custom Mockup Specific Rendering
   if (element.deviceType === 'custom') {
     return (
       <div
-        className="w-full h-full flex items-center justify-center bg-transparent group"
-        style={{ position: 'relative', cursor: 'default' }}
+        className="w-full h-full flex items-center justify-center bg-transparent group relative"
+        style={{ cursor: 'default' }}
       >
-        {!customFrame ? (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-4">
-            <ImagePlusIcon className="w-1/3 h-1/3 opacity-50 mb-3" data-ai-hint="upload image plus" />
-            <p className="text-sm mb-3 text-center">Custom Mockup Area</p>
-            {isSelected && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background z-10"
-                onClick={() => triggerFileUpload('customFrame')}
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                Upload Mockup Image
-              </Button>
-            )}
-          </div>
-        ) : (
+        {customFrame ? (
           <>
-            {/* Screenshot Layer (Bottom) */}
-            {screenshot && (
-              <Image
-                src={screenshot}
-                alt="Screenshot"
-                layout="fill"
-                objectFit={element.screenshotObjectFit || "contain"}
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  objectPosition: element.screenshotObjectPosition || "50% 50%",
-                  opacity: 0, // Faded in by onLoadingComplete
-                }}
-                className="transition-opacity duration-300 ease-in-out"
-                onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-                data-ai-hint="app interface general"
-                draggable={false}
-              />
-            )}
+            {/* Container for the screenshot, this div will be masked */}
+            <div
+              className="absolute inset-0 w-full h-full"
+              style={{
+                maskImage: `url(${customFrame})`,
+                maskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center',
+                WebkitMaskImage: `url(${customFrame})`,
+                WebkitMaskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+              }}
+            >
+              {screenshot && (
+                <Image
+                  src={screenshot}
+                  alt="Screenshot"
+                  layout="fill"
+                  objectFit={element.screenshotObjectFit || "contain"}
+                  className="transition-opacity duration-300 ease-in-out"
+                  onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+                  style={{ opacity: 0 }}
+                  data-ai-hint="app interface general"
+                  draggable={false}
+                />
+              )}
+            </div>
 
-            {/* Custom Mockup Frame Layer (Top) - Its transparency defines where screenshot shows */}
+            {/* Visual Mockup Frame (Overlay) - Renders the bezels etc. */}
+            {/* This image shows the device frame itself and should be on top of the masked screenshot */}
             <Image
               src={customFrame}
               alt="Custom Mockup Frame"
               layout="fill"
-              objectFit="contain" // Ensure the whole mockup frame is visible
-              style={{
-                position: 'absolute',
-                inset: 0,
-                opacity: 0, // Faded in by onLoadingComplete
-              }}
+              objectFit="contain" // The frame itself should also be contained
               className="transition-opacity duration-300 ease-in-out"
               onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+              style={{
+                opacity: 0,
+                pointerEvents: 'none', // Allows clicks to pass through to elements behind (like upload button if screenshot isn't there)
+              }}
               data-ai-hint="device mockup custom"
               draggable={false}
             />
-
+            
             {/* Screenshot Upload Button (appears if no screenshot, on top of custom frame) */}
             {!screenshot && isSelected && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 group-hover:bg-black/50 transition-colors z-10">
@@ -215,6 +206,23 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               </div>
             )}
           </>
+        ) : (
+          // Initial state: "Upload Mockup Image" button
+          <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground p-4">
+            <ImagePlusIcon className="w-1/3 h-1/3 opacity-50 mb-3" data-ai-hint="upload image plus" />
+            <p className="text-sm mb-3 text-center">Custom Mockup Area</p>
+            {isSelected && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background z-10"
+                onClick={() => triggerFileUpload('customFrame')}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                Upload Mockup Image
+              </Button>
+            )}
+          </div>
         )}
         <Input
           type="file"
@@ -242,9 +250,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               layout="fill"
               objectFit={element.screenshotObjectFit || "cover"}
               style={{
-                objectPosition: element.screenshotObjectPosition || "50% 50%",
                 cursor: 'default',
-                opacity: 0, // Faded in by onLoadingComplete
+                opacity: 0, 
               }}
               className="transition-opacity duration-300 ease-in-out"
               onLoadingComplete={(img) => { img.style.opacity = '1'; }}
@@ -280,4 +287,3 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     </div>
   );
 }
-
