@@ -15,15 +15,15 @@ export interface BaseElement {
   id: string;
   type: ElementType;
   position: Point;
-  size: Size;
+  size: Size; // Base size, actual display size is base * scale
   rotation: number; // degrees
-  scale: number; // percentage, 1 = 100%
+  scale: number; // multiplier, 1 = 100%
 }
 
 export interface TextElementProps extends BaseElement {
   type: 'text';
   content: string;
-  fontSize: number;
+  fontSize: number; // Base font size, actual display is fontSize * scale (potentially, or handled by text component)
   color: string;
   fontFamily: string;
 }
@@ -49,11 +49,11 @@ export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrame
 export interface ArtboardState {
   id: string;
   name: string;
-  position: Point; // Position on the infinite canvas (if applicable, for now fixed)
+  position: Point; 
   size: Size;
   elements: ArtboardElement[];
   backgroundColor: string;
-  zoom: number;
+  zoom: number; // Zoom level for the artboard's content itself
 }
 
 export interface Template {
@@ -61,5 +61,8 @@ export interface Template {
   name: string;
   description: string;
   previewImage?: string;
-  artboards: Partial<ArtboardState>[]; // Initial artboard configurations
+  dataAiHint?: string; // for placeholder images
+  artboards: Partial<ArtboardState>[]; 
 }
+
+    

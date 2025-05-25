@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Artboard } from './Artboard';
-import type { ArtboardState, Point, ElementType, ShapeType, DeviceType } from '@/types/artboard';
+import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,13 +13,16 @@ interface CanvasAreaProps {
   onAddElementToArtboard: (artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => void;
   activeArtboardId: string | null;
   setActiveArtboardId: (id: string | null) => void;
+  selectedElementIdOnActiveArtboard: string | null;
+  setSelectedElementIdOnActiveArtboard: (elementId: string | null) => void;
   canvasZoom: number;
+  artboardRefs: React.MutableRefObject<Record<string, any>>; // Pass down from layout
 }
 
 const initialArtboardState: ArtboardState = {
   id: 'artboard_default_1',
   name: 'My First Artboard',
-  position: { x: 50, y: 50 }, // Position on the canvas if canvas is pannable
+  position: { x: 50, y: 50 }, 
   size: { width: 1024, height: 768 },
   elements: [
     {
@@ -33,7 +36,7 @@ const initialArtboardState: ArtboardState = {
       fontFamily: 'Arial',
       rotation: 0,
       scale: 1,
-    },
+    } as ArtboardElement,
     {
       id: 'el_intro_shape',
       type: 'shape',
@@ -45,10 +48,10 @@ const initialArtboardState: ArtboardState = {
       strokeWidth: 2,
       rotation: 0,
       scale: 1,
-    }
+    } as ArtboardElement
   ],
-  backgroundColor: 'hsl(var(--card))', // White background for artboard
-  zoom: 1, // Initial zoom level for the artboard content itself
+  backgroundColor: 'hsl(var(--card))', 
+  zoom: 1, 
 };
 
 export function CanvasArea({ 
@@ -57,33 +60,45 @@ export function CanvasArea({
     onAddElementToArtboard,
     activeArtboardId,
     setActiveArtboardId,
-    canvasZoom // This is the zoom for the entire canvas viewport
+    selectedElementIdOnActiveArtboard,
+    setSelectedElementIdOnActiveArtboard,
+    canvasZoom,
+    artboardRefs // Use the passed ref
 }: CanvasAreaProps) {
   const [artboards, setArtboards] = useState<ArtboardState[]>(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const artboardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // artboardRefs is now a prop, managed by ArtboardStudioLayout
   const { toast } = useToast();
 
   useEffect(() => {
     setArtboards(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
   }, [externalArtboards]);
 
-  const handleUpdateArtboard = (artboardId: string, updatedData: Partial<ArtboardState>) => {
+  const handleUpdateArtboardElements = (artboardId: string, elements: ArtboardElement[]) => {
     const newArtboards = artboards.map(ab =>
+      ab.id === artboardId ? { ...ab, elements } : ab
+    );
+    setArtboards(newArtboards);
+    onUpdateArtboards(newArtboards); 
+  };
+
+  const handleUpdateArtboardDetails = (artboardId: string, updatedData: Partial<ArtboardState>) => {
+     const newArtboards = artboards.map(ab =>
       ab.id === artboardId ? { ...ab, ...updatedData } : ab
     );
     setArtboards(newArtboards);
-    onUpdateArtboards(newArtboards); // Propagate change upwards
-  };
+    onUpdateArtboards(newArtboards);
+  }
   
   const handleSelectArtboard = (artboardId: string) => {
     setActiveArtboardId(artboardId);
+    // setSelectedElementIdOnActiveArtboard(null); // Deselect element when artboard changes
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Deselect artboard if clicking on canvas background
     if (e.target === canvasRef.current) {
       setActiveArtboardId(null);
+      setSelectedElementIdOnActiveArtboard(null);
     }
   };
 
@@ -94,7 +109,7 @@ export function CanvasArea({
     
     if (activeArtboardId && type) {
         const artboardDiv = artboardRefs.current[activeArtboardId];
-        if (artboardDiv && (artboardDiv as any).addElement) {
+        if (artboardDiv && (artboardDiv as any).addElement) { // addElement is on Artboard component instance
             const dropPosition = { x: e.clientX, y: e.clientY };
             onAddElementToArtboard(activeArtboardId, type, subType, dropPosition);
         } else {
@@ -106,23 +121,17 @@ export function CanvasArea({
   };
 
   const handleDragOverCanvas = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); // Necessary to allow drop
+    e.preventDefault(); 
   };
-
-
-  // Center the first artboard (or active one) approximately.
-  // This is a simplified centering. True panning/infinite canvas is more complex.
-  const canvasPadding = 50; // Padding around artboards
 
   return (
     <ScrollArea className="h-full w-full bg-background flex-grow" viewportRef={canvasRef}>
       <div
         ref={canvasRef}
-        className="relative w-max min-w-full min-h-full p-12" // p-12 for padding around artboards
+        className="relative w-max min-w-full min-h-full p-12" 
         style={{ 
           transform: `scale(${canvasZoom})`, 
           transformOrigin: 'top left',
-          // Ensure there's enough space for artboards
         }}
         onClick={handleCanvasClick}
         onDrop={handleDropOnCanvas}
@@ -132,23 +141,21 @@ export function CanvasArea({
           <div
             key={artboard.id}
             style={{
-              position: 'absolute', // Artboards are positioned absolutely on the canvas
+              position: 'absolute', 
               left: `${artboard.position.x}px`,
               top: `${artboard.position.y}px`,
-              // Adding some margin around artboards if multiple are displayed
-              // marginBottom: '20px', 
-              // marginRight: '20px',
             }}
-            // This outer div could handle artboard dragging on the canvas in the future
-            // For now, artboards are statically positioned based on artboard.position
           >
             <Artboard
-              ref={el => artboardRefs.current[artboard.id] = el}
+              ref={el => artboardRefs.current[artboard.id] = el} // Assign to the passed ref
               artboard={artboard}
               isSelected={activeArtboardId === artboard.id}
-              onUpdateArtboard={(updatedData) => handleUpdateArtboard(artboard.id, updatedData)}
+              onUpdateArtboardElements={(elements) => handleUpdateArtboardElements(artboard.id, elements)}
+              onUpdateArtboardDetails={(details) => handleUpdateArtboardDetails(artboard.id, details)}
               onSelectArtboard={() => handleSelectArtboard(artboard.id)}
-              globalZoom={canvasZoom} // Pass down the main canvas zoom
+              globalZoom={canvasZoom}
+              selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
+              setSelectedElementId={setSelectedElementIdOnActiveArtboard}
             />
           </div>
         ))}
@@ -156,3 +163,5 @@ export function CanvasArea({
     </ScrollArea>
   );
 }
+
+    
