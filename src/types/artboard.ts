@@ -43,6 +43,7 @@ export interface DeviceFrameElementProps extends BaseElement {
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
   screenshotObjectPosition?: string; // e.g., "50% 50%", "0 0", "10px 20px"
+  screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits
   customFrameSrc?: string; // URL or base64 for user-uploaded mockup
 }
 
@@ -51,7 +52,7 @@ export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrame
 export interface ArtboardState {
   id: string;
   name: string;
-  position: Point; 
+  position: Point;
   size: Size;
   elements: ArtboardElement[];
   backgroundColor: string;
@@ -64,7 +65,7 @@ export interface Template {
   description: string;
   previewImage?: string;
   dataAiHint?: string; // for placeholder images
-  artboards: Partial<ArtboardState>[]; 
+  artboards: Partial<ArtboardState>[];
 }
 
     
