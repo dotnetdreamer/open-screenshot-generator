@@ -111,6 +111,16 @@ export function PropertiesPanel({
   const [screenshotWidth, setScreenshotWidth] = useState(90);
   const [screenshotHeight, setScreenshotHeight] = useState(90);
 
+  // Function to convert CSS variables to hex color
+  const cssVarToHex = (cssVar: string): string => {
+    // Check if it's a CSS variable format like 'hsl(var(--card))'
+    if (cssVar?.toLowerCase().includes('var(--') || cssVar?.toLowerCase().includes('hsl')) {
+      // Return a default color that matches the theme
+      return '#FFFFFF'; // Default white to match light theme card color
+    }
+    return cssVar || '#FFFFFF';
+  };
+
   useEffect(() => {
     // Mark as client-side rendered to avoid hydration issues
     isClient.current = true;
@@ -137,7 +147,9 @@ export function PropertiesPanel({
 
     // Initialize background controls when artboard is selected and after client-side rendering
     if (isClient.current && !selectedElement && activeArtboardDetails) {
-      setSolidColor(activeArtboardDetails.backgroundColor || '#FFFFFF');
+      // Convert CSS variables to hex if needed
+      const backgroundColor = cssVarToHex(activeArtboardDetails.backgroundColor);
+      setSolidColor(backgroundColor);
       setActiveBackgroundTab(activeArtboardDetails.backgroundType || 'solid');
       
       if (activeArtboardDetails.backgroundGradient) {
@@ -175,6 +187,11 @@ export function PropertiesPanel({
   // Handle solid color change
   const handleSolidColorChange = (color: string) => {
     if (!onUpdateArtboardDetails) return;
+    
+    // Don't allow setting CSS variables through the color picker
+    if (color?.toLowerCase().includes('var(') || color?.toLowerCase().includes('hsl(var')) {
+      color = '#FFFFFF';
+    }
     
     setSolidColor(color);
     onUpdateArtboardDetails({ backgroundColor: color });
@@ -458,6 +475,9 @@ export function PropertiesPanel({
 
   // Artboard background properties
   if (!selectedElement && activeArtboardDetails && isClientSide) {
+    // Ensure we display a proper hex color, not CSS variables
+    const displayColor = cssVarToHex(solidColor);
+    
     return (
       <div className={cn("h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
         <span className="font-semibold capitalize text-muted-foreground">
@@ -490,13 +510,13 @@ export function PropertiesPanel({
               <Input
                 id="bgColor"
                 type="color"
-                value={solidColor}
+                value={displayColor}
                 onChange={(e) => handleSolidColorChange(e.target.value)}
                 className="w-8 h-8 p-1"
               />
               <Input
                 type="text"
-                value={solidColor.toUpperCase()}
+                value={displayColor.toUpperCase()}
                 onChange={(e) => handleSolidColorChange(e.target.value)}
                 className="w-24 font-mono text-xs h-8"
               />

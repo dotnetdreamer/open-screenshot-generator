@@ -232,10 +232,11 @@ export function ArtboardStudioLayout() {
       position: { x: 0, y: 0 }, 
       size: newSize,
       elements: [], 
-      backgroundColor: 'hsl(var(--card))',
-      backgroundType: 'solid', // Initialize with solid background type
+      backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
+      backgroundType: 'solid',
       zoom: 1,
     };
+    
     const newArtboards = [...artboards, newArtboard];
     handleArtboardsUpdate(newArtboards);
     setActiveArtboardId(newArtboard.id);
@@ -254,8 +255,8 @@ export function ArtboardStudioLayout() {
       position: { x: 0, y: 0 }, 
       size: newSize,
       elements: [], 
-      backgroundColor: 'hsl(var(--card))',
-      backgroundType: 'solid', // Initialize with solid background type
+      backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
+      backgroundType: 'solid',
       zoom: 1,
     };
 
@@ -351,14 +352,20 @@ export function ArtboardStudioLayout() {
          return el;
        });
 
+      // Convert CSS variables to hex color if present
+      let backgroundColor = abConfig.backgroundColor || '#FFFFFF';
+      if (backgroundColor?.toLowerCase().includes('var(') || backgroundColor?.toLowerCase().includes('hsl')) {
+        backgroundColor = '#FFFFFF';
+      }
+
       return {
         id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
         name: abConfig.name || `Artboard ${index + 1}`,
         position: {x:0, y:0}, 
         size: abConfig.size || { width: 1024, height: 768 },
         elements: processedElements,
-        backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
-        backgroundType: abConfig.backgroundType || 'solid', // Initialize with solid background type
+        backgroundColor: backgroundColor,
+        backgroundType: abConfig.backgroundType || 'solid',
         backgroundGradient: abConfig.backgroundGradient,
         zoom: abConfig.zoom || 1,
       } as ArtboardState

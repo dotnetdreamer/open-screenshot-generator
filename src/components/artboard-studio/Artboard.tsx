@@ -59,10 +59,26 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   // Use a ref to track client-side initialization
   const isClientInitialized = useRef(false);
   
-  // State for background styles
-  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>({ 
-    backgroundColor: artboard.backgroundColor || 'hsl(var(--card))' 
-  });
+  // Function to get background style that handles CSS variables properly
+  const getBackgroundStyle = (): React.CSSProperties => {
+    if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
+      const { color1, color2, angle } = artboard.backgroundGradient;
+      return {
+        background: `linear-gradient(${angle}deg, ${color1}, ${color2})`,
+      };
+    }
+    
+    // For solid background
+    const backgroundColor = artboard.backgroundColor;
+    // If it's a CSS variable, use it directly
+    if (backgroundColor?.toLowerCase().includes('var(') || backgroundColor?.toLowerCase().includes('hsl')) {
+      return { backgroundColor: 'white' }; // Default to white
+    }
+    
+    return { backgroundColor };
+  };
+
+  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>(getBackgroundStyle());
 
   useEffect(() => {
     // Mark as initialized on client-side
@@ -208,7 +224,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   };
 
   return (
-    <div className="relative" suppressHydrationWarning> {/* Add suppressHydrationWarning to parent */}
+    <div className="relative" suppressHydrationWarning>
       <ArtboardToolbar
         artboardId={artboard.id}
         onAddNew={() => onAddNewArtboard()} 
@@ -223,7 +239,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         ref={artboardDivRef}
         data-artboard-dom-id={artboard.id}
         className={cn(
-          "artboard relative shadow-lg overflow-hidden bg-card",
+          "artboard relative shadow-lg overflow-hidden bg-white", // Changed from bg-card to bg-white
           isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
         )}
         style={{
@@ -232,7 +248,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           transform: `scale(${artboard.zoom})`,
           transformOrigin: 'top left',
           marginTop: '2.5rem',
-          ...(isClientInitialized.current ? backgroundStyle : { backgroundColor: artboard.backgroundColor || 'hsl(var(--card))' }),
+          ...backgroundStyle, // Apply computed background style
         }}
         onClick={handleArtboardClick}
         onDrop={(e) => {
@@ -250,7 +266,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           e.preventDefault(); 
           e.stopPropagation();
         }}
-        suppressHydrationWarning // Add suppressHydrationWarning to prevent React errors
+        suppressHydrationWarning
       >
         {elements.map(element => (
           <DraggableElement
