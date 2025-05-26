@@ -1,4 +1,3 @@
-
 export interface Point {
   x: number;
   y: number;
@@ -68,6 +67,12 @@ export interface ArtboardState {
   size: Size;
   elements: ArtboardElement[];
   backgroundColor: string;
+  backgroundType: 'solid' | 'gradient';
+  backgroundGradient?: {
+    color1: string;
+    color2: string;
+    angle: number;
+  };
   zoom: number; // Zoom level for the artboard's content itself
 }
 
@@ -79,3 +84,6 @@ export interface Template {
   dataAiHint?: string; // for placeholder images
   artboards: Partial<ArtboardState>[];
 }
+
+export type TargetStore = 'apple' | 'google' | 'microsoft' | 'other';
+export type ExportDeviceCategory = 'phone' | 'tablet' | 'desktop';

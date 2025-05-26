@@ -1,5 +1,5 @@
-
 "use client";
+
 import type React from 'react';
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { DraggableElement } from './elements/DraggableElement';
@@ -55,10 +55,35 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   const [elements, setElements] = useState<ArtboardElement[]>(artboard.elements);
   const artboardDivRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  // Use a ref to track client-side initialization
+  const isClientInitialized = useRef(false);
+  
+  // State for background styles
+  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>({ 
+    backgroundColor: artboard.backgroundColor || 'hsl(var(--card))' 
+  });
 
   useEffect(() => {
+    // Mark as initialized on client-side
+    isClientInitialized.current = true;
+    
     setElements(artboard.elements);
-  }, [artboard.elements]);
+    
+    // Compute background style based on artboard settings
+    const newBackgroundStyle: React.CSSProperties = {};
+    
+    if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
+      const { color1, color2, angle } = artboard.backgroundGradient;
+      newBackgroundStyle.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+      newBackgroundStyle.backgroundColor = undefined; // Clear backgroundColor when using gradient
+    } else {
+      newBackgroundStyle.backgroundColor = artboard.backgroundColor || 'hsl(var(--card))';
+      newBackgroundStyle.background = undefined; // Clear background when using solid color
+    }
+    
+    setBackgroundStyle(newBackgroundStyle);
+  }, [artboard.elements, artboard.backgroundType, artboard.backgroundColor, artboard.backgroundGradient]);
 
   useImperativeHandle(ref, () => ({
     addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => {
@@ -175,7 +200,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   };
 
   return (
-    <div className="relative"> {/* Wrapper for artboard and its toolbar */}
+    <div className="relative" suppressHydrationWarning> {/* Add suppressHydrationWarning to parent */}
       <ArtboardToolbar
         artboardId={artboard.id}
         onAddNew={() => onAddNewArtboard()} 
@@ -188,7 +213,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       />
       <div
         ref={artboardDivRef}
-        data-artboard-dom-id={artboard.id} // Added for html2canvas selection
+        data-artboard-dom-id={artboard.id}
         className={cn(
           "artboard relative shadow-lg overflow-hidden bg-card",
           isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
@@ -196,10 +221,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         style={{
           width: `${artboard.size.width}px`,
           height: `${artboard.size.height}px`,
-          backgroundColor: artboard.backgroundColor,
           transform: `scale(${artboard.zoom})`,
           transformOrigin: 'top left',
-          marginTop: '2.5rem', // Always add margin-top for the toolbar
+          marginTop: '2.5rem',
+          ...(isClientInitialized.current ? backgroundStyle : { backgroundColor: artboard.backgroundColor || 'hsl(var(--card))' }),
         }}
         onClick={handleArtboardClick}
         onDrop={(e) => {
@@ -217,6 +242,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           e.preventDefault(); 
           e.stopPropagation();
         }}
+        suppressHydrationWarning // Add suppressHydrationWarning to prevent React errors
       >
         {elements.map(element => (
           <DraggableElement

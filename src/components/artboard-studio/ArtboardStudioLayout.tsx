@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import html2canvas from 'html2canvas'; // Import html2canvas
@@ -137,6 +136,21 @@ export function ArtboardStudioLayout() {
     setHistoryIndex(newHistory.length - 1);
   };
 
+  // Define the handleUpdateArtboardDetails function to update artboard background settings
+  const handleUpdateArtboardDetails = useCallback((updates: Partial<ArtboardState>) => {
+    if (!activeArtboardId) return;
+
+    const updatedArtboards = artboards.map(ab => {
+      if (ab.id === activeArtboardId) {
+        return { ...ab, ...updates };
+      }
+      return ab;
+    });
+    
+    setArtboards(updatedArtboards);
+    pushToHistory(updatedArtboards);
+  }, [activeArtboardId, artboards, pushToHistory]);
+
   useEffect(() => {
     if (artboards.length === 0 && !isTemplateSelectorOpen && sampleTemplates.length > 0) {
         handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
@@ -219,6 +233,7 @@ export function ArtboardStudioLayout() {
       size: newSize,
       elements: [], 
       backgroundColor: 'hsl(var(--card))',
+      backgroundType: 'solid', // Initialize with solid background type
       zoom: 1,
     };
     const newArtboards = [...artboards, newArtboard];
@@ -240,6 +255,7 @@ export function ArtboardStudioLayout() {
       size: newSize,
       elements: [], 
       backgroundColor: 'hsl(var(--card))',
+      backgroundType: 'solid', // Initialize with solid background type
       zoom: 1,
     };
 
@@ -342,6 +358,8 @@ export function ArtboardStudioLayout() {
         size: abConfig.size || { width: 1024, height: 768 },
         elements: processedElements,
         backgroundColor: abConfig.backgroundColor || 'hsl(var(--card))',
+        backgroundType: abConfig.backgroundType || 'solid', // Initialize with solid background type
+        backgroundGradient: abConfig.backgroundGradient,
         zoom: abConfig.zoom || 1,
       } as ArtboardState
     });
@@ -634,9 +652,14 @@ export function ArtboardStudioLayout() {
           className="sticky top-0 z-50 bg-card border-b"
         />
         <PropertiesPanel
-            selectedElement={selectedElementDetails}
-            onUpdateElement={handleUpdateSelectedElement}
-            className="sticky top-14 z-40 bg-card border-b" 
+          selectedElement={selectedElementDetails}
+          onUpdateElement={handleUpdateSelectedElement}
+          activeArtboardDetails={
+            // Only pass activeArtboard when no element is selected and an artboard is active
+            activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
+          }
+          onUpdateArtboardDetails={handleUpdateArtboardDetails}
+          className="sticky top-14 z-40 bg-card border-b" 
         />
         <div className="flex-grow relative overflow-hidden"> 
           <CanvasArea
