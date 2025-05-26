@@ -1,4 +1,3 @@
-
 "use client";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -44,144 +43,126 @@ export function Toolbar({
   className,
 }: ToolbarProps) {
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2", className)}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onNewArtboard}>
-              <PlusSquareIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>New Artboard</p>
-          </TooltipContent>
-        </Tooltip>
+    <div className={cn("w-full flex items-center gap-2 p-2 h-14", className)}>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onNewArtboard}
+        title="New Artboard"
+      >
+        <PlusSquareIcon className="h-4 w-4" />
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onSelectTemplate}
+        title="Select Template"
+      >
+        <LayoutTemplateIcon className="h-4 w-4" />
+      </Button>
+      
+      <Separator orientation="vertical" className="h-6" />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onSelectTemplate}>
-              <LayoutTemplateIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Select Template</p>
-          </TooltipContent>
-        </Tooltip>
+      <Button
+        variant={activeTool === 'select' ? 'secondary' : 'outline'} 
+        size="icon" 
+        onClick={() => onSetActiveTool('select')}
+        title="Select Tool (V)"
+      > 
+        <MousePointerIcon className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={activeTool === 'pan' ? 'secondary' : 'outline'} 
+        size="icon" 
+        onClick={() => onSetActiveTool('pan')}
+        title="Pan Tool (H)"
+      >
+        <HandIcon className="h-4 w-4" />
+      </Button>
+      
+      <Separator orientation="vertical" className="h-6" />
 
-        <Separator orientation="vertical" className="h-6" />
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onUndo}
+        disabled={!canUndo}
+        title="Undo (Ctrl+Z)"
+      >
+        <UndoIcon className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onRedo}
+        disabled={!canRedo}
+        title="Redo (Ctrl+Shift+Z or Ctrl+Y)"
+      >
+        <RedoIcon className="h-4 w-4" />
+      </Button>
+      
+      {(isElementSelected || isArtboardSelected) && onDeleteSelected && (
+        <>
+          <Separator orientation="vertical" className="h-6" />
+          <Button
+            variant="outline"
+            size={isElementSelected || isArtboardSelected ? "default" : "icon"}
+            onClick={() => {
+              if (isElementSelected || isArtboardSelected) {
+                console.log("Delete button clicked");
+                onDeleteSelected();
+              }
+            }}
+            title="Delete selected (Delete key)"
+            disabled={!isElementSelected && !isArtboardSelected}
+            className={cn(
+              isElementSelected || isArtboardSelected ? "px-3" : "",
+              "ml-auto" // Push to right
+            )}
+          >
+            {(isElementSelected || isArtboardSelected) && (
+              <span className="mr-2">Delete</span>
+            )}
+            <Trash2Icon className="h-4 w-4" />
+          </Button>
+        </>
+      )}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant={activeTool === 'select' ? 'secondary' : 'ghost'} 
-              size="icon" 
-              onClick={() => onSetActiveTool('select')}
-            > 
-              <MousePointerIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Select Tool (V)</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant={activeTool === 'pan' ? 'secondary' : 'ghost'} 
-              size="icon" 
-              onClick={() => onSetActiveTool('pan')}
-            >
-              <HandIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Pan Tool (H)</p>
-          </TooltipContent>
-        </Tooltip>
-        
-        <Separator orientation="vertical" className="h-6" />
+      <div className="flex-grow" /> {/* Spacer */}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onUndo} disabled={!canUndo}>
-              <UndoIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Undo (Ctrl+Z)</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onRedo} disabled={!canRedo}>
-              <RedoIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Redo (Ctrl+Y)</p>
-          </TooltipContent>
-        </Tooltip>
+      <Button variant="ghost" className="w-20 tabular-nums" onClick={() => {/* TODO: reset zoom potentially */}}>
+        {Math.round(currentZoom * 100)}%
+      </Button>
 
-        {(isElementSelected || isArtboardSelected) && onDeleteSelected && (
-          <>
-            <Separator orientation="vertical" className="h-6" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onDeleteSelected} className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90">
-                  <Trash2Icon className="w-5 h-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete Selected (Del/Backspace)</p>
-              </TooltipContent>
-            </Tooltip>
-          </>
-        )}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onZoomOut}
+        title="Zoom Out (-)"
+      >
+        <ZoomOutIcon className="h-4 w-4" />
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onZoomIn}
+        title="Zoom In (+)"
+      >
+        <ZoomInIcon className="h-4 w-4" />
+      </Button>
 
+      <Separator orientation="vertical" className="h-6" />
 
-        <div className="flex-grow" /> {/* Spacer */}
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onZoomOut}>
-              <ZoomOutIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Zoom Out (-)</p>
-          </TooltipContent>
-        </Tooltip>
-        
-        <Button variant="ghost" className="w-20 tabular-nums" onClick={() => {/* TODO: reset zoom potentially */}}>
-          {Math.round(currentZoom * 100)}%
-        </Button>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" onClick={onZoomIn}>
-              <ZoomInIcon className="w-5 h-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Zoom In (+)</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Separator orientation="vertical" className="h-6" />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={onExport} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <DownloadIcon className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Export Artboard(s)</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    </TooltipProvider>
+      <Button
+        onClick={onExport}
+        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+      >
+        <DownloadIcon className="w-4 h-4 mr-2" />
+        Export
+      </Button>
+    </div>
   );
 }
 

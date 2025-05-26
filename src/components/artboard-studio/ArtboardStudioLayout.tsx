@@ -439,7 +439,7 @@ export function ArtboardStudioLayout() {
   };
 
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (historyIndex > 0) {
       const newHistoryIndex = historyIndex - 1;
       setHistoryIndex(newHistoryIndex);
@@ -450,9 +450,9 @@ export function ArtboardStudioLayout() {
       }
       setSelectedElementIdOnActiveArtboard(null);
     }
-  };
+  }, [historyIndex, history, activeArtboardId]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (historyIndex < history.length - 1) {
       const newHistoryIndex = historyIndex + 1;
       setHistoryIndex(newHistoryIndex);
@@ -463,23 +463,82 @@ export function ArtboardStudioLayout() {
       }
       setSelectedElementIdOnActiveArtboard(null);
     }
-  };
+  }, [historyIndex, history, activeArtboardId, history.length]);
 
-  const handleDeleteSelected = () => { 
+  // Fix the handleDeleteSelected function to properly handle deletion
+  const handleDeleteSelected = useCallback(() => { 
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-        const artboardComponent = artboardRefs.current[activeArtboardId];
-        if(artboardComponent && artboardComponent.deleteElementByIdG) {
+      // Find the active artboard
+      const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
+      if (activeArtboard) {
+        // Find the element to delete
+        const elementExists = activeArtboard.elements.some(
+          el => el.id === selectedElementIdOnActiveArtboard
+        );
+
+        // If element exists, delete it
+        if (elementExists) {
+          const artboardComponent = artboardRefs.current[activeArtboardId];
+          if(artboardComponent && artboardComponent.deleteElementByIdG) {
             artboardComponent.deleteElementByIdG(selectedElementIdOnActiveArtboard);
-            setSelectedElementIdOnActiveArtboard(null); 
+            setSelectedElementIdOnActiveArtboard(null);
+            toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
+          } else {
+            toast({title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive"});
+          }
         } else {
-            toast({title: "Cannot Delete Element", description: "Artboard or element ref not found.", variant: "destructive"});
+          toast({title: "Cannot Delete Element", description: "Selected element not found in artboard.", variant: "destructive"});
         }
+      }
     } else if (activeArtboardId) { 
-        handleDeleteArtboard(activeArtboardId); 
+      handleDeleteArtboard(activeArtboardId); 
     } else {
-        toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
+      toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
     }
-  };
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, artboards, toast]);
+
+  // Add keyboard event handlers for delete, undo, and redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if we're typing in an input, textarea, etc.
+      if (
+        e.target instanceof HTMLInputElement || 
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Delete key for element or artboard deletion
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault(); // Prevent browser navigation
+        handleDeleteSelected();
+      }
+
+      // Undo: Ctrl+Z or Cmd+Z
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          handleUndo();
+        }
+      }
+
+      // Redo: Ctrl+Shift+Z or Cmd+Shift+Z or Ctrl+Y or Cmd+Y
+      if (((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) || 
+          ((e.ctrlKey || e.metaKey) && e.key === 'y')) {
+        e.preventDefault();
+        if (historyIndex < history.length - 1) {
+          handleRedo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length]);
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);

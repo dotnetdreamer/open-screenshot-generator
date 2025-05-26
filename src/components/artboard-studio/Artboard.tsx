@@ -154,7 +154,16 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       return undefined;
     },
     deleteElementByIdG: (elementId: string) => {
-        handleDeleteElement(elementId);
+      // Fix to ensure deletion works correctly
+      if (elements.find(el => el.id === elementId)) {
+        const newElements = elements.filter(el => el.id !== elementId);
+        setElements(newElements);
+        onUpdateArtboardElements(newElements);
+        setSelectedElementId(null);
+        console.log(`Element deleted: ${elementId}`);
+        return true;
+      }
+      return false;
     }
   }));
 
@@ -181,7 +190,6 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     if (selectedElementId === elementId) {
       setSelectedElementId(null);
     }
-    toast({ title: "Element deleted", description: `Element ID ${elementId} removed.`, variant: "default" });
   };
 
   const handleSelectElement = (elementId: string, e: React.MouseEvent) => {
