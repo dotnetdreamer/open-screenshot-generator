@@ -60,6 +60,9 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
   // Adjust display scale compensation
   const displayScaleFactor = 0.3; // Match the artboard scale factor
 
+  // Calculate line height - could be a number (multiplier) or px value
+  const lineHeightValue = element.lineHeight || 1.2;
+
   if (isEditing) {
     return (
       <textarea
@@ -81,7 +84,11 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
           fontFamily: element.fontFamily,
           fontSize: `${dynamicFontSize}px`,
           color: element.color,
-          lineHeight: 1.2,
+          lineHeight: lineHeightValue,
+          fontWeight: element.fontWeight || 'normal',
+          fontStyle: element.fontStyle || 'normal',
+          textDecoration: element.textDecoration || 'none',
+          textAlign: element.textAlign || 'left',
           boxSizing: 'border-box',
         }}
         className="text-element-editing"
@@ -98,11 +105,16 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         height: '100%',
         display: 'flex',
         alignItems: 'center', // Adjust as needed, e.g. 'flex-start' for top-align
-        justifyContent: 'center', // Adjust as needed
+        justifyContent: element.textAlign === 'center' ? 'center' : 
+                       element.textAlign === 'right' ? 'flex-end' : 'flex-start', // Map text-align to justify-content
         fontFamily: element.fontFamily,
         fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
-        lineHeight: 1.2,
+        lineHeight: lineHeightValue,
+        fontWeight: element.fontWeight || 'normal',
+        fontStyle: element.fontStyle || 'normal',
+        textDecoration: element.textDecoration || 'none',
+        textAlign: element.textAlign || 'left',
         whiteSpace: 'pre-wrap', // Allows line breaks and preserves spaces
         overflow: 'hidden',
         wordBreak: 'break-word',
