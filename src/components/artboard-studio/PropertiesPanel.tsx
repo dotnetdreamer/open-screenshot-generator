@@ -322,6 +322,20 @@ export function PropertiesPanel({
     onUpdateElement({ screenshotRect: newRect });
   };
 
+  // Add device style type handler
+  const handleDeviceStyleTypeChange = (styleType: string) => {
+    if (selectedElement?.type === 'device') {
+      onUpdateElement({ styleType: styleType as DeviceStyleType });
+    }
+  };
+  
+  // Add custom matrix3d handler
+  const handleCustomMatrix3dChange = (matrix3d: string) => {
+    if (selectedElement?.type === 'device') {
+      onUpdateElement({ matrix3d });
+    }
+  };
+
   // Fix: Define the renderDeviceProperties function here
   const renderDeviceProperties = (element: DeviceFrameElementProps) => (
     <>
@@ -374,6 +388,50 @@ export function PropertiesPanel({
           className="my-2"
         />
       </div>
+      
+      {/* Device style type selector with the new perspective options */}
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="deviceStyleType" className="text-xs">
+          Device Perspective
+        </Label>
+        <Select
+          value={element.styleType || 'normal'}
+          onValueChange={handleDeviceStyleTypeChange}
+        >
+          <SelectTrigger id="deviceStyleType" className="h-8 text-xs">
+            <SelectValue placeholder="Select Perspective" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="normal">Normal</SelectItem>
+            <SelectItem value="perspective-left">Left Angle</SelectItem>
+            <SelectItem value="perspective-slight-left">Slight Left</SelectItem>
+            <SelectItem value="perspective-right">Right Angle</SelectItem>
+            <SelectItem value="perspective-slight-right">Slight Right</SelectItem>
+            <SelectItem value="perspective-front">Front Angle</SelectItem>
+            <SelectItem value="custom">Custom Matrix3D</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Show custom matrix3d input when custom style is selected */}
+      {element.styleType === 'custom' && (
+        <div className="flex flex-col space-y-1 min-w-[100%]">
+          <Label htmlFor="customMatrix3d" className="text-xs">
+            Custom Matrix3D
+          </Label>
+          <Input
+            id="customMatrix3d"
+            value={element.matrix3d || ''}
+            onChange={(e) => handleCustomMatrix3dChange(e.target.value)}
+            placeholder="matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1)"
+            className="text-xs h-8 font-mono"
+          />
+          <p className="text-xs text-muted-foreground">
+            Example: matrix3d(1.04438, 0.150877, 0, -5.73e-05, -1.65196, 2.31898, 0, -0.0001854, 0, 0, 1, 0, 64.9858, -3.12602, 0, 1)
+          </p>
+        </div>
+      )}
+      
       {/* Screenshot adjustment sliders for ALL device types if screenshotSrc and screenshotRect exist */}
       {element.screenshotSrc && element.screenshotRect && (
         <>

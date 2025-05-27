@@ -332,6 +332,88 @@ html {
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Custom styles for specific components can be added below */
+/* Improve rendering of 3D transformed elements */
+.high-quality-transform {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Better borders for device frames */
+.device-frame {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.05);
+}
+
+/* Smoother selection outlines */
+.smooth-outline {
+  outline-width: 1.25px !important;
+  outline-style: solid !important;
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.1);
+}
+
+/* Better rendering for device frames with perspective transforms */
+.device-container {
+  transform-style: preserve-3d !important;
+  -webkit-transform-style: preserve-3d !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform !important;
+  transition: transform 0.1s;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+}
+
+/* Apply subpixel antialiasing for smoother edges */
+.device-container.selected {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* Use vector based rendering for edges */
+@supports (stroke: 1px solid black) {
+  .device-container svg rect {
+    vector-effect: non-scaling-stroke;
+    shape-rendering: geometricPrecision;
+  }
+}
+
+/* High DPI rendering optimization */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .device-container {
+    image-rendering: optimizeQuality;
+  }
+}
+
+/* SVG-based device rendering for perspective mode */
+.device-container-svg {
+  /* Hardware acceleration for smoother renders */
+  -webkit-transform-style: preserve-3d !important;
+  transform-style: preserve-3d !important;
+  -webkit-backface-visibility: hidden !important;
+  backface-visibility: hidden !important;
+  will-change: transform !important;
+  /* Font smoothing helps with overall render quality */
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Better quality rendering */
+  image-rendering: -webkit-optimize-contrast;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
+}
+
+/* SVG shape rendering */
+.device-container-svg svg {
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+.device-container-svg svg rect,
+.device-container-svg svg path,
+.device-container-svg svg circle {
+  vector-effect: non-scaling-stroke;
+}
 
 /* End of global styles */

@@ -346,13 +346,41 @@ export function DraggableElement({
       className="group" 
     >
       {isSelected && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            outline: `${outlineThickness}px solid hsl(var(--primary))`, 
-            outlineOffset: `${-outlineThickness}px`, 
-          }}
-        />
+        <>
+          {/* SVG selection outline for better rendering with transforms */}
+          {element.type === 'device' && element.styleType && element.styleType !== 'normal' ? (
+            <svg 
+              className="absolute inset-0 pointer-events-none" 
+              style={{
+                width: '100%',
+                height: '100%',
+                overflow: 'visible',
+              }}
+            >
+              <rect 
+                x="0" 
+                y="0" 
+                width="100%" 
+                height="100%" 
+                fill="none" 
+                stroke="hsl(var(--primary))" 
+                strokeWidth={outlineThickness} 
+                vectorEffect="non-scaling-stroke"
+                shapeRendering="geometricPrecision"
+                rx="4" 
+                ry="4" 
+              />
+            </svg>
+          ) : (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                outline: `${outlineThickness}px solid hsl(var(--primary))`,
+                outlineOffset: `${-outlineThickness}px`,
+              }}
+            />
+          )}
+        </>
       )}
 
       <div style={{ width: '100%', height: '100%', pointerEvents: interactionMode || !isSelected ? 'none' : 'auto' }}>

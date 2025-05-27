@@ -43,24 +43,39 @@ export interface ShapeElementProps extends BaseElement {
 
 export type DeviceType =
   | 'iphone'
-  | 'android-punch-hole'
-  | 'android-notch'
+  | 'iphone-13'
+  | 'iphone-14'
+  | 'iphone-15'
+  | 'iphone-15-pro'
   | 'android-bar'
+  | 'android-notch'
+  | 'android-punch-hole'
   | 'tablet'
   | 'desktop'
+  | 'custom';
+
+export type DeviceStyleType = 
+  | 'normal' 
+  | 'perspective-left' 
+  | 'perspective-right' 
+  | 'perspective-slight-right'
+  | 'perspective-slight-left'
+  | 'perspective-front' 
   | 'custom';
 
 export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
   screenshotSrc?: string; // URL or base64 data
-  screenshotObjectFit?: 'contain' | 'cover'; // How screenshot fits
+  screenshotObjectFit?: 'contain' | 'cover' | 'fill'; // How screenshot fits
   customFrameSrc?: string; // URL or base64 for user-uploaded mockup for 'custom' type
   // For ALL device types, to define the screenshot's viewport using percentages (0-100)
   // relative to the device's screen area (for predefined) or element bounds (for custom with mask)
   screenshotRect?: { left: number; top: number; width: number; height: number };
   naturalScreenshotWidth?: number;
   naturalScreenshotHeight?: number;
+  styleType?: DeviceStyleType;
+  matrix3d?: string; // Custom CSS matrix3d transform
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;
@@ -72,7 +87,7 @@ export interface ArtboardState {
   size: Size;
   elements: ArtboardElement[];
   backgroundColor: string;
-  backgroundType: 'solid' | 'gradient';
+  backgroundType?: 'solid' | 'gradient';
   backgroundGradient?: {
     color1: string;
     color2: string;
@@ -89,4 +104,13 @@ export interface Template {
   previewImage?: string;
   dataAiHint?: string; // for placeholder images
   artboards: Partial<ArtboardState>[];
+}
+
+export interface TargetStore {
+  appName: string;
+  exportSizes: {
+    name: string;
+    width: number;
+    height: number;
+  }[];
 }
