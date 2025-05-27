@@ -5,6 +5,7 @@ import { Artboard } from './Artboard';
 import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
 interface CanvasAreaProps {
   artboards: ArtboardState[];
@@ -95,6 +96,10 @@ export function CanvasArea({
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // State for artboard deletion confirmation
+  const [artboardToDelete, setArtboardToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [isPanning, setIsPanning] = useState(false);
   const panStartCoords = useRef<{ x: number, y: number, scrollLeft: number, scrollTop: number } | null>(null);
@@ -211,6 +216,32 @@ export function CanvasArea({
     return 'default';
   }
 
+  // Handle artboard deletion with confirmation if needed
+  const handleDeleteArtboard = (artboardId: string) => {
+    const artboard = artboards.find(ab => ab.id === artboardId);
+    
+    if (!artboard) return;
+    
+    // Check if the artboard has any elements
+    if (artboard.elements.length > 0) {
+      // If it has elements, store the ID and show confirmation dialog
+      setArtboardToDelete(artboardId);
+      setDeleteDialogOpen(true);
+    } else {
+      // If no elements, delete immediately without confirmation
+      onDeleteArtboardFromToolbar(artboardId);
+    }
+  };
+
+  // Confirm deletion after dialog
+  const confirmDeleteArtboard = () => {
+    if (artboardToDelete) {
+      onDeleteArtboardFromToolbar(artboardToDelete);
+      setArtboardToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
+  
   return (
     <ScrollArea className="h-full w-full bg-background flex-grow" viewportRef={scrollViewportRef}>
       <div
@@ -249,7 +280,7 @@ export function CanvasArea({
               setSelectedElementId={setSelectedElementIdOnActiveArtboard}
               onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
               onDuplicateArtboard={onDuplicateArtboardFromToolbar}
-              onDeleteArtboard={onDeleteArtboardFromToolbar}
+              onDeleteArtboard={handleDeleteArtboard} // Use our new handler instead of direct deletion
               onMoveArtboard={onMoveArtboardFromToolbar}
               canDeleteArtboard={artboards.length > 1}
               canMoveArtboardLeft={index > 0}
@@ -257,6 +288,17 @@ export function CanvasArea({
             />
           </div>
         ))}
+        
+        {/* Artboard Delete Confirmation Dialog */}
+        {artboardToDelete && (
+          <DeleteArtboardDialog
+            isOpen={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            onConfirmDelete={confirmDeleteArtboard}
+            artboardName={artboards.find(ab => ab.id === artboardToDelete)?.name || 'Untitled Artboard'}
+            elementCount={artboards.find(ab => ab.id === artboardToDelete)?.elements.length || 0}
+          />
+        )}
       </div>
     </ScrollArea>
   );

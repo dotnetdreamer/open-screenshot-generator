@@ -436,7 +436,7 @@ export function ArtboardStudioLayout() {
 
     const newArtboardsArray = artboards.filter(ab => ab.id !== artboardId);
     handleArtboardsUpdate(newArtboardsArray);
-  
+
     if (activeArtboardId === artboardId) {
       setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
       setSelectedElementIdOnActiveArtboard(null);
