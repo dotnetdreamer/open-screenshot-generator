@@ -33,6 +33,17 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { db } from '@/database'; // Import the Dexie database
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Trash2Icon } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -137,6 +148,7 @@ export function ArtboardStudioLayout() {
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRecentProjects = async () => {
@@ -214,6 +226,29 @@ export function ArtboardStudioLayout() {
     setArtboards(updatedArtboards);
     pushToHistory(updatedArtboards);
   }, [activeArtboardId, artboards, pushToHistory]);
+
+  // Add the missing handleDeleteProject function
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await db.projects.delete(projectId);
+      toast({ 
+        title: "Project Deleted", 
+        description: "The project has been removed from your recent projects."
+      });
+      // Update the recentProjects list
+      const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
+      setRecentProjects(updatedProjects);
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast({ 
+        title: "Delete Failed", 
+        description: "There was an error deleting the project.",
+        variant: "destructive"
+      });
+    } finally {
+      setProjectToDelete(null);
+    }
+  };
 
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[]) => {
     console.log("handleArtboardsUpdate called", activeProjectId);
@@ -745,76 +780,112 @@ export function ArtboardStudioLayout() {
 
   if (isTemplateSelectorOpen) {
     return (
-      <Dialog
-        open={isTemplateSelectorOpen}
-        onOpenChange={(newOpenState) => {
-          if (!newOpenState && artboards.length === 0 && sampleTemplates.length > 0) {
-             handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
-          }
-          setIsTemplateSelectorOpen(newOpenState);
-        }}
-      >
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Start a New Project</DialogTitle>
-            <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-[70vh]">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              {sampleTemplates.map(template => (
-                <Card
-                  key={template.id}
-                  className="hover:shadow-xl transition-shadow cursor-pointer"
-                  onClick={() => handleSelectTemplate(template)}
-                >
-                  <CardHeader className="p-0">
-                    {template.previewImage && (
-                       <Image
-                        src={template.previewImage}
-                        alt={template.name}
-                        width={300} height={200}
-                        className="rounded-t-lg object-cover w-full h-40"
-                        data-ai-hint={template.dataAiHint || "abstract design"}
-                      />
-                    )}
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <CardTitle className="text-lg mb-1">{template.name}</CardTitle>
-                    <CardDescription className="text-sm">{template.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              ))}
+      <>
+        <Dialog
+          open={isTemplateSelectorOpen}
+          onOpenChange={(newOpenState) => {
+            if (!newOpenState && artboards.length === 0 && sampleTemplates.length > 0) {
+               handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
+            }
+            setIsTemplateSelectorOpen(newOpenState);
+          }}
+        >
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Start a New Project</DialogTitle>
+              <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                {sampleTemplates.map(template => (
+                  <Card
+                    key={template.id}
+                    className="hover:shadow-xl transition-shadow cursor-pointer"
+                    onClick={() => handleSelectTemplate(template)}
+                  >
+                    <CardHeader className="p-0">
+                      {template.previewImage && (
+                         <Image
+                          src={template.previewImage}
+                          alt={template.name}
+                          width={300} height={200}
+                          className="rounded-t-lg object-cover w-full h-40"
+                          data-ai-hint={template.dataAiHint || "abstract design"}
+                        />
+                      )}
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <CardTitle className="text-lg mb-1">{template.name}</CardTitle>
+                      <CardDescription className="text-sm">{template.description}</CardDescription>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+             <DialogFooter>
+              <Button variant="outline" onClick={() => {if (sampleTemplates.length > 0) handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0])}}>Start Blank</Button>
+            </DialogFooter>
+
+            {/* New Section for Recent Projects */}
+            <div className="p-4 border-t mt-4">
+              <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
+              {recentProjects.length > 0 ? (
+                <ScrollArea className="h-[20vh]">
+                  <ul className="divide-y divide-border">
+                    {recentProjects.map((project) => (
+                      <li key={project.id} className="py-1 flex items-center justify-between hover:bg-muted/50 rounded px-1">
+                        <div 
+                          className="flex-grow py-2 cursor-pointer hover:text-primary"
+                          onClick={() => {
+                            setActiveProjectId(project.id);
+                            setIsTemplateSelectorOpen(false);
+                          }}
+                        >
+                          Project saved on: {project.timestamp.toLocaleString()}
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProjectToDelete(project.id);
+                          }}
+                        >
+                          <Trash2Icon className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </ScrollArea>
+              ) : (
+                <p className="text-sm text-muted-foreground">No recent projects found.</p>
+              )}
             </div>
-          </ScrollArea>
-           <DialogFooter>
-            <Button variant="outline" onClick={() => {if (sampleTemplates.length > 0) handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0])}}>Start Blank</Button>
-          </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          {/* New Section for Recent Projects */}
-          <div className="p-4 border-t mt-4">
-            <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
-            {recentProjects.length > 0 ? (
-              <ScrollArea className="h-[20vh]"> {/* Added ScrollArea for recent projects list */}
-                <ul className="divide-y divide-border">
-                  {recentProjects.map((project) => (
-                    <li key={project.id} className="py-1 flex items-center justify-between cursor-pointer hover:text-primary"
-                      onClick={() => {
-                        setActiveProjectId(project.id); setIsTemplateSelectorOpen(false);
-                      }}
-                    >
-                      <div className="flex items-center">Project saved on: {project.timestamp.toLocaleString()}</div>
-                      {/* The actual button will be added here later */}
-
-                    </li>
-                  ))}
-                </ul>
-              </ScrollArea>
-            ) : (
-              <p className="text-sm text-muted-foreground">No recent projects found.</p>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+        {/* Alert Dialog for Project Deletion Confirmation */}
+        <AlertDialog open={!!projectToDelete} onOpenChange={(open) => !open && setProjectToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this project. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => projectToDelete && handleDeleteProject(projectToDelete)}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
     );
   }
 
