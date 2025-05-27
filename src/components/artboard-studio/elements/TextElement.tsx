@@ -1,4 +1,3 @@
-
 "use client";
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
@@ -58,6 +57,9 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
   // This is a simplified approach. True text scaling is complex.
   const dynamicFontSize = Math.max(8, element.fontSize * element.scale); // Minimum font size of 8px
 
+  // Adjust display scale compensation
+  const displayScaleFactor = 0.3; // Match the artboard scale factor
+
   if (isEditing) {
     return (
       <textarea
@@ -89,6 +91,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
 
   return (
     <div
+      className="w-full h-full flex items-center justify-center"
       onDoubleClick={handleDoubleClick}
       style={{
         width: '100%',
@@ -97,7 +100,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         alignItems: 'center', // Adjust as needed, e.g. 'flex-start' for top-align
         justifyContent: 'center', // Adjust as needed
         fontFamily: element.fontFamily,
-        fontSize: `${dynamicFontSize}px`,
+        fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
         lineHeight: 1.2,
         whiteSpace: 'pre-wrap', // Allows line breaks and preserves spaces

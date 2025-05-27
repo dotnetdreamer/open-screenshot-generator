@@ -108,8 +108,9 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       let newElementY = artboard.size.height / 2 - 25;
       
       if (dropPosition && artboardRect) {
-        newElementX = (dropPosition.x - artboardRect.left) / artboard.zoom - 50;
-        newElementY = (dropPosition.y - artboardRect.top) / artboard.zoom - 25;
+        // Adjust drop position to account for scaling
+        newElementX = (dropPosition.x - artboardRect.left) / displayScaleFactor - 50;
+        newElementY = (dropPosition.y - artboardRect.top) / displayScaleFactor - 25;
       }
       
       newElementX = Math.max(0, Math.min(newElementX, artboard.size.width - 100));
@@ -125,14 +126,15 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       let newElementToAdd: ArtboardElement | null = null;
 
       if (type === 'text') {
+        // Increase default font size to account for scaling
         newElementToAdd = {
           ...newElementBase,
           type: 'text',
           content: 'New Text',
-          fontSize: 16, 
+          fontSize: 48,  // Increased from 16 to be more visible at 0.3 scale
           color: '#333333',
           fontFamily: 'Arial',
-          size: { width: 150, height: 30 },
+          size: { width: 400, height: 100 },  // Increased from 150x30
         } as ArtboardElement;
       } else if (type === 'shape' && subType) {
         newElementToAdd = {
@@ -142,14 +144,15 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           fillColor: '#5F9EA0', 
           strokeColor: '#333333',
           strokeWidth: 0, 
-          size: { width: 100, height: 100 },
+          size: { width: 300, height: 300 },  // Increased from 100x100
         } as ArtboardElement;
       } else if (type === 'device' && subType) {
         const deviceElement: DeviceFrameElementProps = {
           ...newElementBase,
           type: 'device',
           deviceType: subType as DeviceType,
-          size: { width: 150, height: 300 }, // Default size for devices
+          // Increase device size to make it more visible with scaling
+          size: { width: 600, height: 1200 }, // Increased from 150x300
         };
         if (subType === 'custom') {
           deviceElement.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };

@@ -22,7 +22,7 @@ const MIN_DISPLAY_SIZE = 20;
 
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
-// Add a constant for the display scale factor to match Artboard component
+// Update the constant for the display scale factor
 const DISPLAY_SCALE_FACTOR = 0.3; // 30% of original size
 
 export function DraggableElement({
@@ -64,9 +64,8 @@ export function DraggableElement({
     const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
-      // Adjust for both artboard zoom and display scale factor
       return {
-        // Divide by DISPLAY_SCALE_FACTOR to account for the scaled display
+        // Divide by DISPLAY_SCALE_FACTOR to account for the scaled artboard
         x: (e.clientX - artboardRect.left) / (artboardZoom * DISPLAY_SCALE_FACTOR),
         y: (e.clientY - artboardRect.top) / (artboardZoom * DISPLAY_SCALE_FACTOR),
       };
@@ -283,8 +282,9 @@ export function DraggableElement({
     height: currentSize.height * currentScale,
   };
 
-  const handleVisualScale = 1 / artboardZoom; 
-  const outlineThickness = Math.max(1, 1 * handleVisualScale);
+  // Adjust handle sizes to be visible at small scale
+  const handleVisualScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
+  const outlineThickness = Math.max(1, 3 * handleVisualScale);
 
 
   const HandleComponent: React.FC<{
