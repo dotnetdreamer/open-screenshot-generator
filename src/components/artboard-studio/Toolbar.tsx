@@ -11,12 +11,15 @@ import {
   ZoomOutIcon,
   MousePointerIcon,
   HandIcon,
-  LayoutTemplateIcon
+  LayoutTemplateIcon,
+  CopyIcon,
+  ClipboardPasteIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Size } from '@/types/artboard';
+import { useClipboard } from '@/contexts/ClipboardContext';
 
 interface ToolbarProps {
   onNewArtboard: () => void;
@@ -37,6 +40,10 @@ interface ToolbarProps {
   onUpdateArtboardSize: (width: number, height: number) => void;
   initialArtboardSize?: Size; // New prop to get current size
   className?: string;
+  onCopyElement?: () => void;
+  onPasteElement?: () => void;
+  canCopy?: boolean;
+  canPaste?: boolean;
 }
 
 export function Toolbar({ 
@@ -57,8 +64,13 @@ export function Toolbar({
   onSetActiveTool,
   onUpdateArtboardSize,
   initialArtboardSize,
-  className 
+  className,
+  onCopyElement,
+  onPasteElement,
+  canCopy = false,
+  canPaste = false,
 }: ToolbarProps) {
+  const { clipboardItem } = useClipboard();
   // Initialize with the new default values
   const [width, setWidth] = useState<string>("1290");
   const [height, setHeight] = useState<string>("2796");
@@ -111,6 +123,29 @@ export function Toolbar({
           title="Select Template"
         >
           <LayoutTemplateIcon className="h-[1.2rem] w-[1.2rem]" />
+        </Button>
+
+        {/* Add Copy and Paste buttons here, after Select Template */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onCopyElement}
+          disabled={!canCopy}
+          className="h-8 w-8"
+          title="Copy (Ctrl+C)"
+        >
+          <CopyIcon className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onPasteElement}
+          disabled={!canPaste}
+          className="h-8 w-8"
+          title="Paste (Ctrl+V)"
+        >
+          <ClipboardPasteIcon className="h-4 w-4" />
         </Button>
       </div>
 

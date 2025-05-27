@@ -45,6 +45,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2Icon } from 'lucide-react';
+import { useClipboard, ClipboardProvider } from '@/contexts/ClipboardContext';
 
 interface Project {
   id: string;
@@ -150,7 +151,9 @@ export function ArtboardStudioLayout() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-
+  const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
+  const { clipboardItem, copyToClipboard } = useClipboard();
+  
   useEffect(() => {
     const fetchRecentProjects = async () => {
       try {
@@ -665,6 +668,22 @@ export function ArtboardStudioLayout() {
         return;
       }
 
+      // Copy: Ctrl+C or Cmd+C
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault();
+        if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+          handleCopyElement();
+        }
+      }
+
+      // Paste: Ctrl+V or Cmd+V
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault();
+        if (clipboardItem) {
+          handlePasteElement();
+        }
+      }
+
       // Delete key for element or artboard deletion
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault(); // Prevent browser navigation
@@ -694,7 +713,7 @@ export function ArtboardStudioLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length]);
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem]);
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
@@ -783,6 +802,116 @@ export function ArtboardStudioLayout() {
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
 
+
+  // Define the copy element handler
+  const handleCopyElement = () => {
+    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+      const activeAb = artboards.find(ab => ab.id === activeArtboardId);
+      if (activeAb) {
+        const elementToCopy = activeAb.elements.find(
+          el => el.id === selectedElementIdOnActiveArtboard
+        );
+        
+        if (elementToCopy) {
+          copyToClipboard(elementToCopy);
+          toast({ title: "Copied", description: `${elementToCopy.type} element copied to clipboard.` });
+        }
+      }
+    }
+  };
+
+  // Define the paste element handler
+  const handlePasteElement = () => {
+    if (activeArtboardId && clipboardItem) {
+      const newElement = { 
+        ...JSON.parse(JSON.stringify(clipboardItem)),
+        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, // New unique ID
+        position: { 
+          x: clipboardItem.position.x + 20, // Offset position slightly
+          y: clipboardItem.position.y + 20 
+        }
+      };
+      
+      const updatedArtboards = artboards.map(ab => {
+        if (ab.id === activeArtboardId) {
+          return {
+            ...ab,
+            elements: [...ab.elements, newElement]
+          };
+        }
+        return ab;
+      });
+      
+      handleArtboardsUpdate(updatedArtboards);
+      setSelectedElementIdOnActiveArtboard(newElement.id);
+      toast({ title: "Pasted", description: `${newElement.type} element pasted to artboard.` });
+    } else if (!activeArtboardId) {
+      toast({ 
+        title: "Cannot Paste", 
+        description: "Please select an artboard first.", 
+        variant: "destructive" 
+      });
+    }
+  };
+  
+  // Add keyboard shortcuts for copy and paste
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if we're typing in an input, textarea, etc.
+      if (
+        e.target instanceof HTMLInputElement || 
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target instanceof HTMLElement && e.target.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Copy: Ctrl+C or Cmd+C
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        e.preventDefault();
+        if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+          handleCopyElement();
+        }
+      }
+
+      // Paste: Ctrl+V or Cmd+V
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault();
+        if (clipboardItem) {
+          handlePasteElement();
+        }
+      }
+
+      // Delete key for element or artboard deletion
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault(); // Prevent browser navigation
+        handleDeleteSelected();
+      }
+
+      // Undo: Ctrl+Z or Cmd+Z
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          handleUndo();
+        }
+      }
+
+      // Redo: Ctrl+Shift+Z or Cmd+Shift+Z or Ctrl+Y or Cmd+Y
+      if (((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) || 
+          ((e.ctrlKey || e.metaKey) && e.key === 'y')) {
+        e.preventDefault();
+        if (historyIndex < history.length - 1) {
+          handleRedo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem]);
 
   if (isTemplateSelectorOpen) {
     return (
@@ -900,103 +1029,109 @@ export function ArtboardStudioLayout() {
 
 
   return (
-    <SidebarProvider defaultOpen>
-      <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
-        <SidebarHeader>
-          <Button variant="ghost" size="icon" className="text-lg font-semibold tracking-tight h-10 w-10 flex items-center justify-center">
-             <svg viewBox="0 0 100 100" className="w-6 h-6 fill-primary">
-                <rect x="10" y="10" width="50" height="30" rx="5"/>
-                <rect x="20" y="50" width="70" height="40" rx="5"/>
-             </svg>
-          </Button>
-          <span className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">Artboard Studio</span>
-        </SidebarHeader>
-        <SidebarContent>
-          <ElementPalette
-            onAddElement={(type, subType) => {
-              if (activeArtboardId) {
-                handleAddElementToArtboard(activeArtboardId, type, subType);
-              } else {
-                toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
-              }
-            }}
-            activeArtboardElements={activeArtboardElements}
-            selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
-            onSelectElementInLayerPanel={handleSelectElementFromLayerPanel}
-            onMoveElementLayer={handleMoveElementLayer}
-            activeArtboardName={activeArtboardName}
-          />
-        </SidebarContent>
-        <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
-           <SidebarGroup className="p-0">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings (N/A)" className="w-full">
-                  <SettingsIcon />
-                  <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton tooltip="About (N/A)" className="w-full">
-                  <InfoIcon />
-                  <span className="group-data-[collapsible=icon]:hidden">About</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarFooter>
-      </Sidebar>
+    <ClipboardProvider>
+      <SidebarProvider defaultOpen>
+        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
+          <SidebarHeader>
+            <Button variant="ghost" size="icon" className="text-lg font-semibold tracking-tight h-10 w-10 flex items-center justify-center">
+               <svg viewBox="0 0 100 100" className="w-6 h-6 fill-primary">
+                  <rect x="10" y="10" width="50" height="30" rx="5"/>
+                  <rect x="20" y="50" width="70" height="40" rx="5"/>
+               </svg>
+            </Button>
+            <span className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">Artboard Studio</span>
+          </SidebarHeader>
+          <SidebarContent>
+            <ElementPalette
+              onAddElement={(type, subType) => {
+                if (activeArtboardId) {
+                  handleAddElementToArtboard(activeArtboardId, type, subType);
+                } else {
+                  toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
+                }
+              }}
+              activeArtboardElements={activeArtboardElements}
+              selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
+              onSelectElementInLayerPanel={handleSelectElementFromLayerPanel}
+              onMoveElementLayer={handleMoveElementLayer}
+              activeArtboardName={activeArtboardName}
+            />
+          </SidebarContent>
+          <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
+             <SidebarGroup className="p-0">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton tooltip="Settings (N/A)" className="w-full">
+                    <SettingsIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton tooltip="About (N/A)" className="w-full">
+                    <InfoIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">About</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
+          </SidebarFooter>
+        </Sidebar>
 
-      <SidebarInset className="flex flex-col overflow-hidden">
-        <Toolbar
-          onNewArtboard={handleNewArtboardFromMainToolbar}
-          onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
-          onExport={handleExportArtboards}
-          onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-          onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-          currentZoom={canvasZoom}
-          canUndo={historyIndex > 0}
-          canRedo={historyIndex < history.length - 1}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          onDeleteSelected={handleDeleteSelected}
-          isElementSelected={!!selectedElementIdOnActiveArtboard}
-          isArtboardSelected={!!activeArtboardId}
-          activeTool={activeTool}
-          onSetActiveTool={setActiveTool}
-          onUpdateArtboardSize={handleUpdateArtboardSize}
-          initialArtboardSize={getCurrentArtboardSize()}
-          className="sticky top-0 z-50 bg-card border-b"
-        />
-        <PropertiesPanel
-          selectedElement={selectedElementDetails}
-          onUpdateElement={handleUpdateSelectedElement}
-          activeArtboardDetails={
-            activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
-          }
-          onUpdateArtboardDetails={handleUpdateArtboardDetails}
-          className="sticky top-14 z-40 bg-card border-b shadow-md mb-3" // Adjusted from mb-4 to mb-3
-        />
-        <div className="flex-grow relative overflow-hidden pt-3"> {/* Adjusted from pt-4 to pt-3 */}
-          <CanvasArea
-            artboards={artboards}
-            onUpdateArtboards={handleArtboardsUpdate}
-            onAddElementToArtboard={handleAddElementToArtboard}
-            activeArtboardId={activeArtboardId}
-            setActiveArtboardId={handleArtboardSelection}
-            selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
-            setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
-            canvasZoom={canvasZoom}
-            artboardRefs={artboardRefs}
-            onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
-            onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
-            onDeleteArtboardFromToolbar={handleDeleteArtboard}
-            onMoveArtboardFromToolbar={handleMoveArtboard}
+        <SidebarInset className="flex flex-col overflow-hidden">
+          <Toolbar
+            onNewArtboard={handleNewArtboardFromMainToolbar}
+            onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
+            onExport={handleExportArtboards}
+            onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+            onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+            currentZoom={canvasZoom}
+            canUndo={historyIndex > 0}
+            canRedo={historyIndex < history.length - 1}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onDeleteSelected={handleDeleteSelected}
+            isElementSelected={!!selectedElementIdOnActiveArtboard}
+            isArtboardSelected={!!activeArtboardId}
             activeTool={activeTool}
+            onSetActiveTool={setActiveTool}
+            onUpdateArtboardSize={handleUpdateArtboardSize}
+            initialArtboardSize={getCurrentArtboardSize()}
+            onCopyElement={handleCopyElement}
+            onPasteElement={handlePasteElement}
+            canCopy={!!selectedElementIdOnActiveArtboard}
+            canPaste={!!clipboardItem && !!activeArtboardId}
+            className="sticky top-0 z-50 bg-card border-b"
           />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+          <PropertiesPanel
+            selectedElement={selectedElementDetails}
+            onUpdateElement={handleUpdateSelectedElement}
+            activeArtboardDetails={
+              activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
+            }
+            onUpdateArtboardDetails={handleUpdateArtboardDetails}
+            className="sticky top-14 z-40 bg-card border-b shadow-md mb-3" // Adjusted from mb-4 to mb-3
+          />
+          <div className="flex-grow relative overflow-hidden pt-3"> {/* Adjusted from pt-4 to pt-3 */}
+            <CanvasArea
+              artboards={artboards}
+              onUpdateArtboards={handleArtboardsUpdate}
+              onAddElementToArtboard={handleAddElementToArtboard}
+              activeArtboardId={activeArtboardId}
+              setActiveArtboardId={handleArtboardSelection}
+              selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
+              setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
+              canvasZoom={canvasZoom}
+              artboardRefs={artboardRefs}
+              onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
+              onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
+              onDeleteArtboardFromToolbar={handleDeleteArtboard}
+              onMoveArtboardFromToolbar={handleMoveArtboard}
+              activeTool={activeTool}
+            />
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </ClipboardProvider>
   );
 }
 

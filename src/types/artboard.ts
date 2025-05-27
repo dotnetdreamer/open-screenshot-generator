@@ -10,6 +10,7 @@ export interface Size {
 
 export type ElementType = 'text' | 'shape' | 'device';
 
+// Ensure our element types are properly defined for copy/paste operations
 export interface BaseElement {
   id: string;
   type: ElementType;
