@@ -84,6 +84,3 @@ export interface Template {
   dataAiHint?: string; // for placeholder images
   artboards: Partial<ArtboardState>[];
 }
-
-export type TargetStore = 'apple' | 'google' | 'microsoft' | 'other';
-export type ExportDeviceCategory = 'phone' | 'tablet' | 'desktop';

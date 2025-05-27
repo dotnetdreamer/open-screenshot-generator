@@ -32,7 +32,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { ExportDialog } from './ExportDialog'; 
 
 const sampleTemplates: Template[] = [
   {
@@ -124,10 +123,6 @@ export function ArtboardStudioLayout() {
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  // exportConfig state is not strictly needed if not used beyond the dialog confirmation
-  // const [exportConfig, setExportConfig] = useState<{ store: TargetStore | null; deviceTypes: ExportDeviceCategory[] }>({ store: null, deviceTypes: [] });
-
 
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
@@ -381,7 +376,8 @@ export function ArtboardStudioLayout() {
     toast({ title: "Template Loaded", description: `Template "${template.name}" applied.` });
   };
 
-  const handleConfirmExport = async (store: TargetStore, deviceTypes: ExportDeviceCategory[]) => {
+  // Modify the export function to work directly without options
+  const handleExportArtboards = async () => {
     toast({
       title: "Export Process Initiated",
       description: `Generating images... This might take a moment.`,
@@ -408,10 +404,8 @@ export function ArtboardStudioLayout() {
           allowTaint: true, // Allows cross-origin images if server headers permit
           useCORS: true,    // Attempts to load cross-origin images via CORS
           scale: 2,         // Increase scale for better quality (e.g., 2x resolution)
-          backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor, // Ensure background is captured, defaults to white if card color
-          logging: true,    // Enable logging for debugging
-          // Note: html2canvas captures the current scaled version from the DOM.
-          // For true "export at original size", you'd ideally render the artboard off-screen at 100% zoom.
+          backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
+          logging: false,   // Disable logging for production
         });
         
         const imageDataUrl = canvas.toDataURL('image/png');
@@ -419,13 +413,12 @@ export function ArtboardStudioLayout() {
         // Create a link to download the image
         const link = document.createElement('a');
         link.href = imageDataUrl;
-        // Create a filename (can be more sophisticated later)
-        const filename = `${artboard.name.replace(/\s+/g, '_')}_${store}_${deviceTypes.join('-')}.png`;
+        // Create a simple filename
+        const filename = `${artboard.name.replace(/\s+/g, '_')}.png`;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        // No need to revoke object URL for data URLs
   
         toast({
           title: "Artboard Exported",
@@ -442,7 +435,6 @@ export function ArtboardStudioLayout() {
         });
       }
     }
-    setIsExportDialogOpen(false);
   };
 
 
@@ -702,7 +694,7 @@ export function ArtboardStudioLayout() {
         <Toolbar
           onNewArtboard={handleNewArtboardFromMainToolbar}
           onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
-          onExport={() => setIsExportDialogOpen(true)}
+          onExport={handleExportArtboards} // Update to use the direct export function
           onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
           onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
           currentZoom={canvasZoom}
@@ -746,11 +738,6 @@ export function ArtboardStudioLayout() {
           />
         </div>
       </SidebarInset>
-      <ExportDialog
-        isOpen={isExportDialogOpen}
-        onOpenChange={setIsExportDialogOpen}
-        onConfirmExport={handleConfirmExport}
-      />
     </SidebarProvider>
   );
 }
