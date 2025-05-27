@@ -13,7 +13,16 @@ import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Un
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel
+} from "@/components/ui/select";
+import { getFontOptions } from '@/services/fontService';
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -451,167 +460,193 @@ export function PropertiesPanel({
   };
 
   // Render text properties in a more compact horizontal layout
-  const renderTextProperties = (element: TextElementProps) => (
-    <div className="w-full flex flex-wrap gap-2 items-start">
-      {/* Content - single line input */}
-      <div className="flex-1 min-w-[150px] max-w-[250px]">
-        <Label htmlFor="textContent" className="text-xs mb-1 block">Content</Label>
-        <Input
-          id="textContent"
-          value={localContent}
-          onChange={(e) => setLocalContent(e.target.value)}
-          onBlur={handleTextContentBlur}
-          className="text-sm h-8"
-        />
-      </div>
-      
-      {/* Font Controls - First Row */}
-      <div className="flex gap-2 flex-wrap">
-        {/* Font Family */}
-        <div className="w-[120px]">
-          <Label htmlFor="fontFamily" className="text-xs mb-1 block">Font</Label>
-          <Select
-            value={element.fontFamily}
-            onValueChange={(value) => onUpdateElement({ fontFamily: value })}
-          >
-            <SelectTrigger id="fontFamily" className="h-8 text-xs">
-              <SelectValue placeholder="Select Font" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Arial">Arial</SelectItem>
-              <SelectItem value="Verdana">Verdana</SelectItem>
-              <SelectItem value="Helvetica">Helvetica</SelectItem>
-              <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-              <SelectItem value="Courier New">Courier New</SelectItem>
-              <SelectItem value="Bricolage Grotesque">Bricolage Grotesque</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Font Size */}
-        <div className="w-[60px]">
-          <Label htmlFor="fontSize" className="text-xs mb-1 block">Size</Label>
+  const renderTextProperties = (element: TextElementProps) => {
+    const fontOptions = getFontOptions();
+    
+    return (
+      <div className="w-full flex flex-wrap gap-2 items-start">
+        {/* Content - single line input */}
+        <div className="flex-1 min-w-[150px] max-w-[250px]">
+          <Label htmlFor="textContent" className="text-xs mb-1 block">Content</Label>
           <Input
-            id="fontSize"
-            type="number"
-            value={element.fontSize}
-            onChange={(e) => onUpdateElement({ fontSize: parseInt(e.target.value, 10) || 16 })}
+            id="textContent"
+            value={localContent}
+            onChange={(e) => setLocalContent(e.target.value)}
+            onBlur={handleTextContentBlur}
             className="text-sm h-8"
           />
         </div>
         
-        {/* Line Height */}
-        <div className="w-[60px]">
-          <Label htmlFor="lineHeight" className="text-xs mb-1 block">Line H.</Label>
-          <Input
-            id="lineHeight"
-            type="number"
-            value={lineHeight}
-            onChange={handleLineHeightChange}
-            className="text-sm h-8"
-            step="0.1"
-          />
-        </div>
-        
-        {/* Font Color */}
-        <div className="w-[120px]">
-          <Label htmlFor="fontColor" className="text-xs mb-1 block">Color</Label>
-          <div className="flex items-center gap-1">
+        {/* Font Controls - First Row */}
+        <div className="flex gap-2 flex-wrap">
+          {/* Font Family */}
+          <div className="w-[120px]">
+            <Label htmlFor="fontFamily" className="text-xs mb-1 block">Font</Label>
+            <Select
+              value={element.fontFamily || 'Arial'}
+              onValueChange={(value) => onUpdateElement({ fontFamily: value })}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Font Family" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>System Fonts</SelectLabel>
+                  {fontOptions
+                    .filter(font => !font.value.includes(' '))
+                    .map(font => (
+                      <SelectItem 
+                        key={font.value} 
+                        value={font.value}
+                        style={{ fontFamily: `${font.value}, ${font.category}` }}
+                      >
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Google Fonts</SelectLabel>
+                  {fontOptions
+                    .filter(font => font.value.includes(' '))
+                    .map(font => (
+                      <SelectItem 
+                        key={font.value} 
+                        value={font.value}
+                        style={{ fontFamily: `${font.value}, ${font.category}` }}
+                      >
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Font Size */}
+          <div className="w-[60px]">
+            <Label htmlFor="fontSize" className="text-xs mb-1 block">Size</Label>
             <Input
-              id="fontColor"
-              type="color"
-              value={element.color}
-              onChange={(e) => onUpdateElement({ color: e.target.value })}
-              className="w-8 h-8 p-1"
-            />
-            <Input
-              type="text"
-              value={element.color}
-              onChange={(e) => onUpdateElement({ color: e.target.value })}
-              className="w-[80px] h-8 text-xs"
+              id="fontSize"
+              type="number"
+              value={element.fontSize}
+              onChange={(e) => onUpdateElement({ fontSize: parseInt(e.target.value, 10) || 16 })}
+              className="text-sm h-8"
             />
           </div>
-        </div>
-        
-        {/* Font Style */}
-        <div>
-          <Label className="text-xs mb-1 block">Style</Label>
-          <div className="flex items-center space-x-1">
-            <Button
-              variant={fontWeight === 'bold' ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => toggleFontStyle('fontWeight', 'bold')}
-              title="Bold"
-            >
-              <Bold className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={fontStyle === 'italic' ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => toggleFontStyle('fontStyle', 'italic')}
-              title="Italic"
-            >
-              <Italic className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={textDecoration?.includes('underline') ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => toggleFontStyle('textDecoration', 'underline')}
-              title="Underline"
-            >
-              <Underline className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={textDecoration?.includes('line-through') ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => toggleFontStyle('textDecoration', 'line-through')}
-              title="Strikethrough"
-            >
-              <Strikethrough className="h-3.5 w-3.5" />
-            </Button>
+          
+          {/* Line Height */}
+          <div className="w-[60px]">
+            <Label htmlFor="lineHeight" className="text-xs mb-1 block">Line H.</Label>
+            <Input
+              id="lineHeight"
+              type="number"
+              value={lineHeight}
+              onChange={handleLineHeightChange}
+              className="text-sm h-8"
+              step="0.1"
+            />
           </div>
-        </div>
-        
-        {/* Text Alignment */}
-        <div>
-          <Label className="text-xs mb-1 block">Align</Label>
-          <div className="flex items-center space-x-1">
-            <Button
-              variant={textAlign === 'left' ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTextAlignment('left')}
-              title="Align Left"
-            >
-              <AlignLeft className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={textAlign === 'center' ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTextAlignment('center')}
-              title="Align Center"
-            >
-              <AlignCenter className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant={textAlign === 'right' ? 'default' : 'outline'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setTextAlignment('right')}
-              title="Align Right"
-            >
-              <AlignRight className="h-3.5 w-3.5" />
-            </Button>
+          
+          {/* Font Color */}
+          <div className="w-[120px]">
+            <Label htmlFor="fontColor" className="text-xs mb-1 block">Color</Label>
+            <div className="flex items-center gap-1">
+              <Input
+                id="fontColor"
+                type="color"
+                value={element.color}
+                onChange={(e) => onUpdateElement({ color: e.target.value })}
+                className="w-8 h-8 p-1"
+              />
+              <Input
+                type="text"
+                value={element.color}
+                onChange={(e) => onUpdateElement({ color: e.target.value })}
+                className="w-[80px] h-8 text-xs"
+              />
+            </div>
+          </div>
+          
+          {/* Font Style */}
+          <div>
+            <Label className="text-xs mb-1 block">Style</Label>
+            <div className="flex items-center space-x-1">
+              <Button
+                variant={fontWeight === 'bold' ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => toggleFontStyle('fontWeight', 'bold')}
+                title="Bold"
+              >
+                <Bold className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={fontStyle === 'italic' ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => toggleFontStyle('fontStyle', 'italic')}
+                title="Italic"
+              >
+                <Italic className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={textDecoration?.includes('underline') ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => toggleFontStyle('textDecoration', 'underline')}
+                title="Underline"
+              >
+                <Underline className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={textDecoration?.includes('line-through') ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => toggleFontStyle('textDecoration', 'line-through')}
+                title="Strikethrough"
+              >
+                <Strikethrough className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Text Alignment */}
+          <div>
+            <Label className="text-xs mb-1 block">Align</Label>
+            <div className="flex items-center space-x-1">
+              <Button
+                variant={textAlign === 'left' ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTextAlignment('left')}
+                title="Align Left"
+              >
+                <AlignLeft className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={textAlign === 'center' ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTextAlignment('center')}
+                title="Align Center"
+              >
+                <AlignCenter className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant={textAlign === 'right' ? 'default' : 'outline'}
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setTextAlignment('right')}
+                title="Align Right"
+              >
+                <AlignRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderShapeProperties = (element: ShapeElementProps) => (
     <>

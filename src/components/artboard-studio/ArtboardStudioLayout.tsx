@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import html2canvas from 'html2canvas';
+import { preloadGoogleFonts } from '@/services/fontService';
 import {
   SidebarProvider,
   Sidebar,
@@ -773,6 +774,11 @@ export function ArtboardStudioLayout() {
     });
   };
 
+  // Preload Google Fonts on component mount
+  useEffect(() => {
+    preloadGoogleFonts();
+  }, []);
+  
   const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
