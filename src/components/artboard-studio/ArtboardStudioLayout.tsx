@@ -150,9 +150,18 @@ export function ArtboardStudioLayout() {
     };
 
     fetchRecentProjects();
-  }, []);
+  }, [activeProjectId]); // Add activeProjectId as a dependency
 
   // Load project when activeProjectId changes
+ useEffect(() => {
+    // This effect runs only once on mount
+    // If no project is active on initial load, open the template selector
+    if (activeProjectId === null) {
+      setIsTemplateSelectorOpen(true);
+    }
+ }, [activeProjectId]); // Depend on activeProjectId to react to potential initial load via URL (future)
+
+ // Effect to load project when activeProjectId changes
   useEffect(() => {
     if (!activeProjectId && artboards.length === 0) {
       setIsTemplateSelectorOpen(true);
@@ -183,7 +192,7 @@ export function ArtboardStudioLayout() {
       }
     };
     loadProject();
-  }, [activeProjectId, toast, setIsTemplateSelectorOpen, artboards.length, sampleTemplates]); // Added dependencies
+ }, [activeProjectId, toast, setIsTemplateSelectorOpen]); // Depend on activeProjectId and necessary setters/toast
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); // Deep copy
@@ -216,7 +225,6 @@ export function ArtboardStudioLayout() {
       if (!projectIdToSave) {
         // Generate a new ID only if there is no active project
         projectIdToSave = Date.now().toString();
-        setActiveProjectId(projectIdToSave); // Set the new active project ID
       }
   
       // Save to Dexie database
@@ -227,6 +235,10 @@ export function ArtboardStudioLayout() {
       }).catch(error => {
         console.error("Error saving project to Dexie:", error);
       });
+
+      if (activeProjectId !== projectIdToSave) {
+        setActiveProjectId(projectIdToSave); // Set the new active project ID if it was just created
+      }
     };
     if (activeArtboardId && !repositionedArtboards.find(ab => ab.id === activeArtboardId)) {
         setActiveArtboardId(null);
@@ -454,8 +466,6 @@ export function ArtboardStudioLayout() {
     const finalArtboards = calculateArtboardPositions(templateArtboards);
     setArtboards(finalArtboards);
     setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
-    const projectId = Date.now().toString(); // Generate a unique ID
-    setActiveProjectId(projectId); // Set the active project ID
     setHistoryIndex(0);
     setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
     setSelectedElementIdOnActiveArtboard(null);
@@ -785,15 +795,16 @@ export function ArtboardStudioLayout() {
             <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
             {recentProjects.length > 0 ? (
               <ScrollArea className="h-[20vh]"> {/* Added ScrollArea for recent projects list */}
-                <ul>
+                <ul className="divide-y divide-border">
                   {recentProjects.map((project) => (
-                    <li key={project.id} className="py-1 cursor-pointer hover:text-primary" onClick={() => { setActiveProjectId(project.id); setIsTemplateSelectorOpen(false); }}>
-                      <div 
-                        className="py-1 cursor-pointer hover:text-primary"
-                        onClick={() => { setActiveProjectId(project.id); setIsTemplateSelectorOpen(false); }}
-                      >
-                        Project saved on: {project.timestamp.toLocaleString()}
-                      </div>
+                    <li key={project.id} className="py-1 flex items-center justify-between cursor-pointer hover:text-primary"
+                      onClick={() => {
+                        setActiveProjectId(project.id); setIsTemplateSelectorOpen(false);
+                      }}
+                    >
+                      <div className="flex items-center">Project saved on: {project.timestamp.toLocaleString()}</div>
+                      {/* The actual button will be added here later */}
+
                     </li>
                   ))}
                 </ul>
