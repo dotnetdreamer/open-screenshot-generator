@@ -851,6 +851,9 @@ export function ArtboardStudioLayout() {
                             e.stopPropagation();
                             setProjectToDelete(project.id);
                           }}
+                          // Disable delete button for the currently active project
+                          disabled={project.id === activeProjectId}
+                          title={project.id === activeProjectId ? "Cannot delete the currently open project" : "Delete project"}
                         >
                           <Trash2Icon className="h-4 w-4" />
                         </Button>
