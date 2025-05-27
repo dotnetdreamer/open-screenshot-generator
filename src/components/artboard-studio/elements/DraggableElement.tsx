@@ -1,4 +1,3 @@
-
 "use client";
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
@@ -22,6 +21,9 @@ const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2;
 const MIN_DISPLAY_SIZE = 20; 
 
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
+
+// Add a constant for the display scale factor to match Artboard component
+const DISPLAY_SCALE_FACTOR = 0.3; // 30% of original size
 
 export function DraggableElement({
   element,
@@ -62,12 +64,17 @@ export function DraggableElement({
     const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
+      // Adjust for both artboard zoom and display scale factor
       return {
-        x: (e.clientX - artboardRect.left) / artboardZoom,
-        y: (e.clientY - artboardRect.top) / artboardZoom,
+        // Divide by DISPLAY_SCALE_FACTOR to account for the scaled display
+        x: (e.clientX - artboardRect.left) / (artboardZoom * DISPLAY_SCALE_FACTOR),
+        y: (e.clientY - artboardRect.top) / (artboardZoom * DISPLAY_SCALE_FACTOR),
       };
     }
-    return { x: e.clientX / artboardZoom, y: e.clientY / artboardZoom };
+    return { 
+      x: e.clientX / (artboardZoom * DISPLAY_SCALE_FACTOR), 
+      y: e.clientY / (artboardZoom * DISPLAY_SCALE_FACTOR) 
+    };
   };
 
 

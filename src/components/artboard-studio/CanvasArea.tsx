@@ -1,4 +1,3 @@
-
 "use client";
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
@@ -28,7 +27,7 @@ const initialArtboardState: ArtboardState = {
   id: 'artboard_default_1',
   name: 'My First Artboard',
   position: { x: 50, y: 50 }, 
-  size: { width: 1024, height: 768 },
+  size: { width: 1290, height: 2796 }, // Updated size
   elements: [
     {
       id: 'el_intro_text',
@@ -59,6 +58,23 @@ const initialArtboardState: ArtboardState = {
   zoom: 1, 
 };
 
+// Reduce the margin between artboards
+const ARTBOARD_MARGIN = 15; // Reduced from 30
+const DISPLAY_SCALE_FACTOR = 0.3; // Keep the same scale factor
+
+// Update the calculateArtboardPositions function to maintain closer spacing
+function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
+  let currentX = ARTBOARD_MARGIN;
+  return artboards.map(ab => {
+    const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
+    
+    // Calculate the next position with reduced margin
+    currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
+    
+    return { ...ab, position: newPosition };
+  });
+}
+
 export function CanvasArea({ 
     artboards: externalArtboards, 
     onUpdateArtboards,
@@ -85,6 +101,7 @@ export function CanvasArea({
 
 
   useEffect(() => {
+    // Make sure we're always using the latest external artboards (including size and position changes)
     setArtboards(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
   }, [externalArtboards]);
 
@@ -198,11 +215,13 @@ export function CanvasArea({
     <ScrollArea className="h-full w-full bg-background flex-grow" viewportRef={scrollViewportRef}>
       <div
         ref={contentAreaRef}
-        className="relative w-max min-w-full min-h-full p-12" 
+        className="relative w-max min-w-full min-h-full" 
         style={{ 
           transform: `scale(${canvasZoom})`, 
           transformOrigin: 'top left',
           cursor: getCursorStyle(),
+          // Increase top padding significantly to ensure toolbar visibility
+          padding: '40px 12px 12px 12px', // Increased from previous value
         }}
         onMouseDown={handleMouseDownOnContentArea}
         onDrop={handleDropOnCanvas}
@@ -215,8 +234,6 @@ export function CanvasArea({
               position: 'absolute', 
               left: `${artboard.position.x}px`,
               top: `${artboard.position.y}px`,
-              // When pan tool is active, prevent pointer events on individual artboards
-              // to ensure the pan gesture on contentAreaRef is captured.
               pointerEvents: activeTool === 'pan' && isPanning ? 'none' : 'auto',
             }}
           >

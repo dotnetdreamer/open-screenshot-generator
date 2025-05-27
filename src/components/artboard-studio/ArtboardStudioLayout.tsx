@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import html2canvas from 'html2canvas'; // Import html2canvas
+import html2canvas from 'html2canvas';
 import {
   SidebarProvider,
   Sidebar,
@@ -33,6 +33,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
 
+// Update the initial size values in the templates
 const sampleTemplates: Template[] = [
   {
     id: 'template_blank',
@@ -43,7 +44,7 @@ const sampleTemplates: Template[] = [
     artboards: [{
       id: 'artboard_blank_1',
       name: 'Blank Artboard',
-      size: { width: 1280, height: 800 },
+      size: { width: 1290, height: 2796 }, // Updated size
       elements: [],
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
@@ -59,7 +60,7 @@ const sampleTemplates: Template[] = [
     artboards: [{
       id: 'artboard_social_1',
       name: 'Social Post',
-      size: { width: 1080, height: 1080 },
+      size: { width: 1290, height: 2796 },  // Updated size
       backgroundColor: 'hsl(var(--card))',
       zoom: 1,
       position: {x:50, y:50},
@@ -79,36 +80,41 @@ const sampleTemplates: Template[] = [
       {
         id: 'artboard_app_1',
         name: 'iPhone Screen 1',
-        size: { width: 390, height: 844 },
+        size: { width: 1290, height: 2796 }, // Updated size
         backgroundColor: 'hsl(var(--card))',
         zoom:1,
         position: {x:50, y:50},
-        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1 } as DeviceFrameElementProps]
+        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 1290, height: 2796}, rotation:0, scale:1 } as DeviceFrameElementProps]
       },
       {
         id: 'artboard_app_2',
         name: 'iPhone Screen 2',
-        size: { width: 390, height: 844 },
+        size: { width: 1290, height: 2796 }, // Updated size
         backgroundColor: 'hsl(var(--card))',
         zoom:1,
         position: {x:490, y:50},
-        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 390, height: 844}, rotation:0, scale:1} as DeviceFrameElementProps]
+        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 1290, height: 2796}, rotation:0, scale:1} as DeviceFrameElementProps]
       },
     ],
   }
 ];
 
-const ARTBOARD_MARGIN = 15;
+// Reduce the margin between artboards
+const ARTBOARD_MARGIN = 15; // Reduced from 30
+const DISPLAY_SCALE_FACTOR = 0.3;
 
+// Update the function with reduced margin
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
   return artboards.map(ab => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
-    currentX += (ab.size.width * ab.zoom) + ARTBOARD_MARGIN;
+    
+    // Calculate next position with reduced margin
+    currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
+    
     return { ...ab, position: newPosition };
   });
 }
-
 
 export function ArtboardStudioLayout() {
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
@@ -215,8 +221,20 @@ export function ArtboardStudioLayout() {
     }
   }, [toast]);
 
+  // Get the current size from the first artboard or any active artboard
+  const getCurrentArtboardSize = () => {
+    if (activeArtboardId) {
+      const activeAb = artboards.find(ab => ab.id === activeArtboardId);
+      if (activeAb) {
+        return activeAb.size;
+      }
+    }
+    return artboards.length > 0 ? artboards[0].size : { width: 1290, height: 2796 }; // Updated default size
+  };
+
+  // Handle new artboard creation with updated default size
   const handleNewArtboardFromMainToolbar = () => {
-    const defaultSize = { width: 1024, height: 768 };
+    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
     const newSize = artboards.length > 0 && artboards[artboards.length - 1] 
                     ? artboards[artboards.length - 1].size 
                     : defaultSize;
@@ -241,7 +259,7 @@ export function ArtboardStudioLayout() {
 
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
-    const defaultSize = { width: 1024, height: 768 };
+    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
     const newSize = currentArtboard ? currentArtboard.size : defaultSize;
     
     const newArtboard: ArtboardState = {
@@ -376,18 +394,27 @@ export function ArtboardStudioLayout() {
     toast({ title: "Template Loaded", description: `Template "${template.name}" applied.` });
   };
 
-  // Modify the export function to work directly without options
+  // Add this utility function to get proper dimensions for export
+  const getArtboardExportDimensions = (artboard: ArtboardState) => {
+    // Return the original dimensions regardless of zoom level
+    return {
+      width: artboard.size.width,
+      height: artboard.size.height
+    };
+  };
+  
+  // Modify the export function to handle the display scale factor
   const handleExportArtboards = async () => {
     toast({
       title: "Export Process Initiated",
       description: `Generating images... This might take a moment.`,
       variant: "default",
     });
-  
+
     for (const artboard of artboards) {
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
-  
+
       if (!artboardElement) {
         console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
         toast({
@@ -397,19 +424,34 @@ export function ArtboardStudioLayout() {
         });
         continue;
       }
-  
+
       try {
-        // Use html2canvas to capture the artboard
+        // Store original transform and dimensions
+        const originalTransform = artboardElement.style.transform;
+        const originalWidth = artboardElement.style.width;
+        const originalHeight = artboardElement.style.height;
+        
+        // Remove scale transform for export
+        artboardElement.style.transform = 'scale(1)';
+        
+        // Use html2canvas to capture the artboard at full size
         const canvas = await html2canvas(artboardElement, {
           allowTaint: true, // Allows cross-origin images if server headers permit
           useCORS: true,    // Attempts to load cross-origin images via CORS
           scale: 2,         // Increase scale for better quality (e.g., 2x resolution)
           backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
           logging: false,   // Disable logging for production
+          width: artboard.size.width,
+          height: artboard.size.height
         });
         
+        // Restore original styling after export
+        artboardElement.style.transform = originalTransform;
+        artboardElement.style.width = originalWidth;
+        artboardElement.style.height = originalHeight;
+        
         const imageDataUrl = canvas.toDataURL('image/png');
-  
+
         // Create a link to download the image
         const link = document.createElement('a');
         link.href = imageDataUrl;
@@ -419,13 +461,13 @@ export function ArtboardStudioLayout() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-  
+
         toast({
           title: "Artboard Exported",
           description: `"${artboard.name}" has been downloaded.`,
           variant: "default",
         });
-  
+
       } catch (error) {
         console.error("Error exporting artboard:", artboard.name, error);
         toast({
@@ -584,6 +626,38 @@ export function ArtboardStudioLayout() {
     handleArtboardsUpdate(updatedArtboards); // Use handleArtboardsUpdate to ensure history and positioning
   };
 
+  // Update the handleUpdateArtboardSize function
+  const handleUpdateArtboardSize = (width: number, height: number) => {
+    if (width < 100 || height < 100 || width > 5000 || height > 5000) {
+      toast({ 
+        title: "Invalid Dimensions", 
+        description: "Width and height must be between 100 and 5000 pixels.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Update all artboards with the new size
+    const updatedArtboards = artboards.map(artboard => ({
+      ...artboard,
+      size: {
+        width,
+        height
+      }
+    }));
+    
+    // Recalculate positions to avoid overlap
+    const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
+    
+    // Update state
+    setArtboards(repositionedArtboards);
+    pushToHistory(repositionedArtboards);
+    
+    toast({ 
+      title: "Artboard Size Updated", 
+      description: `All artboards resized to ${width} × ${height} pixels`
+    });
+  };
 
   const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
@@ -694,7 +768,7 @@ export function ArtboardStudioLayout() {
         <Toolbar
           onNewArtboard={handleNewArtboardFromMainToolbar}
           onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
-          onExport={handleExportArtboards} // Update to use the direct export function
+          onExport={handleExportArtboards}
           onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
           onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
           currentZoom={canvasZoom}
@@ -707,22 +781,23 @@ export function ArtboardStudioLayout() {
           isArtboardSelected={!!activeArtboardId}
           activeTool={activeTool}
           onSetActiveTool={setActiveTool}
+          onUpdateArtboardSize={handleUpdateArtboardSize}
+          initialArtboardSize={getCurrentArtboardSize()}
           className="sticky top-0 z-50 bg-card border-b"
         />
         <PropertiesPanel
           selectedElement={selectedElementDetails}
           onUpdateElement={handleUpdateSelectedElement}
           activeArtboardDetails={
-            // Only pass activeArtboard when no element is selected and an artboard is active
             activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
           }
           onUpdateArtboardDetails={handleUpdateArtboardDetails}
-          className="sticky top-14 z-40 bg-card border-b" 
+          className="sticky top-14 z-40 bg-card border-b shadow-md mb-3" // Adjusted from mb-4 to mb-3
         />
-        <div className="flex-grow relative overflow-hidden"> 
+        <div className="flex-grow relative overflow-hidden pt-3"> {/* Adjusted from pt-4 to pt-3 */}
           <CanvasArea
             artboards={artboards}
-            onUpdateArtboards={handleArtboardsUpdate} 
+            onUpdateArtboards={handleArtboardsUpdate}
             onAddElementToArtboard={handleAddElementToArtboard}
             activeArtboardId={activeArtboardId}
             setActiveArtboardId={handleArtboardSelection}

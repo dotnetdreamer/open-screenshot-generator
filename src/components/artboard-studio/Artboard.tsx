@@ -223,8 +223,15 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     onSelectArtboard();
   };
 
+  // Define display scale factor
+  const displayScaleFactor = 0.3;
+  
+  // Calculate container dimensions
+  const containerWidth = artboard.size.width * displayScaleFactor;
+  const containerHeight = artboard.size.height * displayScaleFactor;
+
   return (
-    <div className="relative" suppressHydrationWarning>
+    <div className="relative mt-4" suppressHydrationWarning> {/* Adjusted from mt-5 to mt-4 */}
       <ArtboardToolbar
         artboardId={artboard.id}
         onAddNew={() => onAddNewArtboard()} 
@@ -236,67 +243,84 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         canMoveRight={canMoveArtboardRight}
       />
       <div
-        ref={artboardDivRef}
-        data-artboard-dom-id={artboard.id}
-        className={cn(
-          "artboard relative shadow-lg overflow-hidden bg-white", // Changed from bg-card to bg-white
-          isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
-        )}
+        className="relative"
         style={{
-          width: `${artboard.size.width}px`,
-          height: `${artboard.size.height}px`,
-          transform: `scale(${artboard.zoom})`,
-          transformOrigin: 'top left',
-          marginTop: '2.5rem',
-          ...backgroundStyle, // Apply computed background style
+          width: `${containerWidth}px`,
+          height: `${containerHeight}px`,
+          position: 'relative',
+          overflow: 'hidden',
+          marginTop: '1.25rem', // Adjusted from 1.5rem to 1.25rem
         }}
-        onClick={handleArtboardClick}
-        onDrop={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
-          const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
-          if (type && typeof (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement === 'function') {
-            const dropX = e.clientX;
-            const dropY = e.clientY;
-            (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY});
-          }
-        }}
-        onDragOver={(e) => {
-          e.preventDefault(); 
-          e.stopPropagation();
-        }}
-        suppressHydrationWarning
       >
-        {elements.map(element => (
-          <DraggableElement
-            key={element.id}
-            element={element}
-            isSelected={selectedElementId === element.id}
-            onSelect={handleSelectElement}
-            onUpdateElement={handleUpdateElement}
-            onDeleteElement={handleDeleteElement}
-            artboardZoom={artboard.zoom}
-            boundary={{width: artboard.size.width, height: artboard.size.height}}
-          >
-            {element.type === 'text' && (
-              <TextElement 
-                element={element} 
-                onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                isSelected={selectedElementId === element.id}
-                artboardZoom={artboard.zoom * element.scale}
-              />
-            )}
-            {element.type === 'shape' && <ShapeElement element={element} />}
-            {element.type === 'device' && (
-              <DeviceFrameElement 
-                element={element} 
-                onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                isSelected={selectedElementId === element.id} 
-              />
-            )}
-          </DraggableElement>
-        ))}
+        <div
+          ref={artboardDivRef}
+          data-artboard-dom-id={artboard.id}
+          data-original-width={artboard.size.width}
+          data-original-height={artboard.size.height}
+          data-display-scale={displayScaleFactor}
+          className={cn(
+            "artboard relative shadow-lg overflow-hidden bg-white",
+            isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
+          )}
+          style={{
+            width: `${artboard.size.width}px`,
+            height: `${artboard.size.height}px`,
+            transform: `scale(${displayScaleFactor})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            marginTop: '0', // Keep this at 0
+            ...backgroundStyle,
+          }}
+          onClick={handleArtboardClick}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
+            const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
+            if (type && typeof (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement === 'function') {
+              const dropX = e.clientX;
+              const dropY = e.clientY;
+              (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY});
+            }
+          }}
+          onDragOver={(e) => {
+            e.preventDefault(); 
+            e.stopPropagation();
+          }}
+          suppressHydrationWarning
+        >
+          {elements.map(element => (
+            <DraggableElement
+              key={element.id}
+              element={element}
+              isSelected={selectedElementId === element.id}
+              onSelect={handleSelectElement}
+              onUpdateElement={handleUpdateElement}
+              onDeleteElement={handleDeleteElement}
+              artboardZoom={artboard.zoom}
+              boundary={{width: artboard.size.width, height: artboard.size.height}}
+            >
+              {element.type === 'text' && (
+                <TextElement 
+                  element={element} 
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
+                  isSelected={selectedElementId === element.id}
+                  artboardZoom={artboard.zoom * element.scale}
+                />
+              )}
+              {element.type === 'shape' && <ShapeElement element={element} />}
+              {element.type === 'device' && (
+                <DeviceFrameElement 
+                  element={element} 
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
+                  isSelected={selectedElementId === element.id} 
+                />
+              )}
+            </DraggableElement>
+          ))}
+        </div>
       </div>
     </div>
   );

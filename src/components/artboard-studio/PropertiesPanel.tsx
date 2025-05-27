@@ -467,7 +467,7 @@ export function PropertiesPanel({
   // No element or artboard selected
   if (!selectedElement && !activeArtboardDetails) {
     return (
-      <div className={cn("h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 text-sm text-muted-foreground min-h-[56px]", className)} suppressHydrationWarning>
+      <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 text-sm text-muted-foreground min-h-[56px]", className)} suppressHydrationWarning>
         No element selected. Select an element or artboard to see its properties.
       </div>
     );
@@ -479,7 +479,7 @@ export function PropertiesPanel({
     const displayColor = cssVarToHex(solidColor);
     
     return (
-      <div className={cn("h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
+      <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
         <span className="font-semibold capitalize text-muted-foreground">
           Artboard Properties:
         </span>
@@ -626,7 +626,7 @@ export function PropertiesPanel({
   // Element properties
   if (selectedElement) {
     return (
-      <div className={cn("h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
+      <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
         <span className="font-semibold capitalize text-muted-foreground">
           {selectedElement.type}
           {selectedElement.type === 'device' ? ` (${(selectedElement as DeviceFrameElementProps).deviceType})` : ''}
@@ -641,7 +641,7 @@ export function PropertiesPanel({
 
   // Default fallback
   return (
-    <div className={cn("h-auto bg-card border-b shadow-sm flex items-center px-4 py-2 text-sm text-muted-foreground min-h-[56px]", className)} suppressHydrationWarning>
+    <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 text-sm text-muted-foreground min-h-[56px]", className)} suppressHydrationWarning>
       Loading properties...
     </div>
   );

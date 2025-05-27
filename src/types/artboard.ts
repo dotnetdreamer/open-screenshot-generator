@@ -74,6 +74,7 @@ export interface ArtboardState {
     angle: number;
   };
   zoom: number; // Zoom level for the artboard's content itself
+  exportScale?: number; // Optional export scale for higher resolution exports
 }
 
 export interface Template {

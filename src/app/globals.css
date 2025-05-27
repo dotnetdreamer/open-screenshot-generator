@@ -114,3 +114,224 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Artboard size input styles */
+input[type="text"].h-7 {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Ensure inputs in toolbar have consistent styling */
+.h-7.w-16.text-xs {
+  font-size: 0.75rem;
+}
+
+/* Sidebar styles - applying rounded corners and shadows */
+.sidebar {
+  @apply rounded-lg shadow-md;
+}
+
+/* Card styles - adding some padding and rounded corners */
+.card {
+  @apply p-4 rounded-lg;
+}
+
+/* Popover styles - ensuring it stands out on the page */
+.popover {
+  @apply p-4 rounded-lg shadow-lg;
+}
+
+/* Primary button styles - using the primary color and rounded corners */
+.btn-primary {
+  @apply bg-primary text-primary-foreground rounded-md;
+}
+
+/* Secondary button styles - using the secondary color and rounded corners */
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground rounded-md;
+}
+
+/* Accent button styles - using the accent color and rounded corners */
+.btn-accent {
+  @apply bg-accent text-accent-foreground rounded-md;
+}
+
+/* Destructive button styles - using the destructive color and rounded corners */
+.btn-destructive {
+  @apply bg-destructive text-destructive-foreground rounded-md;
+}
+
+/* Input field styles - adding padding and rounded corners */
+input {
+  @apply p-2 rounded-md;
+}
+
+/* Textarea styles - adding padding, rounded corners, and a specific font */
+textarea {
+  @apply p-2 rounded-md font-mono;
+}
+
+/* Select menu styles - ensuring consistency with other form elements */
+select {
+  @apply p-2 rounded-md;
+}
+
+/* Checkbox and radio styles - customizing the appearance */
+input[type="checkbox"],
+input[type="radio"] {
+  @apply rounded-md;
+}
+
+/* Link styles - using the primary color and removing underline */
+a {
+  @apply text-primary no-underline;
+}
+
+/* Table styles - adding zebra stripes and rounded corners */
+table {
+  @apply w-full rounded-lg overflow-hidden;
+}
+
+thead {
+  @apply bg-primary text-primary-foreground;
+}
+
+tbody tr:nth-child(even) {
+  @apply bg-secondary;
+}
+
+/* Code block styles - using a monospaced font and specific background */
+pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg font-mono;
+}
+
+/* Notification styles - using the accent color for emphasis */
+.notification {
+  @apply bg-accent text-accent-foreground p-4 rounded-lg;
+}
+
+/* Tooltip styles - ensuring text is readable on all backgrounds */
+.tooltip {
+  @apply bg-black text-white rounded-md p-2;
+}
+
+/* Modal styles - centering the modal and adding a backdrop */
+.modal {
+  @apply fixed inset-0 flex items-center justify-center z-50;
+}
+
+.modal-backdrop {
+  @apply fixed inset-0 bg-black opacity-50;
+}
+
+/* Form helper text - using the muted color for less emphasis */
+.form-helper {
+  @apply text-muted-foreground;
+}
+
+/* Avatar styles - using a circular crop and specific size */
+.avatar {
+  @apply w-10 h-10 rounded-full;
+}
+
+/* Badge styles - using the primary color and rounded shape */
+.badge {
+  @apply bg-primary text-primary-foreground rounded-full px-3 py-1;
+}
+
+/* Divider styles - using the muted color and specific height */
+.divider {
+  @apply h-px bg-muted my-4;
+}
+
+/* Grid layout for cards - using a responsive grid system */
+.card-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+/* Flex layout for toolbar - ensuring items are spaced evenly */
+.toolbar {
+  @apply flex items-center justify-between p-4;
+}
+
+/* Hide scrollbar for a cleaner look */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar styles for WebKit browsers */
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+/* Smooth scrolling behavior for the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Styles for scaled artboards */
+.artboard {
+  transform-origin: top left;
+  will-change: transform;
+}
+
+/* Ensure consistent margin between artboards */
+.artboard-container {
+  display: inline-block;
+  vertical-align: top;
+}
+
+/* Adjust artboard and toolbar spacing */
+.artboard-toolbar {
+  margin-bottom: 0.5rem;
+}
+
+/* Ensure the toolbar doesn't overlap with artboard on small scales */
+.artboard {
+  transform-origin: top left;
+  will-change: transform;
+}
+
+/* Improved spacing between properties panel and canvas content */
+.properties-panel-divider {
+  height: 4px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.05), transparent);
+  margin-bottom: 4px;
+}
+
+/* Create more space between properties panel and canvas */
+.properties-panel-spacer {
+  height: 8px;
+  background: transparent;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* Ensure the artboard toolbar has enough space */
+.artboard-toolbar-container {
+  margin-top: 12px;
+}
+
+/* Ensure artboard toolbar is fully visible */
+.absolute.-top-9 {
+  top: -2.25rem; /* Less extreme position to avoid being cut off */
+}
+
+/* Add a small buffer zone above artboards */
+.artboard-container {
+  margin-top: 0.75rem;
+  padding-top: 10px;
+}
+
+/* Make toolbar more visible with a subtle background highlight */
+.artboard-toolbar-shadow {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom styles for specific components can be added below */
+
+/* End of global styles */

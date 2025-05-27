@@ -1,4 +1,3 @@
-
 "use client";
 import type React from 'react';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ export function ArtboardToolbar({
     <TooltipProvider delayDuration={100}>
       <div
         className={cn(
-          "absolute -top-10 left-1/2 -translate-x-1/2 z-10",
+          "absolute -top-9 left-1/2 -translate-x-1/2 z-10",
           "flex items-center space-x-1 p-1 bg-card border border-border rounded-md shadow-lg",
           className
         )}
