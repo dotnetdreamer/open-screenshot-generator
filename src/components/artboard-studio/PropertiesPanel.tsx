@@ -9,10 +9,11 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { UploadCloudIcon, PaintbrushIcon, Palette } from 'lucide-react';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -111,6 +112,13 @@ export function PropertiesPanel({
   const [screenshotWidth, setScreenshotWidth] = useState(90);
   const [screenshotHeight, setScreenshotHeight] = useState(90);
 
+  // Text element states for styling options
+  const [fontWeight, setFontWeight] = useState<string>('normal');
+  const [fontStyle, setFontStyle] = useState<string>('normal');
+  const [textDecoration, setTextDecoration] = useState<string>('none');
+  const [textAlign, setTextAlign] = useState<string>('left');
+  const [lineHeight, setLineHeight] = useState<number>(1.2);
+
   // Function to convert CSS variables to hex color
   const cssVarToHex = (cssVar: string): string => {
     // Check if it's a CSS variable format like 'hsl(var(--card))'
@@ -127,7 +135,14 @@ export function PropertiesPanel({
     setIsClientSide(true);
     
     if (selectedElement?.type === 'text') {
-      setLocalContent((selectedElement as TextElementProps).content);
+      const textElement = selectedElement as TextElementProps;
+      setLocalContent(textElement.content);
+      // Set text styling states with default values if not present
+      setFontWeight(textElement.fontWeight || 'normal');
+      setFontStyle(textElement.fontStyle || 'normal');
+      setTextDecoration(textElement.textDecoration || 'none');
+      setTextAlign(textElement.textAlign || 'left');
+      setLineHeight(textElement.lineHeight || 1.2);
     }
     if (selectedElement?.type === 'device') {
       const deviceElement = selectedElement as DeviceFrameElementProps;
@@ -381,51 +396,221 @@ export function PropertiesPanel({
     </>
   );
 
-  // Make sure the renderTextProperties and renderShapeProperties functions are defined here as well
+  // Update text styling - simplified to directly update element
+  const toggleFontStyle = (property: 'fontWeight' | 'fontStyle' | 'textDecoration', value: string) => {
+    if (!selectedElement || selectedElement.type !== 'text') return;
+    
+    let newValue = value;
+    
+    // Toggle logic
+    if (property === 'fontWeight') {
+      newValue = fontWeight === 'bold' ? 'normal' : 'bold';
+      setFontWeight(newValue);
+    }
+    else if (property === 'fontStyle') {
+      newValue = fontStyle === 'italic' ? 'normal' : 'italic';
+      setFontStyle(newValue);
+    }
+    else if (property === 'textDecoration') {
+      // Handle multiple text decorations (underline, line-through)
+      const currentDecoration = textDecoration || 'none';
+      if (value === 'underline') {
+        newValue = currentDecoration.includes('underline')
+          ? currentDecoration.replace('underline', '').trim()
+          : `${currentDecoration === 'none' ? '' : currentDecoration} underline`.trim();
+      } else if (value === 'line-through') {
+        newValue = currentDecoration.includes('line-through')
+          ? currentDecoration.replace('line-through', '').trim()
+          : `${currentDecoration === 'none' ? '' : currentDecoration} line-through`.trim();
+      }
+      
+      // If empty after removing decorations, set to 'none'
+      if (!newValue) newValue = 'none';
+      setTextDecoration(newValue);
+    }
+    
+    // Direct update to the element
+    const updates: Partial<TextElementProps> = {};
+    updates[property] = newValue;
+    onUpdateElement(updates);
+  };
+
+  // Update text alignment - simplified direct update
+  const setTextAlignment = (alignment: string) => {
+    if (!selectedElement || selectedElement.type !== 'text') return;
+    setTextAlign(alignment);
+    onUpdateElement({ textAlign: alignment });
+  };
+
+  // Update line height - handle direct update
+  const handleLineHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedElement || selectedElement.type !== 'text') return;
+    const value = parseFloat(e.target.value) || 1.2;
+    setLineHeight(value);
+    onUpdateElement({ lineHeight: value });
+  };
+
+  // Render text properties in a more compact horizontal layout
   const renderTextProperties = (element: TextElementProps) => (
-    <>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="textContent" className="text-xs">Content:</Label>
-        <Textarea
+    <div className="w-full flex flex-wrap gap-2 items-start">
+      {/* Content - single line input */}
+      <div className="flex-1 min-w-[150px] max-w-[250px]">
+        <Label htmlFor="textContent" className="text-xs mb-1 block">Content</Label>
+        <Input
           id="textContent"
           value={localContent}
-          onChange={handleTextContentChange}
+          onChange={(e) => setLocalContent(e.target.value)}
           onBlur={handleTextContentBlur}
-          className="text-sm h-16"
-          rows={2}
-        />
-      </div>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="fontSize" className="text-xs">Font Size:</Label>
-        <Input
-          id="fontSize"
-          type="number"
-          value={element.fontSize}
-          onChange={(e) => onUpdateElement({ fontSize: parseInt(e.target.value, 10) || 16 })}
           className="text-sm h-8"
         />
       </div>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="fontColor" className="text-xs">Color:</Label>
-        <Input
-          id="fontColor"
-          type="color"
-          value={element.color}
-          onChange={(e) => onUpdateElement({ color: e.target.value })}
-          className="text-sm h-8 p-1"
-        />
+      
+      {/* Font Controls - First Row */}
+      <div className="flex gap-2 flex-wrap">
+        {/* Font Family */}
+        <div className="w-[120px]">
+          <Label htmlFor="fontFamily" className="text-xs mb-1 block">Font</Label>
+          <Select
+            value={element.fontFamily}
+            onValueChange={(value) => onUpdateElement({ fontFamily: value })}
+          >
+            <SelectTrigger id="fontFamily" className="h-8 text-xs">
+              <SelectValue placeholder="Select Font" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Arial">Arial</SelectItem>
+              <SelectItem value="Verdana">Verdana</SelectItem>
+              <SelectItem value="Helvetica">Helvetica</SelectItem>
+              <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+              <SelectItem value="Courier New">Courier New</SelectItem>
+              <SelectItem value="Bricolage Grotesque">Bricolage Grotesque</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Font Size */}
+        <div className="w-[60px]">
+          <Label htmlFor="fontSize" className="text-xs mb-1 block">Size</Label>
+          <Input
+            id="fontSize"
+            type="number"
+            value={element.fontSize}
+            onChange={(e) => onUpdateElement({ fontSize: parseInt(e.target.value, 10) || 16 })}
+            className="text-sm h-8"
+          />
+        </div>
+        
+        {/* Line Height */}
+        <div className="w-[60px]">
+          <Label htmlFor="lineHeight" className="text-xs mb-1 block">Line H.</Label>
+          <Input
+            id="lineHeight"
+            type="number"
+            value={lineHeight}
+            onChange={handleLineHeightChange}
+            className="text-sm h-8"
+            step="0.1"
+          />
+        </div>
+        
+        {/* Font Color */}
+        <div className="w-[120px]">
+          <Label htmlFor="fontColor" className="text-xs mb-1 block">Color</Label>
+          <div className="flex items-center gap-1">
+            <Input
+              id="fontColor"
+              type="color"
+              value={element.color}
+              onChange={(e) => onUpdateElement({ color: e.target.value })}
+              className="w-8 h-8 p-1"
+            />
+            <Input
+              type="text"
+              value={element.color}
+              onChange={(e) => onUpdateElement({ color: e.target.value })}
+              className="w-[80px] h-8 text-xs"
+            />
+          </div>
+        </div>
+        
+        {/* Font Style */}
+        <div>
+          <Label className="text-xs mb-1 block">Style</Label>
+          <div className="flex items-center space-x-1">
+            <Button
+              variant={fontWeight === 'bold' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('fontWeight', 'bold')}
+              title="Bold"
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={fontStyle === 'italic' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('fontStyle', 'italic')}
+              title="Italic"
+            >
+              <Italic className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textDecoration?.includes('underline') ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('textDecoration', 'underline')}
+              title="Underline"
+            >
+              <Underline className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textDecoration?.includes('line-through') ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('textDecoration', 'line-through')}
+              title="Strikethrough"
+            >
+              <Strikethrough className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Text Alignment */}
+        <div>
+          <Label className="text-xs mb-1 block">Align</Label>
+          <div className="flex items-center space-x-1">
+            <Button
+              variant={textAlign === 'left' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTextAlignment('left')}
+              title="Align Left"
+            >
+              <AlignLeft className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textAlign === 'center' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTextAlignment('center')}
+              title="Align Center"
+            >
+              <AlignCenter className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textAlign === 'right' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTextAlignment('right')}
+              title="Align Right"
+            >
+              <AlignRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="fontFamily" className="text-xs">Font Family:</Label>
-        <Input
-          id="fontFamily"
-          type="text"
-          value={element.fontFamily}
-          onChange={(e) => onUpdateElement({ fontFamily: e.target.value })}
-          className="text-sm h-8"
-        />
-      </div>
-    </>
+    </div>
   );
 
   const renderShapeProperties = (element: ShapeElementProps) => (
@@ -480,10 +665,6 @@ export function PropertiesPanel({
     
     return (
       <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
-        <span className="font-semibold capitalize text-muted-foreground">
-          Artboard Properties:
-        </span>
-
         <div className="flex flex-col space-y-1">
           <Label htmlFor="bgType" className="text-xs">Background Type</Label>
           <RadioGroup 
@@ -627,11 +808,6 @@ export function PropertiesPanel({
   if (selectedElement) {
     return (
       <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
-        <span className="font-semibold capitalize text-muted-foreground">
-          {selectedElement.type}
-          {selectedElement.type === 'device' ? ` (${(selectedElement as DeviceFrameElementProps).deviceType})` : ''}
-          {' '}Properties:
-        </span>
         {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
         {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
         {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}

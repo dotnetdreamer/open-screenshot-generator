@@ -25,6 +25,11 @@ export interface TextElementProps extends BaseElement {
   fontSize: number; // Base font size, actual display is fontSize * element.scale
   color: string;
   fontFamily: string;
+  fontWeight?: string; // 'normal', 'bold', etc.
+  fontStyle?: string; // 'normal', 'italic'
+  textDecoration?: string; // 'none', 'underline', 'line-through'
+  textAlign?: string; // 'left', 'center', 'right', 'justify'
+  lineHeight?: number; // Line height in pixels or as a multiplier
 }
 
 export type ShapeType = 'rectangle' | 'circle' | 'triangle';
