@@ -32,6 +32,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { db } from '@/database'; // Import the Dexie database
+
+interface Project {
+  id: string;
+  timestamp: Date;
+  projectData: ArtboardState[]; // Assuming projectData is an array of ArtboardState
+}
 
 // Update the initial size values in the templates
 const sampleTemplates: Template[] = [
@@ -128,8 +135,55 @@ export function ArtboardStudioLayout() {
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
-  
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
 
+  useEffect(() => {
+    const fetchRecentProjects = async () => {
+      try {
+        const projects = await db.projects.orderBy("timestamp").reverse().toArray();
+        setRecentProjects(projects);
+      } catch (error) {
+        console.error("Error fetching recent projects:", error);
+        // Optionally show a toast or handle the error gracefully
+      }
+    };
+
+    fetchRecentProjects();
+  }, []);
+
+  // Load project when activeProjectId changes
+  useEffect(() => {
+    if (!activeProjectId && artboards.length === 0) {
+      setIsTemplateSelectorOpen(true);
+    }
+
+    const loadProject = async () => {
+      if (activeProjectId) {
+        try {
+          const project = await db.projects.get(activeProjectId);
+          if (project && project.projectData) {
+            setArtboards(project.projectData);
+            setHistory([JSON.parse(JSON.stringify(project.projectData))]);
+            setHistoryIndex(0);
+            setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
+          } else {
+            console.warn(`Project with ID ${activeProjectId} not found.`);
+            setActiveProjectId(null); // Clear active project state
+            toast({ title: "Project Not Found", description: "The selected project could not be loaded.", variant: "destructive" });
+            setIsTemplateSelectorOpen(true); // Re-open template selector
+          }
+        } catch (error) {
+          console.error("Error loading project from Dexie:", error);
+          setActiveProjectId(null); // Clear active project state on error
+          toast({ title: "Loading Error", description: "Failed to load project. See console for details.", variant: "destructive" });
+          setIsTemplateSelectorOpen(true); // Re-open template selector on error
+        }
+      } else {
+      }
+    };
+    loadProject();
+  }, [activeProjectId, toast, setIsTemplateSelectorOpen, artboards.length, sampleTemplates]); // Added dependencies
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); // Deep copy
@@ -152,16 +206,28 @@ export function ArtboardStudioLayout() {
     pushToHistory(updatedArtboards);
   }, [activeArtboardId, artboards, pushToHistory]);
 
-  useEffect(() => {
-    if (artboards.length === 0 && !isTemplateSelectorOpen && sampleTemplates.length > 0) {
-        handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
-    }
-  }, [isTemplateSelectorOpen, artboards.length]);
-
-
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[]) => {
+    console.log("handleArtboardsUpdate called", activeProjectId);
     const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
-    setArtboards(repositionedArtboards);
+    setArtboards(repositionedArtboards); // Update React state first
+  
+    const saveProject = async () => {
+      let projectIdToSave = activeProjectId;
+      if (!projectIdToSave) {
+        // Generate a new ID only if there is no active project
+        projectIdToSave = Date.now().toString();
+        setActiveProjectId(projectIdToSave); // Set the new active project ID
+      }
+  
+      // Save to Dexie database
+      db.projects.put({
+        id: projectIdToSave,
+        timestamp: new Date(),
+        projectData: JSON.parse(JSON.stringify(repositionedArtboards)), // Save the full state
+      }).catch(error => {
+        console.error("Error saving project to Dexie:", error);
+      });
+    };
     if (activeArtboardId && !repositionedArtboards.find(ab => ab.id === activeArtboardId)) {
         setActiveArtboardId(null);
         setSelectedElementIdOnActiveArtboard(null);
@@ -172,8 +238,9 @@ export function ArtboardStudioLayout() {
             setSelectedElementIdOnActiveArtboard(null);
         }
     }
+    saveProject(); // Call the async save function
     pushToHistory(repositionedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, history, historyIndex]); // Added history and historyIndex to deps
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, history, historyIndex, setActiveProjectId]);
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -387,6 +454,8 @@ export function ArtboardStudioLayout() {
     const finalArtboards = calculateArtboardPositions(templateArtboards);
     setArtboards(finalArtboards);
     setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
+    const projectId = Date.now().toString(); // Generate a unique ID
+    setActiveProjectId(projectId); // Set the active project ID
     setHistoryIndex(0);
     setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
     setSelectedElementIdOnActiveArtboard(null);
@@ -710,6 +779,29 @@ export function ArtboardStudioLayout() {
            <DialogFooter>
             <Button variant="outline" onClick={() => {if (sampleTemplates.length > 0) handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0])}}>Start Blank</Button>
           </DialogFooter>
+
+          {/* New Section for Recent Projects */}
+          <div className="p-4 border-t mt-4">
+            <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
+            {recentProjects.length > 0 ? (
+              <ScrollArea className="h-[20vh]"> {/* Added ScrollArea for recent projects list */}
+                <ul>
+                  {recentProjects.map((project) => (
+                    <li key={project.id} className="py-1 cursor-pointer hover:text-primary" onClick={() => { setActiveProjectId(project.id); setIsTemplateSelectorOpen(false); }}>
+                      <div 
+                        className="py-1 cursor-pointer hover:text-primary"
+                        onClick={() => { setActiveProjectId(project.id); setIsTemplateSelectorOpen(false); }}
+                      >
+                        Project saved on: {project.timestamp.toLocaleString()}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </ScrollArea>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recent projects found.</p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     );

@@ -88,16 +88,14 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     
     // Compute background style based on artboard settings
     const newBackgroundStyle: React.CSSProperties = {};
-    
+
     if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
       const { color1, color2, angle } = artboard.backgroundGradient;
       newBackgroundStyle.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
-      newBackgroundStyle.backgroundColor = undefined; // Clear backgroundColor when using gradient
     } else {
       newBackgroundStyle.backgroundColor = artboard.backgroundColor || 'hsl(var(--card))';
-      newBackgroundStyle.background = undefined; // Clear background when using solid color
     }
-    
+
     setBackgroundStyle(newBackgroundStyle);
   }, [artboard.elements, artboard.backgroundType, artboard.backgroundColor, artboard.backgroundGradient]);
 
