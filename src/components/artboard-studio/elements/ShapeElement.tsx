@@ -7,8 +7,8 @@ interface ShapeElementProps {
 }
 
 export function ShapeElement({ element }: ShapeElementProps) {
-  // Adjust stroke width to be visible at scale
-  const adjustedStrokeWidth = element.strokeWidth > 0 ? Math.max(1, element.strokeWidth * 2) : 0;
+  // Fix stroke width calculation to ensure it's properly applied
+  const strokeWidth = element.strokeWidth > 0 ? element.strokeWidth : 0;
   const { shapeType, fillColor, strokeColor, size, scale } = element;
   const scaledWidth = size.width * scale;
   const scaledHeight = size.height * scale;
@@ -19,6 +19,70 @@ export function ShapeElement({ element }: ShapeElementProps) {
     boxSizing: 'border-box',
   };
 
+  // Get border radius values with defaults
+  const getBorderRadius = () => {
+    if (!element.borderRadius && element.borderRadiusType !== 'individual') {
+      return undefined;
+    }
+
+    if (element.borderRadiusType === 'individual') {
+      const tl = element.borderRadiusTopLeft ?? 0;
+      const tr = element.borderRadiusTopRight ?? 0;
+      const br = element.borderRadiusBottomRight ?? 0;
+      const bl = element.borderRadiusBottomLeft ?? 0;
+      return `${tl}px ${tr}px ${br}px ${bl}px`;
+    }
+
+    return typeof element.borderRadius === 'number' ? `${element.borderRadius}px` : element.borderRadius;
+  };
+
+  // Generate CSS clip path for various shapes
+  const getClipPath = (): string | undefined => {
+    if (element.clipPath) {
+      return element.clipPath;
+    }
+
+    switch (element.shapeType) {
+      case 'message':
+        return 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)';
+      case 'speech-bubble':
+        return 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)';
+      case 'star': {
+        const points = element.customPoints || 5;
+        return generateStarClipPath(points);
+      }
+      case 'hexagon':
+        return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+      case 'pentagon':
+        return 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
+      case 'diamond':
+        return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+      case 'custom-polygon':
+        return element.clipPath || 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+      default:
+        return undefined;
+    }
+  };
+
+  // Generate star clip path with specified number of points
+  const generateStarClipPath = (points: number): string => {
+    const angleStep = 360 / points;
+    const radius = 50;
+    const innerRadius = radius / 2;
+    const center = { x: 50, y: 50 };
+    let coords = [];
+
+    for (let i = 0; i < points * 2; i++) {
+      const currentRadius = i % 2 === 0 ? radius : innerRadius;
+      const angleRad = (i * angleStep / 2 - 90) * Math.PI / 180;
+      const x = center.x + currentRadius * Math.cos(angleRad);
+      const y = center.y + currentRadius * Math.sin(angleRad);
+      coords.push(`${x}% ${y}%`);
+    }
+
+    return `polygon(${coords.join(', ')})`;
+  };
+
   return (
     <div className="w-full h-full flex items-center justify-center bg-transparent">
       {element.shapeType === 'rectangle' && (
@@ -27,7 +91,8 @@ export function ShapeElement({ element }: ShapeElementProps) {
             width: '100%',
             height: '100%',
             backgroundColor: element.fillColor,
-            border: adjustedStrokeWidth > 0 ? `${adjustedStrokeWidth}px solid ${element.strokeColor}` : 'none',
+            border: strokeWidth > 0 ? `${strokeWidth}px solid ${element.strokeColor}` : 'none',
+            borderRadius: getBorderRadius(),
           }}
         />
       )}
@@ -36,7 +101,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
           style={{
             ...commonStyles,
             backgroundColor: fillColor,
-            border: `${adjustedStrokeWidth}px solid ${strokeColor}`,
+            border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
             borderRadius: '50%',
           }}
         />
@@ -57,8 +122,21 @@ export function ShapeElement({ element }: ShapeElementProps) {
           }}
         />
       )}
-      {/* Add more shapes as needed */}
-      {element.shapeType !== 'rectangle' && element.shapeType !== 'circle' && element.shapeType !== 'triangle' && (
+
+      {/* Shapes using clip-path */}
+      {['message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon'].includes(element.shapeType) && (
+        <div
+          style={{
+            ...commonStyles,
+            backgroundColor: fillColor,
+            border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
+            clipPath: getClipPath(),
+          }}
+        />
+      )}
+
+      {/* Fallback for unsupported shapes */}
+      {!['rectangle', 'circle', 'triangle', 'message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon'].includes(element.shapeType) && (
         <div style={commonStyles}>Unsupported shape</div>
       )}
     </div>

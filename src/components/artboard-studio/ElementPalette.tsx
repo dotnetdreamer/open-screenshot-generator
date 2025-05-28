@@ -3,9 +3,23 @@ import type React from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, TabletIcon, MonitorIcon, ImagePlusIcon } from "lucide-react";
+import { 
+  TypeIcon, 
+  SquareIcon, 
+  CircleIcon, 
+  TriangleIcon, 
+  SmartphoneIcon, 
+  TabletIcon, 
+  MonitorIcon, 
+  ImagePlusIcon, 
+  MessageCircleIcon, 
+  MessageSquareIcon,
+  HexagonIcon,
+  StarIcon,
+  DiamondIcon
+} from "lucide-react";
 import type { ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
-import { LayersPanel } from './LayersPanel'; // Import the new LayersPanel
+import { LayersPanel } from './LayersPanel';
 
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType) => void;
@@ -71,13 +85,86 @@ export function ElementPalette({
       <div className="space-y-4 p-2 flex-shrink-0">
         <Card className="shadow-md">
           <CardHeader className="p-3">
-            <CardTitle className="text-base">Basic Elements</CardTitle>
+            <CardTitle className="text-base">Elements</CardTitle>
           </CardHeader>
-          <CardContent className="p-2 grid grid-cols-2 gap-2">
-            <DraggableItem onDragStart={handleDragStart} type="text" label="Text" icon={<TypeIcon className="w-6 h-6 text-primary" />} />
-            <DraggableItem onDragStart={handleDragStart} type="shape" subType="rectangle" label="Rectangle" icon={<SquareIcon className="w-6 h-6 text-primary" />} />
-            <DraggableItem onDragStart={handleDragStart} type="shape" subType="circle" label="Circle" icon={<CircleIcon className="w-6 h-6 text-primary" />} />
-            <DraggableItem onDragStart={handleDragStart} type="shape" subType="triangle" label="Triangle" icon={<TriangleIcon className="w-6 h-6 text-primary" />} />
+          <CardContent className="p-2 grid grid-cols-3 gap-2">
+            {/* Text Element */}
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="text" 
+              label="Text" 
+              icon={<TypeIcon className="w-6 h-6 text-primary" />} 
+            />
+            
+            {/* Basic Shapes */}
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="rectangle" 
+              label="Rectangle" 
+              icon={<SquareIcon className="w-6 h-6 text-primary" />} 
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="circle" 
+              label="Circle" 
+              icon={<CircleIcon className="w-6 h-6 text-primary" />} 
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="triangle" 
+              label="Triangle" 
+              icon={<TriangleIcon className="w-6 h-6 text-primary" />} 
+            />
+            
+            {/* Advanced Shapes - merged into the same panel */}
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="star" 
+              label="Star" 
+              icon={<StarIcon className="w-6 h-6 text-primary" />} 
+              styleProps={{ customPoints: 5 }}
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="hexagon" 
+              label="Hexagon" 
+              icon={<HexagonIcon className="w-6 h-6 text-primary" />}
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="diamond" 
+              label="Diamond" 
+              icon={<DiamondIcon className="w-6 h-6 text-primary" />}
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="message" 
+              label="Message" 
+              icon={<MessageSquareIcon className="w-6 h-6 text-primary" />} 
+              styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)' }}
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="speech-bubble" 
+              label="Speech" 
+              icon={<MessageCircleIcon className="w-6 h-6 text-primary" />} 
+              styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)' }}
+            />
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="shape" 
+              subType="pentagon" 
+              label="Pentagon" 
+              icon={<div className="w-6 h-6 flex items-center justify-center text-primary">5⬠</div>}
+            />
           </CardContent>
         </Card>
 

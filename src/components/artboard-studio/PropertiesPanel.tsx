@@ -128,6 +128,15 @@ export function PropertiesPanel({
   const [textAlign, setTextAlign] = useState<string>('left');
   const [lineHeight, setLineHeight] = useState<number>(1.2);
 
+  // Add state for shape corner controls
+  const [borderRadiusType, setBorderRadiusType] = useState<'uniform' | 'individual'>('uniform');
+  const [uniformBorderRadius, setUniformBorderRadius] = useState<number>(0);
+  const [cornerTopLeft, setCornerTopLeft] = useState<number>(0);
+  const [cornerTopRight, setCornerTopRight] = useState<number>(0);
+  const [cornerBottomRight, setCornerBottomRight] = useState<number>(0);
+  const [cornerBottomLeft, setCornerBottomLeft] = useState<number>(0);
+  const [customPoints, setCustomPoints] = useState<number>(5);
+
   // Function to convert CSS variables to hex color
   const cssVarToHex = (cssVar: string): string => {
     // Check if it's a CSS variable format like 'hsl(var(--card))'
@@ -706,40 +715,286 @@ export function PropertiesPanel({
     );
   };
 
+  // Add handlers for corner controls
+  const handleBorderRadiusTypeChange = (type: 'uniform' | 'individual') => {
+    setBorderRadiusType(type);
+    if (type === 'uniform') {
+      onUpdateElement({
+        borderRadiusType: 'uniform',
+        borderRadius: uniformBorderRadius,
+        borderRadiusTopLeft: undefined,
+        borderRadiusTopRight: undefined,
+        borderRadiusBottomRight: undefined,
+        borderRadiusBottomLeft: undefined
+      });
+    } else {
+      onUpdateElement({
+        borderRadiusType: 'individual',
+        borderRadius: undefined,
+        borderRadiusTopLeft: cornerTopLeft,
+        borderRadiusTopRight: cornerTopRight,
+        borderRadiusBottomRight: cornerBottomRight,
+        borderRadiusBottomLeft: cornerBottomLeft
+      });
+    }
+  };
+
+  const handleUniformBorderRadiusChange = (radius: number) => {
+    setUniformBorderRadius(radius);
+    onUpdateElement({
+      borderRadius: radius
+    });
+  };
+
+  const handleIndividualCornerChange = (
+    corner: 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft',
+    value: number
+  ) => {
+    switch (corner) {
+      case 'topLeft':
+        setCornerTopLeft(value);
+        onUpdateElement({ borderRadiusTopLeft: value });
+        break;
+      case 'topRight':
+        setCornerTopRight(value);
+        onUpdateElement({ borderRadiusTopRight: value });
+        break;
+      case 'bottomRight':
+        setCornerBottomRight(value);
+        onUpdateElement({ borderRadiusBottomRight: value });
+        break;
+      case 'bottomLeft':
+        setCornerBottomLeft(value);
+        onUpdateElement({ borderRadiusBottomLeft: value });
+        break;
+    }
+  };
+
+  // Add the missing handleCustomPointsChange function
+  const handleCustomPointsChange = (points: number) => {
+    setCustomPoints(points);
+    onUpdateElement({
+      customPoints: points
+    });
+  };
+
+  // Function to render shape-specific controls
   const renderShapeProperties = (element: ShapeElementProps) => (
-    <>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="fillColor" className="text-xs">Fill Color:</Label>
-        <Input
-          id="fillColor"
-          type="color"
-          value={element.fillColor}
-          onChange={(e) => onUpdateElement({ fillColor: e.target.value })}
-          className="text-sm h-8 p-1"
-        />
+    <div className="space-y-4">
+      {/* Shape Fill and Stroke controls - horizontal layout */}
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <Label htmlFor="fillColor">Fill Color</Label>
+          <div className="flex mt-1.5">
+            <Input
+              id="fillColor"
+              type="color"
+              className="w-10 h-10 p-1 cursor-pointer"
+              value={element.fillColor}
+              onChange={(e) => onUpdateElement({ fillColor: e.target.value })}
+            />
+            <Input
+              type="text"
+              className="flex-1 h-10 ml-2"
+              value={element.fillColor}
+              onChange={(e) => onUpdateElement({ fillColor: e.target.value })}
+            />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="strokeColor">Stroke Color</Label>
+          <div className="flex mt-1.5">
+            <Input
+              id="strokeColor"
+              type="color"
+              className="w-10 h-10 p-1 cursor-pointer"
+              value={element.strokeColor}
+              onChange={(e) => onUpdateElement({ strokeColor: e.target.value })}
+            />
+            <Input
+              type="text"
+              className="flex-1 h-10 ml-2"
+              value={element.strokeColor}
+              onChange={(e) => onUpdateElement({ strokeColor: e.target.value })}
+            />
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="strokeColor" className="text-xs">Stroke Color:</Label>
-        <Input
-          id="strokeColor"
-          type="color"
-          value={element.strokeColor}
-          onChange={(e) => onUpdateElement({ strokeColor: e.target.value })}
-          className="text-sm h-8 p-1"
-        />
+      
+      <div>
+        <Label htmlFor="strokeWidth">Stroke Width</Label>
+        <div className="flex items-center gap-2">
+          <Input
+            id="strokeWidth"
+            type="range"
+            min="0"
+            max="20"
+            step="1"
+            className="flex-1"
+            value={element.strokeWidth || 0}
+            onChange={(e) => onUpdateElement({ strokeWidth: parseInt(e.target.value) })}
+          />
+          <div className="w-10 text-center">{element.strokeWidth || 0}px</div>
+        </div>
       </div>
-      <div className="flex flex-col space-y-1">
-        <Label htmlFor="strokeWidth" className="text-xs">Stroke Width:</Label>
-        <Input
-          id="strokeWidth"
-          type="number"
-          value={element.strokeWidth}
-          min={0}
-          onChange={(e) => onUpdateElement({ strokeWidth: parseInt(e.target.value, 10) || 0 })}
-          className="text-sm h-8"
-        />
-      </div>
-    </>
+
+      {/* Shape-specific controls */}
+      {element.shapeType === 'star' && (
+        <div>
+          <Label htmlFor="customPoints">Star Points</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="customPoints"
+              type="range"
+              min="3"
+              max="12"
+              step="1"
+              className="flex-1"
+              value={customPoints}
+              onChange={(e) => handleCustomPointsChange(parseInt(e.target.value))}
+            />
+            <div className="w-10 text-center">{customPoints}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Only show corner controls for rectangle shape - with improved horizontal layout */}
+      {element.shapeType === 'rectangle' && (
+        <>
+          <div>
+            <Label>Corner Type</Label>
+            <div className="flex gap-2 mt-1.5">
+              <Button
+                variant={borderRadiusType === 'uniform' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleBorderRadiusTypeChange('uniform')}
+                className="flex-1"
+              >
+                Uniform
+              </Button>
+              <Button
+                variant={borderRadiusType === 'individual' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => handleBorderRadiusTypeChange('individual')}
+                className="flex-1"
+              >
+                Individual
+              </Button>
+            </div>
+          </div>
+
+          {borderRadiusType === 'uniform' ? (
+            <div>
+              <Label htmlFor="uniformRadius">Corner Radius</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="uniformRadius"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  className="flex-1"
+                  value={uniformBorderRadius}
+                  onChange={(e) => handleUniformBorderRadiusChange(parseInt(e.target.value))}
+                />
+                <div className="w-12 text-center">{uniformBorderRadius}px</div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-sm">Individual Corners</Label>
+                <div className="flex items-center space-x-2">
+                  <div className="text-xs text-muted-foreground">Preview:</div>
+                  <div className="w-10 h-10 border border-dashed border-muted-foreground rounded-md overflow-hidden">
+                    <div 
+                      className="w-full h-full bg-primary/20"
+                      style={{
+                        borderTopLeftRadius: `${cornerTopLeft}px`,
+                        borderTopRightRadius: `${cornerTopRight}px`,
+                        borderBottomRightRadius: `${cornerBottomRight}px`,
+                        borderBottomLeftRadius: `${cornerBottomLeft}px`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Enhanced horizontal layout for corner controls */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="flex justify-between">
+                    <Label htmlFor="cornerTL" className="text-xs">Top Left</Label>
+                    <div className="text-xs">{cornerTopLeft}px</div>
+                  </div>
+                  <Input
+                    id="cornerTL"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full h-6"
+                    value={cornerTopLeft}
+                    onChange={(e) => handleIndividualCornerChange('topLeft', parseInt(e.target.value))}
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between">
+                    <Label htmlFor="cornerTR" className="text-xs">Top Right</Label>
+                    <div className="text-xs">{cornerTopRight}px</div>
+                  </div>
+                  <Input
+                    id="cornerTR"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full h-6"
+                    value={cornerTopRight}
+                    onChange={(e) => handleIndividualCornerChange('topRight', parseInt(e.target.value))}
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between">
+                    <Label htmlFor="cornerBL" className="text-xs">Bottom Left</Label>
+                    <div className="text-xs">{cornerBottomLeft}px</div>
+                  </div>
+                  <Input
+                    id="cornerBL"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full h-6"
+                    value={cornerBottomLeft}
+                    onChange={(e) => handleIndividualCornerChange('bottomLeft', parseInt(e.target.value))}
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between">
+                    <Label htmlFor="cornerBR" className="text-xs">Bottom Right</Label>
+                    <div className="text-xs">{cornerBottomRight}px</div>
+                  </div>
+                  <Input
+                    id="cornerBR"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full h-6"
+                    value={cornerBottomRight}
+                    onChange={(e) => handleIndividualCornerChange('bottomRight', parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 
   // No element or artboard selected

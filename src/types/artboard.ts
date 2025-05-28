@@ -33,13 +33,36 @@ export interface TextElementProps extends BaseElement {
   lineHeight?: number; // Line height in pixels or as a multiplier
 }
 
-export type ShapeType = 'rectangle' | 'circle' | 'triangle';
+export type ShapeType = 
+  | 'rectangle' 
+  | 'circle' 
+  | 'triangle' 
+  | 'message' 
+  | 'speech-bubble' 
+  | 'star' 
+  | 'hexagon' 
+  | 'pentagon' 
+  | 'diamond' 
+  | 'custom-polygon';
+
 export interface ShapeElementProps extends BaseElement {
   type: 'shape';
   shapeType: ShapeType;
   fillColor: string;
   strokeColor: string;
   strokeWidth: number;
+  // New properties for customizing corners
+  borderRadius?: number | string; // For rounded corners (px or %)
+  borderRadiusType?: 'uniform' | 'individual'; // Whether to apply same radius to all corners
+  borderRadiusTopLeft?: number;
+  borderRadiusTopRight?: number;
+  borderRadiusBottomRight?: number;
+  borderRadiusBottomLeft?: number;
+  // For custom shape properties
+  customPath?: string; // SVG path for custom shapes
+  customPoints?: number; // Number of points (for stars, etc)
+  clipPath?: string; // CSS clip-path value
+  specialProps?: Record<string, any>; // Additional properties for special shapes
 }
 
 export type DeviceType =

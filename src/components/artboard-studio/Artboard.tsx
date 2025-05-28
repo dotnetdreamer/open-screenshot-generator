@@ -135,14 +135,26 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           size: { width: 400, height: 100 },  // Increased from 150x30
         } as ArtboardElement;
       } else if (type === 'shape' && subType) {
-        newElementToAdd = {
-          ...newElementBase,
+        const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',
           shapeType: subType as ShapeType,
           fillColor: '#5F9EA0', 
           strokeColor: '#333333',
           strokeWidth: 0, 
           size: { width: 300, height: 300 },  // Increased from 100x100
+        };
+        
+        // Add shape-specific properties based on subType
+        if (subType === 'rectangle') {
+          shapeProps.borderRadius = 0;
+          shapeProps.borderRadiusType = 'uniform';
+        } else if (subType === 'star') {
+          shapeProps.customPoints = 5;
+        }
+        
+        newElementToAdd = {
+          ...newElementBase,
+          ...shapeProps
         } as ArtboardElement;
       } else if (type === 'device' && subType) {
         const deviceElement: DeviceFrameElementProps = {
