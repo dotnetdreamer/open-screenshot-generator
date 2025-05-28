@@ -436,8 +436,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     backfaceVisibility: 'hidden',
   };
 
-  // Normal frame style
-  const normalFrameStyle: React.CSSProperties = {
+  // Frame style used for both normal and perspective modes
+  const frameStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
@@ -451,8 +451,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     overflow: 'visible',
   };
   
-  // Screen style for normal mode
-  const normalScreenStyle: React.CSSProperties = {
+  // Screen style used for both normal and perspective modes
+  const screenStyle: React.CSSProperties = {
     width: `calc(100% - ${framePaddingPercent.left + framePaddingPercent.right}%)`,
     height: `calc(100% - ${framePaddingPercent.top + framePaddingPercent.bottom}%)`,
     backgroundColor: '#000',
@@ -463,18 +463,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     zIndex: 1,
   };
   
-  // SVG frame style for perspective mode
-  const svgFrameStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    backgroundColor: deviceFrameBgColor,
-    overflow: 'visible',
-  };
-  
   return (
     <div
       className="w-full h-full flex items-center justify-center bg-transparent group"
@@ -482,176 +470,68 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     >
       {/* Apply transform to the outer container */}
       <div 
-        className={usingSvgPerspectiveMode ? "device-container-svg" : "device-container"}
+        className={usingSvgPerspectiveMode ? "device-container-perspective" : "device-container"}
         style={containerStyle}
       >
-        {usingSvgPerspectiveMode ? (
-          // SVG-based device rendering for perspective mode
-          <div style={svgFrameStyle}>
-            {/* SVG for the device frame with proper vector rendering */}
-            <svg 
-              width="100%" 
-              height="100%" 
-              viewBox="0 0 100 100" 
-              preserveAspectRatio="none"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                overflow: 'visible',
-              }}
-            >
-              {/* Main device frame background */}
-              <rect 
-                x="0" 
-                y="0" 
-                width="100" 
-                height="100" 
-                rx={parseFloat(String(deviceFrameOuterBorderRadius).replace(/[^\d.]/g, ''))}
-                ry={parseFloat(String(deviceFrameOuterBorderRadius).replace(/[^\d.]/g, ''))}
-                fill={deviceFrameBgColor}
-                strokeWidth="0.5"
-                stroke="rgba(0,0,0,0.2)"
-                vectorEffect="non-scaling-stroke"
-                shapeRendering="geometricPrecision"
-              />
-              
-              {/* Screen area */}
-              <rect
-                x={framePaddingPercent.left}
-                y={framePaddingPercent.top}
-                width={100 - framePaddingPercent.left - framePaddingPercent.right}
-                height={100 - framePaddingPercent.top - framePaddingPercent.bottom}
-                rx={parseFloat(String(screenBorderRadius).replace(/[^\d.]/g, ''))}
-                ry={parseFloat(String(screenBorderRadius).replace(/[^\d.]/g, ''))}
-                fill="#000"
-                vectorEffect="non-scaling-stroke"
-                shapeRendering="geometricPrecision"
-              />
-              
-              {/* Add notch if needed */}
-              {element.deviceType === 'iphone' || element.deviceType?.includes('iphone-') ? (
-                <rect
-                  x={(100 - 28) / 2}
-                  y={framePaddingPercent.top * 0.4}
-                  width="28"
-                  height="3"
-                  rx="1.5"
-                  ry="1.5"
-                  fill={deviceFrameBgColor}
-                  vectorEffect="non-scaling-stroke"
-                />
-              ) : null}
-            </svg>
-            
-            {/* Screenshot container for perspective mode */}
-            {screenshot && element.screenshotRect && (
-              <div 
+        {/* Use the same DOM structure for both modes */}
+        <div style={frameStyle}>
+          {notchElement}
+          <div style={screenStyle}> {/* Using the unified screen style */}
+            {screenshot && element.screenshotRect ? (
+              <div
                 style={{
                   position: 'absolute',
-                  left: `${framePaddingPercent.left}%`,
-                  top: `${framePaddingPercent.top}%`,
-                  width: `${100 - framePaddingPercent.left - framePaddingPercent.right}%`,
-                  height: `${100 - framePaddingPercent.top - framePaddingPercent.bottom}%`,
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                   overflow: 'hidden',
-                  zIndex: 1,
+                  width: '100%', // Force width/height to be explicit
+                  height: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 }}
               >
-                <div
+                <Image
+                  src={screenshot}
+                  alt={`${element.deviceType} screenshot`}
+                  layout="fill"
+                  objectFit={element.screenshotObjectFit || "cover"}
                   style={{
+                    cursor: 'default',
+                    opacity: 0,
                     position: 'absolute',
                     left: `${element.screenshotRect.left}%`,
                     top: `${element.screenshotRect.top}%`,
                     width: `${element.screenshotRect.width}%`,
                     height: `${element.screenshotRect.height}%`,
-                    overflow: 'hidden',
                   }}
-                >
-                  <Image
-                    src={screenshot}
-                    alt={`${element.deviceType} screenshot`}
-                    layout="fill"
-                    objectFit={element.screenshotObjectFit || "contain"}
-                    className="transition-opacity duration-300 ease-in-out"
-                    style={{
-                      cursor: 'default',
-                      opacity: 0,
-                    }}
-                    onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-                    data-ai-hint="app interface mobile"
-                    draggable={false}
-                  />
-                </div>
+                  onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+                  data-ai-hint="app interface mobile"
+                  draggable={false}
+                />
               </div>
-            )}
-            
-            {/* Upload UI for perspective mode */}
-            {!screenshot && isSelected && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
-                  style={{ zIndex: 10 }}
-                  onClick={() => triggerFileUpload('screenshot')}
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
-                  Upload Screenshot
-                </Button>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
+                <UploadCloudIcon className="w-1/4 h-1/4 opacity-50 mb-2" data-ai-hint="upload cloud arrow"/>
+                <p className="text-xs">{`Mockup: ${deviceLabel}`}</p>
+                {isSelected && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
+                    style={{ zIndex: 10 }}
+                    onClick={() => triggerFileUpload('screenshot')}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  >
+                    Upload Screenshot
+                  </Button>
+                )}
               </div>
             )}
           </div>
-        ) : (
-          // Standard CSS-based device rendering for normal mode
-          <div style={normalFrameStyle}>
-            {notchElement}
-            <div style={normalScreenStyle}> {/* Using the defined normalScreenStyle */}
-              {screenshot && element.screenshotRect ? (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: `${element.screenshotRect.left}%`,
-                    top: `${element.screenshotRect.top}%`,
-                    width: `${element.screenshotRect.width}%`,
-                    height: `${element.screenshotRect.height}%`,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <Image
-                    src={screenshot}
-                    alt={`${element.deviceType} screenshot`}
-                    layout="fill"
-                    objectFit={element.screenshotObjectFit || "contain"}
-                    className="transition-opacity duration-300 ease-in-out"
-                    style={{
-                      cursor: 'default',
-                      opacity: 0,
-                    }}
-                    onLoadingComplete={(img) => { img.style.opacity = '1'; }}
-                    data-ai-hint="app interface mobile"
-                    draggable={false}
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
-                  <UploadCloudIcon className="w-1/4 h-1/4 opacity-50 mb-2" data-ai-hint="upload cloud arrow"/>
-                  <p className="text-xs">{`Mockup: ${deviceLabel}`}</p>
-                  {isSelected && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
-                      style={{ zIndex: 10 }}
-                      onClick={() => triggerFileUpload('screenshot')}
-                      onMouseDown={(e) => e.stopPropagation()}
-                    >
-                      Upload Screenshot
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        </div>
       </div>
       
       <Input

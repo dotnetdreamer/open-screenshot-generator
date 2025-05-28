@@ -367,53 +367,29 @@ html {
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
 }
 
-/* Apply subpixel antialiasing for smoother edges */
-.device-container.selected {
+/* Perspective mode enhancements - for 3D transforms */
+.device-container-perspective {
+  transform-style: preserve-3d !important;
+  -webkit-transform-style: preserve-3d !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform !important;
+  transition: transform 0.1s;
+  
+  /* Force antialiasing in 3D transforms */
   -webkit-font-smoothing: subpixel-antialiased;
   -moz-osx-font-smoothing: auto;
+  
+  /* Hardware acceleration hints */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
-/* Use vector based rendering for edges */
-@supports (stroke: 1px solid black) {
-  .device-container svg rect {
-    vector-effect: non-scaling-stroke;
-    shape-rendering: geometricPrecision;
+/* Force border-radius to render properly during transforms */
+@supports (-webkit-appearance: none) {
+  .device-container-perspective div {
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
   }
-}
-
-/* High DPI rendering optimization */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .device-container {
-    image-rendering: optimizeQuality;
-  }
-}
-
-/* SVG-based device rendering for perspective mode */
-.device-container-svg {
-  /* Hardware acceleration for smoother renders */
-  -webkit-transform-style: preserve-3d !important;
-  transform-style: preserve-3d !important;
-  -webkit-backface-visibility: hidden !important;
-  backface-visibility: hidden !important;
-  will-change: transform !important;
-  /* Font smoothing helps with overall render quality */
-  -webkit-font-smoothing: subpixel-antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Better quality rendering */
-  image-rendering: -webkit-optimize-contrast;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
-}
-
-/* SVG shape rendering */
-.device-container-svg svg {
-  shape-rendering: geometricPrecision;
-  text-rendering: geometricPrecision;
-}
-
-.device-container-svg svg rect,
-.device-container-svg svg path,
-.device-container-svg svg circle {
-  vector-effect: non-scaling-stroke;
 }
 
 /* End of global styles */
