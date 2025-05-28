@@ -271,6 +271,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           data-original-width={artboard.size.width}
           data-original-height={artboard.size.height}
           data-display-scale={displayScaleFactor}
+          data-export-width={artboard.size.width} // Add explicit export dimensions
+          data-export-height={artboard.size.height} // Add explicit export dimensions
           className={cn(
             "artboard relative shadow-lg overflow-hidden bg-white",
             isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"

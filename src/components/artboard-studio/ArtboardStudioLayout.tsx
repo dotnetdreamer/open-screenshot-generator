@@ -521,7 +521,7 @@ export function ArtboardStudioLayout() {
     };
   };
   
-  // Modify the export function to handle the display scale factor
+  // Modify the export function to handle the display scale factor without doubling resolution
   const handleExportArtboards = async () => {
     toast({
       title: "Export Process Initiated",
@@ -552,21 +552,42 @@ export function ArtboardStudioLayout() {
         // Remove scale transform for export
         artboardElement.style.transform = 'scale(1)';
         
-        // Use html2canvas to capture the artboard at full size
+        // Use html2canvas to capture the artboard at exact specified dimensions
         const canvas = await html2canvas(artboardElement, {
           allowTaint: true, // Allows cross-origin images if server headers permit
           useCORS: true,    // Attempts to load cross-origin images via CORS
-          scale: 2,         // Increase scale for better quality (e.g., 2x resolution)
+          scale: 1,         // Set to 1 to avoid doubling resolution
           backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
           logging: false,   // Disable logging for production
           width: artboard.size.width,
-          height: artboard.size.height
+          height: artboard.size.height,
+          // Ensure we get exact pixel dimensions
+          imageTimeout: 0,  // No timeout for image loading
+          onclone: (document, element) => {
+            // Additional adjustments to cloned element if needed
+            element.style.width = `${artboard.size.width}px`;
+            element.style.height = `${artboard.size.height}px`;
+          }
         });
         
         // Restore original styling after export
         artboardElement.style.transform = originalTransform;
         artboardElement.style.width = originalWidth;
         artboardElement.style.height = originalHeight;
+        
+        // Check if we need to resize the canvas to match exactly the artboard dimensions
+        if (canvas.width !== artboard.size.width || canvas.height !== artboard.size.height) {
+          const resizedCanvas = document.createElement('canvas');
+          resizedCanvas.width = artboard.size.width;
+          resizedCanvas.height = artboard.size.height;
+          const ctx = resizedCanvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(canvas, 0, 0, artboard.size.width, artboard.size.height);
+            canvas.width = artboard.size.width;
+            canvas.height = artboard.size.height;
+            canvas.getContext('2d')?.drawImage(resizedCanvas, 0, 0);
+          }
+        }
         
         const imageDataUrl = canvas.toDataURL('image/png');
 
