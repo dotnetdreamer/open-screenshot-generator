@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2Icon } from 'lucide-react';
 import { useClipboard, ClipboardProvider } from '@/contexts/ClipboardContext';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Project {
   id: string;
@@ -153,6 +154,8 @@ export function ArtboardStudioLayout() {
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const { clipboardItem, copyToClipboard } = useClipboard();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   
   useEffect(() => {
     const fetchRecentProjects = async () => {
@@ -167,6 +170,33 @@ export function ArtboardStudioLayout() {
 
     fetchRecentProjects();
   }, [activeProjectId]); // Add activeProjectId as a dependency
+
+  // --- 1. On mount, check for projectId in URL and set as activeProjectId ---
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlProjectId = params.get("projectId");
+      if (urlProjectId && urlProjectId !== activeProjectId) {
+        setActiveProjectId(urlProjectId);
+        setIsTemplateSelectorOpen(false);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // --- 2. When activeProjectId changes, update the URL ---
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (activeProjectId) {
+        params.set("projectId", activeProjectId);
+        window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+      } else {
+        params.delete("projectId");
+        window.history.replaceState({}, "", `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`);
+      }
+    }
+  }, [activeProjectId]);
 
   // Load project when activeProjectId changes
  useEffect(() => {
@@ -944,6 +974,12 @@ export function ArtboardStudioLayout() {
                handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
             }
             setIsTemplateSelectorOpen(newOpenState);
+            // --- 3. Remove projectId from URL when template selector is opened ---
+            if (typeof window !== "undefined" && newOpenState) {
+              const params = new URLSearchParams(window.location.search);
+              params.delete("projectId");
+              window.history.replaceState({}, "", `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`);
+            }
           }}
         >
           <DialogContent className="max-w-3xl">
@@ -995,6 +1031,12 @@ export function ArtboardStudioLayout() {
                           onClick={() => {
                             setActiveProjectId(project.id);
                             setIsTemplateSelectorOpen(false);
+                            // --- 4. Set projectId in URL when selecting a project ---
+                            if (typeof window !== "undefined") {
+                              const params = new URLSearchParams(window.location.search);
+                              params.set("projectId", project.id);
+                              window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+                            }
                           }}
                         >
                           Project saved on: {project.timestamp.toLocaleString()}
@@ -1047,7 +1089,6 @@ export function ArtboardStudioLayout() {
       </>
     );
   }
-
 
   return (
     <ClipboardProvider>
