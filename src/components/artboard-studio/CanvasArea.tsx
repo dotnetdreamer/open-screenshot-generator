@@ -243,62 +243,76 @@ export function CanvasArea({
   };
   
   return (
-    <ScrollArea className="h-full w-full bg-background flex-grow" viewportRef={scrollViewportRef}>
+    <ScrollArea
+      className="h-full w-full bg-background flex-grow"
+      viewportRef={scrollViewportRef}
+      style={{ height: "100vh", overflowY: "auto" }}
+    >
       <div
         ref={contentAreaRef}
-        className="relative w-max min-w-full min-h-full" 
-        style={{ 
-          transform: `scale(${canvasZoom})`, 
+        className="relative w-max min-w-full"
+        style={{
+          // Restore a large minHeight to always allow scrolling
+          minHeight: "2000px",
+          transform: `scale(${canvasZoom})`,
           transformOrigin: 'top left',
           cursor: getCursorStyle(),
-          // Increase top padding significantly to ensure toolbar visibility
-          padding: '40px 12px 12px 12px', // Increased from previous value
+          padding: '40px 12px 12px 12px',
         }}
         onMouseDown={handleMouseDownOnContentArea}
         onDrop={handleDropOnCanvas}
         onDragOver={handleDragOverCanvas}
       >
-        {artboards.map((artboard, index) => (
-          <div
-            key={artboard.id}
-            style={{
-              position: 'absolute', 
-              left: `${artboard.position.x}px`,
-              top: `${artboard.position.y}px`,
-              pointerEvents: activeTool === 'pan' && isPanning ? 'none' : 'auto',
-            }}
-          >
-            <Artboard
-              ref={el => artboardRefs.current[artboard.id] = el}
-              artboard={artboard}
-              isSelected={activeArtboardId === artboard.id}
-              onUpdateArtboardElements={(elements) => handleUpdateArtboardElements(artboard.id, elements)}
-              onUpdateArtboardDetails={(details) => handleUpdateArtboardDetails(artboard.id, details)}
-              onSelectArtboard={() => handleSelectArtboard(artboard.id)}
-              globalZoom={canvasZoom}
-              selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
-              setSelectedElementId={setSelectedElementIdOnActiveArtboard}
-              onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
-              onDuplicateArtboard={onDuplicateArtboardFromToolbar}
-              onDeleteArtboard={handleDeleteArtboard} // Use our new handler instead of direct deletion
-              onMoveArtboard={onMoveArtboardFromToolbar}
-              canDeleteArtboard={artboards.length > 1}
-              canMoveArtboardLeft={index > 0}
-              canMoveArtboardRight={index < artboards.length - 1}
+        <div
+          style={{
+            transform: `scale(${canvasZoom})`,
+            transformOrigin: 'top left',
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          {artboards.map((artboard, index) => (
+            <div
+              key={artboard.id}
+              style={{
+                position: 'absolute',
+                left: `${artboard.position.x}px`,
+                top: `${artboard.position.y}px`,
+                pointerEvents: activeTool === 'pan' && isPanning ? 'none' : 'auto',
+              }}
+            >
+              <Artboard
+                ref={el => artboardRefs.current[artboard.id] = el}
+                artboard={artboard}
+                isSelected={activeArtboardId === artboard.id}
+                onUpdateArtboardElements={(elements) => handleUpdateArtboardElements(artboard.id, elements)}
+                onUpdateArtboardDetails={(details) => handleUpdateArtboardDetails(artboard.id, details)}
+                onSelectArtboard={() => handleSelectArtboard(artboard.id)}
+                globalZoom={canvasZoom}
+                selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
+                setSelectedElementId={setSelectedElementIdOnActiveArtboard}
+                onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
+                onDuplicateArtboard={onDuplicateArtboardFromToolbar}
+                onDeleteArtboard={handleDeleteArtboard}
+                onMoveArtboard={onMoveArtboardFromToolbar}
+                canDeleteArtboard={artboards.length > 1}
+                canMoveArtboardLeft={index > 0}
+                canMoveArtboardRight={index < artboards.length - 1}
+              />
+            </div>
+          ))}
+          
+          {/* Artboard Delete Confirmation Dialog */}
+          {artboardToDelete && (
+            <DeleteArtboardDialog
+              isOpen={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              onConfirmDelete={confirmDeleteArtboard}
+              artboardName={artboards.find(ab => ab.id === artboardToDelete)?.name || 'Untitled Artboard'}
+              elementCount={artboards.find(ab => ab.id === artboardToDelete)?.elements.length || 0}
             />
-          </div>
-        ))}
-        
-        {/* Artboard Delete Confirmation Dialog */}
-        {artboardToDelete && (
-          <DeleteArtboardDialog
-            isOpen={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            onConfirmDelete={confirmDeleteArtboard}
-            artboardName={artboards.find(ab => ab.id === artboardToDelete)?.name || 'Untitled Artboard'}
-            elementCount={artboards.find(ab => ab.id === artboardToDelete)?.elements.length || 0}
-          />
-        )}
+          )}
+        </div>
       </div>
     </ScrollArea>
   );
