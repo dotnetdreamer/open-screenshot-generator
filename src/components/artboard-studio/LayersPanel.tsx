@@ -1,11 +1,10 @@
-
 "use client";
 import type React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ArtboardElement } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LayersPanelProps {
@@ -20,6 +19,8 @@ const getElementIcon = (element: ArtboardElement) => {
   switch (element.type) {
     case 'text':
       return <TypeIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
+    case 'image':
+      return <ImageIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
     case 'shape':
       switch (element.shapeType) {
         case 'rectangle':
@@ -43,6 +44,9 @@ const getElementLabel = (element: ArtboardElement): string => {
     if (element.type === 'text' && element.content) {
         label = element.content.substring(0, 20) || "Text";
         if (element.content.length > 20) label += '...';
+    } else if (element.type === 'image') {
+        label = element.imageAlt || 'Image';
+        if (label.length > 20) label = label.substring(0, 20) + '...';
     } else if (element.type === 'shape') {
         label = `${element.shapeType.charAt(0).toUpperCase() + element.shapeType.slice(1)} Shape`;
     } else if (element.type === 'device') {

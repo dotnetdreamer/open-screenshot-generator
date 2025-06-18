@@ -6,7 +6,8 @@ import { DraggableElement } from './elements/DraggableElement';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
-import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps } from '@/types/artboard';
+import { ImageElement } from './elements/ImageElement';
+import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
@@ -134,6 +135,15 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           fontFamily: 'Arial',
           size: { width: 400, height: 100 },  // Increased from 150x30
         } as ArtboardElement;
+      } else if (type === 'image') {
+        newElementToAdd = {
+          ...newElementBase,
+          type: 'image',
+          size: { width: 400, height: 300 },  // Default image size
+          objectFit: 'cover',
+          opacity: 1,
+          borderRadius: 0,
+        } as ArtboardElement;
       } else if (type === 'shape' && subType) {
         const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',
@@ -244,7 +254,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   const containerHeight = artboard.size.height * displayScaleFactor;
 
   return (
-    <div className="relative mt-4" suppressHydrationWarning> {/* Adjusted from mt-5 to mt-4 */}
+    <div className="relative mt-4" suppressHydrationWarning>
       <ArtboardToolbar
         artboardId={artboard.id}
         onAddNew={() => onAddNewArtboard()} 
@@ -262,7 +272,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           height: `${containerHeight}px`,
           position: 'relative',
           overflow: 'hidden',
-          marginTop: '1.25rem', // Adjusted from 1.5rem to 1.25rem
+          marginTop: '1.25rem',
         }}
       >
         <div
@@ -323,6 +333,13 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
                   isSelected={selectedElementId === element.id}
                   artboardZoom={artboard.zoom * element.scale}
+                />
+              )}
+              {element.type === 'image' && (
+                <ImageElement 
+                  element={element as ImageElementProps} 
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
+                  isSelected={selectedElementId === element.id}
                 />
               )}
               {element.type === 'shape' && <ShapeElement element={element} />}

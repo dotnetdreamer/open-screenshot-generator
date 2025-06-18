@@ -16,7 +16,8 @@ import {
   MessageSquareIcon,
   HexagonIcon,
   StarIcon,
-  DiamondIcon
+  DiamondIcon,
+  ImageIcon
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { LayersPanel } from './LayersPanel';
@@ -94,6 +95,14 @@ export function ElementPalette({
               type="text" 
               label="Text" 
               icon={<TypeIcon className="w-6 h-6 text-primary" />} 
+            />
+            
+            {/* Image Element */}
+            <DraggableItem 
+              onDragStart={handleDragStart} 
+              type="image" 
+              label="Image" 
+              icon={<ImageIcon className="w-6 h-6 text-primary" />} 
             />
             
             {/* Basic Shapes */}

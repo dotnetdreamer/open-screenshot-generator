@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useEffect, useState, useRef } from 'react';
-import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, DeviceType, ArtboardState } from '@/types/artboard';
+import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, ArtboardState } from '@/types/artboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -114,7 +114,7 @@ export function PropertiesPanel({
 
   const [localContent, setLocalContent] = useState('');
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadPurpose, setUploadPurpose] = useState<'customFrame' | 'screenshot' | null>(null);
+  const [uploadPurpose, setUploadPurpose] = useState<'customFrame' | 'screenshot' | 'image' | null>(null);
 
   const [screenshotLeft, setScreenshotLeft] = useState(5);
   const [screenshotTop, setScreenshotTop] = useState(5);
@@ -285,7 +285,7 @@ export function PropertiesPanel({
   };
 
   // Device element handlers
-  const handleImageUploadButtonClick = (purpose: 'customFrame' | 'screenshot') => {
+  const handleImageUploadButtonClick = (purpose: 'customFrame' | 'screenshot' | 'image') => {
     setUploadPurpose(purpose);
     hiddenFileInputRef.current?.click();
   };
@@ -305,10 +305,15 @@ export function PropertiesPanel({
               screenshotSrc: dataUrl,
               naturalScreenshotWidth: img.naturalWidth,
               naturalScreenshotHeight: img.naturalHeight,
-              screenshotRect: { left: 5, top: 5, width: 90, height: 90 } // Default rect for all
+              screenshotRect: { left: 5, top: 5, width: 90, height: 90 }
             });
           };
           img.src = dataUrl;
+        } else if (uploadPurpose === 'image') {
+          onUpdateElement({
+            imageSrc: dataUrl,
+            imageAlt: file.name,
+          });
         }
         setUploadPurpose(null);
       };
@@ -778,6 +783,89 @@ export function PropertiesPanel({
     });
   };
 
+  // Function to render image properties
+  const renderImageProperties = (element: ImageElementProps) => (
+    <div className="w-full flex flex-wrap gap-2 items-start">
+      {/* Image Upload Button */}
+      <div className="flex-shrink-0">
+        <Label className="text-xs mb-1 block">Image</Label>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleImageUploadButtonClick('image')}
+          className="text-xs h-8"
+        >
+          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+          {element.imageSrc ? 'Change Image' : 'Upload Image'}
+        </Button>
+      </div>
+
+      {/* Object Fit */}
+      <div className="w-[120px]">
+        <Label htmlFor="objectFit" className="text-xs mb-1 block">Object Fit</Label>
+        <Select
+          value={element.objectFit || 'cover'}
+          onValueChange={(value) => onUpdateElement({ objectFit: value as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' })}
+        >
+          <SelectTrigger id="objectFit" className="h-8 text-xs">
+            <SelectValue placeholder="Object Fit" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cover">Cover</SelectItem>
+            <SelectItem value="contain">Contain</SelectItem>
+            <SelectItem value="fill">Fill</SelectItem>
+            <SelectItem value="none">None</SelectItem>
+            <SelectItem value="scale-down">Scale Down</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Opacity */}
+      <div className="w-[120px]">
+        <Label htmlFor="opacity" className="text-xs mb-1 block">
+          Opacity: {Math.round((element.opacity || 1) * 100)}%
+        </Label>
+        <Slider
+          id="opacity"
+          min={0}
+          max={1}
+          step={0.01}
+          value={[element.opacity || 1]}
+          onValueChange={(value) => onUpdateElement({ opacity: value[0] })}
+          className="my-2"
+        />
+      </div>
+
+      {/* Border Radius */}
+      <div className="w-[120px]">
+        <Label htmlFor="imageBorderRadius" className="text-xs mb-1 block">
+          Border Radius: {element.borderRadius || 0}px
+        </Label>
+        <Slider
+          id="imageBorderRadius"
+          min={0}
+          max={50}
+          step={1}
+          value={[element.borderRadius || 0]}
+          onValueChange={(value) => onUpdateElement({ borderRadius: value[0] })}
+          className="my-2"
+        />
+      </div>
+
+      {/* Image Alt Text */}
+      <div className="flex-1 min-w-[150px]">
+        <Label htmlFor="imageAlt" className="text-xs mb-1 block">Alt Text</Label>
+        <Input
+          id="imageAlt"
+          value={element.imageAlt || ''}
+          onChange={(e) => onUpdateElement({ imageAlt: e.target.value })}
+          placeholder="Describe the image"
+          className="text-xs h-8"
+        />
+      </div>
+    </div>
+  );
+
   // Function to render shape-specific controls
   const renderShapeProperties = (element: ShapeElementProps) => (
     <div className="space-y-4">
@@ -1159,6 +1247,16 @@ export function PropertiesPanel({
         {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
         {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
         {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
+        {selectedElement.type === 'image' && renderImageProperties(selectedElement as ImageElementProps)}
+        
+        {/* Move the hidden file input outside of device-specific rendering */}
+        <Input
+          type="file"
+          ref={hiddenFileInputRef}
+          onChange={handleFileSelected}
+          className="hidden"
+          accept="image/*"
+        />
       </div>
     );
   }

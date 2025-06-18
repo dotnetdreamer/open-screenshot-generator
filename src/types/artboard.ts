@@ -8,7 +8,7 @@ export interface Size {
   height: number;
 }
 
-export type ElementType = 'text' | 'shape' | 'device';
+export type ElementType = 'text' | 'shape' | 'device' | 'image';
 
 // Ensure our element types are properly defined for copy/paste operations
 export interface BaseElement {
@@ -102,7 +102,16 @@ export interface DeviceFrameElementProps extends BaseElement {
   matrix3d?: string; // Custom CSS matrix3d transform
 }
 
-export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps;
+export interface ImageElementProps extends BaseElement {
+  type: 'image';
+  imageSrc?: string;
+  imageAlt?: string;
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+  opacity?: number;
+  borderRadius?: number;
+}
+
+export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps | ImageElementProps;
 
 export interface ArtboardState {
   id: string;
