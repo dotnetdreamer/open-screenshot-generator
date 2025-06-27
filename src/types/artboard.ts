@@ -147,3 +147,11 @@ export interface TargetStore {
     height: number;
   }[];
 }
+
+export type ExportDeviceCategory = 'Phone' | 'Tablet' | 'iPhone' | 'iPad';
+
+export interface Project {
+  id: string;
+  timestamp: Date;
+  projectData: ArtboardState[];
+}

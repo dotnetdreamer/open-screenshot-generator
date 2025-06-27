@@ -1,17 +1,19 @@
 import Dexie, { Table } from 'dexie';
+import type { ArtboardState } from './types/artboard';
 
-export interface ProjectData {
-  timestamp: number;
-  projectData: any; // Or a more specific type for your project data
+export interface Project {
+  id: string;
+  timestamp: Date;
+  projectData: ArtboardState[];
 }
 
 export class ProjectDatabase extends Dexie {
-  projects!: Table<ProjectData, number>;
+  projects!: Table<Project, string>; // <Type, KeyType>
 
   constructor() {
     super('ProjectDatabase');
-    this.version(1).stores({
-      projects: '++id, timestamp' // Primary key 'id' and indexed 'timestamp'
+    this.version(1).stores({ // Bump version for schema change
+      projects: 'id, timestamp' // Primary key 'id' is a string, index 'timestamp'
     });
   }
 }
