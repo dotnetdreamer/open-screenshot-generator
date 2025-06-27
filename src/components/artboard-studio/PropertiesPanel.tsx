@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useEffect, useState, useRef } from 'react';
-import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, ArtboardState } from '@/types/artboard';
+import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState } from '@/types/artboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -136,6 +136,9 @@ export function PropertiesPanel({
   const [cornerBottomRight, setCornerBottomRight] = useState<number>(0);
   const [cornerBottomLeft, setCornerBottomLeft] = useState<number>(0);
   const [customPoints, setCustomPoints] = useState<number>(5);
+  
+  // Add state for circle inner radius
+  const [innerRadius, setInnerRadius] = useState<number>(0);
 
   // Function to convert CSS variables to hex color
   const cssVarToHex = (cssVar: string): string => {
@@ -176,6 +179,20 @@ export function PropertiesPanel({
         setScreenshotWidth(90);
         setScreenshotHeight(90);
       }
+    }
+    if (selectedElement?.type === 'shape') {
+      const shapeElement = selectedElement as ShapeElementProps;
+      // Initialize shape-specific states
+      setCustomPoints(shapeElement.customPoints || 5);
+      setInnerRadius(shapeElement.innerRadius || 0);
+      
+      // Initialize corner radius states
+      setBorderRadiusType(shapeElement.borderRadiusType || 'uniform');
+      setUniformBorderRadius(typeof shapeElement.borderRadius === 'number' ? shapeElement.borderRadius : 0);
+      setCornerTopLeft(shapeElement.borderRadiusTopLeft || 0);
+      setCornerTopRight(shapeElement.borderRadiusTopRight || 0);
+      setCornerBottomRight(shapeElement.borderRadiusBottomRight || 0);
+      setCornerBottomLeft(shapeElement.borderRadiusBottomLeft || 0);
     }
 
     // Initialize background controls when artboard is selected and after client-side rendering
@@ -296,7 +313,7 @@ export function PropertiesPanel({
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
-        if (uploadPurpose === 'customFrame' && selectedElement?.deviceType === 'custom') {
+        if (uploadPurpose === 'customFrame' && selectedElement && selectedElement.type === 'device' && (selectedElement as DeviceFrameElementProps).deviceType === 'custom') {
           onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined, screenshotRect: undefined, naturalScreenshotHeight: undefined, naturalScreenshotWidth: undefined });
         } else if (uploadPurpose === 'screenshot') {
           const img = new window.Image();
@@ -815,6 +832,14 @@ export function PropertiesPanel({
     });
   };
 
+  // Add handler for circle inner radius
+  const handleInnerRadiusChange = (radius: number) => {
+    setInnerRadius(radius);
+    onUpdateElement({
+      innerRadius: radius
+    });
+  };
+
   // Function to render image properties
   const renderImageProperties = (element: ImageElementProps) => (
     <div className="w-full flex flex-wrap gap-2 items-start">
@@ -899,7 +924,12 @@ export function PropertiesPanel({
   );
 
   // Function to render shape-specific controls
-  const renderShapeProperties = (element: ShapeElementProps) => (
+  const renderShapeProperties = (element: ShapeElementProps) => {
+    console.log('renderShapeProperties called with element:', element);
+    console.log('element.shapeType:', element.shapeType);
+    console.log('element.innerRadius:', element.innerRadius);
+    
+    return (
     <div className="space-y-4">
       {/* Shape Fill and Stroke controls - horizontal layout */}
       <div className="grid grid-cols-2 gap-2">
@@ -974,6 +1004,29 @@ export function PropertiesPanel({
               onChange={(e) => handleCustomPointsChange(parseInt(e.target.value))}
             />
             <div className="w-10 text-center">{customPoints}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Circle inner radius control */}
+      {element.shapeType === 'circle' && (
+        <div>
+          <Label htmlFor="innerRadius">Inner Radius</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="innerRadius"
+              type="range"
+              min="0"
+              max="95"
+              step="1"
+              className="flex-1"
+              value={innerRadius}
+              onChange={(e) => handleInnerRadiusChange(parseInt(e.target.value))}
+            />
+            <div className="w-12 text-center">{innerRadius}%</div>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Creates a ring/donut shape when {'>'}0
           </div>
         </div>
       )}
@@ -1115,7 +1168,8 @@ export function PropertiesPanel({
         </>
       )}
     </div>
-  );
+    );
+  };
 
   // No element or artboard selected
   if (!selectedElement && !activeArtboardDetails) {

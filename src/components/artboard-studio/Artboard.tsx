@@ -160,6 +160,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           shapeProps.borderRadiusType = 'uniform';
         } else if (subType === 'star') {
           shapeProps.customPoints = 5;
+        } else if (subType === 'circle') {
+          shapeProps.innerRadius = 0; // Initialize inner radius for circle
         }
         
         newElementToAdd = {

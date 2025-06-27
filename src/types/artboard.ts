@@ -63,6 +63,8 @@ export interface ShapeElementProps extends BaseElement {
   customPoints?: number; // Number of points (for stars, etc)
   clipPath?: string; // CSS clip-path value
   specialProps?: Record<string, any>; // Additional properties for special shapes
+  // For circle inner radius (creates ring/donut effect)
+  innerRadius?: number; // Percentage of the outer radius (0-95)
 }
 
 export type DeviceType =

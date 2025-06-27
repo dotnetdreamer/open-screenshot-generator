@@ -97,14 +97,31 @@ export function ShapeElement({ element }: ShapeElementProps) {
         />
       )}
       {element.shapeType === 'circle' && (
-        <div
-          style={{
-            ...commonStyles,
-            backgroundColor: fillColor,
-            border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
-            borderRadius: '50%',
-          }}
-        />
+        <>
+          {(element.innerRadius && element.innerRadius > 0) ? (
+            // Render circle with inner radius (ring/donut shape) using CSS mask
+            <div
+              style={{
+                ...commonStyles,
+                backgroundColor: fillColor,
+                border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
+                borderRadius: '50%',
+                WebkitMask: `radial-gradient(circle at center, transparent ${element.innerRadius}%, black ${element.innerRadius + 1}%)`,
+                mask: `radial-gradient(circle at center, transparent ${element.innerRadius}%, black ${element.innerRadius + 1}%)`,
+              }}
+            />
+          ) : (
+            // Render solid circle
+            <div
+              style={{
+                ...commonStyles,
+                backgroundColor: fillColor,
+                border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
+                borderRadius: '50%',
+              }}
+            />
+          )}
+        </>
       )}
       {element.shapeType === 'triangle' && (
         <div
