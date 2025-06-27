@@ -107,8 +107,14 @@ export function CanvasArea({
 
   useEffect(() => {
     // Make sure we're always using the latest external artboards (including size and position changes)
-    setArtboards(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
-  }, [externalArtboards]);
+    const updatedArtboards = externalArtboards.length > 0 ? externalArtboards : [initialArtboardState];
+    setArtboards(updatedArtboards);
+    
+    // If no artboard is currently active and we have artboards, select the first one
+    if (!activeArtboardId && updatedArtboards.length > 0) {
+      setActiveArtboardId(updatedArtboards[0].id);
+    }
+  }, [externalArtboards, activeArtboardId, setActiveArtboardId]);
 
   const handleUpdateArtboardElements = (artboardId: string, elements: ArtboardElement[]) => {
     const newArtboards = artboards.map(ab =>

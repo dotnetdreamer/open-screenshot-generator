@@ -536,6 +536,7 @@ export function ArtboardStudioLayout() {
     setArtboards(finalArtboards);
     setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
     setHistoryIndex(0);
+    // Automatically select the first artboard
     setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
     setSelectedElementIdOnActiveArtboard(null);
     setIsTemplateSelectorOpen(false);

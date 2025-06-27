@@ -552,7 +552,7 @@ export function PropertiesPanel({
         {/* Font Controls - First Row */}
         <div className="flex gap-2 flex-wrap">
           {/* Font Family */}
-          <div className="w-[120px]">
+          <div className="w-[180px]">
             <Label htmlFor="fontFamily" className="text-xs mb-1 block">Font</Label>
             <Select
               value={element.fontFamily || 'Arial'}
