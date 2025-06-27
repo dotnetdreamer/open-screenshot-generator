@@ -1,7 +1,6 @@
 "use client";
 import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
@@ -481,33 +480,30 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               <div
                 style={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
+                  top: `${element.screenshotRect.top}%`,
+                  left: `${element.screenshotRect.left}%`,
+                  width: `${element.screenshotRect.width}%`,
+                  height: `${element.screenshotRect.height}%`,
                   overflow: 'hidden',
-                  width: '100%', // Force width/height to be explicit
-                  height: '100%',
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
               >
-                <Image
+                <img
                   src={screenshot}
                   alt={`${element.deviceType} screenshot`}
-                  layout="fill"
-                  objectFit={element.screenshotObjectFit || "cover"}
                   style={{
                     cursor: 'default',
                     opacity: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: element.screenshotObjectFit || "cover",
                     position: 'absolute',
-                    left: `${element.screenshotRect.left}%`,
-                    top: `${element.screenshotRect.top}%`,
-                    width: `${element.screenshotRect.width}%`,
-                    height: `${element.screenshotRect.height}%`,
+                    top: 0,
+                    left: 0,
                   }}
-                  onLoadingComplete={(img) => { img.style.opacity = '1'; }}
+                  onLoad={e => { (e.currentTarget as HTMLImageElement).style.opacity = '1'; }}
                   data-ai-hint="app interface mobile"
                   draggable={false}
                 />
