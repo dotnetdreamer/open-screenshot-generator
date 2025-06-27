@@ -3,6 +3,7 @@ export interface GoogleFont {
   variants?: string[];
   category?: string;
   fallback?: string;
+  script?: 'latin' | 'arabic' | 'urdu' | 'multilingual';
 }
 
 export type FontCategory = 'sans-serif' | 'serif' | 'display' | 'handwriting' | 'monospace';

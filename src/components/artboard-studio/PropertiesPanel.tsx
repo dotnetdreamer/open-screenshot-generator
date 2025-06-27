@@ -22,7 +22,7 @@ import {
   SelectGroup,
   SelectLabel
 } from "@/components/ui/select";
-import { getFontOptions } from '@/services/fontService';
+import { getFontOptions, getGroupedFontOptions } from '@/services/fontService';
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -533,7 +533,7 @@ export function PropertiesPanel({
 
   // Render text properties in a more compact horizontal layout
   const renderTextProperties = (element: TextElementProps) => {
-    const fontOptions = getFontOptions();
+    const groupedFonts = getGroupedFontOptions();
     
     return (
       <div className="w-full flex flex-wrap gap-2 items-start">
@@ -564,31 +564,63 @@ export function PropertiesPanel({
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>System Fonts</SelectLabel>
-                  {fontOptions
-                    .filter(font => !font.value.includes(' '))
-                    .map(font => (
-                      <SelectItem 
-                        key={font.value} 
-                        value={font.value}
-                        style={{ fontFamily: `${font.value}, ${font.category}` }}
-                      >
-                        {font.label}
-                      </SelectItem>
-                    ))}
+                  {groupedFonts.system.map(font => (
+                    <SelectItem 
+                      key={font.value} 
+                      value={font.value}
+                      style={{ fontFamily: `${font.value}, ${font.category}` }}
+                    >
+                      {font.label}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
                 <SelectGroup>
-                  <SelectLabel>Google Fonts</SelectLabel>
-                  {fontOptions
-                    .filter(font => font.value.includes(' '))
-                    .map(font => (
-                      <SelectItem 
-                        key={font.value} 
-                        value={font.value}
-                        style={{ fontFamily: `${font.value}, ${font.category}` }}
-                      >
-                        {font.label}
-                      </SelectItem>
-                    ))}
+                  <SelectLabel>Latin Fonts</SelectLabel>
+                  {groupedFonts.latin.map(font => (
+                    <SelectItem 
+                      key={font.value} 
+                      value={font.value}
+                      style={{ fontFamily: `${font.value}, ${font.category}` }}
+                    >
+                      {font.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Arabic Fonts</SelectLabel>
+                  {groupedFonts.arabic.map(font => (
+                    <SelectItem 
+                      key={font.value} 
+                      value={font.value}
+                      style={{ fontFamily: `${font.value}, ${font.category}` }}
+                    >
+                      {font.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Urdu Fonts</SelectLabel>
+                  {groupedFonts.urdu.map(font => (
+                    <SelectItem 
+                      key={font.value} 
+                      value={font.value}
+                      style={{ fontFamily: `${font.value}, ${font.category}` }}
+                    >
+                      {font.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel>Multilingual</SelectLabel>
+                  {groupedFonts.multilingual.map(font => (
+                    <SelectItem 
+                      key={font.value} 
+                      value={font.value}
+                      style={{ fontFamily: `${font.value}, ${font.category}` }}
+                    >
+                      {font.label}
+                    </SelectItem>
+                  ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
