@@ -287,7 +287,6 @@ export function Toolbar({
         title="Import Project from JSON"
       >
         <FolderOpenIcon className="mr-1.5 h-4 w-4" />
-        Import JSON
       </Button>
 
       <Button 
@@ -297,7 +296,6 @@ export function Toolbar({
         title="Export Project as JSON"
       >
         <FileTextIcon className="mr-1.5 h-4 w-4" />
-        Export JSON
       </Button>
 
       <Button 
@@ -307,7 +305,6 @@ export function Toolbar({
         title="Export Artboards as Images"
       >
         <DownloadIcon className="mr-1.5 h-4 w-4" />
-        Export Images
       </Button>
     </div>
   );
