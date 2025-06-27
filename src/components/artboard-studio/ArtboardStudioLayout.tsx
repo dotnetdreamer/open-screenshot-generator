@@ -1108,7 +1108,7 @@ export function ArtboardStudioLayout() {
   return (
     <ClipboardProvider>
       <SidebarProvider defaultOpen>
-        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r w-80"> {/* Increased width from default to w-80 (320px) */}
+        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
           <SidebarHeader>
             <Button variant="ghost" size="icon" className="text-lg font-semibold tracking-tight h-10 w-10 flex items-center justify-center">
                <svg viewBox="0 0 100 100" className="w-6 h-6 fill-primary">
