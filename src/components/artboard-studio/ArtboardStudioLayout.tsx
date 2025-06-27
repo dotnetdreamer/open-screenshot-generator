@@ -782,6 +782,20 @@ export function ArtboardStudioLayout() {
     setSelectedElementIdOnActiveArtboard(elementId);
   };
 
+  // Add handler for deleting element from layers panel
+  const handleDeleteElementFromLayerPanel = (elementId: string) => {
+    if (activeArtboardId) {
+      const artboardComponent = artboardRefs.current[activeArtboardId];
+      if (artboardComponent && artboardComponent.deleteElementByIdG) {
+        artboardComponent.deleteElementByIdG(elementId);
+        setSelectedElementIdOnActiveArtboard(null);
+        toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
+      } else {
+        toast({ title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive" });
+      }
+    }
+  };
+
   const handleMoveElementLayer = (elementId: string, direction: 'up' | 'down') => {
     if (!activeArtboardId) return;
 
@@ -1117,6 +1131,7 @@ export function ArtboardStudioLayout() {
               selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
               onSelectElementInLayerPanel={handleSelectElementFromLayerPanel}
               onMoveElementLayer={handleMoveElementLayer}
+              onDeleteElement={handleDeleteElementFromLayerPanel}
               activeArtboardName={activeArtboardName}
             />
           </SidebarContent>

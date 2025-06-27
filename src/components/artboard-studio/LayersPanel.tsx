@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ArtboardElement } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LayersPanelProps {
@@ -12,6 +12,7 @@ interface LayersPanelProps {
   selectedElementId: string | null;
   onSelectElement: (elementId: string) => void;
   onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
+  onDeleteElement: (elementId: string) => void;
   activeArtboardName?: string;
 }
 
@@ -55,7 +56,7 @@ const getElementLabel = (element: ArtboardElement): string => {
     return label;
 };
 
-export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, activeArtboardName }: LayersPanelProps) {
+export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, activeArtboardName }: LayersPanelProps) {
   if (!activeArtboardName) {
     return (
       <Card className="shadow-md mt-4">
@@ -121,6 +122,15 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                       disabled={index === reversedElements.length - 1} // Cannot move bottom-most element further down
                     >
                       <ArrowDownIcon className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      title="Delete element"
+                      onClick={() => onDeleteElement(element.id)}
+                    >
+                      <Trash2Icon className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
