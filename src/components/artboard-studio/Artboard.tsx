@@ -362,6 +362,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           ))}
         </div>
       </div>
+      
+      {/* Artboard name label below the artboard on main canvas */}
+      <div className="absolute left-0 text-xs text-muted-foreground mt-1">
+        {artboard.name}
+      </div>
     </div>
   );
 });
