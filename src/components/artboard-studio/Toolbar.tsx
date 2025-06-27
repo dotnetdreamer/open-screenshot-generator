@@ -13,7 +13,8 @@ import {
   HandIcon,
   LayoutTemplateIcon,
   CopyIcon,
-  ClipboardPasteIcon
+  ClipboardPasteIcon,
+  FileTextIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ interface ToolbarProps {
   onNewArtboard: () => void;
   onSelectTemplate: () => void;
   onExport: () => void;
+  onExportJSON: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   currentZoom: number;
@@ -50,6 +52,7 @@ export function Toolbar({
   onNewArtboard, 
   onSelectTemplate,
   onExport, 
+  onExportJSON,
   onZoomIn, 
   onZoomOut, 
   currentZoom, 
@@ -276,12 +279,22 @@ export function Toolbar({
 
       <Button 
         variant="outline" 
+        onClick={onExportJSON} 
+        className="h-8"
+        title="Export Project as JSON"
+      >
+        <FileTextIcon className="mr-1.5 h-4 w-4" />
+        Export JSON
+      </Button>
+
+      <Button 
+        variant="outline" 
         onClick={onExport} 
         className="h-8"
-        title="Export Artboards"
+        title="Export Artboards as Images"
       >
         <DownloadIcon className="mr-1.5 h-4 w-4" />
-        Export
+        Export Images
       </Button>
     </div>
   );

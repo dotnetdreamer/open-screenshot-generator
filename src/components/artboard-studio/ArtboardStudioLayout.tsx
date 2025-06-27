@@ -551,6 +551,64 @@ export function ArtboardStudioLayout() {
       height: artboard.size.height
     };
   };
+
+  // Export project as JSON
+  const handleExportProjectAsJSON = async () => {
+    if (!activeProjectId) {
+      toast({
+        title: "No Active Project",
+        description: "Please save your project first before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Fetch the current project from IndexedDB
+      const project = await db.projects.get(activeProjectId);
+      
+      if (!project) {
+        toast({
+          title: "Project Not Found",
+          description: "Could not find the active project in the database.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Export the exact project data from IndexedDB
+      const projectData = {
+        id: project.id,
+        timestamp: project.timestamp,
+        projectData: project.projectData
+      };
+
+      const jsonString = JSON.stringify(projectData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `artboard-project-${projectData.id}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Project Exported",
+        description: "Project has been exported as JSON file from database.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error exporting project:", error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting the project from database.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Modify the export function to handle the display scale factor without doubling resolution
   const handleExportArtboards = async () => {
@@ -1160,6 +1218,7 @@ export function ArtboardStudioLayout() {
             onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onExport={handleExportArtboards}
+            onExportJSON={handleExportProjectAsJSON}
             onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
             onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
             currentZoom={canvasZoom}
