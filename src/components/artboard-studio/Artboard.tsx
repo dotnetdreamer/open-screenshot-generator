@@ -234,16 +234,24 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   const handleSelectElement = (elementId: string, e: React.MouseEvent) => {
     e.stopPropagation(); 
     setSelectedElementId(elementId);
-    onSelectArtboard(); 
   };
 
   const handleArtboardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Only deselect element if the click is directly on the artboard background,
     // not on the toolbar or other child elements within the artboard wrapper.
-    if (e.target === artboardDivRef.current) {
+    // Also check if the target is a DraggableElement or its children
+    const target = e.target as HTMLElement;
+    const isDraggableElement = target.closest('[data-element-id]');
+    const isHandle = target.closest('[data-interaction-handle]');
+    
+    if (e.target === artboardDivRef.current && !isDraggableElement && !isHandle) {
       setSelectedElementId(null);
     }
-    onSelectArtboard();
+    
+    // Only select artboard if we're not clicking on an element
+    if (!isDraggableElement && !isHandle) {
+      onSelectArtboard();
+    }
   };
 
   // Define display scale factor

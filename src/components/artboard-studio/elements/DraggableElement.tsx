@@ -237,13 +237,23 @@ export function DraggableElement({
 
     const handleMouseUp = () => {
       if (!interactionMode || !interactionStart) return;
-      onUpdateElement({ 
-        ...element, 
-        position, 
-        size: currentSize, 
-        rotation: currentRotation, 
-        scale: currentScale 
-      });
+      
+      // Only update if there was actually a change
+      const hasPositionChanged = position.x !== element.position.x || position.y !== element.position.y;
+      const hasSizeChanged = currentSize.width !== element.size.width || currentSize.height !== element.size.height;
+      const hasRotationChanged = currentRotation !== element.rotation;
+      const hasScaleChanged = currentScale !== element.scale;
+      
+      if (hasPositionChanged || hasSizeChanged || hasRotationChanged || hasScaleChanged) {
+        onUpdateElement({ 
+          ...element, 
+          position, 
+          size: currentSize, 
+          rotation: currentRotation, 
+          scale: currentScale 
+        });
+      }
+      
       setInteractionMode(null);
       setInteractionStart(null);
       document.body.style.cursor = 'default';
@@ -335,6 +345,7 @@ export function DraggableElement({
       }}
       onMouseDown={(e) => {
         if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
+          e.stopPropagation(); // Prevent event from bubbling to artboard
           if (isSelected) {
             handleInteractionStart(e, 'move');
           } else {

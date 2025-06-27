@@ -296,7 +296,13 @@ export function CanvasArea({
                 onSelectArtboard={() => handleSelectArtboard(artboard.id)}
                 globalZoom={canvasZoom}
                 selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
-                setSelectedElementId={setSelectedElementIdOnActiveArtboard}
+                setSelectedElementId={(elementId) => {
+                  // Always set the active artboard when selecting an element
+                  if (elementId && activeArtboardId !== artboard.id) {
+                    setActiveArtboardId(artboard.id);
+                  }
+                  setSelectedElementIdOnActiveArtboard(elementId);
+                }}
                 onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
                 onDuplicateArtboard={onDuplicateArtboardFromToolbar}
                 onDeleteArtboard={handleDeleteArtboard}
