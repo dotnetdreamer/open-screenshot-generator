@@ -14,7 +14,8 @@ import {
   LayoutTemplateIcon,
   CopyIcon,
   ClipboardPasteIcon,
-  FileTextIcon
+  FileTextIcon,
+  FolderOpenIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ interface ToolbarProps {
   onSelectTemplate: () => void;
   onExport: () => void;
   onExportJSON: () => void;
+  onImportJSON: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   currentZoom: number;
@@ -53,6 +55,7 @@ export function Toolbar({
   onSelectTemplate,
   onExport, 
   onExportJSON,
+  onImportJSON,
   onZoomIn, 
   onZoomOut, 
   currentZoom, 
@@ -276,6 +279,16 @@ export function Toolbar({
       </div>
       
       <div className="flex-grow" />
+
+      <Button 
+        variant="outline" 
+        onClick={onImportJSON} 
+        className="h-8"
+        title="Import Project from JSON"
+      >
+        <FolderOpenIcon className="mr-1.5 h-4 w-4" />
+        Import JSON
+      </Button>
 
       <Button 
         variant="outline" 

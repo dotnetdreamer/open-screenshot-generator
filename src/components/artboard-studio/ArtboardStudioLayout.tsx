@@ -827,7 +827,7 @@ export function ArtboardStudioLayout() {
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
-    if (artboardId !== activeArtboardId) {
+    if (artboardId !== activeProjectId) {
         setSelectedElementIdOnActiveArtboard(null);
     }
   }
@@ -1037,6 +1037,92 @@ export function ArtboardStudioLayout() {
     };
   }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem]);
 
+  // Import project from JSON
+  const handleImportProjectFromJSON = () => {
+    // Create a hidden file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    fileInput.style.display = 'none';
+    
+    fileInput.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const fileContent = await file.text();
+        const importedData = JSON.parse(fileContent);
+
+        // Validate the imported data structure
+        if (!importedData.id || !importedData.timestamp || !importedData.projectData) {
+          toast({
+            title: "Invalid File Format",
+            description: "The selected file does not appear to be a valid Artboard Studio project.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Validate that projectData is an array
+        if (!Array.isArray(importedData.projectData)) {
+          toast({
+            title: "Invalid Project Data",
+            description: "The project data format is not valid.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Generate a new unique ID for the imported project
+        const newProjectId = `imported_${Date.now()}`;
+        
+        // Save the imported project to IndexedDB with a new ID
+        await db.projects.put({
+          id: newProjectId,
+          timestamp: new Date(), // Use current timestamp for when it was imported
+          projectData: JSON.parse(JSON.stringify(importedData.projectData)), // Deep copy
+        });
+
+        // Load the imported project
+        setActiveProjectId(newProjectId);
+        setArtboards(importedData.projectData);
+        setHistory([JSON.parse(JSON.stringify(importedData.projectData))]);
+        setHistoryIndex(0);
+        setIsTemplateSelectorOpen(false);
+
+        // Update the recent projects list
+        const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
+        setRecentProjects(updatedProjects);
+
+        // Update URL with new project ID
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          params.set("projectId", newProjectId);
+          window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+        }
+
+        toast({
+          title: "Project Imported",
+          description: `Project "${importedData.id}" has been imported successfully.`,
+          variant: "default",
+        });
+
+      } catch (error) {
+        console.error("Error importing project:", error);
+        toast({
+          title: "Import Failed",
+          description: "There was an error reading or parsing the JSON file.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    // Append to body, click, and remove
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+  };
+
   if (isTemplateSelectorOpen) {
     return (
       <>
@@ -1219,6 +1305,7 @@ export function ArtboardStudioLayout() {
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onExport={handleExportArtboards}
             onExportJSON={handleExportProjectAsJSON}
+            onImportJSON={handleImportProjectFromJSON}
             onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
             onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
             currentZoom={canvasZoom}
