@@ -11,6 +11,8 @@ import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
+import { Input } from '@/components/ui/input';
+import { EditIcon } from 'lucide-react';
 
 interface ArtboardProps {
   artboard: ArtboardType;
@@ -57,9 +59,54 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   const artboardDivRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   
+  // State for artboard renaming
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState(artboard.name);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
   // Use a ref to track client-side initialization
   const isClientInitialized = useRef(false);
   
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [isEditingName]);
+
+  // Update local editing name when artboard name changes
+  useEffect(() => {
+    setEditingName(artboard.name);
+  }, [artboard.name]);
+
+  const handleDoubleClickName = () => {
+    setIsEditingName(true);
+    setEditingName(artboard.name);
+  };
+
+  const handleNameSubmit = () => {
+    if (editingName.trim() && editingName.trim() !== artboard.name) {
+      onUpdateArtboardDetails({ name: editingName.trim() });
+    }
+    setIsEditingName(false);
+  };
+
+  const handleNameCancel = () => {
+    setEditingName(artboard.name);
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleNameSubmit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleNameCancel();
+    }
+  };
+
   // Function to get background style that handles CSS variables properly
   const getBackgroundStyle = (): React.CSSProperties => {
     if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
@@ -213,7 +260,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
   const handleUpdateElement = (updatedElementData: ArtboardElement) => {
     const newElements = elements.map(el =>
-      el.id === updatedElementData.id ? { ...el, ...updatedElementData } : el
+      el.id === updatedElementData.id ? { ...el, ...updatedElementData } as ArtboardElement : el
     );
     setElements(newElements);
     onUpdateArtboardElements(newElements);
@@ -221,7 +268,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   
   const partialUpdateElement = (elementId: string, updates: Partial<ArtboardElement>) => {
     const newElements = elements.map(el =>
-      el.id === elementId ? { ...el, ...updates } : el
+      el.id === elementId ? { ...el, ...updates } as ArtboardElement : el
     );
     setElements(newElements);
     onUpdateArtboardElements(newElements);
@@ -369,8 +416,35 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       </div>
       
       {/* Artboard name label below the artboard on main canvas */}
-      <div className="absolute left-0 text-xs text-muted-foreground mt-1">
-        {artboard.name}
+      <div className="absolute left-0 text-xs text-muted-foreground mt-1 flex items-center gap-1">
+        {isEditingName ? (
+          <Input
+            ref={nameInputRef}
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            onBlur={handleNameSubmit}
+            onKeyDown={handleNameKeyDown}
+            className="w-full p-1 text-center text-sm"
+            placeholder="Artboard name"
+          />
+        ) : (
+          <>
+            <span 
+              className="cursor-pointer p-0.5 rounded hover:bg-accent transition-colors" 
+              onClick={handleDoubleClickName}
+              title="Click to rename artboard"
+            >
+              <EditIcon className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
+            </span>
+            <span 
+              onDoubleClick={handleDoubleClickName}
+              className="cursor-pointer text-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              title="Double-click to rename artboard"
+            >
+              {artboard.name}
+            </span>
+          </>
+        )}
       </div>
     </div>
   );
