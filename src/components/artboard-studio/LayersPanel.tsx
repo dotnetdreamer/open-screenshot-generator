@@ -1,8 +1,10 @@
 "use client";
 import type React from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import type { ArtboardElement } from '@/types/artboard';
 import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -13,6 +15,7 @@ interface LayersPanelProps {
   onSelectElement: (elementId: string) => void;
   onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   onDeleteElement: (elementId: string) => void;
+  onRenameElement: (elementId: string, newName: string) => void;
   activeArtboardName?: string;
 }
 
@@ -41,6 +44,12 @@ const getElementIcon = (element: ArtboardElement) => {
 };
 
 const getElementLabel = (element: ArtboardElement): string => {
+    // Use custom name if provided
+    if (element.name && element.name.trim()) {
+        return element.name;
+    }
+    
+    // Fallback to auto-generated labels
     let label = `${element.type.charAt(0).toUpperCase() + element.type.slice(1)}`;
     if (element.type === 'text' && element.content) {
         label = element.content.substring(0, 20) || "Text";
@@ -56,7 +65,46 @@ const getElementLabel = (element: ArtboardElement): string => {
     return label;
 };
 
-export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, activeArtboardName }: LayersPanelProps) {
+export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName }: LayersPanelProps) {
+  const [editingElementId, setEditingElementId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState<string>('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (editingElementId && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingElementId]);
+
+  const handleDoubleClick = (element: ArtboardElement) => {
+    setEditingElementId(element.id);
+    setEditingName(element.name || getElementLabel(element));
+  };
+
+  const handleRenameSubmit = () => {
+    if (editingElementId && editingName.trim()) {
+      onRenameElement(editingElementId, editingName.trim());
+    }
+    setEditingElementId(null);
+    setEditingName('');
+  };
+
+  const handleRenameCancel = () => {
+    setEditingElementId(null);
+    setEditingName('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleRenameSubmit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleRenameCancel();
+    }
+  };
   if (!activeArtboardName) {
     return (
       <Card className="shadow-md mt-4">
@@ -93,15 +141,31 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                     element.id === selectedElementId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
                   )}
                 >
-                  <Button
-                    variant="ghost"
-                    className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0 max-w-[160px]"
-                    onClick={() => onSelectElement(element.id)}
-                    title={`Select ${getElementLabel(element)}`}
-                  >
-                    {getElementIcon(element)}
-                    <span className="truncate flex-grow ml-1">{getElementLabel(element)}</span>
-                  </Button>
+                  {editingElementId === element.id ? (
+                    <div className="flex items-center flex-grow mr-1">
+                      {getElementIcon(element)}
+                      <Input
+                        ref={inputRef}
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onBlur={handleRenameSubmit}
+                        className="h-6 text-xs border-0 p-1 focus-visible:ring-1 focus-visible:ring-primary"
+                        placeholder="Element name..."
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0 max-w-[160px]"
+                      onClick={() => onSelectElement(element.id)}
+                      onDoubleClick={() => handleDoubleClick(element)}
+                      title={`Double-click to rename "${getElementLabel(element)}"`}
+                    >
+                      {getElementIcon(element)}
+                      <span className="truncate flex-grow ml-1">{getElementLabel(element)}</span>
+                    </Button>
+                  )}
                   <div className="flex-shrink-0 ml-auto space-x-0.5">
                     <Button 
                       variant="ghost" 

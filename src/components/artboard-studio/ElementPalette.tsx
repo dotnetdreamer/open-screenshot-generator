@@ -29,11 +29,12 @@ interface ElementPaletteProps {
   onSelectElementInLayerPanel: (elementId: string) => void;
   onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   onDeleteElement: (elementId: string) => void;
+  onRenameElement: (elementId: string, newName: string) => void;
   activeArtboardName?: string;
 }
 
 const DraggableItem: React.FC<{ 
-  onDragStart: (e: React.DragEvent<HTMLDivElement>, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void, 
+  onDragStart: (e: React.DragEvent<HTMLElement>, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void, 
   type: ElementType, 
   subType?: ShapeType | DeviceType, 
   label: string, 
@@ -60,16 +61,17 @@ const DraggableItem: React.FC<{
 }
 
 
-export function ElementPalette({ 
+export function ElementPalette({
   onAddElement,
   activeArtboardElements,
   selectedElementIdOnActiveArtboard,
   onSelectElementInLayerPanel,
   onMoveElementLayer,
   onDeleteElement,
-  activeArtboardName 
+  onRenameElement,
+  activeArtboardName
 }: ElementPaletteProps) {
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement> | null, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
+  const handleDragStart = (e: React.DragEvent<HTMLElement> | null, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
     if (e) { // Drag event
       e.dataTransfer.setData('application/artboard-element-type', type);
       if (subType) {
@@ -79,7 +81,7 @@ export function ElementPalette({
         e.dataTransfer.setData('application/artboard-element-styleprops', JSON.stringify(styleProps));
       }
     } else { // Click event (simulated drag)
-      onAddElement(type, subType, styleProps);
+      onAddElement(type, subType);
     }
   };
 
@@ -203,6 +205,7 @@ export function ElementPalette({
           onSelectElement={onSelectElementInLayerPanel}
           onMoveElementLayer={onMoveElementLayer}
           onDeleteElement={onDeleteElement}
+          onRenameElement={onRenameElement}
           activeArtboardName={activeArtboardName}
         />
       </div>

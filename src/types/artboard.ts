@@ -14,6 +14,7 @@ export type ElementType = 'text' | 'shape' | 'device' | 'image';
 export interface BaseElement {
   id: string;
   type: ElementType;
+  name?: string; // Optional custom name for the element
   position: Point;
   size: Size; // Base size, actual display size is base * scale
   rotation: number; // degrees

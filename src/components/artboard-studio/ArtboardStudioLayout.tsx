@@ -345,14 +345,32 @@ export function ArtboardStudioLayout() {
         return {
           ...ab,
           elements: ab.elements.map(el =>
-            el.id === selectedElementIdOnActiveArtboard ? { ...el, ...updates } : el
+            el.id === selectedElementIdOnActiveArtboard ? { ...el, ...updates } as ArtboardElement : el
           ),
         };
       }
       return ab;
     });
-    setArtboards(updatedArtboards); 
-    pushToHistory(updatedArtboards); 
+    handleArtboardsUpdate(updatedArtboards);
+  };
+
+  // Add handler for renaming element from layers panel
+  const handleRenameElementFromLayerPanel = (elementId: string, newName: string) => {
+    if (activeArtboardId) {
+      const updatedArtboards = artboards.map(ab => {
+        if (ab.id === activeArtboardId) {
+          return {
+            ...ab,
+            elements: ab.elements.map(el =>
+              el.id === elementId ? { ...el, name: newName } as ArtboardElement : el
+            ),
+          };
+        }
+        return ab;
+      });
+      handleArtboardsUpdate(updatedArtboards);
+      toast({ title: "Element Renamed", description: `Element renamed to "${newName}".` });
+    }
   };
 
 
@@ -1255,6 +1273,7 @@ export function ArtboardStudioLayout() {
               onSelectElementInLayerPanel={handleSelectElementFromLayerPanel}
               onMoveElementLayer={handleMoveElementLayer}
               onDeleteElement={handleDeleteElementFromLayerPanel}
+              onRenameElement={handleRenameElementFromLayerPanel}
               activeArtboardName={activeArtboardName}
             />
           </SidebarContent>
