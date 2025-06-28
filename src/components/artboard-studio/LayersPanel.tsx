@@ -95,7 +95,7 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                 >
                   <Button
                     variant="ghost"
-                    className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0"
+                    className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0 max-w-[160px]"
                     onClick={() => onSelectElement(element.id)}
                     title={`Select ${getElementLabel(element)}`}
                   >
