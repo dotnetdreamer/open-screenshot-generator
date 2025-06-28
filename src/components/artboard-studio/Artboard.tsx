@@ -7,7 +7,7 @@ import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
 import { ImageElement } from './elements/ImageElement';
-import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps } from '@/types/artboard';
+import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
@@ -134,16 +134,16 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           color: '#333333',
           fontFamily: 'Arial',
           size: { width: 400, height: 100 },  // Increased from 150x30
-        } as ArtboardElement;
+        } as TextElementProps;
       } else if (type === 'image') {
         newElementToAdd = {
           ...newElementBase,
           type: 'image',
           size: { width: 400, height: 300 },  // Default image size
-          objectFit: 'cover',
+          objectFit: 'cover' as const,
           opacity: 1,
           borderRadius: 0,
-        } as ArtboardElement;
+        } as ImageElementProps;
       } else if (type === 'shape' && subType) {
         const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',
@@ -162,12 +162,14 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           shapeProps.customPoints = 5;
         } else if (subType === 'circle') {
           shapeProps.innerRadius = 0; // Initialize inner radius for circle
+        } else if (subType === 'diamond') {
+          shapeProps.innerRadius = 0; // Initialize inner radius for diamond
         }
         
         newElementToAdd = {
           ...newElementBase,
           ...shapeProps
-        } as ArtboardElement;
+        } as ShapeElementProps;
       } else if (type === 'device' && subType) {
         const deviceElement: DeviceFrameElementProps = {
           ...newElementBase,

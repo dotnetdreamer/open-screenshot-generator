@@ -142,14 +142,45 @@ export function ShapeElement({ element }: ShapeElementProps) {
 
       {/* Shapes using clip-path */}
       {['message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon'].includes(element.shapeType) && (
-        <div
-          style={{
-            ...commonStyles,
-            backgroundColor: fillColor,
-            border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
-            clipPath: getClipPath(),
-          }}
-        />
+        <>
+          {element.shapeType === 'diamond' && element.innerRadius != null && element.innerRadius > 0 ? (
+            // Render diamond with inner radius using SVG with fill-rule
+            <svg
+              style={{
+                ...commonStyles,
+                overflow: 'visible',
+              }}
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              {/* Use a single path with fill-rule to create the ring effect */}
+              <path
+                d={`
+                  M 50 0 L 100 50 L 50 100 L 0 50 Z
+                  M 50 ${50 - (40 * element.innerRadius / 100)} 
+                  L ${50 - (40 * element.innerRadius / 100)} 50 
+                  L 50 ${50 + (40 * element.innerRadius / 100)} 
+                  L ${50 + (40 * element.innerRadius / 100)} 50 Z
+                `}
+                fill={fillColor}
+                stroke={strokeWidth > 0 ? strokeColor : 'none'}
+                strokeWidth={strokeWidth}
+                vectorEffect="non-scaling-stroke"
+                fillRule="evenodd"
+              />
+            </svg>
+          ) : (
+            // Render solid shape using clip-path
+            <div
+              style={{
+                ...commonStyles,
+                backgroundColor: fillColor,
+                border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
+                clipPath: getClipPath(),
+              }}
+            />
+          )}
+        </>
       )}
 
       {/* Fallback for unsupported shapes */}

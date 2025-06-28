@@ -1008,8 +1008,8 @@ export function PropertiesPanel({
         </div>
       )}
 
-      {/* Circle inner radius control */}
-      {element.shapeType === 'circle' && (
+      {/* Circle and Diamond inner radius control */}
+      {(element.shapeType === 'circle' || element.shapeType === 'diamond') && (
         <div>
           <Label htmlFor="innerRadius">Inner Radius</Label>
           <div className="flex items-center gap-2">
