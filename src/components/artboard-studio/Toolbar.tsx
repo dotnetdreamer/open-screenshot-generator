@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   PlusIcon, 
@@ -48,6 +48,8 @@ interface ToolbarProps {
   onPasteElement?: () => void;
   canCopy?: boolean;
   canPaste?: boolean;
+  currentProjectName?: string;
+  onRenameProject?: (newName: string) => void;
 }
 
 export function Toolbar({ 
@@ -75,11 +77,18 @@ export function Toolbar({
   onPasteElement,
   canCopy = false,
   canPaste = false,
+  currentProjectName,
+  onRenameProject,
 }: ToolbarProps) {
   const { clipboardItem } = useClipboard();
   // Initialize with the new default values
   const [width, setWidth] = useState<string>("1290");
   const [height, setHeight] = useState<string>("2796");
+  
+  // State for project name editing
+  const [isEditingProjectName, setIsEditingProjectName] = useState(false);
+  const [editingProjectName, setEditingProjectName] = useState(currentProjectName || 'Untitled Project');
+  const projectNameInputRef = useRef<HTMLInputElement>(null);
 
   // Update input values when artboard size changes
   useEffect(() => {
@@ -88,6 +97,19 @@ export function Toolbar({
       setHeight(initialArtboardSize.height.toString());
     }
   }, [initialArtboardSize]);
+
+  // Update project name when it changes
+  useEffect(() => {
+    setEditingProjectName(currentProjectName || 'Untitled Project');
+  }, [currentProjectName]);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingProjectName && projectNameInputRef.current) {
+      projectNameInputRef.current.focus();
+      projectNameInputRef.current.select();
+    }
+  }, [isEditingProjectName]);
 
   const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
@@ -110,8 +132,62 @@ export function Toolbar({
     }
   };
 
+  const handleProjectNameDoubleClick = () => {
+    setIsEditingProjectName(true);
+    setEditingProjectName(currentProjectName || 'Untitled Project');
+  };
+
+  const handleProjectNameSubmit = () => {
+    if (editingProjectName.trim() && onRenameProject) {
+      onRenameProject(editingProjectName.trim());
+    }
+    setIsEditingProjectName(false);
+  };
+
+  const handleProjectNameCancel = () => {
+    setEditingProjectName(currentProjectName || 'Untitled Project');
+    setIsEditingProjectName(false);
+  };
+
+  const handleProjectNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleProjectNameSubmit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleProjectNameCancel();
+    }
+  };
+
   return (
     <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2", className)}>
+      {/* Project Name Section */}
+      <div className="flex items-center space-x-2 mr-4">
+        {isEditingProjectName ? (
+          <Input
+            ref={projectNameInputRef}
+            value={editingProjectName}
+            onChange={(e) => setEditingProjectName(e.target.value)}
+            onKeyDown={handleProjectNameKeyDown}
+            onBlur={handleProjectNameSubmit}
+            className="h-8 w-48 text-sm font-medium"
+            placeholder="Project name..."
+          />
+        ) : (
+          <div 
+            className="flex items-center space-x-1 cursor-pointer hover:bg-accent/50 rounded px-2 py-1"
+            onDoubleClick={handleProjectNameDoubleClick}
+            title="Double-click to rename project"
+          >
+            <span className="text-sm font-medium text-foreground">
+              {currentProjectName || 'Untitled Project'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="h-8 w-px bg-muted mx-2" />
+
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"

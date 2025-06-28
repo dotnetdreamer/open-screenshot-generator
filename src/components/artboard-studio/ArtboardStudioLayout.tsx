@@ -33,7 +33,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarInset } from '@/components/ui/sidebar';
-import { db } from '@/database'; // Import the Dexie database
+import { db } from '@/database';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +50,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Project {
   id: string;
+  name: string;
   timestamp: Date;
   projectData: ArtboardState[]; // Assuming projectData is an array of ArtboardState
 }
@@ -150,6 +151,7 @@ export function ArtboardStudioLayout() {
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [currentProjectName, setCurrentProjectName] = useState<string>('Untitled Project');
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
@@ -219,6 +221,7 @@ export function ArtboardStudioLayout() {
           const project = await db.projects.get(activeProjectId);
           if (project && project.projectData) {
             setArtboards(project.projectData);
+            setCurrentProjectName(project.name || 'Untitled Project');
             setHistory([JSON.parse(JSON.stringify(project.projectData))]);
             setHistoryIndex(0);
             setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
@@ -294,11 +297,14 @@ export function ArtboardStudioLayout() {
       if (!projectIdToSave) {
         // Generate a new ID only if there is no active project
         projectIdToSave = Date.now().toString();
+        // Set a random project name for new projects
+        setCurrentProjectName(generateRandomProjectName());
       }
   
       // Save to Dexie database
       db.projects.put({
         id: projectIdToSave,
+        name: currentProjectName,
         timestamp: new Date(),
         projectData: JSON.parse(JSON.stringify(repositionedArtboards)), // Save the full state
       }).catch(error => {
@@ -373,6 +379,28 @@ export function ArtboardStudioLayout() {
     }
   };
 
+  // Handler for renaming the current project
+  const handleRenameProject = async (newName: string) => {
+    if (activeProjectId && newName.trim() && newName.trim() !== currentProjectName) {
+      const trimmedName = newName.trim();
+      setCurrentProjectName(trimmedName);
+      
+      // Update the project in the database
+      try {
+        const project = await db.projects.get(activeProjectId);
+        if (project) {
+          await db.projects.put({
+            ...project,
+            name: trimmedName,
+          });
+          toast({ title: "Project Renamed", description: `Project renamed to "${trimmedName}".` });
+        }
+      } catch (error) {
+        console.error("Error renaming project:", error);
+        toast({ title: "Rename Failed", description: "Failed to rename project.", variant: "destructive" });
+      }
+    }
+  };
 
   const handleAddElementToArtboard = useCallback((artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => {
     const artboardComponent = artboardRefs.current[artboardId];
@@ -552,6 +580,7 @@ export function ArtboardStudioLayout() {
 
     const finalArtboards = calculateArtboardPositions(templateArtboards);
     setArtboards(finalArtboards);
+    setCurrentProjectName(generateRandomProjectName());
     setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
     setHistoryIndex(0);
     // Automatically select the first artboard
@@ -1076,12 +1105,14 @@ export function ArtboardStudioLayout() {
         // Save the imported project to IndexedDB with a new ID
         await db.projects.put({
           id: newProjectId,
+          name: `Imported ${importedData.id}`,
           timestamp: new Date(), // Use current timestamp for when it was imported
           projectData: JSON.parse(JSON.stringify(importedData.projectData)), // Deep copy
         });
 
         // Load the imported project
         setActiveProjectId(newProjectId);
+        setCurrentProjectName(`Imported ${importedData.id}`);
         setArtboards(importedData.projectData);
         setHistory([JSON.parse(JSON.stringify(importedData.projectData))]);
         setHistoryIndex(0);
@@ -1119,6 +1150,27 @@ export function ArtboardStudioLayout() {
     fileInput.click();
     document.body.removeChild(fileInput);
   };
+
+  // Function to generate random project names
+const generateRandomProjectName = (): string => {
+  const adjectives = [
+    'Creative', 'Modern', 'Sleek', 'Bold', 'Elegant', 'Dynamic', 'Fresh', 'Vibrant',
+    'Minimal', 'Classic', 'Artistic', 'Professional', 'Stylish', 'Innovative', 'Clean',
+    'Bright', 'Cool', 'Warm', 'Sharp', 'Smooth'
+  ];
+  
+  const nouns = [
+    'Design', 'Project', 'Studio', 'Canvas', 'Vision', 'Concept', 'Layout', 'Draft',
+    'Sketch', 'Mockup', 'Template', 'Framework', 'Blueprint', 'Creation', 'Work',
+    'Portfolio', 'Collection', 'Gallery', 'Showcase', 'Board'
+  ];
+  
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const number = Math.floor(Math.random() * 1000) + 1;
+  
+  return `${adjective} ${noun} ${number}`;
+};
 
   if (isTemplateSelectorOpen) {
     return (
@@ -1195,7 +1247,8 @@ export function ArtboardStudioLayout() {
                             }
                           }}
                         >
-                          Project saved on: {project.timestamp.toLocaleString()}
+                          <div className="font-medium">{project.name}</div>
+                          <div className="text-xs text-muted-foreground">Saved on: {project.timestamp.toLocaleString()}</div>
                         </div>
                         <Button 
                           variant="ghost" 
@@ -1322,6 +1375,8 @@ export function ArtboardStudioLayout() {
             onPasteElement={handlePasteElement}
             canCopy={!!selectedElementIdOnActiveArtboard}
             canPaste={!!clipboardItem && !!activeArtboardId}
+            currentProjectName={currentProjectName}
+            onRenameProject={handleRenameProject}
             className="sticky top-0 z-50 bg-card border-b"
           />
           <PropertiesPanel
