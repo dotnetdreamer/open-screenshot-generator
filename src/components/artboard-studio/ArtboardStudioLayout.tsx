@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import {
   SidebarProvider,
@@ -641,21 +641,16 @@ export function ArtboardStudioLayout() {
         // Remove scale transform for export
         artboardElement.style.transform = 'scale(1)';
         
-        // Use html2canvas to capture the artboard at exact specified dimensions
-        const canvas = await html2canvas(artboardElement, {
-          allowTaint: true, // Allows cross-origin images if server headers permit
-          useCORS: true,    // Attempts to load cross-origin images via CORS
-          scale: 1,         // Set to 1 to avoid doubling resolution
-          backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
-          logging: false,   // Disable logging for production
+        // Use html-to-image to capture the artboard at exact specified dimensions
+        const imageDataUrl = await toPng(artboardElement, {
           width: artboard.size.width,
           height: artboard.size.height,
-          // Ensure we get exact pixel dimensions
-          imageTimeout: 0,  // No timeout for image loading
-          onclone: (document, element) => {
-            // Additional adjustments to cloned element if needed
-            element.style.width = `${artboard.size.width}px`;
-            element.style.height = `${artboard.size.height}px`;
+          backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
+          pixelRatio: 1, // Set to 1 to avoid doubling resolution
+          cacheBust: true, // Prevent caching issues
+          style: {
+            width: `${artboard.size.width}px`,
+            height: `${artboard.size.height}px`,
           }
         });
         
@@ -663,22 +658,6 @@ export function ArtboardStudioLayout() {
         artboardElement.style.transform = originalTransform;
         artboardElement.style.width = originalWidth;
         artboardElement.style.height = originalHeight;
-        
-        // Check if we need to resize the canvas to match exactly the artboard dimensions
-        if (canvas.width !== artboard.size.width || canvas.height !== artboard.size.height) {
-          const resizedCanvas = document.createElement('canvas');
-          resizedCanvas.width = artboard.size.width;
-          resizedCanvas.height = artboard.size.height;
-          const ctx = resizedCanvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(canvas, 0, 0, artboard.size.width, artboard.size.height);
-            canvas.width = artboard.size.width;
-            canvas.height = artboard.size.height;
-            canvas.getContext('2d')?.drawImage(resizedCanvas, 0, 0);
-          }
-        }
-        
-        const imageDataUrl = canvas.toDataURL('image/png');
 
         // Create a link to download the image
         const link = document.createElement('a');
