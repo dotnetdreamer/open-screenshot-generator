@@ -128,7 +128,7 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[200px] max-h-[calc(100vh_-_550px)]"> {/* Adjusted max-height */}
+        <ScrollArea className="max-h-[calc(100vh_-_550px)]"> {/* Adjusted max-height */}
           {reversedElements.length === 0 ? (
             <div className="p-3 text-sm text-muted-foreground">No elements on this artboard.</div>
           ) : (
