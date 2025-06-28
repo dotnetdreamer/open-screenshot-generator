@@ -139,6 +139,9 @@ export function PropertiesPanel({
   
   // Add state for circle inner radius
   const [innerRadius, setInnerRadius] = useState<number>(0);
+  
+  // Add state for fill opacity
+  const [fillOpacity, setFillOpacity] = useState<number>(1);
 
   // Function to convert CSS variables to hex color
   const cssVarToHex = (cssVar: string): string => {
@@ -185,6 +188,7 @@ export function PropertiesPanel({
       // Initialize shape-specific states
       setCustomPoints(shapeElement.customPoints || 5);
       setInnerRadius(shapeElement.innerRadius || 0);
+      setFillOpacity(shapeElement.fillOpacity || 1);
       
       // Initialize corner radius states
       setBorderRadiusType(shapeElement.borderRadiusType || 'uniform');
@@ -840,6 +844,14 @@ export function PropertiesPanel({
     });
   };
 
+  // Add handler for fill opacity
+  const handleFillOpacityChange = (opacity: number) => {
+    setFillOpacity(opacity);
+    onUpdateElement({
+      fillOpacity: opacity
+    });
+  };
+
   // Function to render image properties
   const renderImageProperties = (element: ImageElementProps) => (
     <div className="w-full flex flex-wrap gap-2 items-start">
@@ -1030,6 +1042,27 @@ export function PropertiesPanel({
           </div>
         </div>
       )}
+
+      {/* Fill Opacity control for all shapes */}
+      <div>
+        <Label htmlFor="fillOpacity">Fill Opacity</Label>
+        <div className="flex items-center gap-2">
+          <Input
+            id="fillOpacity"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            className="flex-1"
+            value={fillOpacity}
+            onChange={(e) => handleFillOpacityChange(parseFloat(e.target.value))}
+          />
+          <div className="w-12 text-center">{Math.round(fillOpacity * 100)}%</div>
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          Adjust transparency of the fill color
+        </div>
+      </div>
 
       {/* Only show corner controls for rectangle shape - with improved horizontal layout */}
       {element.shapeType === 'rectangle' && (

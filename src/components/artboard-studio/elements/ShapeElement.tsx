@@ -12,6 +12,36 @@ export function ShapeElement({ element }: ShapeElementProps) {
   const { shapeType, fillColor, strokeColor, size, scale } = element;
   const scaledWidth = size.width * scale;
   const scaledHeight = size.height * scale;
+  
+  // Get fill color with opacity
+  const getFillColorWithOpacity = () => {
+    if (!element.fillOpacity || element.fillOpacity === 1) {
+      return fillColor;
+    }
+    
+    // Convert hex color to rgba if needed
+    if (fillColor.startsWith('#')) {
+      const hex = fillColor.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      return `rgba(${r}, ${g}, ${b}, ${element.fillOpacity})`;
+    }
+    
+    // If already in rgba format, replace the alpha value
+    if (fillColor.startsWith('rgba')) {
+      return fillColor.replace(/[\d\.]+\)$/g, `${element.fillOpacity})`);
+    }
+    
+    // If in rgb format, convert to rgba
+    if (fillColor.startsWith('rgb')) {
+      return fillColor.replace('rgb', 'rgba').replace(')', `, ${element.fillOpacity})`);
+    }
+    
+    return fillColor;
+  };
+  
+  const fillColorWithOpacity = getFillColorWithOpacity();
 
   const commonStyles: React.CSSProperties = {
     width: '100%',
@@ -90,7 +120,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
           style={{
             width: '100%',
             height: '100%',
-            backgroundColor: element.fillColor,
+            backgroundColor: fillColorWithOpacity,
             border: strokeWidth > 0 ? `${strokeWidth}px solid ${element.strokeColor}` : 'none',
             borderRadius: getBorderRadius(),
           }}
@@ -103,7 +133,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             <div
               style={{
                 ...commonStyles,
-                backgroundColor: fillColor,
+                backgroundColor: fillColorWithOpacity,
                 border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
                 borderRadius: '50%',
                 WebkitMask: `radial-gradient(circle at center, transparent ${element.innerRadius}%, black ${element.innerRadius + 1}%)`,
@@ -115,7 +145,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             <div
               style={{
                 ...commonStyles,
-                backgroundColor: fillColor,
+                backgroundColor: fillColorWithOpacity,
                 border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
                 borderRadius: '50%',
               }}
@@ -132,7 +162,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             backgroundColor: 'transparent', // Triangle color comes from borders
             borderLeft: `${scaledWidth / 2}px solid transparent`,
             borderRight: `${scaledWidth / 2}px solid transparent`,
-            borderBottom: `${scaledHeight}px solid ${fillColor}`,
+            borderBottom: `${scaledHeight}px solid ${fillColorWithOpacity}`,
             // For stroke, this gets complex with CSS triangles.
             // A common approach is to use an outer, slightly larger triangle.
             // For simplicity, stroke is not fully implemented here for triangles.
@@ -162,7 +192,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
                   L 50 ${50 + (40 * element.innerRadius / 100)} 
                   L ${50 + (40 * element.innerRadius / 100)} 50 Z
                 `}
-                fill={fillColor}
+                fill={fillColorWithOpacity}
                 stroke={strokeWidth > 0 ? strokeColor : 'none'}
                 strokeWidth={strokeWidth}
                 vectorEffect="non-scaling-stroke"
@@ -174,7 +204,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             <div
               style={{
                 ...commonStyles,
-                backgroundColor: fillColor,
+                backgroundColor: fillColorWithOpacity,
                 border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
                 clipPath: getClipPath(),
               }}

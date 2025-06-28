@@ -152,6 +152,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           strokeColor: '#333333',
           strokeWidth: 0, 
           size: { width: 300, height: 300 },  // Increased from 100x100
+          fillOpacity: 1, // Initialize with full opacity
         };
         
         // Add shape-specific properties based on subType

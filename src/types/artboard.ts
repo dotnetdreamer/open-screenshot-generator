@@ -65,6 +65,8 @@ export interface ShapeElementProps extends BaseElement {
   specialProps?: Record<string, any>; // Additional properties for special shapes
   // For circle inner radius (creates ring/donut effect)
   innerRadius?: number; // Percentage of the outer radius (0-95)
+  // For fill color opacity
+  fillOpacity?: number; // Opacity value from 0 to 1 (0 = transparent, 1 = opaque)
 }
 
 export type DeviceType =
