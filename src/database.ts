@@ -1,12 +1,5 @@
 import Dexie, { Table } from 'dexie';
-import type { ArtboardState } from './types/artboard';
-
-export interface Project {
-  id: string;
-  name: string;
-  timestamp: Date;
-  projectData: ArtboardState[];
-}
+import type { Project } from './types/artboard';
 
 export class ProjectDatabase extends Dexie {
   projects!: Table<Project, string>; // <Type, KeyType>

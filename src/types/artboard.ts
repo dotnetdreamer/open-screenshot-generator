@@ -135,14 +135,7 @@ export interface ArtboardState {
   exportScale?: number; // Optional export scale for higher resolution exports
 }
 
-export interface Template {
-  id: string;
-  name: string;
-  description: string;
-  previewImage?: string;
-  dataAiHint?: string; // for placeholder images
-  artboards: Partial<ArtboardState>[];
-}
+
 
 export interface TargetStore {
   appName: string;
@@ -157,6 +150,9 @@ export type ExportDeviceCategory = 'Phone' | 'Tablet' | 'iPhone' | 'iPad';
 
 export interface Project {
   id: string;
+  name: string;
   timestamp: Date;
   projectData: ArtboardState[];
+  description?: string; // For template projects
+  previewImage?: string; // For template projects
 }

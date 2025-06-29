@@ -17,7 +17,9 @@ import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
 import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Template, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory } from '@/types/artboard';
+import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
+import { loadProjectTemplates } from '@/services/projectService';
+
 import { Button } from '@/components/ui/button';
 import { SettingsIcon, InfoIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -48,79 +50,6 @@ import { Trash2Icon } from 'lucide-react';
 import { useClipboard, ClipboardProvider } from '@/contexts/ClipboardContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-interface Project {
-  id: string;
-  name: string;
-  timestamp: Date;
-  projectData: ArtboardState[]; // Assuming projectData is an array of ArtboardState
-}
-
-// Update the initial size values in the templates
-const sampleTemplates: Template[] = [
-  {
-    id: 'template_blank',
-    name: 'Blank Canvas',
-    description: 'Start with a single empty artboard.',
-    previewImage: 'https://placehold.co/300x200/e0e0e0/777?text=Blank',
-    dataAiHint: 'blank canvas',
-    artboards: [{
-      id: 'artboard_blank_1',
-      name: 'Blank Artboard',
-      size: { width: 1290, height: 2796 }, // Updated size
-      elements: [],
-      backgroundColor: 'hsl(var(--card))',
-      zoom: 1,
-      position: {x:50, y:50},
-    }],
-  },
-  {
-    id: 'template_social_post',
-    name: 'Social Media Post',
-    description: 'A square artboard perfect for social media.',
-    previewImage: 'https://placehold.co/300x200/5F9EA0/FFFFFF?text=Social',
-    dataAiHint: 'social media interface',
-    artboards: [{
-      id: 'artboard_social_1',
-      name: 'Social Post',
-      size: { width: 1290, height: 2796 },  // Updated size
-      backgroundColor: 'hsl(var(--card))',
-      zoom: 1,
-      position: {x:50, y:50},
-      elements: [
-        { id: 'txt1', type: 'text', content: 'Your Awesome Post', position: { x: 50, y: 100 }, size: { width: 980, height: 100}, fontSize: 72, color: '#333', fontFamily: 'Impact', rotation: 0, scale: 1 } as ArtboardElement,
-        { id: 'shp1', type: 'shape', shapeType: 'rectangle', position: { x: 50, y: 250 }, size: { width: 980, height: 500 }, fillColor: '#D4AF37', strokeColor: '#000000', strokeWidth: 0, rotation: 0, scale: 1 } as ArtboardElement
-      ],
-    }],
-  },
-  {
-    id: 'template_app_showcase',
-    name: 'App Screenshot Showcase',
-    description: 'Artboards for app store screenshots.',
-    previewImage: 'https://placehold.co/300x200/D4AF37/333333?text=App',
-    dataAiHint: 'app store mobile',
-    artboards: [
-      {
-        id: 'artboard_app_1',
-        name: 'iPhone Screen 1',
-        size: { width: 1290, height: 2796 }, // Updated size
-        backgroundColor: 'hsl(var(--card))',
-        zoom:1,
-        position: {x:50, y:50},
-        elements: [{id:'dev1', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 1290, height: 2796}, rotation:0, scale:1 } as DeviceFrameElementProps]
-      },
-      {
-        id: 'artboard_app_2',
-        name: 'iPhone Screen 2',
-        size: { width: 1290, height: 2796 }, // Updated size
-        backgroundColor: 'hsl(var(--card))',
-        zoom:1,
-        position: {x:490, y:50},
-        elements: [{id:'dev2', type: 'device', deviceType: 'iphone', position:{x:0,y:0}, size: {width: 1290, height: 2796}, rotation:0, scale:1} as DeviceFrameElementProps]
-      },
-    ],
-  }
-];
-
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
 const DISPLAY_SCALE_FACTOR = 0.3;
@@ -128,8 +57,10 @@ const DISPLAY_SCALE_FACTOR = 0.3;
 // Update the function with reduced margin
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
-  return artboards.map(ab => {
+  console.log("Calculating positions for artboards:", artboards.length);
+  return artboards.map((ab, index) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
+    console.log(`Artboard ${index}: size=${ab.size.width}x${ab.size.height}, position=${newPosition.x},${newPosition.y}`);
     
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
@@ -145,6 +76,7 @@ export function ArtboardStudioLayout() {
   const [history, setHistory] = useState<ArtboardState[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(true);
+  const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const { toast } = useToast();
   const artboardRefs = useRef<Record<string, any>>({});
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
@@ -155,9 +87,29 @@ export function ArtboardStudioLayout() {
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Load available projects from data/projects folder
+  useEffect(() => {
+    const loadAvailableProjects = async () => {
+      try {
+        const projects = await loadProjectTemplates();
+        setAvailableProjects(projects);
+      } catch (error) {
+        console.error('Error loading available projects:', error);
+        toast({
+          title: "Loading Error",
+          description: "Failed to load available projects.",
+          variant: "destructive"
+        });
+      }
+    };
+
+    loadAvailableProjects();
+  }, [toast]);
   
   useEffect(() => {
     const fetchRecentProjects = async () => {
@@ -216,7 +168,7 @@ export function ArtboardStudioLayout() {
     }
 
     const loadProject = async () => {
-      if (activeProjectId) {
+      if (activeProjectId && !isLoadingTemplate) {
         try {
           const project = await db.projects.get(activeProjectId);
           if (project && project.projectData) {
@@ -241,7 +193,7 @@ export function ArtboardStudioLayout() {
       }
     };
     loadProject();
- }, [activeProjectId, toast, setIsTemplateSelectorOpen]); // Depend on activeProjectId and necessary setters/toast
+ }, [activeProjectId, isLoadingTemplate, toast, setIsTemplateSelectorOpen]); // Added isLoadingTemplate dependency
   const pushToHistory = (newArtboardsState: ArtboardState[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); // Deep copy
@@ -542,52 +494,59 @@ export function ArtboardStudioLayout() {
   };
 
 
-  const handleSelectTemplate = (template: Template) => {
-    const templateArtboards: ArtboardState[] = template.artboards.map((abConfig, index) => {
-       const baseElements = abConfig.elements ? JSON.parse(JSON.stringify(abConfig.elements)) : [];
-       const processedElements = baseElements.map((el: ArtboardElement) => {
-         if (el.type === 'device') {
-           const deviceEl = el as DeviceFrameElementProps;
-           if (!deviceEl.screenshotRect) { 
-            if (deviceEl.deviceType === 'custom') {
-              deviceEl.screenshotRect = { left: 5, top: 5, width: 90, height: 90 };
-            } else {
-              deviceEl.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
-            }
-           }
-         }
-         return el;
-       });
-
-      // Convert CSS variables to hex color if present
-      let backgroundColor = abConfig.backgroundColor || '#FFFFFF';
-      if (backgroundColor?.toLowerCase().includes('var(') || backgroundColor?.toLowerCase().includes('hsl')) {
-        backgroundColor = '#FFFFFF';
+  const handleSelectTemplate = async (template: Project) => {
+    try {
+      // Validate that template has project data
+      if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
+        toast({ 
+          title: "Invalid Template", 
+          description: "The selected template does not contain valid project data.", 
+          variant: "destructive" 
+        });
+        return;
       }
 
-      return {
-        id: abConfig.id || `template_artboard_${template.id}_${index}_${Date.now()}`,
-        name: abConfig.name || `Artboard ${index + 1}`,
-        position: {x:0, y:0}, 
-        size: abConfig.size || { width: 1024, height: 768 },
-        elements: processedElements,
-        backgroundColor: backgroundColor,
-        backgroundType: abConfig.backgroundType || 'solid',
-        backgroundGradient: abConfig.backgroundGradient,
-        zoom: abConfig.zoom || 1,
-      } as ArtboardState
-    });
+      // Generate a new unique ID for the copied project
+      const newProjectId = `project_${Date.now()}`;
+      
+      // Create a deep copy of the template's project data
+      const updatedArtboards = JSON.parse(JSON.stringify(template.projectData));
 
-    const finalArtboards = calculateArtboardPositions(templateArtboards);
-    setArtboards(finalArtboards);
-    setCurrentProjectName(generateRandomProjectName());
-    setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
-    setHistoryIndex(0);
-    // Automatically select the first artboard
-    setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
-    setSelectedElementIdOnActiveArtboard(null);
-    setIsTemplateSelectorOpen(false);
-    toast({ title: "Template Loaded", description: `Template "${template.name}" applied.` });
+      // Save the copied project to IndexedDB
+      await db.projects.put({
+        id: newProjectId,
+        name: `${template.name} Copy`,
+        description: `${template.description}`,
+        timestamp: new Date(),
+        projectData: JSON.parse(JSON.stringify(updatedArtboards)),
+      });
+
+      // Use the common loading function
+      const success = await loadProjectFromData(
+        updatedArtboards,
+        `${template.name} Copy`,
+        newProjectId
+      );
+
+      if (success) {
+        toast({ title: "Project Created", description: `Project "${template.name} Copy" created from template.` });
+        return;
+      }
+    
+      toast({ 
+        title: "Creation Failed", 
+        description: "Failed to create project from template.", 
+        variant: "destructive" 
+      });
+    } catch (error) {
+      console.error("Error creating project from template:", error);
+      setIsLoadingTemplate(false); // Reset loading flag on error
+      toast({ 
+        title: "Creation Failed", 
+        description: "Failed to create project from template.", 
+        variant: "destructive" 
+      });
+    }
   };
 
   // Add this utility function to get proper dimensions for export
@@ -1085,6 +1044,50 @@ export function ArtboardStudioLayout() {
     };
   }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem]);
 
+  // Common function to load project data and apply positioning
+  const loadProjectFromData = async (projectData: ArtboardState[], projectName: string, projectId: string) => {
+    try {
+      setIsLoadingTemplate(true); // Prevent effect from loading project
+      
+      // Apply proper positioning to the artboards
+      console.log("Loading project data with positioning for:", projectName);
+      const finalArtboards = calculateArtboardPositions(projectData);
+      console.log("Final artboards with positions:", finalArtboards.map((ab: ArtboardState) => ({ id: ab.id, position: ab.position })));
+      
+      // Set project details first to avoid triggering effects
+      setCurrentProjectName(projectName);
+      setActiveProjectId(projectId);
+      
+      // Set artboards and history without triggering handleArtboardsUpdate
+      setArtboards(finalArtboards);
+      setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
+      setHistoryIndex(0);
+      
+      // Automatically select the first artboard
+      setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
+      setSelectedElementIdOnActiveArtboard(null);
+      setIsTemplateSelectorOpen(false);
+
+      // Update recent projects list
+      const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
+      setRecentProjects(updatedProjects);
+
+      // Update URL with new project ID
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        params.set("projectId", projectId);
+        window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+      }
+
+      setIsLoadingTemplate(false); // Reset loading flag
+      return true; // Success
+    } catch (error) {
+      console.error("Error loading project data:", error);
+      setIsLoadingTemplate(false); // Reset loading flag on error
+      return false; // Failure
+    }
+  };
+
   // Import project from JSON
   const handleImportProjectFromJSON = () => {
     // Create a hidden file input element
@@ -1132,30 +1135,26 @@ export function ArtboardStudioLayout() {
           projectData: JSON.parse(JSON.stringify(importedData.projectData)), // Deep copy
         });
 
-        // Load the imported project
-        setActiveProjectId(newProjectId);
-        setCurrentProjectName(`Imported ${importedData.id}`);
-        setArtboards(importedData.projectData);
-        setHistory([JSON.parse(JSON.stringify(importedData.projectData))]);
-        setHistoryIndex(0);
-        setIsTemplateSelectorOpen(false);
+        // Use the common loading function
+        const success = await loadProjectFromData(
+          importedData.projectData,
+          `Imported ${importedData.id}`,
+          newProjectId
+        );
 
-        // Update the recent projects list
-        const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
-        setRecentProjects(updatedProjects);
-
-        // Update URL with new project ID
-        if (typeof window !== "undefined") {
-          const params = new URLSearchParams(window.location.search);
-          params.set("projectId", newProjectId);
-          window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+        if (success) {
+          toast({
+            title: "Project Imported",
+            description: `Project "${importedData.id}" has been imported successfully.`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Import Failed",
+            description: "There was an error loading the imported project.",
+            variant: "destructive",
+          });
         }
-
-        toast({
-          title: "Project Imported",
-          description: `Project "${importedData.id}" has been imported successfully.`,
-          variant: "default",
-        });
 
       } catch (error) {
         console.error("Error importing project:", error);
@@ -1200,8 +1199,24 @@ const generateRandomProjectName = (): string => {
         <Dialog
           open={isTemplateSelectorOpen}
           onOpenChange={(newOpenState) => {
-            if (!newOpenState && artboards.length === 0 && sampleTemplates.length > 0) {
-               handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0]);
+            if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
+               // Create a blank project when no template is selected
+               const blankProject: Project = {
+                 id: 'blank',
+                 name: 'Blank Canvas',
+                 description: 'Start with a blank artboard',
+                 timestamp: new Date(),
+                 projectData: [{
+                   id: 'artboard_blank_1',
+                   name: 'Blank Artboard',
+                   size: { width: 1290, height: 2796 },
+                   elements: [],
+                   backgroundColor: '#FFFFFF',
+                   zoom: 1,
+                   position: {x:50, y:50},
+                 } as ArtboardState]
+               };
+               handleSelectTemplate(blankProject);
             }
             setIsTemplateSelectorOpen(newOpenState);
             // --- 3. Remove projectId from URL when template selector is opened ---
@@ -1219,33 +1234,50 @@ const generateRandomProjectName = (): string => {
             </DialogHeader>
             <ScrollArea className="max-h-[70vh]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {sampleTemplates.map(template => (
+                {availableProjects.map((project: Project) => (
                   <Card
-                    key={template.id}
+                    key={project.id}
                     className="hover:shadow-xl transition-shadow cursor-pointer"
-                    onClick={() => handleSelectTemplate(template)}
+                    onClick={() => handleSelectTemplate(project)}
                   >
                     <CardHeader className="p-0">
-                      {template.previewImage && (
+                      {project.previewImage && (
                          <Image
-                          src={template.previewImage}
-                          alt={template.name}
+                          src={project.previewImage}
+                          alt={project.name}
                           width={300} height={200}
                           className="rounded-t-lg object-cover w-full h-40"
-                          data-ai-hint={template.dataAiHint || "abstract design"}
+                          data-ai-hint={project.description || "project design"}
                         />
                       )}
                     </CardHeader>
                     <CardContent className="p-4">
-                      <CardTitle className="text-lg mb-1">{template.name}</CardTitle>
-                      <CardDescription className="text-sm">{template.description}</CardDescription>
+                      <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
+                      <CardDescription className="text-sm">{project.description}</CardDescription>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             </ScrollArea>
              <DialogFooter>
-              <Button variant="outline" onClick={() => {if (sampleTemplates.length > 0) handleSelectTemplate(sampleTemplates.find(t => t.id === 'template_blank') || sampleTemplates[0])}}>Start Blank</Button>
+              <Button variant="outline" onClick={() => {
+                const blankProject: Project = {
+                  id: 'blank',
+                  name: 'Blank Canvas',
+                  description: 'Start with a blank artboard',
+                  timestamp: new Date(),
+                  projectData: [{
+                    id: 'artboard_blank_1',
+                    name: 'Blank Artboard',
+                    size: { width: 1290, height: 2796 },
+                    elements: [],
+                    backgroundColor: '#FFFFFF',
+                    zoom: 1,
+                    position: {x:50, y:50},
+                  } as ArtboardState]
+                };
+                handleSelectTemplate(blankProject);
+              }}>Start Blank</Button>
             </DialogFooter>
 
             {/* New Section for Recent Projects */}
