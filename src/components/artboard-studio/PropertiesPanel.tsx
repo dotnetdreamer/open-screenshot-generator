@@ -1227,6 +1227,18 @@ export function PropertiesPanel({
           <div className="font-medium text-foreground">Artboard Background</div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          {/* Artboard Name */}
+          <div className="space-y-2">
+            <Label htmlFor="artboardName" className="text-xs font-medium">Artboard Name</Label>
+            <Input
+              id="artboardName"
+              value={activeArtboardDetails.name || ''}
+              onChange={(e) => onUpdateArtboardDetails?.({ name: e.target.value })}
+              placeholder="Enter artboard name"
+              className="text-sm"
+            />
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="bgType" className="text-xs font-medium">Background Type</Label>
             <RadioGroup 

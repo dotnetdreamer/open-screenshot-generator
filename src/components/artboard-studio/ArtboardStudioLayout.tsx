@@ -202,7 +202,7 @@ export function ArtboardStudioLayout() {
   };
 
   // Define the handleUpdateArtboardDetails function to update artboard background settings
-  const handleUpdateArtboardDetails = useCallback((updates: Partial<ArtboardState>) => {
+  const handleUpdateArtboardDetails = useCallback(async (updates: Partial<ArtboardState>) => {
     if (!activeArtboardId) return;
 
     const updatedArtboards = artboards.map(ab => {
@@ -214,7 +214,21 @@ export function ArtboardStudioLayout() {
     
     setArtboards(updatedArtboards);
     pushToHistory(updatedArtboards);
-  }, [activeArtboardId, artboards, pushToHistory]);
+
+    // Save to database
+    if (activeProjectId) {
+      try {
+        await db.projects.put({
+          id: activeProjectId,
+          name: currentProjectName,
+          timestamp: new Date(),
+          projectData: JSON.parse(JSON.stringify(updatedArtboards)),
+        });
+      } catch (error) {
+        console.error("Error saving artboard updates to database:", error);
+      }
+    }
+  }, [activeArtboardId, artboards, pushToHistory, activeProjectId, currentProjectName]);
 
   // Add the missing handleDeleteProject function
   const handleDeleteProject = async (projectId: string) => {
