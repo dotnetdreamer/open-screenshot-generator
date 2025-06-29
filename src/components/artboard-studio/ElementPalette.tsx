@@ -3,6 +3,7 @@ import type React from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   TypeIcon, 
   SquareIcon, 
@@ -17,7 +18,8 @@ import {
   HexagonIcon,
   StarIcon,
   DiamondIcon,
-  ImageIcon
+  ImageIcon,
+  LayersIcon
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { LayersPanel } from './LayersPanel';
@@ -86,129 +88,151 @@ export function ElementPalette({
   };
 
   return (
-    <ScrollArea className="h-full p-1 flex flex-col">
-      <div className="space-y-4 p-2 flex-shrink-0">
-        <Card className="shadow-md">
-          <CardHeader className="p-3">
-            <CardTitle className="text-base">Elements</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 grid grid-cols-3 gap-2">
-            {/* Text Element */}
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="text" 
-              label="Text" 
-              icon={<TypeIcon className="w-6 h-6 text-primary" />} 
-            />
-            
-            {/* Image Element */}
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="image" 
-              label="Image" 
-              icon={<ImageIcon className="w-6 h-6 text-primary" />} 
-            />
-            
-            {/* Basic Shapes */}
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="rectangle" 
-              label="Rectangle" 
-              icon={<SquareIcon className="w-6 h-6 text-primary" />} 
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="circle" 
-              label="Circle" 
-              icon={<CircleIcon className="w-6 h-6 text-primary" />} 
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="triangle" 
-              label="Triangle" 
-              icon={<TriangleIcon className="w-6 h-6 text-primary" />} 
-            />
-            
-            {/* Advanced Shapes - merged into the same panel */}
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="star" 
-              label="Star" 
-              icon={<StarIcon className="w-6 h-6 text-primary" />} 
-              styleProps={{ customPoints: 5 }}
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="hexagon" 
-              label="Hexagon" 
-              icon={<HexagonIcon className="w-6 h-6 text-primary" />}
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="diamond" 
-              label="Diamond" 
-              icon={<DiamondIcon className="w-6 h-6 text-primary" />}
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="message" 
-              label="Message" 
-              icon={<MessageSquareIcon className="w-6 h-6 text-primary" />} 
-              styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)' }}
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="speech-bubble" 
-              label="Speech" 
-              icon={<MessageCircleIcon className="w-6 h-6 text-primary" />} 
-              styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)' }}
-            />
-            <DraggableItem 
-              onDragStart={handleDragStart} 
-              type="shape" 
-              subType="pentagon" 
-              label="Pentagon" 
-              icon={<div className="w-6 h-6 flex items-center justify-center text-primary">5⬠</div>}
-            />
-          </CardContent>
-        </Card>
+    <div className="h-full flex flex-col">
+      <Tabs defaultValue="elements" className="h-full flex flex-col">
+        <TabsList className="grid w-[85%] grid-cols-3 mx-auto mt-2 h-7 p-0.5">
+          <TabsTrigger value="elements" className="text-xs px-0.5 py-0.5 h-6">
+            <TypeIcon className="w-3 h-3 mr-0.5" />
+            Elements
+          </TabsTrigger>
+          <TabsTrigger value="devices" className="text-xs px-0.5 py-0.5 h-6">
+            <SmartphoneIcon className="w-3 h-3 mr-0.5" />
+            Devices
+          </TabsTrigger>
+          <TabsTrigger value="layers" className="text-xs px-0.5 py-0.5 h-6">
+            <LayersIcon className="w-3 h-3 mr-0.5" />
+            Layers
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="elements" className="flex-grow p-3 pt-2 mt-0">
+          <ScrollArea className="h-full">
+            <Card className="shadow-md">
+              <CardHeader className="p-3">
+                <CardTitle className="text-base">Basic Elements</CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 grid grid-cols-3 gap-2">
+                {/* Text Element */}
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="text" 
+                  label="Text" 
+                  icon={<TypeIcon className="w-6 h-6 text-primary" />} 
+                />
+                
+                {/* Image Element */}
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="image" 
+                  label="Image" 
+                  icon={<ImageIcon className="w-6 h-6 text-primary" />} 
+                />
+                
+                {/* Basic Shapes */}
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="rectangle" 
+                  label="Rectangle" 
+                  icon={<SquareIcon className="w-6 h-6 text-primary" />} 
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="circle" 
+                  label="Circle" 
+                  icon={<CircleIcon className="w-6 h-6 text-primary" />} 
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="triangle" 
+                  label="Triangle" 
+                  icon={<TriangleIcon className="w-6 h-6 text-primary" />} 
+                />
+                
+                {/* Advanced Shapes */}
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="star" 
+                  label="Star" 
+                  icon={<StarIcon className="w-6 h-6 text-primary" />} 
+                  styleProps={{ customPoints: 5 }}
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="hexagon" 
+                  label="Hexagon" 
+                  icon={<HexagonIcon className="w-6 h-6 text-primary" />}
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="diamond" 
+                  label="Diamond" 
+                  icon={<DiamondIcon className="w-6 h-6 text-primary" />}
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="message" 
+                  label="Message" 
+                  icon={<MessageSquareIcon className="w-6 h-6 text-primary" />} 
+                  styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)' }}
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="speech-bubble" 
+                  label="Speech" 
+                  icon={<MessageCircleIcon className="w-6 h-6 text-primary" />} 
+                  styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)' }}
+                />
+                <DraggableItem 
+                  onDragStart={handleDragStart} 
+                  type="shape" 
+                  subType="pentagon" 
+                  label="Pentagon" 
+                  icon={<div className="w-6 h-6 flex items-center justify-center text-primary">5⬠</div>}
+                />
+              </CardContent>
+            </Card>
+          </ScrollArea>
+        </TabsContent>
 
-        <Card className="shadow-md">
-          <CardHeader className="p-3">
-            <CardTitle className="text-base">Device Mockups</CardTitle>
-          </CardHeader>
-          <CardContent className="p-2 grid grid-cols-2 gap-2">
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone" label="iPhone" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="android-punch-hole" label="Android (Punch Hole)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="android-notch" label="Android (Notch)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="android-bar" label="Android (Bar)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px' }} />
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="desktop" label="Desktop" icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '8px' }} />
-            <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Layers Panel takes up remaining space */}
-      <div className="flex-grow p-2 min-h-0">
-        <LayersPanel 
-          elements={activeArtboardElements}
-          selectedElementId={selectedElementIdOnActiveArtboard}
-          onSelectElement={onSelectElementInLayerPanel}
-          onMoveElementLayer={onMoveElementLayer}
-          onDeleteElement={onDeleteElement}
-          onRenameElement={onRenameElement}
-          activeArtboardName={activeArtboardName}
-        />
-      </div>
-    </ScrollArea>
+        <TabsContent value="devices" className="flex-grow p-3 pt-2 mt-0">
+          <ScrollArea className="h-full">
+            <Card className="shadow-md">
+              <CardHeader className="p-3">
+                <CardTitle className="text-base">Device Mockups</CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 grid grid-cols-2 gap-2">
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone" label="iPhone" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="android-punch-hole" label="Android (Punch Hole)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="android-notch" label="Android (Notch)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="android-bar" label="Android (Bar)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="desktop" label="Desktop" icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '8px' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
+              </CardContent>
+            </Card>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="layers" className="flex-grow p-3 pt-2 mt-0">
+          <LayersPanel 
+            elements={activeArtboardElements}
+            selectedElementId={selectedElementIdOnActiveArtboard}
+            onSelectElement={onSelectElementInLayerPanel}
+            onMoveElementLayer={onMoveElementLayer}
+            onDeleteElement={onDeleteElement}
+            onRenameElement={onRenameElement}
+            activeArtboardName={activeArtboardName}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
