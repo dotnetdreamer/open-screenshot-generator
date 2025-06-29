@@ -1433,32 +1433,41 @@ const generateRandomProjectName = (): string => {
             onRenameProject={handleRenameProject}
             className="sticky top-0 z-50 bg-card border-b"
           />
-          <PropertiesPanel
-            selectedElement={selectedElementDetails}
-            onUpdateElement={handleUpdateSelectedElement}
-            activeArtboardDetails={
-              activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
-            }
-            onUpdateArtboardDetails={handleUpdateArtboardDetails}
-            className="sticky top-14 z-40 bg-card border-b shadow-md mb-3" // Adjusted from mb-4 to mb-3
-          />
-          <div className="flex-grow relative overflow-hidden pt-3"> {/* Adjusted from pt-4 to pt-3 */}
-            <CanvasArea
-              artboards={artboards}
-              onUpdateArtboards={handleArtboardsUpdate}
-              onAddElementToArtboard={handleAddElementToArtboard}
-              activeArtboardId={activeArtboardId}
-              setActiveArtboardId={handleArtboardSelection}
-              selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
-              setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
-              canvasZoom={canvasZoom}
-              artboardRefs={artboardRefs}
-              onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
-              onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
-              onDeleteArtboardFromToolbar={handleDeleteArtboard}
-              onMoveArtboardFromToolbar={handleMoveArtboard}
-              activeTool={activeTool}
-            />
+          
+          {/* Main content area with flex layout */}
+          <div className="flex flex-1 overflow-hidden h-full">
+            {/* Canvas area - takes remaining space */}
+            <div className="flex-1 relative overflow-hidden">
+              <CanvasArea
+                artboards={artboards}
+                onUpdateArtboards={handleArtboardsUpdate}
+                onAddElementToArtboard={handleAddElementToArtboard}
+                activeArtboardId={activeArtboardId}
+                setActiveArtboardId={handleArtboardSelection}
+                selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
+                setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
+                canvasZoom={canvasZoom}
+                artboardRefs={artboardRefs}
+                onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
+                onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
+                onDeleteArtboardFromToolbar={handleDeleteArtboard}
+                onMoveArtboardFromToolbar={handleMoveArtboard}
+                activeTool={activeTool}
+              />
+            </div>
+            
+            {/* Properties panel - right sidebar */}
+            <div className="w-80 flex-shrink-0 h-full">
+              <PropertiesPanel
+                selectedElement={selectedElementDetails}
+                onUpdateElement={handleUpdateSelectedElement}
+                activeArtboardDetails={
+                  activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
+                }
+                onUpdateArtboardDetails={handleUpdateArtboardDetails}
+                className="h-full"
+              />
+            </div>
           </div>
         </SidebarInset>
       </SidebarProvider>

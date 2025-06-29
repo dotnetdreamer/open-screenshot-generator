@@ -557,216 +557,214 @@ export function PropertiesPanel({
     const groupedFonts = getGroupedFontOptions();
     
     return (
-      <div className="w-full flex flex-wrap gap-2 items-start">
-        {/* Content - single line input */}
-        <div className="flex-1 min-w-[150px] max-w-[250px]">
-          <Label htmlFor="textContent" className="text-xs mb-1 block">Content</Label>
+      <div className="space-y-4">
+        {/* Content */}
+        <div className="space-y-2">
+          <Label htmlFor="textContent" className="text-xs font-medium">Content</Label>
           <Input
             id="textContent"
             value={localContent}
             onChange={(e) => setLocalContent(e.target.value)}
             onBlur={handleTextContentBlur}
-            className="text-sm h-8"
+            className="text-sm"
           />
         </div>
         
-        {/* Font Controls - First Row */}
-        <div className="flex gap-2 flex-wrap">
-          {/* Font Family */}
-          <div className="w-[180px]">
-            <Label htmlFor="fontFamily" className="text-xs mb-1 block">Font</Label>
-            <Select
-              value={element.fontFamily || 'Arial'}
-              onValueChange={(value) => onUpdateElement({ fontFamily: value })}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Font Family" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>System Fonts</SelectLabel>
-                  {groupedFonts.system.map(font => (
-                    <SelectItem 
-                      key={font.value} 
-                      value={font.value}
-                      style={{ fontFamily: `${font.value}, ${font.category}` }}
-                    >
-                      {font.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Latin Fonts</SelectLabel>
-                  {groupedFonts.latin.map(font => (
-                    <SelectItem 
-                      key={font.value} 
-                      value={font.value}
-                      style={{ fontFamily: `${font.value}, ${font.category}` }}
-                    >
-                      {font.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Arabic Fonts</SelectLabel>
-                  {groupedFonts.arabic.map(font => (
-                    <SelectItem 
-                      key={font.value} 
-                      value={font.value}
-                      style={{ fontFamily: `${font.value}, ${font.category}` }}
-                    >
-                      {font.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Urdu Fonts</SelectLabel>
-                  {groupedFonts.urdu.map(font => (
-                    <SelectItem 
-                      key={font.value} 
-                      value={font.value}
-                      style={{ fontFamily: `${font.value}, ${font.category}` }}
-                    >
-                      {font.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Multilingual</SelectLabel>
-                  {groupedFonts.multilingual.map(font => (
-                    <SelectItem 
-                      key={font.value} 
-                      value={font.value}
-                      style={{ fontFamily: `${font.value}, ${font.category}` }}
-                    >
-                      {font.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Font Family */}
+        <div className="space-y-2">
+          <Label htmlFor="fontFamily" className="text-xs font-medium">Font Family</Label>
+          <Select
+            value={element.fontFamily || 'Arial'}
+            onValueChange={(value) => onUpdateElement({ fontFamily: value })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Font Family" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>System Fonts</SelectLabel>
+                {groupedFonts.system.map(font => (
+                  <SelectItem 
+                    key={font.value} 
+                    value={font.value}
+                    style={{ fontFamily: `${font.value}, ${font.category}` }}
+                  >
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Latin Fonts</SelectLabel>
+                {groupedFonts.latin.map(font => (
+                  <SelectItem 
+                    key={font.value} 
+                    value={font.value}
+                    style={{ fontFamily: `${font.value}, ${font.category}` }}
+                  >
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Arabic Fonts</SelectLabel>
+                {groupedFonts.arabic.map(font => (
+                  <SelectItem 
+                    key={font.value} 
+                    value={font.value}
+                    style={{ fontFamily: `${font.value}, ${font.category}` }}
+                  >
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Urdu Fonts</SelectLabel>
+                {groupedFonts.urdu.map(font => (
+                  <SelectItem 
+                    key={font.value} 
+                    value={font.value}
+                    style={{ fontFamily: `${font.value}, ${font.category}` }}
+                  >
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectGroup>
+                <SelectLabel>Multilingual</SelectLabel>
+                {groupedFonts.multilingual.map(font => (
+                  <SelectItem 
+                    key={font.value} 
+                    value={font.value}
+                    style={{ fontFamily: `${font.value}, ${font.category}` }}
+                  >
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
           
-          {/* Font Size */}
-          <div className="w-[60px]">
-            <Label htmlFor="fontSize" className="text-xs mb-1 block">Size</Label>
+        {/* Font Size and Line Height */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="fontSize" className="text-xs font-medium">Font Size</Label>
             <Input
               id="fontSize"
               type="number"
               value={element.fontSize}
               onChange={(e) => onUpdateElement({ fontSize: parseInt(e.target.value, 10) || 16 })}
-              className="text-sm h-8"
+              className="text-sm"
             />
           </div>
           
-          {/* Line Height */}
-          <div className="w-[60px]">
-            <Label htmlFor="lineHeight" className="text-xs mb-1 block">Line H.</Label>
+          <div className="space-y-2">
+            <Label htmlFor="lineHeight" className="text-xs font-medium">Line Height</Label>
             <Input
               id="lineHeight"
               type="number"
               value={lineHeight}
               onChange={handleLineHeightChange}
-              className="text-sm h-8"
+              className="text-sm"
               step="0.1"
             />
           </div>
+        </div>
           
-          {/* Font Color */}
-          <div className="w-[120px]">
-            <Label htmlFor="fontColor" className="text-xs mb-1 block">Color</Label>
-            <div className="flex items-center gap-1">
-              <Input
-                id="fontColor"
-                type="color"
-                value={element.color}
-                onChange={(e) => onUpdateElement({ color: e.target.value })}
-                className="w-8 h-8 p-1"
-              />
-              <Input
-                type="text"
-                value={element.color}
-                onChange={(e) => onUpdateElement({ color: e.target.value })}
-                className="w-[80px] h-8 text-xs"
-              />
-            </div>
+        {/* Font Color */}
+        <div className="space-y-2">
+          <Label htmlFor="fontColor" className="text-xs font-medium">Color</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="fontColor"
+              type="color"
+              value={element.color}
+              onChange={(e) => onUpdateElement({ color: e.target.value })}
+              className="w-10 h-10 p-1"
+            />
+            <Input
+              type="text"
+              value={element.color}
+              onChange={(e) => onUpdateElement({ color: e.target.value })}
+              className="flex-1 text-xs font-mono"
+            />
           </div>
+        </div>
           
-          {/* Font Style */}
-          <div>
-            <Label className="text-xs mb-1 block">Style</Label>
-            <div className="flex items-center space-x-1">
-              <Button
-                variant={fontWeight === 'bold' ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => toggleFontStyle('fontWeight', 'bold')}
-                title="Bold"
-              >
-                <Bold className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={fontStyle === 'italic' ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => toggleFontStyle('fontStyle', 'italic')}
-                title="Italic"
-              >
-                <Italic className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={textDecoration?.includes('underline') ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => toggleFontStyle('textDecoration', 'underline')}
-                title="Underline"
-              >
-                <Underline className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={textDecoration?.includes('line-through') ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => toggleFontStyle('textDecoration', 'line-through')}
-                title="Strikethrough"
-              >
-                <Strikethrough className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+        {/* Font Style */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium">Text Style</Label>
+          <div className="flex items-center space-x-1 flex-wrap gap-1">
+            <Button
+              variant={fontWeight === 'bold' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('fontWeight', 'bold')}
+              title="Bold"
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={fontStyle === 'italic' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('fontStyle', 'italic')}
+              title="Italic"
+            >
+              <Italic className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textDecoration?.includes('underline') ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('textDecoration', 'underline')}
+              title="Underline"
+            >
+              <Underline className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textDecoration?.includes('line-through') ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => toggleFontStyle('textDecoration', 'line-through')}
+              title="Strikethrough"
+            >
+              <Strikethrough className="h-3.5 w-3.5" />
+            </Button>
           </div>
+        </div>
           
-          {/* Text Alignment */}
-          <div>
-            <Label className="text-xs mb-1 block">Align</Label>
-            <div className="flex items-center space-x-1">
-              <Button
-                variant={textAlign === 'left' ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setTextAlignment('left')}
-                title="Align Left"
-              >
-                <AlignLeft className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={textAlign === 'center' ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setTextAlignment('center')}
-                title="Align Center"
-              >
-                <AlignCenter className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant={textAlign === 'right' ? 'default' : 'outline'}
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setTextAlignment('right')}
-                title="Align Right"
-              >
-                <AlignRight className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+        {/* Text Alignment */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium">Text Alignment</Label>
+          <div className="flex items-center space-x-1">
+            <Button
+              variant={textAlign === 'left' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTextAlignment('left')}
+              title="Align Left"
+            >
+              <AlignLeft className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textAlign === 'center' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTextAlignment('center')}
+              title="Align Center"
+            >
+              <AlignCenter className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant={textAlign === 'right' ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTextAlignment('right')}
+              title="Align Right"
+            >
+              <AlignRight className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       </div>
@@ -1207,8 +1205,13 @@ export function PropertiesPanel({
   // No element or artboard selected
   if (!selectedElement && !activeArtboardDetails) {
     return (
-      <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 text-sm text-muted-foreground min-h-[56px]", className)} suppressHydrationWarning>
-        No element selected. Select an element or artboard to see its properties.
+      <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
+        <div className="px-4 py-3 border-b bg-card">
+          <div className="font-medium text-foreground">Properties</div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          <div className="text-sm text-muted-foreground">Select an element or artboard to see its properties.</div>
+        </div>
       </div>
     );
   }
@@ -1219,142 +1222,149 @@ export function PropertiesPanel({
     const displayColor = cssVarToHex(solidColor);
     
     return (
-      <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
-        <div className="flex flex-col space-y-1">
-          <Label htmlFor="bgType" className="text-xs">Background Type</Label>
-          <RadioGroup 
-            id="bgType"
-            value={activeBackgroundTab}
-            onValueChange={handleBackgroundTabChange}
-            className="flex items-center space-x-4 h-8"
-          >
-            <div className="flex items-center space-x-1">
-              <RadioGroupItem value="solid" id="solid" />
-              <Label htmlFor="solid" className="text-xs cursor-pointer">Solid</Label>
-            </div>
-            <div className="flex items-center space-x-1">
-              <RadioGroupItem value="gradient" id="gradient" />
-              <Label htmlFor="gradient" className="text-xs cursor-pointer">Gradient</Label>
-            </div>
-          </RadioGroup>
+      <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
+        <div className="px-4 py-3 border-b bg-card">
+          <div className="font-medium text-foreground">Artboard Background</div>
         </div>
-
-        {activeBackgroundTab === 'solid' ? (
-          <div className="flex flex-col space-y-1">
-            <Label htmlFor="bgColor" className="text-xs">Background Color</Label>
-            <div className="flex items-center space-x-2">
-              <Input
-                id="bgColor"
-                type="color"
-                value={displayColor}
-                onChange={(e) => handleSolidColorChange(e.target.value)}
-                className="w-8 h-8 p-1"
-              />
-              <Input
-                type="text"
-                value={displayColor.toUpperCase()}
-                onChange={(e) => handleSolidColorChange(e.target.value)}
-                className="w-24 font-mono text-xs h-8"
-              />
-            </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          <div className="space-y-2">
+            <Label htmlFor="bgType" className="text-xs font-medium">Background Type</Label>
+            <RadioGroup 
+              id="bgType"
+              value={activeBackgroundTab}
+              onValueChange={handleBackgroundTabChange}
+              className="flex flex-col space-y-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="solid" id="solid" />
+                <Label htmlFor="solid" className="text-xs cursor-pointer">Solid Color</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="gradient" id="gradient" />
+                <Label htmlFor="gradient" className="text-xs cursor-pointer">Gradient</Label>
+              </div>
+            </RadioGroup>
           </div>
-        ) : (
-          <>
-            <div className="flex flex-col space-y-1">
-              <Label className="text-xs">First Color</Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="color"
-                  value={gradientColor1}
-                  onChange={(e) => handleGradientChange('color1', e.target.value)}
-                  className="w-8 h-8 p-1"
-                />
-                <Input
-                  type="text"
-                  value={gradientColor1.toUpperCase()}
-                  onChange={(e) => handleGradientChange('color1', e.target.value)}
-                  className="w-24 font-mono text-xs h-8"
-                />
-              </div>
-            </div>
-            
-            <div className="flex flex-col space-y-1">
-              <Label className="text-xs">Second Color</Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="color"
-                  value={gradientColor2}
-                  onChange={(e) => handleGradientChange('color2', e.target.value)}
-                  className="w-8 h-8 p-1"
-                />
-                <Input
-                  type="text"
-                  value={gradientColor2.toUpperCase()}
-                  onChange={(e) => handleGradientChange('color2', e.target.value)}
-                  className="w-24 font-mono text-xs h-8"
-                />
-              </div>
-            </div>
-            
-            <div className="flex flex-col space-y-1 min-w-[120px]">
-              <Label htmlFor="gradientAngle" className="text-xs">
-                Angle: {gradientAngle}°
-              </Label>
-              <Slider
-                id="gradientAngle"
-                min={0}
-                max={360}
-                step={1}
-                value={[gradientAngle]}
-                onValueChange={(value) => handleGradientChange('angle', value[0])}
-                className="w-24"
-              />
-            </div>
-          </>
-        )}
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8">
-              <Palette className="w-3 h-3 mr-1" />
-              <span>{activeBackgroundTab === 'solid' ? 'Color Presets' : 'Gradient Presets'}</span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-72 p-2">
+          {activeBackgroundTab === 'solid' ? (
             <div className="space-y-2">
-              <Label className="text-xs">
-                {activeBackgroundTab === 'solid' ? 'Color Palette' : 'Gradient Presets'}
-              </Label>
-              
-              {activeBackgroundTab === 'solid' ? (
-                <div className="grid grid-cols-5 gap-1">
-                  {solidColorPalette.slice(0, 20).map((color, index) => (
-                    <button
-                      key={`solid-${index}`}
-                      className="w-8 h-8 rounded border border-border hover:opacity-80 focus:ring-2 focus:ring-primary"
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleSolidColorChange(color)}
-                      title={color}
-                    />
-                  ))}
+              <Label htmlFor="bgColor" className="text-xs font-medium">Background Color</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="bgColor"
+                    type="color"
+                    value={displayColor}
+                    onChange={(e) => handleSolidColorChange(e.target.value)}
+                    className="w-10 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={displayColor.toUpperCase()}
+                    onChange={(e) => handleSolidColorChange(e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
                 </div>
-              ) : (
-                <div className="grid grid-cols-3 gap-1">
-                  {gradientPresets.map((preset, index) => (
-                    <button
-                      key={`gradient-${index}`}
-                      className="h-10 rounded border border-border hover:opacity-80 focus:ring-2 focus:ring-primary"
-                      style={{
-                        background: `linear-gradient(${preset.angle}deg, ${preset.color1}, ${preset.color2})`
-                      }}
-                      onClick={() => applyGradientPreset(preset)}
-                    />
-                  ))}
-                </div>
-              )}
+              </div>
             </div>
-          </PopoverContent>
-        </Popover>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">First Color</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="color"
+                    value={gradientColor1}
+                    onChange={(e) => handleGradientChange('color1', e.target.value)}
+                    className="w-10 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={gradientColor1.toUpperCase()}
+                    onChange={(e) => handleGradientChange('color1', e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">Second Color</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="color"
+                    value={gradientColor2}
+                    onChange={(e) => handleGradientChange('color2', e.target.value)}
+                    className="w-10 h-10 p-1"
+                  />
+                  <Input
+                    type="text"
+                    value={gradientColor2.toUpperCase()}
+                    onChange={(e) => handleGradientChange('color2', e.target.value)}
+                    className="flex-1 font-mono text-xs"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="gradientAngle" className="text-xs font-medium">
+                  Angle: {gradientAngle}°
+                </Label>
+                <Slider
+                  id="gradientAngle"
+                  min={0}
+                  max={360}
+                  step={1}
+                  value={[gradientAngle]}
+                  onValueChange={(value) => handleGradientChange('angle', value[0])}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          )}
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full">
+                <Palette className="w-3 h-3 mr-1" />
+                <span>{activeBackgroundTab === 'solid' ? 'Color Presets' : 'Gradient Presets'}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72 p-2">
+              <div className="space-y-2">
+                <Label className="text-xs">
+                  {activeBackgroundTab === 'solid' ? 'Color Palette' : 'Gradient Presets'}
+                </Label>
+                
+                {activeBackgroundTab === 'solid' ? (
+                  <div className="grid grid-cols-5 gap-1">
+                    {solidColorPalette.slice(0, 20).map((color, index) => (
+                      <button
+                        key={`solid-${index}`}
+                        className="w-8 h-8 rounded border border-border hover:opacity-80 focus:ring-2 focus:ring-primary"
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleSolidColorChange(color)}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-1">
+                    {gradientPresets.map((preset, index) => (
+                      <button
+                        key={`gradient-${index}`}
+                        className="h-10 rounded border border-border hover:opacity-80 focus:ring-2 focus:ring-primary"
+                        style={{
+                          background: `linear-gradient(${preset.angle}deg, ${preset.color1}, ${preset.color2})`
+                        }}
+                        onClick={() => applyGradientPreset(preset)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
     );
   }
@@ -1362,11 +1372,18 @@ export function PropertiesPanel({
   // Element properties
   if (selectedElement) {
     return (
-      <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 space-x-4 text-sm flex-wrap gap-y-2 min-h-[56px]", className)} suppressHydrationWarning>
-        {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
-        {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
-        {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
-        {selectedElement.type === 'image' && renderImageProperties(selectedElement as ImageElementProps)}
+      <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
+        <div className="px-4 py-3 border-b bg-card">
+          <div className="font-medium text-foreground">
+            {selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)} Properties
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
+          {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
+          {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
+          {selectedElement.type === 'image' && renderImageProperties(selectedElement as ImageElementProps)}
+        </div>
         
         {/* Move the hidden file input outside of device-specific rendering */}
         <Input
@@ -1382,8 +1399,13 @@ export function PropertiesPanel({
 
   // Default fallback
   return (
-    <div className={cn("h-auto bg-card border-b shadow-md flex items-center px-4 py-3 text-sm text-muted-foreground min-h-[56px]", className)} suppressHydrationWarning>
-      Loading properties...
+    <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
+      <div className="px-4 py-3 border-b bg-card">
+        <div className="font-medium text-foreground">Properties</div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="text-sm text-muted-foreground">Select an element to view properties</div>
+      </div>
     </div>
   );
 }
