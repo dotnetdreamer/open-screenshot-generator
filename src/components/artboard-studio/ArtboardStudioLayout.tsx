@@ -842,6 +842,17 @@ export function ArtboardStudioLayout() {
           handleRedo();
         }
       }
+
+      // Tool shortcuts: H for hand/pan tool, V for selection tool
+      if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        setActiveTool('pan');
+      }
+
+      if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setActiveTool('select');
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -849,7 +860,7 @@ export function ArtboardStudioLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem]);
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, setActiveTool]);
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
@@ -1053,6 +1064,17 @@ export function ArtboardStudioLayout() {
         if (historyIndex < history.length - 1) {
           handleRedo();
         }
+      }
+
+      // Tool shortcuts: H for hand/pan tool, V for selection tool
+      if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        setActiveTool('pan');
+      }
+
+      if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setActiveTool('select');
       }
     };
 
