@@ -190,6 +190,12 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           objectFit: 'cover' as const,
           opacity: 1,
           borderRadius: 0,
+          // Transform properties with default values
+          skewX: 0,
+          skewY: 0,
+          perspectiveX: 0,
+          perspectiveY: 0,
+          matrix3d: '',
         } as ImageElementProps;
       } else if (type === 'shape' && subType) {
         const shapeProps: Partial<ShapeElementProps> = {
@@ -331,7 +337,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           width: `${containerWidth}px`,
           height: `${containerHeight}px`,
           position: 'relative',
-          overflow: 'hidden',
+          overflow: 'visible', // Allow overflow to show transformed elements
           marginTop: '1.25rem',
         }}
       >
@@ -344,7 +350,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           data-export-width={artboard.size.width} // Add explicit export dimensions
           data-export-height={artboard.size.height} // Add explicit export dimensions
           className={cn(
-            "artboard relative shadow-lg overflow-hidden bg-white",
+            "artboard relative shadow-lg bg-white",
             isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
           )}
           style={{
@@ -356,6 +362,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             top: 0,
             left: 0,
             marginTop: '0', // Keep this at 0
+            overflow: 'visible', // Allow overflow to show transformed elements
             ...backgroundStyle,
           }}
           onClick={handleArtboardClick}

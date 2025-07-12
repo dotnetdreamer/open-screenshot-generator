@@ -32,6 +32,45 @@ interface PropertiesPanelProps {
   className?: string;
 }
 
+// Transform presets for quick application
+const transformPresets = [
+  {
+    name: 'None',
+    description: 'No transform',
+    values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: '' }
+  },
+  {
+    name: 'Slight Tilt',
+    description: 'Slight perspective tilt',
+    values: { skewX: 0, skewY: 0, perspectiveX: 5, perspectiveY: 2, matrix3d: '' }
+  },
+  {
+    name: 'Left Perspective',
+    description: 'Strong left perspective',
+    values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: 25, matrix3d: '' }
+  },
+  {
+    name: 'Right Perspective',
+    description: 'Strong right perspective',
+    values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: -25, matrix3d: '' }
+  },
+  {
+    name: 'Skew Right',
+    description: 'Skew to the right',
+    values: { skewX: 15, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: '' }
+  },
+  {
+    name: 'Skew Left',
+    description: 'Skew to the left',
+    values: { skewX: -15, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: '' }
+  },
+  {
+    name: 'App Store Style',
+    description: 'Popular app store preview style',
+    values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: 'matrix3d(1.11397, -0.175046, 0, 6.13e-05, 0.536454, 0.828959, 0, -5.99e-05, 0, 0, 1, 0, -76.0176, 64.4342, 0, 1)' }
+  }
+];
+
 // Predefined solid colors
 const solidColorPalette = [
   '#E97451', // Burnt Sienna
@@ -851,87 +890,234 @@ export function PropertiesPanel({
   };
 
   // Function to render image properties
-  const renderImageProperties = (element: ImageElementProps) => (
-    <div className="w-full flex flex-wrap gap-2 items-start">
-      {/* Image Upload Button */}
-      <div className="flex-shrink-0">
-        <Label className="text-xs mb-1 block">Image</Label>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleImageUploadButtonClick('image')}
-          className="text-xs h-8"
-        >
-          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-          {element.imageSrc ? 'Change Image' : 'Upload Image'}
-        </Button>
+  const renderImageProperties = (element: ImageElementProps) => {
+    console.log('Rendering image properties for element:', element.id, 'skewX:', element.skewX, 'skewY:', element.skewY);
+    
+    return (
+    <div className="space-y-4">
+      {/* Image Upload and Basic Properties */}
+      <div className="w-full flex flex-wrap gap-2 items-start">
+        {/* Image Upload Button */}
+        <div className="flex-shrink-0">
+          <Label className="text-xs mb-1 block">Image</Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleImageUploadButtonClick('image')}
+            className="text-xs h-8"
+          >
+            <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+            {element.imageSrc ? 'Change Image' : 'Upload Image'}
+          </Button>
+        </div>
+
+        {/* Object Fit */}
+        <div className="w-[120px]">
+          <Label htmlFor="objectFit" className="text-xs mb-1 block">Object Fit</Label>
+          <Select
+            value={element.objectFit || 'cover'}
+            onValueChange={(value) => onUpdateElement({ objectFit: value as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' })}
+          >
+            <SelectTrigger id="objectFit" className="h-8 text-xs">
+              <SelectValue placeholder="Object Fit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cover">Cover</SelectItem>
+              <SelectItem value="contain">Contain</SelectItem>
+              <SelectItem value="fill">Fill</SelectItem>
+              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="scale-down">Scale Down</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Opacity */}
+        <div className="w-[120px]">
+          <Label htmlFor="opacity" className="text-xs mb-1 block">
+            Opacity: {Math.round((element.opacity || 1) * 100)}%
+          </Label>
+          <Slider
+            id="opacity"
+            min={0}
+            max={1}
+            step={0.01}
+            value={[element.opacity || 1]}
+            onValueChange={(value) => onUpdateElement({ opacity: value[0] })}
+            className="my-2"
+          />
+        </div>
+
+        {/* Border Radius */}
+        <div className="w-[120px]">
+          <Label htmlFor="imageBorderRadius" className="text-xs mb-1 block">
+            Border Radius: {element.borderRadius || 0}px
+          </Label>
+          <Slider
+            id="imageBorderRadius"
+            min={0}
+            max={50}
+            step={1}
+            value={[element.borderRadius || 0]}
+            onValueChange={(value) => onUpdateElement({ borderRadius: value[0] })}
+            className="my-2"
+          />
+        </div>
+
+        {/* Image Alt Text */}
+        <div className="flex-1 min-w-[150px]">
+          <Label htmlFor="imageAlt" className="text-xs mb-1 block">Alt Text</Label>
+          <Input
+            id="imageAlt"
+            value={element.imageAlt || ''}
+            onChange={(e) => onUpdateElement({ imageAlt: e.target.value })}
+            placeholder="Describe the image"
+            className="text-xs h-8"
+          />
+        </div>
       </div>
 
-      {/* Object Fit */}
-      <div className="w-[120px]">
-        <Label htmlFor="objectFit" className="text-xs mb-1 block">Object Fit</Label>
-        <Select
-          value={element.objectFit || 'cover'}
-          onValueChange={(value) => onUpdateElement({ objectFit: value as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' })}
-        >
-          <SelectTrigger id="objectFit" className="h-8 text-xs">
-            <SelectValue placeholder="Object Fit" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="cover">Cover</SelectItem>
-            <SelectItem value="contain">Contain</SelectItem>
-            <SelectItem value="fill">Fill</SelectItem>
-            <SelectItem value="none">None</SelectItem>
-            <SelectItem value="scale-down">Scale Down</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Transform Properties */}
+      <div className="space-y-3">
+        <div className="text-sm font-medium text-foreground border-b pb-1">Transform</div>
+        
+        {/* Transform Presets */}
+        <div>
+          <Label className="text-xs mb-2 block">Transform Presets</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {transformPresets.map((preset) => (
+              <Button
+                key={preset.name}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log('Applying transform preset:', preset.name, preset.values);
+                  onUpdateElement(preset.values);
+                }}
+                className="text-xs h-8 justify-start"
+                title={preset.description}
+              >
+                {preset.name}
+              </Button>
+            ))}
+          </div>
+        </div>
 
-      {/* Opacity */}
-      <div className="w-[120px]">
-        <Label htmlFor="opacity" className="text-xs mb-1 block">
-          Opacity: {Math.round((element.opacity || 1) * 100)}%
-        </Label>
-        <Slider
-          id="opacity"
-          min={0}
-          max={1}
-          step={0.01}
-          value={[element.opacity || 1]}
-          onValueChange={(value) => onUpdateElement({ opacity: value[0] })}
-          className="my-2"
-        />
-      </div>
+        {/* Skew Controls */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="skewX" className="text-xs mb-1 block">
+              Skew X: {element.skewX || 0}°
+            </Label>
+            <Slider
+              id="skewX"
+              min={-45}
+              max={45}
+              step={1}
+              value={[element.skewX || 0]}
+              onValueChange={(value) => {
+                console.log('Updating skewX to:', value[0]);
+                onUpdateElement({ skewX: value[0] });
+              }}
+              className="my-2"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="skewY" className="text-xs mb-1 block">
+              Skew Y: {element.skewY || 0}°
+            </Label>
+            <Slider
+              id="skewY"
+              min={-45}
+              max={45}
+              step={1}
+              value={[element.skewY || 0]}
+              onValueChange={(value) => {
+                console.log('Updating skewY to:', value[0]);
+                onUpdateElement({ skewY: value[0] });
+              }}
+              className="my-2"
+            />
+          </div>
+        </div>
 
-      {/* Border Radius */}
-      <div className="w-[120px]">
-        <Label htmlFor="imageBorderRadius" className="text-xs mb-1 block">
-          Border Radius: {element.borderRadius || 0}px
-        </Label>
-        <Slider
-          id="imageBorderRadius"
-          min={0}
-          max={50}
-          step={1}
-          value={[element.borderRadius || 0]}
-          onValueChange={(value) => onUpdateElement({ borderRadius: value[0] })}
-          className="my-2"
-        />
-      </div>
+        {/* Perspective Controls */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="perspectiveX" className="text-xs mb-1 block">
+              Perspective X: {element.perspectiveX || 0}°
+            </Label>
+            <Slider
+              id="perspectiveX"
+              min={-60}
+              max={60}
+              step={1}
+              value={[element.perspectiveX || 0]}
+              onValueChange={(value) => {
+                console.log('Updating perspectiveX to:', value[0]);
+                onUpdateElement({ perspectiveX: value[0] });
+              }}
+              className="my-2"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="perspectiveY" className="text-xs mb-1 block">
+              Perspective Y: {element.perspectiveY || 0}°
+            </Label>
+            <Slider
+              id="perspectiveY"
+              min={-60}
+              max={60}
+              step={1}
+              value={[element.perspectiveY || 0]}
+              onValueChange={(value) => {
+                console.log('Updating perspectiveY to:', value[0]);
+                onUpdateElement({ perspectiveY: value[0] });
+              }}
+              className="my-2"
+            />
+          </div>
+        </div>
 
-      {/* Image Alt Text */}
-      <div className="flex-1 min-w-[150px]">
-        <Label htmlFor="imageAlt" className="text-xs mb-1 block">Alt Text</Label>
-        <Input
-          id="imageAlt"
-          value={element.imageAlt || ''}
-          onChange={(e) => onUpdateElement({ imageAlt: e.target.value })}
-          placeholder="Describe the image"
-          className="text-xs h-8"
-        />
+        {/* Custom Matrix3D */}
+        <div>
+          <Label htmlFor="matrix3d" className="text-xs mb-1 block">
+            Custom Matrix3D
+          </Label>
+          <Textarea
+            id="matrix3d"
+            value={element.matrix3d || ''}
+            onChange={(e) => onUpdateElement({ matrix3d: e.target.value })}
+            placeholder="matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)"
+            className="text-xs h-20 resize-none"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Enter a custom CSS matrix3d transform. Leave blank to use individual controls above.
+          </p>
+        </div>
+
+        {/* Reset Transform Button */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onUpdateElement({ 
+              skewX: 0, 
+              skewY: 0, 
+              perspectiveX: 0, 
+              perspectiveY: 0,
+              matrix3d: '' 
+            })}
+            className="text-xs"
+          >
+            Reset Transform
+          </Button>
+        </div>
       </div>
     </div>
   );
+  };
 
   // Function to render shape-specific controls
   const renderShapeProperties = (element: ShapeElementProps) => {

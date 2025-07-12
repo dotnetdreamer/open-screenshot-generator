@@ -114,6 +114,12 @@ export interface ImageElementProps extends BaseElement {
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
   opacity?: number;
   borderRadius?: number;
+  // Transform properties
+  skewX?: number; // Skew along X-axis in degrees
+  skewY?: number; // Skew along Y-axis in degrees
+  perspectiveX?: number; // Perspective tilt along X-axis
+  perspectiveY?: number; // Perspective tilt along Y-axis
+  matrix3d?: string; // Custom CSS matrix3d transform
 }
 
 export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps | ImageElementProps;

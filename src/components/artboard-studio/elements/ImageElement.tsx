@@ -1,6 +1,6 @@
 "use client";
-import type React from 'react';
-import { useState, useRef } from 'react';
+import React from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,18 @@ interface ImageElementComponentProps {
 export function ImageElement({ element, onUpdate, isSelected }: ImageElementComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Debug: Log the element properties
+  useEffect(() => {
+    console.log('ImageElement props changed:', {
+      id: element.id,
+      skewX: element.skewX,
+      skewY: element.skewY,
+      perspectiveX: element.perspectiveX,
+      perspectiveY: element.perspectiveY,
+      matrix3d: element.matrix3d
+    });
+  }, [element.id, element.skewX, element.skewY, element.perspectiveX, element.perspectiveY, element.matrix3d]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -42,10 +54,62 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
     fileInputRef.current?.click();
   };
 
+  // Generate CSS transform based on element properties
+  const generateTransformStyle = (): React.CSSProperties => {
+    const transforms: string[] = [];
+    
+    // Apply skew transforms
+    if (element.skewX && element.skewX !== 0) {
+      transforms.push(`skewX(${element.skewX}deg)`);
+    }
+    if (element.skewY && element.skewY !== 0) {
+      transforms.push(`skewY(${element.skewY}deg)`);
+    }
+    
+    // Apply perspective tilts
+    if (element.perspectiveX && element.perspectiveX !== 0) {
+      transforms.push(`rotateX(${element.perspectiveX}deg)`);
+    }
+    if (element.perspectiveY && element.perspectiveY !== 0) {
+      transforms.push(`rotateY(${element.perspectiveY}deg)`);
+    }
+    
+    // If custom matrix3d is provided, use it instead of individual transforms
+    if (element.matrix3d && element.matrix3d.trim()) {
+      return {
+        transform: element.matrix3d,
+        transformOrigin: 'center center',
+        transformStyle: 'preserve-3d' as const
+      };
+    }
+    
+    if (transforms.length > 0) {
+      const transformString = transforms.join(' ');
+      console.log('ImageElement transform:', transformString, 'Element:', element.id);
+      return {
+        transform: transformString,
+        transformOrigin: 'center center',
+        transformStyle: 'preserve-3d' as const
+      };
+    }
+    
+    return {};
+  };
+
+  const transformStyle = generateTransformStyle();
+
   return (
-    <div className="w-full h-full relative bg-muted/10 flex items-center justify-center overflow-hidden">
+    <div 
+      className="w-full h-full relative bg-muted/10 flex items-center justify-center"
+      style={{ 
+        perspective: '1000px' // Add perspective for 3D transforms
+      }}
+    >
       {element.imageSrc ? (
-        <div className="w-full h-full relative">
+        <div 
+          className="w-full h-full relative"
+          style={transformStyle}
+        >
           <Image
             src={element.imageSrc}
             alt={element.imageAlt || 'Uploaded image'}
