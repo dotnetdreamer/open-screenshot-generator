@@ -4,7 +4,12 @@ A browser-based editor for designing app store screenshots. You lay out artboard
 
 Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
 
-![The start screen: pick one of the bundled templates or start with a blank canvas](docs/screenshot-home.png)
+<p align="center">
+  <img src="docs/screenshot-app.png" alt="The editor: element palette on the left, three phone-sized artboards on the canvas, and the properties panel on the right" width="900">
+</p>
+<p align="center">
+  <em>The editor — element palette, artboards on the canvas, and the properties panel for whatever is selected.</em>
+</p>
 
 ## What it does
 
@@ -30,6 +35,13 @@ npm run dev
 ```
 
 The dev server runs on http://localhost:9002 with Turbopack. When the app opens, pick one of the bundled templates or start blank, and you're in the editor.
+
+<p align="center">
+  <img src="docs/screenshot-home.png" alt="The start screen: a grid of bundled template cards and a Start Blank button" width="700">
+</p>
+<p align="center">
+  <em>The start screen — pick a template or start with a blank canvas.</em>
+</p>
 
 Other scripts:
 
