@@ -308,6 +308,85 @@ const zigzagRibbonSub = (cycles: number, amp: number, yTop: number, thickness: n
   return polyPath([...top, ...bottom]);
 };
 
+/** Open Catmull-Rom spline segments (C commands only, no leading M). */
+const splineSegs = (pts: Pt[]): string => {
+  const n = pts.length;
+  let d = '';
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(n - 1, i + 2)];
+    const c1: Pt = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: Pt = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${fmt(c1[0])} ${fmt(c1[1])} ${fmt(c2[0])} ${fmt(c2[1])} ${fmt(p2[0])} ${fmt(p2[1])}`;
+  }
+  return d;
+};
+
+/** Open smooth stroke through points (hand-drawn squiggles). */
+const smoothOpenSub = (pts: Pt[]): string => `M${fmt(pts[0][0])} ${fmt(pts[0][1])}` + splineSegs(pts);
+
+/** Filled band: smooth top edge (left→right) closed by a smooth bottom edge (given left→right). */
+const bandSub = (top: Pt[], bottom: Pt[]): string => {
+  const rev = [...bottom].reverse();
+  return smoothOpenSub(top) + ` L${fmt(rev[0][0])} ${fmt(rev[0][1])}` + splineSegs(rev) + ' Z';
+};
+
+/** Filled strip: smooth top edge running x=0→100, closed by a straight baseline. */
+const stripSub = (top: Pt[], baseY: number): string =>
+  smoothOpenSub(top) + ` L100 ${fmt(baseY)} L0 ${fmt(baseY)} Z`;
+
+/** Sample an open Catmull-Rom spline through pts (`per` samples per segment). */
+const sampleSpline = (pts: Pt[], per = 10): Pt[] => {
+  const out: Pt[] = [];
+  const n = pts.length;
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(n - 1, i + 2)];
+    for (let j = 0; j < per; j++) {
+      const t = j / per;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      out.push([
+        0.5 * (2 * p1[0] + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+        0.5 * (2 * p1[1] + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3),
+      ]);
+    }
+  }
+  out.push(pts[n - 1]);
+  return out;
+};
+
+/** Filled brush stroke along a spline; halfWidth(t) varies thickness for calligraphic tapers. */
+const brushStrokeSub = (pts: Pt[], halfWidth: (t: number) => number): string => {
+  const line = sampleSpline(pts);
+  const n = line.length;
+  const left: Pt[] = [];
+  const right: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = line[Math.max(0, i - 1)];
+    const b = line[Math.min(n - 1, i + 1)];
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1;
+    const hw = halfWidth(i / (n - 1));
+    left.push([line[i][0] - (dy / len) * hw, line[i][1] + (dx / len) * hw]);
+    right.push([line[i][0] + (dy / len) * hw, line[i][1] - (dx / len) * hw]);
+  }
+  right.reverse();
+  const cap = (r: number, to: Pt): string =>
+    r > 0.7 ? ` A${fmt(r)} ${fmt(r)} 0 0 1 ${fmt(to[0])} ${fmt(to[1])}` : ` L${fmt(to[0])} ${fmt(to[1])}`;
+  let d = `M${fmt(left[0][0])} ${fmt(left[0][1])}`;
+  for (let i = 1; i < n; i++) d += ` L${fmt(left[i][0])} ${fmt(left[i][1])}`;
+  d += cap(halfWidth(1), right[0]);
+  for (let i = 1; i < n; i++) d += ` L${fmt(right[i][0])} ${fmt(right[i][1])}`;
+  d += cap(halfWidth(0), left[0]);
+  return d + ' Z';
+};
+
 const dashedLineSub = (y: number, dash: number, gap: number): string => {
   let d = '';
   for (let x = 2; x < 98; x += dash + gap) {
@@ -1045,6 +1124,25 @@ const stars: LibraryElementDef[] = [
   el('star-wavy', 'Wavy Star', roundedPolySub(polarPts(12, 50, 50, i => (i % 2 === 0 ? 47 : 29)), 9)),
 ];
 
+/** Symmetric seismic-pulse profile: spiky top edge mirrored around y=50. */
+const pulseTop: Pt[] = [[0, 50], [10, 44], [18, 52], [26, 30], [34, 54], [42, 10], [50, 46], [58, 18], [66, 52], [74, 34], [82, 52], [90, 45], [100, 50]];
+
+/** Tapered filled zigzag ribbon (thick head → thin tail). */
+const zigTaperSub = (): string => {
+  const spine: Pt[] = [[94, 26], [26, 38], [72, 50], [18, 62], [60, 74], [6, 86]];
+  const w = [6.5, 5.5, 4.5, 3.5, 2.5, 1.8];
+  const top = spine.map(([x, y], i): Pt => [x, y - w[i]]);
+  const bot = spine.map(([x, y], i): Pt => [x, y + w[i]]).reverse();
+  return polyPath([...top, ...bot]);
+};
+
+/** One thin vertical zigzag stroke centered at x. */
+const vZigSub = (x: number): string => {
+  let d = `M${fmt(x - 5)} 6`;
+  for (let i = 1; i <= 8; i++) d += ` L${fmt(i % 2 === 1 ? x + 5 : x - 5)} ${fmt(6 + i * 11)}`;
+  return d;
+};
+
 const waves: LibraryElementDef[] = [
   el('wave-line', 'Wave Line', sineStrokeSub(2.5, 16, 50), { stroke: 12, size: { width: 460, height: 150 } }),
   el('wave-squiggle', 'Squiggle Line', sineStrokeSub(4, 10, 50), { stroke: 10, size: { width: 460, height: 150 } }),
@@ -1056,6 +1154,57 @@ const waves: LibraryElementDef[] = [
   el('wave-zigzag-ribbon', 'Zigzag Ribbon', zigzagRibbonSub(3, 14, 32, 24), { size: { width: 460, height: 170 } }),
   el('wave-loops', 'Loop Squiggle', 'M4 60 C10 30 26 30 30 52 C34 74 20 78 18 62 C16 44 40 30 52 48 C62 64 48 76 44 60 C40 44 62 28 78 44 C88 54 84 66 96 60', { stroke: 9, size: { width: 440, height: 170 } }),
   el('wave-bars', 'Wave Bars', waveRibbonSub(2, 7, 10, 14) + ' ' + waveRibbonSub(2, 7, 44, 14) + ' ' + waveRibbonSub(2, 7, 78, 14), { size: { width: 420, height: 260 } }),
+
+  /* thin filled strips */
+  el('wave-strip', 'Soft Strip', stripSub([[0, 50], [16, 42], [34, 54], [52, 42], [70, 54], [86, 44], [100, 50]], 66), { size: { width: 480, height: 110 } }),
+  el('wave-hill', 'Hill Band', stripSub([[0, 60], [28, 42], [58, 52], [100, 46]], 66), { size: { width: 480, height: 110 } }),
+  el('wave-lens', 'Lens Band', bandSub([[0, 54], [48, 40], [100, 50]], [[0, 56], [52, 62], [100, 52]]), { size: { width: 480, height: 110 } }),
+  el('wave-ramp', 'Ramp Band', stripSub([[0, 62], [40, 58], [72, 46], [100, 38]], 66), { size: { width: 480, height: 110 } }),
+  el('wave-scoop-strip', 'Scoop Band', stripSub([[0, 34], [18, 42], [50, 58], [82, 42], [100, 34]], 70), { size: { width: 480, height: 130 } }),
+  el('wave-rough-band', 'Rough Band', polyPath([[0, 72], [0, 56], [8, 46], [16, 56], [26, 42], [34, 58], [44, 44], [52, 60], [62, 42], [70, 56], [80, 44], [88, 58], [100, 48], [100, 72]]), { size: { width: 460, height: 140 } }),
+
+  /* filled blocks */
+  el('wave-crest-block', 'Crest Fill', stripSub([[0, 52], [18, 26], [38, 54], [60, 22], [82, 50], [100, 36]], 100), { size: { width: 420, height: 280 } }),
+  el('wave-scoop-block', 'Scoop Fill', stripSub([[0, 26], [28, 22], [52, 56], [78, 28], [100, 18]], 100), { size: { width: 420, height: 280 } }),
+  el('wave-wavy-block', 'Wavy Block', bandSub([[0, 20], [26, 10], [52, 24], [78, 10], [100, 18]], [[0, 84], [26, 78], [52, 92], [78, 78], [100, 86]]), { size: { width: 440, height: 300 } }),
+  el('wave-flag', 'Waving Flag', bandSub([[0, 22], [34, 8], [68, 22], [100, 10]], [[0, 92], [34, 78], [68, 94], [100, 80]]), { size: { width: 440, height: 300 } }),
+  el('wave-swoop-block', 'Swoop Fill', 'M0 84 C36 82 58 34 100 26 V100 H0 Z', { size: { width: 420, height: 280 } }),
+  el('wave-corner-block', 'Corner Wave', 'M0 12 C8 48 34 70 100 76 V100 H0 Z', { size: { width: 420, height: 280 } }),
+  el('wave-terrace', 'Terrace Fill', roundedPolySub([[0, 100], [0, 92], [12, 88], [18, 72], [36, 66], [42, 50], [60, 44], [66, 28], [84, 22], [90, 8], [100, 6], [100, 100]], 7), { size: { width: 420, height: 300 } }),
+  el('wave-scallop-block', 'Scallop Fill', 'M0 16 H100 V54 A16.67 16.67 0 0 1 66.66 54 A16.67 16.67 0 0 1 33.33 54 A16.67 16.67 0 0 1 0 54 Z', { size: { width: 420, height: 240 } }),
+  el('wave-cloud-block', 'Cloud Fill', 'M0 14 H100 V64 C90 64 92 86 74 86 C60 86 64 66 50 66 C40 66 44 92 26 92 C12 92 16 70 0 74 Z', { size: { width: 420, height: 280 } }),
+  el('wave-cornice', 'Cornice', 'M2 20 H98 V38 C82 38 76 60 56 58 C40 56 34 42 18 46 C8 48 2 56 2 58 Z', { size: { width: 420, height: 220 } }),
+  el('wave-audio', 'Waveform Fill', polyPath([[0, 100], [0, 66], [5, 50], [10, 62], [15, 34], [20, 56], [25, 22], [30, 52], [35, 30], [40, 58], [45, 14], [50, 48], [55, 28], [60, 56], [65, 38], [70, 60], [75, 46], [82, 62], [100, 64], [100, 100]]), { size: { width: 420, height: 260 } }),
+  el('wave-pulse', 'Sound Pulse', polyPath([...pulseTop, ...[...pulseTop].reverse().map(([x, y]): Pt => [x, 100 - y])]), { size: { width: 440, height: 240 } }),
+
+  /* calligraphic brush strokes */
+  el('wave-brush', 'Brush Wave', brushStrokeSub([[4, 34], [28, 22], [52, 62], [76, 28], [96, 40]], t => 1.5 + 7 * Math.sin(Math.PI * t)), { size: { width: 420, height: 180 } }),
+  el('wave-swoosh', 'Swoosh', brushStrokeSub([[6, 52], [32, 68], [60, 58], [94, 16]], t => 1.2 + 8.5 * (1 - t)), { size: { width: 380, height: 200 } }),
+  el('wave-calligraphic', 'Calligraphic Wave', brushStrokeSub([[4, 68], [30, 42], [62, 36], [96, 46]], t => 1 + 8 * Math.sin(Math.PI * t)), { size: { width: 420, height: 160 } }),
+  el('wave-s-brush', 'S Swoosh', brushStrokeSub([[6, 78], [34, 82], [52, 50], [68, 18], [94, 24]], t => 1.2 + 8 * Math.sin(Math.PI * t)), { size: { width: 360, height: 260 } }),
+  el('wave-brush-vertical', 'Brush Curve', brushStrokeSub([[64, 8], [42, 24], [56, 52], [38, 90]], t => 10.5 - 6 * t), { size: { width: 220, height: 340 } }),
+  el('wave-double-swoosh', 'Double Swoosh',
+    brushStrokeSub([[8, 88], [16, 42], [28, 12], [38, 46], [44, 86]], t => 2 + 2.5 * Math.sin(Math.PI * t)) + ' ' +
+    brushStrokeSub([[40, 88], [48, 42], [60, 12], [70, 46], [76, 86]], t => 2 + 2.5 * Math.sin(Math.PI * t)) + ' ' +
+    brushStrokeSub([[72, 88], [80, 46], [92, 24]], t => 2 + 2 * Math.sin(Math.PI * t)),
+    { size: { width: 300, height: 300 } }),
+  el('wave-zig-taper', 'Taper Zigzag', zigTaperSub(), { size: { width: 360, height: 240 } }),
+
+  /* worms & squiggles */
+  el('wave-worm', 'Worm Squiggle', brushStrokeSub([[22, 16], [58, 10], [74, 26], [54, 42], [26, 50], [24, 72], [50, 84], [78, 74]], () => 6.5), { size: { width: 320, height: 320 } }),
+  el('wave-blob-worm', 'Blob Worm', circleSub(26, 86, 9.5) + circleSub(36, 74, 9) + circleSub(38, 58, 9.5) + circleSub(50, 48, 9) + circleSub(60, 36, 9.5) + circleSub(56, 20, 9) + circleSub(70, 12, 9), { size: { width: 300, height: 320 } }),
+  el('wave-coil', 'Snake Coil', brushStrokeSub([[24, 14], [68, 10], [84, 22], [70, 34], [28, 30], [14, 44], [28, 58], [72, 54], [86, 66], [72, 80], [26, 76], [14, 88]], () => 5), { size: { width: 340, height: 340 } }),
+  el('wave-squiggle-thin', 'Thin Squiggle', smoothOpenSub([[6, 36], [20, 20], [32, 38], [18, 54], [30, 72], [50, 60], [46, 40], [64, 26], [80, 44], [70, 64], [86, 80], [94, 66]]), { stroke: 4, size: { width: 320, height: 320 } }),
+  el('wave-loop-wave', 'Loop Wave', smoothOpenSub([[4, 72], [24, 64], [38, 40], [32, 18], [50, 14], [60, 32], [46, 54], [56, 70], [80, 68], [96, 58]]), { stroke: 8, size: { width: 380, height: 240 } }),
+  el('wave-curls', 'Curl Wave', smoothOpenSub([[64, 6], [44, 10], [52, 24], [66, 20], [48, 34], [38, 46], [54, 54], [68, 48], [50, 62], [40, 76], [56, 84], [72, 78]]), { stroke: 5, size: { width: 200, height: 340 } }),
+  el('wave-wiggle-vertical', 'Wiggle Down', smoothOpenSub([[44, 4], [34, 14], [58, 22], [34, 34], [58, 46], [34, 58], [58, 70], [34, 82], [52, 92]]), { stroke: 6, size: { width: 170, height: 340 } }),
+  el('wave-worm-vertical', 'Dancing Worm', brushStrokeSub([[38, 12], [58, 22], [52, 40], [32, 48], [38, 66], [60, 64], [64, 84], [42, 92]], () => 7), { size: { width: 200, height: 340 } }),
+  el('wave-cursive', 'Cursive Squiggle', smoothOpenSub([[6, 78], [12, 48], [22, 28], [28, 48], [22, 72], [18, 86], [30, 64], [40, 34], [48, 50], [42, 74], [38, 88], [52, 62], [62, 36], [72, 46], [66, 70], [70, 84], [84, 66], [94, 52]]), { stroke: 6.5, size: { width: 340, height: 260 } }),
+  el('wave-sketch-zigzag', 'Sketch Zigzag', smoothOpenSub([[6, 64], [20, 44], [26, 58], [40, 38], [46, 56], [58, 34], [62, 52], [74, 30], [78, 48], [90, 26], [94, 40]]), { stroke: 3, size: { width: 380, height: 220 } }),
+
+  /* line sets */
+  el('wave-lines', 'Wave Lines', sineStrokeSub(2.5, 6, 14) + ' ' + sineStrokeSub(2.5, 6, 38) + ' ' + sineStrokeSub(2.5, 6, 62) + ' ' + sineStrokeSub(2.5, 6, 86), { stroke: 6, size: { width: 380, height: 300 } }),
+  el('wave-zigzag-vertical', 'Vertical Zigzags', vZigSub(26) + ' ' + vZigSub(50) + ' ' + vZigSub(74), { stroke: 3.5, size: { width: 300, height: 340 } }),
 ];
 
 const laurels: LibraryElementDef[] = [
@@ -1081,6 +1230,64 @@ const laurels: LibraryElementDef[] = [
   el('laurel-sprigs', 'Crossed Sprigs',
     laurelBranchSub(88, 108, 78, 218, 268, 8, 12, 3.4) + ' ' + laurelBranchSub(12, 108, 78, 322, 272, 8, 12, 3.4),
     { size: { width: 360, height: 300 } }
+  ),
+  el('laurel-feather', 'Curved Branch', laurelBranchSub(-10, 110, 102, -12, -78, 11, 13, 3.8), { size: { width: 340, height: 340 } }),
+  el('laurel-circle', 'Circle Wreath',
+    laurelBranchSub(50, 50, 41, 92, 262, 15, 12, 3.2) + ' ' + laurelBranchSub(50, 50, 41, 88, -82, 15, 12, 3.2),
+    { size: { width: 340, height: 340 } }
+  ),
+  el('laurel-delicate', 'Delicate Wreath',
+    laurelBranchSub(50, 50, 42, 90, 258, 19, 8, 2.2) + ' ' + laurelBranchSub(50, 50, 42, 90, -78, 19, 8, 2.2),
+    { size: { width: 340, height: 340 } }
+  ),
+  el('laurel-thin', 'Thin Wreath',
+    laurelBranchSub(50, 50, 42, 90, 256, 12, 9.5, 2.4) + ' ' + laurelBranchSub(50, 50, 42, 90, -76, 12, 9.5, 2.4),
+    { size: { width: 340, height: 340 } }
+  ),
+  el('laurel-award', 'Award Wreath',
+    laurelBranchSub(50, 44, 36, 70, 248, 11, 12, 3.2) + ' ' + laurelBranchSub(50, 44, 36, 110, -68, 11, 12, 3.2) +
+    rectSub(48.3, 81.5, 3.4, 13) + rectSub(43.5, 86.3, 13, 3.4),
+    { size: { width: 340, height: 340 } }
+  ),
+  el('laurel-round-open', 'Round Branches',
+    laurelBranchSub(50, 50, 43, 108, 252, 12, 12, 3.2) + ' ' + laurelBranchSub(50, 50, 43, 72, -72, 12, 12, 3.2),
+    { size: { width: 340, height: 340 } }
+  ),
+  el('laurel-open', 'Open Wreath',
+    laurelBranchSub(50, 50, 32, 126, 234, 6, 10, 2.8) + ' ' + laurelBranchSub(50, 50, 32, 54, -54, 6, 10, 2.8),
+    { size: { width: 280, height: 280 } }
+  ),
+  el('laurel-columns', 'Facing Branches',
+    laurelBranchSub(120, 50, 88, 158, 202, 12, 11, 3) + ' ' + laurelBranchSub(-20, 50, 88, 22, -22, 12, 11, 3),
+    { size: { width: 300, height: 360 } }
+  ),
+  el('laurel-columns-sparse', 'Sparse Branches',
+    laurelBranchSub(120, 50, 88, 160, 200, 7, 9, 2.5) + ' ' + laurelBranchSub(-20, 50, 88, 20, -20, 7, 9, 2.5),
+    { size: { width: 300, height: 360 } }
+  ),
+  el('laurel-sprig-pair', 'Sprig Pair',
+    laurelBranchSub(112, 50, 82, 162, 197, 7, 11, 3) + ' ' + laurelBranchSub(-12, 50, 82, 18, -17, 7, 11, 3),
+    { size: { width: 300, height: 300 } }
+  ),
+  el('laurel-sprig-pair-small', 'Small Sprigs',
+    laurelBranchSub(110, 55, 78, 165, 193, 5, 10, 2.8) + ' ' + laurelBranchSub(-10, 55, 78, 15, -13, 5, 10, 2.8),
+    { size: { width: 260, height: 240 } }
+  ),
+  el('laurel-sprig-pair-tiny', 'Tiny Sprigs',
+    laurelBranchSub(108, 58, 74, 168, 190, 4, 8, 2.4) + ' ' + laurelBranchSub(-8, 58, 74, 12, -10, 4, 8, 2.4),
+    { size: { width: 220, height: 200 } }
+  ),
+  el('laurel-flare', 'Flared Sprigs',
+    laurelBranchSub(55, 20, 55, 103, 163, 8, 12, 3.2) + ' ' + laurelBranchSub(45, 20, 55, 77, 17, 8, 12, 3.2),
+    { size: { width: 380, height: 280 } }
+  ),
+  el('laurel-wings', 'Laurel Wings',
+    laurelBranchSub(50, -30, 84, 93, 124, 8, 11, 3) + ' ' + laurelBranchSub(50, -30, 84, 87, 56, 8, 11, 3),
+    { size: { width: 420, height: 220 } }
+  ),
+  el('laurel-bottom-dense', 'Dense Bottom Wreath',
+    laurelBranchSub(50, 44, 44, 88, 196, 13, 13, 3.4) + ' ' + laurelBranchSub(50, 44, 44, 92, -16, 13, 13, 3.4),
+    { size: { width: 380, height: 300 } }
   ),
 ];
 
