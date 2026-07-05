@@ -399,9 +399,13 @@ export function ArtboardStudioLayout() {
 
   // Handle new artboard creation with updated default size
   const handleNewArtboardFromMainToolbar = () => {
+    if (activeArtboardId && artboards.some(ab => ab.id === activeArtboardId)) {
+      handleAddNewArtboardAfter(activeArtboardId);
+      return;
+    }
     const defaultSize = { width: 1290, height: 2796 }; // Updated default size
-    const newSize = artboards.length > 0 && artboards[artboards.length - 1] 
-                    ? artboards[artboards.length - 1].size 
+    const newSize = artboards.length > 0 && artboards[artboards.length - 1]
+                    ? artboards[artboards.length - 1].size
                     : defaultSize;
 
     const newArtboard: ArtboardState = {

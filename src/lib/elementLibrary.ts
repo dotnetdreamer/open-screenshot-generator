@@ -84,6 +84,24 @@ const sparkleSub = (cx: number, cy: number, tips: number, r: number, waist = 0.1
   return d + ' Z';
 };
 
+/** Four-point sparkle stretched onto an ellipse (tall/wide sparkles). */
+const sparkleStretchSub = (cx: number, cy: number, rx: number, ry: number, waist = 0.16): string => {
+  const tips: Pt[] = [[cx, cy - ry], [cx + rx, cy], [cx, cy + ry], [cx - rx, cy]];
+  const ctrls: Pt[] = [
+    [cx + rx * waist, cy - ry * waist],
+    [cx + rx * waist, cy + ry * waist],
+    [cx - rx * waist, cy + ry * waist],
+    [cx - rx * waist, cy - ry * waist],
+  ];
+  let d = `M${fmt(tips[0][0])} ${fmt(tips[0][1])}`;
+  for (let i = 0; i < 4; i++) {
+    const c = ctrls[i];
+    const nxt = tips[(i + 1) % 4];
+    d += ` Q${fmt(c[0])} ${fmt(c[1])} ${fmt(nxt[0])} ${fmt(nxt[1])}`;
+  }
+  return d + ' Z';
+};
+
 const circleSub = (cx: number, cy: number, r: number): string =>
   `M${fmt(cx - r)} ${fmt(cy)} A${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(cx + r)} ${fmt(cy)} A${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(cx - r)} ${fmt(cy)} Z`;
 
@@ -994,6 +1012,37 @@ const stars: LibraryElementDef[] = [
     ' M4 78 C22 68 38 60 52 52 C38 64 24 74 8 86 Z M14 92 C28 84 40 78 50 72 C40 82 30 90 18 98 Z'
   ),
   el('star-thin4', 'Thin Star', starSub(50, 50, 4, 48, 0.18)),
+  el('star-rounded5', 'Rounded Star', roundedPolySub(polarPts(10, 50, 50, i => (i % 2 === 0 ? 48 : 22)), 6)),
+  el('star-puffy', 'Puffy Star', roundedPolySub(polarPts(10, 50, 50, i => (i % 2 === 0 ? 47 : 27)), 13)),
+  el('star-doodle', 'Doodle Star', polyPath(polarPts(10, 50, 50, i => (i % 2 === 0 ? [48, 44, 47, 43, 46][i / 2] : 15)))),
+  el('star-doodle-outline', 'Star Doodle Outline',
+    polyPath(polarPts(10, 50, 50, i => (i % 2 === 0 ? [45, 43, 46, 42, 44][i / 2] : [19, 18, 20, 17, 19][(i - 1) / 2]))),
+    { stroke: 4 }
+  ),
+  el('star-sparkle-outline', 'Sparkle Outline', sparkleSub(50, 50, 4, 45, 0.16), { stroke: 4 }),
+  el('star-sketch-burst', 'Sketch Burst',
+    polyPath(polarPts(24, 50, 50, i => (i % 2 === 0 ? [46, 40, 44, 38, 47, 41, 43, 39, 45, 42, 46, 40][i / 2] : 20)))
+  ),
+  el('star-cluster-outline', 'Sparkle Cluster Outline',
+    sparkleSub(40, 58, 4, 34, 0.15) + ' ' + sparkleSub(72, 26, 4, 16, 0.17) + ' ' + sparkleSub(82, 62, 4, 9, 0.2),
+    { stroke: 3.5 }
+  ),
+  el('star-glint', 'Glint', polyPath(polarPts(16, 50, 50, i => (i % 2 === 0 ? (i % 4 === 0 ? 48 : 28) : 4)))),
+  el('star-sparkle-tall', 'Tall Sparkle', sparkleStretchSub(50, 50, 26, 48, 0.2), { size: { width: 180, height: 320 } }),
+  el('star-burst-outline', 'Burst Outline', starSub(50, 50, 10, 45, 0.6), { stroke: 4 }),
+  el('star-comet', 'Comet Star', polyPath(polarPts(10, 62, 50, i => (i === 0 ? 58 : i % 2 === 0 ? 25 : 12), 180))),
+  el('star-sunburst16', 'Sunburst Star', starSub(50, 50, 16, 48, 0.55)),
+  el('star-north', 'North Star',
+    starSub(50, 50, 4, 48, 0.05) + ' ' + sparkleSub(50, 50, 4, 32, 0.2) + ' ' +
+    sparkleSub(79, 27, 4, 10, 0.2) + ' ' + sparkleSub(24, 76, 4, 8, 0.2)
+  ),
+  el('star-thin6', 'Thin 6-Point Star', starSub(50, 50, 6, 48, 0.28)),
+  el('star-glint-cluster', 'Glint Cluster',
+    sparkleSub(40, 44, 4, 34, 0.15) + ' ' + sparkleSub(74, 70, 4, 16, 0.18) +
+    circleSub(80, 26, 3.5) + circleSub(22, 82, 3) + circleSub(88, 46, 2.5)
+  ),
+  el('star-compass', 'Compass Star', polyPath(polarPts(16, 50, 50, i => (i % 2 === 0 ? (i % 4 === 0 ? 48 : 26) : 9)))),
+  el('star-wavy', 'Wavy Star', roundedPolySub(polarPts(12, 50, 50, i => (i % 2 === 0 ? 47 : 29)), 9)),
 ];
 
 const waves: LibraryElementDef[] = [
