@@ -4,6 +4,8 @@ A browser-based editor for designing app store screenshots. You lay out artboard
 
 Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
 
+![The start screen: pick one of the bundled templates or start with a blank canvas](docs/screenshot-home.png)
+
 ## What it does
 
 - Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
