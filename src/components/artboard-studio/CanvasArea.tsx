@@ -10,7 +10,7 @@ import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new
 interface CanvasAreaProps {
   artboards: ArtboardState[];
   onUpdateArtboards: (artboards: ArtboardState[]) => void;
-  onAddElementToArtboard: (artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => void;
+  onAddElementToArtboard: (artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => void;
   activeArtboardId: string | null;
   setActiveArtboardId: (id: string | null) => void;
   selectedElementIdOnActiveArtboard: string | null;
@@ -197,12 +197,17 @@ export function CanvasArea({
     e.preventDefault();
     const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
     const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
-    
+    const rawStyleProps = e.dataTransfer.getData('application/artboard-element-styleprops');
+    let styleProps: Record<string, any> | undefined;
+    if (rawStyleProps) {
+      try { styleProps = JSON.parse(rawStyleProps); } catch { styleProps = undefined; }
+    }
+
     if (activeArtboardId && type) {
         const artboardComponent = artboardRefs.current[activeArtboardId];
         if (artboardComponent && (artboardComponent as any).addElement) {
             const dropPosition = { x: e.clientX, y: e.clientY };
-            onAddElementToArtboard(activeArtboardId, type, subType, dropPosition);
+            onAddElementToArtboard(activeArtboardId, type, subType, dropPosition, styleProps);
         } else {
             toast({ title: "Error", description: "Could not add element. Artboard not found or ready.", variant: "destructive"});
         }

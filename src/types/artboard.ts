@@ -34,17 +34,18 @@ export interface TextElementProps extends BaseElement {
   lineHeight?: number; // Line height in pixels or as a multiplier
 }
 
-export type ShapeType = 
-  | 'rectangle' 
-  | 'circle' 
-  | 'triangle' 
-  | 'message' 
-  | 'speech-bubble' 
-  | 'star' 
-  | 'hexagon' 
-  | 'pentagon' 
-  | 'diamond' 
-  | 'custom-polygon';
+export type ShapeType =
+  | 'rectangle'
+  | 'circle'
+  | 'triangle'
+  | 'message'
+  | 'speech-bubble'
+  | 'star'
+  | 'hexagon'
+  | 'pentagon'
+  | 'diamond'
+  | 'custom-polygon'
+  | 'custom-svg';
 
 export interface ShapeElementProps extends BaseElement {
   type: 'shape';

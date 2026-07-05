@@ -170,6 +170,33 @@ export function ShapeElement({ element }: ShapeElementProps) {
         />
       )}
 
+      {/* Complex library shapes rendered from SVG path data */}
+      {element.shapeType === 'custom-svg' && element.customPath && (() => {
+        const special = element.specialProps || {};
+        const strokeOnly = !!special.strokeOnly;
+        const effectiveStrokeWidth = strokeOnly
+          ? (strokeWidth > 0 ? strokeWidth : (special.baseStrokeWidth ?? 4))
+          : strokeWidth;
+        return (
+          <svg
+            style={{ ...commonStyles, display: 'block', overflow: 'visible' }}
+            viewBox={special.viewBox || '0 0 100 100'}
+            preserveAspectRatio="none"
+          >
+            <path
+              d={element.customPath}
+              fill={strokeOnly ? 'none' : fillColorWithOpacity}
+              fillRule={special.fillRule === 'evenodd' ? 'evenodd' : undefined}
+              stroke={strokeOnly ? fillColorWithOpacity : (strokeWidth > 0 ? strokeColor : 'none')}
+              strokeWidth={effectiveStrokeWidth > 0 ? effectiveStrokeWidth : undefined}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        );
+      })()}
+
       {/* Shapes using clip-path */}
       {['message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon'].includes(element.shapeType) && (
         <>
@@ -214,7 +241,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
       )}
 
       {/* Fallback for unsupported shapes */}
-      {!['rectangle', 'circle', 'triangle', 'message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon'].includes(element.shapeType) && (
+      {!['rectangle', 'circle', 'triangle', 'message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon', 'custom-svg'].includes(element.shapeType) && (
         <div style={commonStyles}>Unsupported shape</div>
       )}
     </div>

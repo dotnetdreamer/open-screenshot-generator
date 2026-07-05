@@ -34,7 +34,7 @@ interface ArtboardProps {
 }
 
 export interface ArtboardRef {
-  addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => string | undefined;
+  addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => string | undefined;
   deleteElementByIdG: (elementId: string) => void;
 }
 
@@ -148,7 +148,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   }, [artboard.elements, artboard.backgroundType, artboard.backgroundColor, artboard.backgroundGradient]);
 
   useImperativeHandle(ref, () => ({
-    addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => {
+    addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => {
       const artboardRect = artboardDivRef.current?.getBoundingClientRect();
       let newElementX = artboard.size.width / 2 - 50; 
       let newElementY = artboard.size.height / 2 - 25;
@@ -201,13 +201,13 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',
           shapeType: subType as ShapeType,
-          fillColor: '#5F9EA0', 
+          fillColor: '#5F9EA0',
           strokeColor: '#333333',
-          strokeWidth: 0, 
+          strokeWidth: 0,
           size: { width: 300, height: 300 },  // Increased from 100x100
           fillOpacity: 1, // Initialize with full opacity
         };
-        
+
         // Add shape-specific properties based on subType
         if (subType === 'rectangle') {
           shapeProps.borderRadius = 0;
@@ -219,7 +219,19 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         } else if (subType === 'diamond') {
           shapeProps.innerRadius = 0; // Initialize inner radius for diamond
         }
-        
+
+        // Merge palette-provided props (library elements: customPath, clipPath, specialProps, ...)
+        if (styleProps) {
+          const { defaultSize, name, ...restStyleProps } = styleProps;
+          if (defaultSize?.width && defaultSize?.height) {
+            shapeProps.size = { width: defaultSize.width, height: defaultSize.height };
+          }
+          if (typeof name === 'string' && name) {
+            shapeProps.name = name;
+          }
+          Object.assign(shapeProps, restStyleProps);
+        }
+
         newElementToAdd = {
           ...newElementBase,
           ...shapeProps
@@ -373,10 +385,15 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             e.stopPropagation();
             const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
             const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
+            const rawStyleProps = e.dataTransfer.getData('application/artboard-element-styleprops');
+            let styleProps: Record<string, any> | undefined;
+            if (rawStyleProps) {
+              try { styleProps = JSON.parse(rawStyleProps); } catch { styleProps = undefined; }
+            }
             if (type && typeof (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement === 'function') {
               const dropX = e.clientX;
               const dropY = e.clientY;
-              (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY});
+              (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY}, styleProps);
             }
           }}
           onDragOver={(e) => {

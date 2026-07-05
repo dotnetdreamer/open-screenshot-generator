@@ -11,7 +11,9 @@ export async function loadProjectTemplates(): Promise<Project[]> {
       'beauty-glam.json',
       'castique-podcast.json',
       'inquira.json',
-      'zyluxe-beauty.json'
+      'zyluxe-beauty.json',
+      'nexmind.json',
+      'endless-communities.json'
     ];
     
     for (const filename of projectFiles) {
@@ -60,7 +62,9 @@ export function getAvailableProjectFiles(): string[] {
     'beauty-glam.json',
     'castique-podcast.json',
     'inquira.json',
-    'zyluxe-beauty.json'
+    'zyluxe-beauty.json',
+    'nexmind.json',
+    'endless-communities.json'
   ];
 }
 

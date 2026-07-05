@@ -371,10 +371,10 @@ export function ArtboardStudioLayout() {
     }
   };
 
-  const handleAddElementToArtboard = useCallback((artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point) => {
+  const handleAddElementToArtboard = useCallback((artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => {
     const artboardComponent = artboardRefs.current[artboardId];
     if (artboardComponent && typeof artboardComponent.addElement === 'function') {
-      const newElementId = artboardComponent.addElement(type, subType, dropPosition);
+      const newElementId = artboardComponent.addElement(type, subType, dropPosition, styleProps);
       if (newElementId) {
         setSelectedElementIdOnActiveArtboard(newElementId);
         setActiveArtboardId(artboardId);
@@ -1391,9 +1391,9 @@ const generateRandomProjectName = (): string => {
           </SidebarHeader>
           <SidebarContent>
             <ElementPalette
-              onAddElement={(type, subType) => {
+              onAddElement={(type, subType, styleProps) => {
                 if (activeArtboardId) {
-                  handleAddElementToArtboard(activeArtboardId, type, subType);
+                  handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
                 } else {
                   toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
                 }
