@@ -83,11 +83,9 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     fileInputRef.current?.click();
   };
 
-  const baseElementWidth = element.size.width;
-  const baseElementHeight = element.size.height;
   // Corner-handle resizing changes element.scale (not element.size), and the wrapper
   // renders at size * scale — so any px value must be derived from the effective width.
-  const effectiveWidth = baseElementWidth * (element.scale || 1);
+  const effectiveWidth = element.size.width * (element.scale || 1);
 
   let deviceNativeAspectRatio = 9 / 16;
   let framePaddingPercent = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 };
@@ -228,27 +226,29 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       case 'android-bar':
         deviceNativeAspectRatio = 1080 / 2340; // Example ratio
         framePaddingPercent = { top: 6, right: 3, bottom: 3, left: 3 };
-        screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.02}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.025}px`;
         deviceLabel = "Android (Bar)";
         break;
       case 'android-notch':
         deviceNativeAspectRatio = 1080 / 2340; // Example ratio
         framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
-        screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.02}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.025}px`;
         deviceLabel = "Android (Notch)";
+        // Notch rendered inside the screen, glued to its top edge.
+        // aspect-ratio + percentage radii keep the shape identical at any size.
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.75}%`, // Position within bezel
+            top: 0,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '30%',
-            height: `${Math.max(20, baseElementHeight * 0.04)}px`, // Dynamic height
+            width: '32%',
+            aspectRatio: '5 / 1',
             backgroundColor: deviceFrameBgColor,
-            borderBottomLeftRadius: '8px',
-            borderBottomRightRadius: '8px',
+            borderBottomLeftRadius: '12% 60%',
+            borderBottomRightRadius: '12% 60%',
             zIndex: 3, // Above screen content
           }} />
         );
@@ -256,18 +256,20 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       case 'android-punch-hole':
         deviceNativeAspectRatio = 1080 / 2400; // Example ratio
         framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
-        screenBorderRadius = 'calc(0.7rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.02}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.025}px`;
         deviceLabel = "Android (Punch Hole)";
+        // Camera cutout rendered inside the screen; aspect-ratio keeps it a
+        // perfect circle no matter how the frame is resized.
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.75}%`, // Position within bezel
+            top: '1.2%',
             left: '50%',
             transform: 'translateX(-50%)',
-            width: `${Math.max(15, baseElementHeight * 0.022)}px`, // Dynamic size
-            height: `${Math.max(15, baseElementHeight * 0.022)}px`,
-            backgroundColor: deviceFrameBgColor,
+            width: '5%',
+            aspectRatio: '1 / 1',
+            backgroundColor: '#000',
             borderRadius: '50%',
             zIndex: 3, // Above screen content
           }} />
@@ -276,15 +278,15 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       case 'tablet':
         deviceNativeAspectRatio = 768 / 1024;
         framePaddingPercent = { top: 2.5, right: 2.5, bottom: 2.5, left: 2.5 };
-        screenBorderRadius = 'calc(0.6rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(0.75rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.016}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.02}px`;
         deviceLabel = "Tablet";
         break;
       case 'desktop':
         deviceNativeAspectRatio = 16 / 9;
         framePaddingPercent = { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 }; // Smaller top/side, larger bottom for stand
-        screenBorderRadius = 'calc(0.35rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(0.5rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.009}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.013}px`;
         deviceFrameBgColor = '#333';
         deviceLabel = "Desktop Monitor";
         break;
@@ -483,15 +485,22 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     overflow: 'visible',
   };
   
-  // Screen style used for both normal and perspective modes
+  // Screen style used for both normal and perspective modes.
+  // Absolutely positioned with px insets derived from the effective width so the
+  // bezel is uniform on all sides and scales with both size and scale. (The old
+  // margin-based layout was broken: CSS % margins resolve against the WIDTH even
+  // for top/bottom, while the height calc used the height — so the bottom bezel
+  // grew as the element got taller, e.g. the Android bar issue.)
+  const bezelPx = (percent: number) => (effectiveWidth * percent) / 100;
   const screenStyle: React.CSSProperties = {
-    width: `calc(100% - ${framePaddingPercent.left + framePaddingPercent.right}%)`,
-    height: `calc(100% - ${framePaddingPercent.top + framePaddingPercent.bottom}%)`,
+    position: 'absolute',
+    top: `${bezelPx(framePaddingPercent.top)}px`,
+    right: `${bezelPx(framePaddingPercent.right)}px`,
+    bottom: `${bezelPx(framePaddingPercent.bottom)}px`,
+    left: `${bezelPx(framePaddingPercent.left)}px`,
     backgroundColor: '#000',
     overflow: 'hidden',
-    position: 'relative',
     borderRadius: screenBorderRadius,
-    margin: `${framePaddingPercent.top}% ${framePaddingPercent.right}% ${framePaddingPercent.bottom}% ${framePaddingPercent.left}%`,
     zIndex: 1,
   };
   
@@ -507,11 +516,10 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       >
         {/* Use the same DOM structure for both modes */}
         <div style={frameStyle}>
-          {/* iPhone notches/islands are anchored inside the screen so they stay glued
-              to its top edge; other devices keep frame-level positioning for now */}
-          {!element.deviceType?.startsWith('iphone') && notchElement}
           <div style={screenStyle}> {/* Using the unified screen style */}
-            {element.deviceType?.startsWith('iphone') && notchElement}
+            {/* All notches/islands/cutouts are anchored inside the screen so they
+                stay glued to its top edge at any size or aspect ratio */}
+            {notchElement}
             {screenshot && element.screenshotRect ? (
               <div
                 style={{
