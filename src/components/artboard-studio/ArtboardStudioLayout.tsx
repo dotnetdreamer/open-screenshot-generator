@@ -18,6 +18,7 @@ import { Toolbar } from './Toolbar';
 import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
+import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
 import { loadProjectTemplates } from '@/services/projectService';
 
@@ -1379,14 +1380,14 @@ const generateRandomProjectName = (): string => {
     <ClipboardProvider>
       <SidebarProvider defaultOpen>
         <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
-          <SidebarHeader>
-            <Button variant="ghost" size="icon" className="text-lg font-semibold tracking-tight h-10 w-10 flex items-center justify-center">
-               <svg viewBox="0 0 100 100" className="w-6 h-6 fill-primary">
-                  <rect x="10" y="10" width="50" height="30" rx="5"/>
-                  <rect x="20" y="50" width="70" height="40" rx="5"/>
-               </svg>
-            </Button>
-            <span className="text-lg font-semibold tracking-tight group-data-[collapsible=icon]:hidden">Artboard Studio</span>
+          <SidebarHeader className="border-b">
+            <div className="flex items-center gap-3 px-2 py-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+              <Logo withBackground className="h-10 w-10 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8" />
+              <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
+                <span className="truncate text-base font-semibold leading-tight tracking-tight">Artboard Studio</span>
+                <span className="truncate text-xs leading-tight text-muted-foreground">App screenshot designer</span>
+              </div>
+            </div>
           </SidebarHeader>
           <SidebarContent>
             <ElementPalette

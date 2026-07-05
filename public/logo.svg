@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="asBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6FB3B5"/>
+      <stop offset="1" stop-color="#457E80"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#asBg)"/>
+  <!-- back phone -->
+  <rect x="118" y="72" width="188" height="328" rx="44" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="26"/>
+  <!-- front phone -->
+  <rect x="206" y="112" width="188" height="328" rx="44" fill="none" stroke="#FFFFFF" stroke-width="26"/>
+  <!-- speaker pill -->
+  <rect x="272" y="142" width="56" height="12" rx="6" fill="#FFFFFF"/>
+  <!-- screenshot glyph: sun + mountains -->
+  <circle cx="262" cy="212" r="20" fill="#D4AF37"/>
+  <path d="M232 396 L282 318 L314 352 L352 300 L368 396 Z" fill="#FFFFFF" fill-opacity="0.9"/>
+  <!-- selection handles -->
+  <g fill="#D4AF37">
+    <rect x="184" y="90" width="44" height="44" rx="10"/>
+    <rect x="372" y="90" width="44" height="44" rx="10"/>
+    <rect x="184" y="418" width="44" height="44" rx="10"/>
+    <rect x="372" y="418" width="44" height="44" rx="10"/>
+  </g>
+</svg>
