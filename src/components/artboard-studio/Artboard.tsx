@@ -337,7 +337,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           width: `${containerWidth}px`,
           height: `${containerHeight}px`,
           position: 'relative',
-          overflow: 'visible', // Allow overflow to show transformed elements
+          overflow: 'hidden', // Clip to artboard bounds so canvas matches the exported result
           marginTop: '1.25rem',
         }}
       >
@@ -362,7 +362,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             top: 0,
             left: 0,
             marginTop: '0', // Keep this at 0
-            overflow: 'visible', // Allow overflow to show transformed elements
+            overflow: 'hidden', // Clip to artboard bounds so canvas matches the exported result
             ...backgroundStyle,
           }}
           onClick={handleArtboardClick}

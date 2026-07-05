@@ -17,6 +17,7 @@ import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
 import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
+import { PreviewDialog } from './PreviewDialog';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
 import { loadProjectTemplates } from '@/services/projectService';
 
@@ -88,6 +89,7 @@ export function ArtboardStudioLayout() {
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -768,6 +770,8 @@ export function ArtboardStudioLayout() {
   // Add keyboard event handlers for delete, undo, and redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Preview mode has its own keyboard handling
+      if (isPreviewOpen) return;
       // Skip if we're typing in an input, textarea, etc.
       if (
         e.target instanceof HTMLInputElement || 
@@ -833,7 +837,7 @@ export function ArtboardStudioLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, setActiveTool]);
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, setActiveTool, isPreviewOpen]);
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
@@ -991,6 +995,8 @@ export function ArtboardStudioLayout() {
   // Add keyboard shortcuts for copy and paste
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Preview mode has its own keyboard handling
+      if (isPreviewOpen) return;
       // Skip if we're typing in an input, textarea, etc.
       if (
         e.target instanceof HTMLInputElement || 
@@ -1056,7 +1062,7 @@ export function ArtboardStudioLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem]);
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, isPreviewOpen]);
 
   // Common function to load project data and apply positioning
   const loadProjectFromData = async (projectData: ArtboardState[], projectName: string, projectId: string) => {
@@ -1422,6 +1428,7 @@ const generateRandomProjectName = (): string => {
           <Toolbar
             onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
+            onPreview={() => setIsPreviewOpen(true)}
             onExport={handleExportArtboards}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
@@ -1483,6 +1490,14 @@ const generateRandomProjectName = (): string => {
               />
             </div>
           </div>
+
+          {isPreviewOpen && (
+            <PreviewDialog
+              artboards={artboards}
+              initialArtboardId={activeArtboardId}
+              onClose={() => setIsPreviewOpen(false)}
+            />
+          )}
         </SidebarInset>
       </SidebarProvider>
     </ClipboardProvider>

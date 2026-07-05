@@ -15,7 +15,8 @@ import {
   CopyIcon,
   ClipboardPasteIcon,
   FileTextIcon,
-  FolderOpenIcon
+  FolderOpenIcon,
+  EyeIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ import { useClipboard } from '@/contexts/ClipboardContext';
 interface ToolbarProps {
   onNewArtboard: () => void;
   onSelectTemplate: () => void;
+  onPreview: () => void;
   onExport: () => void;
   onExportJSON: () => void;
   onImportJSON: () => void;
@@ -53,9 +55,10 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ 
-  onNewArtboard, 
+  onNewArtboard,
   onSelectTemplate,
-  onExport, 
+  onPreview,
+  onExport,
   onExportJSON,
   onImportJSON,
   onZoomIn, 
@@ -356,9 +359,19 @@ export function Toolbar({
       
       <div className="flex-grow" />
 
-      <Button 
-        variant="outline" 
-        onClick={onImportJSON} 
+      <Button
+        variant="outline"
+        onClick={onPreview}
+        className="h-8"
+        title="Preview final result"
+      >
+        <EyeIcon className="mr-1.5 h-4 w-4" />
+        Preview
+      </Button>
+
+      <Button
+        variant="outline"
+        onClick={onImportJSON}
         className="h-8"
         title="Import Project from JSON"
       >
