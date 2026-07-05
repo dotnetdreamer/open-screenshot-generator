@@ -94,7 +94,10 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
 
     const scene = new THREE.Scene();
     const pmrem = new THREE.PMREMGenerator(renderer);
-    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // Heavy blur turns the room's small bright lights into soft studio panels;
+    // sharp reflections show up as pixel noise on the high-curvature corner
+    // bevels of the metal rail.
+    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.35).texture;
     scene.environment = envTexture;
 
     const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 100);
@@ -121,11 +124,10 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     let screenSize = { w: 0, h: 0, radius: 0, z: 0 };
     let disposed = false;
 
-    let raf = 0;
-    const requestRender = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => renderer.render(scene, camera));
-    };
+    // All renders are synchronous (render-on-demand, no rAF loop): the drawing
+    // buffer must always hold a finished frame because PNG export can snapshot
+    // the canvas at any moment.
+    const render = () => renderer.render(scene, camera);
 
     const track = <T extends { dispose(): void }>(obj: T): T => {
       disposables.push(obj);
@@ -302,35 +304,64 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
 
     let lastAspect = 0;
     let lastPixelRatio = 0;
+    let lastW = 0;
+    let lastH = 0;
     // The artboard scales elements with CSS transforms (zoom / display scale
     // factor), which don't change clientWidth. Derive the true on-screen scale
     // so the canvas backing store matches what the user actually sees.
     const effectivePixelRatio = () => {
       const rect = mount.getBoundingClientRect();
       const cssScale = mount.clientWidth > 0 ? rect.width / mount.clientWidth : 1;
-      // Floor of 2 supersamples even on low-DPI displays / software WebGL (where
-      // MSAA may be unavailable), so near-horizontal edges get downsampled smooth
-      // instead of showing stair-stepping on the top edge and chin.
-      return Math.min(Math.max((window.devicePixelRatio || 1) * Math.max(cssScale, 1), 2), 3);
+      // Target ~2× the pixels actually shown on screen. Browser canvas
+      // downscaling is plain bilinear (averages only 4 texels), so a backing
+      // store much larger than 2× the displayed size starts skipping pixels and
+      // re-introduces jaggies — bigger is NOT smoother. The floor of 1 keeps the
+      // bitmap at least layout-sized because PNG export draws the canvas at its
+      // layout size regardless of the current zoom. This also bounds memory to
+      // roughly what is visible on screen.
+      const target = cssScale * (window.devicePixelRatio || 1) * 2;
+      return Math.min(Math.max(target, 1), 3);
     };
-    const handleResize = () => {
+
+    // The expensive path: reallocating the drawing buffer and re-extruding the
+    // body (~50k triangles + normal welding). Never run this per drag frame.
+    const applySize = () => {
       const cw = mount.clientWidth;
       const ch = mount.clientHeight;
       if (cw < 2 || ch < 2) return;
       const pr = effectivePixelRatio();
-      if (pr !== lastPixelRatio) {
+      if (pr !== lastPixelRatio || cw !== lastW || ch !== lastH) {
         lastPixelRatio = pr;
+        lastW = cw;
+        lastH = ch;
         renderer.setPixelRatio(pr);
+        renderer.setSize(cw, ch, false);
+        layoutCamera(cw, ch);
       }
-      renderer.setSize(cw, ch, false);
-      layoutCamera(cw, ch);
       const aspect = ch / cw;
       // Rebuild geometry only when the element's proportions actually change.
       if (Math.abs(aspect - lastAspect) > 0.005) {
         lastAspect = aspect;
         buildDevice(aspect);
       }
-      requestRender();
+      // setSize() wipes the drawing buffer, so a frame must be presented before
+      // returning (the app rescales the artboard right before exporting, and a
+      // deferred render would let the export capture a blank canvas).
+      render();
+    };
+
+    // While the user drags a resize handle, the canvas simply CSS-stretches with
+    // the element (cheap); the buffer + geometry snap to crisp once idle.
+    let resizeTimer = 0;
+    let firstSize = true;
+    const handleResize = () => {
+      if (firstSize) {
+        firstSize = false;
+        applySize();
+        return;
+      }
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(applySize, 110);
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
@@ -339,7 +370,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     // ResizeObserver can't see ancestor transform changes (artboard zoom), so
     // cheaply poll the effective scale and re-render sharper when it changes.
     const scaleWatch = window.setInterval(() => {
-      if (Math.abs(effectivePixelRatio() - lastPixelRatio) > 0.1) handleResize();
+      if (Math.abs(effectivePixelRatio() - lastPixelRatio) > 0.1) applySize();
     }, 800);
 
     if (screenshotSrc) {
@@ -352,15 +383,15 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
         texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
         texture.needsUpdate = true;
         updateShot();
-        requestRender();
+        render();
       };
       img.src = screenshotSrc;
     }
 
     return () => {
       disposed = true;
-      cancelAnimationFrame(raf);
       window.clearInterval(scaleWatch);
+      window.clearTimeout(resizeTimer);
       resizeObserver.disconnect();
       for (const d of disposables.splice(0)) d.dispose();
       if (shotMesh) {
