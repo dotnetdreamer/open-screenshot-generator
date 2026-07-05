@@ -332,7 +332,12 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         canMoveRight={canMoveArtboardRight}
       />
       <div
-        className="relative"
+        className={cn(
+          "relative rounded-sm transition-shadow duration-150",
+          isSelected
+            ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-[0_0_0_6px_hsl(var(--primary)/0.25),0_4px_16px_hsl(var(--primary)/0.35)]"
+            : "ring-1 ring-border"
+        )}
         style={{
           width: `${containerWidth}px`,
           height: `${containerHeight}px`,
@@ -349,10 +354,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           data-display-scale={displayScaleFactor}
           data-export-width={artboard.size.width} // Add explicit export dimensions
           data-export-height={artboard.size.height} // Add explicit export dimensions
-          className={cn(
-            "artboard relative shadow-lg bg-white",
-            isSelected ? "ring-2 ring-offset-2 ring-accent" : "ring-1 ring-border"
-          )}
+          className="artboard relative shadow-lg bg-white"
           style={{
             width: `${artboard.size.width}px`,
             height: `${artboard.size.height}px`,
@@ -443,9 +445,14 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             >
               <EditIcon className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
             </span>
-            <span 
+            <span
               onDoubleClick={handleDoubleClickName}
-              className="cursor-pointer text-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              className={cn(
+                "cursor-pointer text-center text-sm transition-colors",
+                isSelected
+                  ? "font-semibold text-primary"
+                  : "font-medium text-muted-foreground hover:text-primary"
+              )}
               title="Double-click to rename artboard"
             >
               {artboard.name}
