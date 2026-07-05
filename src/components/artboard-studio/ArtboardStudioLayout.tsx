@@ -525,8 +525,10 @@ export function ArtboardStudioLayout() {
       // Generate a new unique ID for the copied project
       const newProjectId = `project_${Date.now()}`;
       
-      // Create a deep copy of the template's project data
-      const updatedArtboards = JSON.parse(JSON.stringify(template.projectData));
+      // Create a deep copy of the template's project data.
+      // Normalize artboard positions so templates with arbitrary stored positions
+      // still lay out side by side on first load (same layout applied on add/duplicate).
+      const updatedArtboards = calculateArtboardPositions(JSON.parse(JSON.stringify(template.projectData)));
 
       // Save the copied project to IndexedDB
       await db.projects.put({

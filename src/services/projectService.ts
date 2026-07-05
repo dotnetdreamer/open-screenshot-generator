@@ -7,7 +7,8 @@ export async function loadProjectTemplates(): Promise<Project[]> {
   try {
     // Load known project files from the data/projects directory
     const projectFiles = [
-      'dukans.json'
+      'dukans.json',
+      'beauty-glam.json'
     ];
     
     for (const filename of projectFiles) {
@@ -23,12 +24,14 @@ export async function loadProjectTemplates(): Promise<Project[]> {
         // Extract filename without extension for display name
         const displayName = filename.replace('.json', '').charAt(0).toUpperCase() + filename.replace('.json', '').slice(1);
         
-        // Use project data directly - structure it as Project interface
+        // Use project data directly - structure it as Project interface.
+        // Template files may declare their own name/description/previewImage; fall back to filename-derived values.
+        const templateName = (!Array.isArray(projectData) && projectData.name) || displayName;
         const project: Project = {
           id: `template_${filename.replace('.json', '')}`, // Keep template prefix to differentiate
-          name: displayName,
-          description: `${displayName} project template`,
-          previewImage: `https://placehold.co/300x200/6366f1/FFFFFF?text=${encodeURIComponent(displayName)}`,
+          name: templateName,
+          description: (!Array.isArray(projectData) && projectData.description) || `${templateName} project template`,
+          previewImage: (!Array.isArray(projectData) && projectData.previewImage) || `https://placehold.co/300x200/6366f1/FFFFFF?text=${encodeURIComponent(templateName)}`,
           timestamp: new Date(), // Current time as template load time
           projectData: Array.isArray(projectData) ? projectData : (projectData.projectData || [])
         };
@@ -50,7 +53,8 @@ export function getAvailableProjectFiles(): string[] {
   // In a real implementation, this would read the directory contents
   // For now, return the known project files
   return [
-    'dukans.json'
+    'dukans.json',
+    'beauty-glam.json'
   ];
 }
 
