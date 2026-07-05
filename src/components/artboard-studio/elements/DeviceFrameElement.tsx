@@ -85,6 +85,9 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
 
   const baseElementWidth = element.size.width;
   const baseElementHeight = element.size.height;
+  // Corner-handle resizing changes element.scale (not element.size), and the wrapper
+  // renders at size * scale — so any px value must be derived from the effective width.
+  const effectiveWidth = baseElementWidth * (element.scale || 1);
 
   let deviceNativeAspectRatio = 9 / 16;
   let framePaddingPercent = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 };
@@ -99,97 +102,127 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       case 'iphone-15':
         deviceNativeAspectRatio = 390 / 844;
         framePaddingPercent = { top: 2.5, right: 3, bottom: 2.5, left: 3 };
-        screenBorderRadius = 'calc(1.2rem * var(--scale-factor, 1))'; // More rounded corners
-        deviceFrameOuterBorderRadius = 'calc(1.6rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.11}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.14}px`;
         deviceLabel = "iPhone 15";
+        // Dynamic Island: rendered inside the screen. Width is % of screen,
+        // aspect-ratio locks the pill shape no matter how the frame is resized.
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.2}%`,
+            top: '1.6%',
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '28%',
-            height: `${Math.max(18, baseElementHeight * 0.038)}px`,
-            backgroundColor: deviceFrameBgColor,
-            borderBottomLeftRadius: '1rem',
-            borderBottomRightRadius: '1rem',
+            width: '26%',
+            aspectRatio: '3.5 / 1',
+            backgroundColor: '#000',
+            borderRadius: '9999px',
             zIndex: 3, // Above screen content
           }} />
         );
         break;
-        
+
       case 'iphone-15-pro':
         deviceNativeAspectRatio = 390 / 844;
         framePaddingPercent = { top: 2.5, right: 3, bottom: 2.5, left: 3 };
-        screenBorderRadius = 'calc(1.2rem * var(--scale-factor, 1))'; // More rounded corners
-        deviceFrameOuterBorderRadius = 'calc(1.6rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.11}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.14}px`;
         deviceLabel = "iPhone 15 Pro";
         deviceFrameBgColor = '#1e1e1e'; // Darker titanium color
+        // Dynamic Island: rendered inside the screen. Width is % of screen,
+        // aspect-ratio locks the pill shape no matter how the frame is resized.
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.2}%`,
+            top: '1.6%',
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '28%',
-            height: `${Math.max(18, baseElementHeight * 0.038)}px`,
-            backgroundColor: deviceFrameBgColor,
-            borderBottomLeftRadius: '1rem',
-            borderBottomRightRadius: '1rem',
+            width: '26%',
+            aspectRatio: '3.5 / 1',
+            backgroundColor: '#000',
+            borderRadius: '9999px',
             zIndex: 3, // Above screen content
           }} />
         );
         break;
-        
+
       case 'iphone-14':
         deviceNativeAspectRatio = 390 / 844;
         framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
-        screenBorderRadius = 'calc(1rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(1.4rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.1}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.13}px`;
         deviceLabel = "iPhone 14";
+        // Classic notch: rendered inside the screen, glued to its top edge.
+        // aspect-ratio + percentage radii keep the shape identical at any size.
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.2}%`,
+            top: 0,
             left: '50%',
             transform: 'translateX(-50%)',
             width: '32%',
-            height: `${Math.max(20, baseElementHeight * 0.04)}px`,
+            aspectRatio: '4.6 / 1',
             backgroundColor: deviceFrameBgColor,
-            borderBottomLeftRadius: '0.9rem',
-            borderBottomRightRadius: '0.9rem',
+            borderBottomLeftRadius: '11% 50%',
+            borderBottomRightRadius: '11% 50%',
             zIndex: 3, // Above screen content
           }} />
         );
         break;
-        
+
       case 'iphone-13':
         deviceNativeAspectRatio = 390 / 844;
         framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
-        screenBorderRadius = 'calc(0.9rem * var(--scale-factor, 1))';
-        deviceFrameOuterBorderRadius = 'calc(1.3rem * var(--scale-factor, 1))';
+        screenBorderRadius = `${effectiveWidth * 0.09}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.12}px`;
         deviceLabel = "iPhone 13";
+        // Classic notch: rendered inside the screen, glued to its top edge.
+        // aspect-ratio + percentage radii keep the shape identical at any size.
         notchElement = (
           <div style={{
             position: 'absolute',
-            top: `${framePaddingPercent.top * 0.2}%`,
+            top: 0,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '35%',
-            height: `${Math.max(22, baseElementHeight * 0.042)}px`,
+            width: '34%',
+            aspectRatio: '4.4 / 1',
             backgroundColor: deviceFrameBgColor,
-            borderBottomLeftRadius: '0.8rem',
-            borderBottomRightRadius: '0.8rem',
+            borderBottomLeftRadius: '11% 48%',
+            borderBottomRightRadius: '11% 48%',
             zIndex: 3, // Above screen content
           }} />
         );
         break;
-        
+
+      case 'iphone-x':
+        deviceNativeAspectRatio = 375 / 812;
+        framePaddingPercent = { top: 3, right: 3, bottom: 3, left: 3 };
+        screenBorderRadius = `${effectiveWidth * 0.09}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.12}px`;
+        deviceLabel = "iPhone X";
+        // Classic notch: rendered inside the screen, glued to its top edge.
+        // aspect-ratio + percentage radii keep the shape identical at any size.
+        notchElement = (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '36%',
+            aspectRatio: '4.2 / 1',
+            backgroundColor: deviceFrameBgColor,
+            borderBottomLeftRadius: '12% 50%',
+            borderBottomRightRadius: '12% 50%',
+            zIndex: 3, // Above screen content
+          }} />
+        );
+        break;
+
       case 'iphone':
         deviceNativeAspectRatio = 390 / 844;
         framePaddingPercent = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 }; // Example values
-        screenBorderRadius = 'calc(0.8rem * var(--scale-factor, 1))'; // Roughly 39px on 390 width base
-        deviceFrameOuterBorderRadius = 'calc(1rem * var(--scale-factor, 1))'; // Roughly 50px
+        screenBorderRadius = `${effectiveWidth * 0.08}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.1}px`;
         deviceLabel = "iPhone";
         break;
       case 'android-bar':
@@ -474,8 +507,11 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       >
         {/* Use the same DOM structure for both modes */}
         <div style={frameStyle}>
-          {notchElement}
+          {/* iPhone notches/islands are anchored inside the screen so they stay glued
+              to its top edge; other devices keep frame-level positioning for now */}
+          {!element.deviceType?.startsWith('iphone') && notchElement}
           <div style={screenStyle}> {/* Using the unified screen style */}
+            {element.deviceType?.startsWith('iphone') && notchElement}
             {screenshot && element.screenshotRect ? (
               <div
                 style={{

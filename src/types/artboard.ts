@@ -72,6 +72,7 @@ export interface ShapeElementProps extends BaseElement {
 
 export type DeviceType =
   | 'iphone'
+  | 'iphone-x'
   | 'iphone-13'
   | 'iphone-14'
   | 'iphone-15'
