@@ -1,7 +1,12 @@
 import type {NextConfig} from 'next';
 
+// Set NEXT_PUBLIC_BASE_PATH (e.g. /artboard-studio) when deploying under a sub-path
+// such as GitHub Pages. Locally it stays empty and nothing changes.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'export',
+  basePath,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -9,6 +14,8 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    // next/image optimization needs a server; GitHub Pages is static-only.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
