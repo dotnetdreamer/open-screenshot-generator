@@ -1,5 +1,73 @@
-# Firebase Studio
+# Artboard Studio
 
-This is a NextJS starter in Firebase Studio.
+A browser-based editor for designing app store screenshots. You lay out artboards on a canvas, place device mockups on them, load your app screenshots into the frames, add text and shapes around them, and export PNGs at the exact sizes Google Play and the Apple App Store ask for.
 
-To get started, take a look at src/app/page.tsx.
+Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
+
+## What it does
+
+- Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
+- Device frames for iPhone (X through 15 Pro), Android (bar, notch, punch-hole), tablet, and desktop, plus custom frames from your own mockup images
+- Screenshots dropped into a frame stay clipped to the device screen; frames can be rotated, scaled, and tilted using perspective presets or a raw CSS `matrix3d` if you need full control
+- Text, shapes (rectangles, circles, stars, speech bubbles, custom SVG paths, and more), and plain images as freely placed elements
+- A curated set of Google Fonts, including Arabic and Urdu families like Cairo, Amiri, and Noto Nastaliq Urdu, alongside the usual system fonts
+- Layers panel for ordering and a properties panel for fine-tuning whatever is selected
+- Copy and paste elements within and across artboards
+- An export flow that asks which store (Google Play or App Store) and which device classes you're targeting, then renders each artboard to PNG at the store's required dimensions
+- Bundled example projects to start from instead of a blank canvas
+
+## Running it locally
+
+You'll need Node 18.18 or newer (that's Next.js 15's minimum).
+
+```bash
+git clone https://github.com/<your-username>/artboard-studio.git
+cd artboard-studio
+npm install
+npm run dev
+```
+
+The dev server runs on http://localhost:9002 with Turbopack. When the app opens, pick one of the bundled templates or start blank, and you're in the editor.
+
+Other scripts:
+
+- `npm run build` makes a production build
+- `npm run lint` runs ESLint via Next
+- `npm run typecheck` runs `tsc --noEmit`
+
+One thing to watch: `npm start` currently re-runs the dev server rather than serving a build. For a production build, run `npm run build` and then `npx next start`.
+
+## How the code is organized
+
+The app is a single Next.js page ([src/app/page.tsx](src/app/page.tsx)) that mounts the editor. The interesting parts live under [src/components/artboard-studio/](src/components/artboard-studio/):
+
+- [ArtboardStudioLayout.tsx](src/components/artboard-studio/ArtboardStudioLayout.tsx) is the top-level component holding most of the state (artboards, selection, undo history, project save/load) and doing the PNG export with `html-to-image`
+- [CanvasArea.tsx](src/components/artboard-studio/CanvasArea.tsx) and [Artboard.tsx](src/components/artboard-studio/Artboard.tsx) render the pannable, zoomable canvas and the individual artboards on it
+- [elements/](src/components/artboard-studio/elements/) holds the renderers for the four element types (text, shape, image, and device frame)
+- The panels and dialogs around the canvas: [ElementPalette.tsx](src/components/artboard-studio/ElementPalette.tsx), [LayersPanel.tsx](src/components/artboard-studio/LayersPanel.tsx), [PropertiesPanel.tsx](src/components/artboard-studio/PropertiesPanel.tsx), toolbars, and the export/preview dialogs
+
+Around that:
+
+- [src/types/artboard.ts](src/types/artboard.ts) defines the whole data model: artboards, the four element types, and projects. If you read one file before touching anything, make it this one; the rest of the codebase is mostly functions that manipulate these types.
+- [src/components/ui/](src/components/ui/) has the shadcn/ui-style primitives built on Radix
+- [src/services/](src/services/) covers template loading and the Google Fonts helpers
+- [src/database.ts](src/database.ts) is the Dexie (IndexedDB) setup, a single `projects` table
+- [src/lib/elementLibrary.ts](src/lib/elementLibrary.ts) supplies default props for newly added elements
+
+## Storage and templates
+
+Saved projects live in IndexedDB under a database called `ProjectDatabase`. Clearing site data deletes them, so treat exported PNGs as your real output and the browser store as a working copy.
+
+Templates are plain JSON files in [public/data/projects/](public/data/projects/), fetched at runtime. The file list is hardcoded in [projectService.ts](src/services/projectService.ts), so adding your own template means dropping a JSON file in that folder and adding its filename to the array. A template is essentially a saved array of artboard states. The practical way to make one is to design it in the app and copy the shape of an existing template file.
+
+## Loose ends worth knowing about
+
+- `next build` is configured to ignore TypeScript and ESLint errors ([next.config.ts](next.config.ts)), so a passing build doesn't mean the types are clean. Run `npm run typecheck` yourself before opening a PR.
+- [src/ai/](src/ai/) contains Genkit scaffolding (Google AI plugin, plus the `genkit:dev` and `genkit:watch` scripts), but no flows are wired up yet. The app runs fine without it.
+- There's no test suite at the moment; `typecheck` and `lint` are the safety net.
+
+## Contributing
+
+Issues and pull requests are welcome. If you're planning something bigger than a bug fix, open an issue first so we can talk it through before you spend time on it.
+
+There's no license file in the repo yet. If that's blocking you from using or contributing to the project, open an issue.
