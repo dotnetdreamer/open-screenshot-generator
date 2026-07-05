@@ -23,7 +23,8 @@ import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Artboard
 import { loadProjectTemplates } from '@/services/projectService';
 
 import { Button } from '@/components/ui/button';
-import { SettingsIcon, InfoIcon } from 'lucide-react';
+import { InfoIcon } from 'lucide-react';
+import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -91,6 +92,7 @@ export function ArtboardStudioLayout() {
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1411,13 +1413,7 @@ const generateRandomProjectName = (): string => {
              <SidebarGroup className="p-0">
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="Settings (N/A)" className="w-full">
-                    <SettingsIcon />
-                    <span className="group-data-[collapsible=icon]:hidden">Settings</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="About (N/A)" className="w-full">
+                  <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
                     <span className="group-data-[collapsible=icon]:hidden">About</span>
                   </SidebarMenuButton>
@@ -1501,6 +1497,40 @@ const generateRandomProjectName = (): string => {
               onClose={() => setIsPreviewOpen(false)}
             />
           )}
+
+          <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <Logo withBackground className="h-12 w-12" />
+                  <div className="text-left">
+                    <DialogTitle>Artboard Studio</DialogTitle>
+                    <DialogDescription>Version {packageJson.version}</DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  A free, open-source editor for designing app store screenshots. Lay out artboards,
+                  drop your screenshots into device frames, and export PNGs sized for Google Play
+                  and the Apple App Store.
+                </p>
+                <p>Projects are saved locally in your browser. Nothing is uploaded anywhere.</p>
+              </div>
+              <DialogFooter className="gap-2 sm:justify-between">
+                <Button variant="outline" asChild>
+                  <a
+                    href="https://github.com/dotnetdreamer/artboard-studio"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View on GitHub
+                  </a>
+                </Button>
+                <Button onClick={() => setIsAboutOpen(false)}>Close</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </SidebarInset>
       </SidebarProvider>
     </ClipboardProvider>

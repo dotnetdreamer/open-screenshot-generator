@@ -1,5 +1,8 @@
 import { ArtboardState, Project } from '@/types/artboard';
 
+// Matches basePath in next.config.ts so template fetches work under a sub-path deploy.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+
 // Function to load all available project files from data/projects folder
 export async function loadProjectTemplates(): Promise<Project[]> {
   const projects: Project[] = [];
@@ -18,7 +21,7 @@ export async function loadProjectTemplates(): Promise<Project[]> {
     
     for (const filename of projectFiles) {
       try {
-        const response = await fetch(`/data/projects/${filename}`);
+        const response = await fetch(`${BASE_PATH}/data/projects/${filename}`);
         if (!response.ok) {
           console.warn(`Failed to load project from ${filename}`);
           continue;
@@ -71,7 +74,7 @@ export function getAvailableProjectFiles(): string[] {
 // Function to dynamically load a specific project file
 export async function loadProjectFile(filename: string): Promise<any | null> {
   try {
-    const response = await fetch(`/data/projects/${filename}`);
+    const response = await fetch(`${BASE_PATH}/data/projects/${filename}`);
     if (!response.ok) {
       throw new Error(`Failed to load project file: ${filename}`);
     }
