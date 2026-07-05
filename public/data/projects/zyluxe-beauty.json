@@ -2,13 +2,19 @@
   "id": "template_zyluxe_beauty",
   "name": "Zyluxe Beauty",
   "description": "App Store screenshot set for a beauty curation app — 5 panels at 1290×2796 with bold purple hero, award badges, tag pills and device mockups.",
-  "timestamp": "2026-07-05T00:00:00.000Z",
+  "timestamp": "2026-07-05T00:00:00Z",
   "projectData": [
     {
       "id": "tpl_zx_ab1",
       "name": "Hero",
-      "position": { "x": 15, "y": 15 },
-      "size": { "width": 1290, "height": 2796 },
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
       "backgroundColor": "#8B30D9",
       "backgroundType": "solid",
       "zoom": 1,
@@ -17,8 +23,14 @@
           "id": "tpl_zx_ab1_mark_top",
           "type": "text",
           "name": "Brand Mark Top",
-          "position": { "x": 950, "y": -60 },
-          "size": { "width": 400, "height": 360 },
+          "position": {
+            "x": 950,
+            "y": -60
+          },
+          "size": {
+            "width": 400,
+            "height": 360
+          },
           "rotation": 0,
           "scale": 1,
           "content": "u",
@@ -33,8 +45,14 @@
           "id": "tpl_zx_ab1_headline",
           "type": "text",
           "name": "Headline",
-          "position": { "x": 80, "y": 150 },
-          "size": { "width": 900, "height": 320 },
+          "position": {
+            "x": 80,
+            "y": 150
+          },
+          "size": {
+            "width": 900,
+            "height": 320
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Beauty\ncurated",
@@ -49,8 +67,14 @@
           "id": "tpl_zx_ab1_sub",
           "type": "text",
           "name": "Subheadline",
-          "position": { "x": 85, "y": 520 },
-          "size": { "width": 700, "height": 260 },
+          "position": {
+            "x": 85,
+            "y": 520
+          },
+          "size": {
+            "width": 700,
+            "height": 260
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Everything needed for your\ncomplete beauty routine",
@@ -65,8 +89,14 @@
           "id": "tpl_zx_ab1_seal",
           "type": "shape",
           "name": "Rating Seal",
-          "position": { "x": 740, "y": 880 },
-          "size": { "width": 420, "height": 420 },
+          "position": {
+            "x": 740,
+            "y": 880
+          },
+          "size": {
+            "width": 420,
+            "height": 420
+          },
           "rotation": 12,
           "scale": 1,
           "shapeType": "star",
@@ -79,8 +109,14 @@
           "id": "tpl_zx_ab1_seal_text",
           "type": "text",
           "name": "Rating Text",
-          "position": { "x": 790, "y": 970 },
-          "size": { "width": 320, "height": 240 },
+          "position": {
+            "x": 790,
+            "y": 970
+          },
+          "size": {
+            "width": 320,
+            "height": 240
+          },
           "rotation": -14,
           "scale": 1,
           "content": "4.8\nrating",
@@ -96,8 +132,14 @@
           "id": "tpl_zx_ab1_award1_rank",
           "type": "text",
           "name": "Award 1 Rank",
-          "position": { "x": 145, "y": 1540 },
-          "size": { "width": 700, "height": 120 },
+          "position": {
+            "x": 145,
+            "y": 1540
+          },
+          "size": {
+            "width": 700,
+            "height": 120
+          },
           "rotation": 0,
           "scale": 1,
           "content": "#1",
@@ -112,8 +154,14 @@
           "id": "tpl_zx_ab1_award1_label",
           "type": "text",
           "name": "Award 1 Label",
-          "position": { "x": 145, "y": 1665 },
-          "size": { "width": 700, "height": 220 },
+          "position": {
+            "x": 145,
+            "y": 1665
+          },
+          "size": {
+            "width": 700,
+            "height": 220
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Users' choice\naward",
@@ -125,11 +173,63 @@
           "lineHeight": 1.2
         },
         {
+          "id": "tpl_zx_ab1_award1_laurel_l",
+          "type": "shape",
+          "name": "Award 1 Laurel Left",
+          "position": {
+            "x": 110,
+            "y": 1530
+          },
+          "size": {
+            "width": 100,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.5 4.86 L52.5 4.86 L52.5 94.59 L47.5 94.59 Z M50 89.19 Q34.55 81.44 4 78.38 Q19.45 86.13 50 89.19 Z M50 89.19 Q80.55 86.13 96 78.38 Q65.45 81.44 50 89.19 Z M50 77.7 Q35.68 70.35 6.91 67.43 Q21.23 74.78 50 77.7 Z M50 77.7 Q78.77 74.78 93.09 67.43 Q64.32 70.35 50 77.7 Z M50 66.22 Q36.82 59.27 9.83 56.49 Q23.01 63.43 50 66.22 Z M50 66.22 Q76.99 63.43 90.17 56.49 Q63.18 59.27 50 66.22 Z M50 54.73 Q37.96 48.18 12.74 45.54 Q24.78 52.09 50 54.73 Z M50 54.73 Q75.22 52.09 87.26 45.54 Q62.04 48.18 50 54.73 Z M50 43.24 Q39.1 37.1 15.65 34.59 Q26.56 40.74 50 43.24 Z M50 43.24 Q73.44 40.74 84.35 34.59 Q60.9 37.1 50 43.24 Z M50 31.76 Q40.24 26.02 18.57 23.65 Q28.33 29.39 50 31.76 Z M50 31.76 Q71.67 29.39 81.43 23.65 Q59.76 26.02 50 31.76 Z M50 20.27 Q41.38 14.93 21.48 12.7 Q30.1 18.04 50 20.27 Z M50 20.27 Q69.9 18.04 78.52 12.7 Q58.62 14.93 50 20.27 Z M50 16.76 Q60 9.46 50 2.16 Q40 9.46 50 16.76 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_zx_ab1_award1_laurel_r",
+          "type": "shape",
+          "name": "Award 1 Laurel Right",
+          "position": {
+            "x": 780,
+            "y": 1530
+          },
+          "size": {
+            "width": 100,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.5 4.86 L52.5 4.86 L52.5 94.59 L47.5 94.59 Z M50 89.19 Q34.55 81.44 4 78.38 Q19.45 86.13 50 89.19 Z M50 89.19 Q80.55 86.13 96 78.38 Q65.45 81.44 50 89.19 Z M50 77.7 Q35.68 70.35 6.91 67.43 Q21.23 74.78 50 77.7 Z M50 77.7 Q78.77 74.78 93.09 67.43 Q64.32 70.35 50 77.7 Z M50 66.22 Q36.82 59.27 9.83 56.49 Q23.01 63.43 50 66.22 Z M50 66.22 Q76.99 63.43 90.17 56.49 Q63.18 59.27 50 66.22 Z M50 54.73 Q37.96 48.18 12.74 45.54 Q24.78 52.09 50 54.73 Z M50 54.73 Q75.22 52.09 87.26 45.54 Q62.04 48.18 50 54.73 Z M50 43.24 Q39.1 37.1 15.65 34.59 Q26.56 40.74 50 43.24 Z M50 43.24 Q73.44 40.74 84.35 34.59 Q60.9 37.1 50 43.24 Z M50 31.76 Q40.24 26.02 18.57 23.65 Q28.33 29.39 50 31.76 Z M50 31.76 Q71.67 29.39 81.43 23.65 Q59.76 26.02 50 31.76 Z M50 20.27 Q41.38 14.93 21.48 12.7 Q30.1 18.04 50 20.27 Z M50 20.27 Q69.9 18.04 78.52 12.7 Q58.62 14.93 50 20.27 Z M50 16.76 Q60 9.46 50 2.16 Q40 9.46 50 16.76 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
           "id": "tpl_zx_ab1_award2_label",
           "type": "text",
           "name": "Award 2 Label",
-          "position": { "x": 145, "y": 2060 },
-          "size": { "width": 700, "height": 220 },
+          "position": {
+            "x": 145,
+            "y": 2060
+          },
+          "size": {
+            "width": 700,
+            "height": 220
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Featured by\nexperts",
@@ -141,11 +241,63 @@
           "lineHeight": 1.2
         },
         {
+          "id": "tpl_zx_ab1_award2_laurel_l",
+          "type": "shape",
+          "name": "Award 2 Laurel Left",
+          "position": {
+            "x": 110,
+            "y": 2030
+          },
+          "size": {
+            "width": 100,
+            "height": 290
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.5 6.21 L52.5 6.21 L52.5 93.1 L47.5 93.1 Z M50 86.21 Q34.55 76.32 4 72.41 Q19.45 82.3 50 86.21 Z M50 86.21 Q80.55 82.3 96 72.41 Q65.45 76.32 50 86.21 Z M50 76.15 Q35.68 66.77 6.91 63.05 Q21.23 72.42 50 76.15 Z M50 76.15 Q78.77 72.42 93.09 63.05 Q64.32 66.77 50 76.15 Z M50 66.09 Q36.82 57.23 9.83 53.68 Q23.01 62.54 50 66.09 Z M50 66.09 Q76.99 62.54 90.17 53.68 Q63.18 57.23 50 66.09 Z M50 56.03 Q37.96 47.68 12.74 44.31 Q24.78 52.66 50 56.03 Z M50 56.03 Q75.22 52.66 87.26 44.31 Q62.04 47.68 50 56.03 Z M50 45.98 Q39.1 38.14 15.65 34.94 Q26.56 42.78 50 45.98 Z M50 45.98 Q73.44 42.78 84.35 34.94 Q60.9 38.14 50 45.98 Z M50 35.92 Q40.24 28.6 18.57 25.57 Q28.33 32.9 50 35.92 Z M50 35.92 Q71.67 32.9 81.43 25.57 Q59.76 28.6 50 35.92 Z M50 25.86 Q41.38 19.05 21.48 16.21 Q30.1 23.02 50 25.86 Z M50 25.86 Q69.9 23.02 78.52 16.21 Q58.62 19.05 50 25.86 Z M50 21.38 Q60 12.07 50 2.76 Q40 12.07 50 21.38 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_zx_ab1_award2_laurel_r",
+          "type": "shape",
+          "name": "Award 2 Laurel Right",
+          "position": {
+            "x": 780,
+            "y": 2030
+          },
+          "size": {
+            "width": 100,
+            "height": 290
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.5 6.21 L52.5 6.21 L52.5 93.1 L47.5 93.1 Z M50 86.21 Q34.55 76.32 4 72.41 Q19.45 82.3 50 86.21 Z M50 86.21 Q80.55 82.3 96 72.41 Q65.45 76.32 50 86.21 Z M50 76.15 Q35.68 66.77 6.91 63.05 Q21.23 72.42 50 76.15 Z M50 76.15 Q78.77 72.42 93.09 63.05 Q64.32 66.77 50 76.15 Z M50 66.09 Q36.82 57.23 9.83 53.68 Q23.01 62.54 50 66.09 Z M50 66.09 Q76.99 62.54 90.17 53.68 Q63.18 57.23 50 66.09 Z M50 56.03 Q37.96 47.68 12.74 44.31 Q24.78 52.66 50 56.03 Z M50 56.03 Q75.22 52.66 87.26 44.31 Q62.04 47.68 50 56.03 Z M50 45.98 Q39.1 38.14 15.65 34.94 Q26.56 42.78 50 45.98 Z M50 45.98 Q73.44 42.78 84.35 34.94 Q60.9 38.14 50 45.98 Z M50 35.92 Q40.24 28.6 18.57 25.57 Q28.33 32.9 50 35.92 Z M50 35.92 Q71.67 32.9 81.43 25.57 Q59.76 28.6 50 35.92 Z M50 25.86 Q41.38 19.05 21.48 16.21 Q30.1 23.02 50 25.86 Z M50 25.86 Q69.9 23.02 78.52 16.21 Q58.62 19.05 50 25.86 Z M50 21.38 Q60 12.07 50 2.76 Q40 12.07 50 21.38 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
           "id": "tpl_zx_ab1_logo",
           "type": "text",
           "name": "Logo",
-          "position": { "x": 80, "y": 2520 },
-          "size": { "width": 620, "height": 190 },
+          "position": {
+            "x": 80,
+            "y": 2520
+          },
+          "size": {
+            "width": 620,
+            "height": 190
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Zyluxe.",
@@ -160,8 +312,14 @@
           "id": "tpl_zx_ab1_mark_bottom",
           "type": "text",
           "name": "Brand Mark Bottom",
-          "position": { "x": 1000, "y": 2520 },
-          "size": { "width": 260, "height": 220 },
+          "position": {
+            "x": 1000,
+            "y": 2520
+          },
+          "size": {
+            "width": 260,
+            "height": 220
+          },
           "rotation": 0,
           "scale": 1,
           "content": "u",
@@ -177,8 +335,14 @@
     {
       "id": "tpl_zx_ab2",
       "name": "App Preview",
-      "position": { "x": 417, "y": 15 },
-      "size": { "width": 1290, "height": 2796 },
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
       "backgroundColor": "#8B30D9",
       "backgroundType": "solid",
       "zoom": 1,
@@ -187,8 +351,14 @@
           "id": "tpl_zx_ab2_mark",
           "type": "text",
           "name": "Brand Mark",
-          "position": { "x": 380, "y": -80 },
-          "size": { "width": 700, "height": 420 },
+          "position": {
+            "x": 380,
+            "y": -80
+          },
+          "size": {
+            "width": 700,
+            "height": 420
+          },
           "rotation": -6,
           "scale": 1,
           "content": "u",
@@ -203,22 +373,39 @@
           "id": "tpl_zx_ab2_device",
           "type": "device",
           "name": "Phone Mockup",
-          "position": { "x": 130, "y": 300 },
-          "size": { "width": 1030, "height": 2110 },
+          "position": {
+            "x": 130,
+            "y": 300
+          },
+          "size": {
+            "width": 1030,
+            "height": 2110
+          },
           "rotation": 7,
           "scale": 1.15,
           "deviceType": "iphone-15-pro",
           "styleType": "normal",
           "screenshotObjectFit": "cover",
-          "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
         }
       ]
     },
     {
       "id": "tpl_zx_ab3",
       "name": "Personalized Picks",
-      "position": { "x": 819, "y": 15 },
-      "size": { "width": 1290, "height": 2796 },
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
       "backgroundColor": "#F1E2FA",
       "backgroundType": "solid",
       "zoom": 1,
@@ -227,8 +414,14 @@
           "id": "tpl_zx_ab3_headline",
           "type": "text",
           "name": "Headline",
-          "position": { "x": 95, "y": 130 },
-          "size": { "width": 1060, "height": 320 },
+          "position": {
+            "x": 95,
+            "y": 130
+          },
+          "size": {
+            "width": 1060,
+            "height": 320
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Personalized\nbeauty picks",
@@ -243,8 +436,14 @@
           "id": "tpl_zx_ab3_headline2",
           "type": "text",
           "name": "Headline Accent",
-          "position": { "x": 95, "y": 470 },
-          "size": { "width": 1060, "height": 320 },
+          "position": {
+            "x": 95,
+            "y": 470
+          },
+          "size": {
+            "width": 1060,
+            "height": 320
+          },
           "rotation": 0,
           "scale": 1,
           "content": "delivered every\nmonth",
@@ -259,8 +458,14 @@
           "id": "tpl_zx_ab3_pill1",
           "type": "shape",
           "name": "Pill – Stylish",
-          "position": { "x": 20, "y": 900 },
-          "size": { "width": 350, "height": 170 },
+          "position": {
+            "x": 20,
+            "y": 900
+          },
+          "size": {
+            "width": 350,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
@@ -273,8 +478,14 @@
           "id": "tpl_zx_ab3_pill1_text",
           "type": "text",
           "name": "Pill Text – Stylish",
-          "position": { "x": 20, "y": 900 },
-          "size": { "width": 350, "height": 170 },
+          "position": {
+            "x": 20,
+            "y": 900
+          },
+          "size": {
+            "width": 350,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Stylish",
@@ -289,8 +500,14 @@
           "id": "tpl_zx_ab3_pill2",
           "type": "shape",
           "name": "Pill – Luxury",
-          "position": { "x": 420, "y": 900 },
-          "size": { "width": 370, "height": 170 },
+          "position": {
+            "x": 420,
+            "y": 900
+          },
+          "size": {
+            "width": 370,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
@@ -303,8 +520,14 @@
           "id": "tpl_zx_ab3_pill2_text",
           "type": "text",
           "name": "Pill Text – Luxury",
-          "position": { "x": 420, "y": 900 },
-          "size": { "width": 370, "height": 170 },
+          "position": {
+            "x": 420,
+            "y": 900
+          },
+          "size": {
+            "width": 370,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Luxury",
@@ -319,8 +542,14 @@
           "id": "tpl_zx_ab3_pill3",
           "type": "shape",
           "name": "Pill – Styling",
-          "position": { "x": 840, "y": 900 },
-          "size": { "width": 560, "height": 170 },
+          "position": {
+            "x": 840,
+            "y": 900
+          },
+          "size": {
+            "width": 560,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
@@ -333,8 +562,14 @@
           "id": "tpl_zx_ab3_pill3_text",
           "type": "text",
           "name": "Pill Text – Styling",
-          "position": { "x": 840, "y": 900 },
-          "size": { "width": 560, "height": 170 },
+          "position": {
+            "x": 840,
+            "y": 900
+          },
+          "size": {
+            "width": 560,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Styling",
@@ -349,8 +584,14 @@
           "id": "tpl_zx_ab3_pill4",
           "type": "shape",
           "name": "Pill – Trending",
-          "position": { "x": -260, "y": 1130 },
-          "size": { "width": 420, "height": 170 },
+          "position": {
+            "x": -260,
+            "y": 1130
+          },
+          "size": {
+            "width": 420,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
@@ -363,8 +604,14 @@
           "id": "tpl_zx_ab3_pill4_text",
           "type": "text",
           "name": "Pill Text – Trending",
-          "position": { "x": -260, "y": 1130 },
-          "size": { "width": 420, "height": 170 },
+          "position": {
+            "x": -260,
+            "y": 1130
+          },
+          "size": {
+            "width": 420,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Trending",
@@ -379,8 +626,14 @@
           "id": "tpl_zx_ab3_pill5",
           "type": "shape",
           "name": "Pill – Unique",
-          "position": { "x": 220, "y": 1130 },
-          "size": { "width": 360, "height": 170 },
+          "position": {
+            "x": 220,
+            "y": 1130
+          },
+          "size": {
+            "width": 360,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
@@ -393,8 +646,14 @@
           "id": "tpl_zx_ab3_pill5_text",
           "type": "text",
           "name": "Pill Text – Unique",
-          "position": { "x": 220, "y": 1130 },
-          "size": { "width": 360, "height": 170 },
+          "position": {
+            "x": 220,
+            "y": 1130
+          },
+          "size": {
+            "width": 360,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Unique",
@@ -409,8 +668,14 @@
           "id": "tpl_zx_ab3_pill6",
           "type": "shape",
           "name": "Pill – Popular",
-          "position": { "x": 630, "y": 1130 },
-          "size": { "width": 390, "height": 170 },
+          "position": {
+            "x": 630,
+            "y": 1130
+          },
+          "size": {
+            "width": 390,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
@@ -423,8 +688,14 @@
           "id": "tpl_zx_ab3_pill6_text",
           "type": "text",
           "name": "Pill Text – Popular",
-          "position": { "x": 630, "y": 1130 },
-          "size": { "width": 390, "height": 170 },
+          "position": {
+            "x": 630,
+            "y": 1130
+          },
+          "size": {
+            "width": 390,
+            "height": 170
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Popular",
@@ -439,22 +710,39 @@
           "id": "tpl_zx_ab3_device",
           "type": "device",
           "name": "Phone Mockup",
-          "position": { "x": 165, "y": 1480 },
-          "size": { "width": 960, "height": 1960 },
+          "position": {
+            "x": 165,
+            "y": 1480
+          },
+          "size": {
+            "width": 960,
+            "height": 1960
+          },
           "rotation": 0,
           "scale": 1,
           "deviceType": "iphone-15-pro",
           "styleType": "normal",
           "screenshotObjectFit": "cover",
-          "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
         }
       ]
     },
     {
       "id": "tpl_zx_ab4",
       "name": "Customized Beauty",
-      "position": { "x": 1221, "y": 15 },
-      "size": { "width": 1290, "height": 2796 },
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
       "backgroundColor": "#ECD8F7",
       "backgroundType": "solid",
       "zoom": 1,
@@ -463,8 +751,14 @@
           "id": "tpl_zx_ab4_headline",
           "type": "text",
           "name": "Headline",
-          "position": { "x": 95, "y": 140 },
-          "size": { "width": 1060, "height": 320 },
+          "position": {
+            "x": 95,
+            "y": 140
+          },
+          "size": {
+            "width": 1060,
+            "height": 320
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Customized\nbeauty",
@@ -479,8 +773,14 @@
           "id": "tpl_zx_ab4_headline2",
           "type": "text",
           "name": "Headline Accent",
-          "position": { "x": 95, "y": 480 },
-          "size": { "width": 1060, "height": 180 },
+          "position": {
+            "x": 95,
+            "y": 480
+          },
+          "size": {
+            "width": 1060,
+            "height": 180
+          },
           "rotation": 0,
           "scale": 1,
           "content": "made simple",
@@ -495,22 +795,39 @@
           "id": "tpl_zx_ab4_device",
           "type": "device",
           "name": "Phone Mockup",
-          "position": { "x": 120, "y": 780 },
-          "size": { "width": 1050, "height": 2150 },
+          "position": {
+            "x": 120,
+            "y": 780
+          },
+          "size": {
+            "width": 1050,
+            "height": 2150
+          },
           "rotation": 0,
           "scale": 1,
           "deviceType": "iphone-15-pro",
           "styleType": "normal",
           "screenshotObjectFit": "cover",
-          "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
         }
       ]
     },
     {
       "id": "tpl_zx_ab5",
       "name": "Tailored Products",
-      "position": { "x": 1623, "y": 15 },
-      "size": { "width": 1290, "height": 2796 },
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
       "backgroundColor": "#F1E2FA",
       "backgroundType": "solid",
       "zoom": 1,
@@ -519,8 +836,14 @@
           "id": "tpl_zx_ab5_headline",
           "type": "text",
           "name": "Headline",
-          "position": { "x": 95, "y": 140 },
-          "size": { "width": 1080, "height": 320 },
+          "position": {
+            "x": 95,
+            "y": 140
+          },
+          "size": {
+            "width": 1080,
+            "height": 320
+          },
           "rotation": 0,
           "scale": 1,
           "content": "Get tailored\nbeauty products",
@@ -535,8 +858,14 @@
           "id": "tpl_zx_ab5_headline2",
           "type": "text",
           "name": "Headline Accent",
-          "position": { "x": 95, "y": 480 },
-          "size": { "width": 1080, "height": 180 },
+          "position": {
+            "x": 95,
+            "y": 480
+          },
+          "size": {
+            "width": 1080,
+            "height": 180
+          },
           "rotation": 0,
           "scale": 1,
           "content": "matched to you",
@@ -551,14 +880,25 @@
           "id": "tpl_zx_ab5_device",
           "type": "device",
           "name": "Phone Mockup",
-          "position": { "x": 120, "y": 760 },
-          "size": { "width": 1050, "height": 2150 },
+          "position": {
+            "x": 120,
+            "y": 760
+          },
+          "size": {
+            "width": 1050,
+            "height": 2150
+          },
           "rotation": 0,
           "scale": 1,
           "deviceType": "iphone-15-pro",
           "styleType": "normal",
           "screenshotObjectFit": "cover",
-          "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
         }
       ]
     }

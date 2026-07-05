@@ -418,6 +418,16 @@
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
+        },
+        {
+          "id": "tpl_nxm_ab5_photo",
+          "type": "image",
+          "name": "Lifestyle Photo",
+          "position": { "x": 860, "y": 1040 },
+          "size": { "width": 430, "height": 1756 },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover"
         }
       ]
     }

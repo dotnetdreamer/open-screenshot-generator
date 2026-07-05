@@ -169,15 +169,16 @@
           "id": "tpl_bg_ab2_divider1",
           "type": "shape",
           "name": "Divider",
-          "position": { "x": 335, "y": 760 },
-          "size": { "width": 620, "height": 10 },
+          "position": { "x": 335, "y": 747 },
+          "size": { "width": 620, "height": 36 },
           "rotation": 0,
           "scale": 1,
-          "shapeType": "rectangle",
+          "shapeType": "custom-svg",
           "fillColor": "#2B2645",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 5
+          "customPath": "M0 40 Q12.5 22 25 40 Q37.5 58 50 40 Q62.5 22 75 40 Q87.5 58 100 40 L100 62 Q87.5 80 75 62 Q62.5 44 50 62 Q37.5 80 25 62 Q12.5 44 0 62 Z",
+          "specialProps": { "viewBox": "0 0 100 100" }
         },
         {
           "id": "tpl_bg_ab2_quote1",
@@ -215,15 +216,16 @@
           "id": "tpl_bg_ab2_divider2",
           "type": "shape",
           "name": "Divider",
-          "position": { "x": 335, "y": 1270 },
-          "size": { "width": 620, "height": 10 },
+          "position": { "x": 335, "y": 1257 },
+          "size": { "width": 620, "height": 36 },
           "rotation": 0,
           "scale": 1,
-          "shapeType": "rectangle",
+          "shapeType": "custom-svg",
           "fillColor": "#2B2645",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 5
+          "customPath": "M0 40 Q12.5 22 25 40 Q37.5 58 50 40 Q62.5 22 75 40 Q87.5 58 100 40 L100 62 Q87.5 80 75 62 Q62.5 44 50 62 Q37.5 80 25 62 Q12.5 44 0 62 Z",
+          "specialProps": { "viewBox": "0 0 100 100" }
         },
         {
           "id": "tpl_bg_ab2_quote2",
@@ -344,6 +346,16 @@
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
+        },
+        {
+          "id": "tpl_bg_ab3_illustration",
+          "type": "image",
+          "name": "Character Illustration",
+          "position": { "x": -100, "y": 1290 },
+          "size": { "width": 700, "height": 1506 },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain"
         },
         {
           "id": "tpl_bg_ab3_sparkle1",
