@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
 import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, DeviceStyleType } from '@/types/artboard';
 import { cn } from '@/lib/utils';
+import { Device3DRenderer } from './Device3DRenderer';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -452,9 +453,14 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     `;
   };
   
+  // True-3D mode: rendered with three.js (real geometry, lighting and a camera
+  // whose distance is proportional to the device) so the depth reads identically
+  // at any element size and the screenshot wraps the screen face exactly.
+  const is3DMode = element.styleType === '3d-left' || element.styleType === '3d-right';
+
   // Check if we're using the SVG perspective mode
-  const usingSvgPerspectiveMode = element.styleType && element.styleType !== 'normal';
-  
+  const usingSvgPerspectiveMode = element.styleType && element.styleType !== 'normal' && !is3DMode;
+
   // Container style with hardware acceleration
   const containerStyle: React.CSSProperties = {
     width: '100%',
@@ -484,6 +490,60 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     ['--scale-factor' as any]: element.scale || 1,
     overflow: 'visible',
   };
+
+  if (is3DMode) {
+    return (
+      <div
+        className="w-full h-full flex items-center justify-center bg-transparent group"
+        style={{ cursor: 'default', position: 'relative' }}
+      >
+        <Device3DRenderer
+          deviceType={element.deviceType}
+          side={element.styleType === '3d-left' ? 'left' : 'right'}
+          screenshotSrc={screenshot}
+          objectFit={element.screenshotObjectFit || 'cover'}
+        />
+        {!screenshot && (
+          // Overlay text must scale with the element: the artboard is displayed
+          // CSS-scaled down, so fixed 12px text becomes unreadable.
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground text-center pointer-events-none">
+            <p
+              className="bg-background/70 rounded"
+              style={{
+                fontSize: `${Math.max(12, effectiveWidth * 0.055)}px`,
+                padding: `${effectiveWidth * 0.012}px ${effectiveWidth * 0.03}px`,
+                borderRadius: `${effectiveWidth * 0.02}px`,
+              }}
+            >{`Mockup: ${deviceLabel} (3D)`}</p>
+            {isSelected && (
+              <Button
+                variant="outline"
+                className="bg-background/80 hover:bg-background pointer-events-auto h-auto"
+                style={{
+                  zIndex: 10,
+                  fontSize: `${Math.max(12, effectiveWidth * 0.05)}px`,
+                  padding: `${effectiveWidth * 0.015}px ${effectiveWidth * 0.035}px`,
+                  marginTop: `${effectiveWidth * 0.03}px`,
+                  borderRadius: `${effectiveWidth * 0.02}px`,
+                }}
+                onClick={() => triggerFileUpload('screenshot')}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                Upload Screenshot
+              </Button>
+            )}
+          </div>
+        )}
+        <Input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept="image/*"
+          onChange={handleImageUpload}
+        />
+      </div>
+    );
+  }
   
   // Screen style used for both normal and perspective modes.
   // Absolutely positioned with px insets derived from the effective width so the
@@ -510,7 +570,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       style={{ cursor: 'default', position: 'relative' }}
     >
       {/* Apply transform to the outer container */}
-      <div 
+      <div
         className={usingSvgPerspectiveMode ? "device-container-perspective" : "device-container"}
         style={containerStyle}
       >
@@ -573,7 +633,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
           </div>
         </div>
       </div>
-      
+
       <Input
         type="file"
         ref={fileInputRef}

@@ -395,9 +395,32 @@ const dashedLineSub = (y: number, dash: number, gap: number): string => {
   return d.trim();
 };
 
-const dottedLineSub = (y: number, r: number, step: number): string => {
+const dottedLineSub = (y: number, r: number, step: number, x0 = 6, x1 = 94): string => {
   let d = '';
-  for (let x = 6; x <= 94; x += step) d += circleSub(x, y, r);
+  for (let x = x0; x <= x1; x += step) d += circleSub(x, y, r);
+  return d;
+};
+
+/** Dash-dot-dash divider (round linecaps render the h0.01 stubs as dots). */
+const dashDotLineSub = (y: number): string => {
+  let d = '';
+  for (let x = 4; x <= 64; x += 20) {
+    d += ` M${fmt(x)} ${fmt(y)} H${fmt(x + 11)} M${fmt(x + 15.5)} ${fmt(y)} h0.01`;
+  }
+  return (d + ` M85 ${fmt(y)} H96`).trim();
+};
+
+/** Cursive loop-the-loop flourish: prolate cycloid sampled as a dense polyline,
+ *  extended half a turn each side so the stroke leads in and out along arch bottoms. */
+const curlLineSub = (loops: number, y: number, rx: number, ry: number, x0 = 6, x1 = 94): string => {
+  const T = loops * 2 * Math.PI;
+  const drift = (x1 - x0 - 2 * rx) / T;
+  const steps = (loops + 1) * 28;
+  let d = '';
+  for (let i = 0; i <= steps; i++) {
+    const t = -Math.PI + (i / steps) * (T + 2 * Math.PI);
+    d += (i === 0 ? 'M' : ' L') + `${fmt(x0 + rx + drift * t - rx * Math.sin(t))} ${fmt(y - ry * Math.cos(t))}`;
+  }
   return d;
 };
 
@@ -600,6 +623,226 @@ const triangleTileSub = (): string => {
     }
   }
   return d;
+};
+
+/* ------------------------------ pattern extras ------------------------------ */
+
+/** Deterministic pseudo-random in [0,1) from an integer key (keeps SSR renders stable). */
+const prand = (n: number): number => {
+  const s = Math.sin(n * 12.9898) * 43758.5453;
+  return s - Math.floor(s);
+};
+
+/** Chunky open lattice: rounded-end bars inset from the tile edges. */
+const boldGridSub = (lines: number, t: number): string => {
+  const step = 100 / (lines + 1);
+  let d = '';
+  for (let i = 1; i <= lines; i++) {
+    const p = i * step - t / 2;
+    d += roundedRectSub(p, 4, t, 92, t / 2) + roundedRectSub(4, p, 92, t, t / 2);
+  }
+  return d;
+};
+
+/** Grid drawn with short dashes (stitched graph paper). */
+const dashedGridSub = (cells: number, dash: number, gap: number): string => {
+  const step = 92 / cells;
+  let d = '';
+  for (let i = 0; i <= cells; i++) {
+    const p = 4 + i * step;
+    for (let q = 4; q < 96; q += dash + gap) {
+      const e = Math.min(q + dash, 96);
+      d += ` M${fmt(q)} ${fmt(p)} H${fmt(e)} M${fmt(p)} ${fmt(q)} V${fmt(e)}`;
+    }
+  }
+  return d.trim();
+};
+
+/** Filled quarter ring centered on a tile corner, sweeping a0..a0+90 (truchet maze). */
+const quarterRingSub = (cx: number, cy: number, rMid: number, w: number, a0: number): string => {
+  const ro = rMid + w / 2;
+  const ri = rMid - w / 2;
+  const o0 = polar(cx, cy, ro, a0);
+  const o1 = polar(cx, cy, ro, a0 + 90);
+  const i1 = polar(cx, cy, ri, a0 + 90);
+  const i0 = polar(cx, cy, ri, a0);
+  return (
+    `M${fmt(o0[0])} ${fmt(o0[1])} A${fmt(ro)} ${fmt(ro)} 0 0 1 ${fmt(o1[0])} ${fmt(o1[1])} ` +
+    `L${fmt(i1[0])} ${fmt(i1[1])} A${fmt(ri)} ${fmt(ri)} 0 0 0 ${fmt(i0[0])} ${fmt(i0[1])} Z`
+  );
+};
+
+/** Deterministic truchet coin flip for cell (ri, ci). */
+const truchetFlip = (ri: number, ci: number): boolean => prand(ri * 97 + ci * 13 + 7) < 0.5;
+
+/** Bold rounded maze: filled quarter-ring truchet tiles. */
+const truchetSub = (cells: number, w: number): string => {
+  const s = 100 / cells;
+  let d = '';
+  for (let ri = 0; ri < cells; ri++) {
+    for (let ci = 0; ci < cells; ci++) {
+      const x = ci * s;
+      const y = ri * s;
+      d += truchetFlip(ri, ci)
+        ? quarterRingSub(x, y, s / 2, w, 0) + quarterRingSub(x + s, y + s, s / 2, w, 180)
+        : quarterRingSub(x + s, y, s / 2, w, 90) + quarterRingSub(x, y + s, s / 2, w, 270);
+    }
+  }
+  return d;
+};
+
+/** Thin truchet: stroked quarter-circle arcs on a grid (circuit loops). */
+const truchetArcsSub = (cells: number): string => {
+  const s = 100 / cells;
+  const arc = (cx: number, cy: number, a0: number): string => {
+    const p1 = polar(cx, cy, s / 2, a0);
+    const p2 = polar(cx, cy, s / 2, a0 + 90);
+    return ` M${fmt(p1[0])} ${fmt(p1[1])} A${fmt(s / 2)} ${fmt(s / 2)} 0 0 1 ${fmt(p2[0])} ${fmt(p2[1])}`;
+  };
+  let d = '';
+  for (let ri = 0; ri < cells; ri++) {
+    for (let ci = 0; ci < cells; ci++) {
+      const x = ci * s;
+      const y = ri * s;
+      d += truchetFlip(ri + 3, ci + 5)
+        ? arc(x, y, 0) + arc(x + s, y + s, 180)
+        : arc(x + s, y, 90) + arc(x, y + s, 270);
+    }
+  }
+  return d.trim();
+};
+
+/** Thick wavy stripes running diagonally up the tile (filled brush strokes). */
+const waveDiagSub = (count: number, amp: number, wavelength: number, hw: number): string => {
+  const sig = Math.SQRT1_2;
+  let d = '';
+  for (let k = 0; k < count; k++) {
+    const c = -46 + (92 * k) / (count - 1);
+    const uLo = 5 + amp + hw + Math.abs(c);
+    const uHi = 136.4 - amp - hw - Math.abs(c);
+    if (uHi - uLo < 14) continue;
+    const pts: Pt[] = [];
+    for (let i = 0; i <= 14; i++) {
+      const u = uLo + ((uHi - uLo) * i) / 14;
+      const v = c + amp * Math.sin((u / wavelength) * Math.PI * 2 + k * 1.9);
+      pts.push([sig * (u + v), 100 - sig * (u - v)]);
+    }
+    d += ' ' + brushStrokeSub(pts, () => hw);
+  }
+  return d.trim();
+};
+
+/** Loose overlapping scribble rows (etched texture). */
+const scribbleSub = (rows: number, amp: number, seed: number): string => {
+  let d = '';
+  for (let r = 0; r < rows; r++) {
+    const y = 9 + (82 * r) / (rows - 1);
+    const pts: Pt[] = [];
+    for (let i = 0; i < 9; i++) {
+      const x = 5 + (90 * i) / 8 + (prand(seed + r * 31 + i * 7) - 0.5) * 6;
+      pts.push([x, y + (prand(seed + r * 17 + i * 13) - 0.5) * 2 * amp]);
+    }
+    d += ' ' + smoothOpenSub(pts);
+  }
+  return d.trim();
+};
+
+/** Rows of tight jittery zigzag scratches. */
+const scratchRowsSub = (rows: number): string => {
+  let d = '';
+  for (let r = 0; r < rows; r++) {
+    const y = 11 + (78 * r) / (rows - 1);
+    const x0 = 5 + prand(r * 5 + 1) * 9;
+    const x1 = 95 - prand(r * 9 + 2) * 9;
+    const amp = 2.4 + prand(r * 3 + 4) * 1.8;
+    const segs = 11 + Math.floor(prand(r * 7 + 3) * 5);
+    let p = `M${fmt(x0)} ${fmt(y + amp)}`;
+    for (let i = 1; i <= segs; i++) {
+      p += ` L${fmt(x0 + ((x1 - x0) * i) / segs)} ${fmt(i % 2 === 1 ? y - amp : y + amp)}`;
+    }
+    d += ' ' + p;
+  }
+  return d.trim();
+};
+
+/** Vertical strokes of varied lengths (rhythm bars). */
+const barcodeSub = (count: number): string => {
+  const step = 100 / (count + 1);
+  let d = '';
+  for (let i = 1; i <= count; i++) {
+    const x = i * step;
+    d += ` M${fmt(x)} ${fmt(5 + prand(i * 11 + 5) * 34)} V${fmt(95 - prand(i * 23 + 9) * 34)}`;
+  }
+  return d.trim();
+};
+
+/** Nested flowing contour lines (topographic / marbled texture). */
+const contourSub = (linesN: number): string => {
+  let d = '';
+  for (let k = 0; k < linesN; k++) {
+    const f = k / (linesN - 1);
+    const y0 = 7 + 86 * f;
+    const pts: Pt[] = [];
+    for (let i = 0; i < 9; i++) {
+      const g = i / 8;
+      const y =
+        y0 +
+        Math.sin(g * Math.PI * 2 + f * 3.1) * 6.5 * Math.sin(Math.PI * f + 0.35) +
+        Math.sin(g * Math.PI * 3.6 + 1.4 + f * 4.6) * 3;
+      pts.push([2 + 96 * g, Math.min(97.5, Math.max(2.5, y))]);
+    }
+    d += ' ' + smoothOpenSub(pts);
+  }
+  return d.trim();
+};
+
+/** Irregular blob spot at any position (animal-print patterns). */
+const spotSub = (cx: number, cy: number, r: number, wob: number[]): string =>
+  smoothClosedSub(polarPts(wob.length, cx, cy, i => r * wob[i]));
+
+/** Grid of small filled diamonds. */
+const diamondGridSub = (cols: number, rows: number, rx: number, ry: number): string => {
+  const sx = (100 - 16) / (cols - 1);
+  const sy = (100 - 16) / (rows - 1);
+  let d = '';
+  for (let ri = 0; ri < rows; ri++) {
+    for (let ci = 0; ci < cols; ci++) {
+      const x = 8 + ci * sx;
+      const y = 8 + ri * sy;
+      d += polyPath([[x, y - ry], [x + rx, y], [x, y + ry], [x - rx, y]]);
+    }
+  }
+  return d;
+};
+
+/** Vertical sine stroke (top to bottom) at a given x. */
+const vSineStrokeSub = (cycles: number, amp: number, x: number): string => {
+  const half = cycles * 2;
+  const seg = 100 / half;
+  let d = `M${fmt(x)} 0`;
+  for (let i = 0; i < half; i++) {
+    const dir = i % 2 === 0 ? -1 : 1;
+    d += ` Q${fmt(x + dir * amp * 2)} ${fmt(i * seg + seg / 2)} ${fmt(x)} ${fmt((i + 1) * seg)}`;
+  }
+  return d;
+};
+
+/** Grid of six-ray asterisks. */
+const asteriskGridSub = (cells: number, r: number): string => {
+  const step = 100 / cells;
+  let d = '';
+  for (let ri = 0; ri < cells; ri++) {
+    for (let ci = 0; ci < cells; ci++) {
+      const cx = step / 2 + ci * step;
+      const cy = step / 2 + ri * step;
+      for (let a = 0; a < 3; a++) {
+        const p1 = polar(cx, cy, r, -90 + a * 60);
+        const p2 = polar(cx, cy, r, 90 + a * 60);
+        d += ` M${fmt(p1[0])} ${fmt(p1[1])} L${fmt(p2[0])} ${fmt(p2[1])}`;
+      }
+    }
+  }
+  return d.trim();
 };
 
 /* ------------------------------ decor extras ------------------------------ */
@@ -1294,31 +1537,71 @@ const laurels: LibraryElementDef[] = [
 const lines: LibraryElementDef[] = [
   el('line-solid', 'Line', 'M4 50 H96', { stroke: 6, size: { width: 420, height: 60 } }),
   el('line-thin', 'Thin Line', 'M4 50 H96', { stroke: 3, size: { width: 420, height: 60 } }),
+  el('line-hairline', 'Hairline', 'M4 50 H96', { stroke: 1.5, size: { width: 420, height: 60 } }),
   el('line-dashed', 'Dashed Line', dashedLineSub(50, 12, 8), { stroke: 5, size: { width: 420, height: 60 } }),
+  el('line-dash-dot', 'Dash-Dot Line', dashDotLineSub(50), { stroke: 4, size: { width: 420, height: 60 } }),
   el('line-dotted', 'Dotted Line', dottedLineSub(50, 2.8, 8.8), { size: { width: 420, height: 60 } }),
   el('line-arrow', 'Arrow Line', 'M4 50 H90 M78 38 L92 50 L78 62', { stroke: 5, size: { width: 420, height: 60 } }),
+  el('line-arrow-thin', 'Thin Arrow', 'M4 50 H92 M82 42 L94 50 L82 58', { stroke: 2.5, size: { width: 420, height: 60 } }),
   el('line-double-arrow', 'Double Arrow Line', 'M10 50 H90 M78 38 L92 50 L78 62 M22 38 L8 50 L22 62', { stroke: 5, size: { width: 420, height: 60 } }),
+  el('line-double-arrow-thin', 'Thin Double Arrow', 'M8 50 H92 M82 42 L94 50 L82 58 M18 42 L6 50 L18 58', { stroke: 2.5, size: { width: 420, height: 60 } }),
+  el('line-dotted-arrow', 'Dotted Arrow', dottedLineSub(50, 2.4, 8.6, 6, 80) + polyPath([[85, 41.5], [96, 50], [85, 58.5]]), { size: { width: 420, height: 60 } }),
+  el('line-dotted-double-arrow', 'Dotted Double Arrow', polyPath([[15, 41.5], [4, 50], [15, 58.5]]) + dottedLineSub(50, 2.4, 8.6, 22, 78) + polyPath([[85, 41.5], [96, 50], [85, 58.5]]), { size: { width: 420, height: 60 } }),
   el('line-dots-ends', 'Dot Ends', rectSub(12, 47.5, 76, 5) + circleSub(9, 50, 5.5) + circleSub(91, 50, 5.5), { size: { width: 420, height: 60 } }),
+  el('line-square-ends', 'Square Ends', rectSub(16, 47.8, 68, 4.4) + rectSub(6, 43, 10, 14) + rectSub(84, 43, 10, 14), { size: { width: 420, height: 70 } }),
   el('line-double', 'Double Line', rectSub(4, 40, 92, 5) + rectSub(4, 55, 92, 5), { size: { width: 420, height: 60 } }),
+  el('line-bars-bold', 'Bold Bars', rectSub(8, 28, 84, 16) + rectSub(8, 56, 84, 16), { size: { width: 340, height: 180 } }),
+  el('line-needle', 'Tapered Line', brushStrokeSub([[4, 50], [50, 50], [96, 50]], t => 0.5 + 2.8 * Math.sin(Math.PI * t)), { size: { width: 420, height: 50 } }),
+  el('line-marker', 'Marker Stroke', brushStrokeSub([[5, 52], [50, 48], [95, 51]], t => 3.6 + Math.sin(Math.PI * t)), { size: { width: 420, height: 70 } }),
+  el('line-brush-swoosh', 'Brush Swoosh', brushStrokeSub([[4, 74], [34, 64], [68, 44], [96, 22]], t => 0.7 + 4.2 * Math.sin(Math.PI * t)), { size: { width: 420, height: 150 } }),
+  el('line-brush-arc', 'Brush Arc', brushStrokeSub([[6, 66], [36, 38], [68, 32], [94, 42]], t => 0.6 + 3.8 * Math.sin(Math.PI * t)), { size: { width: 420, height: 140 } }),
+  el('line-double-arc', 'Double Arc', brushStrokeSub([[10, 88], [18, 52], [40, 24], [72, 12]], t => 3.5 - 2.7 * t) + ' ' + brushStrokeSub([[32, 92], [40, 64], [58, 44], [82, 36]], t => 3.1 - 2.3 * t), { size: { width: 320, height: 320 } }),
+  el('line-cross', 'Crossed Lines', 'M6 63 L94 37 M36 8 L64 92', { stroke: 2, size: { width: 320, height: 320 } }),
+  el('line-curls', 'Curl Line', curlLineSub(3, 50, 10, 14, 8, 92), { stroke: 2.5, size: { width: 420, height: 110 } }),
+  el('line-ribbon-scribble', 'Ribbon Scribble', smoothOpenSub([[6, 66], [18, 44], [32, 42], [38, 56], [28, 68], [16, 60], [24, 42], [44, 30], [58, 40], [54, 58], [40, 58], [42, 42], [62, 30], [80, 34], [94, 26]]), { stroke: 2.5, size: { width: 420, height: 160 } }),
   el('line-underline', 'Underline Swoosh', 'M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z', { size: { width: 420, height: 80 } }),
   el('line-flourish', 'Flourish', 'M8 52 C34 38 66 36 92 42 C66 44 36 50 14 60 Z M22 68 C42 60 62 58 82 62 C62 64 44 68 28 74 Z', { size: { width: 420, height: 90 } }),
 ];
 
 const patterns: LibraryElementDef[] = [
   el('pattern-grid', 'Grid', gridLinesSub(6, 1.6), { size: { width: 380, height: 380 } }),
+  el('pattern-grid-fine', 'Fine Grid', gridLinesSub(12, 0.7), { size: { width: 380, height: 380 } }),
+  el('pattern-grid-wide', 'Open Grid', gridLinesSub(4, 1), { size: { width: 380, height: 380 } }),
+  el('pattern-grid-bold', 'Bold Grid', boldGridSub(3, 7), { size: { width: 380, height: 380 } }),
+  el('pattern-grid-dashed', 'Stitch Grid', dashedGridSub(5, 4, 3.6), { stroke: 1.6, size: { width: 380, height: 380 } }),
   el('pattern-dots', 'Dot Grid', dotGridSub(6, 6, 2.6), { size: { width: 380, height: 380 } }),
   el('pattern-dots-big', 'Big Dots', dotGridSub(4, 4, 6, 14), { size: { width: 380, height: 380 } }),
-  el('pattern-diagonal', 'Diagonal Lines', diagLinesSub(13), { stroke: 3, size: { width: 380, height: 380 } }),
-  el('pattern-crosshatch', 'Crosshatch', diagLinesSub(16) + ' ' + antiDiagLinesSub(16), { stroke: 2.5, size: { width: 380, height: 380 } }),
-  el('pattern-vlines', 'Vertical Lines', verticalLinesSub(9), { stroke: 3, size: { width: 380, height: 380 } }),
-  el('pattern-waves', 'Waves', sineStrokeSub(3, 6, 14) + ' ' + sineStrokeSub(3, 6, 38) + ' ' + sineStrokeSub(3, 6, 62) + ' ' + sineStrokeSub(3, 6, 86), { stroke: 4, size: { width: 380, height: 380 } }),
-  el('pattern-zigzag', 'Zigzag Rows', zigzagStrokeSub(4, 7, 14) + ' ' + zigzagStrokeSub(4, 7, 38) + ' ' + zigzagStrokeSub(4, 7, 62) + ' ' + zigzagStrokeSub(4, 7, 86), { stroke: 4, size: { width: 380, height: 380 } }),
+  el('pattern-dots-fine', 'Halftone Dots', dotGridSub(10, 10, 1.7, 6), { size: { width: 380, height: 380 } }),
+  el('pattern-diamonds', 'Diamond Grid', diamondGridSub(5, 5, 3.6, 5), { size: { width: 380, height: 380 } }),
   el('pattern-checker', 'Checker', checkerSub(6), { size: { width: 380, height: 380 } }),
   el('pattern-plus', 'Plus Grid', plusGridSub(), { size: { width: 380, height: 380 } }),
   el('pattern-x', 'X Marks', xMarksSub(), { stroke: 3.5, size: { width: 380, height: 380 } }),
+  el('pattern-asterisks', 'Asterisk Grid', asteriskGridSub(4, 7), { stroke: 2.2, size: { width: 380, height: 380 } }),
+  el('pattern-diagonal', 'Diagonal Lines', diagLinesSub(13), { stroke: 3, size: { width: 380, height: 380 } }),
+  el('pattern-crosshatch', 'Crosshatch', diagLinesSub(16) + ' ' + antiDiagLinesSub(16), { stroke: 2.5, size: { width: 380, height: 380 } }),
+  el('pattern-vlines', 'Vertical Lines', verticalLinesSub(9), { stroke: 3, size: { width: 380, height: 380 } }),
+  el('pattern-barcode', 'Line Rhythm', barcodeSub(15), { stroke: 2.4, size: { width: 380, height: 380 } }),
+  el('pattern-waves', 'Waves', sineStrokeSub(3, 6, 14) + ' ' + sineStrokeSub(3, 6, 38) + ' ' + sineStrokeSub(3, 6, 62) + ' ' + sineStrokeSub(3, 6, 86), { stroke: 4, size: { width: 380, height: 380 } }),
+  el('pattern-ripples', 'Ripples', [10, 26, 42, 58, 74, 90].map(y => sineStrokeSub(4, 3, y)).join(' '), { stroke: 2.2, size: { width: 380, height: 380 } }),
+  el('pattern-vwaves', 'Vertical Waves', [10, 20, 30, 40, 50, 60, 70, 80, 90].map(x => vSineStrokeSub(3, 2.6, x)).join(' '), { stroke: 2.2, size: { width: 380, height: 380 } }),
+  el('pattern-diag-waves', 'Wavy Stripes', waveDiagSub(7, 3, 26, 3.3), { size: { width: 380, height: 380 } }),
+  el('pattern-flag', 'Wave Bands', waveRibbonSub(1.5, 5.5, 10, 15) + ' ' + waveRibbonSub(1.5, 5.5, 42, 15) + ' ' + waveRibbonSub(1.5, 5.5, 74, 15), { size: { width: 380, height: 380 } }),
+  el('pattern-zigzag', 'Zigzag Rows', zigzagStrokeSub(4, 7, 14) + ' ' + zigzagStrokeSub(4, 7, 38) + ' ' + zigzagStrokeSub(4, 7, 62) + ' ' + zigzagStrokeSub(4, 7, 86), { stroke: 4, size: { width: 380, height: 380 } }),
+  el('pattern-scratches', 'Scratch Rows', scratchRowsSub(6), { stroke: 1.6, size: { width: 380, height: 380 } }),
+  el('pattern-scribble', 'Scribble Texture', scribbleSub(8, 6.5, 3), { stroke: 1.8, size: { width: 380, height: 380 } }),
+  el('pattern-contour', 'Flow Contours', contourSub(9), { stroke: 1.8, size: { width: 380, height: 380 } }),
+  el('pattern-maze-round', 'Round Maze', truchetSub(5, 4.6), { size: { width: 380, height: 380 } }),
+  el('pattern-maze-thin', 'Loop Maze', truchetArcsSub(7), { stroke: 2, size: { width: 380, height: 380 } }),
+  el('pattern-worm-maze', 'Worm Maze', brushStrokeSub([[14, 14], [56, 10], [78, 12], [86, 22], [78, 32], [56, 34], [22, 32], [13, 42], [20, 52], [52, 50], [80, 52], [87, 62], [80, 72], [50, 70], [20, 74], [13, 84], [24, 92], [64, 88], [86, 86]], () => 4.5), { size: { width: 380, height: 380 } }),
   el('pattern-scales', 'Scales', scalesSub(5, 5), { stroke: 3, size: { width: 380, height: 380 } }),
   el('pattern-triangles', 'Triangles', triangleTileSub(), { size: { width: 380, height: 380 } }),
+  el('pattern-spots', 'Organic Spots', spotSub(20, 20, 13, [1, 0.82, 1.12, 0.78, 1.05, 0.9]) + spotSub(60, 13, 9, [0.9, 1.1, 0.8, 1.05, 0.95]) + spotSub(87, 40, 9.5, [1.05, 0.85, 1.1, 0.8, 1, 0.92]) + spotSub(38, 54, 13, [0.85, 1.1, 0.9, 1.08, 0.8, 1]) + spotSub(13, 78, 8, [1, 0.85, 1.1, 0.9, 1.02]) + spotSub(58, 84, 11, [0.92, 1.08, 0.82, 1.06, 0.95, 1.02]) + spotSub(87, 79, 6, [1, 0.9, 1.08, 0.88, 1.02]) + circleSub(45, 30, 2.6) + circleSub(79, 15, 2.4) + circleSub(70, 40, 2.2) + circleSub(16, 47, 2.4) + circleSub(84, 60, 2.4) + circleSub(33, 92, 2.3), { size: { width: 380, height: 380 } }),
+  el('pattern-noodles', 'Squiggle Noodles', brushStrokeSub([[8, 16], [20, 9], [32, 19], [42, 11]], () => 2.8) + ' ' + brushStrokeSub([[56, 22], [68, 12], [80, 22], [92, 13]], () => 2.8) + ' ' + brushStrokeSub([[12, 45], [24, 36], [36, 46], [46, 37]], () => 2.8) + ' ' + brushStrokeSub([[60, 54], [72, 44], [84, 54], [94, 45]], () => 2.8) + ' ' + brushStrokeSub([[8, 78], [20, 68], [32, 78], [44, 69]], () => 2.8) + ' ' + brushStrokeSub([[56, 88], [68, 78], [80, 88], [92, 79]], () => 2.8), { size: { width: 380, height: 380 } }),
+  el('pattern-doodles', 'Bold Doodles', brushStrokeSub([[12, 26], [30, 10], [44, 26], [28, 38], [16, 26]], () => 4.2) + ' ' + brushStrokeSub([[58, 12], [76, 24], [90, 10]], () => 4.2) + ' ' + brushStrokeSub([[10, 66], [26, 52], [44, 66], [62, 52], [78, 66]], () => 4.2) + ' ' + brushStrokeSub([[52, 86], [68, 72], [84, 88], [94, 76]], () => 4.2), { size: { width: 380, height: 380 } }),
+  el('pattern-curls', 'Doodle Curls', spiralSub(22, 24, 1.75, 14) + ' ' + spiralSub(66, 16, 1.4, 10) + ' ' + spiralSub(44, 58, 1.75, 15) + ' ' + spiralSub(86, 52, 1.4, 10) + ' ' + spiralSub(18, 82, 1.4, 10) + ' ' + spiralSub(70, 86, 1.6, 12), { stroke: 2, size: { width: 380, height: 380 } }),
   el('pattern-memphis', 'Sprinkles', memphisSprinklesSub(), { size: { width: 380, height: 380 } }),
+  el('pattern-sparkle-flow', 'Sparkle Stream', brushStrokeSub([[44, 4], [56, 22], [40, 44], [58, 68], [44, 88], [50, 97]], () => 1.3) + brushStrokeSub([[53, 4], [65, 22], [49, 44], [67, 68], [53, 88], [59, 97]], () => 1.3) + sparkleSub(20, 16, 4, 7) + sparkleSub(78, 30, 4, 5) + sparkleSub(18, 56, 4, 5.5) + sparkleSub(80, 72, 4, 7) + circleSub(26, 80, 2) + circleSub(72, 12, 2), { size: { width: 380, height: 380 } }),
+  el('pattern-liquid', 'Liquid Flow', brushStrokeSub([[18, 8], [62, 14], [80, 30], [52, 42], [20, 52], [34, 74], [74, 80], [88, 68]], t => 4.5 + 4.5 * Math.sin(Math.PI * t)), { size: { width: 380, height: 380 } }),
 ];
 
 export const ELEMENT_CATEGORIES: ElementCategory[] = [

@@ -477,6 +477,8 @@ export function PropertiesPanel({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="normal">Normal</SelectItem>
+            <SelectItem value="3d-left">3D — Left Side</SelectItem>
+            <SelectItem value="3d-right">3D — Right Side</SelectItem>
             <SelectItem value="perspective-left">Left Angle</SelectItem>
             <SelectItem value="perspective-slight-left">Slight Left</SelectItem>
             <SelectItem value="perspective-right">Right Angle</SelectItem>

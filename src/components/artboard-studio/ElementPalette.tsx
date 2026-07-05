@@ -307,6 +307,8 @@ export function ElementPalette({
                 <CardTitle className="text-base">Device Mockups</CardTitle>
               </CardHeader>
               <CardContent className="p-2 grid grid-cols-2 gap-2">
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15-pro" label="iPhone 3D (Left)" icon={<SmartphoneIcon className="w-6 h-6 text-primary -rotate-12" />} styleProps={{ styleType: '3d-left' }} />
+                <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15-pro" label="iPhone 3D (Right)" icon={<SmartphoneIcon className="w-6 h-6 text-primary rotate-12" />} styleProps={{ styleType: '3d-right' }} />
                 <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone" label="iPhone" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
                 <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15-pro" label="iPhone 15 Pro" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
                 <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15" label="iPhone 15" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />

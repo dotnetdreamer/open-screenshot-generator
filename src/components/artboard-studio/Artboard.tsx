@@ -249,6 +249,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         } else {
            deviceElement.screenshotRect = { left: 0, top: 0, width: 100, height: 100 };
         }
+        // Palette presets (e.g. the 3D device tiles) can pre-select a style
+        if (styleProps?.styleType) {
+          deviceElement.styleType = styleProps.styleType as DeviceFrameElementProps['styleType'];
+        }
         newElementToAdd = deviceElement as ArtboardElement;
       }
 

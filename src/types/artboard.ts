@@ -85,10 +85,12 @@ export type DeviceType =
   | 'desktop'
   | 'custom';
 
-export type DeviceStyleType = 
-  | 'normal' 
-  | 'perspective-left' 
-  | 'perspective-right' 
+export type DeviceStyleType =
+  | 'normal'
+  | '3d-left'
+  | '3d-right'
+  | 'perspective-left'
+  | 'perspective-right'
   | 'perspective-slight-right'
   | 'perspective-slight-left'
   | 'perspective-front' 
