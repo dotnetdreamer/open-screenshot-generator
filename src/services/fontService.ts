@@ -12,6 +12,7 @@ export const GOOGLE_FONTS: GoogleFont[] = [
   { family: 'Adamina', category: 'serif', fallback: 'serif', script: 'latin' },
   { family: 'Merriweather Sans', variants: ['300', '400', '500', '600', '700', '800'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Calistoga', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Pacifico', category: 'handwriting', fallback: 'cursive', script: 'latin' },
   { family: 'Fira Sans Condensed', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Noto Sans', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'multilingual' },
   

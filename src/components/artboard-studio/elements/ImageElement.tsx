@@ -99,9 +99,9 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
   const transformStyle = generateTransformStyle();
 
   return (
-    <div 
-      className="w-full h-full relative bg-muted/10 flex items-center justify-center"
-      style={{ 
+    <div
+      className="w-full h-full relative flex items-center justify-center"
+      style={{
         perspective: '1000px' // Add perspective for 3D transforms
       }}
     >
@@ -139,9 +139,9 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
           )}
         </div>
       ) : (
-        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground border-2 border-dashed border-muted-foreground/30 rounded-lg">
-          <ImageIcon className="w-1/4 h-1/4 opacity-50 mb-2" />
-          <p className="text-xs text-center px-2">No image selected</p>
+        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground border border-dashed border-muted-foreground/20 rounded-lg">
+          <ImageIcon className="w-1/4 h-1/4 opacity-25 mb-2" />
+          <p className="text-xs text-center px-2 opacity-50">No image selected</p>
           {isSelected && (
             <Button
               variant="outline"

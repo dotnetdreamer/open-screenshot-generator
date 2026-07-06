@@ -36,7 +36,7 @@
           "content": "u",
           "fontSize": 80,
           "color": "#FFFFFF",
-          "fontFamily": "cursive",
+          "fontFamily": "Pacifico",
           "fontWeight": "bold",
           "textAlign": "left",
           "lineHeight": 1
@@ -72,7 +72,7 @@
             "y": 520
           },
           "size": {
-            "width": 700,
+            "width": 1020,
             "height": 260
           },
           "rotation": 0,
@@ -325,7 +325,7 @@
           "content": "u",
           "fontSize": 40,
           "color": "#FFFFFF",
-          "fontFamily": "cursive",
+          "fontFamily": "Pacifico",
           "fontWeight": "bold",
           "textAlign": "center",
           "lineHeight": 1
@@ -364,7 +364,7 @@
           "content": "u",
           "fontSize": 110,
           "color": "#FFFFFF",
-          "fontFamily": "cursive",
+          "fontFamily": "Pacifico",
           "fontWeight": "bold",
           "textAlign": "center",
           "lineHeight": 1

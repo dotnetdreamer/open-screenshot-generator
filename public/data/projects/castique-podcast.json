@@ -208,14 +208,16 @@
           "id": "tpl_cq_ab3_chevron",
           "type": "shape",
           "name": "Chevron",
-          "position": { "x": 1070, "y": 420 },
-          "size": { "width": 250, "height": 250 },
-          "rotation": 90,
+          "position": { "x": 1080, "y": 390 },
+          "size": { "width": 280, "height": 320 },
+          "rotation": 0,
           "scale": 1,
-          "shapeType": "triangle",
+          "shapeType": "custom-svg",
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 0
+          "strokeWidth": 0,
+          "customPath": "M6 6 H60 L94 50 L60 94 H6 L36 50 Z",
+          "specialProps": { "viewBox": "0 0 100 100" }
         },
         {
           "id": "tpl_cq_ab3_headline",
