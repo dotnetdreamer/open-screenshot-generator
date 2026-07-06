@@ -21,7 +21,7 @@ import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
 import { loadProjectTemplates } from '@/services/projectService';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
 import { Button } from '@/components/ui/button';
 import { InfoIcon } from 'lucide-react';
@@ -756,7 +756,15 @@ export function ArtboardStudioLayout() {
         link.href = imageDataUrl;
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
-        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}.png`;
+        // Suffix with the artboard's device format (iPhone/Android/tablet) so the
+        // same board exported for different stores stays distinguishable on disk.
+        // Detected per artboard, not project-wide, so mixed projects tag correctly.
+        const artboardFormat = detectArtboardsFormat([artboard]);
+        const deviceLabel = artboardFormat && artboardFormat !== 'mixed'
+          ? DEVICE_FORMAT_PRESETS.find((p) => p.id === artboardFormat)?.label
+          : undefined;
+        const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
+        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
