@@ -38,6 +38,8 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   'android-bar': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'none' },
   'android-notch': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'notch' },
   'android-punch-hole': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'punch' },
+  'ipad-pro-13': { cornerRadius: 0.045, screenRadius: 0.032, bezel: 0.032, thickness: 0.028, notch: 'none' },
+  'ipad-11': { cornerRadius: 0.05, screenRadius: 0.036, bezel: 0.036, thickness: 0.032, notch: 'none' },
   'tablet': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.05, thickness: 0.045, notch: 'none' },
   'tablet-7': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.045, thickness: 0.05, notch: 'none' },
   'tablet-10': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.03, thickness: 0.042, notch: 'none' },
@@ -48,14 +50,20 @@ const CAMERA_FOV = 20;
 
 // Pose presets: yaw spins the device toward its exposed rail (mirrored for
 // side 'right'), pitch reclines it back toward the camera so it reads as
-// viewed from above. Values eyeballed against common 3D-mockup panels.
-const POSES: Record<Device3DPose, { yaw: number; pitch: number }> = {
+// viewed from above, roll leans the projected long axis diagonally in the
+// image plane (also mirrored). Values eyeballed against common 3D-mockup panels.
+// Without bodyAspect the device body's proportions follow the element box (the
+// device fills the box); bodyAspect pins true phone proportions instead — used
+// by the rolled poses where a box-derived body reads visibly squat.
+const POSES: Record<Device3DPose, { yaw: number; pitch: number; roll?: number; bodyAspect?: number }> = {
   classic: { yaw: 24, pitch: 0 },
   upright: { yaw: 34, pitch: 0 },
   side: { yaw: 54, pitch: 0 },
   tilted: { yaw: 30, pitch: 26 },
   reclined: { yaw: 33, pitch: 48 },
   laying: { yaw: 28, pitch: 66 },
+  floating: { yaw: 34, pitch: 36, roll: -20, bodyAspect: 2.05 },
+  drifting: { yaw: 32, pitch: 46, roll: -35, bodyAspect: 2.05 },
 };
 
 // Body finishes. 'titanium' is the original look and stays the default.
@@ -139,10 +147,13 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     const poseAngles = POSES[pose] ?? POSES.classic;
     const yawRad = THREE.MathUtils.degToRad(poseAngles.yaw) * -sideSign;
     const pitchRad = THREE.MathUtils.degToRad(poseAngles.pitch);
+    const rollRad = THREE.MathUtils.degToRad(poseAngles.roll ?? 0) * -sideSign;
     // Yaw about Y first, then recline about the world X axis — like a phone
-    // spun on a table, then the table tipped toward the camera.
+    // spun on a table, then the table tipped toward the camera — then roll
+    // about the camera axis so the long axis leans diagonally in the image.
     const poseQuat = new THREE.Quaternion()
-      .setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchRad)
+      .setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollRad)
+      .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchRad))
       .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawRad));
     group.quaternion.copy(poseQuat);
     scene.add(group);
@@ -220,7 +231,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       shotMesh = null;
 
       const w = 1;
-      const h = THREE.MathUtils.clamp(aspect, 0.3, 4);
+      const h = THREE.MathUtils.clamp(poseAngles.bodyAspect ?? aspect, 0.3, 4);
       const t = metrics.thickness;
       const bevel = t * 0.22;
       const depth = t - 2 * bevel;
@@ -293,7 +304,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       // Anchored in fixed world units below the corner radius — fractions of the
       // device height would let buttons ride up into the corner arc on short or
       // user-squashed elements and poke out of the silhouette as dark bumps.
-      if (metrics.notch !== 'none' || deviceType === 'iphone' || deviceType === 'tablet') {
+      if (metrics.notch !== 'none' || deviceType === 'iphone' || deviceType === 'tablet' || deviceType === 'ipad-pro-13' || deviceType === 'ipad-11') {
         const finishForButtons = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
         const buttonMat = track(new THREE.MeshStandardMaterial({ color: finishForButtons.button, metalness: 0.9, roughness: 0.45 }));
         const buttonSpecs = side === 'left'
@@ -329,7 +340,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
 
     const layoutCamera = (cw: number, ch: number) => {
       const aspect = cw / ch;
-      const h = THREE.MathUtils.clamp(ch / cw, 0.3, 4);
+      const h = THREE.MathUtils.clamp(poseAngles.bodyAspect ?? ch / cw, 0.3, 4);
       const tanV = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
       const margin = 1.08;
       // Fit the pose-rotated device box exactly: a corner at camera-space

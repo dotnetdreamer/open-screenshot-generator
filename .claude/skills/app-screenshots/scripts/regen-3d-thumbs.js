@@ -59,8 +59,8 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
 
 // Element sizes per pose (keep in sync with IPHONE_3D_SIZES / ANDROID_3D_SIZES
 // in ElementPalette.tsx so thumbnails match the dropped elements' aspect).
-const IP = { upright: { w: 600, h: 1300 }, side: { w: 600, h: 1300 }, tilted: { w: 640, h: 1120 }, reclined: { w: 720, h: 900 }, laying: { w: 800, h: 680 } };
-const AND = { upright: { w: 600, h: 1333 }, side: { w: 600, h: 1333 }, tilted: { w: 640, h: 1150 }, reclined: { w: 720, h: 920 }, laying: { w: 800, h: 700 } };
+const IP = { upright: { w: 600, h: 1300 }, side: { w: 600, h: 1300 }, tilted: { w: 640, h: 1120 }, reclined: { w: 720, h: 900 }, laying: { w: 800, h: 680 }, floating: { w: 760, h: 830 }, drifting: { w: 900, h: 700 } };
+const AND = { upright: { w: 600, h: 1333 }, side: { w: 600, h: 1333 }, tilted: { w: 640, h: 1150 }, reclined: { w: 720, h: 920 }, laying: { w: 800, h: 700 }, floating: { w: 760, h: 830 }, drifting: { w: 900, h: 700 } };
 
 (async () => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -110,7 +110,7 @@ const AND = { upright: { w: 600, h: 1333 }, side: { w: 600, h: 1333 }, tilted: {
     { key: 'android', type: 'android-punch-hole', sizes: AND },
   ]) {
     for (const color of ['black', 'white']) {
-      for (const pose of ['upright', 'side', 'tilted', 'reclined', 'laying']) {
+      for (const pose of ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting']) {
         for (const side of ['left', 'right']) {
           combos.push({
             file: `${device.key}-${pose}-${side}-${color}.png`,

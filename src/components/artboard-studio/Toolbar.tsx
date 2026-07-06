@@ -394,6 +394,13 @@ export function Toolbar({
             <DropdownMenuSeparator />
             {DEVICE_FORMAT_PRESETS.map((preset, i) => (
               <React.Fragment key={preset.id}>
+                {preset.id === 'ipad-pro-13' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs">App Store iPads</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 {preset.id === 'tablet-7' && (
                   <>
                     <DropdownMenuSeparator />

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import {
@@ -19,12 +19,14 @@ import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
+import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, Project } from '@/types/artboard';
+import { ExportDialog, type ExportSelection } from './ExportDialog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
 import { Button } from '@/components/ui/button';
-import { InfoIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { InfoIcon, SearchIcon } from 'lucide-react';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -74,6 +76,86 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
   });
 }
 
+// Owns the search state so keystrokes re-render only the gallery, not the
+// whole studio layout (canvas, palette, properties panel).
+function TemplateGallery({ projects, onSelect }: { projects: Project[]; onSelect: (project: Project) => void }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const deferredQuery = useDeferredValue(searchQuery);
+  const normalizedQuery = deferredQuery.trim().toLowerCase();
+  const filteredTemplates = normalizedQuery
+    ? projects.filter((project) => {
+        const haystack = `${project.name} ${project.description ?? ''}`.toLowerCase();
+        // Space-insensitive pass so e.g. "playstore" still matches "Play Store".
+        return haystack.includes(normalizedQuery)
+          || haystack.replace(/\s+/g, '').includes(normalizedQuery.replace(/\s+/g, ''));
+      })
+    : projects;
+
+  return (
+    <>
+      <div className="relative px-1">
+        <SearchIcon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search templates by name or description..."
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          className="pl-9"
+        />
+      </div>
+      {/* Native scroll: a Radix ScrollArea viewport's h-full can't resolve here
+          because the dialog is max-h-capped, not fixed-height. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <TooltipProvider delayDuration={250}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            {filteredTemplates.length === 0 && (
+              <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
+                {`No templates match "${deferredQuery.trim()}".`}
+              </p>
+            )}
+            {filteredTemplates.map((project: Project) => {
+              const card = (
+                <Card
+                  className="hover:shadow-xl transition-shadow cursor-pointer"
+                  onClick={() => onSelect(project)}
+                >
+                  <CardHeader className="p-0">
+                    {project.previewImage && (
+                       <Image
+                        src={project.previewImage}
+                        alt={project.name}
+                        width={300} height={200}
+                        className="rounded-t-lg object-cover w-full h-40"
+                        data-ai-hint={project.description || "project design"}
+                      />
+                    )}
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
+                    <CardDescription className="text-sm line-clamp-3">{project.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              );
+
+              if (!project.description) {
+                return <div key={project.id}>{card}</div>;
+              }
+
+              return (
+                <Tooltip key={project.id}>
+                  <TooltipTrigger asChild>{card}</TooltipTrigger>
+                  <TooltipContent side="bottom" align="center" className="z-[60] max-w-xs whitespace-normal text-sm">
+                    {project.description}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
+      </div>
+    </>
+  );
+}
+
 export function ArtboardStudioLayout() {
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
   const [activeArtboardId, setActiveArtboardId] = useState<string | null>(null);
@@ -94,6 +176,7 @@ export function ArtboardStudioLayout() {
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
@@ -687,24 +770,16 @@ export function ArtboardStudioLayout() {
     }
   };
   
-  // Modify the export function to handle the display scale factor without doubling resolution
-  const handleExportArtboards = async () => {
-    toast({
-      title: "Export Process Initiated",
-      description: `Generating images... This might take a moment.`,
-      variant: "default",
-    });
-
-    // 3D device canvases re-render supersampled while an export is in flight
-    // (see Device3DRenderer); the small wait lets that buffer swap present.
-    window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
+  // Capture a list of artboards to PNG downloads by grabbing each board's
+  // live DOM node (matched by artboard id). The list must be what the canvas
+  // is currently rendering — for generated formats, handleConfirmExport
+  // swaps the converted list in first and restores afterwards.
+  const captureArtboards = async (list: ArtboardState[]) => {
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
-    const orderPadWidth = Math.max(2, String(artboards.length).length);
+    const orderPadWidth = Math.max(2, String(list.length).length);
 
-    for (const [index, artboard] of artboards.entries()) {
+    for (const [index, artboard] of list.entries()) {
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
 
@@ -785,8 +860,73 @@ export function ArtboardStudioLayout() {
         });
       }
     }
+  };
 
-    window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
+  // Two rAFs get past React's commit and the browser's next paint after a
+  // temporary format swap; the extra delay lets images decode and the
+  // three.js device scenes rebuild before capture.
+  const waitForCanvasToSettle = async (ms: number) => {
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  };
+
+  // Export flow behind the ExportDialog: capture the canvas as-is and/or
+  // generate App Store formats (iPhone 6.9-inch, iPad 13/11-inch) the project
+  // is missing. Generated formats are converted in-memory with the same
+  // engine as the Devices menu, rendered, captured, then the original state
+  // is restored — plain setArtboards keeps history and the saved project
+  // untouched, so this can never corrupt the user's work.
+  const handleConfirmExport = async ({ asIs, generateFormats }: ExportSelection) => {
+    setIsExportDialogOpen(false);
+    toast({
+      title: "Export Process Initiated",
+      description: `Generating images... This might take a moment.`,
+      variant: "default",
+    });
+
+    const original = artboards;
+
+    // 3D device canvases re-render supersampled while an export is in flight
+    // (see Device3DRenderer); dispatched per capture pass so devices swapped
+    // in by a format conversion get the treatment too. The small wait lets
+    // that buffer swap present.
+    const captureWithExportEvents = async (list: ArtboardState[]) => {
+      window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        await captureArtboards(list);
+      } finally {
+        window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
+      }
+    };
+
+    try {
+      if (asIs) {
+        await captureWithExportEvents(original);
+      }
+      for (const formatId of generateFormats) {
+        const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
+        if (!preset) continue;
+        const { artboards: converted } = convertArtboardsToFormat(original, preset);
+        const repositioned = calculateArtboardPositions(converted);
+        setArtboards(repositioned);
+        await waitForCanvasToSettle(400);
+        await captureWithExportEvents(repositioned);
+      }
+    } catch (error) {
+      console.error("Error during multi-format export:", error);
+      toast({
+        title: "Export Error",
+        description: "Something went wrong during export. See console for details.",
+        variant: "destructive",
+      });
+    } finally {
+      if (generateFormats.length > 0) {
+        setArtboards(original);
+      }
+    }
   };
 
 
@@ -1331,54 +1471,12 @@ const generateRandomProjectName = (): string => {
             }
           }}
         >
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col">
             <DialogHeader>
               <DialogTitle>Start a New Project</DialogTitle>
               <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[70vh]">
-              <TooltipProvider delayDuration={250}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                  {availableProjects.map((project: Project) => {
-                    const card = (
-                      <Card
-                        className="hover:shadow-xl transition-shadow cursor-pointer"
-                        onClick={() => handleSelectTemplate(project)}
-                      >
-                        <CardHeader className="p-0">
-                          {project.previewImage && (
-                             <Image
-                              src={project.previewImage}
-                              alt={project.name}
-                              width={300} height={200}
-                              className="rounded-t-lg object-cover w-full h-40"
-                              data-ai-hint={project.description || "project design"}
-                            />
-                          )}
-                        </CardHeader>
-                        <CardContent className="p-4">
-                          <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
-                          <CardDescription className="text-sm line-clamp-3">{project.description}</CardDescription>
-                        </CardContent>
-                      </Card>
-                    );
-
-                    if (!project.description) {
-                      return <div key={project.id}>{card}</div>;
-                    }
-
-                    return (
-                      <Tooltip key={project.id}>
-                        <TooltipTrigger asChild>{card}</TooltipTrigger>
-                        <TooltipContent side="bottom" align="center" className="z-[60] max-w-xs whitespace-normal text-sm">
-                          {project.description}
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </TooltipProvider>
-            </ScrollArea>
+            <TemplateGallery projects={availableProjects} onSelect={handleSelectTemplate} />
              <DialogFooter>
               <Button variant="outline" onClick={() => {
                 const blankProject: Project = {
@@ -1401,7 +1499,7 @@ const generateRandomProjectName = (): string => {
             </DialogFooter>
 
             {/* New Section for Recent Projects */}
-            <div className="p-4 border-t mt-4">
+            <div className="p-4 border-t shrink-0">
               <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
               {recentProjects.length > 0 ? (
                 <ScrollArea className="h-[20vh]">
@@ -1523,7 +1621,7 @@ const generateRandomProjectName = (): string => {
             onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
-            onExport={handleExportArtboards}
+            onExport={() => setIsExportDialogOpen(true)}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
@@ -1594,6 +1692,14 @@ const generateRandomProjectName = (): string => {
               onClose={() => setIsPreviewOpen(false)}
             />
           )}
+
+          <ExportDialog
+            isOpen={isExportDialogOpen}
+            onOpenChange={setIsExportDialogOpen}
+            onConfirmExport={handleConfirmExport}
+            currentFormat={activeDeviceFormat}
+            currentSize={artboards[0]?.size}
+          />
 
           <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
             <DialogContent className="sm:max-w-md">

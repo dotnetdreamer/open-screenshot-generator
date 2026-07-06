@@ -31,7 +31,8 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 - Tiles: `button[title="Add <label>"]` (e.g. `Add iPhone 17 Pro Max 3D — tilted right (black)`, `Add Transparent device`).
 - Toolbar by `title` attr: `New Artboard` (new artboard becomes active), `Export Artboards as Images`, `Zoom In`, `Zoom Out`.
 - Canvas elements: `[data-element-id]` (count them to detect adds).
-- Exported files are named `<NN>_<Artboard_Name>[_<Device_Format>].png` with spaces → underscores; `NN` is the zero-padded canvas order and the device-format suffix (iPhone/Android/7-inch_tablet/10-inch_tablet) appears when the artboard's mockups resolve to one format (e.g. `01_Blank_Artboard.png`, `01_Blank_Artboard_iPhone.png`).
+- **Export dialog:** `Export Artboards as Images` opens the "Export Screenshots" dialog (it no longer downloads directly). Checkboxes by id: `#export-as-is` (checked by default), `#gen-ios`, `#gen-ipad-pro-13`, `#gen-ipad-11` (App Store sizes to generate; disabled when the current canvas already covers that format). Confirm with the dialog button whose text is `Export`. `lib.js exportArtboards` handles all of this and takes an optional `extraFormats` array of those ids.
+- Exported files are named `<NN>_<Artboard_Name>[_<Device_Format>].png` with spaces → underscores; `NN` is the zero-padded canvas order and the device-format suffix (iPhone/Android/iPad_13-inch/iPad_11-inch/7-inch_tablet/10-inch_tablet) appears when the artboard's mockups resolve to one format (e.g. `01_Blank_Artboard.png`, `01_Blank_Artboard_iPhone.png`). Generated App Store formats download extra files per artboard (e.g. `01_Blank_Artboard_iPad_13-inch.png` at exactly 2064×2752).
 
 ## Scripts (in `scripts/`)
 

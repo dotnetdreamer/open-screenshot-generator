@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,123 +11,169 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { TargetStore, ExportDeviceCategory } from '@/types/artboard';
+import type { Size } from '@/types/artboard';
+import {
+  APP_STORE_FORMAT_IDS,
+  DEVICE_FORMAT_PRESETS,
+  type DeviceFormat,
+} from '@/lib/deviceRegistry';
+
+export interface ExportSelection {
+  // Export the artboards exactly as they are on the canvas.
+  asIs: boolean;
+  // App Store formats to additionally generate: each is converted in-memory
+  // (store-correct canvas + matching device mockups), captured, then the
+  // canvas is restored — the project itself is never modified.
+  generateFormats: DeviceFormat[];
+}
 
 interface ExportDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onConfirmExport: (store: TargetStore, deviceTypes: ExportDeviceCategory[]) => void;
+  onConfirmExport: (selection: ExportSelection) => void;
+  // The project's detected device format (null when mixed or none) and the
+  // first artboard's size — used to tell the user what "as-is" produces and
+  // which App Store sizes are missing.
+  currentFormat: DeviceFormat | null;
+  currentSize?: Size;
 }
 
-export function ExportDialog({ isOpen, onOpenChange, onConfirmExport }: ExportDialogProps) {
-  const [step, setStep] = useState<'storeSelection' | 'deviceSelection'>('storeSelection');
-  const [selectedStore, setSelectedStore] = useState<TargetStore | null>(null);
-  const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<ExportDeviceCategory[]>([]);
+// Apple's screenshot-specification tiers for the sizes this app can generate
+// (https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
+const APP_STORE_TIER_NOTES: Partial<Record<DeviceFormat, string>> = {
+  'ios': 'Required — iPhone 6.9-inch display',
+  'ipad-pro-13': 'Required if your app runs on iPad — 13-inch display',
+  'ipad-11': 'Optional — Apple scales your 13-inch shots down if missing',
+};
 
-  const googlePlayDevices: ExportDeviceCategory[] = ['Phone', 'Tablet'];
-  const appStoreDevices: ExportDeviceCategory[] = ['iPhone', 'iPad'];
+export function ExportDialog({
+  isOpen,
+  onOpenChange,
+  onConfirmExport,
+  currentFormat,
+  currentSize,
+}: ExportDialogProps) {
+  const [asIs, setAsIs] = useState(true);
+  const [generateFormats, setGenerateFormats] = useState<DeviceFormat[]>([]);
 
   useEffect(() => {
-    // Reset state if dialog is reopened
+    // Reset selection whenever the dialog is reopened
     if (isOpen) {
-      setStep('storeSelection');
-      setSelectedStore(null);
-      setSelectedDeviceTypes([]);
+      setAsIs(true);
+      setGenerateFormats([]);
     }
   }, [isOpen]);
 
-  const handleStoreSelect = (store: TargetStore) => {
-    setSelectedStore(store);
-  };
+  const currentPreset = useMemo(
+    () => DEVICE_FORMAT_PRESETS.find((p) => p.id === currentFormat),
+    [currentFormat]
+  );
 
-  const handleDeviceTypeToggle = (deviceType: ExportDeviceCategory) => {
-    setSelectedDeviceTypes(prev =>
-      prev.includes(deviceType)
-        ? prev.filter(dt => dt !== deviceType)
-        : [...prev, deviceType]
+  // App Store formats the current canvas does NOT already produce. When the
+  // project is already on one (e.g. iPhone at the exact 1290×2796 canvas),
+  // the as-is export covers it and it is left out of the generate list.
+  const appStorePresets = APP_STORE_FORMAT_IDS
+    .map((id) => DEVICE_FORMAT_PRESETS.find((p) => p.id === id)!)
+    .filter(Boolean);
+
+  const coveredByAsIs = (formatId: DeviceFormat) => {
+    if (currentFormat !== formatId) return false;
+    const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
+    return (
+      !!preset &&
+      !!currentSize &&
+      currentSize.width === preset.artboard.width &&
+      currentSize.height === preset.artboard.height
     );
   };
 
-  const handleNext = () => {
-    if (selectedStore) {
-      setStep('deviceSelection');
-    }
+  const toggleFormat = (formatId: DeviceFormat) => {
+    setGenerateFormats((prev) =>
+      prev.includes(formatId) ? prev.filter((f) => f !== formatId) : [...prev, formatId]
+    );
   };
 
-  const handleBack = () => {
-    setStep('storeSelection');
-    setSelectedDeviceTypes([]); // Reset device types when going back
-  };
+  const nothingSelected = !asIs && generateFormats.length === 0;
 
-  const handleExport = () => {
-    if (selectedStore && selectedDeviceTypes.length > 0) {
-      onConfirmExport(selectedStore, selectedDeviceTypes);
-    }
-  };
-
-  const currentDeviceOptions = selectedStore === 'googlePlay' ? googlePlayDevices : appStoreDevices;
+  const asIsDescription = currentPreset
+    ? `${currentPreset.label} layout${currentSize ? ` — ${currentSize.width}×${currentSize.height}` : ''}`
+    : currentSize
+      ? `Current layout — ${currentSize.width}×${currentSize.height}`
+      : 'Current layout';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Export Artboards</DialogTitle>
+          <DialogTitle>Export Screenshots</DialogTitle>
           <DialogDescription>
-            {step === 'storeSelection'
-              ? "Select the target app store for your screenshots."
-              : `Select device types for ${selectedStore === 'googlePlay' ? 'Google Play Store' : 'Apple App Store'}.`}
+            Download the artboards as PNGs, and optionally generate the App
+            Store sizes this project is missing. Generated formats convert the
+            canvas and mockups on the fly — your project stays untouched.
           </DialogDescription>
         </DialogHeader>
 
-        {step === 'storeSelection' && (
-          <div className="grid gap-4 py-4">
-            <RadioGroup onValueChange={(value) => handleStoreSelect(value as TargetStore)} value={selectedStore || undefined}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="googlePlay" id="googlePlay" />
-                <Label htmlFor="googlePlay">Google Play Store</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="appleAppStore" id="appleAppStore" />
-                <Label htmlFor="appleAppStore">Apple App Store</Label>
-              </div>
-            </RadioGroup>
+        <div className="grid gap-4 py-2">
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="export-as-is"
+              checked={asIs}
+              onCheckedChange={(v) => setAsIs(v === true)}
+            />
+            <div className="grid gap-0.5 leading-none">
+              <Label htmlFor="export-as-is">Export current canvas</Label>
+              <p className="text-xs text-muted-foreground">{asIsDescription}</p>
+            </div>
           </div>
-        )}
 
-        {step === 'deviceSelection' && selectedStore && (
-          <div className="grid gap-4 py-4">
-            <p className="text-sm font-medium">Select device types to export:</p>
-            {currentDeviceOptions.map(deviceType => (
-              <div key={deviceType} className="flex items-center space-x-2">
-                <Checkbox
-                  id={deviceType}
-                  checked={selectedDeviceTypes.includes(deviceType)}
-                  onCheckedChange={() => handleDeviceTypeToggle(deviceType)}
-                />
-                <Label htmlFor={deviceType}>{deviceType}</Label>
-              </div>
-            ))}
+          <div>
+            <p className="text-sm font-medium mb-0.5">Also generate for the App Store</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Apple accepts 1–10 JPG/PNG screenshots per display size.
+            </p>
+            <div className="grid gap-3">
+              {appStorePresets.map((preset) => {
+                const covered = coveredByAsIs(preset.id);
+                return (
+                  <div key={preset.id} className="flex items-start space-x-2">
+                    <Checkbox
+                      id={`gen-${preset.id}`}
+                      disabled={covered}
+                      checked={!covered && generateFormats.includes(preset.id)}
+                      onCheckedChange={() => toggleFormat(preset.id)}
+                    />
+                    <div className="grid gap-0.5 leading-none">
+                      <Label
+                        htmlFor={`gen-${preset.id}`}
+                        className={covered ? 'text-muted-foreground' : undefined}
+                      >
+                        {preset.label} — {preset.artboard.width}×{preset.artboard.height}
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        {covered
+                          ? 'Already covered by the current canvas'
+                          : APP_STORE_TIER_NOTES[preset.id]}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        )}
+        </div>
 
         <DialogFooter>
-          {step === 'storeSelection' && (
-            <>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={handleNext} disabled={!selectedStore}>Next</Button>
-            </>
-          )}
-          {step === 'deviceSelection' && (
-            <>
-              <Button variant="outline" onClick={handleBack}>Back</Button>
-              <Button onClick={handleExport} disabled={selectedDeviceTypes.length === 0}>Export</Button>
-            </>
-          )}
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button
+            onClick={() => onConfirmExport({ asIs, generateFormats })}
+            disabled={nothingSelected}
+          >
+            Export
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

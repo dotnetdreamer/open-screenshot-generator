@@ -102,9 +102,27 @@ async function uploadScreenshotToSelected(page, filePath) {
   await sleep(1800); // FileReader + texture upload + render
 }
 
-/** Trigger the app's PNG export and wait for the files to download. */
-async function exportArtboards(page, downloadDir, expectedCount, timeoutMs = 180000) {
+/**
+ * Trigger the app's PNG export and wait for the files to download.
+ * The toolbar button opens the "Export Screenshots" dialog; by default this
+ * confirms it as-is (current canvas only). Pass extraFormats with checkbox
+ * ids ('gen-ios', 'gen-ipad-pro-13', 'gen-ipad-11') to also generate App
+ * Store sizes — remember each adds one download per artboard.
+ */
+async function exportArtboards(page, downloadDir, expectedCount, timeoutMs = 180000, extraFormats = []) {
   await clickByTitle(page, 'Export Artboards as Images');
+  await page.waitForFunction("!!document.querySelector('#export-as-is')", { timeout: 15000, polling: 500 });
+  await sleep(300);
+  for (const id of extraFormats) {
+    await page.evaluate((id) => document.getElementById(id)?.click(), id);
+  }
+  await page.evaluate(() => {
+    const btn = [...document.querySelectorAll('[role="dialog"] button')].find(
+      (b) => (b.textContent || '').trim() === 'Export'
+    );
+    if (!btn) throw new Error('dialog Export button not found');
+    btn.click();
+  });
   const deadline = Date.now() + timeoutMs;
   let files = [];
   while (Date.now() < deadline) {

@@ -183,7 +183,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           size: { width: 400, height: 100 },  // Increased from 150x30
         } as TextElementProps;
       } else if (type === 'image') {
-        newElementToAdd = {
+        const imageProps: ImageElementProps = {
           ...newElementBase,
           type: 'image',
           size: { width: 400, height: 300 },  // Default image size
@@ -196,7 +196,24 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           perspectiveX: 0,
           perspectiveY: 0,
           matrix3d: '',
-        } as ImageElementProps;
+        };
+        // Palette presets (Images library) provide a ready-made asset
+        if (styleProps) {
+          if (typeof styleProps.imageSrc === 'string') {
+            imageProps.imageSrc = styleProps.imageSrc;
+            imageProps.objectFit = 'contain';
+          }
+          if (typeof styleProps.imageAlt === 'string') {
+            imageProps.imageAlt = styleProps.imageAlt;
+          }
+          if (typeof styleProps.name === 'string' && styleProps.name) {
+            imageProps.name = styleProps.name;
+          }
+          if (styleProps.defaultSize?.width && styleProps.defaultSize?.height) {
+            imageProps.size = { width: styleProps.defaultSize.width, height: styleProps.defaultSize.height };
+          }
+        }
+        newElementToAdd = imageProps;
       } else if (type === 'shape' && subType) {
         const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',

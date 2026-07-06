@@ -26,6 +26,7 @@ import {
 import type { ElementType, ShapeType, DeviceType, ArtboardElement, Device3DPose } from '@/types/artboard';
 import { LayersPanel } from './LayersPanel';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
+import { IMAGE_CATEGORIES, type LibraryImageDef } from '@/lib/imageLibrary';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -36,7 +37,7 @@ type PaletteDragStart = (
 
 // ---- 3D device pose groups (thumbnails pre-rendered to /elements/device-3d) ----
 
-const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying'];
+const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting'];
 const SIDES_3D = ['left', 'right'] as const;
 const COLORS_3D = ['black', 'white'] as const;
 
@@ -49,6 +50,8 @@ const IPHONE_3D_SIZES: Record<Device3DPose, { width: number; height: number }> =
   tilted: { width: 640, height: 1120 },
   reclined: { width: 720, height: 900 },
   laying: { width: 800, height: 680 },
+  floating: { width: 760, height: 830 },
+  drifting: { width: 900, height: 700 },
 };
 const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
   classic: { width: 600, height: 1333 },
@@ -57,6 +60,8 @@ const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> 
   tilted: { width: 640, height: 1150 },
   reclined: { width: 720, height: 920 },
   laying: { width: 800, height: 700 },
+  floating: { width: 760, height: 830 },
+  drifting: { width: 900, height: 700 },
 };
 
 /** Tile showing a pre-rendered 3D pose thumbnail, draggable like other palette items. */
@@ -203,6 +208,35 @@ const ColoredDeviceTile: React.FC<{ def: ColoredDeviceTileDef; onDragStart: Pale
   );
 };
 
+/** Tile for a ready-made image asset (Images tab), draggable like other palette items. */
+const ImageLibraryTile: React.FC<{
+  item: LibraryImageDef;
+  onDragStart: PaletteDragStart;
+}> = ({ item, onDragStart }) => {
+  const styleProps = {
+    imageSrc: item.src,
+    imageAlt: item.label,
+    name: item.label,
+    defaultSize: item.defaultSize,
+  };
+  return (
+    <button
+      type="button"
+      className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
+      draggable
+      onDragStart={(e) => onDragStart(e, 'image', undefined, styleProps)}
+      onClick={() => (onDragStart as any)(null, 'image', undefined, styleProps)}
+      title={`Add ${item.label}`}
+      aria-label={`Add ${item.label}`}
+    >
+      <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
+        <img src={item.src} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
+      </span>
+      <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{item.label}</span>
+    </button>
+  );
+};
+
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
   activeArtboardElements: ArtboardElement[];
@@ -315,6 +349,8 @@ export function ElementPalette({
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
   const [openDeviceCategoryId, setOpenDeviceCategoryId] = useState<DeviceCategoryId | null>(null);
+  const [openImageCategoryId, setOpenImageCategoryId] = useState<string | null>(null);
+  const openImageCategory = IMAGE_CATEGORIES.find(c => c.id === openImageCategoryId) || null;
 
   // The layout swaps to the template-selector screen (and back) while a
   // project loads, remounting this palette — keep the chosen tab sticky so it
@@ -348,17 +384,21 @@ export function ElementPalette({
   return (
     <div className="h-full flex flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-        <TabsList className="grid w-[85%] grid-cols-3 mx-auto mt-2 h-7 p-0.5">
-          <TabsTrigger value="elements" className="text-xs px-0.5 py-0.5 h-6">
-            <TypeIcon className="w-3 h-3 mr-0.5" />
+        <TabsList className="grid w-[95%] grid-cols-4 mx-auto mt-2 h-auto p-0.5">
+          <TabsTrigger value="elements" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
+            <TypeIcon className="w-4 h-4" />
             Elements
           </TabsTrigger>
-          <TabsTrigger value="devices" className="text-xs px-0.5 py-0.5 h-6">
-            <SmartphoneIcon className="w-3 h-3 mr-0.5" />
+          <TabsTrigger value="devices" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
+            <SmartphoneIcon className="w-4 h-4" />
             Devices
           </TabsTrigger>
-          <TabsTrigger value="layers" className="text-xs px-0.5 py-0.5 h-6">
-            <LayersIcon className="w-3 h-3 mr-0.5" />
+          <TabsTrigger value="images" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
+            <ImageIcon className="w-4 h-4" />
+            Images
+          </TabsTrigger>
+          <TabsTrigger value="layers" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
+            <LayersIcon className="w-4 h-4" />
             Layers
           </TabsTrigger>
         </TabsList>
@@ -584,6 +624,8 @@ export function ElementPalette({
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="android-punch-hole" label="Android (Punch Hole)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="android-notch" label="Android (Notch)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="android-bar" label="Android (Bar)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="ipad-pro-13" label="iPad Pro 13-inch" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px', defaultSize: { width: 780, height: 1040 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="ipad-11" label="iPad 11-inch" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px', defaultSize: { width: 740, height: 1074 } }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px' }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-7" label="7-inch Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 600, height: 960 } }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-10" label="10-inch Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 700, height: 1120 } }} />
@@ -639,6 +681,47 @@ export function ElementPalette({
                       <ImagePlusIcon key="f" className="w-5 h-5 text-primary" />,
                     ]}
                   />
+                </CardContent>
+              </Card>
+            )}
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="images" className="flex-grow p-3 pt-2 mt-0 min-h-0">
+          <ScrollArea className="h-full">
+            {openImageCategory ? (
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mb-2 h-7 px-1.5 text-xs"
+                  onClick={() => setOpenImageCategoryId(null)}
+                >
+                  <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
+                  Back
+                </Button>
+                <div className="grid grid-cols-3 gap-2 pr-1">
+                  {openImageCategory.items.map(item => (
+                    <ImageLibraryTile key={item.id} item={item} onDragStart={handleDragStart} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Card className="shadow-md">
+                <CardHeader className="p-3">
+                  <CardTitle className="text-base">Image Library</CardTitle>
+                </CardHeader>
+                <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
+                  {IMAGE_CATEGORIES.map(category => (
+                    <DeviceCategoryCard
+                      key={category.id}
+                      label={category.label}
+                      onOpen={() => setOpenImageCategoryId(category.id)}
+                      previews={category.items.slice(0, 6).map(item => (
+                        <img key={item.id} src={item.src} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      ))}
+                    />
+                  ))}
                 </CardContent>
               </Card>
             )}

@@ -270,6 +270,15 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       case 'tablet':
         deviceFrameOuterBorderRadius = `${effectiveWidth * 0.02}px`;
         break;
+      case 'ipad-pro-13':
+        // Modern iPad Pro/Air slab: uniform thin bezel, softly rounded body.
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.05}px`;
+        deviceFrameBgColor = '#1e1e1e';
+        break;
+      case 'ipad-11':
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.055}px`;
+        deviceFrameBgColor = '#1e1e1e';
+        break;
       case 'tablet-7':
         // Chunkier bezels than the 10-inch; typical budget Android slate.
         deviceFrameOuterBorderRadius = `${effectiveWidth * 0.045}px`;
@@ -307,9 +316,11 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     const screenWidth = 100 - paddingPercent.left - paddingPercent.right;
     const screenHeight = 100 - paddingPercent.top - paddingPercent.bottom;
     
-    // Notch rendering (simplified)
+    // Notch rendering (simplified). Only iOS *phones* get the notch pill —
+    // iPads are all-screen slabs with no cutout.
     let notchElement = null;
-    if (getDeviceDescriptor(element.deviceType).platform === 'ios') {
+    const svgDescriptor = getDeviceDescriptor(element.deviceType);
+    if (svgDescriptor.platform === 'ios' && svgDescriptor.category === 'phone') {
       const notchWidth = 28;
       const notchHeight = 4;
       notchElement = (

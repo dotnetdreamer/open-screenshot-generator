@@ -44,6 +44,10 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone-15': { id: 'iphone-15', label: 'iPhone 15', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-15-pro': { id: 'iphone-15-pro', label: 'iPhone 15 Pro', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
+  // App Store iPads. Like the Play Store tablets, they map to BOTH platforms'
+  // phones so converting an iPad project to a phone format is never a dead end.
+  'ipad-pro-13': { id: 'ipad-pro-13', label: 'iPad Pro 13-inch', platform: 'ios', category: 'tablet', nativeAspect: 2064 / 2752, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.2, right: 3.2, bottom: 3.2, left: 3.2 }, radiusFactor: 0.032 } },
+  'ipad-11': { id: 'ipad-11', label: 'iPad 11-inch', platform: 'ios', category: 'tablet', nativeAspect: 1668 / 2420, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.6, right: 3.6, bottom: 3.6, left: 3.6 }, radiusFactor: 0.036 } },
   'android-bar': { id: 'android-bar', label: 'Android (Bar)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone' }, screen: { paddingPercent: { top: 6, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'android-notch': { id: 'android-notch', label: 'Android (Notch)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone-14' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'android-punch-hole': { id: 'android-punch-hole', label: 'Android (Punch Hole)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2400, counterpart: { ios: 'iphone-15' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
@@ -73,20 +77,26 @@ export const DEVICE_PICKER_GROUPS: ReadonlyArray<{
   devices: DeviceDescriptor[];
 }> = (
   [
-    { label: 'iPhone', platform: 'ios' },
-    { label: 'Android', platform: 'android' },
-    { label: 'Other', platform: 'neutral' },
+    { label: 'iPhone', platform: 'ios', category: 'phone' },
+    { label: 'iPad', platform: 'ios', category: 'tablet' },
+    { label: 'Android', platform: 'android', category: null },
+    { label: 'Other', platform: 'neutral', category: null },
   ] as const
 ).map((g) => ({
-  ...g,
+  label: g.label,
+  platform: g.platform,
   devices: Object.values(DEVICE_REGISTRY).filter(
-    (d) => d.platform === g.platform && d.category !== 'custom'
+    (d) =>
+      d.platform === g.platform &&
+      d.category !== 'custom' &&
+      (g.category === null || d.category === g.category)
   ),
 }));
 
 // The mutually exclusive "formats" the Devices toolbar menu switches between:
-// the two phone platforms and the two Play Store tablet presets.
-export type DeviceFormat = SwapPlatform | 'tablet-7' | 'tablet-10';
+// the two phone platforms, the App Store iPads, and the two Play Store
+// tablet presets.
+export type DeviceFormat = SwapPlatform | 'ipad-pro-13' | 'ipad-11' | 'tablet-7' | 'tablet-10';
 
 /**
  * The format the project's device mockups are currently on: a phone platform
@@ -101,12 +111,15 @@ export function detectArtboardsFormat(
   for (const ab of artboards) {
     for (const el of ab.elements) {
       if (el.type !== 'device') continue;
+      const desc = getDeviceDescriptor(el.deviceType);
       let format: DeviceFormat | null = null;
-      if (el.deviceType === 'tablet-7' || el.deviceType === 'tablet-10') {
-        format = el.deviceType;
-      } else {
-        const platform = getDeviceDescriptor(el.deviceType).platform;
-        if (platform !== 'neutral') format = platform;
+      // Format-specific tablets (App Store iPads, Play Store tablets) ARE
+      // their own format; phones map to their platform; neutral devices
+      // (generic tablet, desktop, custom) belong to no format.
+      if (desc.category === 'tablet' && desc.platform !== 'neutral') {
+        format = el.deviceType as DeviceFormat;
+      } else if (desc.category === 'phone' && desc.platform !== 'neutral') {
+        format = desc.platform;
       }
       if (!format) continue;
       if (found && found !== format) return 'mixed';
@@ -252,7 +265,12 @@ export interface DeviceFormatPreset {
   id: DeviceFormat;
   label: string;
   // The store-correct canvas for this format:
-  // - ios: App Store 6.9-inch portrait (1290×2796).
+  // - ios: App Store 6.9-inch portrait (1290×2796) — the REQUIRED iPhone
+  //   tier; accepted alternatives are 1260×2736 and 1320×2868.
+  // - ipad-pro-13: App Store 13-inch portrait (2064×2752) — REQUIRED if the
+  //   app runs on iPad; 2048×2732 is the other accepted size.
+  // - ipad-11: App Store 11-inch portrait (1668×2420) — optional tier;
+  //   App Store Connect scales 13-inch screenshots down when absent.
   // - android: Play Store phone screenshots must be exactly 16:9 or 9:16
   //   with sides 320-3840px — 1080×1920 portrait.
   // - tablets: Play Store 9:16; 7-inch allows sides 320-3840px, 10-inch
@@ -263,9 +281,15 @@ export interface DeviceFormatPreset {
 export const DEVICE_FORMAT_PRESETS: DeviceFormatPreset[] = [
   { id: 'android', label: PLATFORM_LABELS.android, artboard: { width: 1080, height: 1920 } },
   { id: 'ios', label: PLATFORM_LABELS.ios, artboard: { width: 1290, height: 2796 } },
+  { id: 'ipad-pro-13', label: 'iPad 13-inch', artboard: { width: 2064, height: 2752 } },
+  { id: 'ipad-11', label: 'iPad 11-inch', artboard: { width: 1668, height: 2420 } },
   { id: 'tablet-7', label: '7-inch tablet', artboard: { width: 1080, height: 1920 } },
   { id: 'tablet-10', label: '10-inch tablet', artboard: { width: 1440, height: 2560 } },
 ];
+
+// The formats Apple App Store Connect accepts, in submission-priority order.
+// Used by the export flow to offer generating whichever are missing.
+export const APP_STORE_FORMAT_IDS: readonly DeviceFormat[] = ['ios', 'ipad-pro-13', 'ipad-11'];
 
 export interface FormatConversionResult {
   artboards: ArtboardState[];
@@ -295,7 +319,12 @@ export function convertArtboardsToFormat(
   let resized = 0;
   let swapped = 0;
   let skipped = 0;
-  const isTablet = preset.id === 'tablet-7' || preset.id === 'tablet-10';
+  // Tablet formats (App Store iPads, Play Store tablets) share a device id
+  // with their format id, so the registry lookup identifies them; phone
+  // format ids ('ios'/'android') aren't device ids and fall through.
+  const isTablet =
+    (DEVICE_REGISTRY[preset.id as DeviceType] as DeviceDescriptor | undefined)?.category ===
+    'tablet';
   const next = artboards.map((ab) => {
     const { width: newW, height: newH } = preset.artboard;
     const sameSize = ab.size.width === newW && ab.size.height === newH;
