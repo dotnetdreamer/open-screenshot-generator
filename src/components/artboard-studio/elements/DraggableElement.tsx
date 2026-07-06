@@ -360,8 +360,9 @@ export function DraggableElement({
         <>
           {/* SVG selection outline for better rendering with transforms */}
           {element.type === 'device' && element.styleType && element.styleType !== 'normal' ? (
-            <svg 
-              className="absolute inset-0 pointer-events-none" 
+            <svg
+              data-export-exclude
+              className="absolute inset-0 pointer-events-none"
               style={{
                 width: '100%',
                 height: '100%',
@@ -384,6 +385,7 @@ export function DraggableElement({
             </svg>
           ) : (
             <div
+              data-export-exclude
               className="absolute inset-0 pointer-events-none"
               style={{
                 outline: `${outlineThickness}px solid hsl(var(--primary))`,

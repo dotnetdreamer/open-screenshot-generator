@@ -488,7 +488,123 @@ export function PropertiesPanel({
           </SelectContent>
         </Select>
       </div>
-      
+
+      {/* 3D pose + body finish (only for the true-3D styles) */}
+      {(element.styleType === '3d-left' || element.styleType === '3d-right') && (
+        <>
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor="devicePose3d" className="text-xs">3D Pose</Label>
+            <Select
+              value={element.pose3d || 'classic'}
+              onValueChange={(v) => onUpdateElement({ pose3d: v as DeviceFrameElementProps['pose3d'] })}
+            >
+              <SelectTrigger id="devicePose3d" className="h-8 text-xs">
+                <SelectValue placeholder="Select Pose" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="classic">Classic</SelectItem>
+                <SelectItem value="upright">Upright</SelectItem>
+                <SelectItem value="side">Side</SelectItem>
+                <SelectItem value="tilted">Tilted</SelectItem>
+                <SelectItem value="reclined">Reclined</SelectItem>
+                <SelectItem value="laying">Laying</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor="deviceFinish3d" className="text-xs">Body Finish</Label>
+            <Select
+              value={element.frameColor3d || 'titanium'}
+              onValueChange={(v) => onUpdateElement({ frameColor3d: v as DeviceFrameElementProps['frameColor3d'] })}
+            >
+              <SelectTrigger id="deviceFinish3d" className="h-8 text-xs">
+                <SelectValue placeholder="Select Finish" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="titanium">Titanium</SelectItem>
+                <SelectItem value="black">Black</SelectItem>
+                <SelectItem value="white">White</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
+
+      {/* Colored-frame controls for the flat styles */}
+      {element.styleType !== '3d-left' && element.styleType !== '3d-right' && element.deviceType !== 'custom' && (
+        <>
+          <div className="grid grid-cols-2 gap-2 min-w-[100%]">
+            <div>
+              <Label htmlFor="deviceFrameColor" className="text-xs">Frame Color</Label>
+              <div className="flex mt-1.5">
+                <Input
+                  id="deviceFrameColor"
+                  type="color"
+                  className="w-8 h-8 p-1 cursor-pointer"
+                  value={element.frameColor || '#111111'}
+                  onChange={(e) => onUpdateElement({ frameColor: e.target.value })}
+                />
+                <Input
+                  type="text"
+                  className="flex-1 h-8 ml-2 text-xs"
+                  value={element.frameColor || ''}
+                  placeholder="default"
+                  onChange={(e) => onUpdateElement({ frameColor: e.target.value || undefined })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="deviceNotchColor" className="text-xs">Notch Color</Label>
+              <div className="flex mt-1.5">
+                <Input
+                  id="deviceNotchColor"
+                  type="color"
+                  className="w-8 h-8 p-1 cursor-pointer"
+                  value={element.notchColor || '#000000'}
+                  onChange={(e) => onUpdateElement({ notchColor: e.target.value })}
+                />
+                <Input
+                  type="text"
+                  className="flex-1 h-8 ml-2 text-xs"
+                  value={element.notchColor || ''}
+                  placeholder="default"
+                  onChange={(e) => onUpdateElement({ notchColor: e.target.value || undefined })}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor="deviceFrameOpacity" className="text-xs">
+              Frame Opacity: {Math.round((element.frameOpacity ?? 1) * 100)}%
+            </Label>
+            <Slider
+              id="deviceFrameOpacity"
+              min={0}
+              max={100}
+              step={1}
+              value={[(element.frameOpacity ?? 1) * 100]}
+              onValueChange={(v) => onUpdateElement({ frameOpacity: v[0] / 100 })}
+              className="my-2"
+            />
+          </div>
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor="deviceFrameStyle" className="text-xs">Frame Style</Label>
+            <Select
+              value={element.frameStyle || 'solid'}
+              onValueChange={(v) => onUpdateElement({ frameStyle: v as DeviceFrameElementProps['frameStyle'] })}
+            >
+              <SelectTrigger id="deviceFrameStyle" className="h-8 text-xs">
+                <SelectValue placeholder="Frame Style" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="solid">Solid</SelectItem>
+                <SelectItem value="outline">Outline</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
+
       {/* Show custom matrix3d input when custom style is selected */}
       {element.styleType === 'custom' && (
         <div className="flex flex-col space-y-1 min-w-[100%]">

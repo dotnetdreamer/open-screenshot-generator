@@ -114,7 +114,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '26%',
             aspectRatio: '3.5 / 1',
-            backgroundColor: '#000',
+            backgroundColor: 'var(--notch-bg, #000)',
             borderRadius: '9999px',
             zIndex: 3, // Above screen content
           }} />
@@ -138,7 +138,30 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '26%',
             aspectRatio: '3.5 / 1',
-            backgroundColor: '#000',
+            backgroundColor: 'var(--notch-bg, #000)',
+            borderRadius: '9999px',
+            zIndex: 3, // Above screen content
+          }} />
+        );
+        break;
+
+      case 'iphone-17-pro-max':
+        deviceNativeAspectRatio = 440 / 956;
+        framePaddingPercent = { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 };
+        screenBorderRadius = `${effectiveWidth * 0.115}px`;
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.15}px`;
+        deviceLabel = "iPhone 17 Pro Max";
+        deviceFrameBgColor = '#1e1e1e';
+        // Dynamic Island pill, anchored inside the screen like the 15 Pro.
+        notchElement = (
+          <div style={{
+            position: 'absolute',
+            top: '1.5%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '25%',
+            aspectRatio: '3.6 / 1',
+            backgroundColor: 'var(--notch-bg, #000)',
             borderRadius: '9999px',
             zIndex: 3, // Above screen content
           }} />
@@ -161,7 +184,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '32%',
             aspectRatio: '4.6 / 1',
-            backgroundColor: deviceFrameBgColor,
+            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
             borderBottomLeftRadius: '11% 50%',
             borderBottomRightRadius: '11% 50%',
             zIndex: 3, // Above screen content
@@ -185,7 +208,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '34%',
             aspectRatio: '4.4 / 1',
-            backgroundColor: deviceFrameBgColor,
+            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
             borderBottomLeftRadius: '11% 48%',
             borderBottomRightRadius: '11% 48%',
             zIndex: 3, // Above screen content
@@ -209,7 +232,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '36%',
             aspectRatio: '4.2 / 1',
-            backgroundColor: deviceFrameBgColor,
+            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
             borderBottomLeftRadius: '12% 50%',
             borderBottomRightRadius: '12% 50%',
             zIndex: 3, // Above screen content
@@ -247,7 +270,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '32%',
             aspectRatio: '5 / 1',
-            backgroundColor: deviceFrameBgColor,
+            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
             borderBottomLeftRadius: '12% 60%',
             borderBottomRightRadius: '12% 60%',
             zIndex: 3, // Above screen content
@@ -270,7 +293,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             transform: 'translateX(-50%)',
             width: '5%',
             aspectRatio: '1 / 1',
-            backgroundColor: '#000',
+            backgroundColor: 'var(--notch-bg, #000)',
             borderRadius: '50%',
             zIndex: 3, // Above screen content
           }} />
@@ -461,6 +484,14 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   // Check if we're using the SVG perspective mode
   const usingSvgPerspectiveMode = element.styleType && element.styleType !== 'normal' && !is3DMode;
 
+  // Colored-device presets: recolor / fade / hollow out the flat frame.
+  const frameFill = element.frameColor ?? deviceFrameBgColor;
+  const frameAlpha = element.frameOpacity ?? 1;
+  const isOutlineFrame = element.frameStyle === 'outline';
+  const frameFillCss = frameAlpha >= 1
+    ? frameFill
+    : `color-mix(in srgb, ${frameFill} ${Math.round(frameAlpha * 100)}%, transparent)`;
+
   // Container style with hardware acceleration
   const containerStyle: React.CSSProperties = {
     width: '100%',
@@ -474,19 +505,27 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     transform: usingSvgPerspectiveMode ? getDevicePerspectiveTransform(element.styleType) : 'none',
     transformStyle: 'preserve-3d',
     backfaceVisibility: 'hidden',
+    // The global .device-container drop-shadow reads as a dirty halo behind
+    // see-through or hollow frames — suppress it there (inline beats the class)
+    filter: isOutlineFrame || frameAlpha < 1 ? 'none' : undefined,
   };
 
   // Frame style used for both normal and perspective modes
   const frameStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    // A drop shadow behind a see-through or hollow frame reads as a dark slab
+    boxShadow: isOutlineFrame || frameAlpha < 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     borderRadius: deviceFrameOuterBorderRadius,
-    backgroundColor: deviceFrameBgColor,
+    backgroundColor: isOutlineFrame ? 'transparent' : frameFillCss,
+    border: isOutlineFrame ? `${Math.max(2, effectiveWidth * 0.014)}px solid ${frameFillCss}` : undefined,
+    boxSizing: 'border-box',
+    ['--frame-bg' as any]: frameFill,
+    ...(element.notchColor ? { ['--notch-bg' as any]: element.notchColor } : {}),
     ['--scale-factor' as any]: element.scale || 1,
     overflow: 'visible',
   };
@@ -502,6 +541,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
           side={element.styleType === '3d-left' ? 'left' : 'right'}
           screenshotSrc={screenshot}
           objectFit={element.screenshotObjectFit || 'cover'}
+          pose={element.pose3d}
+          frameColor={element.frameColor3d}
         />
         {!screenshot && (
           // Overlay text must scale with the element: the artboard is displayed
@@ -510,21 +551,22 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             <p
               className="bg-background/70 rounded"
               style={{
-                fontSize: `${Math.max(12, effectiveWidth * 0.055)}px`,
+                fontSize: `${Math.max(14, effectiveWidth * 0.055)}px`,
                 padding: `${effectiveWidth * 0.012}px ${effectiveWidth * 0.03}px`,
                 borderRadius: `${effectiveWidth * 0.02}px`,
               }}
             >{`Mockup: ${deviceLabel} (3D)`}</p>
             {isSelected && (
               <Button
+                data-export-exclude
                 variant="outline"
                 className="bg-background/80 hover:bg-background pointer-events-auto h-auto"
                 style={{
                   zIndex: 10,
-                  fontSize: `${Math.max(12, effectiveWidth * 0.05)}px`,
-                  padding: `${effectiveWidth * 0.015}px ${effectiveWidth * 0.035}px`,
-                  marginTop: `${effectiveWidth * 0.03}px`,
-                  borderRadius: `${effectiveWidth * 0.02}px`,
+                  fontSize: `${Math.max(14, effectiveWidth * 0.065)}px`,
+                  padding: `${effectiveWidth * 0.02}px ${effectiveWidth * 0.045}px`,
+                  marginTop: `${effectiveWidth * 0.04}px`,
+                  borderRadius: `${effectiveWidth * 0.025}px`,
                 }}
                 onClick={() => triggerFileUpload('screenshot')}
                 onMouseDown={(e) => e.stopPropagation()}
@@ -615,13 +657,21 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
                 <UploadCloudIcon className="w-1/4 h-1/4 opacity-50 mb-2" data-ai-hint="upload cloud arrow"/>
-                <p className="text-xs">{`Mockup: ${deviceLabel}`}</p>
+                {/* Sizes derive from the element width: the artboard is displayed
+                    CSS-scaled way down, so fixed text-xs UI becomes unreadable */}
+                <p style={{ fontSize: `${Math.max(14, effectiveWidth * 0.055)}px` }}>{`Mockup: ${deviceLabel}`}</p>
                 {isSelected && (
                   <Button
+                    data-export-exclude
                     variant="outline"
-                    size="sm"
-                    className="mt-2 text-xs py-1 px-2 h-auto bg-background/80 hover:bg-background"
-                    style={{ zIndex: 10 }}
+                    className="h-auto bg-background/80 hover:bg-background"
+                    style={{
+                      zIndex: 10,
+                      fontSize: `${Math.max(14, effectiveWidth * 0.065)}px`,
+                      padding: `${effectiveWidth * 0.02}px ${effectiveWidth * 0.045}px`,
+                      marginTop: `${effectiveWidth * 0.04}px`,
+                      borderRadius: `${effectiveWidth * 0.025}px`,
+                    }}
                     onClick={() => triggerFileUpload('screenshot')}
                     onMouseDown={(e) => e.stopPropagation()}
                   >

@@ -253,6 +253,43 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         if (styleProps?.styleType) {
           deviceElement.styleType = styleProps.styleType as DeviceFrameElementProps['styleType'];
         }
+        if (styleProps?.pose3d) {
+          deviceElement.pose3d = styleProps.pose3d as DeviceFrameElementProps['pose3d'];
+        }
+        if (styleProps?.frameColor3d) {
+          deviceElement.frameColor3d = styleProps.frameColor3d as DeviceFrameElementProps['frameColor3d'];
+        }
+        // Colored-device presets (flat frames)
+        if (typeof styleProps?.frameColor === 'string') {
+          deviceElement.frameColor = styleProps.frameColor;
+        }
+        if (typeof styleProps?.frameOpacity === 'number') {
+          deviceElement.frameOpacity = styleProps.frameOpacity;
+        }
+        if (styleProps?.frameStyle === 'solid' || styleProps?.frameStyle === 'outline') {
+          deviceElement.frameStyle = styleProps.frameStyle;
+        }
+        if (typeof styleProps?.notchColor === 'string') {
+          deviceElement.notchColor = styleProps.notchColor;
+        }
+        // Palette presets can request a device-accurate aspect ratio
+        if (styleProps?.defaultSize?.width && styleProps?.defaultSize?.height) {
+          deviceElement.size = { width: styleProps.defaultSize.width, height: styleProps.defaultSize.height };
+        }
+        // The generic drop position assumes small elements; center devices by
+        // their real size (click) or clamp fully inside the artboard (drop) so
+        // wide presets don't hang past the edge and export clipped.
+        if (!dropPosition) {
+          deviceElement.position = {
+            x: Math.max(0, (artboard.size.width - deviceElement.size.width) / 2),
+            y: Math.max(0, (artboard.size.height - deviceElement.size.height) / 2),
+          };
+        } else {
+          deviceElement.position = {
+            x: Math.max(0, Math.min(deviceElement.position.x, artboard.size.width - deviceElement.size.width)),
+            y: Math.max(0, Math.min(deviceElement.position.y, artboard.size.height - deviceElement.size.height)),
+          };
+        }
         newElementToAdd = deviceElement as ArtboardElement;
       }
 

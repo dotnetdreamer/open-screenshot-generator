@@ -78,6 +78,7 @@ export type DeviceType =
   | 'iphone-14'
   | 'iphone-15'
   | 'iphone-15-pro'
+  | 'iphone-17-pro-max'
   | 'android-bar'
   | 'android-notch'
   | 'android-punch-hole'
@@ -93,8 +94,17 @@ export type DeviceStyleType =
   | 'perspective-right'
   | 'perspective-slight-right'
   | 'perspective-slight-left'
-  | 'perspective-front' 
+  | 'perspective-front'
   | 'custom';
+
+// Pose presets for the true-3D (three.js) device styles. 'classic' is the
+// original near-frontal product shot; the rest recline the device toward the
+// camera in increasing steps (matching common mockup panels).
+export type Device3DPose = 'classic' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying';
+
+// Body finish for the true-3D device styles. 'titanium' is the original look
+// and remains the default for existing projects.
+export type Device3DFrameColor = 'titanium' | 'black' | 'white';
 
 export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
@@ -109,6 +119,13 @@ export interface DeviceFrameElementProps extends BaseElement {
   naturalScreenshotHeight?: number;
   styleType?: DeviceStyleType;
   matrix3d?: string; // Custom CSS matrix3d transform
+  pose3d?: Device3DPose; // Pose preset when styleType is '3d-left' / '3d-right'
+  frameColor3d?: Device3DFrameColor; // Body finish for the 3D styles
+  // Colored-device presets for the flat (non-3D) frames:
+  frameColor?: string; // any CSS color; overrides the per-device default body color
+  frameOpacity?: number; // 0..1 alpha applied to the flat frame color (transparent devices)
+  frameStyle?: 'solid' | 'outline'; // outline = colored ring around a hollow frame
+  notchColor?: string; // overrides the notch / island / punch-hole fill
 }
 
 export interface ImageElementProps extends BaseElement {

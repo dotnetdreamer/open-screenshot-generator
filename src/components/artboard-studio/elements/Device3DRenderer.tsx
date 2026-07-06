@@ -3,13 +3,15 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { DeviceType } from '@/types/artboard';
+import type { DeviceType, Device3DPose, Device3DFrameColor } from '@/types/artboard';
 
 interface Device3DRendererProps {
   deviceType: DeviceType;
   side: 'left' | 'right';
   screenshotSrc?: string;
   objectFit?: 'contain' | 'cover' | 'fill';
+  pose?: Device3DPose;
+  frameColor?: Device3DFrameColor;
 }
 
 type NotchKind = 'island' | 'notch' | 'punch' | 'none';
@@ -28,6 +30,7 @@ const DEFAULT_METRICS: DeviceMetrics = { cornerRadius: 0.12, screenRadius: 0.095
 const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   'iphone-15': { cornerRadius: 0.14, screenRadius: 0.11, bezel: 0.03, thickness: 0.08, notch: 'island' },
   'iphone-15-pro': { cornerRadius: 0.14, screenRadius: 0.11, bezel: 0.028, thickness: 0.08, notch: 'island' },
+  'iphone-17-pro-max': { cornerRadius: 0.15, screenRadius: 0.12, bezel: 0.026, thickness: 0.078, notch: 'island' },
   'iphone-14': { cornerRadius: 0.13, screenRadius: 0.10, bezel: 0.03, thickness: 0.08, notch: 'notch' },
   'iphone-13': { cornerRadius: 0.12, screenRadius: 0.09, bezel: 0.03, thickness: 0.08, notch: 'notch' },
   'iphone-x': { cornerRadius: 0.12, screenRadius: 0.09, bezel: 0.03, thickness: 0.08, notch: 'notch' },
@@ -39,8 +42,26 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   'desktop': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.02, thickness: 0.03, notch: 'none' },
 };
 
-const ROTATION_DEG = 24;
 const CAMERA_FOV = 20;
+
+// Pose presets: yaw spins the device toward its exposed rail (mirrored for
+// side 'right'), pitch reclines it back toward the camera so it reads as
+// viewed from above. Values eyeballed against common 3D-mockup panels.
+const POSES: Record<Device3DPose, { yaw: number; pitch: number }> = {
+  classic: { yaw: 24, pitch: 0 },
+  upright: { yaw: 34, pitch: 0 },
+  side: { yaw: 54, pitch: 0 },
+  tilted: { yaw: 30, pitch: 26 },
+  reclined: { yaw: 33, pitch: 48 },
+  laying: { yaw: 28, pitch: 66 },
+};
+
+// Body finishes. 'titanium' is the original look and stays the default.
+const FRAME_COLORS: Record<Device3DFrameColor, { rail: number; railRoughness: number; railEnv: number; button: number }> = {
+  titanium: { rail: 0x8a8a90, railRoughness: 0.42, railEnv: 0.85, button: 0xb8b8be },
+  black: { rail: 0x3b3b40, railRoughness: 0.45, railEnv: 0.7, button: 0x4a4a50 },
+  white: { rail: 0xdcdce0, railRoughness: 0.32, railEnv: 1.0, button: 0xe6e6ea },
+};
 
 function roundedRectShape(w: number, h: number, r: number): THREE.Shape {
   const radius = Math.min(r, w / 2, h / 2);
@@ -76,7 +97,7 @@ function normalizeShapeUVs(geo: THREE.BufferGeometry, w: number, h: number) {
  * perspective as the body. Camera distance is proportional to the device, which
  * keeps the 3D depth identical no matter how large the element is drawn.
  */
-export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 'cover' }: Device3DRendererProps) {
+export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 'cover', pose = 'classic', frameColor = 'titanium' }: Device3DRendererProps) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -113,7 +134,15 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     scene.add(new THREE.AmbientLight(0xffffff, 0.2));
 
     const group = new THREE.Group();
-    group.rotation.y = THREE.MathUtils.degToRad(ROTATION_DEG) * -sideSign;
+    const poseAngles = POSES[pose] ?? POSES.classic;
+    const yawRad = THREE.MathUtils.degToRad(poseAngles.yaw) * -sideSign;
+    const pitchRad = THREE.MathUtils.degToRad(poseAngles.pitch);
+    // Yaw about Y first, then recline about the world X axis — like a phone
+    // spun on a table, then the table tipped toward the camera.
+    const poseQuat = new THREE.Quaternion()
+      .setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchRad)
+      .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawRad));
+    group.quaternion.copy(poseQuat);
     scene.add(group);
 
     const metrics = DEVICE_METRICS[deviceType] ?? DEFAULT_METRICS;
@@ -211,11 +240,12 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       const bodyGeo = track(toCreasedNormals(rawBodyGeo, THREE.MathUtils.degToRad(30)));
       rawBodyGeo.dispose();
       bodyGeo.translate(0, 0, -depth / 2);
-      // Material 0 = front/back caps (black glass), 1 = extruded rail (titanium).
+      // Material 0 = front/back caps (black glass), 1 = extruded rail.
+      const finish = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
       const capMat = track(new THREE.MeshStandardMaterial({ color: 0x0b0b0d, metalness: 0.4, roughness: 0.3 }));
       // Brushed rather than polished: a rougher rail with damped reflections
       // avoids specular sparkle on the smooth-shaded bevel curvature.
-      const railMat = track(new THREE.MeshStandardMaterial({ color: 0x8a8a90, metalness: 1.0, roughness: 0.42, envMapIntensity: 0.85 }));
+      const railMat = track(new THREE.MeshStandardMaterial({ color: finish.rail, metalness: 1.0, roughness: finish.railRoughness, envMapIntensity: finish.railEnv }));
       group.add(new THREE.Mesh(bodyGeo, [capMat, railMat]));
 
       // Screen face sits just above the front cap.
@@ -262,7 +292,8 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       // device height would let buttons ride up into the corner arc on short or
       // user-squashed elements and poke out of the silhouette as dark bumps.
       if (metrics.notch !== 'none' || deviceType === 'iphone' || deviceType === 'tablet') {
-        const buttonMat = track(new THREE.MeshStandardMaterial({ color: 0xb8b8be, metalness: 0.9, roughness: 0.45 }));
+        const finishForButtons = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+        const buttonMat = track(new THREE.MeshStandardMaterial({ color: finishForButtons.button, metalness: 0.9, roughness: 0.45 }));
         const buttonSpecs = side === 'left'
           ? [{ len: 0.11 }, { len: 0.11 }] // volume up/down
           : [{ len: 0.16 }]; // power
@@ -280,21 +311,45 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
         }
       }
 
+      // USB-C slot on the bottom rail — only really visible in the reclined
+      // poses where the camera looks down past the bottom edge.
+      if (deviceType !== 'desktop') {
+        const portMat = track(new THREE.MeshStandardMaterial({ color: 0x121214, metalness: 0.4, roughness: 0.55 }));
+        const portGeo = track(new THREE.CapsuleGeometry(t * 0.1, 0.075, 6, 12));
+        portGeo.rotateZ(Math.PI / 2); // capsule axis Y -> X, lying along the rail
+        const portMesh = new THREE.Mesh(portGeo, portMat);
+        portMesh.position.set(0, -h / 2, 0);
+        group.add(portMesh);
+      }
+
       updateShot();
     };
 
     const layoutCamera = (cw: number, ch: number) => {
       const aspect = cw / ch;
       const h = THREE.MathUtils.clamp(ch / cw, 0.3, 4);
-      const halfFov = THREE.MathUtils.degToRad(CAMERA_FOV / 2);
-      const margin = 1.1;
-      const angle = THREE.MathUtils.degToRad(ROTATION_DEG);
-      const rotatedW = Math.cos(angle) + metrics.thickness * Math.sin(angle);
-      const distH = (h / 2) * margin / Math.tan(halfFov);
-      const distW = (rotatedW / 2) * margin / (Math.tan(halfFov) * aspect);
-      const dist = Math.max(distH, distW);
+      const tanV = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
+      const margin = 1.08;
+      // Fit the pose-rotated device box exactly: a corner at camera-space
+      // (x, y, z) fits iff |y| <= tan(fov/2)·(dist − z) vertically and
+      // |x| <= tan(fov/2)·aspect·(dist − z) horizontally — solve for dist.
+      const t2 = metrics.thickness / 2;
+      const corner = new THREE.Vector3();
+      let dist = 0.1;
+      for (const sx of [-0.5, 0.5]) {
+        for (const sy of [-0.5, 0.5]) {
+          for (const sz of [-1, 1]) {
+            corner.set(sx, sy * h, sz * t2).applyQuaternion(poseQuat);
+            dist = Math.max(
+              dist,
+              corner.z + (Math.abs(corner.y) * margin) / tanV,
+              corner.z + (Math.abs(corner.x) * margin) / (tanV * aspect),
+            );
+          }
+        }
+      }
       camera.aspect = aspect;
-      camera.near = dist * 0.1;
+      camera.near = dist * 0.05;
       camera.far = dist * 10;
       // Slightly above center, like a product shot looking marginally down.
       camera.position.set(0, dist * 0.02, dist);
@@ -373,6 +428,28 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       if (Math.abs(effectivePixelRatio() - lastPixelRatio) > 0.1) applySize();
     }, 800);
 
+    // PNG export draws the canvas 1:1 into the output (no browser downscale),
+    // which exposes specular aliasing on the metal rail that the on-screen
+    // downscale normally averages away. While an export is in flight, render at
+    // 2x layout pixels so the capture gets the same ~2x supersampling the
+    // on-screen path targets, then restore the regular buffer.
+    const handleExportPhase = (e: Event) => {
+      const phase = (e as CustomEvent).detail?.phase;
+      const cw = mount.clientWidth;
+      const ch = mount.clientHeight;
+      if (phase === 'begin') {
+        if (cw < 2 || ch < 2) return;
+        renderer.setPixelRatio(Math.max(2, lastPixelRatio));
+        renderer.setSize(cw, ch, false);
+        layoutCamera(cw, ch);
+        render();
+      } else {
+        lastPixelRatio = 0; // force applySize to rebuild the on-screen buffer
+        applySize();
+      }
+    };
+    window.addEventListener('artboard:export', handleExportPhase);
+
     if (screenshotSrc) {
       const img = new window.Image();
       img.onload = () => {
@@ -390,6 +467,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
 
     return () => {
       disposed = true;
+      window.removeEventListener('artboard:export', handleExportPhase);
       window.clearInterval(scaleWatch);
       window.clearTimeout(resizeTimer);
       resizeObserver.disconnect();
@@ -404,7 +482,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       renderer.dispose();
       mount.removeChild(canvas);
     };
-  }, [deviceType, side, screenshotSrc, objectFit]);
+  }, [deviceType, side, screenshotSrc, objectFit, pose, frameColor]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%', pointerEvents: 'none' }} />;
 }

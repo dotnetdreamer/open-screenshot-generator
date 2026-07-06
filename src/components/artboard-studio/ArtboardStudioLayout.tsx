@@ -649,6 +649,11 @@ export function ArtboardStudioLayout() {
       variant: "default",
     });
 
+    // 3D device canvases re-render supersampled while an export is in flight
+    // (see Device3DRenderer); the small wait lets that buffer swap present.
+    window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     for (const artboard of artboards) {
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
@@ -679,6 +684,12 @@ export function ArtboardStudioLayout() {
           backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
           pixelRatio: 1, // Set to 1 to avoid doubling resolution
           cacheBust: true, // Prevent caching issues
+          // Editor chrome (selection outlines, resize handles, upload buttons)
+          // must never be baked into the exported image
+          filter: (node) => {
+            const el = node as HTMLElement;
+            return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+          },
           style: {
             width: `${artboard.size.width}px`,
             height: `${artboard.size.height}px`,
@@ -715,6 +726,8 @@ export function ArtboardStudioLayout() {
         });
       }
     }
+
+    window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
   };
 
 
@@ -1222,8 +1235,11 @@ const generateRandomProjectName = (): string => {
   return `${adjective} ${noun} ${number}`;
 };
 
-  if (isTemplateSelectorOpen) {
-    return (
+  // Rendered as an overlay INSIDE the main layout, never as an early return:
+  // swapping the whole tree for this dialog used to unmount the palette and
+  // canvas (losing tab/drill-in/selection state) whenever the flag flickered
+  // during project creation/loading.
+  const templateSelectorDialog = (
       <>
         <Dialog
           open={isTemplateSelectorOpen}
@@ -1379,11 +1395,11 @@ const generateRandomProjectName = (): string => {
           </AlertDialogContent>
         </AlertDialog>
       </>
-    );
-  }
+  );
 
   return (
     <ClipboardProvider>
+      {templateSelectorDialog}
       <SidebarProvider defaultOpen>
         <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
           <SidebarHeader className="border-b">

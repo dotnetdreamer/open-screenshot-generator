@@ -1,0 +1,8 @@
+{
+  "name": "app-screenshot-scripts",
+  "private": true,
+  "description": "Headless-browser drivers for the app-screenshots skill",
+  "dependencies": {
+    "puppeteer-core": "^24.0.0"
+  }
+}
