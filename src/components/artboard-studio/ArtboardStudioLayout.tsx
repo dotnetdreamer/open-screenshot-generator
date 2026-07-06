@@ -1298,7 +1298,7 @@ const generateRandomProjectName = (): string => {
                     </CardHeader>
                     <CardContent className="p-4">
                       <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
-                      <CardDescription className="text-sm">{project.description}</CardDescription>
+                      <CardDescription className="text-sm line-clamp-3">{project.description}</CardDescription>
                     </CardContent>
                   </Card>
                 ))}
