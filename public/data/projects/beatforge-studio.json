@@ -1,0 +1,520 @@
+{
+  "id": "template_beatforge_studio",
+  "name": "Beatforge Studio",
+  "description": "App Store screenshot set for a music production app — black and peach panels, oversized bold headlines with light kicker words, white laurel and dark device mockups.",
+  "previewImage": "https://placehold.co/300x200/FFD9A0/FFFFFF?text=Beatforge",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_bf_ab1",
+      "name": "Effects",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0D0D0D",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_bf_ab1_circ",
+          "type": "shape",
+          "name": "Circle",
+          "position": {
+            "x": -560,
+            "y": 1620
+          },
+          "size": {
+            "width": 1700,
+            "height": 1700
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFD9A0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_bf_ab1_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 120
+          },
+          "size": {
+            "width": 1050,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "EQ, reverb,\neffects made\nsimple.",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_bf_ab1_dl",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 660
+          },
+          "size": {
+            "width": 600,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "DOWNLOAD NOW.",
+          "fontSize": 16,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_bf_ab1_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 390,
+            "y": 840
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 8,
+          "scale": 1.45,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_bf_ab1_users",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 2450
+          },
+          "size": {
+            "width": 550,
+            "height": 320
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1million+\nusers",
+          "fontSize": 34,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        }
+      ]
+    },
+    {
+      "id": "tpl_bf_ab2",
+      "name": "Write Songs",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FFD9A0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_bf_ab2_k",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 110
+          },
+          "size": {
+            "width": 500,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easily",
+          "fontSize": 26,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_bf_ab2_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 270
+          },
+          "size": {
+            "width": 950,
+            "height": 660
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Write\nSongs &\nPractice",
+          "fontSize": 42,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_bf_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 265,
+            "y": 1060
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_bf_ab3",
+      "name": "Chords",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0D0D0D",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_bf_ab3_k",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 110
+          },
+          "size": {
+            "width": 500,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Find",
+          "fontSize": 26,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_bf_ab3_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 270
+          },
+          "size": {
+            "width": 1050,
+            "height": 660
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Chords\nScales &\nInspiration",
+          "fontSize": 42,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_bf_ab3_laurel",
+          "type": "shape",
+          "name": "Open Wreath",
+          "position": {
+            "x": 405,
+            "y": 970
+          },
+          "size": {
+            "width": 480,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_bf_ab3_ltxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 495,
+            "y": 1075
+          },
+          "size": {
+            "width": 300,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "App of the\nday",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_bf_ab3_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 300,
+            "y": 1400
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.15,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_bf_ab4",
+      "name": "Make Music",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FFD9A0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_bf_ab4_k",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 110
+          },
+          "size": {
+            "width": 500,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Create",
+          "fontSize": 26,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_bf_ab4_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 270
+          },
+          "size": {
+            "width": 950,
+            "height": 660
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Make\nMusic\nAnywhere",
+          "fontSize": 42,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_bf_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 265,
+            "y": 1060
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_bf_ab5",
+      "name": "Beats",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FFD9A0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_bf_ab5_k",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 110
+          },
+          "size": {
+            "width": 500,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Loop",
+          "fontSize": 26,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_bf_ab5_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 270
+          },
+          "size": {
+            "width": 950,
+            "height": 660
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Build\nCatchy\nBeats",
+          "fontSize": 42,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_bf_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 265,
+            "y": 1060
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    }
+  ]
+}

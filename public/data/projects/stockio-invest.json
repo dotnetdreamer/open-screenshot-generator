@@ -1,0 +1,687 @@
+{
+  "id": "template_stockio_invest",
+  "name": "Stockio Invest",
+  "description": "App Store screenshot set for a stocks & crypto tracker — near-black panels with lilac blob corners, white serif headlines with an italic accent word and dark device mockups.",
+  "previewImage": "https://placehold.co/300x200/131313/FFFFFF?text=Stockio",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_sk_ab1",
+      "name": "Invest",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#131313",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_sk_ab1_blob1",
+          "type": "shape",
+          "name": "Blob TL",
+          "position": {
+            "x": -280,
+            "y": -300
+          },
+          "size": {
+            "width": 800,
+            "height": 740
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab1_blob2",
+          "type": "shape",
+          "name": "Blob BR",
+          "position": {
+            "x": 880,
+            "y": 2360
+          },
+          "size": {
+            "width": 640,
+            "height": 600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 20 C61.26 19.83 78 21.17 84.64 30 C91.28 38.83 95.61 61.83 89.84 73 C84.06 84.17 63.13 97.08 50 97 C36.87 96.92 16.51 83.5 11.03 72.5 C5.54 61.5 10.6 39.75 17.09 31 C23.59 22.25 38.74 20.17 50 20 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab1_k",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 160
+          },
+          "size": {
+            "width": 600,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stocks & Crypto",
+          "fontSize": 20,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_sk_ab1_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 270
+          },
+          "size": {
+            "width": 900,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Invest with",
+          "fontSize": 42,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_sk_ab1_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 460
+          },
+          "size": {
+            "width": 900,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "confidence",
+          "fontSize": 42,
+          "color": "#C77DFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "fontStyle": "italic",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_sk_ab1_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 210,
+            "y": 780
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -10,
+          "scale": 1.45,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#050505",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_sk_ab1_track",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 2380
+          },
+          "size": {
+            "width": 450,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "TRACK\nLIVE",
+          "fontSize": 32,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_sk_ab2",
+      "name": "Full Screen",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#131313",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_sk_ab2_blob1",
+          "type": "shape",
+          "name": "Blob TR",
+          "position": {
+            "x": 860,
+            "y": -220
+          },
+          "size": {
+            "width": 700,
+            "height": 640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 5 C55.21 5 60.15 14.43 65.62 17.57 C71.09 20.7 79.27 19.82 82.84 23.81 C86.41 27.81 85.05 35.47 87.05 41.54 C89.05 47.61 96.46 55.19 94.85 60.24 C93.23 65.28 81.87 67.37 77.36 71.82 C72.85 76.27 72.35 84.41 67.79 86.94 C63.23 89.47 56.15 86.55 50 87 C43.85 87.45 35.34 92.28 30.91 89.64 C26.48 87.01 27.06 76.25 23.42 71.2 C19.78 66.15 10.63 64.25 9.05 59.35 C7.47 54.44 13.1 48.1 13.93 41.77 C14.76 35.43 10.63 25.35 14.04 21.32 C17.44 17.29 28.39 20.29 34.38 17.57 C40.37 14.85 44.79 5 50 5 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab2_blob2",
+          "type": "shape",
+          "name": "Blob BL",
+          "position": {
+            "x": -260,
+            "y": 2240
+          },
+          "size": {
+            "width": 660,
+            "height": 620
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": -140,
+            "y": -140
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 16,
+          "scale": 1.85,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#050505",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_sk_ab2_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 780,
+            "y": 1680
+          },
+          "size": {
+            "width": 440,
+            "height": 980
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Invest\nSell\nBuy\nTrack",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.25
+        }
+      ]
+    },
+    {
+      "id": "tpl_sk_ab3",
+      "name": "Market Highs",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#131313",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_sk_ab3_blob1",
+          "type": "shape",
+          "name": "Blob TL",
+          "position": {
+            "x": -240,
+            "y": -260
+          },
+          "size": {
+            "width": 640,
+            "height": 600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab3_blob2",
+          "type": "shape",
+          "name": "Blob BR",
+          "position": {
+            "x": 940,
+            "y": 2380
+          },
+          "size": {
+            "width": 560,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 20 C61.26 19.83 78 21.17 84.64 30 C91.28 38.83 95.61 61.83 89.84 73 C84.06 84.17 63.13 97.08 50 97 C36.87 96.92 16.51 83.5 11.03 72.5 C5.54 61.5 10.6 39.75 17.09 31 C23.59 22.25 38.74 20.17 50 20 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab3_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 140
+          },
+          "size": {
+            "width": 1100,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Crack\nmarket\nhighs",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_sk_ab3_b",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 195,
+            "y": 760
+          },
+          "size": {
+            "width": 900,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "track every market\nmove",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_sk_ab3_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 255,
+            "y": 1000
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.3,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#050505",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_sk_ab4",
+      "name": "Patterns",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#131313",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_sk_ab4_blob1",
+          "type": "shape",
+          "name": "Blob TL",
+          "position": {
+            "x": -240,
+            "y": -260
+          },
+          "size": {
+            "width": 640,
+            "height": 600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 5 C55.21 5 60.15 14.43 65.62 17.57 C71.09 20.7 79.27 19.82 82.84 23.81 C86.41 27.81 85.05 35.47 87.05 41.54 C89.05 47.61 96.46 55.19 94.85 60.24 C93.23 65.28 81.87 67.37 77.36 71.82 C72.85 76.27 72.35 84.41 67.79 86.94 C63.23 89.47 56.15 86.55 50 87 C43.85 87.45 35.34 92.28 30.91 89.64 C26.48 87.01 27.06 76.25 23.42 71.2 C19.78 66.15 10.63 64.25 9.05 59.35 C7.47 54.44 13.1 48.1 13.93 41.77 C14.76 35.43 10.63 25.35 14.04 21.32 C17.44 17.29 28.39 20.29 34.38 17.57 C40.37 14.85 44.79 5 50 5 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab4_blob2",
+          "type": "shape",
+          "name": "Blob BR",
+          "position": {
+            "x": 940,
+            "y": 2380
+          },
+          "size": {
+            "width": 560,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab4_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 140
+          },
+          "size": {
+            "width": 1100,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Analyse\nmarket\npatterns",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_sk_ab4_b",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 195,
+            "y": 760
+          },
+          "size": {
+            "width": 900,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "make smarter investment\ndecisions daily",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_sk_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 255,
+            "y": 1000
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.3,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#050505",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_sk_ab5",
+      "name": "All-time Highs",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#131313",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_sk_ab5_blob1",
+          "type": "shape",
+          "name": "Blob TL",
+          "position": {
+            "x": -240,
+            "y": -260
+          },
+          "size": {
+            "width": 640,
+            "height": 600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab5_blob2",
+          "type": "shape",
+          "name": "Blob BR",
+          "position": {
+            "x": 940,
+            "y": 2380
+          },
+          "size": {
+            "width": 560,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C77DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 5 C55.21 5 60.15 14.43 65.62 17.57 C71.09 20.7 79.27 19.82 82.84 23.81 C86.41 27.81 85.05 35.47 87.05 41.54 C89.05 47.61 96.46 55.19 94.85 60.24 C93.23 65.28 81.87 67.37 77.36 71.82 C72.85 76.27 72.35 84.41 67.79 86.94 C63.23 89.47 56.15 86.55 50 87 C43.85 87.45 35.34 92.28 30.91 89.64 C26.48 87.01 27.06 76.25 23.42 71.2 C19.78 66.15 10.63 64.25 9.05 59.35 C7.47 54.44 13.1 48.1 13.93 41.77 C14.76 35.43 10.63 25.35 14.04 21.32 C17.44 17.29 28.39 20.29 34.38 17.57 C40.37 14.85 44.79 5 50 5 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_sk_ab5_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 140
+          },
+          "size": {
+            "width": 1100,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Discover\nall-time\nhighs",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_sk_ab5_b",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 195,
+            "y": 760
+          },
+          "size": {
+            "width": 900,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "understand trends\nbefore they peak",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_sk_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 255,
+            "y": 1000
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.3,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#050505",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    }
+  ]
+}

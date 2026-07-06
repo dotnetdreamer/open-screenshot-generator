@@ -1,0 +1,599 @@
+{
+  "id": "template_finexa_crypto",
+  "name": "Finexa Crypto",
+  "description": "App Store screenshot set for a crypto investing app — bold violet panels, white serif headlines with highlight boxes, gray-framed devices and a press-logo band.",
+  "previewImage": "https://placehold.co/300x200/9333EA/FFFFFF?text=Finexa",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_fx_ab1",
+      "name": "Finexa Intro",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9333EA",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fx_ab1_logo",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 70
+          },
+          "size": {
+            "width": 500,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Finexa.",
+          "fontSize": 34,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab1_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 520,
+            "y": 260
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 12,
+          "scale": 1.75,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#A3A3A3",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fx_ab1_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 660
+          },
+          "size": {
+            "width": 560,
+            "height": 1350
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The\nfuture\nmoney\nbegins\nright\nhere",
+          "fontSize": 38,
+          "color": "#F4EFFA",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.18
+        },
+        {
+          "id": "tpl_fx_ab1_cube",
+          "type": "shape",
+          "name": "Logo Mark",
+          "position": {
+            "x": 80,
+            "y": 2540
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 L94 28 L50 50 L6 28 Z M14 44 L6 48 L50 70 L94 48 L86 44 L50 62 Z M14 64 L6 68 L50 90 L94 68 L86 64 L50 82 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_fx_ab2",
+      "name": "Big Device",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9333EA",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fx_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 30,
+            "y": -60
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 10,
+          "scale": 2.05,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#A3A3A3",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_fx_ab3",
+      "name": "Invest Smarter",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9333EA",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fx_ab3_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 100
+          },
+          "size": {
+            "width": 1050,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Invest smarter",
+          "fontSize": 38,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab3_hbox",
+          "type": "shape",
+          "name": "Highlight",
+          "position": {
+            "x": 80,
+            "y": 285
+          },
+          "size": {
+            "width": 680,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 4,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_fx_ab3_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 285
+          },
+          "size": {
+            "width": 680,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "every day.",
+          "fontSize": 38,
+          "color": "#9333EA",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab3_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 560
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#A3A3A3",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fx_ab3_band",
+          "type": "shape",
+          "name": "Press Band",
+          "position": {
+            "x": 0,
+            "y": 2360
+          },
+          "size": {
+            "width": 1290,
+            "height": 436
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F4EFFA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fx_ab3_press",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 345,
+            "y": 2460
+          },
+          "size": {
+            "width": 600,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Forbes",
+          "fontSize": 44,
+          "color": "#9333EA",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        }
+      ]
+    },
+    {
+      "id": "tpl_fx_ab4",
+      "name": "Crypto Easy",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9333EA",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fx_ab4_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 100
+          },
+          "size": {
+            "width": 1050,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Crypto made",
+          "fontSize": 38,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab4_hbox",
+          "type": "shape",
+          "name": "Highlight",
+          "position": {
+            "x": 80,
+            "y": 285
+          },
+          "size": {
+            "width": 700,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 4,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_fx_ab4_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 285
+          },
+          "size": {
+            "width": 700,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "easy today.",
+          "fontSize": 38,
+          "color": "#9333EA",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 560
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#A3A3A3",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fx_ab4_band",
+          "type": "shape",
+          "name": "Press Band",
+          "position": {
+            "x": 0,
+            "y": 2360
+          },
+          "size": {
+            "width": 1290,
+            "height": 436
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F4EFFA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fx_ab4_press",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 295,
+            "y": 2420
+          },
+          "size": {
+            "width": 700,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The\nEconomist",
+          "fontSize": 30,
+          "color": "#9333EA",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        }
+      ]
+    },
+    {
+      "id": "tpl_fx_ab5",
+      "name": "Digital Wealth",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9333EA",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fx_ab5_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 100
+          },
+          "size": {
+            "width": 1050,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Grow your",
+          "fontSize": 38,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab5_hbox",
+          "type": "shape",
+          "name": "Highlight",
+          "position": {
+            "x": 80,
+            "y": 285
+          },
+          "size": {
+            "width": 900,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 4,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_fx_ab5_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 285
+          },
+          "size": {
+            "width": 900,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "digital wealth.",
+          "fontSize": 38,
+          "color": "#9333EA",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_fx_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 560
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#A3A3A3",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fx_ab5_band",
+          "type": "shape",
+          "name": "Press Band",
+          "position": {
+            "x": 0,
+            "y": 2360
+          },
+          "size": {
+            "width": 1290,
+            "height": 436
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F4EFFA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fx_ab5_press",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 295,
+            "y": 2460
+          },
+          "size": {
+            "width": 700,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "FORTUNE",
+          "fontSize": 38,
+          "color": "#9333EA",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        }
+      ]
+    }
+  ]
+}

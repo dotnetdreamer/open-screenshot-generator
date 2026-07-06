@@ -1,0 +1,458 @@
+{
+  "id": "template_listenly_audio",
+  "name": "Listenly Audiobooks",
+  "description": "App Store screenshot set for an audiobook app — lavender panels, black chunky headlines, an orange install-count splat badge, white laurel and layered device mockups.",
+  "previewImage": "https://placehold.co/300x200/C7A5F0/FFFFFF?text=Listenly",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_ls_ab1",
+      "name": "App of the Day",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#C7A5F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ls_ab1_dev1",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 430,
+            "y": 230
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -14,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#101010",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_ls_ab1_dev2",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 40,
+            "y": 480
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -14,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#101010",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_ls_ab1_laurel",
+          "type": "shape",
+          "name": "Open Wreath",
+          "position": {
+            "x": 60,
+            "y": 2280
+          },
+          "size": {
+            "width": 400,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_ls_ab1_ltxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 140,
+            "y": 2400
+          },
+          "size": {
+            "width": 240,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "APP OF\nTHE DAY",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.25
+        }
+      ]
+    },
+    {
+      "id": "tpl_ls_ab2",
+      "name": "Installs",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ls_ab2_circle",
+          "type": "shape",
+          "name": "Circle",
+          "position": {
+            "x": -380,
+            "y": 560
+          },
+          "size": {
+            "width": 1650,
+            "height": 1650
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#C7A5F0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ls_ab2_badge",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 760,
+            "y": 90
+          },
+          "size": {
+            "width": 470,
+            "height": 470
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F6A93B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 8 A7.29 7.29 0 0 1 64.36 10.53 A7.29 7.29 0 0 1 77 17.83 A7.29 7.29 0 0 1 86.37 29 A7.29 7.29 0 0 1 91.36 42.71 A7.29 7.29 0 0 1 91.36 57.29 A7.29 7.29 0 0 1 86.37 71 A7.29 7.29 0 0 1 77 82.17 A7.29 7.29 0 0 1 64.36 89.47 A7.29 7.29 0 0 1 50 92 A7.29 7.29 0 0 1 35.64 89.47 A7.29 7.29 0 0 1 23 82.17 A7.29 7.29 0 0 1 13.63 71 A7.29 7.29 0 0 1 8.64 57.29 A7.29 7.29 0 0 1 8.64 42.71 A7.29 7.29 0 0 1 13.63 29 A7.29 7.29 0 0 1 23 17.83 A7.29 7.29 0 0 1 35.64 10.53 A7.29 7.29 0 0 1 50 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_ls_ab2_badgetxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 830,
+            "y": 175
+          },
+          "size": {
+            "width": 330,
+            "height": 310
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "500K+\nApp\nInstalls",
+          "fontSize": 20,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ls_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 180,
+            "y": 620
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -14,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#101010",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_ls_ab2_stars",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 395,
+            "y": 2440
+          },
+          "size": {
+            "width": 500,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "★★★★★",
+          "fontSize": 30,
+          "color": "#F6A93B",
+          "fontFamily": "Arial",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ls_ab2_rat",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 395,
+            "y": 2570
+          },
+          "size": {
+            "width": 500,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "100K ratings",
+          "fontSize": 24,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        }
+      ]
+    },
+    {
+      "id": "tpl_ls_ab3",
+      "name": "Genres",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#C7A5F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ls_ab3_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 100
+          },
+          "size": {
+            "width": 1140,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Find stories in\nevery genre you\nlove most",
+          "fontSize": 38,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_ls_ab3_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 760
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#101010",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_ls_ab4",
+      "name": "Listening Time",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#C7A5F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ls_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 90
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#101010",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_ls_ab4_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 2050
+          },
+          "size": {
+            "width": 1140,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Turn everyday\nmoments into\nlistening time",
+          "fontSize": 38,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        }
+      ]
+    },
+    {
+      "id": "tpl_ls_ab5",
+      "name": "Offline",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#C7A5F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ls_ab5_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 80,
+            "y": 100
+          },
+          "size": {
+            "width": 1140,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Download books\nand listen\nwithout internet",
+          "fontSize": 38,
+          "color": "#111111",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_ls_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 760
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#101010",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    }
+  ]
+}

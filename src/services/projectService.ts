@@ -10,6 +10,7 @@ export async function loadProjectTemplates(): Promise<Project[]> {
   try {
     // Load known project files from the data/projects directory
     const projectFiles = [
+      'darzi-studio.json',
       'beauty-glam.json',
       'castique-podcast.json',
       'inquira.json',
@@ -25,7 +26,21 @@ export async function loadProjectTemplates(): Promise<Project[]> {
       'luxe-glow.json',
       'cryptix.json',
       'feasto.json',
-      'storybuzz-kids.json'
+      'storybuzz-kids.json',
+      'trackio-fitness.json',
+      'streamio-binge.json',
+      'roomora-home.json',
+      'playverse-games.json',
+      'voyago-travel.json',
+      'finexa-crypto.json',
+      'flixio-kids.json',
+      'listenly-audio.json',
+      'tripora-travel.json',
+      'tunio-music.json',
+      'coinly-crypto.json',
+      'stockio-invest.json',
+      'threadly-social.json',
+      'beatforge-studio.json'
     ];
     
     for (const filename of projectFiles) {
@@ -70,6 +85,7 @@ export function getAvailableProjectFiles(): string[] {
   // In a real implementation, this would read the directory contents
   // For now, return the known project files
   return [
+    'darzi-studio.json',
     'beauty-glam.json',
     'castique-podcast.json',
     'inquira.json',
@@ -85,7 +101,21 @@ export function getAvailableProjectFiles(): string[] {
     'luxe-glow.json',
     'cryptix.json',
     'feasto.json',
-    'storybuzz-kids.json'
+    'storybuzz-kids.json',
+    'trackio-fitness.json',
+    'streamio-binge.json',
+    'roomora-home.json',
+    'playverse-games.json',
+    'voyago-travel.json',
+    'finexa-crypto.json',
+    'flixio-kids.json',
+    'listenly-audio.json',
+    'tripora-travel.json',
+    'tunio-music.json',
+    'coinly-crypto.json',
+    'stockio-invest.json',
+    'threadly-social.json',
+    'beatforge-studio.json'
   ];
 }
 

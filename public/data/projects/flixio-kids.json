@@ -1,0 +1,352 @@
+{
+  "id": "template_flixio_kids",
+  "name": "Flixio Kids",
+  "description": "App Store screenshot set for a kids streaming app — jet-black panels, bold red headlines, tilted device mockups and hand-drawn white arrows.",
+  "previewImage": "https://placehold.co/300x200/E1251B/FFFFFF?text=Flixio",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_fk_ab1",
+      "name": "Stream Movies",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0A0A0A",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fk_ab1_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 330,
+            "y": 700
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -25,
+          "scale": 1.7,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1E1E1E",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fk_ab1_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 90
+          },
+          "size": {
+            "width": 850,
+            "height": 430
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stream\nMovies",
+          "fontSize": 52,
+          "color": "#E1251B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.05
+        }
+      ]
+    },
+    {
+      "id": "tpl_fk_ab2",
+      "name": "Watch Content",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0A0A0A",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fk_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": -80,
+            "y": -200
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 28,
+          "scale": 1.75,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1E1E1E",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fk_ab2_arrow",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 780,
+            "y": 80
+          },
+          "size": {
+            "width": 440,
+            "height": 300
+          },
+          "rotation": 15,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          }
+        },
+        {
+          "id": "tpl_fk_ab2_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 2150
+          },
+          "size": {
+            "width": 850,
+            "height": 430
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Watch\ncontent",
+          "fontSize": 48,
+          "color": "#E1251B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.05
+        }
+      ]
+    },
+    {
+      "id": "tpl_fk_ab3",
+      "name": "Discover",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0A0A0A",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fk_ab3_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 225,
+            "y": 300
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.4,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1E1E1E",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fk_ab3_arrow",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 30,
+            "y": 560
+          },
+          "size": {
+            "width": 440,
+            "height": 340
+          },
+          "rotation": 190,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          }
+        },
+        {
+          "id": "tpl_fk_ab3_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 2150
+          },
+          "size": {
+            "width": 1100,
+            "height": 430
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Discover\nContent",
+          "fontSize": 48,
+          "color": "#E1251B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        }
+      ]
+    },
+    {
+      "id": "tpl_fk_ab4",
+      "name": "Browse",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0A0A0A",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fk_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 265,
+            "y": 340
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 8,
+          "scale": 1.4,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1E1E1E",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_fk_ab5",
+      "name": "Save to Watch",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0A0A0A",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fk_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 265,
+            "y": 300
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.4,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1E1E1E",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fk_ab5_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 2150
+          },
+          "size": {
+            "width": 1100,
+            "height": 430
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Save to\nwatch",
+          "fontSize": 48,
+          "color": "#E1251B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        }
+      ]
+    }
+  ]
+}

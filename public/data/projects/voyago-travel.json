@@ -1,0 +1,974 @@
+{
+  "id": "template_voyago_travel",
+  "name": "Voyago Travel",
+  "description": "App Store screenshot set for a flight & hotel booking app — mint and forest-green panels with chunky headlines, highlight pills, laurel awards, paper plane and sparkle decor.",
+  "previewImage": "https://placehold.co/300x200/1E5B2E/FFFFFF?text=Voyago",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_vy_ab1",
+      "name": "Best Deals",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE9D2",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vy_ab1_hill",
+          "type": "shape",
+          "name": "Hill",
+          "position": {
+            "x": -655,
+            "y": 880
+          },
+          "size": {
+            "width": 2600,
+            "height": 2500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1E5B2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_vy_ab1_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 70
+          },
+          "size": {
+            "width": 950,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Find the Best",
+          "fontSize": 36,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab1_pill",
+          "type": "shape",
+          "name": "Deals Pill",
+          "position": {
+            "x": 70,
+            "y": 250
+          },
+          "size": {
+            "width": 360,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E5B2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 24,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_vy_ab1_pilltxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 250
+          },
+          "size": {
+            "width": 360,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Deals",
+          "fontSize": 36,
+          "color": "#DCE9D2",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab1_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 455,
+            "y": 250
+          },
+          "size": {
+            "width": 730,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "on Flights",
+          "fontSize": 36,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab1_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 180,
+            "y": 1000
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -6,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#0F0F0F",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vy_ab1_sp1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1030,
+            "y": 1180
+          },
+          "size": {
+            "width": 170,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab1_sp2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 980,
+            "y": 1420
+          },
+          "size": {
+            "width": 90,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_vy_ab2",
+      "name": "Awards",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE9D2",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vy_ab2_l1",
+          "type": "shape",
+          "name": "Laurel 1",
+          "position": {
+            "x": 395,
+            "y": 110
+          },
+          "size": {
+            "width": 500,
+            "height": 390
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E5B2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab2_l1a",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 495,
+            "y": 225
+          },
+          "size": {
+            "width": 300,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ESSENTIAL",
+          "fontSize": 16,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab2_l1b",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 495,
+            "y": 315
+          },
+          "size": {
+            "width": 300,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Travel App",
+          "fontSize": 16,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab2_l2",
+          "type": "shape",
+          "name": "Laurel 2",
+          "position": {
+            "x": 395,
+            "y": 620
+          },
+          "size": {
+            "width": 500,
+            "height": 390
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E5B2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab2_l2a",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 495,
+            "y": 730
+          },
+          "size": {
+            "width": 300,
+            "height": 170
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "APP OF\nTHE DAY",
+          "fontSize": 16,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.25
+        },
+        {
+          "id": "tpl_vy_ab2_plane",
+          "type": "shape",
+          "name": "Paper Plane",
+          "position": {
+            "x": 800,
+            "y": 1130
+          },
+          "size": {
+            "width": 340,
+            "height": 340
+          },
+          "rotation": -20,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E5B2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M92 8 L8 44 L38 56 L82 20 L46 62 L58 90 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 160,
+            "y": 1350
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -18,
+          "scale": 1.6,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#0F0F0F",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vy_ab2_curl",
+          "type": "shape",
+          "name": "Loop Line",
+          "position": {
+            "x": 100,
+            "y": 2450
+          },
+          "size": {
+            "width": 560,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E5B2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 5,
+          "customPath": "M7.33 64 L10.32 63.65 L13.2 62.61 L15.85 60.95 L18.2 58.73 L20.15 56.07 L21.65 53.12 L22.67 50 L23.18 46.88 L23.2 43.93 L22.77 41.27 L21.95 39.05 L20.82 37.39 L19.46 36.35 L18 36 L16.54 36.35 L15.18 37.39 L14.05 39.05 L13.23 41.27 L12.8 43.93 L12.82 46.88 L13.33 50 L14.35 53.12 L15.85 56.07 L17.8 58.73 L20.15 60.95 L22.8 62.61 L25.68 63.65 L28.67 64 L31.65 63.65 L34.53 62.61 L37.19 60.95 L39.53 58.73 L41.49 56.07 L42.99 53.12 L44 50 L44.51 46.88 L44.53 43.93 L44.1 41.27 L43.28 39.05 L42.15 37.39 L40.8 36.35 L39.33 36 L37.87 36.35 L36.52 37.39 L35.38 39.05 L34.56 41.27 L34.13 43.93 L34.16 46.88 L34.67 50 L35.68 53.12 L37.18 56.07 L39.13 58.73 L41.48 60.95 L44.14 62.61 L47.01 63.65 L50 64 L52.99 63.65 L55.86 62.61 L58.52 60.95 L60.87 58.73 L62.82 56.07 L64.32 53.12 L65.33 50 L65.84 46.88 L65.87 43.93 L65.44 41.27 L64.62 39.05 L63.48 37.39 L62.13 36.35 L60.67 36 L59.2 36.35 L57.85 37.39 L56.72 39.05 L55.9 41.27 L55.47 43.93 L55.49 46.88 L56 50 L57.01 53.12 L58.51 56.07 L60.47 58.73 L62.81 60.95 L65.47 62.61 L68.35 63.65 L71.33 64 L74.32 63.65 L77.2 62.61 L79.85 60.95 L82.2 58.73 L84.15 56.07 L85.65 53.12 L86.67 50 L87.18 46.88 L87.2 43.93 L86.77 41.27 L85.95 39.05 L84.82 37.39 L83.46 36.35 L82 36 L80.54 36.35 L79.18 37.39 L78.05 39.05 L77.23 41.27 L76.8 43.93 L76.82 46.88 L77.33 50 L78.35 53.12 L79.85 56.07 L81.8 58.73 L84.15 60.95 L86.8 62.61 L89.68 63.65 L92.67 64",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 2.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_vy_ab3",
+      "name": "Book Hotels",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#1E5B2E",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vy_ab3_wave",
+          "type": "shape",
+          "name": "Flourish",
+          "position": {
+            "x": 800,
+            "y": 90
+          },
+          "size": {
+            "width": 460,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 52 C34 38 66 36 92 42 C66 44 36 50 14 60 Z M22 68 C42 60 62 58 82 62 C62 64 44 68 28 74 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab3_devtop",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 300,
+            "y": 40
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.15,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#0F0F0F",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vy_ab3_pill",
+          "type": "shape",
+          "name": "Book Pill",
+          "position": {
+            "x": 235,
+            "y": 1540
+          },
+          "size": {
+            "width": 300,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_vy_ab3_pilltxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 235,
+            "y": 1540
+          },
+          "size": {
+            "width": 300,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Book",
+          "fontSize": 34,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab3_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 560,
+            "y": 1540
+          },
+          "size": {
+            "width": 520,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hotels",
+          "fontSize": 34,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab3_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 1685
+          },
+          "size": {
+            "width": 1100,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Anywhere, Anytime",
+          "fontSize": 34,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab3_devbot",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 300,
+            "y": 1900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.15,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#0F0F0F",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_vy_ab4",
+      "name": "Perfect Stay",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#1E5B2E",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vy_ab4_circ",
+          "type": "shape",
+          "name": "Sketch Circle",
+          "position": {
+            "x": 830,
+            "y": 130
+          },
+          "size": {
+            "width": 640,
+            "height": 640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M50 12 C26 12 12 28 13 50 C14 73 31 88 53 87 C76 86 89 68 88 47 C87 27 70 13 50 14 C36 15 24 24 19 36",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          }
+        },
+        {
+          "id": "tpl_vy_ab4_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 80
+          },
+          "size": {
+            "width": 850,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Discover Your",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab4_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 245
+          },
+          "size": {
+            "width": 460,
+            "height": 145
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Perfect",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab4_pill",
+          "type": "shape",
+          "name": "Stay Pill",
+          "position": {
+            "x": 540,
+            "y": 250
+          },
+          "size": {
+            "width": 290,
+            "height": 135
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_vy_ab4_pilltxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 540,
+            "y": 250
+          },
+          "size": {
+            "width": 290,
+            "height": 135
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stay",
+          "fontSize": 36,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab4_sp1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 140,
+            "y": 560
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab4_sp2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 280,
+            "y": 680
+          },
+          "size": {
+            "width": 70,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 180,
+            "y": 760
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#0F0F0F",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_vy_ab5",
+      "name": "Plan Trip",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#1E5B2E",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vy_ab5_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 80
+          },
+          "size": {
+            "width": 560,
+            "height": 145
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Plan Your",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab5_pill",
+          "type": "shape",
+          "name": "Trip Pill",
+          "position": {
+            "x": 640,
+            "y": 85
+          },
+          "size": {
+            "width": 260,
+            "height": 135
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "tpl_vy_ab5_pilltxt",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 640,
+            "y": 85
+          },
+          "size": {
+            "width": 260,
+            "height": 135
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Trip",
+          "fontSize": 36,
+          "color": "#1E5B2E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab5_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 930,
+            "y": 80
+          },
+          "size": {
+            "width": 200,
+            "height": 145
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "in",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab5_h3",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 240
+          },
+          "size": {
+            "width": 800,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "One Place",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_vy_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 420,
+            "y": 580
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#0F0F0F",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vy_ab5_sp1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 140,
+            "y": 2280
+          },
+          "size": {
+            "width": 220,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_vy_ab5_sp2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 360,
+            "y": 2530
+          },
+          "size": {
+            "width": 100,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        }
+      ]
+    }
+  ]
+}

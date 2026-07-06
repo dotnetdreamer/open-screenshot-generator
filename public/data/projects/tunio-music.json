@@ -1,0 +1,575 @@
+{
+  "id": "template_tunio_music",
+  "name": "Tunio Music",
+  "description": "App Store screenshot set for a music streaming app — fire-red and blush panels, diagonal hatch texture, vinyl disc, halftone dots logo and gold star ratings.",
+  "previewImage": "https://placehold.co/300x200/E3170D/FFFFFF?text=Tunio",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_tn_ab1",
+      "name": "Reviews",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#E3170D",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_tn_ab1_hatch1",
+          "type": "shape",
+          "name": "Hatch TR",
+          "position": {
+            "x": 900,
+            "y": -80
+          },
+          "size": {
+            "width": 520,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M13 0 L0 13 M26 0 L0 26 M39 0 L0 39 M52 0 L0 52 M65 0 L0 65 M78 0 L0 78 M91 0 L0 91 M100 4 L4 100 M100 17 L17 100 M100 30 L30 100 M100 43 L43 100 M100 56 L56 100 M100 69 L69 100 M100 82 L82 100 M100 95 L95 100",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          }
+        },
+        {
+          "id": "tpl_tn_ab1_hatch2",
+          "type": "shape",
+          "name": "Hatch BL",
+          "position": {
+            "x": -120,
+            "y": 2380
+          },
+          "size": {
+            "width": 500,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M13 0 L0 13 M26 0 L0 26 M39 0 L0 39 M52 0 L0 52 M65 0 L0 65 M78 0 L0 78 M91 0 L0 91 M100 4 L4 100 M100 17 L17 100 M100 30 L30 100 M100 43 L43 100 M100 56 L56 100 M100 69 L69 100 M100 82 L82 100 M100 95 L95 100",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          }
+        },
+        {
+          "id": "tpl_tn_ab1_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 70
+          },
+          "size": {
+            "width": 700,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3M+ Reviews",
+          "fontSize": 30,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_tn_ab1_stars",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 210
+          },
+          "size": {
+            "width": 500,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "★★★★★",
+          "fontSize": 26,
+          "color": "#FFD23F",
+          "fontFamily": "Arial",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_tn_ab1_vinyl",
+          "type": "shape",
+          "name": "Vinyl",
+          "position": {
+            "x": 900,
+            "y": 240
+          },
+          "size": {
+            "width": 330,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          }
+        },
+        {
+          "id": "tpl_tn_ab1_spindle",
+          "type": "shape",
+          "name": "Spindle",
+          "position": {
+            "x": 1025,
+            "y": 365
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_tn_ab1_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 130,
+            "y": 580
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -22,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_tn_ab1_dots",
+          "type": "shape",
+          "name": "Dots Logo",
+          "position": {
+            "x": 70,
+            "y": 2260
+          },
+          "size": {
+            "width": 160,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M45.4 50 A4.6 4.6 0 1 0 54.6 50 A4.6 4.6 0 1 0 45.4 50 ZM45.4 36.5 A4.6 4.6 0 1 0 54.6 36.5 A4.6 4.6 0 1 0 45.4 36.5 ZM55.95 41.58 A4.6 4.6 0 1 0 65.15 41.58 A4.6 4.6 0 1 0 55.95 41.58 ZM58.56 53 A4.6 4.6 0 1 0 67.76 53 A4.6 4.6 0 1 0 58.56 53 ZM51.26 62.16 A4.6 4.6 0 1 0 60.46 62.16 A4.6 4.6 0 1 0 51.26 62.16 ZM39.54 62.16 A4.6 4.6 0 1 0 48.74 62.16 A4.6 4.6 0 1 0 39.54 62.16 ZM32.24 53 A4.6 4.6 0 1 0 41.44 53 A4.6 4.6 0 1 0 32.24 53 ZM34.85 41.58 A4.6 4.6 0 1 0 44.05 41.58 A4.6 4.6 0 1 0 34.85 41.58 ZM45.4 24.5 A4.6 4.6 0 1 0 54.6 24.5 A4.6 4.6 0 1 0 45.4 24.5 ZM57.25 27.42 A4.6 4.6 0 1 0 66.45 27.42 A4.6 4.6 0 1 0 57.25 27.42 ZM66.39 35.51 A4.6 4.6 0 1 0 75.59 35.51 A4.6 4.6 0 1 0 66.39 35.51 ZM70.71 46.93 A4.6 4.6 0 1 0 79.91 46.93 A4.6 4.6 0 1 0 70.71 46.93 ZM69.24 59.04 A4.6 4.6 0 1 0 78.44 59.04 A4.6 4.6 0 1 0 69.24 59.04 ZM62.31 69.09 A4.6 4.6 0 1 0 71.51 69.09 A4.6 4.6 0 1 0 62.31 69.09 ZM51.5 74.76 A4.6 4.6 0 1 0 60.7 74.76 A4.6 4.6 0 1 0 51.5 74.76 ZM39.3 74.76 A4.6 4.6 0 1 0 48.5 74.76 A4.6 4.6 0 1 0 39.3 74.76 ZM28.49 69.09 A4.6 4.6 0 1 0 37.69 69.09 A4.6 4.6 0 1 0 28.49 69.09 ZM21.56 59.04 A4.6 4.6 0 1 0 30.76 59.04 A4.6 4.6 0 1 0 21.56 59.04 ZM20.09 46.93 A4.6 4.6 0 1 0 29.29 46.93 A4.6 4.6 0 1 0 20.09 46.93 ZM24.41 35.51 A4.6 4.6 0 1 0 33.61 35.51 A4.6 4.6 0 1 0 24.41 35.51 ZM33.55 27.42 A4.6 4.6 0 1 0 42.75 27.42 A4.6 4.6 0 1 0 33.55 27.42 ZM45.4 12.5 A4.6 4.6 0 1 0 54.6 12.5 A4.6 4.6 0 1 0 45.4 12.5 ZM57.58 14.53 A4.6 4.6 0 1 0 66.78 14.53 A4.6 4.6 0 1 0 57.58 14.53 ZM68.43 20.41 A4.6 4.6 0 1 0 77.63 20.41 A4.6 4.6 0 1 0 68.43 20.41 ZM76.79 29.49 A4.6 4.6 0 1 0 85.99 29.49 A4.6 4.6 0 1 0 76.79 29.49 ZM81.75 40.79 A4.6 4.6 0 1 0 90.95 40.79 A4.6 4.6 0 1 0 81.75 40.79 ZM82.77 53.1 A4.6 4.6 0 1 0 91.97 53.1 A4.6 4.6 0 1 0 82.77 53.1 ZM79.74 65.06 A4.6 4.6 0 1 0 88.94 65.06 A4.6 4.6 0 1 0 79.74 65.06 ZM72.99 75.4 A4.6 4.6 0 1 0 82.19 75.4 A4.6 4.6 0 1 0 72.99 75.4 ZM63.25 82.98 A4.6 4.6 0 1 0 72.45 82.98 A4.6 4.6 0 1 0 63.25 82.98 ZM51.57 86.99 A4.6 4.6 0 1 0 60.77 86.99 A4.6 4.6 0 1 0 51.57 86.99 ZM39.23 86.99 A4.6 4.6 0 1 0 48.43 86.99 A4.6 4.6 0 1 0 39.23 86.99 ZM27.55 82.98 A4.6 4.6 0 1 0 36.75 82.98 A4.6 4.6 0 1 0 27.55 82.98 ZM17.81 75.4 A4.6 4.6 0 1 0 27.01 75.4 A4.6 4.6 0 1 0 17.81 75.4 ZM11.06 65.06 A4.6 4.6 0 1 0 20.26 65.06 A4.6 4.6 0 1 0 11.06 65.06 ZM8.03 53.1 A4.6 4.6 0 1 0 17.23 53.1 A4.6 4.6 0 1 0 8.03 53.1 ZM9.05 40.79 A4.6 4.6 0 1 0 18.25 40.79 A4.6 4.6 0 1 0 9.05 40.79 ZM14.01 29.49 A4.6 4.6 0 1 0 23.21 29.49 A4.6 4.6 0 1 0 14.01 29.49 ZM22.37 20.41 A4.6 4.6 0 1 0 31.57 20.41 A4.6 4.6 0 1 0 22.37 20.41 ZM33.22 14.53 A4.6 4.6 0 1 0 42.42 14.53 A4.6 4.6 0 1 0 33.22 14.53 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_tn_ab1_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 70,
+            "y": 2430
+          },
+          "size": {
+            "width": 850,
+            "height": 340
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Tune Into\nYour Favorite\nStations",
+          "fontSize": 28,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        }
+      ]
+    },
+    {
+      "id": "tpl_tn_ab2",
+      "name": "Playlists",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#E3170D",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_tn_ab2_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 120,
+            "y": -260
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 24,
+          "scale": 1.75,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_tn_ab2_hatch",
+          "type": "shape",
+          "name": "Hatch",
+          "position": {
+            "x": -100,
+            "y": 1980
+          },
+          "size": {
+            "width": 480,
+            "height": 480
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M13 0 L0 13 M26 0 L0 26 M39 0 L0 39 M52 0 L0 52 M65 0 L0 65 M78 0 L0 78 M91 0 L0 91 M100 4 L4 100 M100 17 L17 100 M100 30 L30 100 M100 43 L43 100 M100 56 L56 100 M100 69 L69 100 M100 82 L82 100 M100 95 L95 100",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          }
+        },
+        {
+          "id": "tpl_tn_ab2_h",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 540,
+            "y": 1780
+          },
+          "size": {
+            "width": 680,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Create\nPlaylists\nFor Every\n♬ Mood",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.18
+        }
+      ]
+    },
+    {
+      "id": "tpl_tn_ab3",
+      "name": "Nonstop",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FBEDE9",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_tn_ab3_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 120
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Music that",
+          "fontSize": 34,
+          "color": "#161616",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_tn_ab3_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 270
+          },
+          "size": {
+            "width": 1100,
+            "height": 290
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Never\nStops",
+          "fontSize": 34,
+          "color": "#E3170D",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_tn_ab3_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 180,
+            "y": 700
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_tn_ab4",
+      "name": "Live",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FBEDE9",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_tn_ab4_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 120
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Beat Live",
+          "fontSize": 34,
+          "color": "#E3170D",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_tn_ab4_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 285
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Feel Every",
+          "fontSize": 34,
+          "color": "#161616",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_tn_ab4_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 180,
+            "y": 700
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_tn_ab5",
+      "name": "Global Hits",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#FBEDE9",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_tn_ab5_h1",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 120
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Listen To",
+          "fontSize": 34,
+          "color": "#161616",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_tn_ab5_h2",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 95,
+            "y": 285
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Global Hits",
+          "fontSize": 34,
+          "color": "#E3170D",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_tn_ab5_dev",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 180,
+            "y": 700
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    }
+  ]
+}

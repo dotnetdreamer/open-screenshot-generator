@@ -1,0 +1,3424 @@
+{
+  "id": "template_darzi_studio",
+  "name": "Darzi Studio",
+  "description": "Play Store screenshot set for Darzi Studio — a tailor's measurement studio. 7 charcoal-and-gold panels at 1290×2796 with Android mockups showing the real 3D fit model (gold tape rings), tap-to-measure chips with Urdu labels, outfit cards, a paper order slip with voice-note strip, tailor testimonials, offline stats and a splash-screen CTA.",
+  "previewImage": "https://placehold.co/300x200/0F1115/FFC233?text=Darzi+Studio",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_dz_ab1",
+      "name": "The Fitting Room",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab1_kicker",
+          "type": "text",
+          "name": "Kicker",
+          "position": {
+            "x": 95,
+            "y": 150
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "№ 01 · A MEASUREMENT STUDIO FOR TAILORS",
+          "fontSize": 8,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab1_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 240
+          },
+          "size": {
+            "width": 1100,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Cut from\nreal numbers.",
+          "fontSize": 48,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.08
+        },
+        {
+          "id": "tpl_dz_ab1_underline",
+          "type": "shape",
+          "name": "Chalk Underline",
+          "position": {
+            "x": 345,
+            "y": 600
+          },
+          "size": {
+            "width": 600,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_dz_ab1_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 760
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#FFC233",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dz_ab1_screen",
+          "type": "shape",
+          "name": "Screen Fill",
+          "position": {
+            "x": 222,
+            "y": 787
+          },
+          "size": {
+            "width": 846,
+            "height": 1746
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0F1115",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 18
+        },
+        {
+          "id": "tpl_dz_ab1_mannequin",
+          "type": "image",
+          "name": "3D Mannequin",
+          "position": {
+            "x": 222,
+            "y": 787
+          },
+          "size": {
+            "width": 846,
+            "height": 1746
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/darzi-screen-hero.png",
+          "imageAlt": "Darzi Studio 3D fitting room — particle fit model with chaati scan ring",
+          "objectFit": "cover",
+          "opacity": 1,
+          "borderRadius": 18
+        },
+        {
+          "id": "tpl_dz_ab1_hole",
+          "type": "shape",
+          "name": "Punch Hole",
+          "position": {
+            "x": 624,
+            "y": 808
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#000000",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_dz_ab1_chip",
+          "type": "shape",
+          "name": "Value Chip",
+          "position": {
+            "x": 720,
+            "y": 1560
+          },
+          "size": {
+            "width": 310,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#FFC233",
+          "strokeWidth": 2,
+          "borderRadius": 50
+        },
+        {
+          "id": "tpl_dz_ab1_chip_text",
+          "type": "text",
+          "name": "Value Chip Text",
+          "position": {
+            "x": 720,
+            "y": 1560
+          },
+          "size": {
+            "width": 310,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Chaati · 21½",
+          "fontSize": 10,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab1_arrow",
+          "type": "shape",
+          "name": "Chalk Arrow",
+          "position": {
+            "x": 700,
+            "y": 2600
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": -120,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 4,
+          "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          }
+        },
+        {
+          "id": "tpl_dz_ab1_chalk",
+          "type": "text",
+          "name": "Chalk Note",
+          "position": {
+            "x": 850,
+            "y": 2590
+          },
+          "size": {
+            "width": 380,
+            "height": 160
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "measure twice,\ncut once",
+          "fontSize": 13,
+          "color": "#FFC233",
+          "fontFamily": "Pacifico",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        }
+      ]
+    },
+    {
+      "id": "tpl_dz_ab2",
+      "name": "The Scan",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab2_kicker",
+          "type": "text",
+          "name": "Kicker",
+          "position": {
+            "x": 95,
+            "y": 150
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "№ 02 · THE SCAN",
+          "fontSize": 8,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 240
+          },
+          "size": {
+            "width": 1100,
+            "height": 320
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Tap a point.\nThe tape shows up.",
+          "fontSize": 36,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab2_body",
+          "type": "text",
+          "name": "Body",
+          "position": {
+            "x": 95,
+            "y": 580
+          },
+          "size": {
+            "width": 1100,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The camera glides to the point, a gold\nband wraps where your tape would sit,\nand you type the number.",
+          "fontSize": 15,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab2_chip1",
+          "type": "shape",
+          "name": "Chip Chaati",
+          "position": {
+            "x": 95,
+            "y": 850
+          },
+          "size": {
+            "width": 330,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 55
+        },
+        {
+          "id": "tpl_dz_ab2_chip1_text",
+          "type": "text",
+          "name": "Chip Chaati Text",
+          "position": {
+            "x": 95,
+            "y": 850
+          },
+          "size": {
+            "width": 330,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Chaati",
+          "fontSize": 11,
+          "color": "#181203",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_chip2",
+          "type": "shape",
+          "name": "Chip Kamar",
+          "position": {
+            "x": 455,
+            "y": 850
+          },
+          "size": {
+            "width": 310,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 55
+        },
+        {
+          "id": "tpl_dz_ab2_chip2_text",
+          "type": "text",
+          "name": "Chip Kamar Text",
+          "position": {
+            "x": 455,
+            "y": 850
+          },
+          "size": {
+            "width": 310,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Kamar",
+          "fontSize": 11,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_chip3",
+          "type": "shape",
+          "name": "Chip Teera",
+          "position": {
+            "x": 795,
+            "y": 850
+          },
+          "size": {
+            "width": 290,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 55
+        },
+        {
+          "id": "tpl_dz_ab2_chip3_text",
+          "type": "text",
+          "name": "Chip Teera Text",
+          "position": {
+            "x": 795,
+            "y": 850
+          },
+          "size": {
+            "width": 290,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Teera",
+          "fontSize": 11,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_chip4",
+          "type": "shape",
+          "name": "Chip Baazu",
+          "position": {
+            "x": 230,
+            "y": 990
+          },
+          "size": {
+            "width": 310,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 55
+        },
+        {
+          "id": "tpl_dz_ab2_chip4_text",
+          "type": "text",
+          "name": "Chip Baazu Text",
+          "position": {
+            "x": 230,
+            "y": 990
+          },
+          "size": {
+            "width": 310,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Baazu",
+          "fontSize": 11,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_chip5",
+          "type": "shape",
+          "name": "Chip Gala",
+          "position": {
+            "x": 570,
+            "y": 990
+          },
+          "size": {
+            "width": 280,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 55
+        },
+        {
+          "id": "tpl_dz_ab2_chip5_text",
+          "type": "text",
+          "name": "Chip Gala Text",
+          "position": {
+            "x": 570,
+            "y": 990
+          },
+          "size": {
+            "width": 280,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Gala",
+          "fontSize": 11,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_chip6",
+          "type": "shape",
+          "name": "Chip More",
+          "position": {
+            "x": 880,
+            "y": 990
+          },
+          "size": {
+            "width": 280,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 55
+        },
+        {
+          "id": "tpl_dz_ab2_chip6_text",
+          "type": "text",
+          "name": "Chip More Text",
+          "position": {
+            "x": 880,
+            "y": 990
+          },
+          "size": {
+            "width": 280,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+ 20 more",
+          "fontSize": 11,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab2_urdu",
+          "type": "text",
+          "name": "Urdu Labels",
+          "position": {
+            "x": 95,
+            "y": 1130
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "چھاتی · کمر · تیرا · بازو · گلا",
+          "fontSize": 12,
+          "color": "#98A0AC",
+          "fontFamily": "Noto Nastaliq Urdu",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.8
+        },
+        {
+          "id": "tpl_dz_ab2_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 285,
+            "y": 1330
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.2,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#FFC233",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dz_ab2_screen",
+          "type": "shape",
+          "name": "Screen Fill",
+          "position": {
+            "x": 307,
+            "y": 1352
+          },
+          "size": {
+            "width": 677,
+            "height": 1397
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0F1115",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 14
+        },
+        {
+          "id": "tpl_dz_ab2_mannequin",
+          "type": "image",
+          "name": "3D Mannequin Waist",
+          "position": {
+            "x": 307,
+            "y": 1352
+          },
+          "size": {
+            "width": 677,
+            "height": 1397
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/darzi-screen-scan.png",
+          "imageAlt": "Darzi Studio 3D fitting room — kamar scan ring close-up",
+          "objectFit": "cover",
+          "opacity": 1,
+          "borderRadius": 14
+        },
+        {
+          "id": "tpl_dz_ab2_hole",
+          "type": "shape",
+          "name": "Punch Hole",
+          "position": {
+            "x": 628,
+            "y": 1369
+          },
+          "size": {
+            "width": 34,
+            "height": 34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#000000",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_dz_ab2_chipval",
+          "type": "shape",
+          "name": "Value Chip",
+          "position": {
+            "x": 630,
+            "y": 2040
+          },
+          "size": {
+            "width": 290,
+            "height": 95
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#FFC233",
+          "strokeWidth": 2,
+          "borderRadius": 48
+        },
+        {
+          "id": "tpl_dz_ab2_chipval_text",
+          "type": "text",
+          "name": "Value Chip Text",
+          "position": {
+            "x": 630,
+            "y": 2040
+          },
+          "size": {
+            "width": 290,
+            "height": 95
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Kamar · 17",
+          "fontSize": 10,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_dz_ab3",
+      "name": "The Wardrobe",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab3_kicker",
+          "type": "text",
+          "name": "Kicker",
+          "position": {
+            "x": 95,
+            "y": 150
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "№ 03 · THE WARDROBE",
+          "fontSize": 8,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 240
+          },
+          "size": {
+            "width": 1100,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Three outfits,\nstitched in.",
+          "fontSize": 42,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab3_body",
+          "type": "text",
+          "name": "Body",
+          "position": {
+            "x": 95,
+            "y": 620
+          },
+          "size": {
+            "width": 1100,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Measurement sets, necklines and cuffs —\nall drawn from Pakistani menswear.",
+          "fontSize": 14,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab3_card1",
+          "type": "shape",
+          "name": "Card Shalwar Kameez",
+          "position": {
+            "x": 95,
+            "y": 830
+          },
+          "size": {
+            "width": 1100,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab3_c1_name",
+          "type": "text",
+          "name": "C1 Name",
+          "position": {
+            "x": 155,
+            "y": 880
+          },
+          "size": {
+            "width": 640,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shalwar Kameez",
+          "fontSize": 24,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab3_c1_urdu",
+          "type": "text",
+          "name": "C1 Urdu",
+          "position": {
+            "x": 795,
+            "y": 870
+          },
+          "size": {
+            "width": 340,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "شلوار قمیض",
+          "fontSize": 13,
+          "color": "#FFC233",
+          "fontFamily": "Noto Nastaliq Urdu",
+          "fontWeight": "normal",
+          "textAlign": "right",
+          "lineHeight": 1.8
+        },
+        {
+          "id": "tpl_dz_ab3_c1_points",
+          "type": "text",
+          "name": "C1 Points",
+          "position": {
+            "x": 155,
+            "y": 990
+          },
+          "size": {
+            "width": 500,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "11 measure points",
+          "fontSize": 11,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c1_stitch",
+          "type": "shape",
+          "name": "C1 Stitch Line",
+          "position": {
+            "x": 150,
+            "y": 1060
+          },
+          "size": {
+            "width": 990,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A4150",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          }
+        },
+        {
+          "id": "tpl_dz_ab3_c1_desc",
+          "type": "text",
+          "name": "C1 Desc",
+          "position": {
+            "x": 155,
+            "y": 1110
+          },
+          "size": {
+            "width": 990,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The everyday order — collar to paincha,\nside slits where they belong.",
+          "fontSize": 12.5,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab3_c1_chip1",
+          "type": "shape",
+          "name": "C1 Chip 1",
+          "position": {
+            "x": 155,
+            "y": 1250
+          },
+          "size": {
+            "width": 250,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c1_chip1_text",
+          "type": "text",
+          "name": "C1 Chip 1 Text",
+          "position": {
+            "x": 155,
+            "y": 1250
+          },
+          "size": {
+            "width": 250,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Ban collar",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c1_chip2",
+          "type": "shape",
+          "name": "C1 Chip 2",
+          "position": {
+            "x": 435,
+            "y": 1250
+          },
+          "size": {
+            "width": 140,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c1_chip2_text",
+          "type": "text",
+          "name": "C1 Chip 2 Text",
+          "position": {
+            "x": 435,
+            "y": 1250
+          },
+          "size": {
+            "width": 140,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Gol",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c1_chip3",
+          "type": "shape",
+          "name": "C1 Chip 3",
+          "position": {
+            "x": 605,
+            "y": 1250
+          },
+          "size": {
+            "width": 260,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c1_chip3_text",
+          "type": "text",
+          "name": "C1 Chip 3 Text",
+          "position": {
+            "x": 605,
+            "y": 1250
+          },
+          "size": {
+            "width": 260,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Double kaf",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_card2",
+          "type": "shape",
+          "name": "Card Wasket",
+          "position": {
+            "x": 95,
+            "y": 1430
+          },
+          "size": {
+            "width": 1100,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab3_c2_name",
+          "type": "text",
+          "name": "C2 Name",
+          "position": {
+            "x": 155,
+            "y": 1480
+          },
+          "size": {
+            "width": 640,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Wasket",
+          "fontSize": 24,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab3_c2_urdu",
+          "type": "text",
+          "name": "C2 Urdu",
+          "position": {
+            "x": 795,
+            "y": 1470
+          },
+          "size": {
+            "width": 340,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "واسکٹ",
+          "fontSize": 13,
+          "color": "#FFC233",
+          "fontFamily": "Noto Nastaliq Urdu",
+          "fontWeight": "normal",
+          "textAlign": "right",
+          "lineHeight": 1.8
+        },
+        {
+          "id": "tpl_dz_ab3_c2_points",
+          "type": "text",
+          "name": "C2 Points",
+          "position": {
+            "x": 155,
+            "y": 1590
+          },
+          "size": {
+            "width": 500,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4 measure points",
+          "fontSize": 11,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c2_stitch",
+          "type": "shape",
+          "name": "C2 Stitch Line",
+          "position": {
+            "x": 150,
+            "y": 1660
+          },
+          "size": {
+            "width": 990,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A4150",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          }
+        },
+        {
+          "id": "tpl_dz_ab3_c2_desc",
+          "type": "text",
+          "name": "C2 Desc",
+          "position": {
+            "x": 155,
+            "y": 1710
+          },
+          "size": {
+            "width": 990,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Worn over the kameez, measured over it —\nthe fit underneath still counts.",
+          "fontSize": 12.5,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab3_c2_chip1",
+          "type": "shape",
+          "name": "C2 Chip 1",
+          "position": {
+            "x": 155,
+            "y": 1850
+          },
+          "size": {
+            "width": 180,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c2_chip1_text",
+          "type": "text",
+          "name": "C2 Chip 1 Text",
+          "position": {
+            "x": 155,
+            "y": 1850
+          },
+          "size": {
+            "width": 180,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "V neck",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c2_chip2",
+          "type": "shape",
+          "name": "C2 Chip 2",
+          "position": {
+            "x": 365,
+            "y": 1850
+          },
+          "size": {
+            "width": 180,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c2_chip2_text",
+          "type": "text",
+          "name": "C2 Chip 2 Text",
+          "position": {
+            "x": 365,
+            "y": 1850
+          },
+          "size": {
+            "width": 180,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "U neck",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c2_chip3",
+          "type": "shape",
+          "name": "C2 Chip 3",
+          "position": {
+            "x": 575,
+            "y": 1850
+          },
+          "size": {
+            "width": 280,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c2_chip3_text",
+          "type": "text",
+          "name": "C2 Chip 3 Text",
+          "position": {
+            "x": 575,
+            "y": 1850
+          },
+          "size": {
+            "width": 280,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Closed neck",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_card3",
+          "type": "shape",
+          "name": "Card Coat Pant",
+          "position": {
+            "x": 95,
+            "y": 2030
+          },
+          "size": {
+            "width": 1100,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab3_c3_name",
+          "type": "text",
+          "name": "C3 Name",
+          "position": {
+            "x": 155,
+            "y": 2080
+          },
+          "size": {
+            "width": 640,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Coat Pant",
+          "fontSize": 24,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab3_c3_urdu",
+          "type": "text",
+          "name": "C3 Urdu",
+          "position": {
+            "x": 795,
+            "y": 2070
+          },
+          "size": {
+            "width": 340,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "کوٹ پتلون",
+          "fontSize": 13,
+          "color": "#FFC233",
+          "fontFamily": "Noto Nastaliq Urdu",
+          "fontWeight": "normal",
+          "textAlign": "right",
+          "lineHeight": 1.8
+        },
+        {
+          "id": "tpl_dz_ab3_c3_points",
+          "type": "text",
+          "name": "C3 Points",
+          "position": {
+            "x": 155,
+            "y": 2190
+          },
+          "size": {
+            "width": 500,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "10 measure points",
+          "fontSize": 11,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c3_stitch",
+          "type": "shape",
+          "name": "C3 Stitch Line",
+          "position": {
+            "x": 150,
+            "y": 2260
+          },
+          "size": {
+            "width": 990,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A4150",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          }
+        },
+        {
+          "id": "tpl_dz_ab3_c3_desc",
+          "type": "text",
+          "name": "C3 Desc",
+          "position": {
+            "x": 155,
+            "y": 2310
+          },
+          "size": {
+            "width": 990,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Suit season — coat length down to the\ntrouser opening, every call that counts.",
+          "fontSize": 12.5,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab3_c3_chip1",
+          "type": "shape",
+          "name": "C3 Chip 1",
+          "position": {
+            "x": 155,
+            "y": 2450
+          },
+          "size": {
+            "width": 300,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c3_chip1_text",
+          "type": "text",
+          "name": "C3 Chip 1 Text",
+          "position": {
+            "x": 155,
+            "y": 2450
+          },
+          "size": {
+            "width": 300,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Single breast",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c3_chip2",
+          "type": "shape",
+          "name": "C3 Chip 2",
+          "position": {
+            "x": 485,
+            "y": 2450
+          },
+          "size": {
+            "width": 310,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c3_chip2_text",
+          "type": "text",
+          "name": "C3 Chip 2 Text",
+          "position": {
+            "x": 485,
+            "y": 2450
+          },
+          "size": {
+            "width": 310,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Double breast",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_c3_chip3",
+          "type": "shape",
+          "name": "C3 Chip 3",
+          "position": {
+            "x": 825,
+            "y": 2450
+          },
+          "size": {
+            "width": 200,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#262B34",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_dz_ab3_c3_chip3_text",
+          "type": "text",
+          "name": "C3 Chip 3 Text",
+          "position": {
+            "x": 825,
+            "y": 2450
+          },
+          "size": {
+            "width": 200,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Turn-up",
+          "fontSize": 10,
+          "color": "#B9C0CB",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab3_thread",
+          "type": "shape",
+          "name": "Thread Line",
+          "position": {
+            "x": 95,
+            "y": 2650
+          },
+          "size": {
+            "width": 1100,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#A67A10",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          }
+        },
+        {
+          "id": "tpl_dz_ab3_spool",
+          "type": "shape",
+          "name": "Thread Spool",
+          "position": {
+            "x": 545,
+            "y": 2620
+          },
+          "size": {
+            "width": 200,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 30 Q50 44 94 30 V70 Q50 56 6 70 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_dz_ab4",
+      "name": "The Order",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab4_kicker",
+          "type": "text",
+          "name": "Kicker",
+          "position": {
+            "x": 95,
+            "y": 150
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "№ 04 · THE ORDER",
+          "fontSize": 8,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 240
+          },
+          "size": {
+            "width": 1100,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "More than\nthe numbers.",
+          "fontSize": 44,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab4_body",
+          "type": "text",
+          "name": "Body",
+          "position": {
+            "x": 95,
+            "y": 640
+          },
+          "size": {
+            "width": 1100,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A name, a mobile, twenty measurements,\nthree style calls and one voice note —\nan order keeps it all together.",
+          "fontSize": 14,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab4_ticket",
+          "type": "shape",
+          "name": "Order Slip",
+          "position": {
+            "x": 145,
+            "y": 920
+          },
+          "size": {
+            "width": 1000,
+            "height": 1330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F0E8D8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 28
+        },
+        {
+          "id": "tpl_dz_ab4_t_title",
+          "type": "text",
+          "name": "Ticket Title",
+          "position": {
+            "x": 205,
+            "y": 980
+          },
+          "size": {
+            "width": 400,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ORDER SLIP",
+          "fontSize": 12,
+          "color": "#23262E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_t_no",
+          "type": "text",
+          "name": "Ticket No",
+          "position": {
+            "x": 685,
+            "y": 980
+          },
+          "size": {
+            "width": 400,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Nº 0214",
+          "fontSize": 12,
+          "color": "#A67A10",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "right",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_t_div",
+          "type": "shape",
+          "name": "Ticket Divider",
+          "position": {
+            "x": 200,
+            "y": 1060
+          },
+          "size": {
+            "width": 890,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C9BFA9",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          }
+        },
+        {
+          "id": "tpl_dz_ab4_r1k",
+          "type": "text",
+          "name": "Row 1 Key",
+          "position": {
+            "x": 205,
+            "y": 1120
+          },
+          "size": {
+            "width": 280,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Customer",
+          "fontSize": 11,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r1v",
+          "type": "text",
+          "name": "Row 1 Value",
+          "position": {
+            "x": 505,
+            "y": 1120
+          },
+          "size": {
+            "width": 580,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Imran Sahib",
+          "fontSize": 11.5,
+          "color": "#23262E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r2k",
+          "type": "text",
+          "name": "Row 2 Key",
+          "position": {
+            "x": 205,
+            "y": 1225
+          },
+          "size": {
+            "width": 280,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Mobile",
+          "fontSize": 11,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r2v",
+          "type": "text",
+          "name": "Row 2 Value",
+          "position": {
+            "x": 505,
+            "y": 1225
+          },
+          "size": {
+            "width": 580,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "0300 ··· 0182",
+          "fontSize": 11.5,
+          "color": "#23262E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r3k",
+          "type": "text",
+          "name": "Row 3 Key",
+          "position": {
+            "x": 205,
+            "y": 1330
+          },
+          "size": {
+            "width": 280,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Date",
+          "fontSize": 11,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r3v",
+          "type": "text",
+          "name": "Row 3 Value",
+          "position": {
+            "x": 505,
+            "y": 1330
+          },
+          "size": {
+            "width": 580,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "12 June · backdated",
+          "fontSize": 11.5,
+          "color": "#23262E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r4k",
+          "type": "text",
+          "name": "Row 4 Key",
+          "position": {
+            "x": 205,
+            "y": 1435
+          },
+          "size": {
+            "width": 280,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Outfit",
+          "fontSize": 11,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r4v",
+          "type": "text",
+          "name": "Row 4 Value",
+          "position": {
+            "x": 505,
+            "y": 1435
+          },
+          "size": {
+            "width": 580,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shalwar Kameez · 11 pts",
+          "fontSize": 11.5,
+          "color": "#23262E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r5k",
+          "type": "text",
+          "name": "Row 5 Key",
+          "position": {
+            "x": 205,
+            "y": 1540
+          },
+          "size": {
+            "width": 280,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Style",
+          "fontSize": 11,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r5v",
+          "type": "text",
+          "name": "Row 5 Value",
+          "position": {
+            "x": 505,
+            "y": 1540
+          },
+          "size": {
+            "width": 580,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Ban collar · double kaf",
+          "fontSize": 11.5,
+          "color": "#23262E",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r6k",
+          "type": "text",
+          "name": "Row 6 Key",
+          "position": {
+            "x": 205,
+            "y": 1645
+          },
+          "size": {
+            "width": 280,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Note",
+          "fontSize": 11,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_r6v",
+          "type": "text",
+          "name": "Row 6 Value",
+          "position": {
+            "x": 505,
+            "y": 1640
+          },
+          "size": {
+            "width": 580,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "sleeves a little loose",
+          "fontSize": 11,
+          "color": "#A67A10",
+          "fontFamily": "Pacifico",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab4_vn_strip",
+          "type": "shape",
+          "name": "Voice Note Strip",
+          "position": {
+            "x": 205,
+            "y": 1770
+          },
+          "size": {
+            "width": 880,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#23262E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 24
+        },
+        {
+          "id": "tpl_dz_ab4_vn_mic",
+          "type": "shape",
+          "name": "Mic Icon",
+          "position": {
+            "x": 245,
+            "y": 1830
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 H50 A12 12 0 0 1 62 18 V38 A12 12 0 0 1 50 50 H50 A12 12 0 0 1 38 38 V18 A12 12 0 0 1 50 6 Z M22 40 V46 C22 62 34 72 46 73 V84 H34 V92 H66 V84 H54 V73 C66 72 78 62 78 46 V40 H70 V46 C70 58 61 66 50 66 C39 66 30 58 30 46 V40 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_dz_ab4_vn_wave",
+          "type": "shape",
+          "name": "Voice Wave",
+          "position": {
+            "x": 370,
+            "y": 1800
+          },
+          "size": {
+            "width": 490,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M11.43 36 H11.43 A4 4 0 0 1 15.43 40 V60 A4 4 0 0 1 11.43 64 H11.43 A4 4 0 0 1 7.43 60 V40 A4 4 0 0 1 11.43 36 ZM26.86 24 H26.86 A4 4 0 0 1 30.86 28 V72 A4 4 0 0 1 26.86 76 H26.86 A4 4 0 0 1 22.86 72 V28 A4 4 0 0 1 26.86 24 ZM42.29 6 H42.29 A4 4 0 0 1 46.29 10 V90 A4 4 0 0 1 42.29 94 H42.29 A4 4 0 0 1 38.29 90 V10 A4 4 0 0 1 42.29 6 ZM57.71 18 H57.71 A4 4 0 0 1 61.71 22 V78 A4 4 0 0 1 57.71 82 H57.71 A4 4 0 0 1 53.71 78 V22 A4 4 0 0 1 57.71 18 ZM73.14 30 H73.14 A4 4 0 0 1 77.14 34 V66 A4 4 0 0 1 73.14 70 H73.14 A4 4 0 0 1 69.14 66 V34 A4 4 0 0 1 73.14 30 ZM88.57 40 H88.57 A4 4 0 0 1 92.57 44 V56 A4 4 0 0 1 88.57 60 H88.57 A4 4 0 0 1 84.57 56 V44 A4 4 0 0 1 88.57 40 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_dz_ab4_vn_time",
+          "type": "text",
+          "name": "Voice Time",
+          "position": {
+            "x": 900,
+            "y": 1835
+          },
+          "size": {
+            "width": 160,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "0:42",
+          "fontSize": 11,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_perf",
+          "type": "shape",
+          "name": "Perforation",
+          "position": {
+            "x": 200,
+            "y": 2020
+          },
+          "size": {
+            "width": 890,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C9BFA9",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          }
+        },
+        {
+          "id": "tpl_dz_ab4_done",
+          "type": "text",
+          "name": "Completed",
+          "position": {
+            "x": 205,
+            "y": 2090
+          },
+          "size": {
+            "width": 400,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Completed ✓",
+          "fontSize": 12,
+          "color": "#1F8A4C",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_json",
+          "type": "text",
+          "name": "JSON Note",
+          "position": {
+            "x": 605,
+            "y": 2100
+          },
+          "size": {
+            "width": 480,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "copies out as clean JSON",
+          "fontSize": 10,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "fontStyle": "italic",
+          "textAlign": "right",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab4_chalk",
+          "type": "text",
+          "name": "Chalk Note",
+          "position": {
+            "x": 95,
+            "y": 2330
+          },
+          "size": {
+            "width": 1100,
+            "height": 110
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "press record while the customer is still talking",
+          "fontSize": 12,
+          "color": "#FFC233",
+          "fontFamily": "Pacifico",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab4_features",
+          "type": "text",
+          "name": "Feature Row",
+          "position": {
+            "x": 95,
+            "y": 2560
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Voice notes · Style calls · Backdated orders",
+          "fontSize": 11,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_dz_ab5",
+      "name": "From the Shops",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab5_kicker",
+          "type": "text",
+          "name": "Kicker",
+          "position": {
+            "x": 95,
+            "y": 150
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "№ 05 · FROM THE SHOPS",
+          "fontSize": 8,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab5_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 240
+          },
+          "size": {
+            "width": 1100,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stitched into\nthe routine",
+          "fontSize": 42,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab5_card1",
+          "type": "shape",
+          "name": "Review Card 1",
+          "position": {
+            "x": 95,
+            "y": 680
+          },
+          "size": {
+            "width": 1100,
+            "height": 470
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab5_c1_stars",
+          "type": "text",
+          "name": "C1 Stars",
+          "position": {
+            "x": 155,
+            "y": 730
+          },
+          "size": {
+            "width": 420,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "★★★★★",
+          "fontSize": 20,
+          "color": "#FFC233",
+          "fontFamily": "Arial",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab5_c1_quote",
+          "type": "text",
+          "name": "C1 Quote",
+          "position": {
+            "x": 155,
+            "y": 820
+          },
+          "size": {
+            "width": 980,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The mannequin remembers every size.\nMy diary finally stays closed.",
+          "fontSize": 14,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.35
+        },
+        {
+          "id": "tpl_dz_ab5_c1_name",
+          "type": "text",
+          "name": "C1 Name",
+          "position": {
+            "x": 155,
+            "y": 1030
+          },
+          "size": {
+            "width": 700,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Ustad Rafiq · Lahore",
+          "fontSize": 11.5,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab5_card2",
+          "type": "shape",
+          "name": "Review Card 2",
+          "position": {
+            "x": 95,
+            "y": 1190
+          },
+          "size": {
+            "width": 1100,
+            "height": 470
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab5_c2_stars",
+          "type": "text",
+          "name": "C2 Stars",
+          "position": {
+            "x": 155,
+            "y": 1240
+          },
+          "size": {
+            "width": 420,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "★★★★★",
+          "fontSize": 20,
+          "color": "#FFC233",
+          "fontFamily": "Arial",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab5_c2_quote",
+          "type": "text",
+          "name": "C2 Quote",
+          "position": {
+            "x": 155,
+            "y": 1330
+          },
+          "size": {
+            "width": 980,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "I take the order while the customer\nis still talking. Nothing gets lost.",
+          "fontSize": 14,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.35
+        },
+        {
+          "id": "tpl_dz_ab5_c2_name",
+          "type": "text",
+          "name": "C2 Name",
+          "position": {
+            "x": 155,
+            "y": 1540
+          },
+          "size": {
+            "width": 700,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Bilal · Faisalabad",
+          "fontSize": 11.5,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab5_card3",
+          "type": "shape",
+          "name": "Review Card 3",
+          "position": {
+            "x": 95,
+            "y": 1700
+          },
+          "size": {
+            "width": 1100,
+            "height": 470
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab5_c3_stars",
+          "type": "text",
+          "name": "C3 Stars",
+          "position": {
+            "x": 155,
+            "y": 1750
+          },
+          "size": {
+            "width": 420,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "★★★★★",
+          "fontSize": 20,
+          "color": "#FFC233",
+          "fontFamily": "Arial",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab5_c3_quote",
+          "type": "text",
+          "name": "C3 Quote",
+          "position": {
+            "x": 155,
+            "y": 1840
+          },
+          "size": {
+            "width": 980,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "No signal in the bazaar, no problem.\nEvery order is already in my pocket.",
+          "fontSize": 14,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.35
+        },
+        {
+          "id": "tpl_dz_ab5_c3_name",
+          "type": "text",
+          "name": "C3 Name",
+          "position": {
+            "x": 155,
+            "y": 2050
+          },
+          "size": {
+            "width": 700,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Shahid · Peshawar",
+          "fontSize": 11.5,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab5_laurel",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 445,
+            "y": 2280
+          },
+          "size": {
+            "width": 400,
+            "height": 430
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_dz_ab5_rating",
+          "type": "text",
+          "name": "Rating",
+          "position": {
+            "x": 495,
+            "y": 2400
+          },
+          "size": {
+            "width": 300,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.9",
+          "fontSize": 38,
+          "color": "#FFC233",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        },
+        {
+          "id": "tpl_dz_ab5_rating_label",
+          "type": "text",
+          "name": "Rating Label",
+          "position": {
+            "x": 445,
+            "y": 2716
+          },
+          "size": {
+            "width": 400,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "loved by tailors",
+          "fontSize": 11,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_dz_ab6",
+      "name": "Works Offline",
+      "position": {
+        "x": 2025,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab6_kicker",
+          "type": "text",
+          "name": "Kicker",
+          "position": {
+            "x": 95,
+            "y": 150
+          },
+          "size": {
+            "width": 1100,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "№ 06 · NO SIGNAL REQUIRED",
+          "fontSize": 8,
+          "color": "#FFC233",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab6_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 240
+          },
+          "size": {
+            "width": 1100,
+            "height": 390
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Works where\nthe shop is.",
+          "fontSize": 44,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab6_body",
+          "type": "text",
+          "name": "Body",
+          "position": {
+            "x": 95,
+            "y": 650
+          },
+          "size": {
+            "width": 1100,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "No account, no cloud, no connection lost.\nOrders, measurements and voice notes\nlive on the phone.",
+          "fontSize": 14,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab6_stat1",
+          "type": "shape",
+          "name": "Stat Card 1",
+          "position": {
+            "x": 95,
+            "y": 940
+          },
+          "size": {
+            "width": 540,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab6_s1_num",
+          "type": "text",
+          "name": "Stat 1 Number",
+          "position": {
+            "x": 95,
+            "y": 1010
+          },
+          "size": {
+            "width": 540,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "25",
+          "fontSize": 40,
+          "color": "#FFC233",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        },
+        {
+          "id": "tpl_dz_ab6_s1_label",
+          "type": "text",
+          "name": "Stat 1 Label",
+          "position": {
+            "x": 145,
+            "y": 1240
+          },
+          "size": {
+            "width": 440,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "measurement points,\neach with its\nreal name",
+          "fontSize": 12,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab6_stat2",
+          "type": "shape",
+          "name": "Stat Card 2",
+          "position": {
+            "x": 655,
+            "y": 940
+          },
+          "size": {
+            "width": 540,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab6_s2_num",
+          "type": "text",
+          "name": "Stat 2 Number",
+          "position": {
+            "x": 655,
+            "y": 1010
+          },
+          "size": {
+            "width": 540,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3",
+          "fontSize": 40,
+          "color": "#FFC233",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        },
+        {
+          "id": "tpl_dz_ab6_s2_label",
+          "type": "text",
+          "name": "Stat 2 Label",
+          "position": {
+            "x": 705,
+            "y": 1240
+          },
+          "size": {
+            "width": 440,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "outfits — kameez,\nwasket, coat pant",
+          "fontSize": 12,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab6_stat3",
+          "type": "shape",
+          "name": "Stat Card 3",
+          "position": {
+            "x": 95,
+            "y": 1540
+          },
+          "size": {
+            "width": 540,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab6_s3_num",
+          "type": "text",
+          "name": "Stat 3 Number",
+          "position": {
+            "x": 95,
+            "y": 1610
+          },
+          "size": {
+            "width": 540,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "14",
+          "fontSize": 40,
+          "color": "#FFC233",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        },
+        {
+          "id": "tpl_dz_ab6_s3_label",
+          "type": "text",
+          "name": "Stat 3 Label",
+          "position": {
+            "x": 145,
+            "y": 1840
+          },
+          "size": {
+            "width": 440,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "style variants —\ncollars, cuffs, hems",
+          "fontSize": 12,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab6_stat4",
+          "type": "shape",
+          "name": "Stat Card 4",
+          "position": {
+            "x": 655,
+            "y": 1540
+          },
+          "size": {
+            "width": 540,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D2129",
+          "strokeColor": "#2A303B",
+          "strokeWidth": 2,
+          "borderRadius": 36
+        },
+        {
+          "id": "tpl_dz_ab6_s4_num",
+          "type": "text",
+          "name": "Stat 4 Number",
+          "position": {
+            "x": 655,
+            "y": 1610
+          },
+          "size": {
+            "width": 540,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "0",
+          "fontSize": 40,
+          "color": "#FFC233",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        },
+        {
+          "id": "tpl_dz_ab6_s4_label",
+          "type": "text",
+          "name": "Stat 4 Label",
+          "position": {
+            "x": 705,
+            "y": 1840
+          },
+          "size": {
+            "width": 440,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "internet needed,\never",
+          "fontSize": 12,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab6_lock",
+          "type": "shape",
+          "name": "Lock Icon",
+          "position": {
+            "x": 600,
+            "y": 2200
+          },
+          "size": {
+            "width": 90,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 8 C35 8 26 19 26 32 V42 H36 V32 C36 24 41 16 50 16 C59 16 64 24 64 32 V42 H74 V32 C74 19 65 8 50 8 Z M30 42 H70 A8 8 0 0 1 78 50 V80 A8 8 0 0 1 70 88 H30 A8 8 0 0 1 22 80 V50 A8 8 0 0 1 30 42 Z M43 60 A7 7 0 1 0 57 60 A7 7 0 1 0 43 60 Z M46 64 H54 L57 78 H43 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          }
+        },
+        {
+          "id": "tpl_dz_ab6_lock_text",
+          "type": "text",
+          "name": "Lock Line",
+          "position": {
+            "x": 95,
+            "y": 2330
+          },
+          "size": {
+            "width": 1100,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Everything stays on the device",
+          "fontSize": 15,
+          "color": "#F4F5F7",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab6_chalk",
+          "type": "text",
+          "name": "Chalk Note",
+          "position": {
+            "x": 95,
+            "y": 2450
+          },
+          "size": {
+            "width": 1100,
+            "height": 100
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "no account, no cloud, ever",
+          "fontSize": 12,
+          "color": "#FFC233",
+          "fontFamily": "Pacifico",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        }
+      ]
+    },
+    {
+      "id": "tpl_dz_ab7",
+      "name": "Try It On",
+      "position": {
+        "x": 2427,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#0F1115",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#181D25",
+        "color2": "#0B0D10",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dz_ab7_urdu",
+          "type": "text",
+          "name": "Urdu Brand",
+          "position": {
+            "x": 95,
+            "y": 130
+          },
+          "size": {
+            "width": 1100,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "درزی سٹوڈیو",
+          "fontSize": 24,
+          "color": "#FFC233",
+          "fontFamily": "Noto Nastaliq Urdu",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.8
+        },
+        {
+          "id": "tpl_dz_ab7_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 360
+          },
+          "size": {
+            "width": 1100,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Try it on.",
+          "fontSize": 54,
+          "color": "#F4F5F7",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05
+        },
+        {
+          "id": "tpl_dz_ab7_underline",
+          "type": "shape",
+          "name": "Chalk Underline",
+          "position": {
+            "x": 395,
+            "y": 580
+          },
+          "size": {
+            "width": 500,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_dz_ab7_body",
+          "type": "text",
+          "name": "Body",
+          "position": {
+            "x": 95,
+            "y": 700
+          },
+          "size": {
+            "width": 1100,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Free, on the phone already in your pocket.",
+          "fontSize": 15,
+          "color": "#98A0AC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_dz_ab7_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 225,
+            "y": 830
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.4,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#FFC233",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dz_ab7_screen",
+          "type": "shape",
+          "name": "Screen Fill",
+          "position": {
+            "x": 250,
+            "y": 855
+          },
+          "size": {
+            "width": 790,
+            "height": 1630
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0F1115",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 17
+        },
+        {
+          "id": "tpl_dz_ab7_hole",
+          "type": "shape",
+          "name": "Punch Hole",
+          "position": {
+            "x": 625,
+            "y": 875
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#000000",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_dz_ab7_spool",
+          "type": "shape",
+          "name": "Splash Spool",
+          "position": {
+            "x": 535,
+            "y": 1430
+          },
+          "size": {
+            "width": 220,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 30 Q50 44 94 30 V70 Q50 56 6 70 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_dz_ab7_splash_name",
+          "type": "text",
+          "name": "Splash Name",
+          "position": {
+            "x": 345,
+            "y": 1580
+          },
+          "size": {
+            "width": 600,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Darzi Studio",
+          "fontSize": 20,
+          "color": "#FFC233",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_dz_ab7_splash_urdu",
+          "type": "text",
+          "name": "Splash Urdu",
+          "position": {
+            "x": 395,
+            "y": 1690
+          },
+          "size": {
+            "width": 500,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "درزی سٹوڈیو",
+          "fontSize": 11,
+          "color": "#98A0AC",
+          "fontFamily": "Noto Nastaliq Urdu",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.8
+        },
+        {
+          "id": "tpl_dz_ab7_splash_tag",
+          "type": "text",
+          "name": "Splash Tagline",
+          "position": {
+            "x": 345,
+            "y": 1850
+          },
+          "size": {
+            "width": 600,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "the measurement studio",
+          "fontSize": 10,
+          "color": "#565B66",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_dz_ab7_button",
+          "type": "shape",
+          "name": "CTA Button",
+          "position": {
+            "x": 335,
+            "y": 2580
+          },
+          "size": {
+            "width": 620,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFC233",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 75
+        },
+        {
+          "id": "tpl_dz_ab7_button_text",
+          "type": "text",
+          "name": "CTA Button Text",
+          "position": {
+            "x": 335,
+            "y": 2580
+          },
+          "size": {
+            "width": 620,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get Darzi Studio",
+          "fontSize": 14,
+          "color": "#181203",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        }
+      ]
+    }
+  ]
+}

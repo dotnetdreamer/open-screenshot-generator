@@ -24,6 +24,21 @@ const TEMPLATES = [
   { slug: 'cryptix', card: 'CrypTix', boards: 5 },
   { slug: 'feasto', card: 'Feasto', boards: 5 },
   { slug: 'storybuzz-kids', card: 'StoryBuzz Kids', boards: 5 },
+  { slug: 'trackio-fitness', card: 'Trackio Fitness', boards: 5 },
+  { slug: 'streamio-binge', card: 'Streamio Binge', boards: 5 },
+  { slug: 'roomora-home', card: 'Roomora Home', boards: 5 },
+  { slug: 'playverse-games', card: 'Playverse Games', boards: 5 },
+  { slug: 'darzi-studio', card: 'Darzi Studio', boards: 7 },
+  { slug: 'voyago-travel', card: 'Voyago Travel', boards: 5 },
+  { slug: 'finexa-crypto', card: 'Finexa Crypto', boards: 5 },
+  { slug: 'flixio-kids', card: 'Flixio Kids', boards: 5 },
+  { slug: 'listenly-audio', card: 'Listenly Audiobooks', boards: 5 },
+  { slug: 'tripora-travel', card: 'Tripora Travel', boards: 5 },
+  { slug: 'tunio-music', card: 'Tunio Music', boards: 5 },
+  { slug: 'coinly-crypto', card: 'Coinly Crypto', boards: 5 },
+  { slug: 'stockio-invest', card: 'Stockio Invest', boards: 5 },
+  { slug: 'threadly-social', card: 'Threadly Social', boards: 5 },
+  { slug: 'beatforge-studio', card: 'Beatforge Studio', boards: 5 },
 ];
 
 async function openTemplateFromStartDialog(page, cardTitle) {
