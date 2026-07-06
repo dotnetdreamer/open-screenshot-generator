@@ -1,0 +1,1343 @@
+{
+  "id": "template_feasto",
+  "name": "Feasto",
+  "description": "App Store screenshot set for a food delivery app — 5 fresh green panels at 1290×2796 with mint sketch accents, script highlights, testimonial quotes and device mockups.",
+  "previewImage": "https://placehold.co/300x200/2F9155/FFFFFF?text=Feasto",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_fst_ab1",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#2F9155",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fst_ab1_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 25,
+            "y": 140
+          },
+          "size": {
+            "width": 1240,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your favourite\nmeals delivered",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_fst_ab1_dots",
+          "type": "shape",
+          "name": "Dot Cluster",
+          "position": {
+            "x": -70,
+            "y": 620
+          },
+          "size": {
+            "width": 380,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M7.4 10 A2.6 2.6 0 1 0 12.6 10 A2.6 2.6 0 1 0 7.4 10 ZM23.4 10 A2.6 2.6 0 1 0 28.6 10 A2.6 2.6 0 1 0 23.4 10 ZM39.4 10 A2.6 2.6 0 1 0 44.6 10 A2.6 2.6 0 1 0 39.4 10 ZM55.4 10 A2.6 2.6 0 1 0 60.6 10 A2.6 2.6 0 1 0 55.4 10 ZM71.4 10 A2.6 2.6 0 1 0 76.6 10 A2.6 2.6 0 1 0 71.4 10 ZM87.4 10 A2.6 2.6 0 1 0 92.6 10 A2.6 2.6 0 1 0 87.4 10 ZM7.4 26 A2.6 2.6 0 1 0 12.6 26 A2.6 2.6 0 1 0 7.4 26 ZM23.4 26 A2.6 2.6 0 1 0 28.6 26 A2.6 2.6 0 1 0 23.4 26 ZM39.4 26 A2.6 2.6 0 1 0 44.6 26 A2.6 2.6 0 1 0 39.4 26 ZM55.4 26 A2.6 2.6 0 1 0 60.6 26 A2.6 2.6 0 1 0 55.4 26 ZM71.4 26 A2.6 2.6 0 1 0 76.6 26 A2.6 2.6 0 1 0 71.4 26 ZM87.4 26 A2.6 2.6 0 1 0 92.6 26 A2.6 2.6 0 1 0 87.4 26 ZM7.4 42 A2.6 2.6 0 1 0 12.6 42 A2.6 2.6 0 1 0 7.4 42 ZM23.4 42 A2.6 2.6 0 1 0 28.6 42 A2.6 2.6 0 1 0 23.4 42 ZM39.4 42 A2.6 2.6 0 1 0 44.6 42 A2.6 2.6 0 1 0 39.4 42 ZM55.4 42 A2.6 2.6 0 1 0 60.6 42 A2.6 2.6 0 1 0 55.4 42 ZM71.4 42 A2.6 2.6 0 1 0 76.6 42 A2.6 2.6 0 1 0 71.4 42 ZM87.4 42 A2.6 2.6 0 1 0 92.6 42 A2.6 2.6 0 1 0 87.4 42 ZM7.4 58 A2.6 2.6 0 1 0 12.6 58 A2.6 2.6 0 1 0 7.4 58 ZM23.4 58 A2.6 2.6 0 1 0 28.6 58 A2.6 2.6 0 1 0 23.4 58 ZM39.4 58 A2.6 2.6 0 1 0 44.6 58 A2.6 2.6 0 1 0 39.4 58 ZM55.4 58 A2.6 2.6 0 1 0 60.6 58 A2.6 2.6 0 1 0 55.4 58 ZM71.4 58 A2.6 2.6 0 1 0 76.6 58 A2.6 2.6 0 1 0 71.4 58 ZM87.4 58 A2.6 2.6 0 1 0 92.6 58 A2.6 2.6 0 1 0 87.4 58 ZM7.4 74 A2.6 2.6 0 1 0 12.6 74 A2.6 2.6 0 1 0 7.4 74 ZM23.4 74 A2.6 2.6 0 1 0 28.6 74 A2.6 2.6 0 1 0 23.4 74 ZM39.4 74 A2.6 2.6 0 1 0 44.6 74 A2.6 2.6 0 1 0 39.4 74 ZM55.4 74 A2.6 2.6 0 1 0 60.6 74 A2.6 2.6 0 1 0 55.4 74 ZM71.4 74 A2.6 2.6 0 1 0 76.6 74 A2.6 2.6 0 1 0 71.4 74 ZM87.4 74 A2.6 2.6 0 1 0 92.6 74 A2.6 2.6 0 1 0 87.4 74 ZM7.4 90 A2.6 2.6 0 1 0 12.6 90 A2.6 2.6 0 1 0 7.4 90 ZM23.4 90 A2.6 2.6 0 1 0 28.6 90 A2.6 2.6 0 1 0 23.4 90 ZM39.4 90 A2.6 2.6 0 1 0 44.6 90 A2.6 2.6 0 1 0 39.4 90 ZM55.4 90 A2.6 2.6 0 1 0 60.6 90 A2.6 2.6 0 1 0 55.4 90 ZM71.4 90 A2.6 2.6 0 1 0 76.6 90 A2.6 2.6 0 1 0 71.4 90 ZM87.4 90 A2.6 2.6 0 1 0 92.6 90 A2.6 2.6 0 1 0 87.4 90 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "fillOpacity": 0.85,
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab1_squiggle",
+          "type": "shape",
+          "name": "Squiggle",
+          "position": {
+            "x": 1010,
+            "y": 490
+          },
+          "size": {
+            "width": 300,
+            "height": 140
+          },
+          "rotation": -15,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M8 60 C20 20 32 90 44 50 C52 24 60 76 72 44 C78 28 86 40 92 30",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_fst_ab1_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 300,
+            "y": 1000
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -5,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fst_ab1_wordmark_frame",
+          "type": "shape",
+          "name": "Wordmark Sketch Frame",
+          "position": {
+            "x": 55,
+            "y": 2430
+          },
+          "size": {
+            "width": 480,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M14 16 C38 11 64 13 87 13 C89 36 87 60 88 87 C62 90 38 87 13 88 C11 62 13 38 14 16 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_fst_ab1_wordmark_text",
+          "type": "text",
+          "name": "Wordmark",
+          "position": {
+            "x": 75,
+            "y": 2470
+          },
+          "size": {
+            "width": 440,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "feasto.",
+          "fontSize": 34,
+          "color": "#FFFFFF",
+          "fontFamily": "Pacifico",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_fst_ab1_wave",
+          "type": "shape",
+          "name": "Squiggle Line",
+          "position": {
+            "x": 660,
+            "y": 2600
+          },
+          "size": {
+            "width": 260,
+            "height": 90
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M0 50 Q6.25 30 12.5 50 Q18.75 70 25 50 Q31.25 30 37.5 50 Q43.75 70 50 50 Q56.25 30 62.5 50 Q68.75 70 75 50 Q81.25 30 87.5 50 Q93.75 70 100 50",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 2.5
+        }
+      ]
+    },
+    {
+      "id": "tpl_fst_ab2",
+      "name": "Eat What You Love",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#2F9155",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fst_ab2_device_top",
+          "type": "device",
+          "name": "Phone Mockup Top",
+          "position": {
+            "x": 90,
+            "y": -930
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fst_ab2_chef_photo",
+          "type": "image",
+          "name": "Chef Photo",
+          "position": {
+            "x": 640,
+            "y": 620
+          },
+          "size": {
+            "width": 650,
+            "height": 2176
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover"
+        },
+        {
+          "id": "tpl_fst_ab2_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 1135
+          },
+          "size": {
+            "width": 660,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Eat what\nyou love",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_fst_ab2_device_bottom",
+          "type": "device",
+          "name": "Phone Mockup Bottom",
+          "position": {
+            "x": 70,
+            "y": 1720
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.35,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fst_ab2_sparkle1",
+          "type": "shape",
+          "name": "Sparkle Large",
+          "position": {
+            "x": 560,
+            "y": 560
+          },
+          "size": {
+            "width": 90,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab2_sparkle2",
+          "type": "shape",
+          "name": "Sparkle Small",
+          "position": {
+            "x": 60,
+            "y": 700
+          },
+          "size": {
+            "width": 70,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        }
+      ]
+    },
+    {
+      "id": "tpl_fst_ab3",
+      "name": "Hot Meals",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#2F9155",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fst_ab3_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 135
+          },
+          "size": {
+            "width": 1100,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hot meals in\nminutes",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_fst_ab3_marker",
+          "type": "shape",
+          "name": "Marker Stroke",
+          "position": {
+            "x": 430,
+            "y": 500
+          },
+          "size": {
+            "width": 430,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M5.36 55.58 L8.08 55.47 L11.56 55.23 L15.65 54.9 L20.23 54.51 L25.14 54.1 L30.26 53.68 L35.46 53.29 L40.58 52.96 L45.49 52.72 L50.05 52.6 L54.61 52.62 L59.52 52.75 L64.64 52.96 L69.83 53.24 L74.95 53.54 L79.87 53.85 L84.43 54.14 L88.52 54.37 L92 54.53 L94.72 54.59 A3.6 3.6 0 0 1 95.28 47.41 L92.64 47.05 L89.24 46.59 L85.18 46.06 L80.61 45.51 L75.67 44.96 L70.49 44.44 L65.19 44 L59.92 43.65 L54.8 43.44 L49.95 43.4 L45.1 43.55 L39.98 43.87 L34.71 44.34 L29.42 44.9 L24.24 45.53 L19.29 46.19 L14.73 46.85 L10.68 47.46 L7.28 48 L4.64 48.42 A3.6 3.6 0 0 1 5.36 55.58 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab3_squiggle",
+          "type": "shape",
+          "name": "Squiggle",
+          "position": {
+            "x": 40,
+            "y": 560
+          },
+          "size": {
+            "width": 220,
+            "height": 100
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M8 60 C20 20 32 90 44 50 C52 24 60 76 72 44 C78 28 86 40 92 30",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_fst_ab3_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 320,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fst_ab3_food_photo",
+          "type": "image",
+          "name": "Food Photo",
+          "position": {
+            "x": 30,
+            "y": 2340
+          },
+          "size": {
+            "width": 430,
+            "height": 456
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover"
+        }
+      ]
+    },
+    {
+      "id": "tpl_fst_ab4",
+      "name": "Tap Order Enjoy",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#2F9155",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fst_ab4_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 135
+          },
+          "size": {
+            "width": 1100,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Tap order\nenjoy",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_fst_ab4_script",
+          "type": "text",
+          "name": "Script Accent",
+          "position": {
+            "x": 95,
+            "y": 520
+          },
+          "size": {
+            "width": 1100,
+            "height": 220
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Quick delivery",
+          "fontSize": 40,
+          "color": "#A9DFC1",
+          "fontFamily": "Pacifico",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_fst_ab4_squiggle",
+          "type": "shape",
+          "name": "Squiggle",
+          "position": {
+            "x": 60,
+            "y": 640
+          },
+          "size": {
+            "width": 240,
+            "height": 110
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M8 60 C20 20 32 90 44 50 C52 24 60 76 72 44 C78 28 86 40 92 30",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_fst_ab4_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 280,
+            "y": 1050
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 12,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_fst_ab4_snack_photo",
+          "type": "image",
+          "name": "Snack Photo",
+          "position": {
+            "x": 20,
+            "y": 2400
+          },
+          "size": {
+            "width": 400,
+            "height": 396
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover"
+        }
+      ]
+    },
+    {
+      "id": "tpl_fst_ab5",
+      "name": "Testimonials",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#2F9155",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_fst_ab5_frame",
+          "type": "shape",
+          "name": "Sketch Frame",
+          "position": {
+            "x": 165,
+            "y": 120
+          },
+          "size": {
+            "width": 960,
+            "height": 460
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M14 16 C38 11 64 13 87 13 C89 36 87 60 88 87 C62 90 38 87 13 88 C11 62 13 38 14 16 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_fst_ab5_frame_script",
+          "type": "text",
+          "name": "Frame Script",
+          "position": {
+            "x": 225,
+            "y": 170
+          },
+          "size": {
+            "width": 760,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Top rated by\nusers",
+          "fontSize": 32,
+          "color": "#FFFFFF",
+          "fontFamily": "Pacifico",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.25
+        },
+        {
+          "id": "tpl_fst_ab5_star_doodle",
+          "type": "shape",
+          "name": "Star Doodle",
+          "position": {
+            "x": 985,
+            "y": 400
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 5 L61.17 34.63 L90.9 36.71 L67.12 55.56 L77.04 87.21 L50 70 L25.31 83.98 L33.83 55.25 L8.15 36.4 L38.83 34.63 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 2.5
+        },
+        {
+          "id": "tpl_fst_ab5_quote1",
+          "type": "text",
+          "name": "Testimonial 1",
+          "position": {
+            "x": 165,
+            "y": 680
+          },
+          "size": {
+            "width": 960,
+            "height": 250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "I use this almost daily. The\noffers and discounts make it\neven better!",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_fst_ab5_q1_star1",
+          "type": "shape",
+          "name": "Quote 1 Star 1",
+          "position": {
+            "x": 350,
+            "y": 950
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q1_star2",
+          "type": "shape",
+          "name": "Quote 1 Star 2",
+          "position": {
+            "x": 404,
+            "y": 950
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q1_star3",
+          "type": "shape",
+          "name": "Quote 1 Star 3",
+          "position": {
+            "x": 458,
+            "y": 950
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q1_star4",
+          "type": "shape",
+          "name": "Quote 1 Star 4",
+          "position": {
+            "x": 512,
+            "y": 950
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q1_star5",
+          "type": "shape",
+          "name": "Quote 1 Star 5",
+          "position": {
+            "x": 566,
+            "y": 950
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q1_name",
+          "type": "text",
+          "name": "Quote 1 Name",
+          "position": {
+            "x": 700,
+            "y": 930
+          },
+          "size": {
+            "width": 420,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "-Sam",
+          "fontSize": 20,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "right",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_fst_ab5_quote2",
+          "type": "text",
+          "name": "Testimonial 2",
+          "position": {
+            "x": 95,
+            "y": 1240
+          },
+          "size": {
+            "width": 1100,
+            "height": 320
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Super convenient app! Ordering\nfood is quick and the delivery is\nusually on time. Love the\ntracking feature.",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_fst_ab5_q2_star1",
+          "type": "shape",
+          "name": "Quote 2 Star 1",
+          "position": {
+            "x": 350,
+            "y": 1580
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q2_star2",
+          "type": "shape",
+          "name": "Quote 2 Star 2",
+          "position": {
+            "x": 404,
+            "y": 1580
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q2_star3",
+          "type": "shape",
+          "name": "Quote 2 Star 3",
+          "position": {
+            "x": 458,
+            "y": 1580
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q2_star4",
+          "type": "shape",
+          "name": "Quote 2 Star 4",
+          "position": {
+            "x": 512,
+            "y": 1580
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q2_star5",
+          "type": "shape",
+          "name": "Quote 2 Star 5",
+          "position": {
+            "x": 566,
+            "y": 1580
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q2_name",
+          "type": "text",
+          "name": "Quote 2 Name",
+          "position": {
+            "x": 700,
+            "y": 1560
+          },
+          "size": {
+            "width": 420,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "-Olivia",
+          "fontSize": 20,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "right",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_fst_ab5_quote3",
+          "type": "text",
+          "name": "Testimonial 3",
+          "position": {
+            "x": 165,
+            "y": 1870
+          },
+          "size": {
+            "width": 960,
+            "height": 250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The app works well, just wish\nthere were more discounts\navailable regularly.",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.3
+        },
+        {
+          "id": "tpl_fst_ab5_q3_star1",
+          "type": "shape",
+          "name": "Quote 3 Star 1",
+          "position": {
+            "x": 350,
+            "y": 2140
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q3_star2",
+          "type": "shape",
+          "name": "Quote 3 Star 2",
+          "position": {
+            "x": 404,
+            "y": 2140
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q3_star3",
+          "type": "shape",
+          "name": "Quote 3 Star 3",
+          "position": {
+            "x": 458,
+            "y": 2140
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q3_star4",
+          "type": "shape",
+          "name": "Quote 3 Star 4",
+          "position": {
+            "x": 512,
+            "y": 2140
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q3_star5",
+          "type": "shape",
+          "name": "Quote 3 Star 5",
+          "position": {
+            "x": 566,
+            "y": 2140
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_q3_name",
+          "type": "text",
+          "name": "Quote 3 Name",
+          "position": {
+            "x": 700,
+            "y": 2120
+          },
+          "size": {
+            "width": 420,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "-David",
+          "fontSize": 20,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "right",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_fst_ab5_laurel",
+          "type": "shape",
+          "name": "Award Laurel",
+          "position": {
+            "x": 330,
+            "y": 2290
+          },
+          "size": {
+            "width": 630,
+            "height": 460
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_rating_number",
+          "type": "text",
+          "name": "Rating Number",
+          "position": {
+            "x": 515,
+            "y": 2330
+          },
+          "size": {
+            "width": 260,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.8",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_fst_ab5_rating_label",
+          "type": "text",
+          "name": "Rating Label",
+          "position": {
+            "x": 495,
+            "y": 2510
+          },
+          "size": {
+            "width": 300,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rating on\napp store",
+          "fontSize": 16,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_fst_ab5_award_star1",
+          "type": "shape",
+          "name": "Award Star 1",
+          "position": {
+            "x": 521,
+            "y": 2660
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_award_star2",
+          "type": "shape",
+          "name": "Award Star 2",
+          "position": {
+            "x": 573,
+            "y": 2660
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_award_star3",
+          "type": "shape",
+          "name": "Award Star 3",
+          "position": {
+            "x": 625,
+            "y": 2660
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_award_star4",
+          "type": "shape",
+          "name": "Award Star 4",
+          "position": {
+            "x": 677,
+            "y": 2660
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_fst_ab5_award_star5",
+          "type": "shape",
+          "name": "Award Star 5",
+          "position": {
+            "x": 729,
+            "y": 2660
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#A9DFC1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        }
+      ]
+    }
+  ]
+}

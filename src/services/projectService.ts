@@ -15,7 +15,17 @@ export async function loadProjectTemplates(): Promise<Project[]> {
       'inquira.json',
       'zyluxe-beauty.json',
       'nexmind.json',
-      'endless-communities.json'
+      'endless-communities.json',
+      'kicksy-sneakers.json',
+      'endless-podcasts.json',
+      'answerly-ai.json',
+      'lumina-search.json',
+      'streamio-movies.json',
+      'readly-books.json',
+      'luxe-glow.json',
+      'cryptix.json',
+      'feasto.json',
+      'storybuzz-kids.json'
     ];
     
     for (const filename of projectFiles) {
@@ -65,7 +75,17 @@ export function getAvailableProjectFiles(): string[] {
     'inquira.json',
     'zyluxe-beauty.json',
     'nexmind.json',
-    'endless-communities.json'
+    'endless-communities.json',
+    'kicksy-sneakers.json',
+    'endless-podcasts.json',
+    'answerly-ai.json',
+    'lumina-search.json',
+    'streamio-movies.json',
+    'readly-books.json',
+    'luxe-glow.json',
+    'cryptix.json',
+    'feasto.json',
+    'storybuzz-kids.json'
   ];
 }
 

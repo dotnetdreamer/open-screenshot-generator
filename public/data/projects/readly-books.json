@@ -1,0 +1,766 @@
+{
+  "id": "template_readly-books",
+  "name": "Readly",
+  "description": "App Store screenshot set for a book-summaries app — 5 red-orange gradient panels at 1290×2796 with hand-drawn white sketch accents, gold award props and device mockups.",
+  "previewImage": "https://placehold.co/300x200/F2600A/FFFFFF?text=Readly",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_rdl_ab1",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#C33A08",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#C33A08",
+        "color2": "#F2670D",
+        "angle": 160
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_rdl_ab1_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 60,
+            "y": 120
+          },
+          "size": {
+            "width": 1210,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Discover big ideas\nfrom bestselling\nbooks quickly",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_rdl_ab1_circle",
+          "type": "shape",
+          "name": "Sketch Circle Around Books",
+          "position": {
+            "x": 20,
+            "y": 430
+          },
+          "size": {
+            "width": 520,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 12 C26 12 12 28 13 50 C14 73 31 88 53 87 C76 86 89 68 88 47 C87 27 70 13 50 14 C36 15 24 24 19 36",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_rdl_ab1_underline",
+          "type": "shape",
+          "name": "Underline Swoosh",
+          "position": {
+            "x": 395,
+            "y": 425
+          },
+          "size": {
+            "width": 730,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab1_heart",
+          "type": "shape",
+          "name": "Sketch Heart",
+          "position": {
+            "x": -70,
+            "y": 700
+          },
+          "size": {
+            "width": 270,
+            "height": 250
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 84 C24 64 12 46 14 32 C16 20 28 14 38 20 C44 23 48 28 50 34 C52 28 56 23 62 20 C72 14 84 20 86 32 C88 46 76 64 50 84 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_rdl_ab1_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 280,
+            "y": 1150
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -14,
+          "scale": 1.7,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_rdl_ab2",
+      "name": "Feed",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#F2600A",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_rdl_ab2_burst",
+          "type": "shape",
+          "name": "Sketch Burst",
+          "position": {
+            "x": 1020,
+            "y": -80
+          },
+          "size": {
+            "width": 340,
+            "height": 340
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 4 L55.18 30.68 L70 15.36 L64.14 35.86 L88.11 28 L69.32 44.82 L88 50 L69.32 55.18 L90.7 73.5 L64.14 64.14 L70.5 85.51 L55.18 69.32 L50 93 L44.82 69.32 L30.5 83.77 L35.86 64.14 L11.03 72.5 L30.68 55.18 L8 50 L30.68 44.82 L10.16 27 L35.86 35.86 L30 15.36 L44.82 30.68 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab2_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 345,
+            "y": 1250
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -4,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_rdl_ab2_pill",
+          "type": "shape",
+          "name": "Brand Pill",
+          "position": {
+            "x": 365,
+            "y": 2530
+          },
+          "size": {
+            "width": 560,
+            "height": 210
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "borderRadius": 100,
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab2_brand",
+          "type": "text",
+          "name": "Brand Text",
+          "position": {
+            "x": 365,
+            "y": 2530
+          },
+          "size": {
+            "width": 560,
+            "height": 210
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "READLY!",
+          "fontSize": 27,
+          "color": "#F2600A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        }
+      ]
+    },
+    {
+      "id": "tpl_rdl_ab3",
+      "name": "Goals",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#8E1F04",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8E1F04",
+        "color2": "#C63E08",
+        "angle": 150
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_rdl_ab3_frame",
+          "type": "shape",
+          "name": "Sketch Frame",
+          "position": {
+            "x": 75,
+            "y": 120
+          },
+          "size": {
+            "width": 1140,
+            "height": 640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M14 16 C38 11 64 13 87 13 C89 36 87 60 88 87 C62 90 38 87 13 88 C11 62 13 38 14 16 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 4
+        },
+        {
+          "id": "tpl_rdl_ab3_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 105,
+            "y": 170
+          },
+          "size": {
+            "width": 1080,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stay consistent\nwith easy daily\nreading goals",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_rdl_ab3_sparkle",
+          "type": "shape",
+          "name": "Corner Sparkle",
+          "position": {
+            "x": 1130,
+            "y": 690
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab3_trophy",
+          "type": "shape",
+          "name": "Gold Trophy",
+          "position": {
+            "x": 40,
+            "y": 780
+          },
+          "size": {
+            "width": 300,
+            "height": 330
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M30 8 H70 V12 H88 V22 C88 36 78 46 66 48 C62 54 57 58 54 60 V70 H68 V80 H32 V70 H46 V60 C43 58 38 54 34 48 C22 46 12 36 12 22 V12 H30 Z M20 20 V22 C20 31 26 37 32 39 L31 20 Z M80 20 H69 L68 39 C74 37 80 31 80 22 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          },
+          "fillColor": "#E9A93E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab3_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 345,
+            "y": 1320
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_rdl_ab4",
+      "name": "Anywhere",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#D5470A",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#D5470A",
+        "color2": "#F2670D",
+        "angle": 200
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_rdl_ab4_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 45,
+            "y": 130
+          },
+          "size": {
+            "width": 1200,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Learn while\ndriving walking or\nrelaxing anytime",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_rdl_ab4_scribble",
+          "type": "shape",
+          "name": "Scribble Underline",
+          "position": {
+            "x": 350,
+            "y": 680
+          },
+          "size": {
+            "width": 590,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M12 36 C40 24 68 24 86 30 C60 34 30 42 16 50 C44 42 74 44 88 48 C60 54 32 60 20 66 C46 62 72 64 84 68",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_rdl_ab4_heart",
+          "type": "shape",
+          "name": "Sketch Heart",
+          "position": {
+            "x": 1020,
+            "y": -70
+          },
+          "size": {
+            "width": 330,
+            "height": 300
+          },
+          "rotation": 18,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 84 C24 64 12 46 14 32 C16 20 28 14 38 20 C44 23 48 28 50 34 C52 28 56 23 62 20 C72 14 84 20 86 32 C88 46 76 64 50 84 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_rdl_ab4_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 345,
+            "y": 1340
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.45,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_rdl_ab4_medal_ribbon",
+          "type": "shape",
+          "name": "Medal Ribbon",
+          "position": {
+            "x": 995,
+            "y": 1120
+          },
+          "size": {
+            "width": 100,
+            "height": 220
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#D28A25",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab4_medal_disc",
+          "type": "shape",
+          "name": "Medal Disc",
+          "position": {
+            "x": 930,
+            "y": 930
+          },
+          "size": {
+            "width": 230,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 8 A7.29 7.29 0 0 1 64.36 10.53 A7.29 7.29 0 0 1 77 17.83 A7.29 7.29 0 0 1 86.37 29 A7.29 7.29 0 0 1 91.36 42.71 A7.29 7.29 0 0 1 91.36 57.29 A7.29 7.29 0 0 1 86.37 71 A7.29 7.29 0 0 1 77 82.17 A7.29 7.29 0 0 1 64.36 89.47 A7.29 7.29 0 0 1 50 92 A7.29 7.29 0 0 1 35.64 89.47 A7.29 7.29 0 0 1 23 82.17 A7.29 7.29 0 0 1 13.63 71 A7.29 7.29 0 0 1 8.64 57.29 A7.29 7.29 0 0 1 8.64 42.71 A7.29 7.29 0 0 1 13.63 29 A7.29 7.29 0 0 1 23 17.83 A7.29 7.29 0 0 1 35.64 10.53 A7.29 7.29 0 0 1 50 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#E9A93E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab4_medal_star",
+          "type": "shape",
+          "name": "Medal Star",
+          "position": {
+            "x": 985,
+            "y": 985
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        }
+      ]
+    },
+    {
+      "id": "tpl_rdl_ab5",
+      "name": "Consistent",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9C2405",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#9C2405",
+        "color2": "#D3480B",
+        "angle": 195
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_rdl_ab5_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 130
+          },
+          "size": {
+            "width": 1100,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stay consistent\nwith easy daily\nreading goals",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_rdl_ab5_burst",
+          "type": "shape",
+          "name": "Sketch Burst",
+          "position": {
+            "x": 1050,
+            "y": 40
+          },
+          "size": {
+            "width": 230,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 4 L55.18 30.68 L70 15.36 L64.14 35.86 L88.11 28 L69.32 44.82 L88 50 L69.32 55.18 L90.7 73.5 L64.14 64.14 L70.5 85.51 L55.18 69.32 L50 93 L44.82 69.32 L30.5 83.77 L35.86 64.14 L11.03 72.5 L30.68 55.18 L8 50 L30.68 44.82 L10.16 27 L35.86 35.86 L30 15.36 L44.82 30.68 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab5_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 345,
+            "y": 1330
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.45,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_rdl_ab5_rosette_ribbon_l",
+          "type": "shape",
+          "name": "Rosette Ribbon Left",
+          "position": {
+            "x": 960,
+            "y": 980
+          },
+          "size": {
+            "width": 90,
+            "height": 210
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#D28A25",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab5_rosette_ribbon_r",
+          "type": "shape",
+          "name": "Rosette Ribbon Right",
+          "position": {
+            "x": 1050,
+            "y": 980
+          },
+          "size": {
+            "width": 90,
+            "height": 210
+          },
+          "rotation": 18,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#D28A25",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab5_rosette_disc",
+          "type": "shape",
+          "name": "Rosette Disc",
+          "position": {
+            "x": 945,
+            "y": 795
+          },
+          "size": {
+            "width": 220,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 8 A7.29 7.29 0 0 1 64.36 10.53 A7.29 7.29 0 0 1 77 17.83 A7.29 7.29 0 0 1 86.37 29 A7.29 7.29 0 0 1 91.36 42.71 A7.29 7.29 0 0 1 91.36 57.29 A7.29 7.29 0 0 1 86.37 71 A7.29 7.29 0 0 1 77 82.17 A7.29 7.29 0 0 1 64.36 89.47 A7.29 7.29 0 0 1 50 92 A7.29 7.29 0 0 1 35.64 89.47 A7.29 7.29 0 0 1 23 82.17 A7.29 7.29 0 0 1 13.63 71 A7.29 7.29 0 0 1 8.64 57.29 A7.29 7.29 0 0 1 8.64 42.71 A7.29 7.29 0 0 1 13.63 29 A7.29 7.29 0 0 1 23 17.83 A7.29 7.29 0 0 1 35.64 10.53 A7.29 7.29 0 0 1 50 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#E9A93E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab5_rosette_inner",
+          "type": "shape",
+          "name": "Rosette Inner Circle",
+          "position": {
+            "x": 990,
+            "y": 840
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F6C96B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_rdl_ab5_photo",
+          "type": "image",
+          "name": "Books Photo",
+          "position": {
+            "x": 900,
+            "y": 2280
+          },
+          "size": {
+            "width": 390,
+            "height": 516
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover"
+        }
+      ]
+    }
+  ]
+}

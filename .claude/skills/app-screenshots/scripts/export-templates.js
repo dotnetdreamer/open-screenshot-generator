@@ -14,6 +14,16 @@ const TEMPLATES = [
   { slug: 'zyluxe-beauty', card: 'Zyluxe Beauty', boards: 5 },
   { slug: 'nexmind', card: 'NexMind', boards: 5 },
   { slug: 'endless-communities', card: 'Endless Communities', boards: 5 },
+  { slug: 'kicksy-sneakers', card: 'Kicksy Sneakers', boards: 5 },
+  { slug: 'endless-podcasts', card: 'Endless Podcasts', boards: 5 },
+  { slug: 'answerly-ai', card: 'Answerly AI', boards: 5 },
+  { slug: 'lumina-search', card: 'Lumina Search', boards: 5 },
+  { slug: 'streamio-movies', card: 'Streamio Movies', boards: 5 },
+  { slug: 'readly-books', card: 'Readly', boards: 5 },
+  { slug: 'luxe-glow', card: 'Luxe Glow', boards: 5 },
+  { slug: 'cryptix', card: 'CrypTix', boards: 5 },
+  { slug: 'feasto', card: 'Feasto', boards: 5 },
+  { slug: 'storybuzz-kids', card: 'StoryBuzz Kids', boards: 5 },
 ];
 
 async function openTemplateFromStartDialog(page, cardTitle) {

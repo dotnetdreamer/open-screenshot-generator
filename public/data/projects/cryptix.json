@@ -1,0 +1,739 @@
+{
+  "id": "template_cryptix",
+  "name": "CrypTix",
+  "description": "App Store screenshot set for a crypto investing app — 5 electric-yellow and black panels at 1290×2796 with pill badges, hand-drawn arrows, press logos and dark device mockups.",
+  "previewImage": "https://placehold.co/300x200/F0E717/101010?text=CrypTix",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_cpx_ab1",
+      "name": "Brand",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#101010",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_cpx_ab1_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 60,
+            "y": -20
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 14,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_cpx_ab1_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 70,
+            "y": 1560
+          },
+          "size": {
+            "width": 1100,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Grow your\ncrypto assets",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_cpx_ab1_brand",
+          "type": "text",
+          "name": "Brand Word",
+          "position": {
+            "x": 70,
+            "y": 1930
+          },
+          "size": {
+            "width": 720,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "CrypTix",
+          "fontSize": 46,
+          "color": "#F0E717",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab1_arrow",
+          "type": "shape",
+          "name": "Curl Arrow",
+          "position": {
+            "x": 790,
+            "y": 1500
+          },
+          "size": {
+            "width": 360,
+            "height": 410
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M84 18 C50 2 18 16 20 46 C22 66 38 78 60 76 M48 62 L68 76 L50 90",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "fillColor": "#F0E717",
+          "strokeColor": "transparent",
+          "strokeWidth": 3.5
+        },
+        {
+          "id": "tpl_cpx_ab1_press_gq",
+          "type": "text",
+          "name": "Press Logo GQ",
+          "position": {
+            "x": 70,
+            "y": 2320
+          },
+          "size": {
+            "width": 240,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "GQ",
+          "fontSize": 34,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab1_press_econ",
+          "type": "text",
+          "name": "Press Logo Economist",
+          "position": {
+            "x": 380,
+            "y": 2330
+          },
+          "size": {
+            "width": 540,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Economist",
+          "fontSize": 28,
+          "color": "#FFFFFF",
+          "fontFamily": "Georgia",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab1_press_nyt",
+          "type": "text",
+          "name": "Press Logo NY Times",
+          "position": {
+            "x": 70,
+            "y": 2510
+          },
+          "size": {
+            "width": 520,
+            "height": 210
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The New York\nTimes",
+          "fontSize": 22,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab1_press_forbes",
+          "type": "text",
+          "name": "Press Logo Forbes",
+          "position": {
+            "x": 560,
+            "y": 2540
+          },
+          "size": {
+            "width": 380,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Forbes",
+          "fontSize": 30,
+          "color": "#FFFFFF",
+          "fontFamily": "Georgia",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        }
+      ]
+    },
+    {
+      "id": "tpl_cpx_ab2",
+      "name": "Trade",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#F0E717",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_cpx_ab2_pill",
+          "type": "shape",
+          "name": "Pill Badge",
+          "position": {
+            "x": 305,
+            "y": 130
+          },
+          "size": {
+            "width": 680,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "borderRadius": 75,
+          "fillColor": "#101010",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_cpx_ab2_pill_label",
+          "type": "text",
+          "name": "Pill Label",
+          "position": {
+            "x": 305,
+            "y": 130
+          },
+          "size": {
+            "width": 680,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Start Investing Today",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab2_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80,
+            "y": 360
+          },
+          "size": {
+            "width": 1100,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Trade anytime\nanywhere",
+          "fontSize": 44,
+          "color": "#101010",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_cpx_ab2_arrow",
+          "type": "shape",
+          "name": "Swoosh Arrow",
+          "position": {
+            "x": 25,
+            "y": 800
+          },
+          "size": {
+            "width": 230,
+            "height": 170
+          },
+          "rotation": 20,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M8 90 C14 56 36 32 68 24 L62 8 L94 15 L83 44 L76 28 C50 36 28 58 20 92 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#101010",
+          "strokeColor": "transparent",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_cpx_ab2_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 210,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -2,
+          "scale": 1.6,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_cpx_ab3",
+      "name": "Security",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#F0E717",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_cpx_ab3_pill",
+          "type": "shape",
+          "name": "Pill Badge",
+          "position": {
+            "x": 355,
+            "y": 130
+          },
+          "size": {
+            "width": 580,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "borderRadius": 75,
+          "fillColor": "#101010",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_cpx_ab3_pill_label",
+          "type": "text",
+          "name": "Pill Label",
+          "position": {
+            "x": 355,
+            "y": 130
+          },
+          "size": {
+            "width": 580,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Build Your Wealth",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab3_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80,
+            "y": 360
+          },
+          "size": {
+            "width": 1000,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Security you\ncan trust",
+          "fontSize": 44,
+          "color": "#101010",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_cpx_ab3_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 245,
+            "y": 1000
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_cpx_ab3_arrow",
+          "type": "shape",
+          "name": "Arc Arrow",
+          "position": {
+            "x": 720,
+            "y": 1150
+          },
+          "size": {
+            "width": 340,
+            "height": 300
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M10 28 C40 12 74 26 84 60 M68 52 L86 64 L92 40",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "fillColor": "#F0E717",
+          "strokeColor": "transparent",
+          "strokeWidth": 3.5
+        }
+      ]
+    },
+    {
+      "id": "tpl_cpx_ab4",
+      "name": "Grow",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#F0E717",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_cpx_ab4_pill",
+          "type": "shape",
+          "name": "Pill Badge",
+          "position": {
+            "x": 285,
+            "y": 130
+          },
+          "size": {
+            "width": 720,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "borderRadius": 75,
+          "fillColor": "#101010",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_cpx_ab4_pill_label",
+          "type": "text",
+          "name": "Pill Label",
+          "position": {
+            "x": 285,
+            "y": 130
+          },
+          "size": {
+            "width": 720,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Learn Before You Invest",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab4_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80,
+            "y": 360
+          },
+          "size": {
+            "width": 1100,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Grow your\ncrypto assets",
+          "fontSize": 44,
+          "color": "#101010",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_cpx_ab4_sparkle",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1090,
+            "y": 620
+          },
+          "size": {
+            "width": 100,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillColor": "#101010",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_cpx_ab4_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 190,
+            "y": 880
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 12,
+          "scale": 1.6,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_cpx_ab5",
+      "name": "Learn",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#F0E717",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_cpx_ab5_pill",
+          "type": "shape",
+          "name": "Pill Badge",
+          "position": {
+            "x": 355,
+            "y": 130
+          },
+          "size": {
+            "width": 580,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "borderRadius": 75,
+          "fillColor": "#101010",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_cpx_ab5_pill_label",
+          "type": "text",
+          "name": "Pill Label",
+          "position": {
+            "x": 355,
+            "y": 130
+          },
+          "size": {
+            "width": 580,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Keep Assets Safe",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_cpx_ab5_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80,
+            "y": 360
+          },
+          "size": {
+            "width": 1000,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Learn before\nyou invest",
+          "fontSize": 44,
+          "color": "#101010",
+          "fontFamily": "Roboto Flex",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "tpl_cpx_ab5_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 90,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.55,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_cpx_ab5_arrow",
+          "type": "shape",
+          "name": "Sketch Arrow",
+          "position": {
+            "x": 620,
+            "y": 1080
+          },
+          "size": {
+            "width": 320,
+            "height": 300
+          },
+          "rotation": 20,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          },
+          "fillColor": "#F0E717",
+          "strokeColor": "transparent",
+          "strokeWidth": 3.5
+        },
+        {
+          "id": "tpl_cpx_ab5_photo",
+          "type": "image",
+          "name": "Saver Photo",
+          "position": {
+            "x": 780,
+            "y": 1240
+          },
+          "size": {
+            "width": 510,
+            "height": 1556
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover"
+        }
+      ]
+    }
+  ]
+}
