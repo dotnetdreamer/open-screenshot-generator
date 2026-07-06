@@ -21,7 +21,7 @@ import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
 import { loadProjectTemplates } from '@/services/projectService';
-import { detectArtboardsPlatform, PLATFORM_LABELS, swapArtboardsToPlatform, swapDeviceInElements, type SwapPlatform } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
 import { Button } from '@/components/ui/button';
 import { InfoIcon } from 'lucide-react';
@@ -38,6 +38,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { db } from '@/database';
 import {
@@ -342,35 +343,37 @@ export function ArtboardStudioLayout() {
     handleArtboardsUpdate(updatedArtboards);
   };
 
-  // 'ios' | 'android' when the project's mockups agree, null when mixed/none —
-  // drives the checkmark in the Toolbar's Devices menu.
-  const activeDevicePlatform = useMemo(() => {
-    const platform = detectArtboardsPlatform(artboards);
-    return platform === 'mixed' ? null : platform;
+  // The project's current device format (phone platform or Play Store
+  // tablet), null when mixed/none — drives the Toolbar Devices menu's button
+  // label and checkmarks.
+  const activeDeviceFormat = useMemo(() => {
+    const format = detectArtboardsFormat(artboards);
+    return format === 'mixed' ? null : format;
   }, [artboards]);
 
-  // Swap every device mockup in the project to the given platform. One
-  // handleArtboardsUpdate call = one history entry, so the whole swap is a
-  // single Ctrl+Z away.
-  const handleSwapAllDevices = (platform: SwapPlatform) => {
-    const platformLabel = PLATFORM_LABELS[platform];
-    const { artboards: swappedArtboards, swapped, skipped } = swapArtboardsToPlatform(artboards, platform);
-    if (swapped === 0) {
-      const hasDevices = artboards.some(ab => ab.elements.some(el => el.type === 'device'));
+  // Convert the whole project to a device format: resize every artboard to
+  // the format's store-correct canvas (content uniformly scaled and
+  // re-centered) and swap mockups to the format's device. One
+  // handleArtboardsUpdate call = one history entry, so undo restores the
+  // previous format exactly.
+  const handleSelectDeviceFormat = (preset: DeviceFormatPreset) => {
+    const { artboards: converted, resized, swapped, skipped } = convertArtboardsToFormat(artboards, preset);
+    if (resized === 0 && swapped === 0) {
       toast({
-        title: "No devices swapped",
-        description: !hasDevices
-          ? "This project has no device mockups."
-          : skipped > 0
-            ? `${skipped} device(s) have no ${platformLabel} equivalent (tablet/desktop/custom mockups are left as-is).`
-            : `All device mockups are already ${platformLabel}.`,
+        title: "Nothing to convert",
+        description: `Artboards are already ${preset.artboard.width}×${preset.artboard.height} with ${preset.label} mockups${skipped > 0 ? ` (${skipped} generic tablet/desktop/custom mockup(s) left as-is)` : ''}.`,
       });
       return;
     }
-    handleArtboardsUpdate(swappedArtboards);
+    handleArtboardsUpdate(converted);
+    const parts = [
+      resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
+      swapped > 0 ? `${swapped} mockup(s) swapped` : '',
+      skipped > 0 ? `${skipped} left as-is (no equivalent)` : '',
+    ].filter(Boolean);
     toast({
-      title: "Devices swapped",
-      description: `${swapped} mockup(s) swapped to ${platformLabel}${skipped > 0 ? `, ${skipped} left as-is (no equivalent)` : ''}. Undo reverts all of them.`,
+      title: `Converted to ${preset.label}`,
+      description: `${parts.join(', ')}. Undo reverts everything.`,
     });
   };
 
@@ -1326,31 +1329,47 @@ const generateRandomProjectName = (): string => {
               <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
             </DialogHeader>
             <ScrollArea className="max-h-[70vh]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {availableProjects.map((project: Project) => (
-                  <Card
-                    key={project.id}
-                    className="hover:shadow-xl transition-shadow cursor-pointer"
-                    onClick={() => handleSelectTemplate(project)}
-                  >
-                    <CardHeader className="p-0">
-                      {project.previewImage && (
-                         <Image
-                          src={project.previewImage}
-                          alt={project.name}
-                          width={300} height={200}
-                          className="rounded-t-lg object-cover w-full h-40"
-                          data-ai-hint={project.description || "project design"}
-                        />
-                      )}
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
-                      <CardDescription className="text-sm line-clamp-3">{project.description}</CardDescription>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <TooltipProvider delayDuration={250}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                  {availableProjects.map((project: Project) => {
+                    const card = (
+                      <Card
+                        className="hover:shadow-xl transition-shadow cursor-pointer"
+                        onClick={() => handleSelectTemplate(project)}
+                      >
+                        <CardHeader className="p-0">
+                          {project.previewImage && (
+                             <Image
+                              src={project.previewImage}
+                              alt={project.name}
+                              width={300} height={200}
+                              className="rounded-t-lg object-cover w-full h-40"
+                              data-ai-hint={project.description || "project design"}
+                            />
+                          )}
+                        </CardHeader>
+                        <CardContent className="p-4">
+                          <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
+                          <CardDescription className="text-sm line-clamp-3">{project.description}</CardDescription>
+                        </CardContent>
+                      </Card>
+                    );
+
+                    if (!project.description) {
+                      return <div key={project.id}>{card}</div>;
+                    }
+
+                    return (
+                      <Tooltip key={project.id}>
+                        <TooltipTrigger asChild>{card}</TooltipTrigger>
+                        <TooltipContent side="bottom" align="center" className="z-[60] max-w-xs whitespace-normal text-sm">
+                          {project.description}
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </TooltipProvider>
             </ScrollArea>
              <DialogFooter>
               <Button variant="outline" onClick={() => {
@@ -1519,8 +1538,8 @@ const generateRandomProjectName = (): string => {
             canPaste={!!clipboardItem && !!activeArtboardId}
             currentProjectName={currentProjectName}
             onRenameProject={handleRenameProject}
-            onSwapDevices={handleSwapAllDevices}
-            activeDevicePlatform={activeDevicePlatform}
+            onSelectDeviceFormat={handleSelectDeviceFormat}
+            activeDeviceFormat={activeDeviceFormat}
             className="sticky top-0 z-50 bg-card border-b"
           />
           

@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Size } from '@/types/artboard';
-import { PLATFORM_LABELS, type SwapPlatform } from '@/lib/deviceRegistry';
+import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { useClipboard } from '@/contexts/ClipboardContext';
 
 interface ToolbarProps {
@@ -62,9 +62,10 @@ interface ToolbarProps {
   canPaste?: boolean;
   currentProjectName?: string;
   onRenameProject?: (newName: string) => void;
-  onSwapDevices?: (platform: SwapPlatform) => void;
-  // Platform the project's mockups are currently on; null when mixed or none.
-  activeDevicePlatform?: SwapPlatform | null;
+  onSelectDeviceFormat?: (preset: DeviceFormatPreset) => void;
+  // Format the project's mockups are currently on (phone platform or Play
+  // Store tablet); null when mixed or none.
+  activeDeviceFormat?: DeviceFormat | null;
 }
 
 export function Toolbar({ 
@@ -95,9 +96,11 @@ export function Toolbar({
   canPaste = false,
   currentProjectName,
   onRenameProject,
-  onSwapDevices,
-  activeDevicePlatform,
+  onSelectDeviceFormat,
+  activeDeviceFormat,
 }: ToolbarProps) {
+  const deviceFormatLabel =
+    DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? 'Devices';
   const { clipboardItem } = useClipboard();
   // Initialize with the new default values
   const [width, setWidth] = useState<string>("1290");
@@ -374,33 +377,41 @@ export function Toolbar({
       
       <div className="flex-grow" />
 
-      {onSwapDevices && (
+      {onSelectDeviceFormat && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               className="h-8"
-              title="Swap all device mockups to another platform"
+              title="Convert the project to another device format (canvas + mockups)"
             >
               <SmartphoneIcon className="mr-1.5 h-4 w-4" />
-              {activeDevicePlatform ? PLATFORM_LABELS[activeDevicePlatform] : 'Devices'}
+              {deviceFormatLabel}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-xs">Swap all mockups to</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs">Convert project to</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuCheckboxItem
-              checked={activeDevicePlatform === 'android'}
-              onClick={() => onSwapDevices('android')}
-            >
-              {PLATFORM_LABELS.android}
-            </DropdownMenuCheckboxItem>
-            <DropdownMenuCheckboxItem
-              checked={activeDevicePlatform === 'ios'}
-              onClick={() => onSwapDevices('ios')}
-            >
-              {PLATFORM_LABELS.ios}
-            </DropdownMenuCheckboxItem>
+            {DEVICE_FORMAT_PRESETS.map((preset, i) => (
+              <React.Fragment key={preset.id}>
+                {preset.id === 'tablet-7' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs">Play Store tablets</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuCheckboxItem
+                  checked={activeDeviceFormat === preset.id}
+                  onClick={() => onSelectDeviceFormat(preset)}
+                >
+                  {preset.label}
+                  <span className="ml-auto pl-4 text-xs text-muted-foreground">
+                    {preset.artboard.width}×{preset.artboard.height}
+                  </span>
+                </DropdownMenuCheckboxItem>
+              </React.Fragment>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       )}

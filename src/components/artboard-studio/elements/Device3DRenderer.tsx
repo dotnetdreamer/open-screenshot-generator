@@ -39,6 +39,8 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   'android-notch': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'notch' },
   'android-punch-hole': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'punch' },
   'tablet': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.05, thickness: 0.045, notch: 'none' },
+  'tablet-7': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.045, thickness: 0.05, notch: 'none' },
+  'tablet-10': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.03, thickness: 0.042, notch: 'none' },
   'desktop': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.02, thickness: 0.03, notch: 'none' },
 };
 

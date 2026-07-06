@@ -83,6 +83,8 @@ export type DeviceType =
   | 'android-notch'
   | 'android-punch-hole'
   | 'tablet'
+  | 'tablet-7'
+  | 'tablet-10'
   | 'desktop'
   | 'custom';
 

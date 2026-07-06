@@ -270,6 +270,13 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       case 'tablet':
         deviceFrameOuterBorderRadius = `${effectiveWidth * 0.02}px`;
         break;
+      case 'tablet-7':
+        // Chunkier bezels than the 10-inch; typical budget Android slate.
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.045}px`;
+        break;
+      case 'tablet-10':
+        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.032}px`;
+        break;
       case 'desktop':
         deviceFrameOuterBorderRadius = `${effectiveWidth * 0.013}px`;
         deviceFrameBgColor = '#333';
