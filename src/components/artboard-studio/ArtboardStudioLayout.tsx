@@ -38,6 +38,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -78,7 +79,7 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
 
 // Owns the search state so keystrokes re-render only the gallery, not the
 // whole studio layout (canvas, palette, properties panel).
-function TemplateGallery({ projects, onSelect }: { projects: Project[]; onSelect: (project: Project) => void }) {
+function TemplateGallery({ projects, onSelect, isLoading }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean }) {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
@@ -100,11 +101,28 @@ function TemplateGallery({ projects, onSelect }: { projects: Project[]; onSelect
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           className="pl-9"
+          disabled={isLoading}
         />
       </div>
       {/* Native scroll: a Radix ScrollArea viewport's h-full can't resolve here
           because the dialog is max-h-capped, not fixed-height. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="p-0">
+                  <Skeleton className="h-40 w-full rounded-none rounded-t-lg" />
+                </CardHeader>
+                <CardContent className="p-4 space-y-2">
+                  <Skeleton className="h-5 w-2/3" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-4/5" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
         <TooltipProvider delayDuration={250}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
             {filteredTemplates.length === 0 && (
@@ -151,6 +169,7 @@ function TemplateGallery({ projects, onSelect }: { projects: Project[]; onSelect
             })}
           </div>
         </TooltipProvider>
+        )}
       </div>
     </>
   );
@@ -164,6 +183,7 @@ export function ArtboardStudioLayout() {
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(true);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const { toast } = useToast();
   const artboardRefs = useRef<Record<string, any>>({});
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
@@ -185,6 +205,7 @@ export function ArtboardStudioLayout() {
   // Load available projects from data/projects folder
   useEffect(() => {
     const loadAvailableProjects = async () => {
+      setIsLoadingProjects(true);
       try {
         const projects = await loadProjectTemplates();
         setAvailableProjects(projects);
@@ -195,6 +216,8 @@ export function ArtboardStudioLayout() {
           description: "Failed to load available projects.",
           variant: "destructive"
         });
+      } finally {
+        setIsLoadingProjects(false);
       }
     };
 
@@ -1476,7 +1499,7 @@ const generateRandomProjectName = (): string => {
               <DialogTitle>Start a New Project</DialogTitle>
               <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
             </DialogHeader>
-            <TemplateGallery projects={availableProjects} onSelect={handleSelectTemplate} />
+            <TemplateGallery projects={availableProjects} onSelect={handleSelectTemplate} isLoading={isLoadingProjects} />
              <DialogFooter>
               <Button variant="outline" onClick={() => {
                 const blankProject: Project = {
