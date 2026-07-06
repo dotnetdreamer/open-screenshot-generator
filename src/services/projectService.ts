@@ -40,9 +40,14 @@ export async function loadProjectTemplates(): Promise<Project[]> {
       'coinly-crypto.json',
       'stockio-invest.json',
       'threadly-social.json',
-      'beatforge-studio.json'
+      'beatforge-studio.json',
+      'podly-podcasts.json',
+      'cinevault-stream.json',
+      'sereno-mind.json',
+      'droply-habits.json',
+      'zeeb-fashion.json'
     ];
-    
+
     for (const filename of projectFiles) {
       try {
         const response = await fetch(`${BASE_PATH}/data/projects/${filename}`);
@@ -115,7 +120,12 @@ export function getAvailableProjectFiles(): string[] {
     'coinly-crypto.json',
     'stockio-invest.json',
     'threadly-social.json',
-    'beatforge-studio.json'
+    'beatforge-studio.json',
+    'podly-podcasts.json',
+    'cinevault-stream.json',
+    'sereno-mind.json',
+    'droply-habits.json',
+    'zeeb-fashion.json'
   ];
 }
 

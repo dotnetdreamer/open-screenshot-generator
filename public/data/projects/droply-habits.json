@@ -1,0 +1,354 @@
+{
+  "id": "template_droply_habits",
+  "name": "Droply Habits",
+  "description": "App Store screenshots for a hydration habits app. Loud purple and pink panels with giant white caps headlines and tilted phones.",
+  "previewImage": "https://placehold.co/300x200/A24DF3/FFFFFF?text=Droply",
+  "timestamp": "2026-07-06T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_dr_ab1",
+      "name": "Habits",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#A24DF3",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dr_ab1_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 160,
+            "y": 950
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -6,
+          "scale": 1.7,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#26262B",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dr_ab1_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 70,
+            "y": 120
+          },
+          "size": {
+            "width": 1180,
+            "height": 720
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "BUILD HEALTHY\nDAILY\nHYDRATION\nHABITS",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.18
+        }
+      ]
+    },
+    {
+      "id": "tpl_dr_ab2",
+      "name": "Goal",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#B678F6",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dr_ab2_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 100,
+            "y": -400
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 28,
+          "scale": 1.65,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#26262B",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dr_ab2_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 70,
+            "y": 1950
+          },
+          "size": {
+            "width": 1150,
+            "height": 640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "DAILY\nHYDRATION\nGOAL",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.18
+        }
+      ]
+    },
+    {
+      "id": "tpl_dr_ab3",
+      "name": "Reminders",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#A24DF3",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dr_ab3_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 140,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 8,
+          "scale": 1.7,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#26262B",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dr_ab3_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 70,
+            "y": 120
+          },
+          "size": {
+            "width": 1150,
+            "height": 640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "REMINDERS\nHELP YOU\nDRINK WATER",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.18
+        }
+      ]
+    },
+    {
+      "id": "tpl_dr_ab4",
+      "name": "Hydration",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#9A3DEB",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dr_ab4_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 120,
+            "y": 700
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.75,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#26262B",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dr_ab4_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 70,
+            "y": 140
+          },
+          "size": {
+            "width": 1150,
+            "height": 420
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "HYDRATION\nHABITS",
+          "fontSize": 48,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.18
+        }
+      ]
+    },
+    {
+      "id": "tpl_dr_ab5",
+      "name": "Tracking",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#F13C97",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_dr_ab5_device_top",
+          "type": "device",
+          "name": "Phone Mockup Top",
+          "position": {
+            "x": 195,
+            "y": -1150
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#26262B",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dr_ab5_device_bottom",
+          "type": "device",
+          "name": "Phone Mockup Bottom",
+          "position": {
+            "x": 195,
+            "y": 1600
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#26262B",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_dr_ab5_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 60,
+            "y": 915
+          },
+          "size": {
+            "width": 1170,
+            "height": 420
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "TRACKING\nMADE SIMPLE",
+          "fontSize": 46,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.18
+        }
+      ]
+    }
+  ]
+}

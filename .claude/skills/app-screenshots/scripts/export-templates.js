@@ -39,6 +39,11 @@ const TEMPLATES = [
   { slug: 'stockio-invest', card: 'Stockio Invest', boards: 5 },
   { slug: 'threadly-social', card: 'Threadly Social', boards: 5 },
   { slug: 'beatforge-studio', card: 'Beatforge Studio', boards: 5 },
+  { slug: 'podly-podcasts', card: 'Podly Podcasts', boards: 5 },
+  { slug: 'cinevault-stream', card: 'Cinevault', boards: 5 },
+  { slug: 'sereno-mind', card: 'Sereno Mind', boards: 5 },
+  { slug: 'droply-habits', card: 'Droply Habits', boards: 5 },
+  { slug: 'zeeb-fashion', card: 'Zeeb Fashion', boards: 5 },
 ];
 
 async function openTemplateFromStartDialog(page, cardTitle) {
