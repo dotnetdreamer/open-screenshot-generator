@@ -16,12 +16,22 @@ import {
   ClipboardPasteIcon,
   FileTextIcon,
   FolderOpenIcon,
-  EyeIcon
+  EyeIcon,
+  SmartphoneIcon
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Size } from '@/types/artboard';
+import { PLATFORM_LABELS, type SwapPlatform } from '@/lib/deviceRegistry';
 import { useClipboard } from '@/contexts/ClipboardContext';
 
 interface ToolbarProps {
@@ -52,6 +62,9 @@ interface ToolbarProps {
   canPaste?: boolean;
   currentProjectName?: string;
   onRenameProject?: (newName: string) => void;
+  onSwapDevices?: (platform: SwapPlatform) => void;
+  // Platform the project's mockups are currently on; null when mixed or none.
+  activeDevicePlatform?: SwapPlatform | null;
 }
 
 export function Toolbar({ 
@@ -82,6 +95,8 @@ export function Toolbar({
   canPaste = false,
   currentProjectName,
   onRenameProject,
+  onSwapDevices,
+  activeDevicePlatform,
 }: ToolbarProps) {
   const { clipboardItem } = useClipboard();
   // Initialize with the new default values
@@ -358,6 +373,37 @@ export function Toolbar({
       </div>
       
       <div className="flex-grow" />
+
+      {onSwapDevices && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-8"
+              title="Swap all device mockups to another platform"
+            >
+              <SmartphoneIcon className="mr-1.5 h-4 w-4" />
+              {activeDevicePlatform ? PLATFORM_LABELS[activeDevicePlatform] : 'Devices'}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel className="text-xs">Swap all mockups to</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuCheckboxItem
+              checked={activeDevicePlatform === 'android'}
+              onClick={() => onSwapDevices('android')}
+            >
+              {PLATFORM_LABELS.android}
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={activeDevicePlatform === 'ios'}
+              onClick={() => onSwapDevices('ios')}
+            >
+              {PLATFORM_LABELS.ios}
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       <Button
         variant="outline"

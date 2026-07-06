@@ -480,6 +480,11 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       envTexture.dispose();
       pmrem.dispose();
       renderer.dispose();
+      // dispose() frees GPU resources but the browser's WebGL context slot is
+      // only released when the canvas is GC'd. Force-lose it so a batch swap of
+      // N 3D devices can't transiently hold 2N context slots and evict other
+      // live canvases ("oldest context will be lost").
+      renderer.forceContextLoss();
       mount.removeChild(canvas);
     };
   }, [deviceType, side, screenshotSrc, objectFit, pose, frameColor]);

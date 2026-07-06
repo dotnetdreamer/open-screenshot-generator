@@ -23,6 +23,7 @@ import {
   SelectLabel
 } from "@/components/ui/select";
 import { getFontOptions, getGroupedFontOptions } from '@/services/fontService';
+import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -413,6 +414,37 @@ export function PropertiesPanel({
   // Fix: Define the renderDeviceProperties function here
   const renderDeviceProperties = (element: DeviceFrameElementProps) => (
     <>
+      {element.deviceType !== 'custom' && (
+        <div className="flex flex-col space-y-1 min-w-[150px]">
+          <Label htmlFor="deviceModel" className="text-xs">
+            Device Model
+          </Label>
+          <Select
+            value={element.deviceType}
+            onValueChange={(v) => {
+              if (v !== element.deviceType) {
+                // The layout routes deviceType changes through the
+                // screen-aware swap (bounds refit + overlay adaptation).
+                onUpdateElement({ deviceType: v as DeviceType });
+              }
+            }}
+          >
+            <SelectTrigger id="deviceModel" className="h-8 text-xs">
+              <SelectValue placeholder="Select Device" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEVICE_PICKER_GROUPS.map((group) => (
+                <SelectGroup key={group.platform}>
+                  <SelectLabel>{group.label}</SelectLabel>
+                  {group.devices.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.label}</SelectItem>
+                  ))}
+                </SelectGroup>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       {element.deviceType === 'custom' && (
         <Button
           variant="outline"

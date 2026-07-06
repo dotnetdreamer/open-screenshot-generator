@@ -31,7 +31,7 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 - Tiles: `button[title="Add <label>"]` (e.g. `Add iPhone 17 Pro Max 3D — tilted right (black)`, `Add Transparent device`).
 - Toolbar by `title` attr: `New Artboard` (new artboard becomes active), `Export Artboards as Images`, `Zoom In`, `Zoom Out`.
 - Canvas elements: `[data-element-id]` (count them to detect adds).
-- Exported files are named `<Artboard_Name>.png` with spaces → underscores.
+- Exported files are named `<NN>_<Artboard_Name>.png` with spaces → underscores; `NN` is the zero-padded canvas order (e.g. `01_Blank_Artboard.png`).
 
 ## Scripts (in `scripts/`)
 

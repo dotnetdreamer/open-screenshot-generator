@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import {
@@ -21,6 +21,7 @@ import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, TargetStore, ExportDeviceCategory, Project } from '@/types/artboard';
 import { loadProjectTemplates } from '@/services/projectService';
+import { detectArtboardsPlatform, PLATFORM_LABELS, swapArtboardsToPlatform, swapDeviceInElements, type SwapPlatform } from '@/lib/deviceRegistry';
 
 import { Button } from '@/components/ui/button';
 import { InfoIcon } from 'lucide-react';
@@ -298,7 +299,7 @@ export function ArtboardStudioLayout() {
     }
     saveProject(); // Call the async save function
     pushToHistory(repositionedArtboards);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, history, historyIndex, setActiveProjectId]);
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId]);
 
   useEffect(() => {
     if (activeArtboardId && selectedElementIdOnActiveArtboard) {
@@ -319,6 +320,16 @@ export function ArtboardStudioLayout() {
 
     const updatedArtboards = artboards.map(ab => {
       if (ab.id === activeArtboardId) {
+        // Device model changes go through the screen-aware swap so overlays
+        // authored on the screen area (screen fills, pre-baked screenshots)
+        // re-fit to the new device's screen rect and corner radius.
+        const deviceTarget = (updates as Partial<DeviceFrameElementProps>).deviceType;
+        if (deviceTarget) {
+          const swappedElements = swapDeviceInElements(ab.elements, selectedElementIdOnActiveArtboard, deviceTarget);
+          if (swappedElements) {
+            return { ...ab, elements: swappedElements };
+          }
+        }
         return {
           ...ab,
           elements: ab.elements.map(el =>
@@ -329,6 +340,38 @@ export function ArtboardStudioLayout() {
       return ab;
     });
     handleArtboardsUpdate(updatedArtboards);
+  };
+
+  // 'ios' | 'android' when the project's mockups agree, null when mixed/none —
+  // drives the checkmark in the Toolbar's Devices menu.
+  const activeDevicePlatform = useMemo(() => {
+    const platform = detectArtboardsPlatform(artboards);
+    return platform === 'mixed' ? null : platform;
+  }, [artboards]);
+
+  // Swap every device mockup in the project to the given platform. One
+  // handleArtboardsUpdate call = one history entry, so the whole swap is a
+  // single Ctrl+Z away.
+  const handleSwapAllDevices = (platform: SwapPlatform) => {
+    const platformLabel = PLATFORM_LABELS[platform];
+    const { artboards: swappedArtboards, swapped, skipped } = swapArtboardsToPlatform(artboards, platform);
+    if (swapped === 0) {
+      const hasDevices = artboards.some(ab => ab.elements.some(el => el.type === 'device'));
+      toast({
+        title: "No devices swapped",
+        description: !hasDevices
+          ? "This project has no device mockups."
+          : skipped > 0
+            ? `${skipped} device(s) have no ${platformLabel} equivalent (tablet/desktop/custom mockups are left as-is).`
+            : `All device mockups are already ${platformLabel}.`,
+      });
+      return;
+    }
+    handleArtboardsUpdate(swappedArtboards);
+    toast({
+      title: "Devices swapped",
+      description: `${swapped} mockup(s) swapped to ${platformLabel}${skipped > 0 ? `, ${skipped} left as-is (no equivalent)` : ''}. Undo reverts all of them.`,
+    });
   };
 
   // Add handler for renaming element from layers panel
@@ -654,7 +697,11 @@ export function ArtboardStudioLayout() {
     window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    for (const artboard of artboards) {
+    // Array order matches canvas order (calculateArtboardPositions lays boards
+    // out left-to-right by index), so the loop index is the on-canvas position.
+    const orderPadWidth = Math.max(2, String(artboards.length).length);
+
+    for (const [index, artboard] of artboards.entries()) {
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
 
@@ -704,8 +751,9 @@ export function ArtboardStudioLayout() {
         // Create a link to download the image
         const link = document.createElement('a');
         link.href = imageDataUrl;
-        // Create a simple filename
-        const filename = `${artboard.name.replace(/\s+/g, '_')}.png`;
+        // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
+        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
+        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}.png`;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
@@ -1471,6 +1519,8 @@ const generateRandomProjectName = (): string => {
             canPaste={!!clipboardItem && !!activeArtboardId}
             currentProjectName={currentProjectName}
             onRenameProject={handleRenameProject}
+            onSwapDevices={handleSwapAllDevices}
+            activeDevicePlatform={activeDevicePlatform}
             className="sticky top-0 z-50 bg-card border-b"
           />
           

@@ -115,66 +115,10 @@
             "top": 0,
             "width": 100,
             "height": 100
-          }
-        },
-        {
-          "id": "tpl_dz_ab1_screen",
-          "type": "shape",
-          "name": "Screen Fill",
-          "position": {
-            "x": 222,
-            "y": 787
           },
-          "size": {
-            "width": 846,
-            "height": 1746
-          },
-          "rotation": 0,
-          "scale": 1,
-          "shapeType": "rectangle",
-          "fillColor": "#0F1115",
-          "strokeColor": "transparent",
-          "strokeWidth": 0,
-          "borderRadius": 18
-        },
-        {
-          "id": "tpl_dz_ab1_mannequin",
-          "type": "image",
-          "name": "3D Mannequin",
-          "position": {
-            "x": 222,
-            "y": 787
-          },
-          "size": {
-            "width": 846,
-            "height": 1746
-          },
-          "rotation": 0,
-          "scale": 1,
-          "imageSrc": "/data/projects/darzi-screen-hero.png",
-          "imageAlt": "Darzi Studio 3D fitting room — particle fit model with chaati scan ring",
-          "objectFit": "cover",
-          "opacity": 1,
-          "borderRadius": 18
-        },
-        {
-          "id": "tpl_dz_ab1_hole",
-          "type": "shape",
-          "name": "Punch Hole",
-          "position": {
-            "x": 624,
-            "y": 808
-          },
-          "size": {
-            "width": 42,
-            "height": 42
-          },
-          "rotation": 0,
-          "scale": 1,
-          "shapeType": "circle",
-          "fillColor": "#000000",
-          "strokeColor": "transparent",
-          "strokeWidth": 0
+          "screenshotSrc": "/data/projects/darzi-screen-hero.png",
+          "naturalScreenshotWidth": 846,
+          "naturalScreenshotHeight": 1746
         },
         {
           "id": "tpl_dz_ab1_chip",
@@ -650,66 +594,10 @@
             "top": 0,
             "width": 100,
             "height": 100
-          }
-        },
-        {
-          "id": "tpl_dz_ab2_screen",
-          "type": "shape",
-          "name": "Screen Fill",
-          "position": {
-            "x": 307,
-            "y": 1352
           },
-          "size": {
-            "width": 677,
-            "height": 1397
-          },
-          "rotation": 0,
-          "scale": 1,
-          "shapeType": "rectangle",
-          "fillColor": "#0F1115",
-          "strokeColor": "transparent",
-          "strokeWidth": 0,
-          "borderRadius": 14
-        },
-        {
-          "id": "tpl_dz_ab2_mannequin",
-          "type": "image",
-          "name": "3D Mannequin Waist",
-          "position": {
-            "x": 307,
-            "y": 1352
-          },
-          "size": {
-            "width": 677,
-            "height": 1397
-          },
-          "rotation": 0,
-          "scale": 1,
-          "imageSrc": "/data/projects/darzi-screen-scan.png",
-          "imageAlt": "Darzi Studio 3D fitting room — kamar scan ring close-up",
-          "objectFit": "cover",
-          "opacity": 1,
-          "borderRadius": 14
-        },
-        {
-          "id": "tpl_dz_ab2_hole",
-          "type": "shape",
-          "name": "Punch Hole",
-          "position": {
-            "x": 628,
-            "y": 1369
-          },
-          "size": {
-            "width": 34,
-            "height": 34
-          },
-          "rotation": 0,
-          "scale": 1,
-          "shapeType": "circle",
-          "fillColor": "#000000",
-          "strokeColor": "transparent",
-          "strokeWidth": 0
+          "screenshotSrc": "/data/projects/darzi-screen-scan.png",
+          "naturalScreenshotWidth": 677,
+          "naturalScreenshotHeight": 1397
         },
         {
           "id": "tpl_dz_ab2_chipval",
@@ -3240,52 +3128,16 @@
           "deviceType": "android-punch-hole",
           "styleType": "normal",
           "frameColor": "#FFC233",
-          "screenshotObjectFit": "cover",
+          "screenshotObjectFit": "fill",
           "screenshotRect": {
             "left": 0,
             "top": 0,
             "width": 100,
             "height": 100
-          }
-        },
-        {
-          "id": "tpl_dz_ab7_screen",
-          "type": "shape",
-          "name": "Screen Fill",
-          "position": {
-            "x": 250,
-            "y": 855
           },
-          "size": {
-            "width": 790,
-            "height": 1630
-          },
-          "rotation": 0,
-          "scale": 1,
-          "shapeType": "rectangle",
-          "fillColor": "#0F1115",
-          "strokeColor": "transparent",
-          "strokeWidth": 0,
-          "borderRadius": 17
-        },
-        {
-          "id": "tpl_dz_ab7_hole",
-          "type": "shape",
-          "name": "Punch Hole",
-          "position": {
-            "x": 625,
-            "y": 875
-          },
-          "size": {
-            "width": 40,
-            "height": 40
-          },
-          "rotation": 0,
-          "scale": 1,
-          "shapeType": "circle",
-          "fillColor": "#000000",
-          "strokeColor": "transparent",
-          "strokeWidth": 0
+          "screenshotSrc": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAABAAAAAQBPJcTWAAAADElEQVR4nGPkFxABAABpADUttF7XAAAAAElFTkSuQmCC",
+          "naturalScreenshotWidth": 1,
+          "naturalScreenshotHeight": 1
         },
         {
           "id": "tpl_dz_ab7_spool",
