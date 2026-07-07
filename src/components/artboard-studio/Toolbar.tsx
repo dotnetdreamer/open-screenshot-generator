@@ -229,10 +229,9 @@ export function Toolbar({
           size="icon"
           onClick={onCopyElement}
           disabled={!canCopy}
-          className="h-8 w-8"
           title="Copy (Ctrl+C)"
         >
-          <CopyIcon className="h-4 w-4" />
+          <CopyIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
 
         <Button
@@ -240,10 +239,9 @@ export function Toolbar({
           size="icon"
           onClick={onPasteElement}
           disabled={!canPaste}
-          className="h-8 w-8"
           title="Paste (Ctrl+V)"
         >
-          <ClipboardPasteIcon className="h-4 w-4" />
+          <ClipboardPasteIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
       </div>
 
@@ -299,12 +297,12 @@ export function Toolbar({
         </DropdownMenu>
 
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
           onClick={onDeleteSelected}
           className={cn(
-            "text-destructive opacity-75 hover:opacity-100 hover:bg-destructive/10",
-            (!isElementSelected && !isArtboardSelected) && "opacity-40 cursor-not-allowed hover:opacity-40"
+            "text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40",
+            (!isElementSelected && !isArtboardSelected) && "cursor-not-allowed"
           )}
           disabled={!isElementSelected && !isArtboardSelected}
           title={isElementSelected ? "Delete Element (Delete)" : isArtboardSelected ? "Delete Artboard (Delete)" : "Select something to delete"}
@@ -342,7 +340,7 @@ export function Toolbar({
           variant="outline"
           size="sm"
           onClick={handleApplySize}
-          className="h-7 px-2 text-xs"
+          className="h-7 self-end px-3 text-xs"
         >
           Apply
         </Button>
