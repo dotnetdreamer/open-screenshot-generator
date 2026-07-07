@@ -22,6 +22,16 @@ export interface TemplateCategory {
   defaultSize: Size;
   // Template JSON filenames (in public/data/projects) belonging to this tab.
   files: string[];
+  // How the picker renders this category's preview thumbnails. App-screenshot
+  // previews are a wide strip of several phone screens, so the box is wide and
+  // the image is contained (never cropped) so every screen stays readable;
+  // banner previews are a single ~1024×500 frame, so the box matches that ratio
+  // and the image covers it edge to edge.
+  previewAspect: string; // CSS aspect-ratio, e.g. '3 / 1' or '1024 / 683'
+  previewFit: 'cover' | 'contain';
+  // Tailwind grid-template-columns utilities for this category's card grid.
+  // Wide strips want fewer, wider columns; banners pack more per row.
+  gridClassName: string;
 }
 
 export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
@@ -30,6 +40,9 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     label: 'App Screenshots',
     blurb: 'Portrait App Store and Play Store screenshot layouts.',
     defaultSize: { width: 1290, height: 2796 },
+    previewAspect: '3 / 1',
+    previewFit: 'contain',
+    gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
       'connectly-chat.json',
       'budgetly-finance.json',
@@ -79,6 +92,9 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     label: 'Google Feature Graphic',
     blurb: 'Google Play 1024×500 feature banner.',
     defaultSize: { width: 1024, height: 500 },
+    previewAspect: '1024 / 683',
+    previewFit: 'cover',
+    gridClassName: 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3',
     files: [
       'fg-wallet-protected.json',
       'fg-expense-tracking.json',

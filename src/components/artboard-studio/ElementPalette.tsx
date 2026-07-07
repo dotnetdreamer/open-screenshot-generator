@@ -27,6 +27,7 @@ import type { ElementType, ShapeType, DeviceType, ArtboardElement, Device3DPose 
 import { LayersPanel } from './LayersPanel';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
 import { IMAGE_CATEGORIES, type LibraryImageDef } from '@/lib/imageLibrary';
+import { withBasePath } from '@/lib/basePath';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -83,7 +84,7 @@ const Device3DThumbTile: React.FC<{
     aria-label={title}
   >
     <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-1.5 overflow-hidden">
-      <img src={src} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
+      <img src={withBasePath(src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
     </span>
     <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
   </button>
@@ -230,7 +231,7 @@ const ImageLibraryTile: React.FC<{
       aria-label={`Add ${item.label}`}
     >
       <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
-        <img src={item.src} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
+        <img src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
       </span>
       <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{item.label}</span>
     </button>
@@ -645,14 +646,14 @@ export function ElementPalette({
                     label={DEVICE_CATEGORY_LABELS['3d-iphone']}
                     onOpen={() => setOpenDeviceCategoryId('3d-iphone')}
                     previews={IPHONE_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={`/elements/device-3d/iphone-${k}.png`} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/iphone-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
                     label={DEVICE_CATEGORY_LABELS['3d-android']}
                     onOpen={() => setOpenDeviceCategoryId('3d-android')}
                     previews={ANDROID_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={`/elements/device-3d/android-${k}.png`} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/android-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
@@ -718,7 +719,7 @@ export function ElementPalette({
                       label={category.label}
                       onOpen={() => setOpenImageCategoryId(category.id)}
                       previews={category.items.slice(0, 6).map(item => (
-                        <img key={item.id} src={item.src} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                        <img key={item.id} src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                       ))}
                     />
                   ))}

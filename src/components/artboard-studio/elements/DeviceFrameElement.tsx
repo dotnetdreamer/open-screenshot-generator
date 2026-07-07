@@ -7,6 +7,7 @@ import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
 import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, DeviceStyleType } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
+import { withBasePath } from '@/lib/basePath';
 import { Device3DRenderer } from './Device3DRenderer';
 
 interface DeviceFrameElementProps {
@@ -615,7 +616,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                 }}
               >
                 <img
-                  src={screenshot}
+                  src={withBasePath(screenshot)}
                   alt={`${element.deviceType} screenshot`}
                   style={{
                     cursor: 'default',

@@ -6,6 +6,10 @@ export default {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Catalog data (e.g. templateCategories.ts) ships literal Tailwind class
+    // strings like the picker's per-category grid columns; scan it so those
+    // classes aren't purged.
+    "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
   	extend: {

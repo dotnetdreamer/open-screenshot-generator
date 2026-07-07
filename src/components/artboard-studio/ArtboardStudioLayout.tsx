@@ -41,6 +41,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
+import { withBasePath } from '@/lib/basePath';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -59,6 +60,7 @@ import {
 import { Trash2Icon } from 'lucide-react';
 import { useClipboard, ClipboardProvider } from '@/contexts/ClipboardContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
@@ -103,7 +105,7 @@ function createBlankProject(size: Size = { width: 1290, height: 2796 }): Project
 // whole studio layout (canvas, palette, properties panel).
 // `emptyState` renders in place of the search + grid when this category has no
 // templates yet (e.g. Feature Graphic before any are authored).
-function TemplateGallery({ projects, onSelect, isLoading, emptyState }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean; emptyState?: React.ReactNode }) {
+function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAspect, previewFit, gridClassName }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean; emptyState?: React.ReactNode; previewAspect: string; previewFit: 'cover' | 'contain'; gridClassName: string }) {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
@@ -121,6 +123,8 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState }: { projec
     return <div className="min-h-0 flex-1 overflow-y-auto">{emptyState}</div>;
   }
 
+  const gridClass = cn('grid gap-5 p-4', gridClassName);
+
   return (
     <>
       <div className="relative px-1">
@@ -137,11 +141,11 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState }: { projec
           because the dialog is max-h-capped, not fixed-height. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+          <div className={gridClass}>
             {Array.from({ length: 6 }).map((_, index) => (
               <Card key={index} className="overflow-hidden">
                 <CardHeader className="p-0">
-                  <Skeleton className="h-40 w-full rounded-none rounded-t-lg" />
+                  <Skeleton className="w-full rounded-none rounded-t-lg" style={{ aspectRatio: previewAspect }} />
                 </CardHeader>
                 <CardContent className="p-4 space-y-2">
                   <Skeleton className="h-5 w-2/3" />
@@ -153,32 +157,46 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState }: { projec
           </div>
         ) : (
         <TooltipProvider delayDuration={250}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+          <div className={gridClass}>
             {filteredTemplates.length === 0 && (
               <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
                 {`No templates match "${deferredQuery.trim()}".`}
               </p>
             )}
             {filteredTemplates.map((project: Project) => {
+              const screens = project.projectData?.length ?? 0;
+              // Real strip previews (contain) must never be cropped; placeholder
+              // previews (placehold.co) have no meaningful edges, so let them
+              // fill the box instead of floating in it.
+              const isPlaceholder = !project.previewImage || project.previewImage.includes('placehold.co');
+              const fitClass = !isPlaceholder && previewFit === 'contain' ? 'object-contain' : 'object-cover';
               const card = (
                 <Card
-                  className="hover:shadow-xl transition-shadow cursor-pointer"
+                  className="group flex flex-col overflow-hidden border transition-all cursor-pointer hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-xl"
                   onClick={() => onSelect(project)}
                 >
                   <CardHeader className="p-0">
-                    {project.previewImage && (
-                       <Image
-                        src={project.previewImage}
-                        alt={project.name}
-                        width={300} height={200}
-                        className="rounded-t-lg object-cover w-full h-40"
-                        data-ai-hint={project.description || "project design"}
-                      />
-                    )}
+                    <div className="relative w-full overflow-hidden rounded-t-lg bg-muted" style={{ aspectRatio: previewAspect }}>
+                      {project.previewImage && (
+                         <Image
+                          src={withBasePath(project.previewImage)}
+                          alt={project.name}
+                          fill
+                          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 700px"
+                          className={cn('transition-transform duration-300 group-hover:scale-[1.03]', fitClass)}
+                          data-ai-hint={project.description || "project design"}
+                        />
+                      )}
+                      {screens > 1 && (
+                        <span className="absolute right-2 top-2 z-10 rounded-full bg-background/85 px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground shadow-sm backdrop-blur">
+                          {screens} screens
+                        </span>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent className="p-4">
-                    <CardTitle className="text-lg mb-1">{project.name}</CardTitle>
-                    <CardDescription className="text-sm line-clamp-3">{project.description}</CardDescription>
+                    <CardTitle className="mb-1 text-base">{project.name}</CardTitle>
+                    <CardDescription className="line-clamp-2 text-sm">{project.description}</CardDescription>
                   </CardContent>
                 </Card>
               );
@@ -1522,7 +1540,7 @@ const generateRandomProjectName = (): string => {
             }
           }}
         >
-          <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col">
+          <DialogContent className="flex max-h-[92vh] w-[95vw] max-w-[1400px] flex-col">
             <DialogHeader>
               <DialogTitle>Start a New Project</DialogTitle>
               <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
@@ -1544,6 +1562,9 @@ const generateRandomProjectName = (): string => {
                     projects={availableProjects.filter((p) => p.category === cat.id)}
                     onSelect={handleSelectTemplate}
                     isLoading={isLoadingProjects}
+                    previewAspect={cat.previewAspect}
+                    previewFit={cat.previewFit}
+                    gridClassName={cat.gridClassName}
                     emptyState={
                       <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
                         <p className="max-w-sm text-sm text-muted-foreground">

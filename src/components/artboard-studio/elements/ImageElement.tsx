@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImageIcon } from 'lucide-react';
 import type { ImageElementProps } from '@/types/artboard';
 import { cn } from '@/lib/utils';
+import { withBasePath } from '@/lib/basePath';
 
 interface ImageElementComponentProps {
   element: ImageElementProps;
@@ -111,7 +112,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
           style={transformStyle}
         >
           <Image
-            src={element.imageSrc}
+            src={withBasePath(element.imageSrc)}
             alt={element.imageAlt || 'Uploaded image'}
             fill
             style={{

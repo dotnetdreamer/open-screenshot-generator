@@ -1,8 +1,6 @@
 import { ArtboardState, Project } from '@/types/artboard';
 import { TEMPLATE_CATEGORIES, ALL_TEMPLATE_FILES } from '@/lib/templateCategories';
-
-// Matches basePath in next.config.ts so template fetches work under a sub-path deploy.
-const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+import { BASE_PATH } from '@/lib/basePath';
 
 // Function to load all available project files from data/projects folder.
 // Iterates the TEMPLATE_CATEGORIES catalog so every returned Project is tagged

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { DeviceType, Device3DPose, Device3DFrameColor } from '@/types/artboard';
+import { withBasePath } from '@/lib/basePath';
 
 interface Device3DRendererProps {
   deviceType: DeviceType;
@@ -475,7 +476,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
         updateShot();
         render();
       };
-      img.src = screenshotSrc;
+      img.src = withBasePath(screenshotSrc);
     }
 
     return () => {
