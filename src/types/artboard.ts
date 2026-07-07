@@ -176,4 +176,5 @@ export interface Project {
   projectData: ArtboardState[];
   description?: string; // For template projects
   previewImage?: string; // For template projects
+  category?: string; // Template category id (see TEMPLATE_CATEGORIES); groups templates into dialog tabs
 }

@@ -19,9 +19,10 @@ import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, Project } from '@/types/artboard';
+import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 import { ExportDialog, type ExportSelection } from './ExportDialog';
 import { loadProjectTemplates } from '@/services/projectService';
+import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { db } from '@/database';
 import {
@@ -77,9 +79,31 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
   });
 }
 
+// A one-artboard "Blank Canvas" project at the given size. `size` follows the
+// active template tab so a blank Feature Graphic is 1024×500, not a phone.
+function createBlankProject(size: Size = { width: 1290, height: 2796 }): Project {
+  return {
+    id: 'blank',
+    name: 'Blank Canvas',
+    description: 'Start with a blank artboard',
+    timestamp: new Date(),
+    projectData: [{
+      id: 'artboard_blank_1',
+      name: 'Blank Artboard',
+      size: { ...size },
+      elements: [],
+      backgroundColor: '#FFFFFF',
+      zoom: 1,
+      position: { x: 50, y: 50 },
+    } as ArtboardState],
+  };
+}
+
 // Owns the search state so keystrokes re-render only the gallery, not the
 // whole studio layout (canvas, palette, properties panel).
-function TemplateGallery({ projects, onSelect, isLoading }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean }) {
+// `emptyState` renders in place of the search + grid when this category has no
+// templates yet (e.g. Feature Graphic before any are authored).
+function TemplateGallery({ projects, onSelect, isLoading, emptyState }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean; emptyState?: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
@@ -91,6 +115,11 @@ function TemplateGallery({ projects, onSelect, isLoading }: { projects: Project[
           || haystack.replace(/\s+/g, '').includes(normalizedQuery.replace(/\s+/g, ''));
       })
     : projects;
+
+  // Category with no templates authored yet: skip search + grid entirely.
+  if (!isLoading && projects.length === 0 && emptyState) {
+    return <div className="min-h-0 flex-1 overflow-y-auto">{emptyState}</div>;
+  }
 
   return (
     <>
@@ -182,6 +211,7 @@ export function ArtboardStudioLayout() {
   const [history, setHistory] = useState<ArtboardState[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(true);
+  const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const { toast } = useToast();
@@ -1461,6 +1491,19 @@ const generateRandomProjectName = (): string => {
   // swapping the whole tree for this dialog used to unmount the palette and
   // canvas (losing tab/drill-in/selection state) whenever the flag flickered
   // during project creation/loading.
+  // The tab currently shown in the template picker, and per-category counts for
+  // the tab badges. A blank canvas started from this dialog uses the active
+  // category's defaultSize (phone screenshot vs 1024×500 feature graphic).
+  const activeCategory =
+    TEMPLATE_CATEGORIES.find((c) => c.id === templateTab) ?? TEMPLATE_CATEGORIES[0];
+  const templateCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of availableProjects) {
+      if (p.category) counts[p.category] = (counts[p.category] ?? 0) + 1;
+    }
+    return counts;
+  }, [availableProjects]);
+
   const templateSelectorDialog = (
       <>
         <Dialog
@@ -1468,22 +1511,7 @@ const generateRandomProjectName = (): string => {
           onOpenChange={(newOpenState) => {
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
                // Create a blank project when no template is selected
-               const blankProject: Project = {
-                 id: 'blank',
-                 name: 'Blank Canvas',
-                 description: 'Start with a blank artboard',
-                 timestamp: new Date(),
-                 projectData: [{
-                   id: 'artboard_blank_1',
-                   name: 'Blank Artboard',
-                   size: { width: 1290, height: 2796 },
-                   elements: [],
-                   backgroundColor: '#FFFFFF',
-                   zoom: 1,
-                   position: {x:50, y:50},
-                 } as ArtboardState]
-               };
-               handleSelectTemplate(blankProject);
+               handleSelectTemplate(createBlankProject(activeCategory.defaultSize));
             }
             setIsTemplateSelectorOpen(newOpenState);
             // --- 3. Remove projectId from URL when template selector is opened ---
@@ -1499,26 +1527,39 @@ const generateRandomProjectName = (): string => {
               <DialogTitle>Start a New Project</DialogTitle>
               <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
             </DialogHeader>
-            <TemplateGallery projects={availableProjects} onSelect={handleSelectTemplate} isLoading={isLoadingProjects} />
+            <Tabs value={templateTab} onValueChange={setTemplateTab} className="flex min-h-0 flex-1 flex-col">
+              <TabsList className="mx-1 self-start">
+                {TEMPLATE_CATEGORIES.map((cat) => (
+                  <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5">
+                    {cat.label}
+                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full border px-1 text-[11px] tabular-nums text-muted-foreground">
+                      {isLoadingProjects ? '…' : (templateCounts[cat.id] ?? 0)}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {TEMPLATE_CATEGORIES.map((cat) => (
+                <TabsContent key={cat.id} value={cat.id} className="mt-2 flex min-h-0 flex-1 flex-col">
+                  <TemplateGallery
+                    projects={availableProjects.filter((p) => p.category === cat.id)}
+                    onSelect={handleSelectTemplate}
+                    isLoading={isLoadingProjects}
+                    emptyState={
+                      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+                        <p className="max-w-sm text-sm text-muted-foreground">
+                          {`No ${cat.label} templates yet.`}{cat.blurb ? ` ${cat.blurb}` : ''}
+                        </p>
+                        <Button variant="outline" onClick={() => handleSelectTemplate(createBlankProject(cat.defaultSize))}>
+                          {`Start blank (${cat.defaultSize.width} × ${cat.defaultSize.height})`}
+                        </Button>
+                      </div>
+                    }
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
              <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                const blankProject: Project = {
-                  id: 'blank',
-                  name: 'Blank Canvas',
-                  description: 'Start with a blank artboard',
-                  timestamp: new Date(),
-                  projectData: [{
-                    id: 'artboard_blank_1',
-                    name: 'Blank Artboard',
-                    size: { width: 1290, height: 2796 },
-                    elements: [],
-                    backgroundColor: '#FFFFFF',
-                    zoom: 1,
-                    position: {x:50, y:50},
-                  } as ArtboardState]
-                };
-                handleSelectTemplate(blankProject);
-              }}>Start Blank</Button>
+              <Button variant="outline" onClick={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}>Start Blank</Button>
             </DialogFooter>
 
             {/* New Section for Recent Projects */}

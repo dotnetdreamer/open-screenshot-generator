@@ -1,0 +1,230 @@
+{
+  "id": "template_wallet_protected",
+  "name": "Wallet Protected",
+  "description": "Google Play feature graphic (1024x500) for a secure wallet or banking app. Teal gradient, shield badge and a replaceable phone mockup. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-wallet-protected.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_wallet-protected_ab",
+      "name": "Wallet Protected",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#3FA392",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#5FC3B0",
+        "color2": "#268173",
+        "angle": 135
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "c1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -140,
+            "y": 250
+          },
+          "size": {
+            "width": 440,
+            "height": 440
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.06
+        },
+        {
+          "id": "c2",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 560,
+            "y": -180
+          },
+          "size": {
+            "width": 380,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.05
+        },
+        {
+          "id": "r3",
+          "type": "shape",
+          "name": "Phone Shadow",
+          "position": {
+            "x": 724,
+            "y": 74
+          },
+          "size": {
+            "width": 250,
+            "height": 545
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0B2A26",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "borderRadiusType": "uniform",
+          "fillOpacity": 0.18
+        },
+        {
+          "id": "dev4",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 706,
+            "y": 56
+          },
+          "size": {
+            "width": 250,
+            "height": 545
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#1B1B20",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-list-light.png"
+        },
+        {
+          "id": "c5",
+          "type": "shape",
+          "name": "Badge Disc",
+          "position": {
+            "x": 71,
+            "y": 89
+          },
+          "size": {
+            "width": 122,
+            "height": 122
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#14A15B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s6",
+          "type": "shape",
+          "name": "Shield",
+          "position": {
+            "x": 98.44999999999999,
+            "y": 112.78999999999999
+          },
+          "size": {
+            "width": 67.10000000000001,
+            "height": 67.10000000000001
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 8 H92 V50 L50 94 L8 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s7",
+          "type": "shape",
+          "name": "Check",
+          "position": {
+            "x": 116.14,
+            "y": 136.57999999999998
+          },
+          "size": {
+            "width": 31.720000000000002,
+            "height": 31.720000000000002
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#14A15B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "t8",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 66,
+            "y": 250
+          },
+          "size": {
+            "width": 600,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your Wallet,\nProtected",
+          "fontSize": 17,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "t9",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 68,
+            "y": 410
+          },
+          "size": {
+            "width": 520,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Bank-grade security on every transaction.",
+          "fontSize": 9,
+          "color": "#EAFBF5",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.3
+        }
+      ]
+    }
+  ]
+}

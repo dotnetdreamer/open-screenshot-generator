@@ -1,0 +1,214 @@
+{
+  "id": "template_travel_explore",
+  "name": "Travel Explore",
+  "description": "Google Play feature graphic (1024x500) for a travel or trip-planning app. Teal-to-sky hero with map pin, flight path and the Google Play badge. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-travel-explore.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_travel-explore_ab",
+      "name": "Travel Explore",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#24B6C2",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#24B6C2",
+        "color2": "#2E77D6",
+        "angle": 140
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "s110",
+          "type": "shape",
+          "name": "Path",
+          "position": {
+            "x": 560,
+            "y": 70
+          },
+          "size": {
+            "width": 300,
+            "height": 120
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 4,
+          "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "fillOpacity": 0.5
+        },
+        {
+          "id": "dev111",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 748,
+            "y": 66
+          },
+          "size": {
+            "width": 224,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#1B1B20",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-cards-light.png"
+        },
+        {
+          "id": "c112",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 564,
+            "y": 94
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s113",
+          "type": "shape",
+          "name": "Location Pin",
+          "position": {
+            "x": 582,
+            "y": 112
+          },
+          "size": {
+            "width": 36,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2E77D6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C31 6 17 20 17 38 C17 62 50 94 50 94 C50 94 83 62 83 38 C83 20 69 6 50 6 Z M38 38 A12 12 0 1 0 62 38 A12 12 0 1 0 38 38 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          }
+        },
+        {
+          "id": "s114",
+          "type": "shape",
+          "name": "Plane",
+          "position": {
+            "x": 650,
+            "y": 402
+          },
+          "size": {
+            "width": 62,
+            "height": 62
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M92 8 L8 44 L38 56 L82 20 L46 62 L58 90 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillOpacity": 0.9
+        },
+        {
+          "id": "t115",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 58,
+            "y": 140
+          },
+          "size": {
+            "width": 470,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Explore the\nworld your way",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "t116",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 296
+          },
+          "size": {
+            "width": 440,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Plan trips, find stays,\ngo anywhere.",
+          "fontSize": 10,
+          "color": "#E4F6F8",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.35
+        },
+        {
+          "id": "i117",
+          "type": "image",
+          "name": "Google Play",
+          "position": {
+            "x": 60,
+            "y": 398
+          },
+          "size": {
+            "width": 190,
+            "height": 73.48066298342542
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/badges/google-play.png",
+          "imageAlt": "",
+          "objectFit": "contain"
+        }
+      ]
+    }
+  ]
+}

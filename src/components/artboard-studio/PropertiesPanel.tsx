@@ -362,11 +362,21 @@ export function PropertiesPanel({
         } else if (uploadPurpose === 'screenshot') {
           const img = new window.Image();
           img.onload = () => {
+            // Predefined devices already carry a padded screen area, so the
+            // screenshot should FILL it (0,0,100,100); insetting reveals the
+            // black screen background as a fake bezel and hides the notch /
+            // punch-hole (black on black). Only the 'custom' frame needs the
+            // 5% inset. Mirrors DeviceFrameElement's own upload handler.
+            const isCustomFrame =
+              selectedElement?.type === 'device' &&
+              (selectedElement as DeviceFrameElementProps).deviceType === 'custom';
             onUpdateElement({
               screenshotSrc: dataUrl,
               naturalScreenshotWidth: img.naturalWidth,
               naturalScreenshotHeight: img.naturalHeight,
-              screenshotRect: { left: 5, top: 5, width: 90, height: 90 }
+              screenshotRect: isCustomFrame
+                ? { left: 5, top: 5, width: 90, height: 90 }
+                : { left: 0, top: 0, width: 100, height: 100 },
             });
           };
           img.src = dataUrl;

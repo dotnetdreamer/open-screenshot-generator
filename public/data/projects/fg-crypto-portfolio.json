@@ -1,0 +1,259 @@
+{
+  "id": "template_crypto_portfolio",
+  "name": "Crypto Portfolio",
+  "description": "Google Play feature graphic (1024x500) for a crypto portfolio app. Dark navy hero with coins, a live up-trend and a phone. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-crypto-portfolio.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_crypto-portfolio_ab",
+      "name": "Crypto Portfolio",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#0B1226",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0B1226",
+        "color2": "#14264D",
+        "angle": 135
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "s118",
+          "type": "shape",
+          "name": "Trend",
+          "position": {
+            "x": 520,
+            "y": 250
+          },
+          "size": {
+            "width": 200,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2FD27E",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M8 8 V92 H92 M22 74 L42 50 L58 62 L84 30",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "fillOpacity": 0.5
+        },
+        {
+          "id": "dev119",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 742,
+            "y": 66
+          },
+          "size": {
+            "width": 224,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#12141C",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-cards-dark.png"
+        },
+        {
+          "id": "c120",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 554,
+            "y": 96
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F5B72E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s121",
+          "type": "shape",
+          "name": "Dollar Coin",
+          "position": {
+            "x": 567.68,
+            "y": 109.68
+          },
+          "size": {
+            "width": 44.64,
+            "height": 44.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5A3C06",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 50 A44 44 0 1 0 94 50 A44 44 0 1 0 6 50 Z M46 18 H54 V26 C62 27 68 32 69 40 H60 C59 36 55 33 50 33 C45 33 41 36 41 40 C41 45 46 46 52 48 C60 50 70 52 70 61 C70 69 63 74 54 75 V82 H46 V75 C37 74 31 68 30 60 H39 C40 65 44 68 50 68 C56 68 61 65 61 61 C61 56 56 54 49 52 C41 50 32 48 32 40 C32 33 38 27 46 26 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          }
+        },
+        {
+          "id": "c122",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 647,
+            "y": 391
+          },
+          "size": {
+            "width": 58,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#7C83FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s123",
+          "type": "shape",
+          "name": "Dollar Coin",
+          "position": {
+            "x": 658.02,
+            "y": 402.02
+          },
+          "size": {
+            "width": 35.96,
+            "height": 35.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#16204D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 50 A44 44 0 1 0 94 50 A44 44 0 1 0 6 50 Z M46 18 H54 V26 C62 27 68 32 69 40 H60 C59 36 55 33 50 33 C45 33 41 36 41 40 C41 45 46 46 52 48 C60 50 70 52 70 61 C70 69 63 74 54 75 V82 H46 V75 C37 74 31 68 30 60 H39 C40 65 44 68 50 68 C56 68 61 65 61 61 C61 56 56 54 49 52 C41 50 32 48 32 40 C32 33 38 27 46 26 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          }
+        },
+        {
+          "id": "t124",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 58,
+            "y": 140
+          },
+          "size": {
+            "width": 460,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Track your\ncrypto, live",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.12
+        },
+        {
+          "id": "t125",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 296
+          },
+          "size": {
+            "width": 430,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Real-time prices and\nportfolio insights.",
+          "fontSize": 10,
+          "color": "#AEB9D6",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.35
+        },
+        {
+          "id": "r126",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 60,
+            "y": 398
+          },
+          "size": {
+            "width": 176,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#12351F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 26,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t127",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 398
+          },
+          "size": {
+            "width": 176,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+12.4% this week",
+          "fontSize": 9,
+          "color": "#3EE38A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1
+        }
+      ]
+    }
+  ]
+}

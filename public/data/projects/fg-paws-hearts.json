@@ -1,0 +1,338 @@
+{
+  "id": "template_paws_hearts",
+  "name": "Paws Meet Hearts",
+  "description": "Google Play feature graphic (1024x500) for a pet or pet-adoption app. Warm gradient, a licensed paw-in-hand photo, floating hearts and a two-tone headline. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-paws-hearts.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_paws-hearts_ab",
+      "name": "Paws Meet Hearts",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#C0863B",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#CE9445",
+        "color2": "#8A5C2C",
+        "angle": 150
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "c66",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 200,
+            "y": 120
+          },
+          "size": {
+            "width": 460,
+            "height": 460
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.08
+        },
+        {
+          "id": "c67",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 760,
+            "y": 300
+          },
+          "size": {
+            "width": 420,
+            "height": 420
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.07
+        },
+        {
+          "id": "i68",
+          "type": "image",
+          "name": "Paw & Hand",
+          "position": {
+            "x": 232,
+            "y": 24
+          },
+          "size": {
+            "width": 560,
+            "height": 373
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/fg-paws-photo.png",
+          "imageAlt": "",
+          "objectFit": "contain"
+        },
+        {
+          "id": "s69",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 62,
+            "y": 58
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s70",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 918,
+            "y": 66
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s71",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 58,
+            "y": 212
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": 6,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3FB56E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s72",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 946,
+            "y": 224
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3FB56E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s73",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 118,
+            "y": 352
+          },
+          "size": {
+            "width": 30,
+            "height": 30
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3FB56E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s74",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 886,
+            "y": 344
+          },
+          "size": {
+            "width": 30,
+            "height": 30
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "s75",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 508,
+            "y": 18
+          },
+          "size": {
+            "width": 22,
+            "height": 22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "r76",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 332,
+            "y": 344
+          },
+          "size": {
+            "width": 360,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2FA85C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t77",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 332,
+            "y": 344
+          },
+          "size": {
+            "width": 360,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Where Paws",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1
+        },
+        {
+          "id": "r78",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 332,
+            "y": 418
+          },
+          "size": {
+            "width": 360,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2FA85C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t79",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 332,
+            "y": 418
+          },
+          "size": {
+            "width": 360,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Meet Hearts",
+          "fontSize": 15,
+          "color": "#FFD23F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "id": "template_work_play_happy",
+  "name": "Work Play Be Happy",
+  "description": "Google Play feature graphic (1024x500) for a lifestyle or wellbeing app. Warm sunset gradient, a horizon silhouette and a bold centered message. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-work-play-happy.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_work-play-happy_ab",
+      "name": "Work Play Be Happy",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#E8A13B",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#EDAA43",
+        "color2": "#2F8E86",
+        "angle": 165
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "s58",
+          "type": "shape",
+          "name": "Horizon",
+          "position": {
+            "x": -60,
+            "y": 300
+          },
+          "size": {
+            "width": 1160,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#15302D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 76 C26 46 74 46 96 76 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillOpacity": 0.82
+        },
+        {
+          "id": "s59",
+          "type": "shape",
+          "name": "Horizon 2",
+          "position": {
+            "x": 120,
+            "y": 350
+          },
+          "size": {
+            "width": 900,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0E2422",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 76 C26 46 74 46 96 76 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillOpacity": 0.6
+        },
+        {
+          "id": "c60",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 465,
+            "y": 101
+          },
+          "size": {
+            "width": 94,
+            "height": 94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s61",
+          "type": "shape",
+          "name": "Download",
+          "position": {
+            "x": 490.38,
+            "y": 126.38
+          },
+          "size": {
+            "width": 43.24,
+            "height": 43.24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141110",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M46 8 V50 H34 L50 72 L66 50 H54 V8 Z M14 58 H26 V84 H74 V58 H86 V92 H14 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "r62",
+          "type": "shape",
+          "name": "Block",
+          "position": {
+            "x": 336,
+            "y": 232
+          },
+          "size": {
+            "width": 352,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141110",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 14,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t63",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 336,
+            "y": 232
+          },
+          "size": {
+            "width": 352,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Work. Play.",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1
+        },
+        {
+          "id": "r64",
+          "type": "shape",
+          "name": "Block",
+          "position": {
+            "x": 360,
+            "y": 318
+          },
+          "size": {
+            "width": 304,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141110",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 14,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t65",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 360,
+            "y": 318
+          },
+          "size": {
+            "width": 304,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Be Happy.",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1
+        }
+      ]
+    }
+  ]
+}

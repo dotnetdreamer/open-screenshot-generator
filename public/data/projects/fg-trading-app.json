@@ -1,0 +1,349 @@
+{
+  "id": "template_trading_app",
+  "name": "Trading App",
+  "description": "Google Play feature graphic (1024x500) for a stock or forex trading app. Dark starfield, a highlighted headline and a live chart card. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-trading-app.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_trading-app_ab",
+      "name": "Trading App",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#0A0E16",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A0E16",
+        "color2": "#101C34",
+        "angle": 135
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "s29",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1024,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4.3 6 A1.7 1.7 0 1 0 7.7 6 A1.7 1.7 0 1 0 4.3 6 ZM14.08 6 A1.7 1.7 0 1 0 17.48 6 A1.7 1.7 0 1 0 14.08 6 ZM23.86 6 A1.7 1.7 0 1 0 27.26 6 A1.7 1.7 0 1 0 23.86 6 ZM33.63 6 A1.7 1.7 0 1 0 37.03 6 A1.7 1.7 0 1 0 33.63 6 ZM43.41 6 A1.7 1.7 0 1 0 46.81 6 A1.7 1.7 0 1 0 43.41 6 ZM53.19 6 A1.7 1.7 0 1 0 56.59 6 A1.7 1.7 0 1 0 53.19 6 ZM62.97 6 A1.7 1.7 0 1 0 66.37 6 A1.7 1.7 0 1 0 62.97 6 ZM72.74 6 A1.7 1.7 0 1 0 76.14 6 A1.7 1.7 0 1 0 72.74 6 ZM82.52 6 A1.7 1.7 0 1 0 85.92 6 A1.7 1.7 0 1 0 82.52 6 ZM92.3 6 A1.7 1.7 0 1 0 95.7 6 A1.7 1.7 0 1 0 92.3 6 ZM4.3 15.78 A1.7 1.7 0 1 0 7.7 15.78 A1.7 1.7 0 1 0 4.3 15.78 ZM14.08 15.78 A1.7 1.7 0 1 0 17.48 15.78 A1.7 1.7 0 1 0 14.08 15.78 ZM23.86 15.78 A1.7 1.7 0 1 0 27.26 15.78 A1.7 1.7 0 1 0 23.86 15.78 ZM33.63 15.78 A1.7 1.7 0 1 0 37.03 15.78 A1.7 1.7 0 1 0 33.63 15.78 ZM43.41 15.78 A1.7 1.7 0 1 0 46.81 15.78 A1.7 1.7 0 1 0 43.41 15.78 ZM53.19 15.78 A1.7 1.7 0 1 0 56.59 15.78 A1.7 1.7 0 1 0 53.19 15.78 ZM62.97 15.78 A1.7 1.7 0 1 0 66.37 15.78 A1.7 1.7 0 1 0 62.97 15.78 ZM72.74 15.78 A1.7 1.7 0 1 0 76.14 15.78 A1.7 1.7 0 1 0 72.74 15.78 ZM82.52 15.78 A1.7 1.7 0 1 0 85.92 15.78 A1.7 1.7 0 1 0 82.52 15.78 ZM92.3 15.78 A1.7 1.7 0 1 0 95.7 15.78 A1.7 1.7 0 1 0 92.3 15.78 ZM4.3 25.56 A1.7 1.7 0 1 0 7.7 25.56 A1.7 1.7 0 1 0 4.3 25.56 ZM14.08 25.56 A1.7 1.7 0 1 0 17.48 25.56 A1.7 1.7 0 1 0 14.08 25.56 ZM23.86 25.56 A1.7 1.7 0 1 0 27.26 25.56 A1.7 1.7 0 1 0 23.86 25.56 ZM33.63 25.56 A1.7 1.7 0 1 0 37.03 25.56 A1.7 1.7 0 1 0 33.63 25.56 ZM43.41 25.56 A1.7 1.7 0 1 0 46.81 25.56 A1.7 1.7 0 1 0 43.41 25.56 ZM53.19 25.56 A1.7 1.7 0 1 0 56.59 25.56 A1.7 1.7 0 1 0 53.19 25.56 ZM62.97 25.56 A1.7 1.7 0 1 0 66.37 25.56 A1.7 1.7 0 1 0 62.97 25.56 ZM72.74 25.56 A1.7 1.7 0 1 0 76.14 25.56 A1.7 1.7 0 1 0 72.74 25.56 ZM82.52 25.56 A1.7 1.7 0 1 0 85.92 25.56 A1.7 1.7 0 1 0 82.52 25.56 ZM92.3 25.56 A1.7 1.7 0 1 0 95.7 25.56 A1.7 1.7 0 1 0 92.3 25.56 ZM4.3 35.33 A1.7 1.7 0 1 0 7.7 35.33 A1.7 1.7 0 1 0 4.3 35.33 ZM14.08 35.33 A1.7 1.7 0 1 0 17.48 35.33 A1.7 1.7 0 1 0 14.08 35.33 ZM23.86 35.33 A1.7 1.7 0 1 0 27.26 35.33 A1.7 1.7 0 1 0 23.86 35.33 ZM33.63 35.33 A1.7 1.7 0 1 0 37.03 35.33 A1.7 1.7 0 1 0 33.63 35.33 ZM43.41 35.33 A1.7 1.7 0 1 0 46.81 35.33 A1.7 1.7 0 1 0 43.41 35.33 ZM53.19 35.33 A1.7 1.7 0 1 0 56.59 35.33 A1.7 1.7 0 1 0 53.19 35.33 ZM62.97 35.33 A1.7 1.7 0 1 0 66.37 35.33 A1.7 1.7 0 1 0 62.97 35.33 ZM72.74 35.33 A1.7 1.7 0 1 0 76.14 35.33 A1.7 1.7 0 1 0 72.74 35.33 ZM82.52 35.33 A1.7 1.7 0 1 0 85.92 35.33 A1.7 1.7 0 1 0 82.52 35.33 ZM92.3 35.33 A1.7 1.7 0 1 0 95.7 35.33 A1.7 1.7 0 1 0 92.3 35.33 ZM4.3 45.11 A1.7 1.7 0 1 0 7.7 45.11 A1.7 1.7 0 1 0 4.3 45.11 ZM14.08 45.11 A1.7 1.7 0 1 0 17.48 45.11 A1.7 1.7 0 1 0 14.08 45.11 ZM23.86 45.11 A1.7 1.7 0 1 0 27.26 45.11 A1.7 1.7 0 1 0 23.86 45.11 ZM33.63 45.11 A1.7 1.7 0 1 0 37.03 45.11 A1.7 1.7 0 1 0 33.63 45.11 ZM43.41 45.11 A1.7 1.7 0 1 0 46.81 45.11 A1.7 1.7 0 1 0 43.41 45.11 ZM53.19 45.11 A1.7 1.7 0 1 0 56.59 45.11 A1.7 1.7 0 1 0 53.19 45.11 ZM62.97 45.11 A1.7 1.7 0 1 0 66.37 45.11 A1.7 1.7 0 1 0 62.97 45.11 ZM72.74 45.11 A1.7 1.7 0 1 0 76.14 45.11 A1.7 1.7 0 1 0 72.74 45.11 ZM82.52 45.11 A1.7 1.7 0 1 0 85.92 45.11 A1.7 1.7 0 1 0 82.52 45.11 ZM92.3 45.11 A1.7 1.7 0 1 0 95.7 45.11 A1.7 1.7 0 1 0 92.3 45.11 ZM4.3 54.89 A1.7 1.7 0 1 0 7.7 54.89 A1.7 1.7 0 1 0 4.3 54.89 ZM14.08 54.89 A1.7 1.7 0 1 0 17.48 54.89 A1.7 1.7 0 1 0 14.08 54.89 ZM23.86 54.89 A1.7 1.7 0 1 0 27.26 54.89 A1.7 1.7 0 1 0 23.86 54.89 ZM33.63 54.89 A1.7 1.7 0 1 0 37.03 54.89 A1.7 1.7 0 1 0 33.63 54.89 ZM43.41 54.89 A1.7 1.7 0 1 0 46.81 54.89 A1.7 1.7 0 1 0 43.41 54.89 ZM53.19 54.89 A1.7 1.7 0 1 0 56.59 54.89 A1.7 1.7 0 1 0 53.19 54.89 ZM62.97 54.89 A1.7 1.7 0 1 0 66.37 54.89 A1.7 1.7 0 1 0 62.97 54.89 ZM72.74 54.89 A1.7 1.7 0 1 0 76.14 54.89 A1.7 1.7 0 1 0 72.74 54.89 ZM82.52 54.89 A1.7 1.7 0 1 0 85.92 54.89 A1.7 1.7 0 1 0 82.52 54.89 ZM92.3 54.89 A1.7 1.7 0 1 0 95.7 54.89 A1.7 1.7 0 1 0 92.3 54.89 ZM4.3 64.67 A1.7 1.7 0 1 0 7.7 64.67 A1.7 1.7 0 1 0 4.3 64.67 ZM14.08 64.67 A1.7 1.7 0 1 0 17.48 64.67 A1.7 1.7 0 1 0 14.08 64.67 ZM23.86 64.67 A1.7 1.7 0 1 0 27.26 64.67 A1.7 1.7 0 1 0 23.86 64.67 ZM33.63 64.67 A1.7 1.7 0 1 0 37.03 64.67 A1.7 1.7 0 1 0 33.63 64.67 ZM43.41 64.67 A1.7 1.7 0 1 0 46.81 64.67 A1.7 1.7 0 1 0 43.41 64.67 ZM53.19 64.67 A1.7 1.7 0 1 0 56.59 64.67 A1.7 1.7 0 1 0 53.19 64.67 ZM62.97 64.67 A1.7 1.7 0 1 0 66.37 64.67 A1.7 1.7 0 1 0 62.97 64.67 ZM72.74 64.67 A1.7 1.7 0 1 0 76.14 64.67 A1.7 1.7 0 1 0 72.74 64.67 ZM82.52 64.67 A1.7 1.7 0 1 0 85.92 64.67 A1.7 1.7 0 1 0 82.52 64.67 ZM92.3 64.67 A1.7 1.7 0 1 0 95.7 64.67 A1.7 1.7 0 1 0 92.3 64.67 ZM4.3 74.44 A1.7 1.7 0 1 0 7.7 74.44 A1.7 1.7 0 1 0 4.3 74.44 ZM14.08 74.44 A1.7 1.7 0 1 0 17.48 74.44 A1.7 1.7 0 1 0 14.08 74.44 ZM23.86 74.44 A1.7 1.7 0 1 0 27.26 74.44 A1.7 1.7 0 1 0 23.86 74.44 ZM33.63 74.44 A1.7 1.7 0 1 0 37.03 74.44 A1.7 1.7 0 1 0 33.63 74.44 ZM43.41 74.44 A1.7 1.7 0 1 0 46.81 74.44 A1.7 1.7 0 1 0 43.41 74.44 ZM53.19 74.44 A1.7 1.7 0 1 0 56.59 74.44 A1.7 1.7 0 1 0 53.19 74.44 ZM62.97 74.44 A1.7 1.7 0 1 0 66.37 74.44 A1.7 1.7 0 1 0 62.97 74.44 ZM72.74 74.44 A1.7 1.7 0 1 0 76.14 74.44 A1.7 1.7 0 1 0 72.74 74.44 ZM82.52 74.44 A1.7 1.7 0 1 0 85.92 74.44 A1.7 1.7 0 1 0 82.52 74.44 ZM92.3 74.44 A1.7 1.7 0 1 0 95.7 74.44 A1.7 1.7 0 1 0 92.3 74.44 ZM4.3 84.22 A1.7 1.7 0 1 0 7.7 84.22 A1.7 1.7 0 1 0 4.3 84.22 ZM14.08 84.22 A1.7 1.7 0 1 0 17.48 84.22 A1.7 1.7 0 1 0 14.08 84.22 ZM23.86 84.22 A1.7 1.7 0 1 0 27.26 84.22 A1.7 1.7 0 1 0 23.86 84.22 ZM33.63 84.22 A1.7 1.7 0 1 0 37.03 84.22 A1.7 1.7 0 1 0 33.63 84.22 ZM43.41 84.22 A1.7 1.7 0 1 0 46.81 84.22 A1.7 1.7 0 1 0 43.41 84.22 ZM53.19 84.22 A1.7 1.7 0 1 0 56.59 84.22 A1.7 1.7 0 1 0 53.19 84.22 ZM62.97 84.22 A1.7 1.7 0 1 0 66.37 84.22 A1.7 1.7 0 1 0 62.97 84.22 ZM72.74 84.22 A1.7 1.7 0 1 0 76.14 84.22 A1.7 1.7 0 1 0 72.74 84.22 ZM82.52 84.22 A1.7 1.7 0 1 0 85.92 84.22 A1.7 1.7 0 1 0 82.52 84.22 ZM92.3 84.22 A1.7 1.7 0 1 0 95.7 84.22 A1.7 1.7 0 1 0 92.3 84.22 ZM4.3 94 A1.7 1.7 0 1 0 7.7 94 A1.7 1.7 0 1 0 4.3 94 ZM14.08 94 A1.7 1.7 0 1 0 17.48 94 A1.7 1.7 0 1 0 14.08 94 ZM23.86 94 A1.7 1.7 0 1 0 27.26 94 A1.7 1.7 0 1 0 23.86 94 ZM33.63 94 A1.7 1.7 0 1 0 37.03 94 A1.7 1.7 0 1 0 33.63 94 ZM43.41 94 A1.7 1.7 0 1 0 46.81 94 A1.7 1.7 0 1 0 43.41 94 ZM53.19 94 A1.7 1.7 0 1 0 56.59 94 A1.7 1.7 0 1 0 53.19 94 ZM62.97 94 A1.7 1.7 0 1 0 66.37 94 A1.7 1.7 0 1 0 62.97 94 ZM72.74 94 A1.7 1.7 0 1 0 76.14 94 A1.7 1.7 0 1 0 72.74 94 ZM82.52 94 A1.7 1.7 0 1 0 85.92 94 A1.7 1.7 0 1 0 82.52 94 ZM92.3 94 A1.7 1.7 0 1 0 95.7 94 A1.7 1.7 0 1 0 92.3 94 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillOpacity": 0.16
+        },
+        {
+          "id": "dev30",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 730,
+            "y": 66
+          },
+          "size": {
+            "width": 226,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#141419",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-list-dark.png"
+        },
+        {
+          "id": "r31",
+          "type": "shape",
+          "name": "Chart Card",
+          "position": {
+            "x": 534,
+            "y": 244
+          },
+          "size": {
+            "width": 252,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#171B24",
+          "strokeColor": "#2A2F3C",
+          "strokeWidth": 1,
+          "borderRadius": 20,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t32",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 554,
+            "y": 262
+          },
+          "size": {
+            "width": 140,
+            "height": 26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "USDCHF",
+          "fontSize": 8,
+          "color": "#8B93A6",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "t33",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 554,
+            "y": 288
+          },
+          "size": {
+            "width": 150,
+            "height": 34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "0.86756",
+          "fontSize": 10,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "t34",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 554,
+            "y": 320
+          },
+          "size": {
+            "width": 140,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+0.05%",
+          "fontSize": 8,
+          "color": "#39E67B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "s35",
+          "type": "shape",
+          "name": "Trend",
+          "position": {
+            "x": 702,
+            "y": 286
+          },
+          "size": {
+            "width": 66,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#39E67B",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M8 8 V92 H92 M22 74 L42 50 L58 62 L84 30",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          }
+        },
+        {
+          "id": "t36",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 148
+          },
+          "size": {
+            "width": 420,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your new go-to",
+          "fontSize": 16,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1
+        },
+        {
+          "id": "r37",
+          "type": "shape",
+          "name": "Highlight",
+          "position": {
+            "x": 60,
+            "y": 222
+          },
+          "size": {
+            "width": 346,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#34E27A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 16,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "t38",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 222
+          },
+          "size": {
+            "width": 346,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "trading app",
+          "fontSize": 15,
+          "color": "#06331B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1
+        },
+        {
+          "id": "tr39",
+          "type": "shape",
+          "name": "Triangle",
+          "position": {
+            "x": 902,
+            "y": 392
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 18,
+          "scale": 1,
+          "shapeType": "triangle",
+          "fillColor": "#39E67B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "r40",
+          "type": "shape",
+          "name": "Geo",
+          "position": {
+            "x": 956,
+            "y": 430
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 30,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A45",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 8,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "s41",
+          "type": "shape",
+          "name": "Soft Diamond",
+          "position": {
+            "x": 892,
+            "y": 452
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#9B7CFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M40.1 15.9 Q50 6 59.9 15.9 L84.1 40.1 Q94 50 84.1 59.9 L59.9 84.1 Q50 94 40.1 84.1 L15.9 59.9 Q6 50 15.9 40.1 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "t42",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 292,
+            "y": 466
+          },
+          "size": {
+            "width": 460,
+            "height": 26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Trading is risky. Other fees may apply.",
+          "fontSize": 7,
+          "color": "#8A93A6",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.15
+        }
+      ]
+    }
+  ]
+}

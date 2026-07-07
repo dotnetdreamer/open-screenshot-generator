@@ -150,3 +150,19 @@ promo art for their own apps — which is the badges' intended purpose.
   marketplace, revisit this: <https://stock.adobe.com/license-terms>.
 - To remove or swap an asset: delete its file from
   `public/elements/images/<group>/` and its entry in `src/lib/imageLibrary.ts`.
+
+## 4. Feature Graphic template photos (`public/data/projects/`)
+
+Photographic art baked into the Google Play Feature Graphic templates (Feature
+Graphic tab of the start dialog). Same Adobe Stock free-collection / standard
+license as section 1, licensed **2026-07-07** through the project owner's Adobe
+account (info@ccrstech.com); background removed via the Adobe for Creativity
+connector ("select subject" cutout). These are composite-work assets embedded
+in editable templates, not standalone downloads.
+
+| File | Stock ID | Title | Used in |
+| ---- | -------- | ----- | ------- |
+| fg-paws-photo.png | 87946733 | Dog paw and human hand, isolated on white | fg-paws-hearts.json |
+
+The `fg-screens/*.png` skeleton screens in that folder are original in-house
+artwork (generated placeholders), not licensed stock.

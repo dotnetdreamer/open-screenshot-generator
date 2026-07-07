@@ -1,0 +1,239 @@
+{
+  "id": "template_fitness_all_in_one",
+  "name": "Fitness All-In-One",
+  "description": "Google Play feature graphic (1024x500) for a fitness app. Bold violet hero, lime accents and a three-phone fan. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-fitness-all-in-one.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_fitness-all-in-one_ab",
+      "name": "Fitness All-In-One",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#7A5AF5",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8468FF",
+        "color2": "#5E3FE6",
+        "angle": 150
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "r20",
+          "type": "shape",
+          "name": "Accent",
+          "position": {
+            "x": 930,
+            "y": 54
+          },
+          "size": {
+            "width": 78,
+            "height": 16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C6F24E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 8,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "r21",
+          "type": "shape",
+          "name": "Accent",
+          "position": {
+            "x": 898,
+            "y": 84
+          },
+          "size": {
+            "width": 54,
+            "height": 16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C6F24E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 8,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "r22",
+          "type": "shape",
+          "name": "Accent",
+          "position": {
+            "x": 24,
+            "y": 402
+          },
+          "size": {
+            "width": 78,
+            "height": 16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C6F24E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 8,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "r23",
+          "type": "shape",
+          "name": "Accent",
+          "position": {
+            "x": 56,
+            "y": 432
+          },
+          "size": {
+            "width": 54,
+            "height": 16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C6F24E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 8,
+          "borderRadiusType": "uniform"
+        },
+        {
+          "id": "dev24",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 554,
+            "y": 94
+          },
+          "size": {
+            "width": 180,
+            "height": 415
+          },
+          "rotation": -9,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1B1B1D",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-cards-light.png"
+        },
+        {
+          "id": "dev25",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 850,
+            "y": 94
+          },
+          "size": {
+            "width": 180,
+            "height": 415
+          },
+          "rotation": 9,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1B1B1D",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-cards-light.png"
+        },
+        {
+          "id": "dev26",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 687,
+            "y": 60
+          },
+          "size": {
+            "width": 210,
+            "height": 480
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1B1B1D",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-cards-light.png"
+        },
+        {
+          "id": "t27",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 56,
+            "y": 148
+          },
+          "size": {
+            "width": 470,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your All-In-One\nFitness App",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.14
+        },
+        {
+          "id": "t28",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 58,
+            "y": 302
+          },
+          "size": {
+            "width": 540,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Workouts · Meals · Progress",
+          "fontSize": 10,
+          "color": "#DFFB7A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "id": "template_food_delivery",
+  "name": "Food Delivery",
+  "description": "Google Play feature graphic (1024x500) for a food delivery app. Warm orange hero with burger accents, a phone and the Google Play badge. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+  "previewImage": "/data/projects/previews/fg-food-delivery.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fg_food-delivery_ab",
+      "name": "Food Delivery",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1024,
+        "height": 500
+      },
+      "backgroundColor": "#FF7A45",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FF7A45",
+        "color2": "#E5402A",
+        "angle": 150
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "c93",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -120,
+            "y": -120
+          },
+          "size": {
+            "width": 360,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.1
+        },
+        {
+          "id": "dev94",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 744,
+            "y": 66
+          },
+          "size": {
+            "width": 224,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "android-punch-hole",
+          "styleType": "normal",
+          "frameColor": "#1B1B20",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/fg-screens/fg-list-light.png"
+        },
+        {
+          "id": "c95",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 557,
+            "y": 93
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFE3C2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s96",
+          "type": "shape",
+          "name": "Burger",
+          "position": {
+            "x": 574.16,
+            "y": 110.16
+          },
+          "size": {
+            "width": 43.68000000000001,
+            "height": 43.68000000000001
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#7A3B12",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 12 C28 12 13 25 11 42 C10.6 44.4 12.4 46 15 46 H85 C87.6 46 89.4 44.4 89 42 C87 25 72 12 50 12 Z M17 52 H83 A6 6 0 0 1 89 58 V58 A6 6 0 0 1 83 64 H17 A6 6 0 0 1 11 58 V58 A6 6 0 0 1 17 52 Z M19 70 H81 A8 8 0 0 1 89 78 V80 A8 8 0 0 1 81 88 H19 A8 8 0 0 1 11 80 V78 A8 8 0 0 1 19 70 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "c97",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 659,
+            "y": 397
+          },
+          "size": {
+            "width": 62,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "s98",
+          "type": "shape",
+          "name": "Burger",
+          "position": {
+            "x": 672.64,
+            "y": 410.64
+          },
+          "size": {
+            "width": 34.720000000000006,
+            "height": 34.720000000000006
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#E5502A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 12 C28 12 13 25 11 42 C10.6 44.4 12.4 46 15 46 H85 C87.6 46 89.4 44.4 89 42 C87 25 72 12 50 12 Z M17 52 H83 A6 6 0 0 1 89 58 V58 A6 6 0 0 1 83 64 H17 A6 6 0 0 1 11 58 V58 A6 6 0 0 1 17 52 Z M19 70 H81 A8 8 0 0 1 89 78 V80 A8 8 0 0 1 81 88 H19 A8 8 0 0 1 11 80 V78 A8 8 0 0 1 19 70 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "t99",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 58,
+            "y": 140
+          },
+          "size": {
+            "width": 460,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Order in.\nFeast on.",
+          "fontSize": 20,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "t100",
+          "type": "text",
+          "name": "Text",
+          "position": {
+            "x": 60,
+            "y": 300
+          },
+          "size": {
+            "width": 440,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your favorite restaurants,\ndelivered in minutes.",
+          "fontSize": 10,
+          "color": "#FFE7DC",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "normal",
+          "fontStyle": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.35
+        },
+        {
+          "id": "i101",
+          "type": "image",
+          "name": "Google Play",
+          "position": {
+            "x": 60,
+            "y": 402
+          },
+          "size": {
+            "width": 190,
+            "height": 73.48066298342542
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/badges/google-play.png",
+          "imageAlt": "",
+          "objectFit": "contain"
+        }
+      ]
+    }
+  ]
+}
