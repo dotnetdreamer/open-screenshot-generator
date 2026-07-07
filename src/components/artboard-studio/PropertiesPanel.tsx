@@ -444,7 +444,7 @@ export function PropertiesPanel({
             </SelectTrigger>
             <SelectContent>
               {DEVICE_PICKER_GROUPS.map((group) => (
-                <SelectGroup key={group.platform}>
+                <SelectGroup key={group.label}>
                   <SelectLabel>{group.label}</SelectLabel>
                   {group.devices.map((d) => (
                     <SelectItem key={d.id} value={d.id}>{d.label}</SelectItem>
@@ -545,6 +545,7 @@ export function PropertiesPanel({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="classic">Classic</SelectItem>
+                <SelectItem value="front">Front</SelectItem>
                 <SelectItem value="upright">Upright</SelectItem>
                 <SelectItem value="side">Side</SelectItem>
                 <SelectItem value="tilted">Tilted</SelectItem>

@@ -45,6 +45,25 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   'tablet-7': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.045, thickness: 0.05, notch: 'none' },
   'tablet-10': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.03, thickness: 0.042, notch: 'none' },
   'desktop': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.02, thickness: 0.03, notch: 'none' },
+  // Apple Watch Series 10-ish: near-squircle case, big screen radius, and a
+  // chunky body (real watches are ~10mm thick on a ~39mm-wide case).
+  'apple-watch': { cornerRadius: 0.34, screenRadius: 0.30, bezel: 0.10, thickness: 0.24, notch: 'none' },
+};
+
+// ---- Apple Watch extras (all fractions of the case width, world width = 1) ----
+
+// Case height / width. The watch always keeps its native proportions: unlike
+// phones its body never stretches to the element box, because the band's
+// vertical reach already dominates the box.
+const WATCH_BODY_ASPECT = 46 / 39;
+// Strap cross-section + sweep. Each strap starts tucked inside the case,
+// runs out along the case plane, then bends backward (like a worn band).
+const WATCH_BAND = { width: 0.62, thickness: 0.11, run: 0.62, back: 0.30 };
+// Fluoroelastomer sport band per body finish.
+const WATCH_BAND_COLORS: Record<Device3DFrameColor, number> = {
+  titanium: 0x9a9aa2,
+  black: 0x1b1b1e,
+  white: 0xe4e4e8,
 };
 
 const CAMERA_FOV = 20;
@@ -58,6 +77,9 @@ const CAMERA_FOV = 20;
 // by the rolled poses where a box-derived body reads visibly squat.
 const POSES: Record<Device3DPose, { yaw: number; pitch: number; roll?: number; bodyAspect?: number }> = {
   classic: { yaw: 24, pitch: 0 },
+  // Dead-on product shot — no rotation at all; only the perspective of the
+  // camera itself (band tips foreshorten, rails stay hidden).
+  front: { yaw: 0, pitch: 0 },
   upright: { yaw: 34, pitch: 0 },
   side: { yaw: 54, pitch: 0 },
   tilted: { yaw: 30, pitch: 26 },
@@ -166,6 +188,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     scene.add(group);
 
     const metrics = DEVICE_METRICS[deviceType] ?? DEFAULT_METRICS;
+    const isWatch = deviceType === 'apple-watch';
     const disposables: Array<{ dispose(): void }> = [];
     let texture: THREE.Texture | null = null;
     let textureImage: HTMLImageElement | null = null;
@@ -238,7 +261,9 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       shotMesh = null;
 
       const w = 1;
-      const h = THREE.MathUtils.clamp(poseAngles.bodyAspect ?? aspect, 0.3, 4);
+      const h = isWatch
+        ? WATCH_BODY_ASPECT
+        : THREE.MathUtils.clamp(poseAngles.bodyAspect ?? aspect, 0.3, 4);
       const t = metrics.thickness;
       const bevel = t * 0.22;
       const depth = t - 2 * bevel;
@@ -332,8 +357,9 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       }
 
       // USB-C slot on the bottom rail — only really visible in the reclined
-      // poses where the camera looks down past the bottom edge.
-      if (deviceType !== 'desktop') {
+      // poses where the camera looks down past the bottom edge. The watch's
+      // bottom rail is where the band attaches, so it gets none.
+      if (deviceType !== 'desktop' && !isWatch) {
         const portMat = track(new THREE.MeshStandardMaterial({ color: 0x121214, metalness: 0.4, roughness: 0.55 }));
         const portGeo = track(new THREE.CapsuleGeometry(t * 0.1, 0.075, 6, 12));
         portGeo.rotateZ(Math.PI / 2); // capsule axis Y -> X, lying along the rail
@@ -342,38 +368,118 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
         group.add(portMesh);
       }
 
+      // Apple Watch extras: sport band straps + digital crown + side button.
+      if (isWatch) {
+        const finish = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+        const bandMat = track(new THREE.MeshStandardMaterial({
+          color: WATCH_BAND_COLORS[frameColor] ?? WATCH_BAND_COLORS.titanium,
+          metalness: 0,
+          roughness: 0.62,
+        }));
+        // Strap cross-section. ExtrudeGeometry sweeps shape.x along the path's
+        // Frenet normal and shape.y along the binormal; for a curve confined to
+        // the YZ plane that puts shape.x on world X (band width) and shape.y on
+        // the backward bend (band thickness).
+        const strapProfile = roundedRectShape(WATCH_BAND.width, WATCH_BAND.thickness, WATCH_BAND.thickness / 2);
+        for (const dir of [1, -1] as const) {
+          const y0 = dir * (h / 2 - 0.1); // start tucked inside the case
+          const curve = new THREE.CubicBezierCurve3(
+            new THREE.Vector3(0, y0, -0.02),
+            new THREE.Vector3(0, y0 + dir * WATCH_BAND.run * 0.55, -0.02),
+            new THREE.Vector3(0, y0 + dir * WATCH_BAND.run * 0.88, -0.09),
+            new THREE.Vector3(0, y0 + dir * WATCH_BAND.run, -WATCH_BAND.back),
+          );
+          const rawStrap = new THREE.ExtrudeGeometry(strapProfile, { steps: 40, bevelEnabled: false, extrudePath: curve });
+          const strapGeo = track(toCreasedNormals(rawStrap, THREE.MathUtils.degToRad(30)));
+          rawStrap.dispose();
+          group.add(new THREE.Mesh(strapGeo, bandMat));
+        }
+        // Digital crown on the exposed rail, upper half of the case.
+        const crownMat = track(new THREE.MeshStandardMaterial({ color: finish.button, metalness: 0.95, roughness: 0.38, envMapIntensity: finish.railEnv }));
+        const crownGeo = track(new THREE.CylinderGeometry(0.085, 0.085, 0.06, 28));
+        crownGeo.rotateZ(Math.PI / 2); // axis Y -> X, poking out of the rail
+        const crown = new THREE.Mesh(crownGeo, crownMat);
+        crown.position.set(sideSign * (w / 2 + 0.02), h * 0.185, 0.02);
+        group.add(crown);
+        // Flat elongated side button under the crown, nearly flush.
+        const buttonGeo = track(new THREE.CapsuleGeometry(0.032, 0.24, 6, 14));
+        const button = new THREE.Mesh(buttonGeo, crownMat);
+        button.position.set(sideSign * (w / 2 + 0.006), -h * 0.05, 0.02);
+        group.add(button);
+      }
+
       updateShot();
     };
 
     const layoutCamera = (cw: number, ch: number) => {
       const aspect = cw / ch;
-      const h = THREE.MathUtils.clamp(poseAngles.bodyAspect ?? ch / cw, 0.3, 4);
+      const h = isWatch
+        ? WATCH_BODY_ASPECT
+        : THREE.MathUtils.clamp(poseAngles.bodyAspect ?? ch / cw, 0.3, 4);
       const tanV = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
       const margin = 1.08;
-      // Fit the pose-rotated device box exactly: a corner at camera-space
+      // Fit the pose-rotated device exactly: a point at camera-space
       // (x, y, z) fits iff |y| <= tan(fov/2)·(dist − z) vertically and
       // |x| <= tan(fov/2)·aspect·(dist − z) horizontally — solve for dist.
       const t2 = metrics.thickness / 2;
-      const corner = new THREE.Vector3();
-      let dist = 0.1;
+      const fitPoints: THREE.Vector3[] = [];
       for (const sx of [-0.5, 0.5]) {
         for (const sy of [-0.5, 0.5]) {
           for (const sz of [-1, 1]) {
-            corner.set(sx, sy * h, sz * t2).applyQuaternion(poseQuat);
-            dist = Math.max(
-              dist,
-              corner.z + (Math.abs(corner.y) * margin) / tanV,
-              corner.z + (Math.abs(corner.x) * margin) / (tanV * aspect),
-            );
+            fitPoints.push(new THREE.Vector3(sx, sy * h, sz * t2));
           }
         }
+      }
+      if (isWatch) {
+        // The band reaches past the case: include the strap tips (front and
+        // fully bent-back) and the crown's rail protrusion in the fit.
+        const tipY = h / 2 - 0.1 + WATCH_BAND.run + WATCH_BAND.thickness / 2;
+        for (const sx of [-1, 1]) {
+          for (const sy of [-1, 1]) {
+            fitPoints.push(new THREE.Vector3(sx * (WATCH_BAND.width / 2), sy * tipY, 0.04));
+            fitPoints.push(new THREE.Vector3(sx * (WATCH_BAND.width / 2), sy * tipY, -(WATCH_BAND.back + 0.06)));
+            fitPoints.push(new THREE.Vector3(sx * 0.61, sy * h * 0.2, 0.02));
+          }
+        }
+      }
+      const corner = new THREE.Vector3();
+      let dist = 0.1;
+      // The watch's bent-back straps make its projection strongly asymmetric
+      // (unlike the near-planar phones), so solve for a camera offset that
+      // centers the projected bounds as well as the fitting distance. A few
+      // fixed-point iterations converge well within a pixel.
+      let offX = 0;
+      let offY = 0;
+      const iterations = isWatch ? 4 : 1;
+      for (let i = 0; i < iterations; i++) {
+        dist = 0.1;
+        for (const p of fitPoints) {
+          corner.copy(p).applyQuaternion(poseQuat);
+          dist = Math.max(
+            dist,
+            corner.z + (Math.abs(corner.y - offY) * margin) / tanV,
+            corner.z + (Math.abs(corner.x - offX) * margin) / (tanV * aspect),
+          );
+        }
+        if (i === iterations - 1) break;
+        let pxMin = Infinity, pxMax = -Infinity, pyMin = Infinity, pyMax = -Infinity;
+        for (const p of fitPoints) {
+          corner.copy(p).applyQuaternion(poseQuat);
+          const zDist = dist - corner.z;
+          pxMin = Math.min(pxMin, (corner.x - offX) / zDist);
+          pxMax = Math.max(pxMax, (corner.x - offX) / zDist);
+          pyMin = Math.min(pyMin, (corner.y - offY) / zDist);
+          pyMax = Math.max(pyMax, (corner.y - offY) / zDist);
+        }
+        offX += ((pxMin + pxMax) / 2) * dist;
+        offY += ((pyMin + pyMax) / 2) * dist;
       }
       camera.aspect = aspect;
       camera.near = dist * 0.05;
       camera.far = dist * 10;
       // Slightly above center, like a product shot looking marginally down.
-      camera.position.set(0, dist * 0.02, dist);
-      camera.lookAt(0, 0, 0);
+      camera.position.set(offX, offY + dist * 0.02, dist);
+      camera.lookAt(offX, offY, 0);
       camera.updateProjectionMatrix();
     };
 

@@ -81,6 +81,7 @@ export type DeviceType =
   | 'iphone-17-pro-max'
   | 'ipad-pro-13'
   | 'ipad-11'
+  | 'apple-watch'
   | 'android-bar'
   | 'android-notch'
   | 'android-punch-hole'
@@ -102,10 +103,11 @@ export type DeviceStyleType =
   | 'custom';
 
 // Pose presets for the true-3D (three.js) device styles. 'classic' is the
-// original near-frontal product shot; the rest recline the device toward the
+// original near-frontal product shot; 'front' is dead-on (no yaw at all — the
+// watch group's straight-on look); the rest recline the device toward the
 // camera in increasing steps (matching common mockup panels). 'floating' and
 // 'drifting' add an in-image diagonal roll for tossed-phone hero collages.
-export type Device3DPose = 'classic' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying' | 'floating' | 'drifting' | 'isometric';
+export type Device3DPose = 'classic' | 'front' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying' | 'floating' | 'drifting' | 'isometric';
 
 // Body finish for the true-3D device styles. 'titanium' is the original look
 // and remains the default for existing projects.

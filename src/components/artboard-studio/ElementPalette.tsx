@@ -39,6 +39,9 @@ type PaletteDragStart = (
 // ---- 3D device pose groups (thumbnails pre-rendered to /elements/device-3d) ----
 
 const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting', 'isometric'];
+// The watch leads with the straight-on look (classic watch product shot);
+// phones don't offer it — a zero-yaw phone reads as a flat 2D mockup.
+const WATCH_POSE_ORDER: Device3DPose[] = ['front', ...POSE_ORDER];
 const SIDES_3D = ['left', 'right'] as const;
 const COLORS_3D = ['black', 'white'] as const;
 
@@ -46,6 +49,7 @@ const COLORS_3D = ['black', 'white'] as const;
 // fills the element instead of letterboxing.
 const IPHONE_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
   classic: { width: 600, height: 1300 },
+  front: { width: 600, height: 1300 },
   upright: { width: 600, height: 1300 },
   side: { width: 600, height: 1300 },
   tilted: { width: 640, height: 1120 },
@@ -57,6 +61,7 @@ const IPHONE_3D_SIZES: Record<Device3DPose, { width: number; height: number }> =
 };
 const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
   classic: { width: 600, height: 1333 },
+  front: { width: 600, height: 1333 },
   upright: { width: 600, height: 1333 },
   side: { width: 600, height: 1333 },
   tilted: { width: 640, height: 1150 },
@@ -65,6 +70,20 @@ const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> 
   floating: { width: 760, height: 830 },
   drifting: { width: 900, height: 700 },
   isometric: { width: 900, height: 480 },
+};
+// The watch body keeps native proportions inside the box (the band dominates
+// the height), so these track each pose's projected case+band extent.
+const WATCH_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
+  classic: { width: 560, height: 1240 },
+  front: { width: 580, height: 1200 },
+  upright: { width: 560, height: 1240 },
+  side: { width: 560, height: 1240 },
+  tilted: { width: 660, height: 1100 },
+  reclined: { width: 720, height: 900 },
+  laying: { width: 800, height: 700 },
+  floating: { width: 740, height: 840 },
+  drifting: { width: 880, height: 700 },
+  isometric: { width: 900, height: 520 },
 };
 
 /** Tile showing a pre-rendered 3D pose thumbnail, draggable like other palette items. */
@@ -158,11 +177,12 @@ const ColoredDeviceGlyph: React.FC<{ def: ColoredDeviceTileDef }> = ({ def }) =>
 
 // ---- Device library categories (overview grid -> drill-in, like the Element Library) ----
 
-type DeviceCategoryId = '3d-iphone' | '3d-android' | 'colored-iphone' | 'colored-android' | 'mockups';
+type DeviceCategoryId = '3d-iphone' | '3d-android' | '3d-watch' | 'colored-iphone' | 'colored-android' | 'mockups';
 
 const DEVICE_CATEGORY_LABELS: Record<DeviceCategoryId, string> = {
   '3d-iphone': '3D iPhone 17 Pro Max',
   '3d-android': '3D Android',
+  '3d-watch': '3D Apple Watch',
   'colored-iphone': 'Colored iPhone',
   'colored-android': 'Colored Android',
   'mockups': 'Device Mockups',
@@ -171,6 +191,7 @@ const DEVICE_CATEGORY_LABELS: Record<DeviceCategoryId, string> = {
 // Representative thumbnails shown on the category cards in the overview grid.
 const IPHONE_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white', 'upright-right-white'];
 const ANDROID_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white', 'upright-right-white'];
+const WATCH_3D_PREVIEWS = ['front-right-black', 'front-left-white', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white'];
 
 /** Category card for the device library overview (mini previews + label). */
 const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void }> = ({ label, previews, onOpen }) => (
@@ -607,6 +628,27 @@ export function ElementPalette({
                         ))
                       )
                     )}
+                  {openDeviceCategoryId === '3d-watch' &&
+                    COLORS_3D.map((color) =>
+                      WATCH_POSE_ORDER.map((pose) =>
+                        SIDES_3D.map((side) => (
+                          <Device3DThumbTile
+                            key={`watch-${color}-${pose}-${side}`}
+                            src={`/elements/device-3d/watch-${pose}-${side}-${color}.png`}
+                            label={color === 'black' ? 'Black' : 'White'}
+                            title={`Add Apple Watch 3D — ${pose} ${side} (${color})`}
+                            deviceType="apple-watch"
+                            styleProps={{
+                              styleType: side === 'left' ? '3d-left' : '3d-right',
+                              pose3d: pose,
+                              frameColor3d: color,
+                              defaultSize: WATCH_3D_SIZES[pose],
+                            }}
+                            onDragStart={handleDragStart}
+                          />
+                        ))
+                      )
+                    )}
                   {openDeviceCategoryId === 'colored-iphone' &&
                     COLORED_IPHONE_TILES.map((def, i) => (
                       <ColoredDeviceTile key={`cip-${i}`} def={def} onDragStart={handleDragStart} />
@@ -656,6 +698,13 @@ export function ElementPalette({
                     onOpen={() => setOpenDeviceCategoryId('3d-android')}
                     previews={ANDROID_3D_PREVIEWS.map((k) => (
                       <img key={k} src={withBasePath(`/elements/device-3d/android-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                    ))}
+                  />
+                  <DeviceCategoryCard
+                    label={DEVICE_CATEGORY_LABELS['3d-watch']}
+                    onOpen={() => setOpenDeviceCategoryId('3d-watch')}
+                    previews={WATCH_3D_PREVIEWS.map((k) => (
+                      <img key={k} src={withBasePath(`/elements/device-3d/watch-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard

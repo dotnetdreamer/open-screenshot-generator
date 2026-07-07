@@ -1,7 +1,7 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
 
 export type DevicePlatform = 'ios' | 'android' | 'neutral';
-export type DeviceCategory = 'phone' | 'tablet' | 'desktop' | 'custom';
+export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'custom';
 export type SwapPlatform = 'ios' | 'android';
 
 export interface DeviceScreenGeometry {
@@ -48,6 +48,9 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   // phones so converting an iPad project to a phone format is never a dead end.
   'ipad-pro-13': { id: 'ipad-pro-13', label: 'iPad Pro 13-inch', platform: 'ios', category: 'tablet', nativeAspect: 2064 / 2752, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.2, right: 3.2, bottom: 3.2, left: 3.2 }, radiusFactor: 0.032 } },
   'ipad-11': { id: 'ipad-11', label: 'iPad 11-inch', platform: 'ios', category: 'tablet', nativeAspect: 1668 / 2420, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.6, right: 3.6, bottom: 3.6, left: 3.6 }, radiusFactor: 0.036 } },
+  // Apple Watch (Series 10 46mm proportions). No counterpart: platform swaps
+  // leave watch mockups as-is, like the generic tablet/desktop.
+  'apple-watch': { id: 'apple-watch', label: 'Apple Watch', platform: 'ios', category: 'watch', nativeAspect: 39 / 46, screen: { paddingPercent: { top: 10, right: 10, bottom: 10, left: 10 }, radiusFactor: 0.28 } },
   'android-bar': { id: 'android-bar', label: 'Android (Bar)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone' }, screen: { paddingPercent: { top: 6, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'android-notch': { id: 'android-notch', label: 'Android (Notch)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone-14' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'android-punch-hole': { id: 'android-punch-hole', label: 'Android (Punch Hole)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2400, counterpart: { ios: 'iphone-15' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
@@ -79,6 +82,7 @@ export const DEVICE_PICKER_GROUPS: ReadonlyArray<{
   [
     { label: 'iPhone', platform: 'ios', category: 'phone' },
     { label: 'iPad', platform: 'ios', category: 'tablet' },
+    { label: 'Apple Watch', platform: 'ios', category: 'watch' },
     { label: 'Android', platform: 'android', category: null },
     { label: 'Other', platform: 'neutral', category: null },
   ] as const
