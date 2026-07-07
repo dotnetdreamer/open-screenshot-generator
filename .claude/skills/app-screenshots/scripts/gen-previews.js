@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
-const { launch, exportArtboards, sleep, APP_URL } = require('./lib');
+const { launch, exportArtboards, sleep, clickTab, APP_URL } = require('./lib');
 const { renderOnPage, EDGE, CW, CH } = require('./compose-preview');
 
 const REPO = path.resolve(__dirname, '../../../..');
@@ -36,7 +36,18 @@ const SLUGS = [
   'tunio-music', 'coinly-crypto', 'stockio-invest', 'threadly-social', 'beatforge-studio',
   'podly-podcasts', 'cinevault-stream', 'sereno-mind', 'droply-habits', 'zeeb-fashion',
   'lingua-learn', 'verda-eco',
+  // Apple Watch category (behind the "Apple Watch" tab).
+  'watch-smart-appscreens', 'watch-editors-choice', 'watch-dark-aso',
+  'watch-ultra-showcase', 'watch-lavender', 'watch-sunset',
 ];
+
+// Slugs whose card lives behind a non-default Radix tab; the value is the tab
+// label to click before searching for the card.
+const SLUG_TAB = {
+  'watch-smart-appscreens': 'Apple Watch', 'watch-editors-choice': 'Apple Watch',
+  'watch-dark-aso': 'Apple Watch', 'watch-ultra-showcase': 'Apple Watch',
+  'watch-lavender': 'Apple Watch', 'watch-sunset': 'Apple Watch',
+};
 
 function meta(slug) {
   const j = JSON.parse(fs.readFileSync(path.join(PROJ, `${slug}.json`), 'utf8'));
@@ -46,19 +57,30 @@ function meta(slug) {
     const g = ab.backgroundGradient;
     bg = `linear-gradient(${g.angle || 180}deg, ${g.color1}, ${g.color2})`;
   }
-  return { name: j.name, boards: j.projectData.length, bg };
+  const ratio = ab.size ? ab.size.width / ab.size.height : undefined;
+  return { name: j.name, boards: j.projectData.length, bg, ratio };
 }
 
-async function openTemplate(page, cardTitle) {
+async function openTemplate(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  if (tab) {
+    await page.waitForFunction(
+      `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(tab)}))`,
+      { timeout: 90000, polling: 500 }
+    );
+    await clickTab(page, tab);
+  }
+  // Radix keeps inactive tab panels mounted (hidden), so scope the card search
+  // to the active panel or a title substring can match a hidden card in another
+  // tab and open the wrong project.
+  const CARDS = '[role="dialog"] [role="tabpanel"][data-state="active"] .cursor-pointer';
   await page.waitForFunction(
-    `[...document.querySelectorAll('[role="dialog"] .cursor-pointer')].some((c) => (c.textContent || '').includes(${JSON.stringify(cardTitle)}))`,
+    `[...document.querySelectorAll('${CARDS}')].some((c) => (c.textContent || '').includes(${JSON.stringify(cardTitle)}))`,
     { timeout: 90000, polling: 500 }
   );
-  await page.evaluate((t) => {
-    [...document.querySelectorAll('[role="dialog"] .cursor-pointer')]
-      .find((c) => (c.textContent || '').includes(t)).click();
-  }, cardTitle);
+  await page.evaluate((t, sel) => {
+    [...document.querySelectorAll(sel)].find((c) => (c.textContent || '').includes(t)).click();
+  }, cardTitle, CARDS);
   await page.waitForFunction("location.search.includes('projectId')", { timeout: 30000, polling: 500 });
   await page.waitForFunction("document.querySelectorAll('[data-element-id]').length > 3", { timeout: 60000, polling: 500 });
   await sleep(4000); // fonts + skeleton images + first paint settle
@@ -82,7 +104,7 @@ async function openTemplate(page, cardTitle) {
       fs.rmSync(dir, { recursive: true, force: true });
       const { browser, page } = await launch({ downloadDir: dir });
       try {
-        await openTemplate(page, name);
+        await openTemplate(page, name, SLUG_TAB[slug]);
         const files = await exportArtboards(page, dir, boards);
         console.log(`A export ${slug} -> ${files.length} boards`);
       } catch (e) {
@@ -105,9 +127,9 @@ async function openTemplate(page, cardTitle) {
     if (!fs.existsSync(dir) || !fs.readdirSync(dir).some((f) => /\.png$/i.test(f))) {
       console.log(`B SKIP ${slug} (no exported screens)`); continue;
     }
-    const { bg } = meta(slug);
+    const { bg, ratio } = meta(slug);
     const out = path.join(PREVIEWS, `${slug}.png`);
-    const n = await renderOnPage(page, dir, bg, out, MAX_SCREENS);
+    const n = await renderOnPage(page, dir, bg, out, MAX_SCREENS, ratio);
     // rewrite previewImage (handles placehold.co and empty "")
     const file = path.join(PROJ, `${slug}.json`);
     let text = fs.readFileSync(file, 'utf8');

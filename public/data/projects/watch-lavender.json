@@ -1,0 +1,374 @@
+{
+  "id": "template_watch_lavender",
+  "name": "Lavender",
+  "description": "App Store Apple Watch screenshots on a soft lavender gradient: minimal white word headlines and a silver 3D watch with a gentle tilt. Swap each watch screen to your own app UI.",
+  "previewImage": "/data/projects/previews/watch-lavender.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_watch_lavender_0",
+      "name": "Move",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#B9A7F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": -5,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "white",
+          "screenshotSrc": "/data/projects/watch-screens/watch-rings-purple.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b0_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 34
+          },
+          "size": {
+            "width": 380,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Move.",
+          "fontSize": 23,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.08
+        }
+      ],
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8E86F0",
+        "color2": "#D8B7EA",
+        "angle": 160
+      }
+    },
+    {
+      "id": "tpl_watch_lavender_1",
+      "name": "Track",
+      "position": {
+        "x": 467,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#B9A7F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 4,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "white",
+          "screenshotSrc": "/data/projects/watch-screens/watch-workout-purple.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b1_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 34
+          },
+          "size": {
+            "width": 380,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Track.",
+          "fontSize": 23,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.08
+        }
+      ],
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8E86F0",
+        "color2": "#D8B7EA",
+        "angle": 160
+      }
+    },
+    {
+      "id": "tpl_watch_lavender_2",
+      "name": "Breathe",
+      "position": {
+        "x": 919,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#B9A7F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b2_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": -3,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "white",
+          "screenshotSrc": "/data/projects/watch-screens/watch-detail-purple.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b2_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 34
+          },
+          "size": {
+            "width": 380,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Breathe.",
+          "fontSize": 23,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.08
+        }
+      ],
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8E86F0",
+        "color2": "#D8B7EA",
+        "angle": 160
+      }
+    },
+    {
+      "id": "tpl_watch_lavender_3",
+      "name": "Focus",
+      "position": {
+        "x": 1371,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#B9A7F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b3_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 5,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "white",
+          "screenshotSrc": "/data/projects/watch-screens/watch-list-purple.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b3_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 34
+          },
+          "size": {
+            "width": 380,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Focus.",
+          "fontSize": 23,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.08
+        }
+      ],
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8E86F0",
+        "color2": "#D8B7EA",
+        "angle": 160
+      }
+    },
+    {
+      "id": "tpl_watch_lavender_4",
+      "name": "Thrive",
+      "position": {
+        "x": 1823,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#B9A7F0",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b4_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": -4,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "white",
+          "screenshotSrc": "/data/projects/watch-screens/watch-nowplaying-purple.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b4_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 34
+          },
+          "size": {
+            "width": 380,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Thrive.",
+          "fontSize": 23,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.08
+        }
+      ],
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8E86F0",
+        "color2": "#D8B7EA",
+        "angle": 160
+      }
+    }
+  ]
+}

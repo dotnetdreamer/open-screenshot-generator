@@ -89,6 +89,28 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     ],
   },
   {
+    id: 'apple-watch',
+    label: 'Apple Watch',
+    blurb: 'App Store Apple Watch screenshot layouts with 3D watch mockups.',
+    // Apple Watch Ultra 3 (49mm) — the required App Store baseline watch size;
+    // the store auto-scales it down to the smaller watch tiers.
+    defaultSize: { width: 422, height: 514 },
+    // Watch screens are near-square portraits, so a template's card shows a wide
+    // strip of several watch mockups (contained, never cropped), same treatment
+    // as the App Screenshots tab.
+    previewAspect: '3 / 1',
+    previewFit: 'contain',
+    gridClassName: 'grid-cols-1 lg:grid-cols-2',
+    files: [
+      'watch-smart-appscreens.json',
+      'watch-editors-choice.json',
+      'watch-dark-aso.json',
+      'watch-ultra-showcase.json',
+      'watch-lavender.json',
+      'watch-sunset.json',
+    ],
+  },
+  {
     id: 'play-feature-graphic',
     label: 'Google Feature Graphic',
     blurb: 'Google Play 1024×500 feature banner.',

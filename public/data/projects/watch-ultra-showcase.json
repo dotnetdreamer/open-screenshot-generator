@@ -1,0 +1,234 @@
+{
+  "id": "template_watch_ultra_showcase",
+  "name": "Ultra Showcase",
+  "description": "App Store Apple Watch screenshots: a titanium 3D watch presented across five product angles on a clean white studio, each with a different app screen. Swap each watch screen to your own app UI.",
+  "previewImage": "/data/projects/previews/watch-ultra-showcase.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_watch_ultra_showcase_0",
+      "name": "Front",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 66,
+            "y": 7
+          },
+          "size": {
+            "width": 290,
+            "height": 600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-rings-pink.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_ultra_showcase_1",
+      "name": "Upright",
+      "position": {
+        "x": 467,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 77,
+            "y": 9
+          },
+          "size": {
+            "width": 269,
+            "height": 595
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-left",
+          "pose3d": "upright",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-workout-orange.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_ultra_showcase_2",
+      "name": "Tilted",
+      "position": {
+        "x": 919,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b2_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 37,
+            "y": 20
+          },
+          "size": {
+            "width": 348,
+            "height": 580
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "tilted",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-nowplaying-blue.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_ultra_showcase_3",
+      "name": "Side",
+      "position": {
+        "x": 1371,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b3_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 77,
+            "y": 9
+          },
+          "size": {
+            "width": 269,
+            "height": 595
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "side",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-list-green.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_ultra_showcase_4",
+      "name": "Reclined",
+      "position": {
+        "x": 1823,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b4_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 1,
+            "y": 38
+          },
+          "size": {
+            "width": 420,
+            "height": 524
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "reclined",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-detail-purple.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    }
+  ]
+}

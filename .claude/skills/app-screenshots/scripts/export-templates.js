@@ -5,7 +5,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { launch, startBlankProject, sleep, exportArtboards, APP_URL } = require('./lib');
+const { launch, startBlankProject, sleep, exportArtboards, clickTab, APP_URL } = require('./lib');
 
 const TEMPLATES = [
   { slug: 'beauty-glam', card: 'Beauty Glam', boards: 5 },
@@ -46,21 +46,41 @@ const TEMPLATES = [
   { slug: 'zeeb-fashion', card: 'Zeeb Fashion', boards: 5 },
   { slug: 'budgetly-finance', card: 'Budgetly Finance', boards: 8 },
   { slug: 'verda-eco', card: 'Verda Eco', boards: 5 },
+  { slug: 'watch-smart-appscreens', card: 'Smart AppScreens', boards: 5, tab: 'Apple Watch' },
+  { slug: 'watch-editors-choice', card: 'Editors Choice', boards: 5, tab: 'Apple Watch' },
+  { slug: 'watch-dark-aso', card: 'Dark ASO', boards: 5, tab: 'Apple Watch' },
+  { slug: 'watch-ultra-showcase', card: 'Ultra Showcase', boards: 5, tab: 'Apple Watch' },
+  { slug: 'watch-lavender', card: 'Lavender', boards: 5, tab: 'Apple Watch' },
+  { slug: 'watch-sunset', card: 'Sunset Pop', boards: 5, tab: 'Apple Watch' },
 ];
 
-async function openTemplateFromStartDialog(page, cardTitle) {
+async function openTemplateFromStartDialog(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  // Wait for the template cards to load in the start dialog.
+  // Non-default categories (Apple Watch, Feature Graphic) live behind a Radix
+  // tab — click it first so its panel becomes active. Radix keeps INACTIVE tab
+  // panels mounted (just hidden), so the card search below must be scoped to the
+  // active panel; an unscoped [role=dialog] search matches hidden cards in other
+  // tabs and can open the wrong project (e.g. "Lavender" also appears in a
+  // screenshots-tab description).
+  if (tab) {
+    await page.waitForFunction(
+      `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(tab)}))`,
+      { timeout: 90000, polling: 500 }
+    );
+    await clickTab(page, tab);
+  }
+  const CARDS = '[role="dialog"] [role="tabpanel"][data-state="active"] .cursor-pointer';
+  // Wait for the template cards to load in the active tab panel.
   await page.waitForFunction(
-    `[...document.querySelectorAll('[role="dialog"] .cursor-pointer')].some((c) => (c.textContent || '').includes(${JSON.stringify(cardTitle)}))`,
+    `[...document.querySelectorAll('${CARDS}')].some((c) => (c.textContent || '').includes(${JSON.stringify(cardTitle)}))`,
     { timeout: 90000, polling: 500 }
   );
-  await page.evaluate((cardTitle) => {
-    const card = [...document.querySelectorAll('[role="dialog"] .cursor-pointer')].find(
+  await page.evaluate((cardTitle, sel) => {
+    const card = [...document.querySelectorAll(sel)].find(
       (c) => (c.textContent || '').includes(cardTitle)
     );
     card.click();
-  }, cardTitle);
+  }, cardTitle, CARDS);
   await page.waitForFunction("location.search.includes('projectId')", { timeout: 30000, polling: 500 });
   // Wait for artboard elements to mount.
   await page.waitForFunction("document.querySelectorAll('[data-element-id]').length > 3", {
@@ -82,7 +102,7 @@ async function openTemplateFromStartDialog(page, cardTitle) {
     const { browser, page } = await launch({ downloadDir: dir });
     try {
       console.log('== ' + t.slug);
-      await openTemplateFromStartDialog(page, t.card);
+      await openTemplateFromStartDialog(page, t.card, t.tab);
       const files = await exportArtboards(page, dir, t.boards);
       console.log('   exported:', files.join(', '));
     } catch (e) {

@@ -14,12 +14,15 @@ const fs = require('fs');
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const CW = 1500, CH = 500, PAD = 46, GAP = 26, RATIO = 1290 / 2796;
 
-function buildHTML(dir, bg, max) {
+// `ratio` is the artboard aspect (width/height): phones ~0.46, Apple Watch
+// ~0.82. It sets how tall the cards can be before N of them overflow the strip
+// width, so a wider aspect (watch) is sized down to fit instead of clipping.
+function buildHTML(dir, bg, max, ratio = RATIO) {
   const files = fs.readdirSync(dir).filter((f) => /\.png$/i.test(f)).sort();
   const pick = files.slice(0, max);
   const n = pick.length || 1;
   const availW = CW - 2 * PAD - (n - 1) * GAP;
-  const hByWidth = (availW / n) / RATIO;
+  const hByWidth = (availW / n) / ratio;
   const imgH = Math.min(CH - 2 * PAD, hByWidth);
   const imgs = pick.map((f) => {
     const b64 = fs.readFileSync(path.join(dir, f)).toString('base64');
@@ -28,8 +31,8 @@ function buildHTML(dir, bg, max) {
   return { html: `<!doctype html><html><body style="margin:0"><div style="width:${CW}px;height:${CH}px;background:${bg};display:flex;align-items:center;justify-content:center;gap:${GAP}px;overflow:hidden">${imgs}</div></body></html>`, n: pick.length };
 }
 
-async function renderOnPage(page, dir, bg, out, max = 6) {
-  const { html, n } = buildHTML(dir, bg, max);
+async function renderOnPage(page, dir, bg, out, max = 6, ratio = RATIO) {
+  const { html, n } = buildHTML(dir, bg, max, ratio);
   await page.setContent(html);
   await page.evaluate(() => Promise.all(Array.from(document.images).map((i) => i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; }))));
   fs.mkdirSync(path.dirname(out), { recursive: true });

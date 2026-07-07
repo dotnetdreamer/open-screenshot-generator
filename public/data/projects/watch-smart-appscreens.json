@@ -1,0 +1,410 @@
+{
+  "id": "template_watch_smart_appscreens",
+  "name": "Smart AppScreens",
+  "description": "App Store Apple Watch screenshots with a straight-on silver 3D watch, bold black headlines and a coral accent on a clean white studio. Swap each watch screen to your own app UI.",
+  "previewImage": "/data/projects/previews/watch-smart-appscreens.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_watch_smart",
+      "name": "Smart",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "smart_watch",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-rings-blue.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "smart_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The smart way\nto AppScreens",
+          "fontSize": 15,
+          "color": "#10121A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_plans",
+      "name": "Plans",
+      "position": {
+        "x": 467,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "plans_watch",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-list-blue.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "plans_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get great\nplans",
+          "fontSize": 15,
+          "color": "#10121A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        },
+        {
+          "id": "plans_s",
+          "type": "text",
+          "name": "Accent",
+          "position": {
+            "x": 24,
+            "y": 150
+          },
+          "size": {
+            "width": 380,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "for everyone.",
+          "fontSize": 11,
+          "color": "#F04E37",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_play",
+      "name": "Play",
+      "position": {
+        "x": 919,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "play_watch",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-nowplaying-blue.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "play_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Play before\nyou purchase.",
+          "fontSize": 15,
+          "color": "#10121A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_make",
+      "name": "Make",
+      "position": {
+        "x": 1371,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "make_watch",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-workout-blue.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "make_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Make your\nscreenshots",
+          "fontSize": 15,
+          "color": "#10121A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        },
+        {
+          "id": "make_s",
+          "type": "text",
+          "name": "Accent",
+          "position": {
+            "x": 24,
+            "y": 150
+          },
+          "size": {
+            "width": 380,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "the way you want.",
+          "fontSize": 11,
+          "color": "#F04E37",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_aso",
+      "name": "ASO",
+      "position": {
+        "x": 1823,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#FFFFFF",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "aso_watch",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "titanium",
+          "screenshotSrc": "/data/projects/watch-screens/watch-detail-blue.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "aso_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your ASO\nenhancement",
+          "fontSize": 15,
+          "color": "#10121A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        },
+        {
+          "id": "aso_s",
+          "type": "text",
+          "name": "Accent",
+          "position": {
+            "x": 24,
+            "y": 150
+          },
+          "size": {
+            "width": 380,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "starts here.",
+          "fontSize": 11,
+          "color": "#F04E37",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    }
+  ]
+}

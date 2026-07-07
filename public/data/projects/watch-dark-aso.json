@@ -1,0 +1,344 @@
+{
+  "id": "template_watch_dark_aso",
+  "name": "Dark ASO",
+  "description": "App Store Apple Watch screenshots on a black studio: crisp white headlines and a stealth black 3D watch with a glowing app screen. Swap each watch screen to your own app UI.",
+  "previewImage": "/data/projects/previews/watch-dark-aso.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_watch_dark_aso_0",
+      "name": "Choose",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#0A0A0C",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/watch-screens/watch-rings-default.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b0_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Choose your\ntemplate",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_dark_aso_1",
+      "name": "Pick",
+      "position": {
+        "x": 467,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#0A0A0C",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/watch-screens/watch-list-default.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b1_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pick your\npoison",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_dark_aso_2",
+      "name": "Possible",
+      "position": {
+        "x": 919,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#0A0A0C",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b2_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/watch-screens/watch-workout-default.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b2_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "See what’s\npossible",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_dark_aso_3",
+      "name": "Share",
+      "position": {
+        "x": 1371,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#0A0A0C",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b3_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/watch-screens/watch-nowplaying-default.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b3_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Share your\ncreations",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    },
+    {
+      "id": "tpl_watch_dark_aso_4",
+      "name": "Revenue",
+      "position": {
+        "x": 1823,
+        "y": 15
+      },
+      "size": {
+        "width": 422,
+        "height": 514
+      },
+      "backgroundColor": "#0A0A0C",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b4_w",
+          "type": "device",
+          "name": "Apple Watch",
+          "position": {
+            "x": 86,
+            "y": 48
+          },
+          "size": {
+            "width": 250,
+            "height": 517
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "apple-watch",
+          "styleType": "3d-right",
+          "pose3d": "front",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/watch-screens/watch-detail-default.png",
+          "naturalScreenshotWidth": 960,
+          "naturalScreenshotHeight": 1176,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "b4_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 24,
+            "y": 26
+          },
+          "size": {
+            "width": 380,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Increase\nyour revenue",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.08
+        }
+      ]
+    }
+  ]
+}
