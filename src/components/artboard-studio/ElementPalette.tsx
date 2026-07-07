@@ -38,7 +38,7 @@ type PaletteDragStart = (
 
 // ---- 3D device pose groups (thumbnails pre-rendered to /elements/device-3d) ----
 
-const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting'];
+const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting', 'isometric'];
 const SIDES_3D = ['left', 'right'] as const;
 const COLORS_3D = ['black', 'white'] as const;
 
@@ -53,6 +53,7 @@ const IPHONE_3D_SIZES: Record<Device3DPose, { width: number; height: number }> =
   laying: { width: 800, height: 680 },
   floating: { width: 760, height: 830 },
   drifting: { width: 900, height: 700 },
+  isometric: { width: 900, height: 480 },
 };
 const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
   classic: { width: 600, height: 1333 },
@@ -63,6 +64,7 @@ const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> 
   laying: { width: 800, height: 700 },
   floating: { width: 760, height: 830 },
   drifting: { width: 900, height: 700 },
+  isometric: { width: 900, height: 480 },
 };
 
 /** Tile showing a pre-rendered 3D pose thumbnail, draggable like other palette items. */

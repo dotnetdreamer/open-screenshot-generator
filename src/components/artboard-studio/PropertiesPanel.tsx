@@ -550,6 +550,9 @@ export function PropertiesPanel({
                 <SelectItem value="tilted">Tilted</SelectItem>
                 <SelectItem value="reclined">Reclined</SelectItem>
                 <SelectItem value="laying">Laying</SelectItem>
+                <SelectItem value="floating">Floating</SelectItem>
+                <SelectItem value="drifting">Drifting</SelectItem>
+                <SelectItem value="isometric">Isometric</SelectItem>
               </SelectContent>
             </Select>
           </div>

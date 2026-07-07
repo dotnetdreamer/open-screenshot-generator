@@ -82,6 +82,9 @@
           "rotation": -7,
           "scale": 1.4,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-player-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
@@ -176,6 +179,9 @@
           "rotation": 0,
           "scale": 1.6,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-list-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
@@ -244,6 +250,9 @@
           "rotation": 0,
           "scale": 1.4,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-player-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
@@ -310,6 +319,9 @@
           "rotation": 0,
           "scale": 1.5,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-player-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }
@@ -365,6 +377,9 @@
           "rotation": 0,
           "scale": 1.4,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-list-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": { "left": 0, "top": 0, "width": 100, "height": 100 }

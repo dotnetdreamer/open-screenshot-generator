@@ -105,7 +105,7 @@ export type DeviceStyleType =
 // original near-frontal product shot; the rest recline the device toward the
 // camera in increasing steps (matching common mockup panels). 'floating' and
 // 'drifting' add an in-image diagonal roll for tossed-phone hero collages.
-export type Device3DPose = 'classic' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying' | 'floating' | 'drifting';
+export type Device3DPose = 'classic' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying' | 'floating' | 'drifting' | 'isometric';
 
 // Body finish for the true-3D device styles. 'titanium' is the original look
 // and remains the default for existing projects.

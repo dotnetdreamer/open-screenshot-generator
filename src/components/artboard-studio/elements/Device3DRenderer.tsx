@@ -65,6 +65,12 @@ const POSES: Record<Device3DPose, { yaw: number; pitch: number; roll?: number; b
   laying: { yaw: 28, pitch: 66 },
   floating: { yaw: 34, pitch: 36, roll: -20, bodyAspect: 2.05 },
   drifting: { yaw: 32, pitch: 46, roll: -35, bodyAspect: 2.05 },
+  // Exact yaw/pitch/roll decomposition of the classic 2D isometric mockup
+  // projection: spin the phone 60° on the table, then view the table from
+  // arccos(0.6) ≈ 53° above (SVG equivalent: rotate(∓60) scale(1, 0.6)).
+  // The NEGATIVE pitch is what puts the camera above the face — the laying
+  // poses use positive pitch and read as shot from below the plane.
+  isometric: { yaw: 49.107, pitch: -23.578, roll: 70.893, bodyAspect: 2.05 },
 };
 
 // Body finishes. 'titanium' is the original look and stays the default.

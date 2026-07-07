@@ -35,6 +35,9 @@
           "rotation": 14,
           "scale": 1.5,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": {
@@ -320,6 +323,9 @@
           "rotation": -2,
           "scale": 1.6,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-list-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": {
@@ -425,6 +431,9 @@
           "rotation": 0,
           "scale": 1.5,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": {
@@ -578,6 +587,9 @@
           "rotation": 12,
           "scale": 1.6,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-list-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": {
@@ -683,6 +695,9 @@
           "rotation": 0,
           "scale": 1.55,
           "deviceType": "iphone-15",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-dark.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
           "styleType": "normal",
           "screenshotObjectFit": "cover",
           "screenshotRect": {
