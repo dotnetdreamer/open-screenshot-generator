@@ -68,6 +68,18 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
     ],
   },
   {
+    key: 'appstore-watch',
+    label: 'App Store Apple Watch',
+    presets: [
+      { id: 'watch-ultra-3', label: 'Apple Watch Ultra 3 (49mm)', width: 422, height: 514, aspectLabel: '~13:16', note: 'Required baseline for Apple Watch apps. Newest, largest tier (Ultra 3, 49mm); the App Store auto-scales it down to smaller watch sizes.', required: true },
+      { id: 'watch-ultra-2', label: 'Apple Watch Ultra 2 / Ultra (49mm)', width: 410, height: 502, aspectLabel: '~13:16', note: 'Ultra 2 and first-gen Ultra (49mm). Optional; an accepted alternative for the required watch slot.' },
+      { id: 'watch-series-11', label: 'Apple Watch Series 11 / 10 (46mm)', width: 416, height: 496, aspectLabel: '26:31', note: 'Series 11 and Series 10 (46mm). Optional; auto-scaled from the Ultra tier.' },
+      { id: 'watch-series-9', label: 'Apple Watch Series 7 to 9 (45mm)', width: 396, height: 484, aspectLabel: '9:11', note: 'Series 7, 8 and 9 (45mm). Optional.' },
+      { id: 'watch-series-6', label: 'Apple Watch Series 4 to 6 / SE (44mm)', width: 368, height: 448, aspectLabel: '23:28', note: 'Series 4, 5, 6, SE 3 and SE (44mm). Optional.' },
+      { id: 'watch-series-3', label: 'Apple Watch Series 3 (42mm)', width: 312, height: 390, aspectLabel: '4:5', note: 'Legacy Series 3 (42mm). Optional; rarely needed.' },
+    ],
+  },
+  {
     key: 'play-phone',
     label: 'Google Play Phone',
     presets: [
