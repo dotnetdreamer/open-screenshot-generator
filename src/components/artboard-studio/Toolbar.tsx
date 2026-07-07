@@ -16,7 +16,8 @@ import {
   FolderOpenIcon,
   EyeIcon,
   SmartphoneIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  RulerIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,9 +31,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { findMatchingPreset } from '@/lib/sizePresets';
+import { CanvasSizeDialog } from './CanvasSizeDialog';
 import { useClipboard } from '@/contexts/ClipboardContext';
 
 interface ToolbarProps {
@@ -97,22 +99,17 @@ export function Toolbar({
   const deviceFormatLabel =
     DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? 'Devices';
   const { clipboardItem } = useClipboard();
-  // Initialize with the new default values
-  const [width, setWidth] = useState<string>("1290");
-  const [height, setHeight] = useState<string>("2796");
-  
+  // Canvas Size dialog (replaces the old inline width/height/apply controls)
+  const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false);
+  const matchedSizePreset = findMatchingPreset(initialArtboardSize);
+  const sizeButtonLabel = initialArtboardSize
+    ? `${initialArtboardSize.width} × ${initialArtboardSize.height}`
+    : 'Canvas Size';
+
   // State for project name editing
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
   const [editingProjectName, setEditingProjectName] = useState(currentProjectName || 'Untitled Project');
   const projectNameInputRef = useRef<HTMLInputElement>(null);
-
-  // Update input values when artboard size changes
-  useEffect(() => {
-    if (initialArtboardSize) {
-      setWidth(initialArtboardSize.width.toString());
-      setHeight(initialArtboardSize.height.toString());
-    }
-  }, [initialArtboardSize]);
 
   // Update project name when it changes
   useEffect(() => {
@@ -126,27 +123,6 @@ export function Toolbar({
       projectNameInputRef.current.select();
     }
   }, [isEditingProjectName]);
-
-  const handleWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    setWidth(value);
-  };
-
-  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
-    setHeight(value);
-  };
-
-  const handleApplySize = () => {
-    const numWidth = parseInt(width, 10);
-    const numHeight = parseInt(height, 10);
-
-    if (numWidth >= 100 && numWidth <= 5000 && numHeight >= 100 && numHeight <= 5000) {
-      onUpdateArtboardSize(numWidth, numHeight);
-    } else {
-      alert("Width and height must be between 100 and 5000 pixels");
-    }
-  };
 
   const handleProjectNameDoubleClick = () => {
     setIsEditingProjectName(true);
@@ -313,39 +289,35 @@ export function Toolbar({
 
       <div className="h-8 w-px bg-muted mx-2" />
       
-      {/* Artboard Size Controls */}
-      <div className="flex items-center space-x-3">
-        <div className="flex flex-col">
-          <Label htmlFor="artboard-width" className="text-xs mb-0.5 text-muted-foreground">Width</Label>
-          <Input
-            id="artboard-width"
-            type="text"
-            value={width}
-            onChange={handleWidthChange}
-            className="h-7 w-16 text-xs"
-          />
-        </div>
-        <span className="text-muted-foreground">×</span>
-        <div className="flex flex-col">
-          <Label htmlFor="artboard-height" className="text-xs mb-0.5 text-muted-foreground">Height</Label>
-          <Input
-            id="artboard-height"
-            type="text"
-            value={height}
-            onChange={handleHeightChange}
-            className="h-7 w-16 text-xs"
-          />
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleApplySize}
-          className="h-7 self-end px-3 text-xs"
-        >
-          Apply
-        </Button>
-      </div>
-      
+      {/* Canvas Size — opens the preset picker dialog (replaces the old
+          inline width/height/apply controls; same raw-resize behavior) */}
+      <Button
+        variant="outline"
+        className="h-9 gap-1.5 px-3"
+        onClick={() => setIsSizeDialogOpen(true)}
+        title={
+          matchedSizePreset
+            ? `Canvas size: ${sizeButtonLabel} · ${matchedSizePreset.label}`
+            : `Canvas size: ${sizeButtonLabel}`
+        }
+      >
+        <RulerIcon className="h-4 w-4 opacity-80" />
+        <span className="text-sm tabular-nums">{sizeButtonLabel}</span>
+        {matchedSizePreset && (
+          <span className="hidden max-w-[9rem] truncate text-xs text-muted-foreground lg:inline">
+            {matchedSizePreset.label}
+          </span>
+        )}
+        <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+      </Button>
+
+      <CanvasSizeDialog
+        isOpen={isSizeDialogOpen}
+        onOpenChange={setIsSizeDialogOpen}
+        currentSize={initialArtboardSize}
+        onApply={onUpdateArtboardSize}
+      />
+
       <div className="flex-grow" />
 
       {onSelectDeviceFormat && (
