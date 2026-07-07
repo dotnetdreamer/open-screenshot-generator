@@ -1,0 +1,1315 @@
+{
+  "id": "template_inboxly_mail",
+  "name": "Inboxly Mail",
+  "description": "Gmail-inspired App Store & Play Store screenshot set. Soft periwinkle panels, serif headlines and skeleton inbox screens inside every phone mockup so users see exactly how their app will look.",
+  "previewImage": "https://placehold.co/300x200/DCE4FB/16182B?text=Inboxly+Mail",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_ib_ab1",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab1_icon",
+          "type": "shape",
+          "name": "App Icon",
+          "position": {
+            "x": 95,
+            "y": 110
+          },
+          "size": {
+            "width": 160,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#16182B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40
+        },
+        {
+          "id": "tpl_ib_ab1_icon_glyph",
+          "type": "shape",
+          "name": "Envelope Glyph",
+          "position": {
+            "x": 130,
+            "y": 150
+          },
+          "size": {
+            "width": 90,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 20 H90 V80 H10 Z M12 24 L50 54 L88 24",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          }
+        },
+        {
+          "id": "tpl_ib_ab1_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 95,
+            "y": 360
+          },
+          "size": {
+            "width": 1050,
+            "height": 640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get the\nbest results\nwith US",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.15
+        },
+        {
+          "id": "tpl_ib_ab1_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 560,
+            "y": 1280
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab2",
+      "name": "Stand Out",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab2_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 170
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stand out",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab2_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 370
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "in a crowded space",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab2_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 850
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        },
+        {
+          "id": "tpl_ib_ab2_card",
+          "type": "shape",
+          "name": "Product Card",
+          "position": {
+            "x": 40,
+            "y": 1470
+          },
+          "size": {
+            "width": 640,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 24
+        },
+        {
+          "id": "tpl_ib_ab2_card_img",
+          "type": "shape",
+          "name": "Product Thumb",
+          "position": {
+            "x": 80,
+            "y": 1510
+          },
+          "size": {
+            "width": 220,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E4E7F1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 14
+        },
+        {
+          "id": "tpl_ib_ab2_card_title",
+          "type": "text",
+          "name": "Product Name",
+          "position": {
+            "x": 340,
+            "y": 1515
+          },
+          "size": {
+            "width": 320,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Coffee Table",
+          "fontSize": 11,
+          "color": "#3A3F52",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab2_card_price",
+          "type": "text",
+          "name": "Product Price",
+          "position": {
+            "x": 340,
+            "y": 1585
+          },
+          "size": {
+            "width": 320,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$899.99",
+          "fontSize": 14,
+          "color": "#16182B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab2_card_stars",
+          "type": "text",
+          "name": "Product Stars",
+          "position": {
+            "x": 340,
+            "y": 1675
+          },
+          "size": {
+            "width": 230,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "★★★★★",
+          "fontSize": 10,
+          "color": "#F2A814",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab2_card_rating",
+          "type": "text",
+          "name": "Product Rating",
+          "position": {
+            "x": 570,
+            "y": 1675
+          },
+          "size": {
+            "width": 100,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "5.0",
+          "fontSize": 10,
+          "color": "#3A3F52",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab3",
+      "name": "Save Time",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab3_badge",
+          "type": "shape",
+          "name": "Edit Badge",
+          "position": {
+            "x": 1040,
+            "y": 80
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#ADB9F8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab3_badge_pencil",
+          "type": "shape",
+          "name": "Pencil Glyph",
+          "position": {
+            "x": 1078,
+            "y": 118
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D5BD6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 88 L18 64 L64 18 L82 36 L36 82 Z M68 14 L79 3 L97 21 L86 32 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_ib_ab3_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 170
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Save time",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab3_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 370
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "with AI styling",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab3_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 850
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        },
+        {
+          "id": "tpl_ib_ab3_strip",
+          "type": "shape",
+          "name": "Style Strip",
+          "position": {
+            "x": 60,
+            "y": 2290
+          },
+          "size": {
+            "width": 780,
+            "height": 420
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 18
+        },
+        {
+          "id": "tpl_ib_ab3_strip_1",
+          "type": "shape",
+          "name": "Style Swatch 1",
+          "position": {
+            "x": 82,
+            "y": 2312
+          },
+          "size": {
+            "width": 234,
+            "height": 376
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#D8CBB5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12
+        },
+        {
+          "id": "tpl_ib_ab3_strip_2",
+          "type": "shape",
+          "name": "Style Swatch 2",
+          "position": {
+            "x": 332,
+            "y": 2312
+          },
+          "size": {
+            "width": 234,
+            "height": 376
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#B9C1CF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12
+        },
+        {
+          "id": "tpl_ib_ab3_strip_3",
+          "type": "shape",
+          "name": "Style Swatch 3",
+          "position": {
+            "x": 582,
+            "y": 2312
+          },
+          "size": {
+            "width": 234,
+            "height": 376
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C9A96E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab4",
+      "name": "Powerful Tools",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab4_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 170
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Powerful tools",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab4_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 370
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "for customising",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab4_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 850
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        },
+        {
+          "id": "tpl_ib_ab4_palette",
+          "type": "shape",
+          "name": "Palette Card",
+          "position": {
+            "x": 245,
+            "y": 2140
+          },
+          "size": {
+            "width": 800,
+            "height": 340
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20
+        },
+        {
+          "id": "tpl_ib_ab4_sw1",
+          "type": "shape",
+          "name": "Swatch Tan",
+          "position": {
+            "x": 305,
+            "y": 2185
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#D9A188",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw2",
+          "type": "shape",
+          "name": "Swatch Mint",
+          "position": {
+            "x": 457,
+            "y": 2185
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8FD4B8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw3",
+          "type": "shape",
+          "name": "Swatch Rose",
+          "position": {
+            "x": 609,
+            "y": 2185
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E799A3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw4",
+          "type": "shape",
+          "name": "Swatch Amber",
+          "position": {
+            "x": 761,
+            "y": 2185
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F2B94B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw5",
+          "type": "shape",
+          "name": "Swatch Lime",
+          "position": {
+            "x": 913,
+            "y": 2185
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#CFD86A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw6",
+          "type": "shape",
+          "name": "Swatch Gray",
+          "position": {
+            "x": 305,
+            "y": 2312
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#C6C9D2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw7",
+          "type": "shape",
+          "name": "Swatch Black",
+          "position": {
+            "x": 457,
+            "y": 2312
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#17171B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw8",
+          "type": "shape",
+          "name": "Swatch White",
+          "position": {
+            "x": 609,
+            "y": 2312
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#E2E4EE",
+          "strokeWidth": 3
+        },
+        {
+          "id": "tpl_ib_ab4_sw9",
+          "type": "shape",
+          "name": "Swatch Brown",
+          "position": {
+            "x": 761,
+            "y": 2312
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#A98763",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "tpl_ib_ab4_sw10",
+          "type": "shape",
+          "name": "Swatch Steel",
+          "position": {
+            "x": 913,
+            "y": 2312
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#7BA6B8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab5",
+      "name": "One Home",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab5_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": -80
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        },
+        {
+          "id": "tpl_ib_ab5_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 1980
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "One home",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab5_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 2180
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "for all screenshots",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab6",
+      "name": "Global Reach",
+      "position": {
+        "x": 2025,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab6_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 170
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Global reach",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab6_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 370
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "with localisation",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab6_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 850
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        },
+        {
+          "id": "tpl_ib_ab6_sortbar",
+          "type": "shape",
+          "name": "Sort Bar",
+          "position": {
+            "x": 50,
+            "y": 1500
+          },
+          "size": {
+            "width": 780,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 14
+        },
+        {
+          "id": "tpl_ib_ab6_sortbar_text",
+          "type": "text",
+          "name": "Sort Label",
+          "position": {
+            "x": 95,
+            "y": 1500
+          },
+          "size": {
+            "width": 460,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Sort by:   Recommended",
+          "fontSize": 9,
+          "color": "#4A4F63",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "normal",
+          "textAlign": "left",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab6_sortbar_grid",
+          "type": "shape",
+          "name": "Grid Icon",
+          "position": {
+            "x": 662,
+            "y": 1532
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#6B7280",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 8 H44 V44 H8 Z M56 8 H92 V44 H56 Z M8 56 H44 V92 H8 Z M56 56 H92 V92 H56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "tpl_ib_ab6_sortbar_check",
+          "type": "shape",
+          "name": "Checkbox",
+          "position": {
+            "x": 742,
+            "y": 1538
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#B9BECE",
+          "strokeWidth": 3,
+          "borderRadius": 8
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab7",
+      "name": "Auto Upload",
+      "position": {
+        "x": 2427,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab7_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 170
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Auto upload",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab7_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 370
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "to the App Stores",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab7_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 850
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        }
+      ]
+    },
+    {
+      "id": "tpl_ib_ab8",
+      "name": "Pixel Perfect",
+      "position": {
+        "x": 2829,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#DCE4FB",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_ib_ab8_device",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": -80
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "screenshotSrc": "/data/projects/inboxly-screen-inbox.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420
+        },
+        {
+          "id": "tpl_ib_ab8_toast",
+          "type": "shape",
+          "name": "CTA Toast",
+          "position": {
+            "x": 325,
+            "y": 1150
+          },
+          "size": {
+            "width": 640,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#232227",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 3,
+          "borderRadius": 14
+        },
+        {
+          "id": "tpl_ib_ab8_toast_text",
+          "type": "text",
+          "name": "CTA Text",
+          "position": {
+            "x": 325,
+            "y": 1150
+          },
+          "size": {
+            "width": 640,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Start shopping",
+          "fontSize": 9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        },
+        {
+          "id": "tpl_ib_ab8_headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 50,
+            "y": 1980
+          },
+          "size": {
+            "width": 1190,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pixel perfect",
+          "fontSize": 44,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_ib_ab8_sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 50,
+            "y": 2180
+          },
+          "size": {
+            "width": 1190,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "quality every time",
+          "fontSize": 18,
+          "color": "#16182B",
+          "fontFamily": "Georgia",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "lineHeight": 1.2
+        }
+      ]
+    }
+  ]
+}

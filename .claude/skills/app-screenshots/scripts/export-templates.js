@@ -44,6 +44,7 @@ const TEMPLATES = [
   { slug: 'sereno-mind', card: 'Sereno Mind', boards: 5 },
   { slug: 'droply-habits', card: 'Droply Habits', boards: 5 },
   { slug: 'zeeb-fashion', card: 'Zeeb Fashion', boards: 5 },
+  { slug: 'budgetly-finance', card: 'Budgetly Finance', boards: 8 },
 ];
 
 async function openTemplateFromStartDialog(page, cardTitle) {

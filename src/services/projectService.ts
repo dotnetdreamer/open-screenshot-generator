@@ -10,6 +10,9 @@ export async function loadProjectTemplates(): Promise<Project[]> {
   try {
     // Load known project files from the data/projects directory
     const projectFiles = [
+      'budgetly-finance.json',
+      'listly-tasks.json',
+      'inboxly-mail.json',
       'darzi-studio.json',
       'beauty-glam.json',
       'castique-podcast.json',
@@ -91,6 +94,8 @@ export function getAvailableProjectFiles(): string[] {
   // In a real implementation, this would read the directory contents
   // For now, return the known project files
   return [
+    'listly-tasks.json',
+    'inboxly-mail.json',
     'darzi-studio.json',
     'beauty-glam.json',
     'castique-podcast.json',
@@ -127,7 +132,8 @@ export function getAvailableProjectFiles(): string[] {
     'sereno-mind.json',
     'droply-habits.json',
     'zeeb-fashion.json',
-    'lingua-learn.json'
+    'lingua-learn.json',
+    'budgetly-finance.json'
   ];
 }
 
