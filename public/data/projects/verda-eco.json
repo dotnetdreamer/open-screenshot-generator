@@ -1,0 +1,633 @@
+{
+  "id": "template_verda_eco",
+  "name": "Verda Eco",
+  "description": "App Store & Play Store screenshots for a sustainability and carbon-footprint app. Soft green gradient panels, dark eco headlines, and cascading 3D isometric phone mockups over neutral skeleton screens.",
+  "previewImage": "/data/projects/previews/verda-eco.png",
+  "timestamp": "2026-07-07T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_vd_ab1",
+      "name": "Eco-friendly",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#EAF7EF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8AD8A6",
+        "color2": "#F6FCF8",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vd_ab1_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 92,
+            "y": 150
+          },
+          "size": {
+            "width": 1120,
+            "height": 470
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Eco-\nfriendly",
+          "fontSize": 60,
+          "color": "#14291C",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_vd_ab1_s",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 96,
+            "y": 640
+          },
+          "size": {
+            "width": 980,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Make conscious\ndecisions.",
+          "fontSize": 23,
+          "color": "#365544",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.25
+        },
+        {
+          "id": "el_1783430600766_kji7t",
+          "type": "device",
+          "name": "Phone 2",
+          "position": {
+            "x": -93.00347384145414,
+            "y": 1704.1759250623354
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 13,
+          "scale": 2.49,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-feed-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "el_1783430618961_bpwy6",
+          "type": "device",
+          "name": "Phone 2",
+          "position": {
+            "x": -136.33680717478774,
+            "y": 824.1759250623352
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 13,
+          "scale": 2.9059336455736022,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-feed-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_vd_ab2",
+      "name": "Build Greener",
+      "position": {
+        "x": 417,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#EAF7EF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8AD8A6",
+        "color2": "#F6FCF8",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vd_ab2_ph0",
+          "type": "device",
+          "name": "Phone 1",
+          "position": {
+            "x": -139.07609960908258,
+            "y": 755.3816357640445
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 9,
+          "scale": 2.9009098509831466,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vd_ab2_ph1",
+          "type": "device",
+          "name": "Phone 2",
+          "position": {
+            "x": -1519.6701405081212,
+            "y": 804.1759250623352
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 13,
+          "scale": 2.9059336455736022,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-feed-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vd_ab2_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 92,
+            "y": 150
+          },
+          "size": {
+            "width": 1150,
+            "height": 470
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Build\nGreener",
+          "fontSize": 60,
+          "color": "#14291C",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "el_1783430569230_3b3qb",
+          "type": "device",
+          "name": "Phone 2",
+          "position": {
+            "x": -1523.0034738414543,
+            "y": 1644.175925062335
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 13,
+          "scale": 2.49,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-feed-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "el_1783430700994_249os",
+          "type": "device",
+          "name": "Phone 1",
+          "position": {
+            "x": 230.92390039091742,
+            "y": 1972.0483024307114
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 9,
+          "scale": 2.9009098509831466,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tpl_vd_ab3",
+      "name": "Reduce",
+      "position": {
+        "x": 819,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#EAF7EF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8AD8A6",
+        "color2": "#F6FCF8",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "el_1783430669797_938zi",
+          "type": "device",
+          "name": "Phone 1",
+          "position": {
+            "x": -1085.7427662757493,
+            "y": 1975.3816357640449
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 9,
+          "scale": 2.9009098509831466,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "el_1783430271336_xbax0",
+          "type": "device",
+          "name": "Phone 1",
+          "position": {
+            "x": -1715.7427662757493,
+            "y": 635.3816357640445
+          },
+          "size": {
+            "width": 900,
+            "height": 480
+          },
+          "rotation": 7,
+          "scale": 2.9009098509831466,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "3d-left",
+          "pose3d": "isometric",
+          "frameColor3d": "black",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vd_ab3_ph",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1B1B20",
+          "screenshotSrc": "/data/projects/app-screens/app-dashboard-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vd_ab3_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 92,
+            "y": 160
+          },
+          "size": {
+            "width": 1120,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Reduce",
+          "fontSize": 66,
+          "color": "#14291C",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_vd_ab3_s",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 96,
+            "y": 430
+          },
+          "size": {
+            "width": 1130,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Reduce your consumption\nto save the planet.",
+          "fontSize": 23,
+          "color": "#365544",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.25
+        }
+      ]
+    },
+    {
+      "id": "tpl_vd_ab4",
+      "name": "Re-use",
+      "position": {
+        "x": 1221,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#EAF7EF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8AD8A6",
+        "color2": "#F6FCF8",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vd_ab4_ph",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1B1B20",
+          "screenshotSrc": "/data/projects/app-screens/app-feed-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vd_ab4_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 92,
+            "y": 160
+          },
+          "size": {
+            "width": 1120,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Re-use",
+          "fontSize": 66,
+          "color": "#14291C",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_vd_ab4_s",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 96,
+            "y": 430
+          },
+          "size": {
+            "width": 1130,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Re-use materials to help\nthe environment.",
+          "fontSize": 23,
+          "color": "#365544",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.25
+        }
+      ]
+    },
+    {
+      "id": "tpl_vd_ab5",
+      "name": "Recycle",
+      "position": {
+        "x": 1623,
+        "y": 15
+      },
+      "size": {
+        "width": 1290,
+        "height": 2796
+      },
+      "backgroundColor": "#EAF7EF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8AD8A6",
+        "color2": "#F6FCF8",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tpl_vd_ab5_ph",
+          "type": "device",
+          "name": "Phone Mockup",
+          "position": {
+            "x": 195,
+            "y": 900
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.5,
+          "deviceType": "iphone-15",
+          "styleType": "normal",
+          "frameColor": "#1B1B20",
+          "screenshotSrc": "/data/projects/app-screens/app-grid-eco.png",
+          "naturalScreenshotWidth": 1692,
+          "naturalScreenshotHeight": 3420,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tpl_vd_ab5_h",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 92,
+            "y": 160
+          },
+          "size": {
+            "width": 1120,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Recycle",
+          "fontSize": 66,
+          "color": "#14291C",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "tpl_vd_ab5_s",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 96,
+            "y": 430
+          },
+          "size": {
+            "width": 1160,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Recycle to save money and\nhelp the world.",
+          "fontSize": 23,
+          "color": "#365544",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.25
+        }
+      ]
+    }
+  ]
+}

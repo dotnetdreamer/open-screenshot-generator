@@ -35,7 +35,7 @@ const SLUGS = [
   'voyago-travel', 'finexa-crypto', 'flixio-kids', 'listenly-audio', 'tripora-travel',
   'tunio-music', 'coinly-crypto', 'stockio-invest', 'threadly-social', 'beatforge-studio',
   'podly-podcasts', 'cinevault-stream', 'sereno-mind', 'droply-habits', 'zeeb-fashion',
-  'lingua-learn',
+  'lingua-learn', 'verda-eco',
 ];
 
 function meta(slug) {

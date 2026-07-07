@@ -46,7 +46,24 @@ const THEMES = {
     accent: '#8b95f5',
     accentSoft: '#2a2e50',
   },
+  // Light skeleton with a soft eco-green accent (for green/nature templates such
+  // as verda-eco) — same neutral greys as `light`, accent swapped indigo→green.
+  eco: {
+    bg: '#f4faf6',
+    surface: '#ffffff',
+    surfaceAlt: '#e7f2ec',
+    block: '#d3e2d9',
+    blockSoft: '#e4efe9',
+    icon: '#9fb4a8',
+    navBg: '#ffffff',
+    hairline: '#ecf4ef',
+    accent: '#2fa96a',
+    accentSoft: '#d7efe0',
+  },
 };
+
+// Themes to render when no explicit theme filter is passed on the CLI.
+const THEME_NAMES = Object.keys(THEMES);
 
 // ---- primitives -----------------------------------------------------------
 const rr = (x, y, w, h, r, fill, op = 1) =>
@@ -303,11 +320,12 @@ function buildSvg(archetype, t) {
     defaultViewport: { width: W, height: H, deviceScaleFactor: 2 },
   });
   const page = await browser.newPage();
-  const only = process.argv.slice(2); // optional: filter "grid" "player"
+  // optional CLI filters: archetype ("grid"), theme ("eco"), or key ("grid-eco")
+  const only = process.argv.slice(2);
   for (const name of Object.keys(ARCHETYPES)) {
-    for (const theme of ['light', 'dark']) {
+    for (const theme of THEME_NAMES) {
       const key = `${name}-${theme}`;
-      if (only.length && !only.includes(name) && !only.includes(key)) continue;
+      if (only.length && !only.includes(name) && !only.includes(theme) && !only.includes(key)) continue;
       const svg = buildSvg(name, THEMES[theme]);
       await page.setContent(`<!doctype html><html><body style="margin:0">${svg}</body></html>`);
       const out = path.join(OUT_DIR, `app-${key}.png`);
