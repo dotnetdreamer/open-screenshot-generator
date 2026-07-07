@@ -7,8 +7,6 @@ import {
   UndoIcon, 
   RedoIcon, 
   Trash2Icon, 
-  ZoomInIcon,
-  ZoomOutIcon,
   MousePointerIcon,
   HandIcon,
   LayoutTemplateIcon,
@@ -17,14 +15,17 @@ import {
   FileTextIcon,
   FolderOpenIcon,
   EyeIcon,
-  SmartphoneIcon
+  SmartphoneIcon,
+  ChevronDownIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -41,9 +42,6 @@ interface ToolbarProps {
   onExport: () => void;
   onExportJSON: () => void;
   onImportJSON: () => void;
-  onZoomIn: () => void;
-  onZoomOut: () => void;
-  currentZoom: number;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -75,9 +73,6 @@ export function Toolbar({
   onExport,
   onExportJSON,
   onImportJSON,
-  onZoomIn, 
-  onZoomOut, 
-  currentZoom, 
   canUndo, 
   canRedo, 
   onUndo, 
@@ -277,53 +272,31 @@ export function Toolbar({
       <div className="h-8 w-px bg-muted mx-2" />
 
       <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onZoomOut}
-          title="Zoom Out"
-        >
-          <ZoomOutIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-
-        <div className="min-w-[60px] text-center text-xs font-mono">
-          {Math.round(currentZoom * 100)}%
-        </div>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onZoomIn}
-          title="Zoom In"
-        >
-          <ZoomInIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-      </div>
-
-      <div className="h-8 w-px bg-muted mx-2" />
-
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onUndo}
-          disabled={!canUndo}
-          title="Undo (Ctrl/⌘+Z)"
-          className="opacity-75 hover:opacity-100"
-        >
-          <UndoIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onRedo}
-          disabled={!canRedo}
-          title="Redo (Ctrl/⌘+Y or Ctrl/⌘+Shift+Z)"
-          className="opacity-75 hover:opacity-100"
-        >
-          <RedoIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-10 gap-1 px-2.5"
+              disabled={!canUndo && !canRedo}
+              title="History"
+            >
+              <UndoIcon className="h-[1.2rem] w-[1.2rem]" />
+              <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
+              <UndoIcon className="mr-2 h-4 w-4" />
+              Undo
+              <DropdownMenuShortcut>⌘Z</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
+              <RedoIcon className="mr-2 h-4 w-4" />
+              Redo
+              <DropdownMenuShortcut>⇧⌘Z</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Button
           variant="ghost"

@@ -26,7 +26,7 @@ import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, 
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { InfoIcon, SearchIcon } from 'lucide-react';
+import { InfoIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -1647,9 +1647,6 @@ const generateRandomProjectName = (): string => {
             onExport={() => setIsExportDialogOpen(true)}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
-            onZoomIn={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-            onZoomOut={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-            currentZoom={canvasZoom}
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
@@ -1692,6 +1689,36 @@ const generateRandomProjectName = (): string => {
                 onMoveArtboardFromToolbar={handleMoveArtboard}
                 activeTool={activeTool}
               />
+
+              {/* Floating zoom control (bottom-left of canvas) */}
+              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+                  title="Zoom Out"
+                >
+                  <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setCanvasZoom(1)}
+                  className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
+                  title="Reset zoom to 100%"
+                >
+                  {Math.round(canvasZoom * 100)}%
+                </button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+                  title="Zoom In"
+                >
+                  <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+              </div>
             </div>
             
             {/* Properties panel - right sidebar */}

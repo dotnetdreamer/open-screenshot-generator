@@ -45,7 +45,8 @@ export async function loadProjectTemplates(): Promise<Project[]> {
       'cinevault-stream.json',
       'sereno-mind.json',
       'droply-habits.json',
-      'zeeb-fashion.json'
+      'zeeb-fashion.json',
+      'lingua-learn.json'
     ];
 
     for (const filename of projectFiles) {
@@ -125,7 +126,8 @@ export function getAvailableProjectFiles(): string[] {
     'cinevault-stream.json',
     'sereno-mind.json',
     'droply-habits.json',
-    'zeeb-fashion.json'
+    'zeeb-fashion.json',
+    'lingua-learn.json'
   ];
 }
 
