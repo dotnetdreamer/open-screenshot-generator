@@ -76,7 +76,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
   },
   {
     id: 'play-feature-graphic',
-    label: 'Feature Graphic',
+    label: 'Google Feature Graphic',
     blurb: 'Google Play 1024×500 feature banner.',
     defaultSize: { width: 1024, height: 500 },
     files: [
