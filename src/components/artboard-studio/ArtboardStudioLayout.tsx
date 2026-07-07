@@ -81,6 +81,19 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
   });
 }
 
+// Read ?projectId synchronously so the FIRST client render already knows whether
+// a project is open. Returns null during static prerender (no window) and on a
+// fresh visit. This is what stops the "Start a New Project" dialog from flashing
+// on refresh when a template is already open: seeding both activeProjectId and
+// the dialog's open flag from the URL means no effect briefly forces the selector
+// open before a post-mount effect reads the URL. Safe against hydration mismatch
+// because this subtree renders client-only (it sits behind the Suspense boundary
+// that useSearchParams bails out of during `output: 'export'`).
+function getInitialProjectIdFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  return new URLSearchParams(window.location.search).get('projectId');
+}
+
 // A one-artboard "Blank Canvas" project at the given size. `size` follows the
 // active template tab so a blank Feature Graphic is 1024×500, not a phone.
 function createBlankProject(size: Size = { width: 1290, height: 2796 }): Project {
@@ -228,7 +241,12 @@ export function ArtboardStudioLayout() {
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [history, setHistory] = useState<ArtboardState[][]>([[]]);
   const [historyIndex, setHistoryIndex] = useState(0);
-  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(true);
+  // Seed from the URL: closed when refreshing straight into an open project
+  // (?projectId present), open on a fresh visit. Prevents the selector flashing
+  // open-then-closed on refresh. See getInitialProjectIdFromUrl.
+  const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(
+    () => getInitialProjectIdFromUrl() === null
+  );
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -237,7 +255,10 @@ export function ArtboardStudioLayout() {
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  // Seed from the URL so the project-loading and selector effects see the real
+  // active id on the first render instead of a transient null (which would force
+  // the template dialog open for a frame on refresh). See getInitialProjectIdFromUrl.
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(getInitialProjectIdFromUrl);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Untitled Project');
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
@@ -337,6 +358,11 @@ export function ArtboardStudioLayout() {
             setCurrentProjectName(project.name || 'Untitled Project');
             setHistory([JSON.parse(JSON.stringify(project.projectData))]);
             setHistoryIndex(0);
+            // Auto-select the first artboard so a refreshed project opens ready to
+            // edit (matches loadProjectFromData, the click-a-template path). Without
+            // this, refreshing into ?projectId left nothing selected.
+            setActiveArtboardId(project.projectData.length > 0 ? project.projectData[0].id : null);
+            setSelectedElementIdOnActiveArtboard(null);
             setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
           } else {
             console.warn(`Project with ID ${activeProjectId} not found.`);
