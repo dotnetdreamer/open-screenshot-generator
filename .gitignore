@@ -43,3 +43,7 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# tauri
+/src-tauri/target/
+/src-tauri/gen/schemas/

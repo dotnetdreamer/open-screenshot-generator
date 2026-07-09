@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
+import { isTauri, saveBlobToDisk, saveDataUrlToDisk, openExternal } from '@/lib/desktop';
 import {
   SidebarProvider,
   Sidebar,
@@ -842,19 +843,13 @@ export function ArtboardStudioLayout() {
 
       const jsonString = JSON.stringify(projectData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `artboard-project-${projectData.id}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Desktop-safe save: native dialog in Tauri, anchor download on the web
+      const savedPath = await saveBlobToDisk(blob, `artboard-project-${projectData.id}.json`);
+      if (savedPath === null) return; // user cancelled the save dialog
 
       toast({
         title: "Project Exported",
-        description: "Project has been exported as JSON file from database.",
+        description: savedPath ? `Saved to ${savedPath}` : "Project has been exported as JSON file from database.",
         variant: "default",
       });
     } catch (error) {
@@ -923,9 +918,6 @@ export function ArtboardStudioLayout() {
         artboardElement.style.width = originalWidth;
         artboardElement.style.height = originalHeight;
 
-        // Create a link to download the image
-        const link = document.createElement('a');
-        link.href = imageDataUrl;
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
         // Suffix with the artboard's device format (iPhone/Android/tablet) so the
@@ -937,14 +929,13 @@ export function ArtboardStudioLayout() {
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
         const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Desktop-safe save: native dialog in Tauri, anchor download on the web
+        const savedPath = await saveDataUrlToDisk(imageDataUrl, filename);
+        if (savedPath === null) continue; // user cancelled this board's save dialog
 
         toast({
           title: "Artboard Exported",
-          description: `"${artboard.name}" has been downloaded.`,
+          description: savedPath ? `Saved to ${savedPath}` : `"${artboard.name}" has been downloaded.`,
           variant: "default",
         });
 
@@ -1864,6 +1855,13 @@ const generateRandomProjectName = (): string => {
                     href="https://github.com/dotnetdreamer/artboard-studio"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => {
+                      // WebViews ignore target=_blank; route to the system browser
+                      if (isTauri()) {
+                        e.preventDefault();
+                        openExternal("https://github.com/dotnetdreamer/artboard-studio");
+                      }
+                    }}
                   >
                     View on GitHub
                   </a>
