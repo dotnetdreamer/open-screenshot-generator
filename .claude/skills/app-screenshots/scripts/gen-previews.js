@@ -38,6 +38,7 @@ const SLUGS = [
   'podly-podcasts', 'cinevault-stream', 'sereno-mind', 'droply-habits', 'zeeb-fashion',
   'lingua-learn', 'verda-eco',
   // Apple Watch category (behind the "Apple Watch" tab).
+  'watch-breathora', 'watch-vowly',
   'watch-smart-appscreens', 'watch-editors-choice', 'watch-dark-aso',
   'watch-ultra-showcase', 'watch-lavender', 'watch-sunset',
 ];
@@ -45,6 +46,7 @@ const SLUGS = [
 // Slugs whose card lives behind a non-default Radix tab; the value is the tab
 // label to click before searching for the card.
 const SLUG_TAB = {
+  'watch-breathora': 'Apple Watch', 'watch-vowly': 'Apple Watch',
   'watch-smart-appscreens': 'Apple Watch', 'watch-editors-choice': 'Apple Watch',
   'watch-dark-aso': 'Apple Watch', 'watch-ultra-showcase': 'Apple Watch',
   'watch-lavender': 'Apple Watch', 'watch-sunset': 'Apple Watch',

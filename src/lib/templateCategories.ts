@@ -104,6 +104,8 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'watch-breathora.json',
+      'watch-vowly.json',
       'watch-smart-appscreens.json',
       'watch-editors-choice.json',
       'watch-dark-aso.json',

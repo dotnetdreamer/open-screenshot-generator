@@ -40,6 +40,9 @@ const ACCENTS = {
   blue: { accent: '#0A84FF', accentSoft: '#0c2c4d' },
   pink: { accent: '#FF375F', accentSoft: '#451220' },
   purple: { accent: '#BF5AF2', accentSoft: '#331447' },
+  // Warm coral for wedding/event templates (watch-vowly) — the watchOS-bright
+  // cousin of the phone skeletons' coral accent (#e2574a).
+  coral: { accent: '#FF6F5E', accentSoft: '#48170f' },
 };
 // Activity rings keep the recognizable Apple tricolour regardless of theme.
 const RING = { move: '#FA114F', exercise: '#A0FF03', stand: '#04D3E5' };
