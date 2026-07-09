@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'breathora-breathing', 'vowly-wedding',
   'connectly-chat', 'budgetly-finance', 'listly-tasks', 'inboxly-mail', 'darzi-studio',
   'beauty-glam', 'castique-podcast', 'inquira', 'zyluxe-beauty', 'nexmind',
   'endless-communities', 'kicksy-sneakers', 'endless-podcasts', 'answerly-ai', 'lumina-search',

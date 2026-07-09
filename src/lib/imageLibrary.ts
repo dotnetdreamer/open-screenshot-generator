@@ -29,6 +29,7 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
     id: 'touch',
     label: 'Touch',
     items: [
+      { id: 'touch-as451105828', label: 'Holding phone', src: '/elements/images/touch/touch-as451105828.png', defaultSize: { width: 430, height: 426 } },
       { id: 'touch-as453449839', label: 'Pointing up', src: '/elements/images/touch/touch-as453449839.png', defaultSize: { width: 124, height: 430 } },
       { id: 'touch-as298911650', label: 'Number one', src: '/elements/images/touch/touch-as298911650.png', defaultSize: { width: 230, height: 430 } },
       { id: 'touch-as238910264', label: 'Index raised', src: '/elements/images/touch/touch-as238910264.png', defaultSize: { width: 366, height: 430 } },

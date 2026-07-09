@@ -46,6 +46,34 @@ const THEMES = {
     accent: '#8b95f5',
     accentSoft: '#2a2e50',
   },
+  // Deep-green dark skeleton (for forest/wellness templates such as
+  // breathora-breathing) — the `dark` structure re-toned onto green.
+  forest: {
+    bg: '#1c3a26',
+    surface: '#284c33',
+    surfaceAlt: '#2f573c',
+    block: '#43684f',
+    blockSoft: '#375c44',
+    icon: '#84a892',
+    navBg: '#20422b',
+    hairline: '#2b5037',
+    accent: '#9fdfae',
+    accentSoft: '#3c684a',
+  },
+  // Warm blush skeleton with a coral accent (for wedding/event templates such
+  // as vowly-wedding) — same neutral structure as `light`, warmed up.
+  coral: {
+    bg: '#fdf4f1',
+    surface: '#ffffff',
+    surfaceAlt: '#f8e7e2',
+    block: '#ebd5cd',
+    blockSoft: '#f4e3dd',
+    icon: '#c8a094',
+    navBg: '#ffffff',
+    hairline: '#f6eae6',
+    accent: '#e2574a',
+    accentSoft: '#fbdfd9',
+  },
   // Light skeleton with a soft eco-green accent (for green/nature templates such
   // as verda-eco) — same neutral greys as `light`, accent swapped indigo→green.
   eco: {

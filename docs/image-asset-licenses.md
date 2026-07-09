@@ -30,6 +30,7 @@ ID (`<group>-as<ID>.png`) so every file traces to its Stock page at
 | touch-as323025868.png | 323025868 | Male hand points, isolated on white background |
 | touch-as327495361.png | 327495361 | Hand touching or pointing to something |
 | touch-as346581973.png | 346581973 | beautiful woman hand pointing isolated on white background |
+| touch-as451105828.png | 451105828 | Hand holding black smartphone with white screen mockup and isolated on white background and copy space , smartphone frameless application design concept. (licensed 2026-07-09) |
 | touch-as453449839.png | 453449839 | Woman hand with index finger raised up and pointing isolated on white background |
 | touch-as499928144.png | 499928144 | hand pointing finger on a blue background |
 | touch-as623733433.png | 623733433 | POV of man hand touch gesture isolated on white background |

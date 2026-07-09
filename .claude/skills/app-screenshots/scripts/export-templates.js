@@ -8,6 +8,8 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'breathora-breathing', card: 'Breathora Breathing', boards: 5 },
+  { slug: 'vowly-wedding', card: 'Vowly Wedding', boards: 5 },
   { slug: 'beauty-glam', card: 'Beauty Glam', boards: 5 },
   { slug: 'castique-podcast', card: 'Castique Podcast', boards: 5 },
   { slug: 'inquira', card: 'Inquira', boards: 5 },

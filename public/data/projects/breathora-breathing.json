@@ -1,0 +1,1137 @@
+{
+ "id": "template_breathora_breathing",
+ "name": "Breathora Breathing",
+ "description": "App Store & Play Store screenshots for a breathing and mindfulness app. Deep forest green hero with a laurel ratings badge, testimonial speech bubbles, bold stat counters, and a floating 3D phone over calm green skeleton screens.",
+ "previewImage": "/data/projects/previews/breathora-breathing.png",
+ "timestamp": "2026-07-09T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "breathora-board-1",
+   "name": "Better Breathing",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#40634A",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#40634A",
+    "color2": "#24422C",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "breathora-b1-headline-1",
+     "type": "text",
+     "name": "b1-headline",
+     "position": {
+      "x": 70,
+      "y": 150
+     },
+     "size": {
+      "width": 1150,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "The #1\nApp For Better\nBreathing",
+     "fontSize": 42,
+     "color": "#F6F3E7",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "breathora-b1-laurel-l-2",
+     "type": "shape",
+     "name": "laurel-branch-left",
+     "position": {
+      "x": 300,
+      "y": 800
+     },
+     "size": {
+      "width": 220,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#BCD8B8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.9,
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "breathora-b1-laurel-r-3",
+     "type": "shape",
+     "name": "laurel-branch-right",
+     "position": {
+      "x": 770,
+      "y": 800
+     },
+     "size": {
+      "width": 220,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#BCD8B8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.9,
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "breathora-b1-count-4",
+     "type": "text",
+     "name": "b1-count",
+     "position": {
+      "x": 345,
+      "y": 860
+     },
+     "size": {
+      "width": 600,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "100,000+",
+     "fontSize": 28,
+     "color": "#F6F3E7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-stars-5",
+     "type": "text",
+     "name": "b1-stars",
+     "position": {
+      "x": 345,
+      "y": 980
+     },
+     "size": {
+      "width": 600,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 19,
+     "color": "#F2A63C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-reviews-6",
+     "type": "text",
+     "name": "b1-reviews",
+     "position": {
+      "x": 345,
+      "y": 1075
+     },
+     "size": {
+      "width": 600,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "R E V I E W S",
+     "fontSize": 12,
+     "color": "#DDEBD8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-press-daily-7",
+     "type": "text",
+     "name": "b1-press-daily",
+     "position": {
+      "x": 70,
+      "y": 1560
+     },
+     "size": {
+      "width": 300,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "DAILY",
+     "fontSize": 20,
+     "color": "#A9C7A6",
+     "fontFamily": "Georgia",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-press-verve-8",
+     "type": "text",
+     "name": "b1-press-verve",
+     "position": {
+      "x": 70,
+      "y": 1700
+     },
+     "size": {
+      "width": 300,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "VERVE",
+     "fontSize": 19,
+     "color": "#A9C7A6",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-press-fortena-9",
+     "type": "text",
+     "name": "b1-press-fortena",
+     "position": {
+      "x": 70,
+      "y": 1840
+     },
+     "size": {
+      "width": 300,
+      "height": 95
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Fortena",
+     "fontSize": 21,
+     "color": "#A9C7A6",
+     "fontFamily": "Georgia",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-press-healthbeat-10",
+     "type": "text",
+     "name": "b1-press-healthbeat",
+     "position": {
+      "x": 70,
+      "y": 1990
+     },
+     "size": {
+      "width": 420,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "healthbeat",
+     "fontSize": 17,
+     "color": "#A9C7A6",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b1-phone-11",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 330,
+      "y": 1290
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 10,
+     "scale": 1.72,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#CFE0CD",
+     "screenshotSrc": "/data/projects/app-screens/app-list-forest.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "breathora-board-2",
+   "name": "Testimonials",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#E4F2DC",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E4F2DC",
+    "color2": "#CDE7C8",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "breathora-b2-headline-12",
+     "type": "text",
+     "name": "b2-headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 520
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "3,000,000+\nPeople Change\nTheir Lives",
+     "fontSize": 38,
+     "color": "#2E6B38",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.14
+    },
+    {
+     "id": "breathora-b2-bubble-1-13",
+     "type": "shape",
+     "name": "Speech bubble 1",
+     "position": {
+      "x": 110,
+      "y": 830
+     },
+     "size": {
+      "width": 800,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M 18 5 H 82 Q 96 5 96 19 V 70 Q 96 84 82 84 H 76 L 84 96 L 64 84 H 18 Q 4 84 4 70 V 19 Q 4 5 18 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 2
+     }
+    },
+    {
+     "id": "breathora-b2-q1-stars-14",
+     "type": "text",
+     "name": "b2-q1-stars",
+     "position": {
+      "x": 210,
+      "y": 900
+     },
+     "size": {
+      "width": 400,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 17,
+     "color": "#F2A63C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b2-q1-quote-15",
+     "type": "text",
+     "name": "b2-q1-quote",
+     "position": {
+      "x": 210,
+      "y": 985
+     },
+     "size": {
+      "width": 650,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "It's so easy to use\nand helps me feel\ncalm and relaxed.",
+     "fontSize": 19,
+     "color": "#2F5E38",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "breathora-b2-q1-name-16",
+     "type": "text",
+     "name": "b2-q1-name",
+     "position": {
+      "x": 210,
+      "y": 1255
+     },
+     "size": {
+      "width": 400,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Lily Loren",
+     "fontSize": 15,
+     "color": "#6E9A76",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b2-bubble-2-17",
+     "type": "shape",
+     "name": "Speech bubble 2",
+     "position": {
+      "x": 380,
+      "y": 1560
+     },
+     "size": {
+      "width": 820,
+      "height": 580
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M 18 10 H 24 L 16 1 L 36 10 H 82 Q 96 10 96 24 V 81.5 Q 96 95.5 82 95.5 H 18 Q 4 95.5 4 81.5 V 24 Q 4 10 18 10 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 2
+     }
+    },
+    {
+     "id": "breathora-b2-q2-stars-gold-18",
+     "type": "text",
+     "name": "b2-q2-stars-gold",
+     "position": {
+      "x": 480,
+      "y": 1635
+     },
+     "size": {
+      "width": 300,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★",
+     "fontSize": 17,
+     "color": "#F2A63C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b2-q2-star-grey-19",
+     "type": "text",
+     "name": "b2-q2-star-grey",
+     "position": {
+      "x": 668,
+      "y": 1635
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★",
+     "fontSize": 17,
+     "color": "#C9D8C4",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b2-q2-quote-20",
+     "type": "text",
+     "name": "b2-q2-quote",
+     "position": {
+      "x": 480,
+      "y": 1700
+     },
+     "size": {
+      "width": 640,
+      "height": 340
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "As a physical\ntherapist, I now\nrecommend this app\nto my patients.",
+     "fontSize": 19,
+     "color": "#2F5E38",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "breathora-b2-q2-name-21",
+     "type": "text",
+     "name": "b2-q2-name",
+     "position": {
+      "x": 480,
+      "y": 2040
+     },
+     "size": {
+      "width": 400,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Tia Sheyal",
+     "fontSize": 15,
+     "color": "#6E9A76",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b2-decor-circle-22",
+     "type": "shape",
+     "name": "Circle",
+     "position": {
+      "x": 300,
+      "y": 2480
+     },
+     "size": {
+      "width": 520,
+      "height": 520
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F5D9B4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.85
+    },
+    {
+     "id": "breathora-b2-branch-1-23",
+     "type": "shape",
+     "name": "decor-branch",
+     "position": {
+      "x": 210,
+      "y": 2380
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#7FBF6E",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.9,
+     "customPath": "M48.8 12 H51.2 V94 H48.8 ZM50 22 Q40.68 10.63 26 10 Q35.32 21.37 50 22 ZM50 30 Q64.68 29.37 74 18 Q59.32 18.63 50 30 ZM50 42 Q41.87 30.73 28 30 Q36.13 41.27 50 42 ZM50 50 Q63.87 49.27 72 38 Q58.13 38.73 50 50 ZM50 62 Q42.83 51.28 30 50 Q37.17 60.72 50 62 ZM50 70 Q62.83 68.72 70 58 Q57.17 59.28 50 70 ZM50 82 Q44.65 72.76 34 72 Q39.35 81.24 50 82 ZM50 88 Q60.65 87.24 66 78 Q55.35 78.76 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "breathora-b2-branch-2-24",
+     "type": "shape",
+     "name": "decor-branch",
+     "position": {
+      "x": 760,
+      "y": 2430
+     },
+     "size": {
+      "width": 260,
+      "height": 260
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5FA857",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.85,
+     "customPath": "M48.8 12 H51.2 V94 H48.8 ZM50 22 Q40.68 10.63 26 10 Q35.32 21.37 50 22 ZM50 30 Q64.68 29.37 74 18 Q59.32 18.63 50 30 ZM50 42 Q41.87 30.73 28 30 Q36.13 41.27 50 42 ZM50 50 Q63.87 49.27 72 38 Q58.13 38.73 50 50 ZM50 62 Q42.83 51.28 30 50 Q37.17 60.72 50 62 ZM50 70 Q62.83 68.72 70 58 Q57.17 59.28 50 70 ZM50 82 Q44.65 72.76 34 72 Q39.35 81.24 50 82 ZM50 88 Q60.65 87.24 66 78 Q55.35 78.76 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "breathora-b2-twinkle-25",
+     "type": "shape",
+     "name": "star-twinkle",
+     "position": {
+      "x": 950,
+      "y": 2320
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.9,
+     "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ]
+  },
+  {
+   "id": "breathora-board-3",
+   "name": "Stats",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#EEF7E8",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#EEF7E8",
+    "color2": "#DFF0D6",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "breathora-b3-headline-26",
+     "type": "text",
+     "name": "b3-headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 520
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Achieve More\nIn 5 Minutes\nDaily",
+     "fontSize": 38,
+     "color": "#2E6B38",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.14
+    },
+    {
+     "id": "breathora-b3-stat-1-27",
+     "type": "text",
+     "name": "b3-stat-1",
+     "position": {
+      "x": 60,
+      "y": 760
+     },
+     "size": {
+      "width": 1170,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "3x",
+     "fontSize": 62,
+     "color": "#2E6B38",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-label-1-28",
+     "type": "text",
+     "name": "b3-label-1",
+     "position": {
+      "x": 60,
+      "y": 1030
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Improvement in stress levels",
+     "fontSize": 20,
+     "color": "#3C6A42",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-sep-1-29",
+     "type": "shape",
+     "name": "Circle",
+     "position": {
+      "x": 638,
+      "y": 1215
+     },
+     "size": {
+      "width": 14,
+      "height": 14
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#9CC79A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "breathora-b3-stat-2-30",
+     "type": "text",
+     "name": "b3-stat-2",
+     "position": {
+      "x": 60,
+      "y": 1300
+     },
+     "size": {
+      "width": 1170,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "5x",
+     "fontSize": 62,
+     "color": "#2E6B38",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-label-2-31",
+     "type": "text",
+     "name": "b3-label-2",
+     "position": {
+      "x": 60,
+      "y": 1570
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Increase in sleep quality",
+     "fontSize": 20,
+     "color": "#3C6A42",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-sep-2-32",
+     "type": "shape",
+     "name": "Circle",
+     "position": {
+      "x": 638,
+      "y": 1755
+     },
+     "size": {
+      "width": 14,
+      "height": 14
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#9CC79A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "breathora-b3-stat-3-33",
+     "type": "text",
+     "name": "b3-stat-3",
+     "position": {
+      "x": 60,
+      "y": 1840
+     },
+     "size": {
+      "width": 1170,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "8%",
+     "fontSize": 62,
+     "color": "#2E6B38",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-label-3-34",
+     "type": "text",
+     "name": "b3-label-3",
+     "position": {
+      "x": 60,
+      "y": 2110
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Increase in lung capacity",
+     "fontSize": 20,
+     "color": "#3C6A42",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-stars-gold-35",
+     "type": "text",
+     "name": "b3-stars-gold",
+     "position": {
+      "x": 477,
+      "y": 2380
+     },
+     "size": {
+      "width": 280,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★",
+     "fontSize": 21,
+     "color": "#F2A63C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-star-grey-36",
+     "type": "text",
+     "name": "b3-star-grey",
+     "position": {
+      "x": 714,
+      "y": 2380
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★",
+     "fontSize": 21,
+     "color": "#C9D8C4",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b3-ratings-37",
+     "type": "text",
+     "name": "b3-ratings",
+     "position": {
+      "x": 60,
+      "y": 2490
+     },
+     "size": {
+      "width": 1170,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "16.7k+ App Store Ratings",
+     "fontSize": 17,
+     "color": "#4A7A4E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    }
+   ]
+  },
+  {
+   "id": "breathora-board-4",
+   "name": "Nervous System",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#D9EDD2",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#D9EDD2",
+    "color2": "#B9DCAE",
+    "angle": 200
+   },
+   "elements": [
+    {
+     "id": "el_1783624872528_a2dg6",
+     "type": "device",
+     "name": "Phone 3D",
+     "position": {
+      "x": 96.3772860950105,
+      "y": 609.3174532058571
+     },
+     "size": {
+      "width": 600,
+      "height": 1300
+     },
+     "rotation": 0,
+     "scale": 1.7620757130166311,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/app-screens/app-dashboard-forest.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "breathora-b4-fade-45",
+     "type": "image",
+     "name": "Bottom fade",
+     "position": {
+      "x": 0,
+      "y": 2096
+     },
+     "size": {
+      "width": 1290,
+      "height": 700
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/breathora-bottom-fade.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "breathora-b4-headline-38",
+     "type": "text",
+     "name": "b4-headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 520
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your Nervous\nSystem With\nEase",
+     "fontSize": 38,
+     "color": "#2E6B38",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.14
+    },
+    {
+     "id": "breathora-b4-caption-40",
+     "type": "text",
+     "name": "b4-caption",
+     "position": {
+      "x": 60,
+      "y": 2400
+     },
+     "size": {
+      "width": 1170,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Use simple techniques to reduce\nstress, boost focus, and restore\nbalance in your daily life.",
+     "fontSize": 19,
+     "color": "#3C6A42",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    }
+   ]
+  },
+  {
+   "id": "breathora-board-5",
+   "name": "Start Today",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#35583C",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#35583C",
+    "color2": "#1F3D29",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "breathora-b5-headline-41",
+     "type": "text",
+     "name": "b5-headline",
+     "position": {
+      "x": 70,
+      "y": 170
+     },
+     "size": {
+      "width": 1150,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Start Your\nJourney Today",
+     "fontSize": 44,
+     "color": "#F6F3E7",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b5-sub-42",
+     "type": "text",
+     "name": "b5-sub",
+     "position": {
+      "x": 95,
+      "y": 600
+     },
+     "size": {
+      "width": 1100,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Free to try. A calmer mind\nin five minutes a day.",
+     "fontSize": 20,
+     "color": "#CFE4CF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "breathora-b5-stars-43",
+     "type": "text",
+     "name": "b5-stars",
+     "position": {
+      "x": 345,
+      "y": 830
+     },
+     "size": {
+      "width": 600,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 20,
+     "color": "#F2A63C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "breathora-b5-phone-44",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 199,
+      "y": 1010
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.52,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#E8EFE6",
+     "screenshotSrc": "/data/projects/app-screens/app-player-forest.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  }
+ ]
+}
