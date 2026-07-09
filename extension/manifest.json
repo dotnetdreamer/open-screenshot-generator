@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Artboard Studio companion",
+  "version": "1.0.0",
+  "description": "Lets Artboard Studio's AI agent use the Claude, ChatGPT or Gemini account you are already signed into.",
+  "permissions": ["tabs", "scripting"],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:9002/*",
+        "http://localhost:3000/*",
+        "http://127.0.0.1:9002/*",
+        "https://*.github.io/*"
+      ],
+      "js": ["dist/bridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/adapters/*.js"],
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*"
+      ]
+    }
+  ]
+}

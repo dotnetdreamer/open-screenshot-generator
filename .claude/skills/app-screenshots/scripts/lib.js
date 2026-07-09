@@ -49,14 +49,40 @@ async function clickByTitle(page, title, index = 0) {
   if (!ok) throw new Error('tile not found: ' + title);
 }
 
+/**
+ * The start dialog opens on a three-card landing screen (AI agent / templates /
+ * blank). Waits for it to render. Everything else in this file assumes it.
+ */
+async function waitForStartLanding(page) {
+  await page.waitForFunction(
+    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').includes('Browse templates'))",
+    { timeout: 90000, polling: 500 }
+  );
+}
+
+/** Click a button whose text CONTAINS the given fragment (landing cards are big buttons). */
+async function clickByTextContains(page, text) {
+  const ok = await page.evaluate((text) => {
+    const el = [...document.querySelectorAll('button')].find((b) => (b.textContent || '').includes(text));
+    if (el) { el.click(); return true; }
+    return false;
+  }, text);
+  if (!ok) throw new Error('button not found (contains): ' + text);
+}
+
+/** Navigate the start dialog's landing screen into the template gallery. */
+async function openTemplatesView(page) {
+  await waitForStartLanding(page);
+  await clickByTextContains(page, 'Browse templates');
+  await page.waitForFunction("!!document.querySelector('[role=\"tab\"]')", { timeout: 30000, polling: 500 });
+  await sleep(400);
+}
+
 /** Open the app and start a blank project; resolves once the app has settled. */
 async function startBlankProject(page) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.waitForFunction(
-    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim() === 'Start Blank')",
-    { timeout: 90000, polling: 500 }
-  );
-  await clickByText(page, 'Start Blank');
+  await waitForStartLanding(page);
+  await clickByTextContains(page, 'New blank project');
   // Project creation lands asynchronously; interacting earlier races a re-render.
   await page.waitForFunction("location.search.includes('projectId')", { timeout: 30000, polling: 500 });
   await sleep(1500);
@@ -145,7 +171,10 @@ module.exports = {
   sleep,
   launch,
   clickByText,
+  clickByTextContains,
   clickByTitle,
+  waitForStartLanding,
+  openTemplatesView,
   startBlankProject,
   clickTab,
   addTileAndCount,

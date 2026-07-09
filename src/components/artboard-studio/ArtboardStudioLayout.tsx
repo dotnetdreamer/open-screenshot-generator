@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
-import { isTauri, saveBlobToDisk, saveDataUrlToDisk, openExternal } from '@/lib/desktop';
+import { isTauri, saveBlobToDisk, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import {
   SidebarProvider,
   Sidebar,
@@ -26,9 +26,12 @@ import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
+import { StartLandingView } from './start/StartLandingView';
+import { AgentStartScreen } from './start/AgentStartScreen';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { InfoIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, InfoIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -248,6 +251,9 @@ export function ArtboardStudioLayout() {
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(
     () => getInitialProjectIdFromUrl() === null
   );
+  // Which screen of the start dialog is showing. Reset to 'landing' every time
+  // the dialog opens, so reopening never drops the user mid-agent-flow.
+  const [dialogView, setDialogView] = useState<'landing' | 'templates' | 'agent'>('landing');
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -744,7 +750,10 @@ export function ArtboardStudioLayout() {
   };
 
 
-  const handleSelectTemplate = async (template: Project) => {
+  // `nameOverride` lets the AI agent name the project itself; the gallery and
+  // "Start Blank" paths keep the historic "<template> Copy" naming.
+  const handleSelectTemplate = async (template: Project, options?: { nameOverride?: string }) => {
+    const projectName = options?.nameOverride?.trim() || `${template.name} Copy`;
     try {
       // Validate that template has project data
       if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
@@ -767,7 +776,7 @@ export function ArtboardStudioLayout() {
       // Save the copied project to IndexedDB
       await db.projects.put({
         id: newProjectId,
-        name: `${template.name} Copy`,
+        name: projectName,
         description: `${template.description}`,
         timestamp: new Date(),
         projectData: JSON.parse(JSON.stringify(updatedArtboards)),
@@ -776,12 +785,12 @@ export function ArtboardStudioLayout() {
       // Use the common loading function
       const success = await loadProjectFromData(
         updatedArtboards,
-        `${template.name} Copy`,
+        projectName,
         newProjectId
       );
 
       if (success) {
-        toast({ title: "Project Created", description: `Project "${template.name} Copy" created from template.` });
+        toast({ title: "Project Created", description: `Project "${projectName}" created.` });
         return;
       }
     
@@ -866,7 +875,7 @@ export function ArtboardStudioLayout() {
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
-  const captureArtboards = async (list: ArtboardState[]) => {
+  const captureArtboards = async (list: ArtboardState[], exportDir?: string | null) => {
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
     const orderPadWidth = Math.max(2, String(list.length).length);
@@ -929,8 +938,12 @@ export function ArtboardStudioLayout() {
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
         const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
-        // Desktop-safe save: native dialog in Tauri, anchor download on the web
-        const savedPath = await saveDataUrlToDisk(imageDataUrl, filename);
+        // Desktop-safe save: batch exports write into the pre-picked folder,
+        // single files get a native save dialog in Tauri or an anchor
+        // download on the web
+        const savedPath = exportDir
+          ? await saveDataUrlToPath(imageDataUrl, exportDir, filename)
+          : await saveDataUrlToDisk(imageDataUrl, filename);
         if (savedPath === null) continue; // user cancelled this board's save dialog
 
         toast({
@@ -968,13 +981,24 @@ export function ArtboardStudioLayout() {
   // untouched, so this can never corrupt the user's work.
   const handleConfirmExport = async ({ asIs, generateFormats }: ExportSelection) => {
     setIsExportDialogOpen(false);
+
+    const original = artboards;
+
+    // Desktop batch exports pick one destination folder up front instead of
+    // opening a native save dialog per file; cancelling the picker aborts
+    // the whole export. Single-file exports keep the per-file save dialog.
+    let exportDir: string | null | undefined;
+    const totalFiles = (asIs ? original.length : 0) + generateFormats.length * original.length;
+    if (isTauri() && totalFiles > 1) {
+      exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
+      if (exportDir === null) return;
+    }
+
     toast({
       title: "Export Process Initiated",
       description: `Generating images... This might take a moment.`,
       variant: "default",
     });
-
-    const original = artboards;
 
     // 3D device canvases re-render supersampled while an export is in flight
     // (see Device3DRenderer); dispatched per capture pass so devices swapped
@@ -984,7 +1008,7 @@ export function ArtboardStudioLayout() {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        await captureArtboards(list);
+        await captureArtboards(list, exportDir);
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
@@ -1549,6 +1573,7 @@ const generateRandomProjectName = (): string => {
                handleSelectTemplate(createBlankProject(activeCategory.defaultSize));
             }
             setIsTemplateSelectorOpen(newOpenState);
+            if (newOpenState) setDialogView('landing');
             // --- 3. Remove projectId from URL when template selector is opened ---
             if (typeof window !== "undefined" && newOpenState) {
               const params = new URLSearchParams(window.location.search);
@@ -1559,9 +1584,63 @@ const generateRandomProjectName = (): string => {
         >
           <DialogContent className="flex max-h-[92vh] w-[95vw] max-w-[1400px] flex-col">
             <DialogHeader>
-              <DialogTitle>Start a New Project</DialogTitle>
-              <DialogDescription>Choose a template or start with a blank canvas.</DialogDescription>
+              <div className="flex items-start gap-2">
+                {dialogView !== 'landing' && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="-ml-2 h-8 w-8 shrink-0"
+                    onClick={() => setDialogView('landing')}
+                    aria-label="Back"
+                  >
+                    <ChevronLeftIcon className="h-4 w-4" />
+                  </Button>
+                )}
+                <div className="min-w-0 flex-1 text-left">
+                  <DialogTitle>
+                    {dialogView === 'agent'
+                      ? 'Design with the AI agent'
+                      : dialogView === 'templates'
+                        ? 'Choose a template'
+                        : 'Start a New Project'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {dialogView === 'agent'
+                      ? 'Upload your screenshots, say what you want, and let the agent build the project.'
+                      : dialogView === 'templates'
+                        ? 'Pick a layout to copy into a new project.'
+                        : 'Let the AI agent build it, pick a template, or start from an empty canvas.'}
+                  </DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
+
+            {dialogView === 'landing' && (
+              // Native overflow container, not Radix ScrollArea: a ScrollArea
+              // sized with flex-1 under a max-h parent silently stops scrolling.
+              <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-1">
+                <StartLandingView
+                  templateCount={availableProjects.length}
+                  isLoadingTemplates={isLoadingProjects}
+                  blankSize={activeCategory.defaultSize}
+                  onChooseTemplates={() => setDialogView('templates')}
+                  onStartAgent={() => setDialogView('agent')}
+                  onStartBlank={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}
+                />
+              </div>
+            )}
+
+            {dialogView === 'agent' && (
+              <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-1">
+                <AgentStartScreen
+                  templates={availableProjects}
+                  isLoadingTemplates={isLoadingProjects}
+                  onCreateProject={(project, options) => handleSelectTemplate(project, options)}
+                />
+              </div>
+            )}
+
+            {dialogView === 'templates' && (
             <Tabs value={templateTab} onValueChange={setTemplateTab} className="flex min-h-0 flex-1 flex-col">
               <TabsList className="mx-1 self-start">
                 {TEMPLATE_CATEGORIES.map((cat) => (
@@ -1596,11 +1675,17 @@ const generateRandomProjectName = (): string => {
                 </TabsContent>
               ))}
             </Tabs>
+            )}
+
+            {dialogView === 'templates' && (
              <DialogFooter>
               <Button variant="outline" onClick={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}>Start Blank</Button>
             </DialogFooter>
+            )}
 
-            {/* New Section for Recent Projects */}
+            {/* Recent projects live on the landing screen; the template and agent
+                screens need the full dialog height for their own content. */}
+            {dialogView === 'landing' && (
             <div className="p-4 border-t shrink-0">
               <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
               {recentProjects.length > 0 ? (
@@ -1646,6 +1731,7 @@ const generateRandomProjectName = (): string => {
                 <p className="text-sm text-muted-foreground">No recent projects found.</p>
               )}
             </div>
+            )}
           </DialogContent>
         </Dialog>
 

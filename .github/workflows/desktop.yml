@@ -3,7 +3,9 @@ name: Desktop builds (Tauri)
 # Builds Windows (.msi + .exe) and macOS (.dmg + .app) bundles.
 # Triggered by a version tag (v1.2.3) or manually from the Actions tab.
 # Tag pushes publish a draft GitHub release with the installers attached;
-# manual runs just upload artifacts to the run.
+# manual runs upload the installers as workflow-run artifacts instead.
+# The tag must match the version in src-tauri/tauri.conf.json (a guard
+# step fails fast when it does not).
 #
 # NOTE: NEXT_PUBLIC_BASE_PATH must stay UNSET here. The GitHub Pages deploy
 # (deploy.yml) builds under /artboard-studio; the desktop app is served from
@@ -47,7 +49,21 @@ jobs:
 
       - run: npm ci
 
+      # tauri-action substitutes __VERSION__ from tauri.conf.json, so a tag
+      # pushed without bumping the config would publish under the wrong
+      # version. Fail fast instead.
+      - name: Check tag matches tauri.conf.json version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match tauri.conf.json version v${version}. Bump the config and re-tag."
+            exit 1
+          fi
+
       - uses: tauri-apps/tauri-action@v0
+        id: tauri
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Uncomment once you have macOS signing set up (see docs/DESKTOP.md):
@@ -58,9 +74,25 @@ jobs:
           # APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          # Only create a release when the run was triggered by a tag.
-          tagName: ${{ startsWith(github.ref, 'refs/tags/') && 'v__VERSION__' || '' }}
-          releaseName: ${{ startsWith(github.ref, 'refs/tags/') && 'Artboard Studio v__VERSION__' || '' }}
+          # Only create a release when the run was triggered by a tag. Using
+          # ref_name pins the release to the tag that triggered the run.
+          tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+          releaseName: ${{ startsWith(github.ref, 'refs/tags/') && format('Artboard Studio {0}', github.ref_name) || '' }}
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      # tauri-action only uploads to a GitHub release; on manual runs (no
+      # tag) attach the installers to the workflow run instead. The .app is
+      # skipped on purpose: zip flattening breaks its symlinks, and the dmg
+      # already contains it.
+      - name: Upload installers as run artifacts
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundles-${{ matrix.platform }}
+          if-no-files-found: error
+          path: |
+            src-tauri/target/**/release/bundle/msi/*.msi
+            src-tauri/target/**/release/bundle/nsis/*.exe
+            src-tauri/target/**/release/bundle/dmg/*.dmg

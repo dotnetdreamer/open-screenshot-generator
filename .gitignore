@@ -20,6 +20,9 @@
 # production
 /build
 
+# companion extension build output (npm run build:extension)
+/extension/dist/
+
 # misc
 .DS_Store
 *.pem
@@ -47,3 +50,4 @@ firestore-debug.log
 # tauri
 /src-tauri/target/
 /src-tauri/gen/schemas/
+*.provisionprofile

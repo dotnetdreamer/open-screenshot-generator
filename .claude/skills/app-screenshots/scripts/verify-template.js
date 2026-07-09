@@ -2,7 +2,7 @@
  * Opens a template by its gallery card text and takes a zoomed-out overview shot.
  * Usage: node verify-template.js "Listly Tasks" [zoomOuts=2] [outfile]
  */
-const { launch, clickByTitle, sleep, shot } = require('./lib');
+const { launch, clickByTitle, openTemplatesView, sleep, shot } = require('./lib');
 
 (async () => {
   const cardText = process.argv[2];
@@ -12,11 +12,9 @@ const { launch, clickByTitle, sleep, shot } = require('./lib');
 
   const { browser, page } = await launch({ width: 2400, height: 1300 });
   await page.goto('http://localhost:9002', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.waitForFunction(
-    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim() === 'Start Blank')",
-    { timeout: 90000, polling: 500 }
-  );
-  // Template gallery loads async after Start Blank appears — wait for the card.
+  // The dialog opens on the three-card landing screen; step into the gallery.
+  await openTemplatesView(page);
+  // Template gallery loads async after the tabs appear — wait for the card.
   await page.waitForFunction(
     (text) => [...document.querySelectorAll('div,h3,span')].some((n) => (n.textContent || '').trim() === text),
     { timeout: 60000, polling: 500 },

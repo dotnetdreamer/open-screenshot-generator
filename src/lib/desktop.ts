@@ -14,6 +14,13 @@ export function isTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
 
+// Windows-reserved characters make the native save dialog reject the default
+// name (browsers sanitize download names themselves, native dialogs do not).
+// Strip them everywhere so web and desktop exports name files identically.
+export function sanitizeFileName(fileName: string): string {
+  return fileName.replace(/[\\/:*?"<>|]/g, '_');
+}
+
 function splitName(fileName: string): { stem: string; ext: string } {
   const dot = fileName.lastIndexOf('.');
   if (dot <= 0) return { stem: fileName, ext: '' };
@@ -38,6 +45,7 @@ export async function saveBlobToDisk(
   blob: Blob,
   fileName: string
 ): Promise<string | null | undefined> {
+  fileName = sanitizeFileName(fileName);
   if (!isTauri()) {
     const url = URL.createObjectURL(blob);
     try {
@@ -73,11 +81,44 @@ export async function saveDataUrlToDisk(
   fileName: string
 ): Promise<string | null | undefined> {
   if (!isTauri()) {
-    anchorDownload(dataUrl, fileName);
+    anchorDownload(dataUrl, sanitizeFileName(fileName));
     return undefined;
   }
   const blob = await (await fetch(dataUrl)).blob();
   return saveBlobToDisk(blob, fileName);
+}
+
+/**
+ * Pick a destination folder for a multi-file export.
+ * Tauri only: returns the folder path, or null if the user cancelled.
+ * On the web returns undefined (multi-file exports fall back to individual
+ * browser downloads, which need no destination).
+ */
+export async function pickExportDirectory(
+  title?: string
+): Promise<string | null | undefined> {
+  if (!isTauri()) return undefined;
+  const { open } = await import('@tauri-apps/plugin-dialog');
+  // recursive: true widens the runtime fs scope to the folder's contents,
+  // which is what permits the writeFile calls that follow
+  const dir = await open({ directory: true, recursive: true, title });
+  return dir as string | null;
+}
+
+/** Write a data: URL into a previously picked folder (Tauri only). */
+export async function saveDataUrlToPath(
+  dataUrl: string,
+  dir: string,
+  fileName: string
+): Promise<string> {
+  const blob = await (await fetch(dataUrl)).blob();
+  const [{ writeFile }, { join }] = await Promise.all([
+    import('@tauri-apps/plugin-fs'),
+    import('@tauri-apps/api/path'),
+  ]);
+  const path = await join(dir, sanitizeFileName(fileName));
+  await writeFile(path, new Uint8Array(await blob.arrayBuffer()));
+  return path;
 }
 
 /** Open a URL in the system browser (Tauri) or a new tab (web). */

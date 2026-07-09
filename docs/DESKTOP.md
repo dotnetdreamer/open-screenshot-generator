@@ -12,6 +12,7 @@ so there is one codebase for web and desktop.
 | `src-tauri/` | Rust shell, config, icons, capabilities |
 | `src-tauri/tauri.conf.json` | App identity, window, bundling targets |
 | `src-tauri/tauri.appstore.conf.json` | Overlay config for Mac App Store builds |
+| `src-tauri/tauri.microsoftstore.conf.json` | Overlay config for Microsoft Store builds (offline WebView2 installer) |
 | `src-tauri/Entitlements.plist` | macOS sandbox entitlements (required by the Mac App Store) |
 | `src-tauri/capabilities/default.json` | Permissions granted to the webview (save/open dialogs, fs write, opener) |
 | `src/lib/desktop.ts` | Frontend helper: native save dialogs in Tauri, anchor downloads on the web |
@@ -22,7 +23,9 @@ so there is one codebase for web and desktop.
 - Node 20+, `npm ci`
 - Rust stable (`winget install Rustlang.Rustup` on Windows, `rustup` on macOS)
 - Windows: Visual Studio 2022 with the "Desktop development with C++" workload
-- macOS: Xcode command line tools
+- macOS: Xcode command line tools. For universal builds also run
+  `rustup target add aarch64-apple-darwin x86_64-apple-darwin`
+  (rustup installs only the host target by default)
 
 ## Develop and build
 
@@ -69,8 +72,16 @@ account (one-time fee, ~19 USD for individuals).
 The Store accepts classic Win32 installers (EXE/MSI), which is the path of
 least resistance for Tauri apps:
 
-1. Build: `npm run tauri:build`. Use the NSIS `.exe` (supports silent install
-   via `/S`) or the MSI (silent via `/quiet`). The Store requires installers to
+1. Build with the Store overlay config:
+
+   ```sh
+   npm run tauri:build -- --config src-tauri/tauri.microsoftstore.conf.json
+   ```
+
+   The overlay switches the WebView2 install mode to `offlineInstaller`, which
+   the Store requires (the default `downloadBootstrapper` needs internet during
+   install and can fail certification). Use the NSIS `.exe` (silent install via
+   `/S`) or the MSI (silent via `/quiet`); the Store requires installers to
    install silently with no UAC prompt escalation beyond the manifest.
 2. Sign the installer with a certificate trusted by Windows. The cheapest
    sustainable option is
@@ -104,10 +115,14 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
    - an "Apple Distribution" certificate and a "Mac Installer Distribution"
      certificate,
    - a Mac App Store provisioning profile for the App ID. Download it as
-     `src-tauri/embedded.provisionprofile` (gitignored by `*.provisionprofile`
-     if you add that; do not commit it).
-2. Create the app record in [App Store Connect](https://appstoreconnect.apple.com).
-3. Build with the App Store overlay config (sandbox entitlements + embedded
+     `src-tauri/embedded.provisionprofile` (already gitignored via
+     `*.provisionprofile`; do not commit it).
+2. Edit `src-tauri/Entitlements.plist` and replace both `YOURTEAMID`
+   placeholders with your Apple Developer Team ID. Uploads are rejected when
+   the `com.apple.application-identifier` entitlement does not match the
+   provisioning profile.
+3. Create the app record in [App Store Connect](https://appstoreconnect.apple.com).
+4. Build with the App Store overlay config (sandbox entitlements + embedded
    profile, `.app` bundle only):
 
    ```sh
@@ -120,7 +135,7 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
    the environment so Tauri signs the bundle. `Entitlements.plist` already
    enables the App Sandbox (mandatory for the Mac App Store), user-selected
    read/write (save/open dialogs), and outbound network (Google Fonts).
-4. Wrap the signed `.app` in an installer package:
+5. Wrap the signed `.app` in an installer package:
 
    ```sh
    xcrun productbuild --sign "3rd Party Mac Developer Installer: <Team Name> (<TeamID>)" \
@@ -128,7 +143,7 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
      /Applications "Artboard Studio.pkg"
    ```
 
-5. Upload with the Transporter app (or `xcrun altool --upload-app`), then
+6. Upload with the Transporter app (or `xcrun altool --upload-app`), then
    complete the listing in App Store Connect and submit for review.
 
 For distribution OUTSIDE the Mac App Store (direct .dmg download), use a

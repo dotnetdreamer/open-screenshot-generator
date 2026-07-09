@@ -5,6 +5,14 @@
     <!-- Required for Mac App Store distribution. -->
     <key>com.apple.security.app-sandbox</key>
     <true/>
+    <!-- REPLACE YOURTEAMID with your Apple Developer Team ID before a Mac App
+         Store build. Uploads are rejected when these do not match the embedded
+         provisioning profile (Tauri passes this file verbatim to codesign; it
+         does not merge identifiers from the profile the way Xcode does). -->
+    <key>com.apple.application-identifier</key>
+    <string>YOURTEAMID.com.ccrstech.artboardstudio</string>
+    <key>com.apple.developer.team-identifier</key>
+    <string>YOURTEAMID</string>
     <!-- Save/open dialogs write to user-chosen locations. -->
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>

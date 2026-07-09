@@ -25,7 +25,12 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 
 ## App selectors
 
-- Start screen: button with exact text `Start Blank`.
+- Start dialog: opens on a **landing screen** with three cards. `Browse templates` steps into the
+  template gallery (tabs + cards), `New blank project` creates a blank project, `Open the agent` opens
+  the AI agent screen. `lib.js` exposes `waitForStartLanding`, `openTemplatesView` and
+  `clickByTextContains`; `startBlankProject` already routes through the landing. Anything that reaches
+  for template tabs or cards must call `openTemplatesView(page)` first. The exact-text `Start Blank`
+  button still exists, but only inside the template gallery.
 - Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Layers`.
 - Palette categories: `button[title="Browse <Category>"]` (e.g. `Browse 3D iPhone 17 Pro Max`, `Browse Colored iPhone`, `Browse Basic`); close with the `Back` button.
 - Tiles: `button[title="Add <label>"]` (e.g. `Add iPhone 17 Pro Max 3D — tilted right (black)`, `Add Transparent device`).

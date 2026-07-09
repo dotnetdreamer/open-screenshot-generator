@@ -5,7 +5,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { launch, startBlankProject, sleep, exportArtboards, clickTab, APP_URL } = require('./lib');
+const { launch, startBlankProject, sleep, exportArtboards, clickTab, openTemplatesView, APP_URL } = require('./lib');
 
 const TEMPLATES = [
   { slug: 'breathora-breathing', card: 'Breathora Breathing', boards: 5 },
@@ -60,6 +60,8 @@ const TEMPLATES = [
 
 async function openTemplateFromStartDialog(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  // The dialog opens on the three-card landing screen; step into the gallery.
+  await openTemplatesView(page);
   // Non-default categories (Apple Watch, Feature Graphic) live behind a Radix
   // tab — click it first so its panel becomes active. Radix keeps INACTIVE tab
   // panels mounted (just hidden), so the card search below must be scoped to the
