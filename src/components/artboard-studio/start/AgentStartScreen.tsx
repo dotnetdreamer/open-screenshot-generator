@@ -1,8 +1,19 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, History, Info, KeyRound, Loader2, Sparkles, UserRound, Zap } from 'lucide-react';
+import { AlertTriangle, History, Info, KeyRound, Loader2, Sparkles, Trash2, UserRound, Zap } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +27,7 @@ import { extractJson, extractJsonCandidates } from '@/lib/ai/jsonExtract';
 import { buildCatalogArtifacts, resolveAliases, type AliasMap } from '@/lib/ai/aliasCatalog';
 import {
   buildHostedCatalog,
+  clearUrlFetchCapabilities,
   HOSTED_CATALOG_URL,
   readUrlFetchCapability,
   verifyHostedCatalog,
@@ -33,6 +45,7 @@ import { AI_PROVIDERS, type AiProviderId } from '@/lib/ai/providers';
 import { WEB_PROVIDERS, type WebProviderId } from '@/lib/ai/webAdapters';
 import {
   BridgeError,
+  clearWebSessions,
   loginToProvider,
   runViaEmbeddedWebview,
   type BridgeStage,
@@ -45,6 +58,7 @@ import {
 } from '@/lib/ai/freeProviders';
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
 import { isTauri } from '@/lib/desktop';
+import { useToast } from '@/hooks/use-toast';
 import { ApiKeyModePanel } from './ApiKeyModePanel';
 import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
@@ -566,14 +580,17 @@ export function AgentStartScreen({
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">3. Choose how the agent runs</Label>
-          <button
-            type="button"
-            onClick={() => setHistoryOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <History className="h-3.5 w-3.5" />
-            Recent runs
-          </button>
+          <div className="flex items-center gap-1">
+            {desktop && <ClearSessionsButton busy={busy} />}
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <History className="h-3.5 w-3.5" />
+              Recent runs
+            </button>
+          </div>
         </div>
         <Tabs value={mode} onValueChange={setMode} className="w-full">
           <TabsList>
@@ -649,6 +666,80 @@ export function AgentStartScreen({
       <OperationTimelineDialog operationId={errorOpId} open={infoOpen} onOpenChange={setInfoOpen} />
       <RunHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
+  );
+}
+
+/**
+ * Sign out of every connected assistant. Desktop only: the "use my account"
+ * sessions live in the app's embedded webviews, so this wipes their shared
+ * cookie jar and forgets the cached fetch verdicts, letting a stuck provider
+ * start clean. Guarded by a confirm dialog since it is a sign-out.
+ */
+function ClearSessionsButton({ busy }: { busy: boolean }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const clear = useCallback(async () => {
+    setClearing(true);
+    try {
+      await clearWebSessions();
+      clearUrlFetchCapabilities();
+      toast({
+        title: 'Sessions cleared',
+        description:
+          'Signed out of every connected assistant. The next run will ask you to sign in again.',
+      });
+      setOpen(false);
+    } catch (err) {
+      toast({
+        title: 'Could not clear sessions',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+    } finally {
+      setClearing(false);
+    }
+  }, [toast]);
+
+  return (
+    <AlertDialog open={open} onOpenChange={(next) => !clearing && setOpen(next)}>
+      <AlertDialogTrigger asChild>
+        <button
+          type="button"
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Clear sessions
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Clear all assistant sessions?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This signs you out of every connected assistant (Claude, ChatGPT, Gemini, and the
+            rest) by clearing their saved logins. Your projects and run history are not affected.
+            Use it to start fresh if a provider is stuck. You will sign in again on the next run.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={clearing}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            // Keep the dialog open until the async work settles, then close it
+            // ourselves so a failure can stay put and show the error toast.
+            onClick={(e) => {
+              e.preventDefault();
+              void clear();
+            }}
+            disabled={clearing}
+          >
+            {clearing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Clear sessions
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

@@ -230,6 +230,92 @@ pub async fn abs_web_close<R: Runtime>(app: AppHandle<R>, provider: String) {
     }
 }
 
+/// Forget every stored provider login so the next run starts from a clean
+/// sign-in. Deletes the profile's cookie jar (where the providers keep their
+/// sessions) and closes the assistant windows so no stale in-memory session
+/// lingers. Cookies only: the app's own saved projects and run history
+/// (IndexedDB / localStorage) are left untouched, since those are not cookies.
+#[tauri::command]
+pub async fn abs_web_clear_sessions<R: Runtime>(
+    app: AppHandle<R>,
+    state: tauri::State<'_, WebSessionState>,
+) -> Result<(), String> {
+    // Drop any queued jobs and tell the app, so nothing is left waiting on a
+    // window we are about to close. The window's own Destroyed handler then
+    // finds no job and stays quiet, so a run is not reported cancelled twice.
+    let jobs: Vec<PendingJob> = {
+        let mut pending = state.pending.lock().unwrap();
+        let drained = pending.values().cloned().collect();
+        pending.clear();
+        drained
+    };
+    for job in jobs {
+        let _ = app.emit(
+            WEB_EVENT_CHANNEL,
+            json!({
+                "type": "error",
+                "requestId": job.request_id,
+                "code": "cancelled",
+                "message": "Assistant sessions were cleared.",
+            }),
+        );
+    }
+
+    // Cookies are shared across every webview in the app's profile, so clearing
+    // them from the main window signs the user out of all providers at once.
+    clear_cookies(&app).await?;
+
+    // Close the provider windows so a page still holding an in-memory session
+    // does not linger; the next run rebuilds them from the now-empty cookie jar.
+    for (provider, _) in PROVIDERS {
+        if let Some(window) = app.get_webview_window(&window_label(provider)) {
+            let _ = window.close();
+        }
+    }
+    Ok(())
+}
+
+/// Delete the WebView2 profile's cookies via the main window's controller.
+/// Windows only; other platforms report that clearing is unavailable rather
+/// than pretending to have wiped a session that is still on disk.
+#[cfg(windows)]
+async fn clear_cookies<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
+    let window = app
+        .get_webview_window("main")
+        .or_else(|| app.webview_windows().into_values().next())
+        .ok_or_else(|| "no app window available to clear cookies from".to_string())?;
+
+    let (tx, rx) = std::sync::mpsc::channel::<Result<(), String>>();
+    window
+        .with_webview(move |webview| {
+            let _ = tx.send(unsafe { delete_all_cookies(webview.controller()) });
+        })
+        .map_err(|e| e.to_string())?;
+    rx.recv_timeout(std::time::Duration::from_secs(8))
+        .map_err(|_| "clearing cookies did not complete in time".to_string())?
+}
+
+#[cfg(not(windows))]
+async fn clear_cookies<R: Runtime>(_app: &AppHandle<R>) -> Result<(), String> {
+    Err("clearing sessions is only available on Windows".to_string())
+}
+
+/// Delete every cookie in the profile. Runs on the UI thread (`with_webview`).
+/// `DeleteAllCookies` is synchronous, so no completion handler is needed.
+#[cfg(windows)]
+unsafe fn delete_all_cookies(
+    controller: webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Controller,
+) -> Result<(), String> {
+    use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2_2;
+    use windows::core::Interface;
+
+    let core = controller.CoreWebView2().map_err(|e| e.to_string())?;
+    let core2: ICoreWebView2_2 = core.cast().map_err(|e| e.to_string())?;
+    let manager = core2.CookieManager().map_err(|e| e.to_string())?;
+    manager.DeleteAllCookies().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 /// Capture the current visual of a provider window as a PNG data URL, for the
 /// operation timeline. Uses WebView2's CapturePreview, which renders the page
 /// even while the window is hidden, so a background run is still traceable.

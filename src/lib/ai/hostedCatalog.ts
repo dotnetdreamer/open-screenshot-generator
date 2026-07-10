@@ -101,8 +101,28 @@ export type UrlFetchCapability = 'ok' | 'fail';
  * switched off gets another chance without the user clearing storage. */
 const FAIL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+const URL_FETCH_CACHE_PREFIX = 'agent-url-fetch:';
+
 function cacheKey(provider: string): string {
-  return `agent-url-fetch:${provider}`;
+  return `${URL_FETCH_CACHE_PREFIX}${provider}`;
+}
+
+/**
+ * Forget every cached URL-fetch verdict so providers are retried from scratch.
+ * Part of "clear sessions": a fresh sign-in should not inherit a stale "this
+ * provider cannot fetch" verdict from before.
+ */
+export function clearUrlFetchCapabilities(): void {
+  try {
+    const stale: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key?.startsWith(URL_FETCH_CACHE_PREFIX)) stale.push(key);
+    }
+    stale.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Storage unavailable: nothing to clear.
+  }
 }
 
 /** `<capability>|<token>|<epochMs>`. An unparseable value (older format, hand

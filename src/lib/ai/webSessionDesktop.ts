@@ -181,6 +181,17 @@ export async function closeProviderWindow(provider: WebProviderId): Promise<void
 }
 
 /**
+ * Sign out of every provider: wipes the shared cookie jar their logins live in
+ * and closes the assistant windows, so the next run starts from a fresh
+ * sign-in. Saved projects and run history are untouched. Rejects on failure
+ * (e.g. off-Windows, where clearing is unavailable).
+ */
+export async function clearWebSessions(): Promise<void> {
+  const { invoke } = await import('@tauri-apps/api/core');
+  await invoke('abs_web_clear_sessions');
+}
+
+/**
  * Drive the chosen provider through its in-app window and resolve with the raw
  * reply text. Rejects with a BridgeError.
  */
