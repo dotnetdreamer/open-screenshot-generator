@@ -49,18 +49,7 @@ async function clickByTitle(page, title, index = 0) {
   if (!ok) throw new Error('tile not found: ' + title);
 }
 
-/**
- * The start dialog opens on a three-card landing screen (AI agent / templates /
- * blank). Waits for it to render. Everything else in this file assumes it.
- */
-async function waitForStartLanding(page) {
-  await page.waitForFunction(
-    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').includes('Browse templates'))",
-    { timeout: 90000, polling: 500 }
-  );
-}
-
-/** Click a button whose text CONTAINS the given fragment (landing cards are big buttons). */
+/** Click a button whose text CONTAINS the given fragment (e.g. the AI agent banner). */
 async function clickByTextContains(page, text) {
   const ok = await page.evaluate((text) => {
     const el = [...document.querySelectorAll('button')].find((b) => (b.textContent || '').includes(text));
@@ -70,19 +59,27 @@ async function clickByTextContains(page, text) {
   if (!ok) throw new Error('button not found (contains): ' + text);
 }
 
-/** Navigate the start dialog's landing screen into the template gallery. */
-async function openTemplatesView(page) {
-  await waitForStartLanding(page);
-  await clickByTextContains(page, 'Browse templates');
-  await page.waitForFunction("!!document.querySelector('[role=\"tab\"]')", { timeout: 30000, polling: 500 });
-  await sleep(400);
+/**
+ * Step from the template gallery into the AI agent screen (the banner above the
+ * tabs). Back out again with the header's `button[aria-label="Back"]`.
+ */
+async function openAgentScreen(page) {
+  await clickByTextContains(page, 'Open the agent');
+  await page.waitForFunction(
+    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim() === 'Choose files')",
+    { timeout: 30000, polling: 500 }
+  );
+  await sleep(500);
 }
 
 /** Open the app and start a blank project; resolves once the app has settled. */
 async function startBlankProject(page) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await waitForStartLanding(page);
-  await clickByTextContains(page, 'New blank project');
+  await page.waitForFunction(
+    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim() === 'Start Blank')",
+    { timeout: 90000, polling: 500 }
+  );
+  await clickByText(page, 'Start Blank');
   // Project creation lands asynchronously; interacting earlier races a re-render.
   await page.waitForFunction("location.search.includes('projectId')", { timeout: 30000, polling: 500 });
   await sleep(1500);
@@ -173,8 +170,7 @@ module.exports = {
   clickByText,
   clickByTextContains,
   clickByTitle,
-  waitForStartLanding,
-  openTemplatesView,
+  openAgentScreen,
   startBlankProject,
   clickTab,
   addTileAndCount,

@@ -26,7 +26,7 @@ import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
-import { StartLandingView } from './start/StartLandingView';
+import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { AgentStartScreen } from './start/AgentStartScreen';
 
 import { Button } from '@/components/ui/button';
@@ -251,9 +251,10 @@ export function ArtboardStudioLayout() {
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(
     () => getInitialProjectIdFromUrl() === null
   );
-  // Which screen of the start dialog is showing. Reset to 'landing' every time
-  // the dialog opens, so reopening never drops the user mid-agent-flow.
-  const [dialogView, setDialogView] = useState<'landing' | 'templates' | 'agent'>('landing');
+  // Which screen of the start dialog is showing. The template gallery is the
+  // dialog, as it always was; the agent is a screen you step into from the
+  // banner above it. Reset on open so reopening never lands mid-agent-flow.
+  const [dialogView, setDialogView] = useState<'templates' | 'agent'>('templates');
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -1573,7 +1574,7 @@ const generateRandomProjectName = (): string => {
                handleSelectTemplate(createBlankProject(activeCategory.defaultSize));
             }
             setIsTemplateSelectorOpen(newOpenState);
-            if (newOpenState) setDialogView('landing');
+            if (newOpenState) setDialogView('templates');
             // --- 3. Remove projectId from URL when template selector is opened ---
             if (typeof window !== "undefined" && newOpenState) {
               const params = new URLSearchParams(window.location.search);
@@ -1585,12 +1586,12 @@ const generateRandomProjectName = (): string => {
           <DialogContent className="flex max-h-[92vh] w-[95vw] max-w-[1400px] flex-col">
             <DialogHeader>
               <div className="flex items-start gap-2">
-                {dialogView !== 'landing' && (
+                {dialogView === 'agent' && (
                   <Button
                     variant="ghost"
                     size="icon"
                     className="-ml-2 h-8 w-8 shrink-0"
-                    onClick={() => setDialogView('landing')}
+                    onClick={() => setDialogView('templates')}
                     aria-label="Back"
                   >
                     <ChevronLeftIcon className="h-4 w-4" />
@@ -1598,39 +1599,20 @@ const generateRandomProjectName = (): string => {
                 )}
                 <div className="min-w-0 flex-1 text-left">
                   <DialogTitle>
-                    {dialogView === 'agent'
-                      ? 'Design with the AI agent'
-                      : dialogView === 'templates'
-                        ? 'Choose a template'
-                        : 'Start a New Project'}
+                    {dialogView === 'agent' ? 'Design with the AI agent' : 'Start a New Project'}
                   </DialogTitle>
                   <DialogDescription>
                     {dialogView === 'agent'
                       ? 'Upload your screenshots, say what you want, and let the agent build the project.'
-                      : dialogView === 'templates'
-                        ? 'Pick a layout to copy into a new project.'
-                        : 'Let the AI agent build it, pick a template, or start from an empty canvas.'}
+                      : 'Let the AI agent build it, choose a template, or start with a blank canvas.'}
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
 
-            {dialogView === 'landing' && (
+            {dialogView === 'agent' && (
               // Native overflow container, not Radix ScrollArea: a ScrollArea
               // sized with flex-1 under a max-h parent silently stops scrolling.
-              <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-1">
-                <StartLandingView
-                  templateCount={availableProjects.length}
-                  isLoadingTemplates={isLoadingProjects}
-                  blankSize={activeCategory.defaultSize}
-                  onChooseTemplates={() => setDialogView('templates')}
-                  onStartAgent={() => setDialogView('agent')}
-                  onStartBlank={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}
-                />
-              </div>
-            )}
-
-            {dialogView === 'agent' && (
               <div className="min-h-0 flex-1 overflow-y-auto px-1 pb-1">
                 <AgentStartScreen
                   templates={availableProjects}
@@ -1638,6 +1620,10 @@ const generateRandomProjectName = (): string => {
                   onCreateProject={(project, options) => handleSelectTemplate(project, options)}
                 />
               </div>
+            )}
+
+            {dialogView === 'templates' && (
+              <AgentPromoBanner onStartAgent={() => setDialogView('agent')} />
             )}
 
             {dialogView === 'templates' && (
@@ -1683,9 +1669,8 @@ const generateRandomProjectName = (): string => {
             </DialogFooter>
             )}
 
-            {/* Recent projects live on the landing screen; the template and agent
-                screens need the full dialog height for their own content. */}
-            {dialogView === 'landing' && (
+            {/* The agent screen needs the full dialog height for its own content. */}
+            {dialogView === 'templates' && (
             <div className="p-4 border-t shrink-0">
               <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
               {recentProjects.length > 0 ? (

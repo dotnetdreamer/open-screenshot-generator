@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
-const { launch, exportArtboards, sleep, clickTab, openTemplatesView, APP_URL } = require('./lib');
+const { launch, exportArtboards, sleep, clickTab, APP_URL } = require('./lib');
 const { renderOnPage, EDGE, CW, CH } = require('./compose-preview');
 
 const REPO = path.resolve(__dirname, '../../../..');
@@ -66,8 +66,6 @@ function meta(slug) {
 
 async function openTemplate(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  // The dialog opens on the three-card landing screen; step into the gallery.
-  await openTemplatesView(page);
   if (tab) {
     await page.waitForFunction(
       `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(tab)}))`,
