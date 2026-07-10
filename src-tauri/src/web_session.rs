@@ -449,6 +449,15 @@ fn on_agent_event<R: Runtime>(app: &AppHandle<R>, event: AgentEvent) {
                 // acknowledges: a navigation racing this eval would eat it.
                 if let Some(window) = app.get_webview_window(&window_label(&provider)) {
                     let _ = window.eval(&job.dispatch_js);
+                    // If this window was revealed for a manual sign-in, tuck it
+                    // away again now that the user is in, so the rest of the run
+                    // happens in the background instead of showing the typing and
+                    // screenshots. (On a first load it is already hidden, so this
+                    // is a harmless no-op.) Honour the "show assistant window"
+                    // preference: leave it up when the user asked to watch.
+                    if !crate::settings::current(app).show_assistant_window {
+                        let _ = window.hide();
+                    }
                 }
             } else {
                 // Not signed in: reveal the window for a manual login and tell

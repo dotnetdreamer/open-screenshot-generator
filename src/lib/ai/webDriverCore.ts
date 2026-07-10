@@ -65,6 +65,28 @@ function pick<T extends Element = HTMLElement>(selectors: string[]): T | null {
   return null;
 }
 
+/**
+ * Like pick, but only accepts an element the user could actually see. Used for
+ * the logged-out markers: sites keep hidden sign-in affordances in the DOM
+ * while signed in (menus, dialogs, server-rendered shells), and treating one
+ * of those as "signed out" locks a logged-in user out of the run. A marker
+ * that is not visible is not a sign-out.
+ */
+function pickVisible(selectors: string[]): HTMLElement | null {
+  for (const selector of selectors) {
+    try {
+      for (const el of Array.from(document.querySelectorAll<HTMLElement>(selector))) {
+        if (el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden') {
+          return el;
+        }
+      }
+    } catch {
+      // A selector a browser rejects (e.g. :has on an old engine) just skips.
+    }
+  }
+  return null;
+}
+
 function pickAll(selectors: string[]): Element[] {
   for (const selector of selectors) {
     try {
@@ -262,8 +284,31 @@ export type LoginState = 'in' | 'out' | 'unknown';
 export async function detectLoginState(config: WebAdapter, timeoutMs = 8000): Promise<LoginState> {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
-    if (config.loggedOut && pick(config.loggedOut)) return 'out';
-    if (pick(config.composer)) return 'in';
+    // An authoritative in-page auth signal (ChatGPT's bootstrap JSON) wins
+    // over any DOM heuristics: it does not race the render order.
+    const probed = config.probeAuth?.() ?? null;
+    if (probed) return probed;
+    if (config.loggedOut && pickVisible(config.loggedOut)) return 'out';
+    if (pick(config.composer)) {
+      // A composer alone is not proof of a signed-in session: several providers
+      // (ChatGPT most notably) show one in an anonymous, logged-out state, and
+      // their sign-in controls render a beat AFTER the composer. Committing to
+      // 'in' on the first tick a composer appears therefore mistakes an
+      // anonymous page for a signed-in one and types the prompt into a throwaway
+      // chat. Give the logged-out markers a short grace to catch up before
+      // trusting the composer; a genuinely signed-in page never grows one, so
+      // this only adds a small settle to the signed-in path.
+      if (config.loggedOut) {
+        const settleBy = Date.now() + 1500;
+        while (Date.now() < settleBy) {
+          const late = config.probeAuth?.() ?? null;
+          if (late) return late;
+          if (pickVisible(config.loggedOut)) return 'out';
+          await sleep(150);
+        }
+      }
+      return 'in';
+    }
     if (Date.now() >= deadline) return 'unknown';
     await sleep(200);
   }
@@ -279,16 +324,34 @@ export async function runSession(
     if (hooks.isCancelled()) throw new DriverError('cancelled', 'Cancelled.');
   };
 
-  if (config.loggedOut && pick(config.loggedOut)) {
+  // Full tri-state probe, not a one-shot marker check: runSession is also
+  // entered straight from a dispatch (the desktop shell evals into an existing
+  // window; the extension calls it directly), and on an anonymous-capable site
+  // whose sign-in controls render after the composer, an instantaneous check
+  // here is the race that typed prompts into a throwaway anonymous chat.
+  if ((await detectLoginState(config, 8000)) === 'out') {
     throw new DriverError('not-logged-in', 'Sign in on this site first.');
   }
+  bail();
 
   hooks.progress('attaching');
-  const composer = await waitFor<HTMLElement>(
-    config.composer,
-    20_000,
-    'Could not find the message box. You may not be signed in.'
-  );
+  let composer: HTMLElement;
+  try {
+    composer = await waitFor<HTMLElement>(
+      config.composer,
+      20_000,
+      'Could not find the message box. You may not be signed in.'
+    );
+  } catch (err) {
+    // No composer, but sign-in markers on screen: the page turned into a login
+    // wall while we waited (session expired mid-run, SPA redirect). Report the
+    // real cause so the shell reveals the window and keeps the job queued for
+    // after the sign-in, instead of failing as a hidden "site changed".
+    if (config.loggedOut && pickVisible(config.loggedOut)) {
+      throw new DriverError('not-logged-in', 'Sign in on this site first.');
+    }
+    throw err;
+  }
   bail();
 
   await attachFiles(config, command.images);

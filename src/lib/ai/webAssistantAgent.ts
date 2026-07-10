@@ -111,7 +111,10 @@ function install(config: WebAdapter): void {
       }
       if (Date.now() >= DEADLINE) return;
       const stalled = Date.now() - startedAt >= REVEAL_AFTER_STALL_MS;
-      if (!revealed && (state === 'out' || stalled)) {
+      // Never report "signed out" while a dispatch is actively running in this
+      // context: the run itself is proof the page is usable, and the reveal
+      // would pop the window into the user's face mid-run.
+      if (!revealed && !running && (state === 'out' || stalled)) {
         revealed = true;
         send({ type: 'ready', requestId: '', provider: config.id, loggedIn: false });
       }
@@ -121,6 +124,14 @@ function install(config: WebAdapter): void {
 }
 
 function boot(): void {
+  // The initialization script runs in every frame, not just the top document
+  // (WebView2 injects it into child iframes too). Only the top document drives
+  // the chat. An agent booted inside a same-origin helper iframe (Gemini keeps
+  // one at /_/bscframe) sees no composer, so its login probe stalls out and
+  // emits a bogus ready{loggedIn:false} ~30s in - which the shell answers by
+  // revealing the window for a sign-in the user does not need, in the middle
+  // of a working run. Any run longer than the stall window hit this.
+  if (window.top !== window) return;
   const config = adapterForHost(location.hostname);
   if (!config) return; // an intermediate login origin, not a driven site
   // The init script re-runs on every navigation; install the agent once.

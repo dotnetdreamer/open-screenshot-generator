@@ -46,8 +46,14 @@ export interface WebAdapter {
   streaming: string[];
   /** Every assistant turn; the last one is the answer. */
   assistantMessage: string[];
-  /** Shown when signed out. Presence means "not logged in". */
+  /** Shown when signed out. A visible one means "not logged in". */
   loggedOut?: string[];
+  /**
+   * Optional authoritative login probe, for sites that expose their auth state
+   * as data (beats any DOM-render race). Runs in the page. Return 'out' or
+   * 'in' only on a definite signal, null when the source is absent/unreadable.
+   */
+  probeAuth?: () => 'in' | 'out' | null;
 }
 
 export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
@@ -80,7 +86,17 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
       '.font-claude-message',
       'div[data-testid="assistant-message"]',
     ],
-    loggedOut: ['a[href*="/login"][data-testid]', 'button[data-testid="login-button"]'],
+    // claude.ai is a client-rendered shell; signed-out users are SPA-redirected
+    // to /login, which renders the testid'd controls. The plain /login anchor
+    // has a different job: claude.ai's logged-out decoy pages (the /new
+    // composer that bounces to /logout) show a sign-in LINK next to a working
+    // composer, and that link is the only thing that marks them as signed out.
+    loggedOut: [
+      'button[data-testid="login-with-google"]',
+      'input[data-testid="code"]',
+      'button[data-testid="login-button"]',
+      'a[href*="/login"]',
+    ],
   },
   chatgpt: {
     id: 'chatgpt',
@@ -105,7 +121,32 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
       'div[data-message-author-role="assistant"] .markdown',
       'div[data-message-author-role="assistant"]',
     ],
-    loggedOut: ['button[data-testid="login-button"]', 'a[href="/auth/login"]'],
+    // ChatGPT serves a working composer to anonymous visitors, so "no composer"
+    // cannot mark logged-out; these sign-in affordances (absent once signed in)
+    // are what distinguishes the anonymous page from a real session.
+    loggedOut: [
+      'button[data-testid="login-button"]',
+      'button[data-testid="signup-button"]',
+      'button[data-testid="login-or-signup-button"]',
+      'a[href*="/auth/login"]',
+      'a[href*="auth.openai.com"]',
+    ],
+    // chatgpt.com server-renders its auth state as JSON in #client-bootstrap.
+    // Reading it beats every DOM race: the anonymous page shows a working
+    // composer, and betting on which of composer vs Log-in buttons renders
+    // first is what used to type prompts into a throwaway anonymous chat.
+    probeAuth: () => {
+      try {
+        const el = document.querySelector('script#client-bootstrap');
+        const m = el?.textContent ? /"authStatus"\s*:\s*"([^"]+)"/.exec(el.textContent) : null;
+        if (!m) return null;
+        if (m[1] === 'logged_out') return 'out';
+        if (m[1] === 'logged_in') return 'in';
+        return null;
+      } catch {
+        return null;
+      }
+    },
   },
   gemini: {
     id: 'gemini',
@@ -130,7 +171,13 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
       'message-content.model-response-text',
       'model-response',
     ],
-    loggedOut: ['a[href*="accounts.google.com/ServiceLogin"]'],
+    // The gbar "Sign in" anchor is server-rendered on the signed-out page and
+    // absent (as a ServiceLogin URL) when signed in; the signed-in account
+    // switcher lives in a cross-origin iframe, out of querySelector's reach.
+    loggedOut: [
+      'a[href*="accounts.google.com/ServiceLogin"]',
+      'a[href*="gemini.google.com/signin"]',
+    ],
   },
   // --- best-effort, gpt4free-style additions --------------------------------
   // These sites change often and are not vision-friendly; expect to tune the
@@ -163,7 +210,15 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
       'div[data-testid="ai-message"]',
       'div[class*="assistantMessage"]',
     ],
-    loggedOut: ['button[data-testid="sign-in"]', 'a[href*="login.live.com"]'],
+    // Copilot's auth UI is client-rendered and flag-gated; these are the
+    // guest-state testids observed in 2026 builds. Note the plain
+    // "sidebar-settings-button" testid appears in BOTH states, so it must
+    // never be used here.
+    loggedOut: [
+      '[data-testid="sidebar-guest-sign-in-button"]',
+      '[data-testid^="sidebar-settings-guest"]',
+      '[data-testid="sign-in-exp-landing-header-button"]',
+    ],
   },
   deepseek: {
     id: 'deepseek',
@@ -181,7 +236,9 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
     ],
     streaming: ['div[class*="stop" i][role="button"]', 'button[aria-label*="Stop" i]'],
     assistantMessage: ['div[class*="ds-markdown"]', 'div[class*="markdown"]', 'div[class*="message"]'],
-    loggedOut: ['a[href*="/sign_in"]', 'button[class*="login" i]'],
+    // No anonymous chat here: signed-out users are router-redirected to
+    // /sign_in, which renders the ds-sign-up-form design-system components.
+    loggedOut: ['[class*="ds-sign-up-form"]', 'a[href*="/sign_in"]'],
   },
   qwen: {
     id: 'qwen',
@@ -190,7 +247,12 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
     host: 'chat.qwen.ai',
     hosts: ['chat.qwen.ai', 'tongyi.aliyun.com'],
     tested: false,
-    composer: ['textarea#chat-input', 'textarea[placeholder]', 'div[contenteditable="true"]'],
+    composer: [
+      'textarea.message-input-textarea',
+      'textarea#chat-input',
+      'textarea[placeholder]',
+      'div[contenteditable="true"]',
+    ],
     fileInput: ['input[type="file"]'],
     send: ['button[type="submit"]', 'button[class*="send" i]', 'div[class*="send" i][role="button"]'],
     streaming: ['button[class*="stop" i]', 'div[class*="stop" i][role="button"]'],
@@ -199,7 +261,10 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
       'div[class*="assistant" i]',
       'div[class*="response" i]',
     ],
-    loggedOut: ['button[class*="login" i]', 'a[href*="login"]'],
+    // The header auth buttons are server-rendered when signed out and absent
+    // when signed in. (The old generic 'a[href*="login"]' matched nothing and
+    // could false-positive on unrelated links; dropped.)
+    loggedOut: ['#qwen-chat-header-right .auth-buttons', 'button.header-right-auth-button'],
   },
   perplexity: {
     id: 'perplexity',
@@ -222,7 +287,10 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
     ],
     streaming: ['button[aria-label*="Stop" i]', 'button[data-testid="stop-button"]'],
     assistantMessage: ['div[dir="auto"] .prose', 'div[class*="prose"]', 'div[id^="markdown-content"]'],
-    loggedOut: ['button:has(> div:only-child)[data-testid="sign-in"]', 'a[href*="/sign-in"]'],
+    // Perplexity's sign-in affordances carry no stable testid except the login
+    // modal itself, which only exists while shown: presence means signed out,
+    // absence proves nothing. Anonymous runs work here, so that is acceptable.
+    loggedOut: ['div[data-testid="login-modal"]'],
   },
 };
 
