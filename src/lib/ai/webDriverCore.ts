@@ -181,11 +181,16 @@ function lastAssistantText(config: WebAdapter): string {
   const last = turns[turns.length - 1];
   if (!last) return '';
   // Prefer a code block: that is where the plan JSON lives, and innerText on the
-  // whole turn can mangle it with copy-button labels.
-  const blocks = last.querySelectorAll('pre code, pre');
-  if (blocks.length > 0) {
-    return Array.from(blocks)
-      .map((block) => (block as HTMLElement).innerText)
+  // whole turn can mangle it with copy-button labels. Take each <pre>'s inner
+  // <code>, whose innerText is just the code, without the language label and
+  // Copy/Edit buttons that live in the <pre> chrome (ChatGPT renders both).
+  // Selecting "pre code, pre" together matched the <pre> AND its nested <code>
+  // as two separate elements, emitting the JSON twice; the duplicate then broke
+  // the "first { .. last }" extractor by joining two objects into one string.
+  const pres = Array.from(last.querySelectorAll('pre'));
+  if (pres.length > 0) {
+    return pres
+      .map((pre) => ((pre.querySelector('code') ?? pre) as HTMLElement).innerText)
       .join('\n');
   }
   return (last as HTMLElement).innerText ?? '';

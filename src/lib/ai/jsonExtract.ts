@@ -30,6 +30,12 @@ function* candidates(text: string): Generator<string> {
     yield match[1].trim();
   }
 
+  // Each complete top-level {..} object, in order. A scraped reply can carry the
+  // plan twice (a <pre> and its <code> both read) or trail reasoning prose, so
+  // "first { .. last }" would splice two objects together; taking each balanced
+  // object on its own lets the first valid one win.
+  yield* balancedObjects(text);
+
   const first = text.indexOf('{');
   const last = text.lastIndexOf('}');
   if (first !== -1 && last > first) {
@@ -37,4 +43,34 @@ function* candidates(text: string): Generator<string> {
   }
 
   yield text;
+}
+
+/** Yields each brace-balanced top-level `{..}` span, ignoring braces in strings. */
+function* balancedObjects(text: string): Generator<string> {
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === '}' && depth > 0) {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        yield text.slice(start, i + 1);
+        start = -1;
+      }
+    }
+  }
 }
