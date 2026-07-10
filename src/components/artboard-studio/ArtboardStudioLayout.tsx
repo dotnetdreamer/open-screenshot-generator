@@ -27,6 +27,7 @@ import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
+import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { AgentStartScreen } from './start/AgentStartScreen';
 
 import { Button } from '@/components/ui/button';
@@ -1584,9 +1585,9 @@ const generateRandomProjectName = (): string => {
           }}
         >
           <DialogContent className="flex max-h-[92vh] w-[95vw] max-w-[1400px] flex-col">
-            <DialogHeader>
-              <div className="flex items-start gap-2">
-                {dialogView === 'agent' && (
+            {dialogView === 'agent' ? (
+              <DialogHeader>
+                <div className="flex items-start gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -1596,19 +1597,25 @@ const generateRandomProjectName = (): string => {
                   >
                     <ChevronLeftIcon className="h-4 w-4" />
                   </Button>
-                )}
-                <div className="min-w-0 flex-1 text-left">
-                  <DialogTitle>
-                    {dialogView === 'agent' ? 'Design with the AI agent' : 'Start a New Project'}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {dialogView === 'agent'
-                      ? 'Upload your screenshots, say what you want, and let the agent build the project.'
-                      : 'Let the AI agent build it, choose a template, or start with a blank canvas.'}
-                  </DialogDescription>
+                  <div className="min-w-0 flex-1 text-left">
+                    <DialogTitle>Design with the AI agent</DialogTitle>
+                    <DialogDescription>
+                      Upload your screenshots, say what you want, and let the agent build the project.
+                    </DialogDescription>
+                  </div>
                 </div>
-              </div>
-            </DialogHeader>
+              </DialogHeader>
+            ) : (
+              // The two entry cards below say all of this, so the heading is only
+              // kept for the dialog's accessible name. sr-only takes it out of
+              // flow, so it costs no vertical space either.
+              <>
+                <DialogTitle className="sr-only">Start a new project</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Let the AI agent build it, choose a template, or start with a blank canvas.
+                </DialogDescription>
+              </>
+            )}
 
             {dialogView === 'agent' && (
               // Native overflow container, not Radix ScrollArea: a ScrollArea
@@ -1623,7 +1630,14 @@ const generateRandomProjectName = (): string => {
             )}
 
             {dialogView === 'templates' && (
-              <AgentPromoBanner onStartAgent={() => setDialogView('agent')} />
+              <div className="grid shrink-0 items-stretch gap-3 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+                <AgentPromoBanner onStartAgent={() => setDialogView('agent')} />
+                <BlankCanvasCard
+                  size={activeCategory.defaultSize}
+                  categoryLabel={activeCategory.label}
+                  onStartBlank={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}
+                />
+              </div>
             )}
 
             {dialogView === 'templates' && (
@@ -1661,12 +1675,6 @@ const generateRandomProjectName = (): string => {
                 </TabsContent>
               ))}
             </Tabs>
-            )}
-
-            {dialogView === 'templates' && (
-             <DialogFooter>
-              <Button variant="outline" onClick={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}>Start Blank</Button>
-            </DialogFooter>
             )}
 
             {/* The agent screen needs the full dialog height for its own content. */}
