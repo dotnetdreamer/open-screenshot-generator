@@ -97,15 +97,26 @@ export function buildHostedCatalog(templates: Project[]): HostedCatalog {
 
 export type UrlFetchCapability = 'ok' | 'fail';
 
+/** A 'fail' verdict expires, so a provider whose browsing toggle was merely
+ * switched off gets another chance without the user clearing storage. */
+const FAIL_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 function cacheKey(provider: string): string {
   return `agent-url-fetch:${provider}`;
 }
 
+/** `<capability>|<token>|<epochMs>`. An unparseable value (older format, hand
+ * edit) reads as unknown, which retries rather than blocks. */
 export function readUrlFetchCapability(provider: string, token: string): UrlFetchCapability | null {
   try {
-    const value = window.localStorage.getItem(cacheKey(provider));
-    if (value === `ok:${token}`) return 'ok';
-    if (value === `fail:${token}`) return 'fail';
+    const parts = (window.localStorage.getItem(cacheKey(provider)) ?? '').split('|');
+    if (parts.length !== 3) return null;
+    const [capability, storedToken, stamp] = parts;
+    if (storedToken !== token) return null;
+    if (capability === 'ok') return 'ok';
+    if (capability === 'fail') {
+      return Date.now() - Number(stamp) < FAIL_TTL_MS ? 'fail' : null;
+    }
   } catch {
     // Storage unavailable: treat as unknown.
   }
@@ -118,8 +129,56 @@ export function writeUrlFetchCapability(
   capability: UrlFetchCapability
 ): void {
   try {
-    window.localStorage.setItem(cacheKey(provider), `${capability}:${token}`);
+    window.localStorage.setItem(cacheKey(provider), `${capability}|${token}|${Date.now()}`);
   } catch {
     // Best-effort.
+  }
+}
+
+// --- preflight ---------------------------------------------------------------
+
+export type CatalogReachability = 'ok' | 'unreachable' | 'stale';
+
+const PREFLIGHT_TIMEOUT_MS = 6000;
+
+/**
+ * Can a provider actually be expected to read the hosted catalog right now?
+ *
+ * The app fetches the file itself and checks the token on its first line. This
+ * separates "this provider cannot browse" from "the catalog is missing, not
+ * deployed yet, or was built from different templates than this client holds".
+ * Only the former is a fact about the provider worth remembering; without this
+ * check, a run against an undeployed catalog would blame the provider and
+ * cache a verdict that never expires, because the token is a hash of file
+ * content and redeploying the same content does not change it.
+ */
+export async function verifyHostedCatalog(
+  expectedToken: string,
+  signal?: AbortSignal
+): Promise<CatalogReachability> {
+  // An `abort` listener never fires for a signal that aborted before it was
+  // attached, so a cancelled run would otherwise sail through the fetch.
+  if (signal?.aborted) return 'unreachable';
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PREFLIGHT_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  signal?.addEventListener('abort', onAbort);
+  try {
+    const response = await fetch(HOSTED_CATALOG_URL, {
+      // Revalidate rather than re-download: a stale copy would defeat the point.
+      cache: 'no-cache',
+      signal: controller.signal,
+    });
+    if (!response.ok) return 'unreachable';
+    const firstLine = (await response.text()).split('\n', 1)[0].trim();
+    if (!firstLine.startsWith(TOKEN_LINE_PREFIX)) return 'stale';
+    return firstLine.slice(TOKEN_LINE_PREFIX.length).trim() === expectedToken ? 'ok' : 'stale';
+  } catch {
+    // Offline, blocked, timed out, or cancelled: not the provider's fault.
+    return 'unreachable';
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
   }
 }

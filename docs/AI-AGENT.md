@@ -41,18 +41,55 @@ so it knows the expected token without any manifest or config:
 - Echo matches: the fetch really happened, the plan is accepted.
 - Echo missing or wrong, or the model replies `CANNOT_FETCH`: the app silently re-sends
   the inline prompt (mode 2 below) in the same conversation. Nothing fails for the user.
-- The verdict is cached per provider in `localStorage` (`agent-url-fetch:<provider>`),
-  keyed to the token, so a provider that cannot fetch skips the wasted round trip on
-  later runs. A redeploy changes the token and retries everyone fresh.
+
+**The preflight.** Before typing the URL prompt, the app fetches the catalog *itself*
+(`verifyHostedCatalog`, 6 second timeout) and checks the token on the file's first line
+against the one it computed locally. This is what separates "this provider cannot browse"
+from "the catalog is missing, not deployed yet, or was built from different templates
+than this client holds". Only the first is a fact about the provider. Without the
+preflight, a run against an undeployed catalog blames the provider and caches a verdict
+that never expires, because the token hashes file *content* and redeploying the same
+content does not change it.
+
+- Preflight `ok`: send the URL prompt; the echo result is now meaningful.
+- Preflight `unreachable` or `stale`: fall back to inline, log a `console.info` naming
+  the reason, and record no verdict against the provider.
+
+Only a **confident** failure is remembered. After a good preflight, the provider is cached
+`fail` only when its reply is an explicit `CANNOT_FETCH` with no usable plan. A reply that
+carries a valid plan but the wrong token, or one that merely quotes the sentinel inside its
+reasoning, is treated as a one-off: the run falls back to inline but nothing is cached, so
+URL mode is retried next time. This keeps a capable provider from being stranded on the
+budgeted inline catalog by a single noisy reply.
+
+The cache lives in `localStorage` under `agent-url-fetch:<provider>` as
+`<capability>|<token>|<epochMs>`. A cached `ok` (same token) skips the preflight on later
+runs, so a working provider pays it once, not every time. A `fail` is honoured only while
+the token still matches and it is under 7 days old, so a provider whose browsing toggle was
+merely switched off recovers on its own. Anything that doesn't parse reads as unknown, which
+retries. A tradeoff of the conservative caching: a provider that cannot browse but answers
+from priors instead of saying `CANNOT_FETCH` (some beta providers) is never cached `fail`,
+so it re-attempts the URL turn each run before falling back. The tested providers
+(Claude, ChatGPT, Gemini) either fetch or say so.
 
 The token doubles as a version guard: if the deployed file was generated from a different
 template set than the running app holds, the tokens differ and the app falls back before
 any mis-mapped ids are accepted.
 
+The generated file is pinned to LF in [.gitattributes](../.gitattributes). It is compared
+against a byte-for-byte client rebuild, and `core.autocrlf` would otherwise rewrite the
+working copy.
+
 **Things to know:**
 
-- URL mode only works once the site (and therefore `catalog.txt`) is deployed. Until
-  then every run falls back to the inline prompt, which works fine.
+- URL mode only works once the site (and therefore `catalog.txt`) is deployed, because
+  providers fetch the public URL. That is true in `npm run dev` and `npm run tauri:dev`
+  too: a local dev server is not reachable from ChatGPT's servers, so until the file is
+  live every run falls back to the inline prompt (the preflight fails and says so in the
+  console). `tauri:dev` also does not regenerate `catalog.txt`; only `npm run build` and
+  `npm run gen:ai-catalog` do.
+- GitHub Pages can serve a stale 404 from its CDN for a few minutes after the deploy
+  workflow goes green. The preflight simply falls back until it clears.
 - Forks: the URL defaults to this repo's Pages address. Set `NEXT_PUBLIC_SITE_URL` at
   build time (or edit `PUBLIC_SITE_URL` in [hostedCatalog.ts](../src/lib/ai/hostedCatalog.ts))
   to point at your own deployment.
@@ -119,10 +156,13 @@ prompt when its fetch fails.
 
 - **"The message you submitted was too long"**: that provider needs an entry (or a lower
   number) in `PROMPT_BUDGETS`.
-- **Provider keeps using the inline prompt**: check `localStorage` for
-  `agent-url-fetch:<provider>`; a `fail:` value means the token handshake failed on the
-  last try (provider can't browse, browsing toggle off, or the deployed catalog is stale
-  or missing). Redeploying with a fresh catalog resets the cache automatically.
+- **Provider keeps using the inline prompt**: open the devtools console. The preflight
+  logs `hosted catalog unreachable` (not deployed, offline, CDN still 404ing) or
+  `hosted catalog stale` (the deployed file was built from different templates: run
+  `npm run gen:ai-catalog`, commit, redeploy). If there is no such log, the provider
+  itself failed to fetch and a `fail|<token>|<time>` verdict is now in `localStorage`
+  under `agent-url-fetch:<provider>`; it expires after 7 days, or delete the key to
+  retry immediately.
 - **Copy wasn't rewritten**: the model picked a template outside the detailed shortlist
   (inline mode), or ChatGPT ran at the slimmest budget level. The project is still valid;
   the template keeps its authored copy.

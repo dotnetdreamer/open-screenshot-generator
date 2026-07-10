@@ -18,6 +18,7 @@ import {
   buildHostedCatalog,
   HOSTED_CATALOG_URL,
   readUrlFetchCapability,
+  verifyHostedCatalog,
   writeUrlFetchCapability,
 } from '@/lib/ai/hostedCatalog';
 import {
@@ -226,19 +227,20 @@ export function AgentStartScreen({
       try {
         // Desktop only: the app drives the provider in its own in-app window
         // and resolves to the raw reply text. On the web the panel points to
-        // the desktop app instead of offering run buttons.
-        const send = (prompt: string) =>
-          runViaEmbeddedWebview(
-            {
-              provider,
-              prompt,
-              images: screenshots.map((shot) => ({
-                fileName: shot.fileName,
-                dataUrl: shot.aiDataUrl,
-              })),
-            },
+        // the desktop app instead of offering run buttons. Screenshots attach
+        // on the first send only: a URL->inline fallback reuses the same
+        // conversation, so re-attaching would duplicate the uploads.
+        let imagesSent = false;
+        const send = (prompt: string) => {
+          const images = imagesSent
+            ? []
+            : screenshots.map((shot) => ({ fileName: shot.fileName, dataUrl: shot.aiDataUrl }));
+          imagesSent = true;
+          return runViaEmbeddedWebview(
+            { provider, prompt, images },
             { onStage: setStage, signal: controller.signal }
           );
+        };
 
         // Inline prompt: providers with a hard message cap get a terse prompt
         // and a catalog shrunk to fit; the rest get the full compact prompt.
@@ -251,23 +253,38 @@ export function AgentStartScreen({
           acceptPlan(extractJson(await send(payload.prompt)), payload.aliasMap);
         };
 
-        // URL mode first: the message carries only the hosted catalog URL,
-        // and the reply must echo the file's verification token. A missing
-        // or wrong echo means the provider never really fetched the file
-        // (no browsing, toggle off, or invented content), so fall back to
-        // the inline catalog. The verdict is cached per provider until the
-        // catalog changes.
-        if (hostedCatalog && readUrlFetchCapability(provider, hostedCatalog.token) !== 'fail') {
+        // URL mode first: the message carries only the hosted catalog URL, and
+        // the reply must echo the file's verification token. Decide whether to
+        // even attempt it:
+        //   - a cached 'ok' (same token) skips the preflight entirely;
+        //   - a cached 'fail' skips URL mode (a provider we know cannot fetch);
+        //   - otherwise preflight, so a catalog that is missing or built from
+        //     different templates than this client holds falls back to inline
+        //     without ever blaming the provider.
+        const cached = hostedCatalog ? readUrlFetchCapability(provider, hostedCatalog.token) : null;
+        let attemptUrl = false;
+        if (hostedCatalog && cached === 'ok') {
+          attemptUrl = true;
+        } else if (hostedCatalog && cached !== 'fail') {
+          const reachable = await verifyHostedCatalog(hostedCatalog.token, controller.signal);
+          if (controller.signal.aborted) return;
+          attemptUrl = reachable === 'ok';
+          if (!attemptUrl) {
+            console.info(
+              `[agent] hosted catalog ${reachable} (${HOSTED_CATALOG_URL}); using the inline catalog. Deploy or regenerate it to enable URL mode.`
+            );
+          }
+        }
+
+        if (attemptUrl && hostedCatalog) {
           const reply = await send(
             buildUrlRelayPrompt(HOSTED_CATALOG_URL, instruction, screenshots.length)
           );
           let raw: unknown = null;
-          if (!reply.includes(CANNOT_FETCH_SENTINEL)) {
-            try {
-              raw = extractJson(reply);
-            } catch {
-              raw = null;
-            }
+          try {
+            raw = extractJson(reply);
+          } catch {
+            raw = null;
           }
           const echoed =
             raw && typeof raw === 'object' && !Array.isArray(raw)
@@ -277,7 +294,14 @@ export function AgentStartScreen({
             writeUrlFetchCapability(provider, hostedCatalog.token, 'ok');
             acceptPlan(raw, hostedCatalog.aliasMap);
           } else {
-            writeUrlFetchCapability(provider, hostedCatalog.token, 'fail');
+            // Only an explicit, plan-less refusal is proof the provider could
+            // not fetch and worth remembering. A token-less-but-otherwise-valid
+            // reply, or the sentinel merely quoted inside a real plan's prose,
+            // is treated as a one-off: fall back this run, cache nothing, retry
+            // URL mode next time.
+            if (raw === null && reply.includes(CANNOT_FETCH_SENTINEL)) {
+              writeUrlFetchCapability(provider, hostedCatalog.token, 'fail');
+            }
             await runInline();
           }
         } else {
