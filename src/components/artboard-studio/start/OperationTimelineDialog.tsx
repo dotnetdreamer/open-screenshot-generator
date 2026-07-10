@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   Activity,
   AlertTriangle,
@@ -19,6 +19,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogOverlay,
+  DialogPortal,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -174,26 +176,31 @@ export function OperationTimelineDialog({
         </DialogFooter>
       </DialogContent>
 
-      {/* Portaled to the body so it escapes the start dialog's transformed,
-          z-50 stacking context (a CSS transform becomes the containing block
-          for position:fixed); inline, the lightbox rendered behind and mis-sized. */}
-      {zoom &&
-        typeof document !== 'undefined' &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-6"
+      {/* The zoomed screenshot is its own nested dialog, not a bare portal.
+          As the topmost Radix layer it owns Escape and outside-clicks, so both
+          close only the image; a plain portal let Escape fall through to this
+          dialog (closing the whole thing) and the modal body's
+          pointer-events:none swallowed clicks so it could not be dismissed. */}
+      <Dialog open={zoom !== null} onOpenChange={(next) => !next && setZoom(null)}>
+        <DialogPortal>
+          <DialogOverlay className="z-[80] bg-black/90" />
+          <DialogPrimitive.Content
+            aria-describedby={undefined}
             onClick={() => setZoom(null)}
-            role="presentation"
+            className="fixed inset-0 z-[80] flex items-center justify-center p-6 focus:outline-none"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={zoom}
-              alt="Screenshot"
-              className="max-h-full max-w-full rounded-md shadow-2xl"
-            />
-          </div>,
-          document.body
-        )}
+            <DialogTitle className="sr-only">Screenshot preview</DialogTitle>
+            {zoom && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={zoom}
+                alt="Screenshot"
+                className="max-h-full max-w-full rounded-md shadow-2xl"
+              />
+            )}
+          </DialogPrimitive.Content>
+        </DialogPortal>
+      </Dialog>
     </Dialog>
   );
 }

@@ -12,7 +12,7 @@ import type { Project } from '@/types/artboard';
 import { AgentPlanSchema, formatPlanIssues, type AgentPlan } from '@/lib/ai/agentPlanSchema';
 import { AgentBuildError, buildProjectFromPlan, type BuildResult } from '@/lib/ai/buildProjectFromPlan';
 import { AgentError, generatePlan } from '@/lib/ai/generatePlan';
-import { extractJson } from '@/lib/ai/jsonExtract';
+import { extractJson, extractJsonCandidates } from '@/lib/ai/jsonExtract';
 import { buildCatalogArtifacts, resolveAliases, type AliasMap } from '@/lib/ai/aliasCatalog';
 import {
   buildHostedCatalog,
@@ -179,32 +179,81 @@ export function AgentStartScreen({
   );
 
   /**
-   * Both modes funnel here: validate, build, and show the confirmation card.
-   * Returns the outcome so the caller can record it in the run's timeline.
+   * Validate a reply and build the project without touching UI state, so a
+   * caller can try several candidates and only commit the one that works.
    */
-  const acceptPlan = useCallback(
-    (reply: unknown, aliasMap?: AliasMap): PlanOutcome => {
+  const evaluatePlan = useCallback(
+    (
+      reply: unknown,
+      aliasMap?: AliasMap
+    ): { ok: true; result: BuildResult } | { ok: false; message: string } => {
       const raw = aliasMap ? resolveAliases(reply, aliasMap) : reply;
       const parsed = AgentPlanSchema.safeParse(raw);
       if (!parsed.success) {
-        const message = `That reply was not a usable plan. ${formatPlanIssues(parsed.error, 3).join(' | ')}`;
-        setError(message);
-        return { ok: false, message };
+        return {
+          ok: false,
+          message: `That reply was not a usable plan. ${formatPlanIssues(parsed.error, 3).join(' | ')}`,
+        };
       }
       try {
-        setResult(buildProjectFromPlan(parsed.data as AgentPlan, screenshots, templates));
-        setError(null);
-        return { ok: true };
+        return { ok: true, result: buildProjectFromPlan(parsed.data as AgentPlan, screenshots, templates) };
       } catch (err) {
-        const message =
-          err instanceof AgentBuildError
-            ? err.message
-            : 'The plan could not be turned into a project.';
-        setError(message);
-        return { ok: false, message };
+        return {
+          ok: false,
+          message:
+            err instanceof AgentBuildError
+              ? err.message
+              : 'The plan could not be turned into a project.',
+        };
       }
     },
     [screenshots, templates]
+  );
+
+  /**
+   * Commit a single already-parsed plan value (API and hosted-URL modes, where
+   * the reply is one object). Shows the confirmation card or the error, and
+   * returns the outcome so the caller can record it in the run's timeline.
+   */
+  const acceptPlan = useCallback(
+    (reply: unknown, aliasMap?: AliasMap): PlanOutcome => {
+      const outcome = evaluatePlan(reply, aliasMap);
+      if (outcome.ok) {
+        setResult(outcome.result);
+        setError(null);
+        return { ok: true };
+      }
+      setError(outcome.message);
+      return { ok: false, message: outcome.message };
+    },
+    [evaluatePlan]
+  );
+
+  /**
+   * Commit the first usable plan from a raw assistant reply that may hold more
+   * than one JSON object. Gemini sometimes answers with two options (two
+   * drafts), and chatty replies can lead with a small example object; trying
+   * each candidate in turn means a rejected first block no longer sinks the run.
+   */
+  const acceptPlanFromReply = useCallback(
+    (reply: string, aliasMap?: AliasMap): PlanOutcome => {
+      let firstFailure: string | null = null;
+      for (const candidate of extractJsonCandidates(reply)) {
+        const outcome = evaluatePlan(candidate, aliasMap);
+        if (outcome.ok) {
+          setResult(outcome.result);
+          setError(null);
+          return { ok: true };
+        }
+        if (firstFailure === null) firstFailure = outcome.message;
+      }
+      const message =
+        firstFailure ??
+        'Could not find a usable plan in that reply. Copy the whole JSON code block from the assistant.';
+      setError(message);
+      return { ok: false, message };
+    },
+    [evaluatePlan]
   );
 
   const runApiMode = useCallback(
@@ -320,7 +369,7 @@ export function AgentStartScreen({
             prompt: relayPrompt,
             aliasMap: catalogArtifacts?.aliasMap,
           };
-          applyOutcome(acceptPlan(extractJson(await send(payload.prompt, 'Prompt sent (inline catalog)')), payload.aliasMap));
+          applyOutcome(acceptPlanFromReply(await send(payload.prompt, 'Prompt sent (inline catalog)'), payload.aliasMap));
         };
 
         // URL mode first: the message carries only the hosted catalog URL, and
@@ -399,7 +448,7 @@ export function AgentStartScreen({
         void recorder.finish(status);
       }
     },
-    [acceptPlan, relayPrompt, screenshots, instruction, catalogArtifacts, buildBudgetedRelay, hostedCatalog]
+    [acceptPlan, acceptPlanFromReply, relayPrompt, screenshots, instruction, catalogArtifacts, buildBudgetedRelay, hostedCatalog]
   );
 
   const loginWebProvider = useCallback((provider: WebProviderId) => {
@@ -435,7 +484,7 @@ export function AgentStartScreen({
           signal: controller.signal,
         });
         recorder.message('provider-to-app', 'Reply received', { detail: reply });
-        const outcome = acceptPlan(extractJson(reply), catalogArtifacts?.aliasMap);
+        const outcome = acceptPlanFromReply(reply, catalogArtifacts?.aliasMap);
         status = outcome.ok ? 'success' : 'error';
         if (outcome.ok) recorder.note('Plan accepted, project built');
         else recorder.error('plan-rejected', outcome.message);
@@ -455,7 +504,7 @@ export function AgentStartScreen({
         void recorder.finish(status);
       }
     },
-    [acceptPlan, relayPrompt, screenshots, catalogArtifacts, instruction]
+    [acceptPlanFromReply, relayPrompt, screenshots, catalogArtifacts, instruction]
   );
 
   const cancel = () => abortRef.current?.abort();

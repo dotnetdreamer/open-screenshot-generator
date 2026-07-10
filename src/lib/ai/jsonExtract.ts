@@ -24,6 +24,39 @@ export function extractJson(raw: string): unknown {
   );
 }
 
+/**
+ * Every distinct JSON value the reply contains, in priority order.
+ *
+ * `extractJson` returns only the first parseable object, which is wrong when a
+ * reply carries more than one: Gemini sometimes answers with two options (two
+ * JSON drafts), and a chatty reply can place a small example object before the
+ * real plan. Returning all of them lets the caller try each against its schema
+ * and keep the first that actually fits. Never throws: an empty array means
+ * nothing parseable was found.
+ */
+export function extractJsonCandidates(raw: string): unknown[] {
+  const text = raw.trim();
+  if (!text) return [];
+
+  const out: unknown[] = [];
+  const seen = new Set<string>();
+  for (const candidate of candidates(text)) {
+    let value: unknown;
+    try {
+      value = JSON.parse(candidate);
+    } catch {
+      continue;
+    }
+    // The same object surfaces through several strategies (a fenced block and
+    // the balanced-object scan both match it); keep only the first of each.
+    const key = JSON.stringify(value);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(value);
+  }
+  return out;
+}
+
 function* candidates(text: string): Generator<string> {
   const fenced = [...text.matchAll(/```(?:json)?\s*\n?([\s\S]*?)```/gi)];
   for (const match of fenced) {
