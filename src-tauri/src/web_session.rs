@@ -230,6 +230,110 @@ pub async fn abs_web_close<R: Runtime>(app: AppHandle<R>, provider: String) {
     }
 }
 
+/// Capture the current visual of a provider window as a PNG data URL, for the
+/// operation timeline. Uses WebView2's CapturePreview, which renders the page
+/// even while the window is hidden, so a background run is still traceable.
+/// Windows only; returns an error (which the caller treats as "no screenshot")
+/// on other platforms or if the window is not open.
+#[tauri::command]
+pub async fn abs_web_capture<R: Runtime>(
+    app: AppHandle<R>,
+    provider: String,
+) -> Result<String, String> {
+    let Some(window) = app.get_webview_window(&window_label(&provider)) else {
+        return Err("assistant window is not open".to_string());
+    };
+    capture_window_png(&window).await
+}
+
+#[cfg(windows)]
+async fn capture_window_png<R: Runtime>(window: &tauri::WebviewWindow<R>) -> Result<String, String> {
+    use base64::{engine::general_purpose::STANDARD, Engine as _};
+
+    let (tx, rx) = std::sync::mpsc::channel::<Result<Vec<u8>, String>>();
+    // with_webview runs the closure on the UI thread. CapturePreview is async:
+    // its completion handler fires later on that same thread's message loop,
+    // which is free to pump because we block on the channel from this async
+    // command's worker thread, not the UI thread.
+    window
+        .with_webview(move |webview| {
+            if let Err(err) = unsafe { start_capture(webview.controller(), tx.clone()) } {
+                let _ = tx.send(Err(err));
+            }
+        })
+        .map_err(|e| e.to_string())?;
+
+    let bytes = rx
+        .recv_timeout(std::time::Duration::from_secs(8))
+        .map_err(|_| "capture did not complete in time".to_string())??;
+    Ok(format!("data:image/png;base64,{}", STANDARD.encode(&bytes)))
+}
+
+#[cfg(not(windows))]
+async fn capture_window_png<R: Runtime>(_window: &tauri::WebviewWindow<R>) -> Result<String, String> {
+    Err("screenshot capture is only available on Windows".to_string())
+}
+
+/// Kick off a CapturePreview into an in-memory stream; the completion handler
+/// reads the PNG bytes back and sends them on `tx`. Must run on the UI thread.
+#[cfg(windows)]
+unsafe fn start_capture(
+    controller: webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Controller,
+    tx: std::sync::mpsc::Sender<Result<Vec<u8>, String>>,
+) -> Result<(), String> {
+    use webview2_com::CapturePreviewCompletedHandler;
+    use webview2_com::Microsoft::Web::WebView2::Win32::COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG;
+    use windows::Win32::UI::Shell::SHCreateMemStream;
+
+    let core = controller.CoreWebView2().map_err(|e| e.to_string())?;
+    let stream = SHCreateMemStream(None).ok_or_else(|| "could not allocate capture stream".to_string())?;
+    let stream_for_handler = stream.clone();
+
+    // The macro converts the completion HRESULT to a Result<()> before calling
+    // us; Ok means the PNG has been written to the stream.
+    let handler = CapturePreviewCompletedHandler::create(Box::new(
+        move |outcome: windows::core::Result<()>| -> windows::core::Result<()> {
+            let result = match outcome {
+                Ok(()) => unsafe { read_stream_bytes(&stream_for_handler) },
+                Err(e) => Err(format!("CapturePreview failed: {e}")),
+            };
+            let _ = tx.send(result);
+            Ok(())
+        },
+    ));
+
+    core.CapturePreview(COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, &stream, &handler)
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Read a memory IStream (positioned at its end after a write) into a Vec.
+#[cfg(windows)]
+unsafe fn read_stream_bytes(
+    stream: &windows::Win32::System::Com::IStream,
+) -> Result<Vec<u8>, String> {
+    use std::ffi::c_void;
+    use windows::Win32::System::Com::{STREAM_SEEK_END, STREAM_SEEK_SET};
+
+    let mut end: u64 = 0;
+    stream.Seek(0, STREAM_SEEK_END, Some(&mut end)).map_err(|e| e.to_string())?;
+    stream.Seek(0, STREAM_SEEK_SET, None).map_err(|e| e.to_string())?;
+
+    let len = end as usize;
+    if len == 0 {
+        return Err("capture produced no image".to_string());
+    }
+
+    let mut buf = vec![0u8; len];
+    let mut read: u32 = 0;
+    stream
+        .Read(buf.as_mut_ptr() as *mut c_void, len as u32, Some(&mut read))
+        .ok()
+        .map_err(|e| e.to_string())?;
+    buf.truncate(read as usize);
+    Ok(buf)
+}
+
 fn on_agent_event<R: Runtime>(app: &AppHandle<R>, event: AgentEvent) {
     let Some(provider) = event.provider else { return };
     let state = app.state::<WebSessionState>();

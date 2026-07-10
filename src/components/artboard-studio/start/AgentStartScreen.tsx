@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, KeyRound, Loader2, Sparkles, UserRound, Zap } from 'lucide-react';
+import { AlertTriangle, History, Info, KeyRound, Loader2, Sparkles, UserRound, Zap } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -29,8 +29,8 @@ import {
 } from '@/lib/ai/promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from '@/lib/ai/templateCatalog';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
-import type { AiProviderId } from '@/lib/ai/providers';
-import type { WebProviderId } from '@/lib/ai/webAdapters';
+import { AI_PROVIDERS, type AiProviderId } from '@/lib/ai/providers';
+import { WEB_PROVIDERS, type WebProviderId } from '@/lib/ai/webAdapters';
 import {
   BridgeError,
   loginToProvider,
@@ -38,13 +38,17 @@ import {
   type BridgeStage,
 } from '@/lib/ai/webSessionDesktop';
 import {
+  FREE_PROVIDERS,
   FreeProviderError,
   runFreeProvider,
   type FreeProviderId,
 } from '@/lib/ai/freeProviders';
+import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
 import { isTauri } from '@/lib/desktop';
 import { ApiKeyModePanel } from './ApiKeyModePanel';
 import { FreeProviderModePanel } from './FreeProviderModePanel';
+import { OperationTimelineDialog } from './OperationTimelineDialog';
+import { RunHistoryDialog } from './RunHistoryDialog';
 import { ScreenshotUploader } from './ScreenshotUploader';
 import { WebSessionModePanel } from './WebSessionModePanel';
 
@@ -71,6 +75,9 @@ const PROMPT_BUDGETS: Partial<Record<WebProviderId, number>> = {
   chatgpt: 3900,
 };
 
+/** What acceptPlan reports back so a run can record its final status. */
+type PlanOutcome = { ok: true } | { ok: false; message: string };
+
 export function AgentStartScreen({
   templates,
   isLoadingTemplates,
@@ -83,6 +90,12 @@ export function AgentStartScreen({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BuildResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // The finished operation behind the current error, so the alert's info icon
+  // can open its timeline; plus the timeline and run-history dialog flags.
+  const [errorOpId, setErrorOpId] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // The built-in free providers need the Tauri HTTP bridge, so the tab only
   // exists in the desktop app. isTauri() reads window, hence the effect: the
@@ -165,26 +178,30 @@ export function AgentStartScreen({
     [templates, screenshots, instruction]
   );
 
-  /** Both modes funnel here: validate, build, and show the confirmation card. */
+  /**
+   * Both modes funnel here: validate, build, and show the confirmation card.
+   * Returns the outcome so the caller can record it in the run's timeline.
+   */
   const acceptPlan = useCallback(
-    (reply: unknown, aliasMap?: AliasMap) => {
+    (reply: unknown, aliasMap?: AliasMap): PlanOutcome => {
       const raw = aliasMap ? resolveAliases(reply, aliasMap) : reply;
       const parsed = AgentPlanSchema.safeParse(raw);
       if (!parsed.success) {
-        setError(
-          `That reply was not a usable plan. ${formatPlanIssues(parsed.error, 3).join(' | ')}`
-        );
-        return;
+        const message = `That reply was not a usable plan. ${formatPlanIssues(parsed.error, 3).join(' | ')}`;
+        setError(message);
+        return { ok: false, message };
       }
       try {
         setResult(buildProjectFromPlan(parsed.data as AgentPlan, screenshots, templates));
         setError(null);
+        return { ok: true };
       } catch (err) {
-        setError(
+        const message =
           err instanceof AgentBuildError
             ? err.message
-            : 'The plan could not be turned into a project.'
-        );
+            : 'The plan could not be turned into a project.';
+        setError(message);
+        return { ok: false, message };
       }
     },
     [screenshots, templates]
@@ -197,7 +214,21 @@ export function AgentStartScreen({
       setBusy(true);
       setError(null);
       setResult(null);
+      setErrorOpId(null);
+      setInfoOpen(false);
+      const recorder = new OperationRecorder({
+        mode: 'api',
+        provider: args.provider,
+        providerLabel: AI_PROVIDERS[args.provider].label,
+        model: args.model,
+        instruction,
+        screenshotCount: screenshots.length,
+      });
+      let status: OperationStatus = 'error';
       try {
+        recorder.message('app-to-provider', 'Request sent', {
+          detail: `provider: ${args.provider}\nmodel: ${args.model}\nscreenshots: ${screenshots.length}\n\n${instruction}`,
+        });
         const plan = await generatePlan({
           ...args,
           instruction,
@@ -205,12 +236,27 @@ export function AgentStartScreen({
           templates,
           signal: controller.signal,
         });
-        acceptPlan(plan);
+        recorder.message('provider-to-app', 'Plan received', {
+          detail: JSON.stringify(plan, null, 2),
+        });
+        const outcome = acceptPlan(plan);
+        status = outcome.ok ? 'success' : 'error';
+        if (outcome.ok) recorder.note('Plan accepted, project built');
+        else recorder.error('plan-rejected', outcome.message);
       } catch (err) {
-        setError(err instanceof AgentError ? err.message : 'Something went wrong.');
+        if (controller.signal.aborted) {
+          status = 'cancelled';
+        } else {
+          const message = err instanceof AgentError ? err.message : 'Something went wrong.';
+          setError(message);
+          recorder.error(err instanceof AgentError ? 'provider-error' : 'unknown', message);
+          status = 'error';
+        }
       } finally {
         abortRef.current = null;
         setBusy(false);
+        if (status === 'error') setErrorOpId(recorder.id);
+        void recorder.finish(status);
       }
     },
     [acceptPlan, instruction, screenshots, templates]
@@ -224,6 +270,27 @@ export function AgentStartScreen({
       setStage(null);
       setError(null);
       setResult(null);
+      setErrorOpId(null);
+      setInfoOpen(false);
+
+      const recorder = new OperationRecorder({
+        mode: 'web',
+        provider,
+        providerLabel: WEB_PROVIDERS[provider].label,
+        instruction,
+        screenshotCount: screenshots.length,
+      });
+      let status: OperationStatus = 'error';
+      const applyOutcome = (outcome: PlanOutcome) => {
+        if (outcome.ok) {
+          status = 'success';
+          recorder.note('Plan accepted, project built');
+        } else {
+          status = 'error';
+          recorder.error('plan-rejected', outcome.message);
+        }
+      };
+
       try {
         // Desktop only: the app drives the provider in its own in-app window
         // and resolves to the raw reply text. On the web the panel points to
@@ -231,15 +298,18 @@ export function AgentStartScreen({
         // on the first send only: a URL->inline fallback reuses the same
         // conversation, so re-attaching would duplicate the uploads.
         let imagesSent = false;
-        const send = (prompt: string) => {
+        const send = async (prompt: string, label: string) => {
           const images = imagesSent
             ? []
             : screenshots.map((shot) => ({ fileName: shot.fileName, dataUrl: shot.aiDataUrl }));
           imagesSent = true;
-          return runViaEmbeddedWebview(
+          recorder.message('app-to-provider', label, { detail: prompt });
+          const reply = await runViaEmbeddedWebview(
             { provider, prompt, images },
-            { onStage: setStage, signal: controller.signal }
+            { onStage: setStage, signal: controller.signal, recorder }
           );
+          recorder.message('provider-to-app', 'Reply received', { detail: reply });
+          return reply;
         };
 
         // Inline prompt: providers with a hard message cap get a terse prompt
@@ -250,7 +320,7 @@ export function AgentStartScreen({
             prompt: relayPrompt,
             aliasMap: catalogArtifacts?.aliasMap,
           };
-          acceptPlan(extractJson(await send(payload.prompt)), payload.aliasMap);
+          applyOutcome(acceptPlan(extractJson(await send(payload.prompt, 'Prompt sent (inline catalog)')), payload.aliasMap));
         };
 
         // URL mode first: the message carries only the hosted catalog URL, and
@@ -267,7 +337,10 @@ export function AgentStartScreen({
           attemptUrl = true;
         } else if (hostedCatalog && cached !== 'fail') {
           const reachable = await verifyHostedCatalog(hostedCatalog.token, controller.signal);
-          if (controller.signal.aborted) return;
+          if (controller.signal.aborted) {
+            status = 'cancelled';
+            return;
+          }
           attemptUrl = reachable === 'ok';
           if (!attemptUrl) {
             console.info(
@@ -278,7 +351,8 @@ export function AgentStartScreen({
 
         if (attemptUrl && hostedCatalog) {
           const reply = await send(
-            buildUrlRelayPrompt(HOSTED_CATALOG_URL, instruction, screenshots.length)
+            buildUrlRelayPrompt(HOSTED_CATALOG_URL, instruction, screenshots.length),
+            'Prompt sent (hosted catalog URL)'
           );
           let raw: unknown = null;
           try {
@@ -292,7 +366,7 @@ export function AgentStartScreen({
               : null;
           if (echoed === hostedCatalog.token) {
             writeUrlFetchCapability(provider, hostedCatalog.token, 'ok');
-            acceptPlan(raw, hostedCatalog.aliasMap);
+            applyOutcome(acceptPlan(raw, hostedCatalog.aliasMap));
           } else {
             // Only an explicit, plan-less refusal is proof the provider could
             // not fetch and worth remembering. A token-less-but-otherwise-valid
@@ -302,19 +376,27 @@ export function AgentStartScreen({
             if (raw === null && reply.includes(CANNOT_FETCH_SENTINEL)) {
               writeUrlFetchCapability(provider, hostedCatalog.token, 'fail');
             }
+            recorder.note('Hosted-catalog URL did not return a usable plan; retrying with the inline catalog');
             await runInline();
           }
         } else {
           await runInline();
         }
       } catch (err) {
-        if (!(err instanceof BridgeError && err.code === 'cancelled')) {
-          setError(err instanceof Error ? err.message : 'The assistant could not be reached.');
+        if (err instanceof BridgeError && err.code === 'cancelled') {
+          status = 'cancelled';
+        } else {
+          const message = err instanceof Error ? err.message : 'The assistant could not be reached.';
+          setError(message);
+          recorder.error(err instanceof BridgeError ? err.code : 'unknown', message);
+          status = 'error';
         }
       } finally {
         abortRef.current = null;
         setStage(null);
         setBusy(false);
+        if (status === 'error') setErrorOpId(recorder.id);
+        void recorder.finish(status);
       }
     },
     [acceptPlan, relayPrompt, screenshots, instruction, catalogArtifacts, buildBudgetedRelay, hostedCatalog]
@@ -333,24 +415,47 @@ export function AgentStartScreen({
       setBusy(true);
       setError(null);
       setResult(null);
+      setErrorOpId(null);
+      setInfoOpen(false);
+      const recorder = new OperationRecorder({
+        mode: 'free',
+        provider: args.provider,
+        providerLabel: FREE_PROVIDERS[args.provider].label,
+        model: args.model,
+        instruction,
+        screenshotCount: screenshots.length,
+      });
+      let status: OperationStatus = 'error';
       try {
+        recorder.message('app-to-provider', 'Prompt sent', { detail: relayPrompt });
         const reply = await runFreeProvider({
           ...args,
           prompt: relayPrompt,
           images: screenshots.map((shot) => shot.aiDataUrl),
           signal: controller.signal,
         });
-        acceptPlan(extractJson(reply), catalogArtifacts?.aliasMap);
+        recorder.message('provider-to-app', 'Reply received', { detail: reply });
+        const outcome = acceptPlan(extractJson(reply), catalogArtifacts?.aliasMap);
+        status = outcome.ok ? 'success' : 'error';
+        if (outcome.ok) recorder.note('Plan accepted, project built');
+        else recorder.error('plan-rejected', outcome.message);
       } catch (err) {
-        if (!(err instanceof FreeProviderError && err.code === 'cancelled')) {
-          setError(err instanceof Error ? err.message : 'The provider could not be reached.');
+        if (err instanceof FreeProviderError && err.code === 'cancelled') {
+          status = 'cancelled';
+        } else {
+          const message = err instanceof Error ? err.message : 'The provider could not be reached.';
+          setError(message);
+          recorder.error(err instanceof FreeProviderError ? err.code : 'unknown', message);
+          status = 'error';
         }
       } finally {
         abortRef.current = null;
         setBusy(false);
+        if (status === 'error') setErrorOpId(recorder.id);
+        void recorder.finish(status);
       }
     },
-    [acceptPlan, relayPrompt, screenshots, catalogArtifacts]
+    [acceptPlan, relayPrompt, screenshots, catalogArtifacts, instruction]
   );
 
   const cancel = () => abortRef.current?.abort();
@@ -410,7 +515,17 @@ export function AgentStartScreen({
       </section>
 
       <section className="space-y-2">
-        <Label className="text-sm font-medium">3. Choose how the agent runs</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-medium">3. Choose how the agent runs</Label>
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <History className="h-3.5 w-3.5" />
+            Recent runs
+          </button>
+        </div>
         <Tabs value={mode} onValueChange={setMode} className="w-full">
           <TabsList>
             <TabsTrigger value="web" className="gap-1.5">
@@ -462,14 +577,28 @@ export function AgentStartScreen({
       </section>
 
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="relative pr-12">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>That did not work</AlertTitle>
           <AlertDescription className="whitespace-pre-wrap">{error}</AlertDescription>
+          {errorOpId && (
+            <button
+              type="button"
+              onClick={() => setInfoOpen(true)}
+              title="See what happened: full timeline and screenshots"
+              aria-label="See what happened"
+              className="absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Info className="h-4 w-4" />
+            </button>
+          )}
         </Alert>
       )}
 
       {result && <PlanSummary result={result} busy={busy} onCreate={() => void create()} />}
+
+      <OperationTimelineDialog operationId={errorOpId} open={infoOpen} onOpenChange={setInfoOpen} />
+      <RunHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} />
     </div>
   );
 }

@@ -19,7 +19,7 @@
 
 import { emit } from '@tauri-apps/api/event';
 import { WEB_EVENT_CHANNEL, adapterForHost, type WebAdapter } from './webAdapters';
-import { DriverError, runSession, detectLoggedIn, type DriverImage } from './webDriverCore';
+import { DriverError, runSession, detectLoginState, type DriverImage } from './webDriverCore';
 
 interface DispatchJob {
   requestId: string;
@@ -88,14 +88,34 @@ function install(config: WebAdapter): void {
   // page is not signed in yet, keep watching: a slow SPA boot or an in-page
   // sign-in never re-runs this init script, so a second `ready` is the only
   // way a queued job would still get dispatched.
+  //
+  // Crucially, a `ready` with loggedIn:false is what makes the shell reveal the
+  // (otherwise hidden) window for a manual sign-in. So we only send it on a
+  // *definite* signed-out marker, never on the 'unknown' of a still-booting
+  // page: a slow-but-signed-in start would otherwise flash the window open and
+  // then closed once the run finished. On 'unknown' we keep the window hidden
+  // and keep polling; a genuinely stuck page still surfaces after a long stall.
   void (async () => {
-    let loggedIn = await detectLoggedIn(config);
-    send({ type: 'ready', requestId: '', provider: config.id, loggedIn });
-    const deadline = Date.now() + 15 * 60_000;
-    while (!loggedIn && Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      loggedIn = await detectLoggedIn(config, 500);
-      if (loggedIn) send({ type: 'ready', requestId: '', provider: config.id, loggedIn });
+    const startedAt = Date.now();
+    const REVEAL_AFTER_STALL_MS = 30_000; // a blank/stuck page still gets a window
+    const DEADLINE = startedAt + 15 * 60_000; // leave a manual sign-in plenty of time
+    let revealed = false; // have we already asked the shell to show the window?
+
+    for (;;) {
+      const state = await detectLoginState(config, 4000);
+      if (state === 'in') {
+        // Signed in: let the shell dispatch the queued job. Safe to repeat, it
+        // only re-dispatches while a job is still queued.
+        send({ type: 'ready', requestId: '', provider: config.id, loggedIn: true });
+        return;
+      }
+      if (Date.now() >= DEADLINE) return;
+      const stalled = Date.now() - startedAt >= REVEAL_AFTER_STALL_MS;
+      if (!revealed && (state === 'out' || stalled)) {
+        revealed = true;
+        send({ type: 'ready', requestId: '', provider: config.id, loggedIn: false });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
     }
   })();
 }

@@ -17,6 +17,7 @@ pub fn run() {
             web_session::abs_web_cancel,
             web_session::abs_web_login,
             web_session::abs_web_close,
+            web_session::abs_web_capture,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.

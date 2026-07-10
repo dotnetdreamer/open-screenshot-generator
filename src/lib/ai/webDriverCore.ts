@@ -240,19 +240,33 @@ async function waitForReply(
 }
 
 /**
- * Is the user signed in on this page right now? Waits a bounded time for either
- * the composer (signed in) or the logged-out marker to appear, because the SPA
- * may still be booting when this is called.
+ * Whether the user is signed in on this page right now, as three states:
+ *   - 'out'     the site's logged-out marker is present (definitely signed out)
+ *   - 'in'      the composer is present (the user can type: signed in)
+ *   - 'unknown' neither settled within the budget, most likely a slow SPA boot
+ *
+ * The logged-out marker is checked first on purpose: some sites (claude.ai's
+ * /logout decoy) render a composer AND a sign-in link while signed out.
  */
-export async function detectLoggedIn(config: WebAdapter, timeoutMs = 8000): Promise<boolean> {
+export type LoginState = 'in' | 'out' | 'unknown';
+
+/**
+ * Tri-state login probe. Waits a bounded time for a definite signal, then gives
+ * up as 'unknown' rather than guessing.
+ *
+ * Distinguishing 'out' from 'unknown' is the whole point: a hidden background
+ * run must reveal its window on a real sign-out, but stay hidden through a
+ * slow-but-signed-in boot. Collapsing the two into a boolean is what made a
+ * background run flash its window open then closed on a cold start.
+ */
+export async function detectLoginState(config: WebAdapter, timeoutMs = 8000): Promise<LoginState> {
   const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (config.loggedOut && pick(config.loggedOut)) return false;
-    if (pick(config.composer)) return true;
+  for (;;) {
+    if (config.loggedOut && pick(config.loggedOut)) return 'out';
+    if (pick(config.composer)) return 'in';
+    if (Date.now() >= deadline) return 'unknown';
     await sleep(200);
   }
-  // Neither appeared: treat as not signed in so the caller surfaces a login.
-  return Boolean(pick(config.composer));
 }
 
 /** Type the prompt, attach the images, wait for the reply, return its text. */

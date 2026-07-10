@@ -227,6 +227,34 @@ fixing a provider is one entry in `webAdapters.ts`, plus its host in
 the agent bundle. The web build has no embedded browser, so browser users fall
 back to the companion extension or the manual copy/paste relay.
 
+Login detection is tri-state (`detectLoginState` in `webDriverCore.ts`:
+`in` / `out` / `unknown`). A hidden background run only reveals its window on a
+*definite* signed-out marker or a long stall, never on the `unknown` of a still
+booting SPA. Collapsing the two (the old boolean) is what made an
+already-signed-in Gemini run flash its window open then closed on a cold start.
+
+## Operation tracing (timeline, screenshots, HTML report)
+
+Every AI generate request, in all three modes ("use my account", built-in free,
+API key), is recorded as one **operation** (`src/lib/ai/operationLog.ts`,
+persisted in the `operations` Dexie table, IndexedDB). An `OperationRecorder`
+collects a timeline as the run goes: each stage, the messages exchanged with the
+provider (the prompt sent and the raw reply), any error, and, for the embedded
+webview mode, a screenshot of the provider window at each step. The info icon on
+a failed run's "That did not work" alert (and the "Recent runs" browser) opens
+the timeline; it can be downloaded as a self-contained HTML report
+(`operationReport.ts`, everything HTML-escaped, screenshots inlined as data
+URLs). Only the newest ~60 runs are kept (`pruneOperations`).
+
+Screenshots are captured natively: `abs_web_capture` in `web_session.rs` calls
+WebView2's `CapturePreview` through the controller from `window.with_webview`,
+writing a PNG the frontend downscales to a compact JPEG. It is a `#[cfg(windows)]`
+path (the `webview2-com` / `windows` deps are windows-target-gated and must match
+the versions wry resolves); it no-ops on macOS/Linux, and a failed capture just
+means no screenshot for that step, never a failed run. Capture works while the
+window is hidden; if a purely-hidden run ever yields blank frames on some
+machine, nudging the controller's `IsVisible` before the capture is the fix.
+
 ## Splash screen and first paint
 
 A window exists on screen before its webview has painted anything, and that
