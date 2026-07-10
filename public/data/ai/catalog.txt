@@ -1,0 +1,416 @@
+VERIFICATION-TOKEN: abs-23f14483
+Artboard Studio template catalog. Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.
+
+t0 | Breathora Breathing | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a breathing and mindfulness app. Deep forest green hero with a laurel ...
+  artboard 0 "Better Breathing" devices[d0:iphone-15] texts[x0:"The #1 App For Better Breathing", x1:"100,000+", x2:"★★★★★", x3:"R E V I E W S", x4:"DAILY", x5:"VERVE", x6:"Fortena", x7:"healthbeat"]
+  artboard 1 "Testimonials" devices[] texts[x8:"3,000,000+ People Change Their Lives", x9:"★★★★★", x10:"It's so easy to use and helps me feel calm ...", x11:"Lily Loren", x12:"★★★★", x13:"★", x14:"As a physical therapist, I now recommend th...", x15:"Tia Sheyal"]
+  artboard 2 "Stats" devices[] texts[x16:"Achieve More In 5 Minutes Daily", x17:"3x", x18:"Improvement in stress levels", x19:"5x", x20:"Increase in sleep quality", x21:"8%", x22:"Increase in lung capacity", x23:"★★★★", x24:"★", x25:"16.7k+ App Store Ratings"]
+  artboard 3 "Nervous System" devices[d1:iphone-17-pro-max] texts[x26:"Your Nervous System With Ease", x27:"Use simple techniques to reduce stress, boo..."]
+  artboard 4 "Start Today" devices[d2:iphone-15] texts[x28:"Start Your Journey Today", x29:"Free to try. A calmer mind in five minutes ...", x30:"★★★★★"]
+t1 | Vowly Wedding | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a wedding event and party games app. Warm coral gradient panels with s...
+  artboard 0 "Create Event" devices[] texts[x0:"Meet Vowly", x1:"Create Your Wedding Event", x2:"#1", x3:"Wedding Party App", x4:"★★★★★"]
+  artboard 1 "Steps" devices[d0:iphone-15] texts[x5:"Party Celebrate", x6:"Funny Moments Made Easy", x7:"1", x8:"Step", x9:"2", x10:"Step", x11:"3", x12:"Step", x13:"4", x14:"Step"]
+  artboard 2 "Editor's Choice" devices[d1:iphone-15] texts[x15:"Editor's Choice", x16:"on App Store", x17:"Wedding Fun", x18:"Wedding Bets Everyone Will Love"]
+  artboard 3 "Create Wedding" devices[d2:iphone-15] texts[x19:"Wedding", x20:"Bet, Celebrate, Remember Forever", x21:"Choose from 50+ fun ideas or create your ow..."]
+  artboard 4 "Who Wins" devices[d3:iphone-15] texts[x22:"The Big Day", x23:"See Who Wins The Pot"]
+t2 | Verda Eco | category:screenshots | 5 artboards, 11 device slots | App Store & Play Store screenshots for a sustainability and carbon-footprint app. Soft green gradient panels,...
+  artboard 0 "Eco-friendly" devices[d0:iphone-17-pro-max, d1:iphone-17-pro-max] texts[x0:"Eco- friendly", x1:"Make conscious decisions."]
+  artboard 1 "Build Greener" devices[d2:iphone-17-pro-max, d3:iphone-17-pro-max, d4:iphone-17-pro-max, d5:iphone-17-pro-max] texts[x2:"Build Greener"]
+  artboard 2 "Reduce" devices[d6:iphone-17-pro-max, d7:iphone-17-pro-max, d8:iphone-15] texts[x3:"Reduce", x4:"Reduce your consumption to save the planet."]
+  artboard 3 "Re-use" devices[d9:iphone-15] texts[x5:"Re-use", x6:"Re-use materials to help the environment."]
+  artboard 4 "Recycle" devices[d10:iphone-15] texts[x7:"Recycle", x8:"Recycle to save money and help the world."]
+t3 | Connectly Chat | category:screenshots | 8 artboards, 0 device slots | Appscreens-inspired App Store & Play Store screenshot set. Deep indigo panels with bold uppercase headlines, ...
+  artboard 0 "Hero" devices[] texts[x0:"connectly", x1:"SERIOUS CHAT ENERGY AT YOUR FINGERTIPS!"]
+  artboard 1 "Journey" devices[] texts[x2:"START YOUR CONNECTLY JOURNEY, USE OUR TEMPL..."]
+  artboard 2 "Community" devices[] texts[x3:"CHAT WITH FRIENDS AND BUILD YOUR COMMUNITY"]
+  artboard 3 "Discover" devices[] texts[x4:"DISCOVER PEOPLE WHO SHARE YOUR PASSIONS"]
+  artboard 4 "In Sync" devices[] texts[x5:"STAY IN SYNC WITH EVERY CONVERSATION"]
+  artboard 5 "Smart Inbox" devices[] texts[x6:"SMART INBOX THAT KEEPS YOU FOCUSED"]
+  artboard 6 "Privacy" devices[] texts[x7:"YOUR PRIVACY, PROTECTED BY DESIGN"]
+  artboard 7 "Join Millions" devices[] texts[x8:"JOIN MILLIONS AND STAND OUT FROM THE CROWD"]
+t4 | Budgetly Finance | category:screenshots | 8 artboards, 6 device slots | App Store & Play Store screenshots for a budget tracking app. Dark olive hero with pill features, pistachio p...
+  artboard 0 "Hero" devices[] texts[x0:"A finance app you'll", x1:"actually use", x2:"create categories", x3:"set budget limit", x4:"log expenses", x5:"analyze spendings"]
+  artboard 1 "Smart Finance" devices[d0:iphone-15] texts[x6:"SMART FINANCE", x7:"Manage budget without stress"]
+  artboard 2 "Easy Budgeting" devices[] texts[x8:"EASY BUDGETING", x9:"Track Expenses Instantly", x10:"Feb 22", x11:"Grocery store", x12:"Food", x13:"-$80", x14:"Wine", x15:"Alcohol", x16:"-$20", x17:"Dinner out", x18:"Restaurant", x19:"-$50", x20:"I went from always feeling behind to finall...", x21:"App Review, February 2026"]
+  artboard 3 "Easy Planning" devices[d1:iphone-15] texts[x22:"EASY PLANNING", x23:"Set Monthly Spending Limits"]
+  artboard 4 "Voice Logging" devices[d2:iphone-15] texts[x24:"VOICE LOGGING", x25:"Voice Powered Expense Logging"]
+  artboard 5 "Money Insights" devices[d3:iphone-15] texts[x26:"MONEY INSIGHTS", x27:"See Where Your Money Goes", x28:"Break down your expenses and discover spend..."]
+  artboard 6 "Live Tracking" devices[d4:iphone-15] texts[x29:"LIVE TRACKING", x30:"Visualize Your Finances", x31:"23 May 2026", x32:"$2500 $2000 $1500 $1000 $500 $0", x33:"Mon Tue Wed Thu Fri Sat Sun"]
+  artboard 7 "Custom Categories" devices[d5:iphone-15] texts[x34:"CUSTOM CATEGORIES", x35:"Create Your Own Categories"]
+t5 | Listly Tasks | category:screenshots | 8 artboards, 0 device slots | Superlist-inspired App Store & Play Store screenshot set. Bold color-blocked panels in coral, purple and gree...
+  artboard 0 "Hero" devices[] texts[x0:"listly", x1:"Tools with", x2:"Super", x3:"Powers", x4:"Customise, plan, capture and get more done ..."]
+  artboard 1 "Screens Duo" devices[] texts[]
+  artboard 2 "Boost Conversions" devices[] texts[x5:"Boost conversions", x6:"by up to 35%"]
+  artboard 3 "One Design" devices[] texts[x7:"One design", x8:"for all of your output sizes"]
+  artboard 4 "Automatic Uploads" devices[] texts[x9:"Automatic", x10:"App Store uploads"]
+  artboard 5 "Pixel Perfect" devices[] texts[x11:"Pixel perfect", x12:"exports ready to upload"]
+  artboard 6 "All Devices" devices[] texts[x13:"All devices", x14:"Apple & Android app release"]
+  artboard 7 "Endless Layouts" devices[] texts[x15:"Create endless", x16:"custom layouts and designs"]
+t6 | Inboxly Mail | category:screenshots | 8 artboards, 8 device slots | Gmail-inspired App Store & Play Store screenshot set. Soft periwinkle panels, serif headlines and skeleton in...
+  artboard 0 "Hero" devices[d0:iphone-15] texts[x0:"Get the best results with US"]
+  artboard 1 "Stand Out" devices[d1:iphone-15] texts[x1:"Stand out", x2:"in a crowded space", x3:"Coffee Table", x4:"$899.99", x5:"★★★★★", x6:"5.0"]
+  artboard 2 "Save Time" devices[d2:iphone-15] texts[x7:"Save time", x8:"with AI styling"]
+  artboard 3 "Powerful Tools" devices[d3:iphone-15] texts[x9:"Powerful tools", x10:"for customising"]
+  artboard 4 "One Home" devices[d4:iphone-15] texts[x11:"One home", x12:"for all screenshots"]
+  artboard 5 "Global Reach" devices[d5:iphone-15] texts[x13:"Global reach", x14:"with localisation", x15:"Sort by: Recommended"]
+  artboard 6 "Auto Upload" devices[d6:iphone-15] texts[x16:"Auto upload", x17:"to the App Stores"]
+  artboard 7 "Pixel Perfect" devices[d7:iphone-15] texts[x18:"Start shopping", x19:"Pixel perfect", x20:"quality every time"]
+t7 | Darzi Studio | category:screenshots | 7 artboards, 3 device slots | App Store & Play Store screenshots for a tailor measurement studio. Charcoal and gold panels with a 3D fit mo...
+  artboard 0 "The Fitting Room" devices[d0:android-punch-hole] texts[x0:"№ 01 · A MEASUREMENT STUDIO FOR TAILORS", x1:"Cut from real numbers.", x2:"Chaati · 21½", x3:"measure twice, cut once"]
+  artboard 1 "The Scan" devices[d1:android-punch-hole] texts[x4:"№ 02 · THE SCAN", x5:"Tap a point. The tape shows up.", x6:"The camera glides to the point, a gold band...", x7:"Chaati", x8:"Kamar", x9:"Teera", x10:"Baazu", x11:"Gala", x12:"+ 20 more", x13:"چھاتی · کمر · تیرا · بازو · گلا", x14:"Kamar · 17"]
+  artboard 2 "The Wardrobe" devices[] texts[x15:"№ 03 · THE WARDROBE", x16:"Three outfits, stitched in.", x17:"Measurement sets, necklines and cuffs — all...", x18:"Shalwar Kameez", x19:"شلوار قمیض", x20:"11 measure points", x21:"The everyday order — collar to paincha, sid...", x22:"Ban collar", x23:"Gol", x24:"Double kaf", x25:"Wasket", x26:"واسکٹ", x27:"4 measure points", x28:"Worn over the kameez, measured over it — th...", x29:"V neck", x30:"U neck", x31:"Closed neck", x32:"Coat Pant", x33:"کوٹ پتلون", x34:"10 measure points", x35:"Suit season — coat length down to the trous...", x36:"Single breast", x37:"Double breast", x38:"Turn-up"]
+  artboard 3 "The Order" devices[] texts[x39:"№ 04 · THE ORDER", x40:"More than the numbers.", x41:"A name, a mobile, twenty measurements, thre...", x42:"ORDER SLIP", x43:"Nº 0214", x44:"Customer", x45:"Imran Sahib", x46:"Mobile", x47:"0300 ··· 0182", x48:"Date", x49:"12 June · backdated", x50:"Outfit", x51:"Shalwar Kameez · 11 pts", x52:"Style", x53:"Ban collar · double kaf", x54:"Note", x55:"sleeves a little loose", x56:"0:42", x57:"Completed ✓", x58:"copies out as clean JSON", x59:"press record while the customer is still ta...", x60:"Voice notes · Style calls · Backdated orders"]
+  artboard 4 "From the Shops" devices[] texts[x61:"№ 05 · FROM THE SHOPS", x62:"Stitched into the routine", x63:"★★★★★", x64:"The mannequin remembers every size. My diar...", x65:"— Ustad Rafiq · Lahore", x66:"★★★★★", x67:"I take the order while the customer is stil...", x68:"— Bilal · Faisalabad", x69:"★★★★★", x70:"No signal in the bazaar, no problem. Every ...", x71:"— Shahid · Peshawar", x72:"4.9", x73:"loved by tailors"]
+  artboard 5 "Works Offline" devices[] texts[x74:"№ 06 · NO SIGNAL REQUIRED", x75:"Works where the shop is.", x76:"No account, no cloud, no connection lost. O...", x77:"25", x78:"measurement points, each with its real name", x79:"3", x80:"outfits — kameez, wasket, coat pant", x81:"14", x82:"style variants — collars, cuffs, hems", x83:"0", x84:"internet needed, ever", x85:"Everything stays on the device", x86:"no account, no cloud, ever"]
+  artboard 6 "Try It On" devices[d2:android-punch-hole] texts[x87:"درزی سٹوڈیو", x88:"Try it on.", x89:"Free, on the phone already in your pocket.", x90:"Darzi Studio", x91:"درزی سٹوڈیو", x92:"the measurement studio", x93:"Get Darzi Studio"]
+t8 | Beauty Glam | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a beauty and cosmetics app. Five clean panels with headlines, testimon...
+  artboard 0 "Hero" devices[d0:iphone-15] texts[x0:"Try top-rated beauty essentials", x1:"Shop exclusive deals!", x2:"GQ", x3:"Forbes", x4:"ELLE", x5:"COSMOPOLITAN"]
+  artboard 1 "Reviews" devices[] texts[x6:"New brands", x7:"Shop smart. Shine brighter.", x8:"Love how personalized everything feels. Eve...", x9:"-Emilia", x10:"Great value for the price. Full-size produc...", x11:"-David", x12:"Perfect for anyone who loves makeup and ski...", x13:"-John"]
+  artboard 2 "Glam Bag" devices[d1:iphone-15] texts[x14:"Beauty simplified", x15:"Customize your monthly glam bag"]
+  artboard 3 "Routine" devices[d2:iphone-15] texts[x16:"More beauty", x17:"Build your perfect routine"]
+  artboard 4 "Skin Type" devices[d3:iphone-15] texts[x18:"level up skincare", x19:"Perfect picks for my skin type"]
+t9 | Castique Podcast | category:screenshots | 5 artboards, 5 device slots | Bold black and gray App Store & Play Store screenshots for a podcast app. Condensed headlines paired with cle...
+  artboard 0 "Brand Hero" devices[d0:iphone-15] texts[x0:"CASTIQUE!", x1:"LISTEN · LEARN · RELAX"]
+  artboard 1 "Everywhere" devices[d1:iphone-15] texts[x2:"LISTEN EVERYWHERE"]
+  artboard 2 "Offline" devices[d2:iphone-15] texts[x3:"LISTEN WITHOUT INTERNET"]
+  artboard 3 "Stories" devices[d3:iphone-15] texts[x4:"STORIES THAT KEEP ENGAGING"]
+  artboard 4 "Stream" devices[d4:iphone-15] texts[x5:"STREAM ANYWHERE"]
+t10 | Inquira | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for an AI search app. Neon lime and black panels with serif headlines and ...
+  artboard 0 "Hero" devices[d0:iphone-15] texts[x0:"Inquira", x1:"Discover topics faster", x2:"4.5 Rating"]
+  artboard 1 "Search" devices[d1:iphone-15] texts[x3:"Search", x4:"Speed meets intelligence", x5:"Get accurate AI powered answers instantly w..."]
+  artboard 2 "Discover" devices[d2:iphone-15] texts[x6:"Discover", x7:"Find trusted answers faster", x8:"Explore complex topics easily with conversa..."]
+  artboard 3 "Answers" devices[d3:iphone-15] texts[x9:"Answers", x10:"Skip endless search results", x11:"Find reliable information faster using adva..."]
+  artboard 4 "Trusted" devices[d4:iphone-15] texts[x12:"Trusted", x13:"Explore topics without limits", x14:"Discover trusted insights backed by transpa..."]
+t11 | Zyluxe Beauty | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a beauty curation app. Bold purple hero panel with award badges, tag p...
+  artboard 0 "Hero" devices[] texts[x0:"u", x1:"Beauty curated", x2:"Everything needed for your complete beauty ...", x3:"4.8 rating", x4:"#1", x5:"Users' choice award", x6:"Featured by experts", x7:"Zyluxe.", x8:"u"]
+  artboard 1 "App Preview" devices[d0:iphone-15-pro] texts[x9:"u"]
+  artboard 2 "Personalized Picks" devices[d1:iphone-15-pro] texts[x10:"Personalized beauty picks", x11:"delivered every month", x12:"Stylish", x13:"Luxury", x14:"Styling", x15:"Trending", x16:"Unique", x17:"Popular"]
+  artboard 3 "Customized Beauty" devices[d2:iphone-15-pro] texts[x18:"Customized beauty", x19:"made simple"]
+  artboard 4 "Tailored Products" devices[d3:iphone-15-pro] texts[x20:"Get tailored beauty products", x21:"matched to you"]
+t12 | NexMind | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for an AI answers app. Cream and orange panels with condensed uppercase he...
+  artboard 0 "Hero" devices[d0:iphone-15] texts[x0:"NexMind!", x1:"4.8", x2:"Rating in the App Store", x3:"Understand complex topics through simple AI..."]
+  artboard 1 "Speed" devices[d1:iphone-15] texts[x4:"SPEED MEETS INTELLIGENCE"]
+  artboard 2 "Ask AI" devices[d2:iphone-15] texts[x5:"ASK AI ANYTHING"]
+  artboard 3 "Trusted" devices[d3:iphone-15] texts[x6:"FIND TRUSTED INFORMATION"]
+  artboard 4 "Discover" devices[d4:iphone-15] texts[x7:"DISCOVER REAL ANSWERS"]
+t13 | Endless Communities | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a social communities app. Navy panels mixing bold and script headlines...
+  artboard 0 "Communities" devices[d0:iphone-15] texts[x0:"Endless", x1:"communities"]
+  artboard 1 "Post" devices[d1:iphone-15] texts[x2:"Post your", x3:"thoughts"]
+  artboard 2 "Opinions" devices[d2:iphone-15] texts[x4:"Read real", x5:"opinions"]
+  artboard 3 "Answers" devices[d3:iphone-15] texts[x6:"Find", x7:"real", x8:"answers"]
+  artboard 4 "Share" devices[d4:iphone-15] texts[x9:"Post your", x10:"thoughts"]
+t14 | Kicksy Sneakers | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a sneaker marketplace. Green and white panels with serif headlines, br...
+  artboard 0 "Brand Hero" devices[] texts[x0:"Super", x1:"Elevate your style!"]
+  artboard 1 "Discover" devices[d0:iphone-15] texts[x2:"Discover", x3:"sneaker", x4:"culture"]
+  artboard 2 "Verified" devices[d1:iphone-15, d2:iphone-15] texts[x5:"Verified", x6:"products", x7:"only", x8:"520K users"]
+  artboard 3 "Streetwear" devices[d3:iphone-15] texts[x9:"Streetwear", x10:"starts", x11:"here", x12:"on", x13:"Kicksy"]
+  artboard 4 "Explore" devices[d4:iphone-15] texts[x14:"Explore", x15:"sneaker", x16:"culture"]
+t15 | Endless Podcasts | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a podcast app. Soft lilac panels with purple highlight headlines and a...
+  artboard 0 "Brand Hero" devices[d0:iphone-15] texts[x0:"Endless", x1:"Your podcast destination"]
+  artboard 1 "Stories" devices[d1:iphone-15] texts[x2:"Amazing", x3:"stories"]
+  artboard 2 "Explore" devices[d2:iphone-15] texts[x4:"Explore", x5:"podcasts", x6:"Listen offline anytime"]
+  artboard 3 "Everywhere" devices[d3:iphone-15] texts[x7:"Listen", x8:"everywhere"]
+  artboard 4 "Engaging" devices[d4:iphone-15] texts[x9:"Stories that keep", x10:"engaging"]
+t16 | Answerly AI | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for an AI answers app. Blue gradient panels with script headlines, keyword...
+  artboard 0 "Accurate Answers" devices[d0:iphone-15] texts[x0:"Get accurate answers instantly"]
+  artboard 1 "Ask Anything" devices[d1:iphone-15] texts[x1:"Ask anything instantly"]
+  artboard 2 "Explore Knowledge" devices[d2:iphone-15] texts[x2:"Explore knowledge"]
+  artboard 3 "Backed By Sources" devices[] texts[x3:"Answers backed by sources", x4:"Explore", x5:"Search", x6:"Fast", x7:"Reliable", x8:"Insights", x9:"Sources", x10:"Instant", x11:"Curious", x12:"Learn", x13:"Analyze", x14:"Bright", x15:"4.5", x16:"Rating on the App Store", x17:"★★★★★"]
+  artboard 4 "Search Faster" devices[d3:iphone-15] texts[x18:"Search faster than ever"]
+t17 | Lumina Search | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for an AI search app. Violet gradient panels with sparkle accents, laurel ...
+  artboard 0 "Smarter Search" devices[d0:iphone-15] texts[x0:"Search smarter with instant reliable AI ans..."]
+  artboard 1 "Instant Search" devices[d1:iphone-15] texts[x1:"Search anything", x2:"instantly", x3:"Editors choice", x4:"App of the year"]
+  artboard 2 "Clear Answers" devices[d2:iphone-15] texts[x5:"Clear answers without", x6:"confusion"]
+  artboard 3 "See Sources" devices[d3:iphone-15] texts[x7:"See sources", x8:"behind every answer you get"]
+  artboard 4 "Answers In Seconds" devices[d4:iphone-15, d5:iphone-15] texts[x9:"Get answers in", x10:"seconds"]
+t18 | Streamio Movies | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a movie streaming app. Magenta gradient panels with serif headlines, s...
+  artboard 0 "All Devices" devices[d0:iphone-15] texts[x0:"Watch on all devices", x1:"Your personal movie library", x2:"Explore a massive collection of movies and ..."]
+  artboard 1 "Stream Instantly" devices[d1:iphone-15] texts[x3:"Stream top movies instantly"]
+  artboard 2 "Testimonials" devices[] texts[x4:"Trusted by viewers everywhere", x5:"Very easy to use and super helpful for offl...", x6:"★★★★★", x7:"-David", x8:"Streaming quality is great, the app can lag...", x9:"★★★★★", x10:"-James", x11:"Affordable, packed with good content. Worth...", x12:"★★★★★", x13:"-Olivia", x14:"Streamio."]
+  artboard 3 "Favourites" devices[d2:iphone-15] texts[x15:"All your favourites together", x16:"4.8", x17:"Ratings on app store", x18:"★★★★★"]
+  artboard 4 "Discover Shows" devices[d3:iphone-15] texts[x19:"Discover new shows"]
+t19 | Readly | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a book summaries app. Warm red and orange gradients with hand drawn sk...
+  artboard 0 "Hero" devices[d0:iphone-15] texts[x0:"Discover big ideas from bestselling books q..."]
+  artboard 1 "Feed" devices[d1:iphone-15] texts[x1:"READLY!"]
+  artboard 2 "Goals" devices[d2:iphone-15] texts[x2:"Stay consistent with easy daily reading goa..."]
+  artboard 3 "Anywhere" devices[d3:iphone-15] texts[x3:"Learn while driving walking or relaxing any..."]
+  artboard 4 "Consistent" devices[d4:iphone-15] texts[x4:"Stay consistent with easy daily reading goa..."]
+t20 | Luxe Glow | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a beauty shopping app. Blush pink panels with two tone headlines and h...
+  artboard 0 "Premium" devices[d0:iphone-15] texts[x0:"PREMIUM", x1:"BEAUTY", x2:"PICKS"]
+  artboard 1 "Unbox" devices[d1:iphone-15] texts[x3:"Luxe", x4:"Glow.", x5:"UNBOX NEW", x6:"BEAUTY EVERY MONTH"]
+  artboard 2 "Routine" devices[d2:iphone-15] texts[x7:"BUILD YOUR PERFECT", x8:"BEAUTY ROUTINE", x9:"4.8", x10:"Ratings"]
+  artboard 3 "Surprises" devices[d3:iphone-15] texts[x11:"EXCITING", x12:"BEAUTY SURPRISES"]
+  artboard 4 "Daily Dose" devices[d4:iphone-15] texts[x13:"YOUR DAILY", x14:"DOSE OF BEAUTY"]
+t21 | CrypTix | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a crypto investing app. Electric yellow and black panels with badges, ...
+  artboard 0 "Brand" devices[d0:iphone-15] texts[x0:"Grow your crypto assets", x1:"CrypTix", x2:"GQ", x3:"Economist", x4:"The New York Times", x5:"Forbes"]
+  artboard 1 "Trade" devices[d1:iphone-15] texts[x6:"Start Investing Today", x7:"Trade anytime anywhere"]
+  artboard 2 "Security" devices[d2:iphone-15] texts[x8:"Build Your Wealth", x9:"Security you can trust"]
+  artboard 3 "Grow" devices[d3:iphone-15] texts[x10:"Learn Before You Invest", x11:"Grow your crypto assets"]
+  artboard 4 "Learn" devices[d4:iphone-15] texts[x12:"Keep Assets Safe", x13:"Learn before you invest"]
+t22 | Feasto | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a food delivery app. Fresh green panels with sketch accents, script hi...
+  artboard 0 "Hero" devices[d0:iphone-15] texts[x0:"Your favourite meals delivered", x1:"feasto."]
+  artboard 1 "Eat What You Love" devices[d1:iphone-15, d2:iphone-15] texts[x2:"Eat what you love"]
+  artboard 2 "Hot Meals" devices[d3:iphone-15] texts[x3:"Hot meals in minutes"]
+  artboard 3 "Tap Order Enjoy" devices[d4:iphone-15] texts[x4:"Tap order enjoy", x5:"Quick delivery"]
+  artboard 4 "Testimonials" devices[] texts[x6:"Top rated by users", x7:"I use this almost daily. The offers and dis...", x8:"-Sam", x9:"Super convenient app! Ordering food is quic...", x10:"-Olivia", x11:"The app works well, just wish there were mo...", x12:"-David", x13:"4.8", x14:"Rating on app store"]
+t23 | StoryBuzz Kids | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a kids reading app. Bright blue panels with white pill chips, photo sl...
+  artboard 0 "Reading" devices[d0:iphone-15] texts[x0:"Learn while", x1:"reading", x2:"Read", x3:"Learn", x4:"Audio"]
+  artboard 1 "Stories" devices[d1:iphone-15] texts[x5:"Discover new", x6:"stories", x7:"Play", x8:"Magic", x9:"Buzz"]
+  artboard 2 "Fun" devices[d2:iphone-15] texts[x10:"Reading", x11:"made fun", x12:"Grow", x13:"Bright", x14:"Build"]
+  artboard 3 "Progress" devices[d3:iphone-15] texts[x15:"See reading", x16:"progress", x17:"Quest", x18:"Tales", x19:"Audio"]
+  artboard 4 "Listen" devices[d4:iphone-15] texts[x20:"Listen and", x21:"learn", x22:"Fun", x23:"Joy", x24:"Story"]
+t24 | Trackio Fitness | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for a workout tracking app. Deep blue gradient panels with bold caps headl...
+  artboard 0 "Connect" devices[d0:iphone-15] texts[x0:"Trackio.", x1:"CONNECT WITH ATHLETES", x2:"WORLDWIDE", x3:"4.8", x4:"Rating on app store"]
+  artboard 1 "Set Goals" devices[d1:iphone-15, d2:iphone-15] texts[x5:"SET AND REACH", x6:"FITNESS GOALS", x7:"Track"]
+  artboard 2 "Track Progress" devices[d3:iphone-15] texts[x8:"Routes", x9:"TRACK YOUR FITNESS", x10:"PROGRESS DAILY"]
+  artboard 3 "Real Results" devices[d4:iphone-15] texts[x11:"TURN EFFORT INTO", x12:"REAL RESULTS", x13:"Goals"]
+  artboard 4 "Keep Going" devices[d5:iphone-15] texts[x14:"Explore", x15:"EVERY WORKOUT", x16:"COUNTS KEEP GOING"]
+t25 | Streamio Binge | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for a streaming app. Purple gradient panels with serif headlines, ribbon s...
+  artboard 0 "Hero Duo" devices[d0:iphone-15, d1:iphone-15] texts[x0:"Streamio."]
+  artboard 1 "Continue Watching" devices[d2:iphone-15] texts[x1:"Streamio.", x2:"Continue watching", x3:"from where you left", x4:"Seamlessly switch between devices without m...", x5:"4.8", x6:"★★★★★", x7:"Rating in app store"]
+  artboard 2 "Big Screen" devices[d3:iphone-15] texts[]
+  artboard 3 "Anytime Anywhere" devices[d4:iphone-15] texts[x8:"Stream anytime", x9:"watch anywhere", x10:"Watch premium content across all devices", x11:"Watch top", x12:"movies instantly", x13:"Stream blockbuster films from every genre"]
+  artboard 4 "Binge Without Limits" devices[d5:iphone-15] texts[x14:"Binge watch", x15:"without limits", x16:"Unlimited streaming endless entertainment"]
+t26 | Roomora Home | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a playful interior design game. Warm beige panels with serif headlines...
+  artboard 0 "Build" devices[d0:iphone-15] texts[x0:"Build Your Perfect", x1:"Home", x2:"Space", x3:"New furniture, challenges, and features add..."]
+  artboard 1 "Controls" devices[d1:iphone-15] texts[x4:"Intuitive controls make designing smooth an..."]
+  artboard 2 "Create" devices[d2:iphone-15] texts[x5:"Create Your", x6:"Perfect", x7:"Home"]
+  artboard 3 "Vision" devices[d3:iphone-15] texts[x8:"Bring", x9:"Your", x10:"Vision Alive"]
+  artboard 4 "Compete" devices[d4:iphone-15] texts[x11:"Compete With", x12:"Designers"]
+t27 | Playverse Games | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a gaming platform. Royal blue panels with lime monospace headlines and...
+  artboard 0 "Discover" devices[d0:iphone-15] texts[x0:"DISCOVER GAMES MADE BY PLAYERS"]
+  artboard 1 "Create Share Explore" devices[d1:iphone-15] texts[x1:"CREATE SHARE EXPLORE"]
+  artboard 2 "Battles" devices[d2:iphone-15] texts[x2:"ENTER INTENSE BATTLES"]
+  artboard 3 "Build" devices[d3:iphone-15] texts[x3:"BUILD AMAZING WORLDS"]
+  artboard 4 "Explore" devices[d4:iphone-15] texts[x4:"EXPLORE WITHOUT LIMITS"]
+t28 | Voyago Travel | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for a flight and hotel booking app. Mint and forest green panels with chun...
+  artboard 0 "Best Deals" devices[d0:iphone-15] texts[x0:"Find the Best", x1:"Deals", x2:"on Flights"]
+  artboard 1 "Awards" devices[d1:iphone-15] texts[x3:"ESSENTIAL", x4:"Travel App", x5:"APP OF THE DAY"]
+  artboard 2 "Book Hotels" devices[d2:iphone-15, d3:iphone-15] texts[x6:"Book", x7:"Hotels", x8:"Anywhere, Anytime"]
+  artboard 3 "Perfect Stay" devices[d4:iphone-15] texts[x9:"Discover Your", x10:"Perfect", x11:"Stay"]
+  artboard 4 "Plan Trip" devices[d5:iphone-15] texts[x12:"Plan Your", x13:"Trip", x14:"in", x15:"One Place"]
+t29 | Finexa Crypto | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a crypto investing app. Bold violet panels with serif headlines, highl...
+  artboard 0 "Finexa Intro" devices[d0:iphone-15] texts[x0:"Finexa.", x1:"The future money begins right here"]
+  artboard 1 "Big Device" devices[d1:iphone-15] texts[]
+  artboard 2 "Invest Smarter" devices[d2:iphone-15] texts[x2:"Invest smarter", x3:"every day.", x4:"Forbes"]
+  artboard 3 "Crypto Easy" devices[d3:iphone-15] texts[x5:"Crypto made", x6:"easy today.", x7:"The Economist"]
+  artboard 4 "Digital Wealth" devices[d4:iphone-15] texts[x8:"Grow your", x9:"digital wealth.", x10:"FORTUNE"]
+t30 | Flixio Kids | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a kids streaming app. Jet black panels with bold red headlines, tilted...
+  artboard 0 "Stream Movies" devices[d0:iphone-15] texts[x0:"Stream Movies"]
+  artboard 1 "Watch Content" devices[d1:iphone-15] texts[x1:"Watch content"]
+  artboard 2 "Discover" devices[d2:iphone-15] texts[x2:"Discover Content"]
+  artboard 3 "Browse" devices[d3:iphone-15] texts[]
+  artboard 4 "Save to Watch" devices[d4:iphone-15] texts[x3:"Save to watch"]
+t31 | Listenly Audiobooks | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for an audiobook app. Lavender panels with chunky black headlines, an inst...
+  artboard 0 "App of the Day" devices[d0:iphone-15, d1:iphone-15] texts[x0:"APP OF THE DAY"]
+  artboard 1 "Installs" devices[d2:iphone-15] texts[x1:"500K+ App Installs", x2:"★★★★★", x3:"100K ratings"]
+  artboard 2 "Genres" devices[d3:iphone-15] texts[x4:"Find stories in every genre you love most"]
+  artboard 3 "Listening Time" devices[d4:iphone-15] texts[x5:"Turn everyday moments into listening time"]
+  artboard 4 "Offline" devices[d5:iphone-15] texts[x6:"Download books and listen without internet"]
+t32 | Tripora Travel | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a trip planning app. Pastel purple, sage, sky and amber panels with se...
+  artboard 0 "Find Flights" devices[d0:iphone-15] texts[x0:"Find flights, hotels and more"]
+  artboard 1 "Travel Needs" devices[d1:iphone-15] texts[x1:"For all travel needs", x2:"EDITORS' CHOICE"]
+  artboard 2 "Explore" devices[d2:iphone-15] texts[x3:"Explore Destinations", x4:"Browse and book experiences that make your ..."]
+  artboard 3 "Plan" devices[d3:iphone-15] texts[x5:"Plan in one place", x6:"Manage your flights, accommodations, and ac..."]
+  artboard 4 "Book Hotels" devices[d4:iphone-15] texts[x7:"Book Hotels Anytime", x8:"Discover top-rated hotels and secure your s..."]
+t33 | Tunio Music | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a music streaming app. Fire red and blush panels with a vinyl disc, ha...
+  artboard 0 "Reviews" devices[d0:iphone-15] texts[x0:"3M+ Reviews", x1:"★★★★★", x2:"Tune Into Your Favorite Stations"]
+  artboard 1 "Playlists" devices[d1:iphone-15] texts[x3:"Create Playlists For Every ♬ Mood"]
+  artboard 2 "Nonstop" devices[d2:iphone-15] texts[x4:"Music that", x5:"Never Stops"]
+  artboard 3 "Live" devices[d3:iphone-15] texts[x6:"Beat Live", x7:"Feel Every"]
+  artboard 4 "Global Hits" devices[d4:iphone-15] texts[x8:"Listen To", x9:"Global Hits"]
+t34 | Coinly Crypto | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a crypto wallet. Bright blue, magenta, green and purple panels with se...
+  artboard 0 "Buy & Sell" devices[d0:iphone-15] texts[x0:"Buy and sell crypto instantly", x1:"Access the market whenever you want securely", x2:"BUY SELL CRYPTO"]
+  artboard 1 "Digital Assets" devices[d1:iphone-15] texts[x3:"Invest in digital assets"]
+  artboard 2 "Market" devices[d2:iphone-15] texts[x4:"Market", x5:"Track prices in real-time", x6:"Monitor live prices across multiple cryptoc..."]
+  artboard 3 "Crypto" devices[d3:iphone-15] texts[x7:"Crypto", x8:"Stay ahead of crypto changes", x9:"Advanced encryption keeps funds protected 2..."]
+  artboard 4 "Assets" devices[d4:iphone-15] texts[x10:"Assets", x11:"Keep your assets safe always", x12:"Gain crypto knowledge with built-in learnin..."]
+t35 | Stockio Invest | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a stocks and crypto tracker. Near black panels with lilac corners, ser...
+  artboard 0 "Invest" devices[d0:iphone-15] texts[x0:"Stocks & Crypto", x1:"Invest with", x2:"confidence", x3:"TRACK LIVE"]
+  artboard 1 "Full Screen" devices[d1:iphone-15] texts[x4:"Invest Sell Buy Track"]
+  artboard 2 "Market Highs" devices[d2:iphone-15] texts[x5:"Crack market highs", x6:"track every market move"]
+  artboard 3 "Patterns" devices[d3:iphone-15] texts[x7:"Analyse market patterns", x8:"make smarter investment decisions daily"]
+  artboard 4 "All-time Highs" devices[d4:iphone-15] texts[x9:"Discover all-time highs", x10:"understand trends before they peak"]
+t36 | Threadly Social | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a community app. Warm beige panels with big white circles, navy headli...
+  artboard 0 "Explore" devices[d0:iphone-15] texts[x0:"APP OF THE YEAR", x1:"Explore. Curate. Keep."]
+  artboard 1 "Share" devices[d1:iphone-15] texts[x2:"Work together with seamless sharing options", x3:"2 MILLION+ DOWNLOADS"]
+  artboard 2 "Fast Results" devices[d2:iphone-15] texts[x4:"Fast, relevant results"]
+  artboard 3 "Team" devices[d3:iphone-15] texts[x5:"Connect with your team"]
+  artboard 4 "Trending" devices[d4:iphone-15] texts[x6:"Dive into trending topics"]
+t37 | Beatforge Studio | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a music production app. Black and peach panels with big bold headlines...
+  artboard 0 "Effects" devices[d0:iphone-15] texts[x0:"EQ, reverb, effects made simple.", x1:"DOWNLOAD NOW.", x2:"1million+ users"]
+  artboard 1 "Write Songs" devices[d1:iphone-15] texts[x3:"Easily", x4:"Write Songs & Practice"]
+  artboard 2 "Chords" devices[d2:iphone-15] texts[x5:"Find", x6:"Chords Scales & Inspiration", x7:"App of the day"]
+  artboard 3 "Make Music" devices[d3:iphone-15] texts[x8:"Create", x9:"Make Music Anywhere"]
+  artboard 4 "Beats" devices[d4:iphone-15] texts[x10:"Loop", x11:"Build Catchy Beats"]
+t38 | Podly Podcasts | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a podcast app. Black and spring green split panels with starburst rati...
+  artboard 0 "Offline" devices[d0:iphone-15] texts[x0:"Download episodes and listen anytime withou..."]
+  artboard 1 "Save" devices[d1:iphone-15] texts[x1:"4.8 Rating on app store", x2:"Save Podcasts And Enjoy Them Without Intern..."]
+  artboard 2 "Updates" devices[d2:iphone-15] texts[x3:"Stay Updated With Every Release"]
+  artboard 3 "Notified" devices[d3:iphone-15] texts[x4:"3M+ Users on app store", x5:"Get notified whenever new episodes are rele..."]
+  artboard 4 "Playback" devices[d4:iphone-15] texts[x6:"Enjoy smooth playback wherever you go daily"]
+t39 | Cinevault | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a movie streaming app. Jet black panels with condensed white and gold ...
+  artboard 0 "Iconic" devices[d0:iphone-15] texts[x0:"ICONIC STORIES LEGENDARY", x1:"ENTERTAINMENT DAILY"]
+  artboard 1 "Watch More" devices[d1:iphone-15] texts[x2:"WATCH MORE", x3:"ANYTIME ANYWHERE", x4:"ACTION", x5:"DRAMA", x6:"THRILLER", x7:"COMEDY", x8:"ROMANCE", x9:"SCI-FI", x10:"HORROR", x11:"MYSTERY"]
+  artboard 2 "Awarded" devices[d2:iphone-15] texts[x12:"AWARD WINNING", x13:"ENTERTAINMENT DELIVERED"]
+  artboard 3 "Prestige" devices[d3:iphone-15] texts[x14:"PRESTIGE STORYTELLING", x15:"WITHOUT COMPROMISE"]
+  artboard 4 "Big Screen" devices[d4:iphone-15] texts[x16:"BIG SCREEN MAGIC", x17:"AT HOME"]
+t40 | Sereno Mind | category:screenshots | 5 artboards, 9 device slots | App Store & Play Store screenshots for a meditation app. Cyan gradient panels with contour lines, navy keywor...
+  artboard 0 "Relax" devices[d0:iphone-15] texts[x0:"Relax", x1:"Find", x2:"Inner", x3:"Balance"]
+  artboard 1 "Focus" devices[d1:iphone-15, d2:iphone-15, d3:iphone-15] texts[x4:"Focus", x5:"Centre", x6:"Your", x7:"Thoughts"]
+  artboard 2 "Recover" devices[d4:iphone-15] texts[x8:"Recover", x9:"Mental", x10:"Fitness", x11:"Daily"]
+  artboard 3 "Perform" devices[d5:iphone-15, d6:iphone-15, d7:iphone-15] texts[x12:"Perform", x13:"With", x14:"Clarity", x15:"Mind"]
+  artboard 4 "Sleep" devices[d8:iphone-15] texts[x16:"Sleep", x17:"Deep", x18:"Rest", x19:"Recovery"]
+t41 | Droply Habits | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for a hydration habits app. Loud purple and pink panels with giant white c...
+  artboard 0 "Habits" devices[d0:iphone-15] texts[x0:"BUILD HEALTHY DAILY HYDRATION HABITS"]
+  artboard 1 "Goal" devices[d1:iphone-15] texts[x1:"DAILY HYDRATION GOAL"]
+  artboard 2 "Reminders" devices[d2:iphone-15] texts[x2:"REMINDERS HELP YOU DRINK WATER"]
+  artboard 3 "Hydration" devices[d3:iphone-15] texts[x3:"HYDRATION HABITS"]
+  artboard 4 "Tracking" devices[d4:iphone-15, d5:iphone-15] texts[x4:"TRACKING MADE SIMPLE"]
+t42 | Zeeb Fashion | category:screenshots | 5 artboards, 6 device slots | App Store & Play Store screenshots for a fashion resale app. Violet and cream panels with huge condensed head...
+  artboard 0 "Shop" devices[d0:iphone-15, d1:iphone-15] texts[x0:"Shop Better Save More", x1:"Your safe place to shop online anytime.", x2:"Z", x3:"4.8 Rating", x4:"★★★★★"]
+  artboard 1 "Hashtags" devices[d2:iphone-15] texts[x5:"#fastfashion #zeeb"]
+  artboard 2 "Prices" devices[d3:iphone-15] texts[x6:"BEST PRICES", x7:"EASY BUYING"]
+  artboard 3 "Delivery" devices[d4:iphone-15] texts[x8:"EFFICIENT", x9:"FAST DELIVERY"]
+  artboard 4 "Brands" devices[d5:iphone-15] texts[x10:"ONLY", x11:"TRUSTED BRANDS"]
+t43 | Lingua Learn | category:screenshots | 7 artboards, 7 device slots | App Store & Play Store screenshots for a language learning app. Alternating lavender and violet panels with t...
+  artboard 0 "Learn" devices[d0:iphone-15] texts[x0:"Learn", x1:"Languages in Minutes"]
+  artboard 1 "Speak" devices[d1:iphone-15] texts[x2:"Speak With", x3:"Confidence", x4:"Quick sessions fit busy days"]
+  artboard 2 "Rewards" devices[d2:iphone-15] texts[x5:"Track Progress", x6:"With Rewards", x7:"Earn achievements for your skills"]
+  artboard 3 "40 Languages" devices[d3:iphone-15] texts[x8:"Learn 40 plus", x9:"languages free"]
+  artboard 4 "Game Learning" devices[d4:iphone-15] texts[x10:"Enjoy Game Like Learning", x11:"Fun challenges keep motivation high"]
+  artboard 5 "Skills" devices[d5:iphone-15] texts[x12:"Build language", x13:"skills in minutes", x14:"Quick lessons fit busy days"]
+  artboard 6 "Math & Music" devices[d6:iphone-15] texts[x15:"Train math", x16:"and music"]
+t44 | Smart AppScreens | category:apple-watch | 5 artboards, 5 device slots | App Store Apple Watch screenshots with a straight-on silver 3D watch, bold black headlines and a coral accent...
+  artboard 0 "Smart" devices[d0:apple-watch] texts[x0:"The smart way to AppScreens"]
+  artboard 1 "Plans" devices[d1:apple-watch] texts[x1:"Get great plans", x2:"for everyone."]
+  artboard 2 "Play" devices[d2:apple-watch] texts[x3:"Play before you purchase."]
+  artboard 3 "Make" devices[d3:apple-watch] texts[x4:"Make your screenshots", x5:"the way you want."]
+  artboard 4 "ASO" devices[d4:apple-watch] texts[x6:"Your ASO enhancement", x7:"starts here."]
+t45 | Editors Choice | category:apple-watch | 5 artboards, 5 device slots | App Store Apple Watch screenshots on a deep navy studio: bold one-word white headlines and a bright silver 3D...
+  artboard 0 "Create" devices[d0:apple-watch] texts[x0:"Create.", x1:"✦ Editors’ Choice ✦"]
+  artboard 1 "Design" devices[d1:apple-watch] texts[x2:"Design."]
+  artboard 2 "Build" devices[d2:apple-watch] texts[x3:"Build."]
+  artboard 3 "Invent" devices[d3:apple-watch] texts[x4:"Invent."]
+  artboard 4 "Excel" devices[d4:apple-watch] texts[x5:"Excel.", x6:"✦ Top 100 Apps ✦"]
+t46 | Dark ASO | category:apple-watch | 5 artboards, 5 device slots | App Store Apple Watch screenshots on a black studio: crisp white headlines and a stealth black 3D watch with ...
+  artboard 0 "Choose" devices[d0:apple-watch] texts[x0:"Choose your template"]
+  artboard 1 "Pick" devices[d1:apple-watch] texts[x1:"Pick your poison"]
+  artboard 2 "Possible" devices[d2:apple-watch] texts[x2:"See what’s possible"]
+  artboard 3 "Share" devices[d3:apple-watch] texts[x3:"Share your creations"]
+  artboard 4 "Revenue" devices[d4:apple-watch] texts[x4:"Increase your revenue"]
+t47 | Ultra Showcase | category:apple-watch | 5 artboards, 5 device slots | App Store Apple Watch screenshots: a titanium 3D watch presented across five product angles on a clean white ...
+  artboard 0 "Front" devices[d0:apple-watch] texts[]
+  artboard 1 "Upright" devices[d1:apple-watch] texts[]
+  artboard 2 "Tilted" devices[d2:apple-watch] texts[]
+  artboard 3 "Side" devices[d3:apple-watch] texts[]
+  artboard 4 "Reclined" devices[d4:apple-watch] texts[]
+t48 | Lavender | category:apple-watch | 5 artboards, 5 device slots | App Store Apple Watch screenshots on a soft lavender gradient: minimal white word headlines and a silver 3D w...
+  artboard 0 "Move" devices[d0:apple-watch] texts[x0:"Move."]
+  artboard 1 "Track" devices[d1:apple-watch] texts[x1:"Track."]
+  artboard 2 "Breathe" devices[d2:apple-watch] texts[x2:"Breathe."]
+  artboard 3 "Focus" devices[d3:apple-watch] texts[x3:"Focus."]
+  artboard 4 "Thrive" devices[d4:apple-watch] texts[x4:"Thrive."]
+t49 | Sunset Pop | category:apple-watch | 5 artboards, 5 device slots | App Store Apple Watch screenshots on a vivid pink-to-green gradient: punchy white word headlines and a black ...
+  artboard 0 "Discover" devices[d0:apple-watch] texts[x0:"Discover."]
+  artboard 1 "Explore" devices[d1:apple-watch] texts[x1:"Explore."]
+  artboard 2 "Connect" devices[d2:apple-watch] texts[x2:"Connect."]
+  artboard 3 "Grow" devices[d3:apple-watch] texts[x3:"Grow."]
+  artboard 4 "Shine" devices[d4:apple-watch] texts[x4:"Shine."]
+t50 | Wallet Protected | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a secure wallet or banking app. Teal gradient, shield badge and a ...
+  artboard 0 "Wallet Protected" devices[d0:android-punch-hole] texts[x0:"Your Wallet, Protected", x1:"Bank-grade security on every transaction."]
+t51 | Expense Tracking | category:play-feature-graphic | 1 artboards, 3 device slots | Google Play feature graphic (1024x500) for an AI budgeting app. Deep-green hero, three-phone fan and the Goog...
+  artboard 0 "Expense Tracking" devices[d0:android-punch-hole, d1:android-punch-hole, d2:android-punch-hole] texts[x0:"Effortless", x1:"Expense", x2:"Tracking", x3:"Just talk to smart AI to manage your budget."]
+t52 | Fitness All-In-One | category:play-feature-graphic | 1 artboards, 3 device slots | Google Play feature graphic (1024x500) for a fitness app. Bold violet hero, lime accents and a three-phone fa...
+  artboard 0 "Fitness All-In-One" devices[d0:iphone-15, d1:iphone-15, d2:iphone-15] texts[x0:"Your All-In-One Fitness App", x1:"Workouts · Meals · Progress"]
+t53 | Trading App | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a stock or forex trading app. Dark starfield, a highlighted headli...
+  artboard 0 "Trading App" devices[d0:android-punch-hole] texts[x0:"USDCHF", x1:"0.86756", x2:"+0.05%", x3:"Your new go-to", x4:"trading app", x5:"Trading is risky. Other fees may apply."]
+t54 | AlertLab | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for an alerts or monitoring app. Dark-red hero, radar rings and a tilt...
+  artboard 0 "AlertLab" devices[d0:android-punch-hole] texts[x0:"AlertLab", x1:"The only alert app you will ever need!", x2:"Warning Alerts", x3:"Quick Alerts", x4:"Danger Alerts"]
+t55 | Wallet Your App | category:play-feature-graphic | 1 artboards, 3 device slots | Google Play feature graphic (1024x500) for a wallet or fintech app. Soft blue-violet hero with a centered hea...
+  artboard 0 "Wallet Your App" devices[d0:iphone-15, d1:iphone-15, d2:iphone-15] texts[x0:"Your Wallet. Your App."]
+t56 | Work Play Be Happy | category:play-feature-graphic | 1 artboards, 0 device slots | Google Play feature graphic (1024x500) for a lifestyle or wellbeing app. Warm sunset gradient, a horizon silh...
+  artboard 0 "Work Play Be Happy" devices[] texts[x0:"Work. Play.", x1:"Be Happy."]
+t57 | Paws Meet Hearts | category:play-feature-graphic | 1 artboards, 0 device slots | Google Play feature graphic (1024x500) for a pet or pet-adoption app. Warm gradient, a licensed paw-in-hand p...
+  artboard 0 "Paws Meet Hearts" devices[] texts[x0:"Where Paws", x1:"Meet Hearts"]
+t58 | Chat Connect | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a messaging or chat app. Indigo hero with a phone on the left and ...
+  artboard 0 "Chat Connect" devices[d0:iphone-15] texts[x0:"Chat that just flows", x1:"Fast, private messaging for your closest ci...", x2:"Get started"]
+t59 | Music Stream | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a music streaming app. Deep magenta hero with a soundwave, play ba...
+  artboard 0 "Music Stream" devices[d0:android-punch-hole] texts[x0:"Music for every moment", x1:"Millions of songs. Zero interruptions."]
+t60 | Food Delivery | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a food delivery app. Warm orange hero with burger accents, a phone...
+  artboard 0 "Food Delivery" devices[d0:android-punch-hole] texts[x0:"Order in. Feast on.", x1:"Your favorite restaurants, delivered in min..."]
+t61 | Habit Tracker | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a habit or routine tracker. Calm mint hero with topographic lines,...
+  artboard 0 "Habit Tracker" devices[d0:iphone-15] texts[x0:"Build better habits, daily", x1:"Track streaks and stay consistent every day."]
+t62 | Travel Explore | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a travel or trip-planning app. Teal-to-sky hero with map pin, flig...
+  artboard 0 "Travel Explore" devices[d0:android-punch-hole] texts[x0:"Explore the world your way", x1:"Plan trips, find stays, go anywhere."]
+t63 | Crypto Portfolio | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a crypto portfolio app. Dark navy hero with coins, a live up-trend...
+  artboard 0 "Crypto Portfolio" devices[d0:android-punch-hole] texts[x0:"Track your crypto, live", x1:"Real-time prices and portfolio insights.", x2:"+12.4% this week"]
+t64 | Productivity Tasks | category:play-feature-graphic | 1 artboards, 1 device slots | Google Play feature graphic (1024x500) for a productivity or to-do app. Clean blue hero with a bolt accent, a...
+  artboard 0 "Productivity Tasks" devices[d0:iphone-15] texts[x0:"Get things done, faster", x1:"Tasks, notes and reminders, all in one plac...", x2:"Start free"]
+
+Template previews (PNG):
+t0 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/breathora-breathing.png
+t1 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/vowly-wedding.png
+t2 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/verda-eco.png
+t3 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/connectly-chat.png
+t4 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/budgetly-finance.png
+t5 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/listly-tasks.png
+t6 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/inboxly-mail.png
+t7 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/darzi-studio.png
+t8 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/beauty-glam.png
+t9 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/castique-podcast.png
+t10 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/inquira.png
+t11 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/zyluxe-beauty.png
+t12 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/nexmind.png
+t13 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/endless-communities.png
+t14 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/kicksy-sneakers.png
+t15 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/endless-podcasts.png
+t16 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/answerly-ai.png
+t17 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/lumina-search.png
+t18 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/streamio-movies.png
+t19 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/readly-books.png
+t20 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/luxe-glow.png
+t21 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/cryptix.png
+t22 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/feasto.png
+t23 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/storybuzz-kids.png
+t24 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/trackio-fitness.png
+t25 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/streamio-binge.png
+t26 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/roomora-home.png
+t27 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/playverse-games.png
+t28 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/voyago-travel.png
+t29 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/finexa-crypto.png
+t30 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/flixio-kids.png
+t31 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/listenly-audio.png
+t32 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/tripora-travel.png
+t33 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/tunio-music.png
+t34 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/coinly-crypto.png
+t35 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/stockio-invest.png
+t36 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/threadly-social.png
+t37 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/beatforge-studio.png
+t38 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/podly-podcasts.png
+t39 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/cinevault-stream.png
+t40 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/sereno-mind.png
+t41 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/droply-habits.png
+t42 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/zeeb-fashion.png
+t43 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/lingua-learn.png
+t44 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/watch-smart-appscreens.png
+t45 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/watch-editors-choice.png
+t46 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/watch-dark-aso.png
+t47 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/watch-ultra-showcase.png
+t48 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/watch-lavender.png
+t49 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/watch-sunset.png
+t50 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-wallet-protected.png
+t51 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-expense-tracking.png
+t52 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-fitness-all-in-one.png
+t53 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-trading-app.png
+t54 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-alertlab.png
+t55 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-wallet-your-app.png
+t56 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-work-play-happy.png
+t57 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-paws-hearts.png
+t58 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-chat-connect.png
+t59 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-music-stream.png
+t60 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-food-delivery.png
+t61 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-habit-tracker.png
+t62 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-travel-explore.png
+t63 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-crypto-portfolio.png
+t64 preview: https://dotnetdreamer.github.io/artboard-studio/data/projects/previews/fg-productivity-tasks.png

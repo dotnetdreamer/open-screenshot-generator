@@ -47,6 +47,8 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 - `gen-previews.js` — generates the **card-thumbnail previews** for the App Screenshots gallery (the counterpart to the `fg-*` previews the feature-graphic tab already had). Per template: Pass A opens it and exports its artboards (clean, chrome-free), Pass B composes a wide **3:1 phone-carousel strip** on the template's own background and rewrites `previewImage` to `/data/projects/previews/<slug>.png`. Matches the App Screenshots category (`previewAspect '3 / 1'`, `previewFit 'contain'`; the gallery treats any non-`placehold.co` previewImage as a real strip and renders it `object-contain`). Needs the dev server up. `node gen-previews.js` (all 41) · `... <slug ...>` (subset) · `... --compose-only` (reuse cached exports in `%TEMP%/artboard-previews-src/`). Caps the strip at 6 screens.
 - `compose-preview.js` — the strip compositor used by `gen-previews.js`: lays exported artboard PNGs as rounded, shadowed cards centered on a background at 1500×500 @ DPR2. `renderOnPage(page, dir, bgCss, out, max)` reuses one browser; CLI `node compose-preview.js <artboardDir> <bgCss> <outFile> [maxScreens]` for one-offs.
 
+**After any script that changes template JSONs or `previewImage` values** (wire-app-skeletons, gen-previews, or hand edits), regenerate the AI agent's hosted catalog: `npm run gen:ai-catalog` (also runs inside `npm run build`). It rewrites `public/data/ai/catalog.txt`, whose verification token is a content hash — a stale file makes the agent's URL mode silently fall back to inline prompts once deployed. Details: docs/AI-AGENT.md.
+
 ## Verifying image quality
 
 - Crop 1:1 regions with ffmpeg and view them: `ffmpeg -i export.png -vf "crop=W:H:X:Y" out.png`.

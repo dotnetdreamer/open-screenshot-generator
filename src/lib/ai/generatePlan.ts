@@ -6,6 +6,7 @@ import {
   formatPlanIssues,
   type AgentPlan,
 } from './agentPlanSchema';
+import { buildCatalogArtifacts, resolveAliases, type AliasMap } from './aliasCatalog';
 import type { UploadedScreenshot } from './imageUtils';
 import { buildSystemPrompt, buildUserPrompt } from './promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from './templateCatalog';
@@ -39,7 +40,20 @@ export interface GeneratePlanArgs {
 }
 
 export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
-  const catalog = serializeCatalog(buildTemplateCatalog(args.templates));
+  // Compact aliased catalog; the reply's refs are mapped back to real ids
+  // below. Falls back to the legacy full catalog if the compact build fails.
+  let catalog: string;
+  let aliasMap: AliasMap | null = null;
+  try {
+    const artifacts = buildCatalogArtifacts(buildTemplateCatalog(args.templates), {
+      screenshots: args.screenshots.map((shot) => ({ width: shot.width, height: shot.height })),
+      instruction: args.instruction,
+    });
+    catalog = artifacts.catalogText;
+    aliasMap = artifacts.aliasMap;
+  } catch {
+    catalog = serializeCatalog(buildTemplateCatalog(args.templates));
+  }
 
   let raw: unknown;
   try {
@@ -65,7 +79,7 @@ export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
     throw toAgentError(error);
   }
 
-  const parsed = AgentPlanSchema.safeParse(raw);
+  const parsed = AgentPlanSchema.safeParse(aliasMap ? resolveAliases(raw, aliasMap) : raw);
   if (!parsed.success) {
     throw new AgentError(
       'invalid-output',

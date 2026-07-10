@@ -76,7 +76,7 @@ The agent takes your app screenshots plus a sentence about what you want ("put t
 template", "use Breathora", "design something new") and produces a finished project: template chosen,
 screenshots placed in the device mockups, copy rewritten for your app.
 
-There are two ways to run it, and both end up producing the same thing: an `AgentPlan`, a small
+However it runs, it always produces the same thing: an `AgentPlan`, a small
 zod-validated JSON document that [buildProjectFromPlan.ts](src/lib/ai/buildProjectFromPlan.ts) turns
 into a project deterministically. The model only fills slots (which template, which screenshot goes in
 which frame, what the text says, or a constrained new-design spec). It never emits coordinates or
@@ -87,21 +87,33 @@ Vercel AI SDK ([providers.ts](src/lib/ai/providers.ts)). The app is a static exp
 there is nowhere else for them to go: your key stays on your machine, and it is only written to
 localStorage if you tick "remember on this device".
 
-**Free, use my account.** Uses whatever Claude, ChatGPT or Gemini session you are already signed into.
-A web page cannot reach another site's session, so this runs through the small companion extension in
-[extension/](extension/README.md): it opens the assistant in a background tab, attaches the
-screenshots, sends the prompt and brings the reply back. Without the extension, the same panel falls
-back to a manual relay (copy the prompt, paste it into the chat, paste the answer back), so the mode
-works everywhere.
+**Free, use my account.** Uses whatever Claude, ChatGPT, Gemini (and beta: Copilot, DeepSeek, Qwen,
+Perplexity) session you are already signed into. In the desktop app this drives the provider in an
+embedded window with no extension needed (see [docs/DESKTOP.md](docs/DESKTOP.md)). In the browser it
+runs through the small companion extension in [extension/](extension/README.md), and without the
+extension the panel falls back to a manual relay (copy the prompt, paste it into the chat, paste the
+answer back), so the mode works everywhere.
 
-The prompt, the template catalog sent with it, and the plan schema all live in
-[src/lib/ai/](src/lib/ai/).
+**Free, built in.** Desktop only: keyless providers (Pollinations, or a local Ollama / LM Studio),
+also covered in [docs/DESKTOP.md](docs/DESKTOP.md).
+
+**How the templates reach the model.** The catalog of all templates is too big to paste into a chat
+(ChatGPT's free tier rejects the message outright). So "use my account" runs are URL-first: the
+message carries only a link to [public/data/ai/catalog.txt](public/data/ai/catalog.txt), the full
+catalog hosted by this repo's Pages deployment, and the model must echo the file's verification
+token to prove it actually fetched it. If it can't, the app falls back to an inline catalog that is
+prefiltered, id-aliased, and shrunk to the provider's message cap. The whole scheme, its fallbacks,
+and the tuning knobs are documented in [docs/AI-AGENT.md](docs/AI-AGENT.md).
+
+The prompts, the catalog builders, and the plan schema all live in [src/lib/ai/](src/lib/ai/).
 
 ## Storage and templates
 
 Saved projects live in IndexedDB under a database called `ProjectDatabase`. Clearing site data deletes them, so treat exported PNGs as your real output and the browser store as a working copy.
 
 Templates are plain JSON files in [public/data/projects/](public/data/projects/), fetched at runtime. The file list is hardcoded in [projectService.ts](src/services/projectService.ts), so adding your own template means dropping a JSON file in that folder and adding its filename to the array. A template is essentially a saved array of artboard states. The practical way to make one is to design it in the app and copy the shape of an existing template file.
+
+After adding or editing templates, regenerate the AI agent's hosted catalog with `npm run gen:ai-catalog` (a normal `npm run build` also does it) so [public/data/ai/catalog.txt](public/data/ai/catalog.txt) stays in sync; see [docs/AI-AGENT.md](docs/AI-AGENT.md).
 
 ## Loose ends worth knowing about
 

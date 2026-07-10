@@ -114,7 +114,9 @@ export const AgentPlanObjectSchema = z.object({
   // One short sentence, shown to the user before they confirm.
   reasoning: z.string().nullable(),
   projectName: z.string(),
-  // e.g. "template_breathora-breathing". Required when action is use-template.
+  // The catalog ref (e.g. "t12") as emitted by the model; resolveAliases
+  // rewrites it to the real template id before validation. Required when
+  // action is use-template.
   templateId: z.string().nullable(),
   screenshotPlacements: z.array(screenshotPlacementSchema),
   textOverrides: z.array(textOverrideSchema),

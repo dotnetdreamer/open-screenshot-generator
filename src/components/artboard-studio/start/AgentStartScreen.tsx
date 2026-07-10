@@ -13,7 +13,19 @@ import { AgentPlanSchema, formatPlanIssues, type AgentPlan } from '@/lib/ai/agen
 import { AgentBuildError, buildProjectFromPlan, type BuildResult } from '@/lib/ai/buildProjectFromPlan';
 import { AgentError, generatePlan } from '@/lib/ai/generatePlan';
 import { extractJson } from '@/lib/ai/jsonExtract';
-import { buildRelayPrompt } from '@/lib/ai/promptBuilder';
+import { buildCatalogArtifacts, resolveAliases, type AliasMap } from '@/lib/ai/aliasCatalog';
+import {
+  buildHostedCatalog,
+  HOSTED_CATALOG_URL,
+  readUrlFetchCapability,
+  writeUrlFetchCapability,
+} from '@/lib/ai/hostedCatalog';
+import {
+  CANNOT_FETCH_SENTINEL,
+  buildCompactRelayPrompt,
+  buildRelayPrompt,
+  buildUrlRelayPrompt,
+} from '@/lib/ai/promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from '@/lib/ai/templateCatalog';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
 import type { AiProviderId } from '@/lib/ai/providers';
@@ -47,6 +59,17 @@ const EXAMPLE_INSTRUCTIONS = [
   'Design something new from scratch based on my screenshots',
 ];
 
+/**
+ * Hard per-message caps, in characters, for providers that reject long
+ * messages outright ("The message you submitted was too long"). ChatGPT's
+ * free tier bounces at roughly 4k chars. Providers not listed get the full
+ * compact prompt. When a cap applies, the catalog degrades stepwise (fewer
+ * detailed templates, then a slim index only) until the prompt fits.
+ */
+const PROMPT_BUDGETS: Partial<Record<WebProviderId, number>> = {
+  chatgpt: 3900,
+};
+
 export function AgentStartScreen({
   templates,
   isLoadingTemplates,
@@ -69,9 +92,26 @@ export function AgentStartScreen({
     if (isTauri()) setDesktop(true);
   }, []);
 
+  // Compact two-tier catalog + the alias map that turns the reply's short
+  // refs (t12/d0/x1) back into real ids. Built in one pass so they can't
+  // drift; falls back to the legacy full catalog if anything goes wrong.
+  const catalogArtifacts = useMemo(() => {
+    if (isLoadingTemplates) return null;
+    try {
+      return buildCatalogArtifacts(buildTemplateCatalog(templates), {
+        screenshots: screenshots.map((shot) => ({ width: shot.width, height: shot.height })),
+        instruction,
+      });
+    } catch {
+      return null;
+    }
+  }, [templates, isLoadingTemplates, screenshots, instruction]);
+
   const catalogText = useMemo(
-    () => (isLoadingTemplates ? '' : serializeCatalog(buildTemplateCatalog(templates))),
-    [templates, isLoadingTemplates]
+    () =>
+      catalogArtifacts?.catalogText ??
+      (isLoadingTemplates ? '' : serializeCatalog(buildTemplateCatalog(templates))),
+    [catalogArtifacts, templates, isLoadingTemplates]
   );
 
   const relayPrompt = useMemo(
@@ -79,9 +119,55 @@ export function AgentStartScreen({
     [catalogText, instruction, screenshots.length]
   );
 
+  // The repo-hosted catalog twin: same text and refs the deployed
+  // /data/ai/catalog.txt carries, rebuilt locally for the expected token and
+  // the alias map. Independent of instruction/screenshots.
+  const hostedCatalog = useMemo(() => {
+    if (isLoadingTemplates || templates.length === 0) return null;
+    try {
+      return buildHostedCatalog(templates);
+    } catch {
+      return null;
+    }
+  }, [templates, isLoadingTemplates]);
+
+  /**
+   * Fits the whole relay message under a provider's per-message cap: measures
+   * the wrapper with an empty catalog, gives the catalog whatever is left,
+   * and lets the serializer degrade until it fits.
+   */
+  const buildBudgetedRelay = useCallback(
+    (budgetChars: number): { prompt: string; aliasMap: AliasMap } | null => {
+      try {
+        const overhead = buildCompactRelayPrompt('', instruction, screenshots.length, true).length;
+        const artifacts = buildCatalogArtifacts(
+          buildTemplateCatalog(templates),
+          {
+            screenshots: screenshots.map((shot) => ({ width: shot.width, height: shot.height })),
+            instruction,
+          },
+          { budgetChars: Math.max(1000, budgetChars - overhead) }
+        );
+        return {
+          prompt: buildCompactRelayPrompt(
+            artifacts.catalogText,
+            instruction,
+            screenshots.length,
+            artifacts.hasDetail
+          ),
+          aliasMap: artifacts.aliasMap,
+        };
+      } catch {
+        return null;
+      }
+    },
+    [templates, screenshots, instruction]
+  );
+
   /** Both modes funnel here: validate, build, and show the confirmation card. */
   const acceptPlan = useCallback(
-    (raw: unknown) => {
+    (reply: unknown, aliasMap?: AliasMap) => {
+      const raw = aliasMap ? resolveAliases(reply, aliasMap) : reply;
       const parsed = AgentPlanSchema.safeParse(raw);
       if (!parsed.success) {
         setError(
@@ -141,18 +227,62 @@ export function AgentStartScreen({
         // Desktop only: the app drives the provider in its own in-app window
         // and resolves to the raw reply text. On the web the panel points to
         // the desktop app instead of offering run buttons.
-        const reply = await runViaEmbeddedWebview(
-          {
-            provider,
+        const send = (prompt: string) =>
+          runViaEmbeddedWebview(
+            {
+              provider,
+              prompt,
+              images: screenshots.map((shot) => ({
+                fileName: shot.fileName,
+                dataUrl: shot.aiDataUrl,
+              })),
+            },
+            { onStage: setStage, signal: controller.signal }
+          );
+
+        // Inline prompt: providers with a hard message cap get a terse prompt
+        // and a catalog shrunk to fit; the rest get the full compact prompt.
+        const runInline = async () => {
+          const budget = PROMPT_BUDGETS[provider];
+          const payload = (budget ? buildBudgetedRelay(budget) : null) ?? {
             prompt: relayPrompt,
-            images: screenshots.map((shot) => ({
-              fileName: shot.fileName,
-              dataUrl: shot.aiDataUrl,
-            })),
-          },
-          { onStage: setStage, signal: controller.signal }
-        );
-        acceptPlan(extractJson(reply));
+            aliasMap: catalogArtifacts?.aliasMap,
+          };
+          acceptPlan(extractJson(await send(payload.prompt)), payload.aliasMap);
+        };
+
+        // URL mode first: the message carries only the hosted catalog URL,
+        // and the reply must echo the file's verification token. A missing
+        // or wrong echo means the provider never really fetched the file
+        // (no browsing, toggle off, or invented content), so fall back to
+        // the inline catalog. The verdict is cached per provider until the
+        // catalog changes.
+        if (hostedCatalog && readUrlFetchCapability(provider, hostedCatalog.token) !== 'fail') {
+          const reply = await send(
+            buildUrlRelayPrompt(HOSTED_CATALOG_URL, instruction, screenshots.length)
+          );
+          let raw: unknown = null;
+          if (!reply.includes(CANNOT_FETCH_SENTINEL)) {
+            try {
+              raw = extractJson(reply);
+            } catch {
+              raw = null;
+            }
+          }
+          const echoed =
+            raw && typeof raw === 'object' && !Array.isArray(raw)
+              ? (raw as Record<string, unknown>).sourceToken
+              : null;
+          if (echoed === hostedCatalog.token) {
+            writeUrlFetchCapability(provider, hostedCatalog.token, 'ok');
+            acceptPlan(raw, hostedCatalog.aliasMap);
+          } else {
+            writeUrlFetchCapability(provider, hostedCatalog.token, 'fail');
+            await runInline();
+          }
+        } else {
+          await runInline();
+        }
       } catch (err) {
         if (!(err instanceof BridgeError && err.code === 'cancelled')) {
           setError(err instanceof Error ? err.message : 'The assistant could not be reached.');
@@ -163,7 +293,7 @@ export function AgentStartScreen({
         setBusy(false);
       }
     },
-    [acceptPlan, relayPrompt, screenshots]
+    [acceptPlan, relayPrompt, screenshots, instruction, catalogArtifacts, buildBudgetedRelay, hostedCatalog]
   );
 
   const loginWebProvider = useCallback((provider: WebProviderId) => {
@@ -186,7 +316,7 @@ export function AgentStartScreen({
           images: screenshots.map((shot) => shot.aiDataUrl),
           signal: controller.signal,
         });
-        acceptPlan(extractJson(reply));
+        acceptPlan(extractJson(reply), catalogArtifacts?.aliasMap);
       } catch (err) {
         if (!(err instanceof FreeProviderError && err.code === 'cancelled')) {
           setError(err instanceof Error ? err.message : 'The provider could not be reached.');
@@ -196,7 +326,7 @@ export function AgentStartScreen({
         setBusy(false);
       }
     },
-    [acceptPlan, relayPrompt, screenshots]
+    [acceptPlan, relayPrompt, screenshots, catalogArtifacts]
   );
 
   const cancel = () => abortRef.current?.abort();

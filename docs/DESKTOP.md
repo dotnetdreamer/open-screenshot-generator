@@ -213,6 +213,12 @@ so there is no server, no bundled browser, and no companion extension:
    reveals the window for a manual login, and the queued job runs once the page
    reloads signed in.
 
+What gets typed into the provider is deliberately small: the first attempt is a
+~2k character URL-mode prompt pointing at the repo-hosted template catalog, with
+a verification-token handshake and an automatic inline fallback (shrunk to the
+provider's message cap, e.g. ChatGPT free's ~4k character limit). That whole
+scheme is documented in [AI-AGENT.md](AI-AGENT.md).
+
 Claude, ChatGPT and Gemini are the exercised adapters; Copilot, DeepSeek, Qwen
 and Perplexity are best-effort (`tested: false` in `webAdapters.ts`, badged
 "beta" in the UI) and will need selector tuning as those sites change. Adding or
