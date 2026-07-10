@@ -121,6 +121,29 @@ export async function saveDataUrlToPath(
   return path;
 }
 
+/**
+ * Tell the desktop shell the UI is up, so it can close the splash window and
+ * reveal the main one. No-op on the web.
+ *
+ * The main window is hidden until this runs, so it produces no compositor
+ * frames and requestAnimationFrame never fires: we cannot wait on a real paint.
+ * Waiting on fonts is the closest proxy for "the first frame will not be
+ * unstyled". Rust reveals the window regardless after 12s.
+ */
+export async function signalAppReady(): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    await Promise.race([
+      document.fonts?.ready ?? Promise.resolve(),
+      new Promise((resolve) => setTimeout(resolve, 2500)),
+    ]);
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('abs_app_ready');
+  } catch {
+    // The splash closes on the Rust-side fallback timer anyway.
+  }
+}
+
 /** Open a URL in the system browser (Tauri) or a new tab (web). */
 export async function openExternal(url: string): Promise<void> {
   if (isTauri()) {

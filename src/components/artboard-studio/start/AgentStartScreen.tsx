@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, KeyRound, Loader2, Sparkles, UserRound } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, KeyRound, Loader2, Sparkles, UserRound, Zap } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -17,13 +17,21 @@ import { buildRelayPrompt } from '@/lib/ai/promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from '@/lib/ai/templateCatalog';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
 import type { AiProviderId } from '@/lib/ai/providers';
+import type { WebProviderId } from '@/lib/ai/webAdapters';
 import {
   BridgeError,
-  runViaExtension,
+  loginToProvider,
+  runViaEmbeddedWebview,
   type BridgeStage,
-  type WebProviderId,
-} from '@/lib/ai/extensionBridge';
+} from '@/lib/ai/webSessionDesktop';
+import {
+  FreeProviderError,
+  runFreeProvider,
+  type FreeProviderId,
+} from '@/lib/ai/freeProviders';
+import { isTauri } from '@/lib/desktop';
 import { ApiKeyModePanel } from './ApiKeyModePanel';
+import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { ScreenshotUploader } from './ScreenshotUploader';
 import { WebSessionModePanel } from './WebSessionModePanel';
 
@@ -51,6 +59,15 @@ export function AgentStartScreen({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BuildResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // The built-in free providers need the Tauri HTTP bridge, so the tab only
+  // exists in the desktop app. isTauri() reads window, hence the effect: the
+  // static export must prerender the same markup the browser hydrates.
+  const [desktop, setDesktop] = useState(false);
+  const [mode, setMode] = useState('web');
+  useEffect(() => {
+    if (isTauri()) setDesktop(true);
+  }, []);
 
   const catalogText = useMemo(
     () => (isLoadingTemplates ? '' : serializeCatalog(buildTemplateCatalog(templates))),
@@ -112,7 +129,7 @@ export function AgentStartScreen({
     [acceptPlan, instruction, screenshots, templates]
   );
 
-  const runExtensionMode = useCallback(
+  const runWebSession = useCallback(
     async (provider: WebProviderId) => {
       const controller = new AbortController();
       abortRef.current = controller;
@@ -121,7 +138,10 @@ export function AgentStartScreen({
       setError(null);
       setResult(null);
       try {
-        const reply = await runViaExtension(
+        // Desktop only: the app drives the provider in its own in-app window
+        // and resolves to the raw reply text. On the web the panel points to
+        // the desktop app instead of offering run buttons.
+        const reply = await runViaEmbeddedWebview(
           {
             provider,
             prompt: relayPrompt,
@@ -146,16 +166,37 @@ export function AgentStartScreen({
     [acceptPlan, relayPrompt, screenshots]
   );
 
-  const submitPastedReply = useCallback(
-    (reply: string) => {
+  const loginWebProvider = useCallback((provider: WebProviderId) => {
+    void loginToProvider(provider).catch(() => {
+      setError('The sign-in window could not be opened.');
+    });
+  }, []);
+
+  const runFreeMode = useCallback(
+    async (args: { provider: FreeProviderId; model: string }) => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setBusy(true);
+      setError(null);
       setResult(null);
       try {
+        const reply = await runFreeProvider({
+          ...args,
+          prompt: relayPrompt,
+          images: screenshots.map((shot) => shot.aiDataUrl),
+          signal: controller.signal,
+        });
         acceptPlan(extractJson(reply));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'That reply could not be read.');
+        if (!(err instanceof FreeProviderError && err.code === 'cancelled')) {
+          setError(err instanceof Error ? err.message : 'The provider could not be reached.');
+        }
+      } finally {
+        abortRef.current = null;
+        setBusy(false);
       }
     },
-    [acceptPlan]
+    [acceptPlan, relayPrompt, screenshots]
   );
 
   const cancel = () => abortRef.current?.abort();
@@ -216,12 +257,18 @@ export function AgentStartScreen({
 
       <section className="space-y-2">
         <Label className="text-sm font-medium">3. Choose how the agent runs</Label>
-        <Tabs defaultValue="web" className="w-full">
+        <Tabs value={mode} onValueChange={setMode} className="w-full">
           <TabsList>
             <TabsTrigger value="web" className="gap-1.5">
               <UserRound className="h-3.5 w-3.5" />
               Free, use my account
             </TabsTrigger>
+            {desktop && (
+              <TabsTrigger value="free" className="gap-1.5">
+                <Zap className="h-3.5 w-3.5" />
+                Free, built in
+              </TabsTrigger>
+            )}
             <TabsTrigger value="api" className="gap-1.5">
               <KeyRound className="h-3.5 w-3.5" />
               Use my API key
@@ -229,16 +276,26 @@ export function AgentStartScreen({
           </TabsList>
           <TabsContent value="web" className="mt-4">
             <WebSessionModePanel
-              prompt={relayPrompt}
-              screenshotCount={screenshots.length}
               busy={busy}
               disabled={screenshots.length === 0 && !instruction.trim()}
               stage={stage}
-              onRunViaExtension={(provider) => void runExtensionMode(provider)}
-              onSubmitPastedReply={submitPastedReply}
+              desktop={desktop}
+              onRunProvider={(provider) => void runWebSession(provider)}
+              onLogin={loginWebProvider}
               onCancel={cancel}
             />
           </TabsContent>
+          {desktop && (
+            <TabsContent value="free" className="mt-4">
+              <FreeProviderModePanel
+                screenshotCount={screenshots.length}
+                busy={busy}
+                disabled={screenshots.length === 0 && !instruction.trim()}
+                onGenerate={(args) => void runFreeMode(args)}
+                onCancel={cancel}
+              />
+            </TabsContent>
+          )}
           <TabsContent value="api" className="mt-4">
             <ApiKeyModePanel
               busy={busy}

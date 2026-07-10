@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.ccrstech.artboardstudio",
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "npm run build:assistant-agent && npm run dev",
     "devUrl": "http://localhost:9002",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build:assistant-agent && npm run build",
     "frontendDist": "../out"
   },
   "app": {
@@ -21,7 +21,9 @@
         "center": true,
         "resizable": true,
         "fullscreen": false,
-        "dragDropEnabled": false
+        "dragDropEnabled": false,
+        "visible": false,
+        "backgroundColor": "#E0E0E0"
       }
     ],
     "security": {

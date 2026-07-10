@@ -5,6 +5,7 @@ import type {
   RunResponse,
   WebProviderId,
 } from './protocol';
+import { WEB_ADAPTERS, WEB_PROVIDER_IDS } from '../../src/lib/ai/webAdapters';
 
 /**
  * Routes one generate request: find (or open) the assistant's tab in the
@@ -20,23 +21,20 @@ interface SiteRoute {
   script: string;
 }
 
-const SITES: Record<WebProviderId, SiteRoute> = {
-  claude: {
-    url: 'https://claude.ai/new',
-    match: ['https://claude.ai/*'],
-    script: 'dist/adapters/claude.js',
-  },
-  chatgpt: {
-    url: 'https://chatgpt.com/',
-    match: ['https://chatgpt.com/*', 'https://chat.openai.com/*'],
-    script: 'dist/adapters/chatgpt.js',
-  },
-  gemini: {
-    url: 'https://gemini.google.com/app',
-    match: ['https://gemini.google.com/*'],
-    script: 'dist/adapters/gemini.js',
-  },
-};
+// Derived from the shared registry so the provider set stays in one place.
+const SITES = Object.fromEntries(
+  WEB_PROVIDER_IDS.map((id) => {
+    const adapter = WEB_ADAPTERS[id];
+    return [
+      id,
+      {
+        url: adapter.url,
+        match: adapter.hosts.map((host) => `https://${host}/*`),
+        script: `dist/adapters/${id}.js`,
+      },
+    ];
+  })
+) as Record<WebProviderId, SiteRoute>;
 
 /** requestId -> the studio tab waiting on it, so progress can be routed back. */
 const pending = new Map<string, { pageTabId: number; siteTabId?: number }>();

@@ -1,4 +1,9 @@
 {
     "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+    "IDX.aI.enableCodebaseIndexing": true,
+    // rustup installs cargo to ~\.cargo\bin but the machine-wide PATH entry is
+    // missing; without this, tauri dev fails with "cargo metadata: program not found"
+    "terminal.integrated.env.windows": {
+        "Path": "${env:Path};${env:USERPROFILE}\\.cargo\\bin"
+    }
 }

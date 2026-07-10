@@ -1,3 +1,3 @@
 import { registerAdapter } from './driver';
 
-registerAdapter('chatgpt');
+registerAdapter('deepseek');

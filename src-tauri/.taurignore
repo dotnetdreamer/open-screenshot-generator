@@ -1,0 +1,5 @@
+# Keep the tauri dev file watcher from restarting the app when the assistant
+# agent bundle is (re)generated at startup by build:assistant-agent. Trade-off:
+# after editing src/lib/ai/webAssistantAgent.ts, restart tauri dev to pick up
+# the new bundle.
+assistant/agent.js

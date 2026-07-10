@@ -7,12 +7,16 @@ import type { LanguageModel } from 'ai';
  * Provider registry for the "use my API key" mode.
  *
  * Artboard Studio is a static export with no server, so every call is made from
- * the browser with the user's own key. All three providers serve CORS headers
+ * the browser with the user's own key. All four providers serve CORS headers
  * for direct browser calls; Anthropic additionally requires an explicit opt-in
  * header, without which every request fails as an opaque network error.
+ *
+ * OpenRouter is the zero-cost option on the web: the key is free to create and
+ * the listed models are its free tier. (The desktop app additionally offers a
+ * keyless free mode; see freeProviders.ts.)
  */
 
-export type AiProviderId = 'anthropic' | 'openai' | 'google';
+export type AiProviderId = 'anthropic' | 'openai' | 'google' | 'openrouter';
 
 export interface AiProviderInfo {
   id: AiProviderId;
@@ -52,6 +56,19 @@ export const AI_PROVIDERS: Record<AiProviderId, AiProviderInfo> = {
     keyUrl: 'https://aistudio.google.com/app/apikey',
     keyUrlLabel: 'aistudio.google.com',
   },
+  openrouter: {
+    id: 'openrouter',
+    label: 'OpenRouter (free models)',
+    defaultModel: 'google/gemini-2.0-flash-exp:free',
+    models: [
+      'google/gemini-2.0-flash-exp:free',
+      'meta-llama/llama-4-maverick:free',
+      'qwen/qwen2.5-vl-72b-instruct:free',
+    ],
+    keyPlaceholder: 'sk-or-...',
+    keyUrl: 'https://openrouter.ai/settings/keys',
+    keyUrlLabel: 'openrouter.ai',
+  },
 };
 
 export const AI_PROVIDER_IDS = Object.keys(AI_PROVIDERS) as AiProviderId[];
@@ -72,6 +89,10 @@ export function createModel(
       return createOpenAI({ apiKey })(modelId);
     case 'google':
       return createGoogleGenerativeAI({ apiKey })(modelId);
+    case 'openrouter':
+      // OpenRouter speaks the chat-completions dialect, not OpenAI's newer
+      // Responses API that the default factory targets, hence .chat().
+      return createOpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' }).chat(modelId);
   }
 }
 

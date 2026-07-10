@@ -7,7 +7,9 @@
 export const PAGE_SOURCE = 'artboard-studio';
 export const EXT_SOURCE = 'artboard-studio-extension';
 
-export type WebProviderId = 'claude' | 'chatgpt' | 'gemini';
+// The provider list is shared with the app so the two never drift.
+export type { WebProviderId } from '../../src/lib/ai/webAdapters';
+import type { WebProviderId } from '../../src/lib/ai/webAdapters';
 
 export type Stage = 'opening' | 'attaching' | 'sending' | 'waiting' | 'reading';
 

@@ -43,8 +43,9 @@ export function AgentPromoBanner({ onStartAgent }: AgentPromoBannerProps) {
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Upload your app screenshots and say what you want. The agent picks a template, drops your
-            screens into the mockups and rewrites the copy. Bring your own API key, or use the free
-            Claude, ChatGPT or Gemini account you already have.
+            screens into the mockups and rewrites the copy. Run it free with the built-in providers in
+            the desktop app, use the Claude, ChatGPT or Gemini account you already have, or bring your
+            own API key.
           </p>
         </div>
         {/* A span, not a Button: the whole banner is already a <button>, and a

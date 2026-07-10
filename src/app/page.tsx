@@ -1,6 +1,7 @@
 "use client";
 import { Suspense } from "react";
 import { ArtboardStudioLayout } from "@/components/artboard-studio/ArtboardStudioLayout";
+import { AppReadySignal } from "@/components/artboard-studio/AppReadySignal";
 import { ClipboardProvider } from "@/contexts/ClipboardContext";
 
 export default function HomePage() {
@@ -11,6 +12,7 @@ export default function HomePage() {
             which bails out of static prerendering (output: 'export'). */}
         <Suspense>
           <ArtboardStudioLayout />
+          <AppReadySignal />
         </Suspense>
       </ClipboardProvider>
     </main>

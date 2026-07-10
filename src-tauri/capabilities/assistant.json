@@ -1,0 +1,20 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "assistant",
+  "description": "Lets the injected agent, running on the signed-in provider sites inside the hidden assistant-* windows, report progress and results back to the app over Tauri events. Emit only; the pages get no other Tauri access.",
+  "windows": ["assistant-*"],
+  "remote": {
+    "urls": [
+      "https://claude.ai/*",
+      "https://chatgpt.com/*",
+      "https://chat.openai.com/*",
+      "https://gemini.google.com/*",
+      "https://copilot.microsoft.com/*",
+      "https://chat.deepseek.com/*",
+      "https://chat.qwen.ai/*",
+      "https://www.perplexity.ai/*",
+      "https://perplexity.ai/*"
+    ]
+  },
+  "permissions": ["core:event:allow-emit"]
+}

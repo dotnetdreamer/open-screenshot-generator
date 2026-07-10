@@ -10,10 +10,11 @@
     "start": "npm run dev",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "build:extension": "esbuild extension/src/background.ts extension/src/bridge.ts extension/src/adapters/claude.ts extension/src/adapters/chatgpt.ts extension/src/adapters/gemini.ts --bundle --format=iife --target=chrome110 --outbase=extension/src --outdir=extension/dist",
+    "build:extension": "esbuild extension/src/background.ts extension/src/bridge.ts extension/src/adapters/claude.ts extension/src/adapters/chatgpt.ts extension/src/adapters/gemini.ts extension/src/adapters/copilot.ts extension/src/adapters/deepseek.ts extension/src/adapters/qwen.ts extension/src/adapters/perplexity.ts --bundle --format=iife --target=chrome110 --outbase=extension/src --outdir=extension/dist",
+    "build:assistant-agent": "esbuild src/lib/ai/webAssistantAgent.ts --bundle --format=iife --target=chrome110 --outfile=src-tauri/assistant/agent.js",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:dev": "npm run build:assistant-agent && tauri dev",
+    "tauri:build": "npm run build:assistant-agent && tauri build"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.11",
@@ -47,6 +48,7 @@
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-fs": "^2.5.1",
+    "@tauri-apps/plugin-http": "^2.5.9",
     "@tauri-apps/plugin-opener": "^2.5.4",
     "@types/three": "^0.185.0",
     "ai": "^7.0.19",
@@ -76,6 +78,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "esbuild": "^0.28.1",
     "genkit-cli": "^1.8.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",

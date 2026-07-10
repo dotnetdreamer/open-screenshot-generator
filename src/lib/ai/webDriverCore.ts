@@ -1,0 +1,293 @@
+/**
+ * The site-agnostic half of "drive a chat window", with no transport baked in.
+ *
+ * All the assistants are the same machine: a composer to type into, a hidden
+ * file input to attach to, a send button, a streaming indicator, and a list of
+ * assistant turns. This module runs that machine given a WebAdapter's selectors.
+ * It knows nothing about how it was loaded: the companion extension wraps it
+ * with chrome.runtime messaging, the desktop app wraps it with Tauri events.
+ *
+ * Ported from the original extension driver so the two share exactly one copy
+ * of the fragile DOM logic.
+ */
+
+import type { WebAdapter } from './webAdapters';
+
+export type Stage = 'attaching' | 'sending' | 'waiting' | 'reading';
+
+export type DriverErrorCode =
+  | 'not-logged-in'
+  | 'timeout'
+  | 'site-changed'
+  | 'cancelled'
+  | 'unknown';
+
+export class DriverError extends Error {
+  code: DriverErrorCode;
+  constructor(code: DriverErrorCode, message: string) {
+    super(message);
+    this.name = 'DriverError';
+    this.code = code;
+  }
+}
+
+export interface DriverImage {
+  fileName: string;
+  dataUrl: string;
+}
+
+export interface DriverCommand {
+  prompt: string;
+  images: DriverImage[];
+}
+
+export interface DriverHooks {
+  progress: (stage: Stage) => void;
+  isCancelled: () => boolean;
+}
+
+const SETTLE_MS = 1200; // reply text unchanged this long means the stream ended
+const REPLY_TIMEOUT_MS = 4 * 60_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function pick<T extends Element = HTMLElement>(selectors: string[]): T | null {
+  for (const selector of selectors) {
+    try {
+      const found = document.querySelector<T>(selector);
+      if (found) return found;
+    } catch {
+      // A selector a browser rejects (e.g. :has on an old engine) just skips.
+    }
+  }
+  return null;
+}
+
+function pickAll(selectors: string[]): Element[] {
+  for (const selector of selectors) {
+    try {
+      const found = document.querySelectorAll(selector);
+      if (found.length > 0) return Array.from(found);
+    } catch {
+      // ignore an unsupported selector and try the next
+    }
+  }
+  return [];
+}
+
+async function waitFor<T extends Element = HTMLElement>(
+  selectors: string[],
+  timeoutMs: number,
+  message: string
+): Promise<T> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const found = pick<T>(selectors);
+    if (found) return found;
+    await sleep(150);
+  }
+  throw new DriverError('site-changed', message);
+}
+
+function dataUrlToFile(image: DriverImage): File {
+  const [header, body] = image.dataUrl.split(',', 2);
+  const mime = /:(.*?);/.exec(header)?.[1] ?? 'image/jpeg';
+  const bytes = atob(body);
+  const buffer = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) buffer[i] = bytes.charCodeAt(i);
+  return new File([buffer], image.fileName || `screenshot.${mime.split('/')[1]}`, { type: mime });
+}
+
+/**
+ * React and friends listen for a real `change` from the input, and they read
+ * `input.files`, which is read-only except through a DataTransfer.
+ */
+async function attachFiles(config: WebAdapter, images: DriverImage[]): Promise<void> {
+  if (images.length === 0 || config.fileInput.length === 0) return;
+
+  if (config.attachMenu) {
+    pick<HTMLElement>(config.attachMenu)?.click();
+    await sleep(400);
+  }
+
+  // Attachment is best-effort: a site that has no reachable file input on the
+  // free tier should still get the text prompt rather than failing the run.
+  let input: HTMLInputElement | null = null;
+  try {
+    input = await waitFor<HTMLInputElement>(config.fileInput, 5000, 'no file input');
+  } catch {
+    return;
+  }
+
+  const transfer = new DataTransfer();
+  for (const image of images) transfer.items.add(dataUrlToFile(image));
+  input.files = transfer.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+
+  // Uploads are async and the send button stays disabled while they run.
+  await sleep(1500 + images.length * 600);
+}
+
+/**
+ * `execCommand('insertText')` is deprecated but it is still the only way to put
+ * text into a rich editor (ProseMirror, Quill, Lexical) such that the editor's
+ * own input handling runs. A synthetic paste is the fallback.
+ */
+function typeInto(element: HTMLElement, text: string): void {
+  element.focus();
+  if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+    const setter = Object.getOwnPropertyDescriptor(
+      element instanceof HTMLTextAreaElement
+        ? HTMLTextAreaElement.prototype
+        : HTMLInputElement.prototype,
+      'value'
+    )?.set;
+    setter?.call(element, text);
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
+  const inserted = document.execCommand('insertText', false, text);
+  if (inserted && element.textContent?.includes(text.slice(0, 40))) return;
+
+  const transfer = new DataTransfer();
+  transfer.setData('text/plain', text);
+  element.dispatchEvent(
+    new ClipboardEvent('paste', { clipboardData: transfer, bubbles: true, cancelable: true })
+  );
+}
+
+async function clickSend(config: WebAdapter, composer: HTMLElement): Promise<void> {
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    const button = pick<HTMLButtonElement>(config.send);
+    if (button && !button.disabled && button.getAttribute('aria-disabled') !== 'true') {
+      button.click();
+      return;
+    }
+    await sleep(200);
+  }
+  // Some builds hide the button until the composer is focused; Enter still works.
+  composer.focus();
+  composer.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true })
+  );
+}
+
+function lastAssistantText(config: WebAdapter): string {
+  const turns = pickAll(config.assistantMessage);
+  const last = turns[turns.length - 1];
+  if (!last) return '';
+  // Prefer a code block: that is where the plan JSON lives, and innerText on the
+  // whole turn can mangle it with copy-button labels.
+  const blocks = last.querySelectorAll('pre code, pre');
+  if (blocks.length > 0) {
+    return Array.from(blocks)
+      .map((block) => (block as HTMLElement).innerText)
+      .join('\n');
+  }
+  return (last as HTMLElement).innerText ?? '';
+}
+
+/**
+ * Waits for the answer. A "stop generating" control is the reliable start
+ * signal; once it disappears (or never appeared, on a fast reply) we fall back
+ * to waiting for the text to stop changing.
+ */
+async function waitForReply(
+  config: WebAdapter,
+  before: number,
+  isCancelled: () => boolean
+): Promise<string> {
+  const deadline = Date.now() + REPLY_TIMEOUT_MS;
+  let lastText = '';
+  let stableSince = 0;
+
+  while (Date.now() < deadline) {
+    // This is where a run spends minutes; without a checkpoint here a cancel
+    // would only take effect after the reply finished streaming.
+    if (isCancelled()) throw new DriverError('cancelled', 'Cancelled.');
+    const streaming = pick(config.streaming) !== null;
+    const turns = pickAll(config.assistantMessage);
+    const grew = turns.length > before;
+    const text = grew ? lastAssistantText(config) : '';
+
+    if (!streaming && grew && text.length > 0) {
+      if (text === lastText) {
+        if (stableSince && Date.now() - stableSince >= SETTLE_MS) return text;
+        if (!stableSince) stableSince = Date.now();
+      } else {
+        lastText = text;
+        stableSince = Date.now();
+      }
+    } else {
+      stableSince = 0;
+      lastText = text;
+    }
+
+    await sleep(300);
+  }
+
+  if (lastText) return lastText; // Timed out mid-stream; return what we have.
+  throw new DriverError('timeout', 'The assistant did not answer in time.');
+}
+
+/**
+ * Is the user signed in on this page right now? Waits a bounded time for either
+ * the composer (signed in) or the logged-out marker to appear, because the SPA
+ * may still be booting when this is called.
+ */
+export async function detectLoggedIn(config: WebAdapter, timeoutMs = 8000): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (config.loggedOut && pick(config.loggedOut)) return false;
+    if (pick(config.composer)) return true;
+    await sleep(200);
+  }
+  // Neither appeared: treat as not signed in so the caller surfaces a login.
+  return Boolean(pick(config.composer));
+}
+
+/** Type the prompt, attach the images, wait for the reply, return its text. */
+export async function runSession(
+  config: WebAdapter,
+  command: DriverCommand,
+  hooks: DriverHooks
+): Promise<string> {
+  const bail = () => {
+    if (hooks.isCancelled()) throw new DriverError('cancelled', 'Cancelled.');
+  };
+
+  if (config.loggedOut && pick(config.loggedOut)) {
+    throw new DriverError('not-logged-in', 'Sign in on this site first.');
+  }
+
+  hooks.progress('attaching');
+  const composer = await waitFor<HTMLElement>(
+    config.composer,
+    20_000,
+    'Could not find the message box. You may not be signed in.'
+  );
+  bail();
+
+  await attachFiles(config, command.images);
+  bail();
+
+  hooks.progress('sending');
+  typeInto(composer, command.prompt);
+  await sleep(400);
+  bail();
+
+  const before = pickAll(config.assistantMessage).length;
+  await clickSend(config, composer);
+  bail();
+
+  hooks.progress('waiting');
+  const text = await waitForReply(config, before, hooks.isCancelled);
+  bail();
+
+  hooks.progress('reading');
+  return text;
+}
