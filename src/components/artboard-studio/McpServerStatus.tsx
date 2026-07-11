@@ -65,6 +65,26 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   );
 }
 
+// Natural-language prompts the user can paste into their AI client to exercise
+// the tools end to end.
+const EXAMPLE_PROMPTS: string[] = [
+  'Create a new 1290×2796 artboard called "Onboarding" with a purple-to-blue gradient background.',
+  'On the active artboard, add a bold white headline "Plan your week" near the top, then a rounded rectangle card below it.',
+  'Add an iPhone 15 Pro mockup centered on the active artboard.',
+  'List all my artboards and describe what is on the active one.',
+  'Set the active artboard background to #0B1120, make the headline 96px, then export it as a PNG.',
+];
+
+// A single example prompt with a copy button.
+function ExamplePrompt({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-2 rounded-md border border-border/60 p-2">
+      <p className="min-w-0 flex-1 text-[11px] leading-snug text-foreground">{text}</p>
+      <CopyButton value={text} label="prompt" />
+    </div>
+  );
+}
+
 // A copyable code block (command or config snippet).
 function CodeBlock({ code }: { code: string }) {
   return (
@@ -204,7 +224,7 @@ export function McpServerStatus({ className }: { className?: string }) {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="flex max-h-[85vh] flex-col gap-0 overflow-hidden sm:max-w-[540px]">
+      <DialogContent className="flex max-h-[88vh] w-[92vw] flex-col gap-0 overflow-hidden sm:max-w-[960px]">
         <DialogHeader className="pb-3">
           <DialogTitle className="flex items-center gap-2">
             MCP server
@@ -240,13 +260,36 @@ export function McpServerStatus({ className }: { className?: string }) {
 
           <div>
             <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Set up your client</div>
-            <Accordion type="single" collapsible defaultValue="claude-code" className="w-full">
+            <Accordion type="multiple" defaultValue={[...guides.map((g) => g.id), 'examples', 'tools']} className="w-full">
               {guides.map((g) => (
                 <AccordionItem key={g.id} value={g.id}>
                   <AccordionTrigger className="text-sm">{g.name}</AccordionTrigger>
                   <AccordionContent>{g.body}</AccordionContent>
                 </AccordionItem>
               ))}
+
+              <AccordionItem value="examples">
+                <AccordionTrigger className="text-sm">Example prompts</AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      Once connected, paste any of these into your AI client (copy on the right):
+                    </p>
+                    {EXAMPLE_PROMPTS.map((text) => (
+                      <ExamplePrompt key={text} text={text} />
+                    ))}
+                    <p className="pt-1 text-xs text-muted-foreground">Or have it call a tool directly, e.g.:</p>
+                    <CodeBlock
+                      code={JSON.stringify(
+                        { tool: 'add_element', arguments: { type: 'text', content: 'Plan your week', x: 120, y: 220, fontSize: 96, color: '#FFFFFF' } },
+                        null,
+                        2
+                      )}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
               <AccordionItem value="tools">
                 <AccordionTrigger className="text-sm">Exposed tools ({tools.length})</AccordionTrigger>
                 <AccordionContent>
