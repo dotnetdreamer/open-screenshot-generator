@@ -23,6 +23,7 @@ const SETTINGS_EVENT_CHANNEL: &str = "abs-settings-changed";
 
 const SETTINGS_FILE: &str = "settings.json";
 const MENU_ID_SHOW_ASSISTANT: &str = "abs-settings-show-assistant";
+const MENU_ID_MCP_SERVER: &str = "abs-settings-mcp-server";
 
 /// `#[serde(default)]` keeps old settings files readable as fields get added.
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -31,6 +32,10 @@ pub struct AppSettings {
     /// Show the provider automation window while a run is in progress instead
     /// of driving it hidden in the background.
     pub show_assistant_window: bool,
+
+    /// Run the local MCP server (mcp_server.rs) so external AI tools can drive
+    /// the design app. Off by default; toggled from the Settings menu.
+    pub mcp_server_enabled: bool,
 }
 
 pub struct SettingsState(Mutex<AppSettings>);
@@ -92,8 +97,16 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     .checked(settings.show_assistant_window)
     .build(app)?;
 
+    let mcp_server = CheckMenuItemBuilder::with_id(
+        MENU_ID_MCP_SERVER,
+        "Run MCP server for external AI tools",
+    )
+    .checked(settings.mcp_server_enabled)
+    .build(app)?;
+
     let settings_menu = SubmenuBuilder::new(app, "Settings")
         .item(&show_assistant)
+        .item(&mcp_server)
         .build()?;
 
     let menu = Menu::default(app)?;
@@ -110,10 +123,20 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     }
 
     app.on_menu_event(move |app, event| {
-        if event.id().as_ref() == MENU_ID_SHOW_ASSISTANT {
-            // The OS toggles the checkmark itself; read it back as the truth.
-            let checked = show_assistant.is_checked().unwrap_or(false);
-            update(app, |settings| settings.show_assistant_window = checked);
+        // The OS toggles the checkmark itself; read it back as the truth.
+        match event.id().as_ref() {
+            MENU_ID_SHOW_ASSISTANT => {
+                let checked = show_assistant.is_checked().unwrap_or(false);
+                update(app, |settings| settings.show_assistant_window = checked);
+            }
+            MENU_ID_MCP_SERVER => {
+                let checked = mcp_server.is_checked().unwrap_or(false);
+                update(app, |settings| settings.mcp_server_enabled = checked);
+                // Start/stop the listener to match, and let the frontend show
+                // the connection URL.
+                crate::mcp_server::apply_enabled(app, checked);
+            }
+            _ => {}
         }
     });
 

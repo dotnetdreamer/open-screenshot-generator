@@ -20,8 +20,11 @@ import { CanvasArea } from './CanvasArea';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
+import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 import { ExportDialog, type ExportSelection } from './ExportDialog';
+import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
+import { startDesktopMcpBridge, getMcpStatus, listenMcpStatus, type McpDesignApi } from '@/lib/mcp/desktopMcpServer';
+import { McpServerStatus } from './McpServerStatus';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
@@ -84,6 +87,67 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
     
     return { ...ab, position: newPosition };
   });
+}
+
+// Build a fully-formed element for the desktop MCP server's add_element tool.
+// Mirrors the defaults in Artboard.addElement, but constructs the element
+// directly (no imperative ref) so a single tool call can create and precisely
+// place/style an element in one shot. Caller `props` (position, size, colours,
+// content, ...) win over the defaults; discriminant fields are asserted last.
+function buildMcpElement(
+  type: ElementType,
+  subType: string | undefined,
+  props: Record<string, any>,
+  board: ArtboardState
+): ArtboardElement | null {
+  const id = `el_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const base = { id, rotation: 0, scale: 1 };
+  const centered = (w: number, h: number): Point => ({
+    x: Math.max(0, board.size.width / 2 - w / 2),
+    y: Math.max(0, board.size.height / 2 - h / 2),
+  });
+  const sizeOr = (w: number, h: number): Size => (props.size?.width && props.size?.height ? props.size : { width: w, height: h });
+
+  if (type === 'text') {
+    const size = sizeOr(400, 100);
+    return {
+      ...base, content: 'New Text', fontSize: 48, color: '#333333', fontFamily: 'Arial',
+      ...props, size, position: props.position ?? centered(size.width, size.height), type: 'text',
+    } as TextElementProps;
+  }
+  if (type === 'image') {
+    const size = sizeOr(400, 300);
+    return {
+      ...base, objectFit: 'cover', opacity: 1, borderRadius: 0,
+      ...props, size, position: props.position ?? centered(size.width, size.height), type: 'image',
+    } as ImageElementProps;
+  }
+  if (type === 'shape') {
+    if (!subType) return null;
+    const size = sizeOr(300, 300);
+    const shapeDefaults: Record<string, unknown> = { fillColor: '#5F9EA0', strokeColor: '#333333', strokeWidth: 0, fillOpacity: 1 };
+    if (subType === 'rectangle') { shapeDefaults.borderRadius = 0; shapeDefaults.borderRadiusType = 'uniform'; }
+    if (subType === 'star') shapeDefaults.customPoints = 5;
+    if (subType === 'circle' || subType === 'diamond') shapeDefaults.innerRadius = 0;
+    return {
+      ...base, ...shapeDefaults,
+      ...props, size, position: props.position ?? centered(size.width, size.height),
+      type: 'shape', shapeType: subType as ShapeType,
+    } as ShapeElementProps;
+  }
+  if (type === 'device') {
+    if (!subType) return null;
+    const size = sizeOr(600, 1200);
+    const screenshotRect = subType === 'custom'
+      ? { left: 5, top: 5, width: 90, height: 90 }
+      : { left: 0, top: 0, width: 100, height: 100 };
+    return {
+      ...base, screenshotRect,
+      ...props, size, position: props.position ?? centered(size.width, size.height),
+      type: 'device', deviceType: subType as DeviceType,
+    } as DeviceFrameElementProps;
+  }
+  return null;
 }
 
 // Read ?projectId synchronously so the FIRST client render already knows whether
@@ -261,7 +325,41 @@ export function ArtboardStudioLayout() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const { toast } = useToast();
   const artboardRefs = useRef<Record<string, any>>({});
+  // Latest design-tool API for the desktop MCP server; assigned each render and
+  // read per request by the bridge (see the block above the render return).
+  const mcpApiRef = useRef<McpDesignApi | null>(null);
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
+
+  // Start the desktop MCP bridge (desktop only): handle requests the Rust
+  // transport forwards, and surface the connection URL when the user toggles
+  // the server on from the Settings menu.
+  useEffect(() => {
+    if (!isTauri()) return;
+    let disposeBridge: () => void = () => {};
+    let disposeStatus: () => void = () => {};
+    let cancelled = false;
+    (async () => {
+      disposeBridge = await startDesktopMcpBridge(() => mcpApiRef.current);
+      if (cancelled) return disposeBridge();
+      disposeStatus = await listenMcpStatus((status) => {
+        toast(
+          status.running && status.url
+            ? { title: 'MCP server on', description: `External AI tools can connect at ${status.url}` }
+            : { title: 'MCP server off', description: 'External AI tools can no longer reach this app.' }
+        );
+      });
+      if (cancelled) return disposeStatus();
+      const status = await getMcpStatus();
+      if (status.running && status.url) {
+        console.info(`[MCP] Artboard Studio design tools available at ${status.url}`);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      disposeBridge();
+      disposeStatus();
+    };
+  }, [toast]);
   const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   // Seed from the URL so the project-loading and selector effects see the real
@@ -1751,6 +1849,134 @@ const generateRandomProjectName = (): string => {
       </>
   );
 
+  // --- Desktop MCP server: expose the design tools to external AI agents. ---
+  // The Rust transport bridges each MCP request here; this object is the tool
+  // implementation. Rebuilt every render so the bridge (which reads it per
+  // request via the ref) always closes over the latest state and handlers.
+  const resolveBoardId = (artboardId?: string) =>
+    artboardId || activeArtboardId || (artboards[0]?.id ?? null);
+
+  const mcpApi: McpDesignApi = {
+    listArtboards: () =>
+      artboards.map((ab) => ({
+        id: ab.id,
+        name: ab.name,
+        width: ab.size.width,
+        height: ab.size.height,
+        backgroundColor: ab.backgroundColor,
+        elementCount: ab.elements.length,
+        active: ab.id === activeArtboardId,
+      })),
+    getArtboard: (id) => {
+      const boardId = resolveBoardId(id);
+      const ab = artboards.find((b) => b.id === boardId);
+      return ab ? { ...ab, active: ab.id === activeArtboardId } : null;
+    },
+    createArtboard: ({ name, width, height, preset, backgroundColor }) => {
+      let size: Size = { width: 1290, height: 2796 };
+      if (preset) {
+        const p = ALL_CANVAS_SIZE_PRESETS.find((x) => x.id === preset);
+        if (p) size = { width: p.width, height: p.height };
+      }
+      if (width && height) size = { width, height };
+      const id = `artboard_${Date.now()}`;
+      const board: ArtboardState = {
+        id,
+        name: name || `Artboard ${artboards.length + 1}`,
+        position: { x: 0, y: 0 },
+        size,
+        elements: [],
+        backgroundColor: backgroundColor || '#FFFFFF',
+        backgroundType: 'solid',
+        zoom: 1,
+      };
+      handleArtboardsUpdate([...artboards, board]);
+      setActiveArtboardId(id);
+      return { id, name: board.name, width: size.width, height: size.height, backgroundColor: board.backgroundColor, elementCount: 0, active: true };
+    },
+    setActiveArtboard: (id) => {
+      if (!artboards.some((ab) => ab.id === id)) return false;
+      setActiveArtboardId(id);
+      return true;
+    },
+    addElement: ({ artboardId, type, subType, props }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) throw new Error('No artboard to add to. Create one first with create_artboard.');
+      const element = buildMcpElement(type, subType, props ?? {}, board);
+      if (!element) throw new Error(`Could not create a "${type}" element (shapes and devices need a subType).`);
+      handleArtboardsUpdate(
+        artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: [...ab.elements, element] } : ab))
+      );
+      setActiveArtboardId(boardId);
+      return { id: element.id };
+    },
+    updateElement: ({ artboardId, elementId, props }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board || !board.elements.some((el) => el.id === elementId)) return false;
+      const newElements = board.elements.map((el) =>
+        el.id === elementId ? ({ ...el, ...props, id: el.id, type: el.type } as ArtboardElement) : el
+      );
+      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: newElements } : ab)));
+      return true;
+    },
+    deleteElement: ({ artboardId, elementId }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board || !board.elements.some((el) => el.id === elementId)) return false;
+      handleArtboardsUpdate(
+        artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: ab.elements.filter((el) => el.id !== elementId) } : ab))
+      );
+      if (selectedElementIdOnActiveArtboard === elementId) setSelectedElementIdOnActiveArtboard(null);
+      return true;
+    },
+    setBackground: ({ artboardId, backgroundColor, gradient }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) return false;
+      const patch: Partial<ArtboardState> = gradient
+        ? { backgroundType: 'gradient', backgroundGradient: gradient }
+        : backgroundColor
+          ? { backgroundType: 'solid', backgroundColor }
+          : {};
+      if (Object.keys(patch).length === 0) return false;
+      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)));
+      return true;
+    },
+    exportPng: async ({ artboardId }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) throw new Error('No such artboard.');
+      const el = document.querySelector(`[data-artboard-dom-id="${boardId}"]`) as HTMLElement | null;
+      if (!el) throw new Error('That artboard is not on screen; open the project in the app first.');
+      // Same capture recipe as the Export dialog: unscale, exclude editor chrome,
+      // render at the artboard's real pixel size, then restore the styles.
+      const original = { transform: el.style.transform, width: el.style.width, height: el.style.height };
+      el.style.transform = 'scale(1)';
+      try {
+        const dataUrl = await toPng(el, {
+          width: board.size.width,
+          height: board.size.height,
+          backgroundColor: board.backgroundColor === 'hsl(var(--card))' || !board.backgroundColor ? 'white' : board.backgroundColor,
+          pixelRatio: 1,
+          cacheBust: true,
+          filter: (node) => {
+            const n = node as HTMLElement;
+            return !(n?.hasAttribute?.('data-export-exclude') || n?.hasAttribute?.('data-interaction-handle'));
+          },
+          style: { width: `${board.size.width}px`, height: `${board.size.height}px` },
+        });
+        return { dataUrl, width: board.size.width, height: board.size.height };
+      } finally {
+        el.style.transform = original.transform;
+        el.style.width = original.width;
+        el.style.height = original.height;
+      }
+    },
+  };
+  mcpApiRef.current = mcpApi;
+
   return (
     <ClipboardProvider>
       {templateSelectorDialog}
@@ -1877,8 +2103,11 @@ const generateRandomProjectName = (): string => {
                   <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
               </div>
+
+              {/* MCP server status (desktop only; renders nothing on the web) */}
+              <McpServerStatus className="absolute bottom-4 right-4 z-40" />
             </div>
-            
+
             {/* Properties panel - right sidebar */}
             <div className="w-80 flex-shrink-0 h-full">
               <PropertiesPanel

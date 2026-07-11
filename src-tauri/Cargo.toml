@@ -22,6 +22,11 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Minimal blocking HTTP server for the opt-in local MCP server (mcp_server.rs).
+# Localhost only, one accept thread + a thread per request; no async runtime, and
+# a clean shutdown via recv_timeout so the on/off toggle can stop it instantly.
+tiny_http = "0.12"
+
 # Screenshot capture of the assistant windows for the operation timeline.
 # Windows only: WebView2's CapturePreview renders even while the window is
 # hidden, so a background run is still traceable. Versions must match the ones

@@ -1,3 +1,4 @@
+mod mcp_server;
 mod settings;
 mod splash;
 mod web_session;
@@ -10,6 +11,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .manage(web_session::WebSessionState::default())
+        .manage(mcp_server::McpState::default())
         .invoke_handler(tauri::generate_handler![
             settings::abs_get_settings,
             splash::abs_app_ready,
@@ -19,12 +21,18 @@ pub fn run() {
             web_session::abs_web_close,
             web_session::abs_web_clear_sessions,
             web_session::abs_web_capture,
+            mcp_server::abs_mcp_start,
+            mcp_server::abs_mcp_stop,
+            mcp_server::abs_mcp_status,
+            mcp_server::abs_mcp_respond,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.
             settings::register(app.handle())?;
             splash::register(app.handle());
             web_session::register(app.handle());
+            // Restore the MCP server if the user left it enabled last session.
+            mcp_server::register(app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())

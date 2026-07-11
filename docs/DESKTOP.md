@@ -233,6 +233,61 @@ Login detection is tri-state (`detectLoginState` in `webDriverCore.ts`:
 booting SPA. Collapsing the two (the old boolean) is what made an
 already-signed-in Gemini run flash its window open then closed on a cold start.
 
+## MCP server for external AI tools (desktop only)
+
+The desktop app can host a local [Model Context Protocol](https://modelcontextprotocol.io)
+server so an external AI client (Claude Code, Claude Desktop, Cursor, ...) can
+drive Artboard Studio: list/create artboards, add and edit elements, set
+backgrounds, and render an artboard to PNG.
+
+**Turning it on.** It is **off by default** and manual: toggle **Settings ▸ Run
+MCP server for external AI tools** in the app's menu bar. The choice is
+persisted (`mcpServerEnabled` in the shared `settings.json`) and restored on the
+next launch. When it flips on, a toast shows the connection URL; the server also
+restarts automatically at startup if it was left on. A **status pill** floats at
+the bottom-right of the canvas (`McpServerStatus.tsx`, desktop only): green + the
+port while running, muted "off" otherwise. Clicking it opens a dialog with the
+server URL (copyable) and a collapsible accordion of per-client setup
+instructions — **Claude Code**, **Claude Desktop**, **VS Code (Copilot)**,
+**Cursor** — plus the list of exposed tools with their parameters.
+
+**Connecting a client.** The server speaks MCP over **Streamable HTTP** at
+`http://127.0.0.1:8722/mcp` (localhost only; the port scans upward from 8722 if
+busy, and the real URL is shown in the toast / `console.info`). For Claude Code:
+
+```
+claude mcp add --transport http artboard-studio http://127.0.0.1:8722/mcp
+```
+
+**Tools.** `list_artboards`, `get_artboard`, `create_artboard`,
+`set_active_artboard`, `add_element`, `update_element`, `delete_element`,
+`set_background`, `export_png` (returns the PNG as an image result).
+
+**Architecture.** Rust owns only the *transport*; the tools live in the
+frontend, where the design state is.
+
+- `src-tauri/src/mcp_server.rs` binds the socket with `tiny_http` on a dedicated
+  accept thread (one thread per request), handles the HTTP/JSON-RPC framing and
+  the `Mcp-Session-Id` header, and always answers with `application/json` (it
+  never opens a server→client SSE stream, so `GET /mcp` is `405`). A webview
+  cannot listen on a port, so this has to be native. `abs_mcp_start` /
+  `abs_mcp_stop` / `abs_mcp_status` / `abs_mcp_respond` are its commands; the
+  Settings toggle calls `apply_enabled`, and `register` handles startup restore.
+- Each JSON-RPC **request** is bridged to the main window over the
+  `abs-mcp-request` event; the frontend (`src/lib/mcp/desktopMcpServer.ts`)
+  answers `initialize` / `tools/list` / `tools/call` and returns the response
+  through the `abs_mcp_respond` command, which unblocks the waiting HTTP handler
+  (180s timeout). Notifications (no id) are acknowledged `202` without bridging.
+- The tool implementations are the `McpDesignApi` built in
+  `ArtboardStudioLayout.tsx` (assigned to a ref each render so the bridge always
+  sees fresh state). They mutate through `handleArtboardsUpdate` — the same path
+  `CanvasArea` uses — so history, DB persistence and the per-artboard element
+  sync all keep working. `export_png` reuses the Export dialog's `html-to-image`
+  capture recipe.
+
+Because it drives the real app, keep it off unless you are using it; it is
+localhost-bound and starts disabled.
+
 ## Operation tracing (timeline, screenshots, HTML report)
 
 Every AI generate request, in all three modes ("use my account", built-in free,
