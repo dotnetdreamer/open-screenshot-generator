@@ -5,10 +5,12 @@ A browser-based editor for designing app store screenshots. You lay out artboard
 Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
 
 <p align="center">
-  <img src="docs/screenshot-app-new.png" alt="The editor: element palette on the left, three phone-sized artboards on the canvas, and the properties panel on the right" width="900">
+  <a href="docs/promo-fast.mp4">
+    <img src="docs/promo-poster.png" alt="Artboard Studio promo video, click to play" width="900">
+  </a>
 </p>
 <p align="center">
-  <em>The editor — element palette, artboards on the canvas, and the properties panel for whatever is selected.</em>
+  <em>A 36 second tour. Click the image to play the video.</em>
 </p>
 
 ## What it does

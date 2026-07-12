@@ -1,0 +1,30 @@
+{
+  "name": "artboard-studio-promo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion promo video for Artboard Studio",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Promo out/artboard-studio-promo.mp4",
+    "render:fast": "remotion render PromoFast out/artboard-studio-promo-fast.mp4",
+    "gen:music": "node scripts/gen-music.js",
+    "still": "remotion still Promo"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^8.18.0",
+    "@remotion/cli": "4.0.489",
+    "@remotion/google-fonts": "4.0.489",
+    "@remotion/three": "^4.0.489",
+    "@types/three": "^0.185.1",
+    "gsap": "^3.15.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.489",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}
