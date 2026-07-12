@@ -53,6 +53,28 @@ website, GitHub Releases, etc.). Store submission needs signing, below.
 Do NOT set `NEXT_PUBLIC_BASE_PATH` when building for desktop. That variable is
 only for the GitHub Pages deploy; with it set, every asset in the bundle 404s.
 
+**Developer tools.** Toggle **Settings ▸ Developer tools** (or press `F12`) to
+open the webview inspector on the main window. The choice is persisted
+(`devtoolsOpen` in `settings.json`) and the inspector reopens at the next launch.
+
+`src-tauri/src/devtools.rs` owns this, and it is fussier than it looks:
+
+- WebView2 only lets us *open* the inspector. wry's `close_devtools` is an empty
+  function on Windows and `is_devtools_open` always returns `false` (tauri
+  documents both as "Windows: Unsupported"), so a check menu item wired straight
+  to those APIs lies: unchecking it closes nothing, and the check stays on after
+  the user closes the inspector with its own X. On Windows we therefore find the
+  inspector's OS window inside our own process tree, close it with `WM_CLOSE`,
+  and poll for its disappearance so the menu check follows a close we did not
+  initiate. macOS and Linux use wry's real implementations.
+- `open_devtools()` during `setup` is silently dropped - `main` is still hidden
+  behind the splash and has not navigated - so the launch-time restore runs from
+  the splash handoff (`splash.rs` calls `devtools::restore`), not from `setup`.
+- The `devtools` feature (needed outside debug builds) is enabled **for Windows
+  only** in `Cargo.toml`, because it is a *private* API on macOS and would put
+  the Mac App Store build at risk. Release builds on macOS/Linux hide the menu
+  item rather than offer a dead one; debug builds there still have it.
+
 ## Versioning
 
 Bump `version` in `src-tauri/tauri.conf.json` (this is the version shown in

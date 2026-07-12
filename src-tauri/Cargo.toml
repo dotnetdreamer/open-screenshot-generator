@@ -39,7 +39,18 @@ windows = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_System_Com",
   "Win32_UI_Shell",
+  # devtools.rs: find the inspector window in our own process tree and WM_CLOSE
+  # it, since WebView2 exposes no way to close or query it.
+  "Win32_System_Diagnostics_ToolHelp",
+  "Win32_UI_WindowsAndMessaging",
 ] }
+
+# `devtools` keeps open_devtools() available outside debug builds, for Settings >
+# Developer tools. Windows only, on purpose: the same feature is a *private* API
+# on macOS, which would put the Mac App Store build (docs/DESKTOP.md) at risk of
+# rejection. Cargo unions features per target, so mac/Linux release builds ship
+# without it and devtools.rs compiles the item out there.
+tauri = { version = "2", features = ["devtools"] }
 
 [profile.release]
 panic = "abort"

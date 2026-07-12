@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use tauri::menu::{CheckMenuItemBuilder, Menu, SubmenuBuilder};
+use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, Menu, SubmenuBuilder};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 /// The frontend can listen on this channel for live settings updates.
@@ -24,6 +24,7 @@ const SETTINGS_EVENT_CHANNEL: &str = "abs-settings-changed";
 const SETTINGS_FILE: &str = "settings.json";
 const MENU_ID_SHOW_ASSISTANT: &str = "abs-settings-show-assistant";
 const MENU_ID_MCP_SERVER: &str = "abs-settings-mcp-server";
+const MENU_ID_DEVTOOLS: &str = "abs-settings-devtools";
 
 /// `#[serde(default)]` keeps old settings files readable as fields get added.
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -36,9 +37,22 @@ pub struct AppSettings {
     /// Run the local MCP server (mcp_server.rs) so external AI tools can drive
     /// the design app. Off by default; toggled from the Settings menu.
     pub mcp_server_enabled: bool,
+
+    /// Keep the webview inspector open on the main window. Off by default;
+    /// toggled from the Settings menu (or F12) and reopened at the next launch.
+    /// devtools.rs owns the window itself.
+    pub devtools_open: bool,
 }
 
 pub struct SettingsState(Mutex<AppSettings>);
+
+/// The Developer tools check item, kept so the devtools watcher can uncheck it
+/// when the user closes the inspector by hand.
+///
+/// It has to be *held*: `Menu::get(id)` only searches top-level items and never
+/// descends into a submenu, so looking this one up by id inside "Settings"
+/// silently returns `None`.
+struct DevtoolsMenuItem<R: Runtime>(CheckMenuItem<R>);
 
 /// Snapshot of the current settings for other Rust modules.
 pub fn current<R: Runtime>(app: &AppHandle<R>) -> AppSettings {
@@ -104,10 +118,21 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     .checked(settings.mcp_server_enabled)
     .build(app)?;
 
-    let settings_menu = SubmenuBuilder::new(app, "Settings")
+    let devtools = CheckMenuItemBuilder::with_id(MENU_ID_DEVTOOLS, "Developer tools")
+        .checked(settings.devtools_open)
+        .accelerator("F12")
+        .build(app)?;
+    app.manage(DevtoolsMenuItem(devtools.clone()));
+
+    let mut settings_menu = SubmenuBuilder::new(app, "Settings")
         .item(&show_assistant)
-        .item(&mcp_server)
-        .build()?;
+        .item(&mcp_server);
+    // A release build on macOS/Linux cannot open the inspector at all, so offer
+    // no item rather than a dead one.
+    if crate::devtools::SUPPORTED {
+        settings_menu = settings_menu.separator().item(&devtools);
+    }
+    let settings_menu = settings_menu.build()?;
 
     let menu = Menu::default(app)?;
     menu.append(&settings_menu)?;
@@ -136,9 +161,29 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                 // the connection URL.
                 crate::mcp_server::apply_enabled(app, checked);
             }
+            MENU_ID_DEVTOOLS => {
+                let checked = devtools.is_checked().unwrap_or(false);
+                update(app, |settings| settings.devtools_open = checked);
+                crate::devtools::apply(app, checked);
+            }
             _ => {}
         }
     });
 
+    // The inspector is NOT restored here: an open_devtools() this early is
+    // dropped, because `main` is still hidden behind the splash and has not
+    // navigated. splash.rs calls devtools::restore once it hands over.
+
     Ok(())
+}
+
+/// The user closed the inspector by its own X (devtools.rs noticed). Uncheck
+/// the menu item and persist, so the toggle keeps telling the truth.
+///
+/// Must run on the main thread - it touches the menu.
+pub fn mark_devtools_closed<R: Runtime>(app: &AppHandle<R>) {
+    update(app, |settings| settings.devtools_open = false);
+    if let Some(item) = app.try_state::<DevtoolsMenuItem<R>>() {
+        let _ = item.0.set_checked(false);
+    }
 }

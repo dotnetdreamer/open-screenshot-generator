@@ -1,3 +1,4 @@
+mod devtools;
 mod mcp_server;
 mod settings;
 mod splash;

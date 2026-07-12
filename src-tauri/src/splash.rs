@@ -62,6 +62,11 @@ fn reveal(app: &AppHandle) {
     if let Some(splash) = app.get_webview_window(SPLASH_LABEL) {
         let _ = splash.close();
     }
+
+    // The earliest point the webview will accept an open_devtools(): asking any
+    // sooner (in `setup`, while main is hidden and has not navigated) is
+    // silently dropped. See devtools.rs.
+    crate::devtools::restore(app);
 }
 
 /// Reveal the main window, but never before the splash has had its
