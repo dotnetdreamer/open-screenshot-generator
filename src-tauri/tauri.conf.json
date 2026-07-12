@@ -32,7 +32,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi", "nsis", "app", "dmg"],
+    "targets": ["msi", "nsis", "app", "dmg", "deb", "appimage"],
     "category": "GraphicsAndDesign",
     "shortDescription": "Device mockup and app screenshot design studio",
     "longDescription": "Artboard Studio lets you compose app store screenshots and device mockups with 3D devices, templates, and a full design canvas.",

@@ -24,6 +24,20 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 - Bundled example projects to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
 
+## Download the desktop app
+
+Grab the latest installer from the [Releases page](https://github.com/dotnetdreamer/artboard-studio/releases/latest):
+
+| Platform | File |
+| --- | --- |
+| Windows 10/11 | `Artboard.Studio_<version>_x64-setup.exe` (or the `.msi`) |
+| macOS 10.15+, Intel and Apple silicon | `Artboard.Studio_<version>_universal.dmg` |
+| Linux | `.AppImage` (portable) or `.deb` |
+
+The builds are not code-signed yet, so the first launch takes one extra click: on Windows, SmartScreen shows "Windows protected your PC", so choose More info, then Run anyway. On macOS, right-click the app and choose Open to get past Gatekeeper. On Linux, `chmod +x` the AppImage first.
+
+Prefer the browser? The same app runs at [dotnetdreamer.github.io/artboard-studio](https://dotnetdreamer.github.io/artboard-studio/). See [docs/DESKTOP.md](docs/DESKTOP.md) for how the desktop build differs.
+
 ## Running it locally
 
 You'll need Node 18.18 or newer (that's Next.js 15's minimum).
