@@ -23,7 +23,7 @@ import type { Project } from '@/types/artboard';
 import { AgentPlanSchema, formatPlanIssues, type AgentPlan } from '@/lib/ai/agentPlanSchema';
 import { AgentBuildError, buildProjectFromPlan, type BuildResult } from '@/lib/ai/buildProjectFromPlan';
 import { AgentError, generatePlan } from '@/lib/ai/generatePlan';
-import { extractJson, extractJsonCandidates } from '@/lib/ai/jsonExtract';
+import { extractJsonCandidates } from '@/lib/ai/jsonExtract';
 import { buildCatalogArtifacts, resolveAliases, type AliasMap } from '@/lib/ai/aliasCatalog';
 import {
   buildHostedCatalog,
@@ -417,26 +417,30 @@ export function AgentStartScreen({
             buildUrlRelayPrompt(HOSTED_CATALOG_URL, instruction, screenshots.length),
             'Prompt sent (hosted catalog URL)'
           );
-          let raw: unknown = null;
-          try {
-            raw = extractJson(reply);
-          } catch {
-            raw = null;
-          }
-          const echoed =
-            raw && typeof raw === 'object' && !Array.isArray(raw)
-              ? (raw as Record<string, unknown>).sourceToken
-              : null;
-          if (echoed === hostedCatalog.token) {
+          // Try EVERY JSON object in the reply, not just the first: a reasoning
+          // model (GLM) prefixes its answer with an empty scratch/skeleton plan,
+          // so "first parseable object" grabs the wrong one. The fetch succeeded
+          // only if some object echoes our verification token.
+          const echoedPlan = extractJsonCandidates(reply).find(
+            (c) =>
+              c !== null &&
+              typeof c === 'object' &&
+              !Array.isArray(c) &&
+              (c as Record<string, unknown>).sourceToken === hostedCatalog.token
+          );
+          if (echoedPlan) {
             writeUrlFetchCapability(provider, hostedCatalog.token, 'ok');
-            applyOutcome(acceptPlan(raw, hostedCatalog.aliasMap));
+            applyOutcome(acceptPlan(echoedPlan, hostedCatalog.aliasMap));
           } else {
-            // Only an explicit, plan-less refusal is proof the provider could
-            // not fetch and worth remembering. A token-less-but-otherwise-valid
-            // reply, or the sentinel merely quoted inside a real plan's prose,
-            // is treated as a one-off: fall back this run, cache nothing, retry
-            // URL mode next time.
-            if (raw === null && reply.includes(CANNOT_FETCH_SENTINEL)) {
+            // No object echoed the token. If the provider explicitly said it
+            // could not fetch, remember that so later runs skip URL mode -- even
+            // when it also emitted a junk empty-plan skeleton alongside the
+            // sentinel. GLM does exactly that; requiring "no JSON at all" (raw
+            // === null) left the verdict uncached and made EVERY GLM run re-pay
+            // the URL preflight + a wasted provider round-trip. A token-less
+            // reply with NO sentinel stays a one-off: cache nothing, retry URL
+            // next time (covers a real plan whose prose merely quotes it).
+            if (reply.includes(CANNOT_FETCH_SENTINEL)) {
               writeUrlFetchCapability(provider, hostedCatalog.token, 'fail');
             }
             recorder.note('Hosted-catalog URL did not return a usable plan; retrying with the inline catalog');

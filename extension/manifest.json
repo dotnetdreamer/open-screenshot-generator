@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Artboard Studio companion",
   "version": "1.0.0",
-  "description": "Lets Artboard Studio's AI agent use the Claude, ChatGPT, Gemini, Copilot, DeepSeek, Qwen or Perplexity account you are already signed into.",
+  "description": "Lets Artboard Studio's AI agent use the Claude, ChatGPT, Gemini, Copilot, DeepSeek, Qwen, Perplexity or GLM (Z.ai) account you are already signed into.",
   "permissions": ["tabs", "scripting"],
   "host_permissions": [
     "https://claude.ai/*",
@@ -13,7 +13,8 @@
     "https://chat.deepseek.com/*",
     "https://chat.qwen.ai/*",
     "https://www.perplexity.ai/*",
-    "https://perplexity.ai/*"
+    "https://perplexity.ai/*",
+    "https://chat.z.ai/*"
   ],
   "background": {
     "service_worker": "dist/background.js"
@@ -42,7 +43,8 @@
         "https://chat.deepseek.com/*",
         "https://chat.qwen.ai/*",
         "https://www.perplexity.ai/*",
-        "https://perplexity.ai/*"
+        "https://perplexity.ai/*",
+        "https://chat.z.ai/*"
       ]
     }
   ]

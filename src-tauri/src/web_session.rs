@@ -40,6 +40,7 @@ const PROVIDERS: &[(&str, &str)] = &[
     ("deepseek", "https://chat.deepseek.com/"),
     ("qwen", "https://chat.qwen.ai/"),
     ("perplexity", "https://www.perplexity.ai/"),
+    ("glm", "https://chat.z.ai/"),
 ];
 
 fn provider_url(provider: &str) -> Option<&'static str> {

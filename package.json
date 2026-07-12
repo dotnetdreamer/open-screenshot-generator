@@ -11,7 +11,7 @@
     "start": "npm run dev",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "build:extension": "esbuild extension/src/background.ts extension/src/bridge.ts extension/src/adapters/claude.ts extension/src/adapters/chatgpt.ts extension/src/adapters/gemini.ts extension/src/adapters/copilot.ts extension/src/adapters/deepseek.ts extension/src/adapters/qwen.ts extension/src/adapters/perplexity.ts --bundle --format=iife --target=chrome110 --outbase=extension/src --outdir=extension/dist",
+    "build:extension": "esbuild extension/src/background.ts extension/src/bridge.ts extension/src/adapters/claude.ts extension/src/adapters/chatgpt.ts extension/src/adapters/gemini.ts extension/src/adapters/copilot.ts extension/src/adapters/deepseek.ts extension/src/adapters/qwen.ts extension/src/adapters/perplexity.ts extension/src/adapters/glm.ts --bundle --format=iife --target=chrome110 --outbase=extension/src --outdir=extension/dist",
     "build:assistant-agent": "esbuild src/lib/ai/webAssistantAgent.ts --bundle --format=iife --target=chrome110 --outfile=src-tauri/assistant/agent.js",
     "tauri": "tauri",
     "tauri:dev": "npm run build:assistant-agent && tauri dev",

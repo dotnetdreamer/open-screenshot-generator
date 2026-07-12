@@ -13,7 +13,8 @@
       "https://chat.deepseek.com/*",
       "https://chat.qwen.ai/*",
       "https://www.perplexity.ai/*",
-      "https://perplexity.ai/*"
+      "https://perplexity.ai/*",
+      "https://chat.z.ai/*"
     ]
   },
   "permissions": ["core:event:allow-emit"]

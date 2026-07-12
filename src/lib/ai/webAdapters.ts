@@ -21,7 +21,8 @@ export type WebProviderId =
   | 'copilot'
   | 'deepseek'
   | 'qwen'
-  | 'perplexity';
+  | 'perplexity'
+  | 'glm';
 
 export interface WebAdapter {
   id: WebProviderId;
@@ -54,6 +55,15 @@ export interface WebAdapter {
    * 'in' only on a definite signal, null when the source is absent/unreadable.
    */
   probeAuth?: () => 'in' | 'out' | null;
+  /**
+   * Optional predicate, run in the page, reporting whether the assistant is
+   * still producing its answer. Reasoning models (GLM) show a "thinking"/stop
+   * control that is the only reliable in-progress signal and cannot be written
+   * as a static CSS selector, so this supplements `streaming`. Without it the
+   * reply-settle heuristic can return a stable "Thinking…" placeholder as if it
+   * were the finished answer.
+   */
+  isGenerating?: () => boolean;
 }
 
 export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
@@ -291,6 +301,73 @@ export const WEB_ADAPTERS: Record<WebProviderId, WebAdapter> = {
     // modal itself, which only exists while shown: presence means signed out,
     // absence proves nothing. Anonymous runs work here, so that is acceptable.
     loggedOut: ['div[data-testid="login-modal"]'],
+  },
+  // GLM (Zhipu, served at chat.z.ai). Mirrors gpt4free's GLM provider, which
+  // moved to a subpackage in the v7.8.x releases (service unchanged). Their
+  // provider hits the private JSON API with a guest JWT; we drive the chat UI.
+  // VERIFIED LIVE (2026-07-12) on a fresh profile, anonymously: z.ai mints a
+  // guest session, so a full run (type -> send -> reply) completes without ever
+  // signing in. GLM prefixes its answer with a "Thought Process" reasoning
+  // block; that is plain text, so the pre/code JSON extractor still gets a clean
+  // plan. Signing in at z.ai only upgrades the available models.
+  glm: {
+    id: 'glm',
+    label: 'GLM (Z.ai)',
+    url: 'https://chat.z.ai/',
+    host: 'chat.z.ai',
+    hosts: ['chat.z.ai'],
+    tested: true,
+    composer: [
+      'textarea#chat-input',
+      'textarea[placeholder]',
+      'div[contenteditable="true"][role="textbox"]',
+      'div[contenteditable="true"]',
+    ],
+    fileInput: ['input[type="file"]'],
+    attachMenu: ['button[aria-label*="upload" i]', 'button[aria-label*="attach" i]', 'button[aria-label*="Add" i]'],
+    send: [
+      'button[type="submit"]',
+      'button[class*="send" i]',
+      'button[data-testid="send-message-button"]',
+      'button[aria-label*="Send" i]',
+    ],
+    // The stop control was not captured mid-stream; the driver falls back to the
+    // reply-settle heuristic, which is what completed the verified run.
+    streaming: [
+      'button[data-testid="stop-response-button"]',
+      'button[aria-label*="Stop" i]',
+      'button[class*="stop" i]',
+    ],
+    assistantMessage: [
+      'div[class*="markdown"]',
+      'div[class*="assistant" i]',
+      'div[class*="response" i]',
+      'div[class*="message" i]',
+    ],
+    // GLM is a reasoning model: while it produces, z.ai shows a "Thinking…"
+    // toggle and a "Skip" button, both gone once done (the toggle then reads
+    // "Thought Process"). Captured live 2026-07-12 as the only reliable
+    // in-progress signal (there is no stable CSS stop-button). Without this the
+    // reply-settle heuristic returned the stable "Thinking… / Skip" placeholder
+    // as the answer, and the plan parser rejected it.
+    isGenerating: () => {
+      try {
+        for (const el of Array.from(document.querySelectorAll('button, [role="button"]'))) {
+          const t = (el.textContent || '').trim();
+          if (t === 'Skip' || /^thinking/i.test(t)) return true;
+        }
+      } catch {
+        /* querying failed; assume not generating */
+      }
+      return false;
+    },
+    // loggedOut is intentionally UNSET. z.ai keeps an ever-present header "Sign
+    // in" button (a <button aria-label="Sign in"> with no testid/href) even
+    // during a working guest session, and shows no login wall/modal in guest
+    // mode. Since detectLoginState checks loggedOut BEFORE the composer, matching
+    // that button would wrongly report every anonymous run as signed-out. Same
+    // accepted tradeoff as Perplexity: a real wall would surface as a composer
+    // timeout rather than a clean not-logged-in.
   },
 };
 

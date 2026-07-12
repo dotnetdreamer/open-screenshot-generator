@@ -236,7 +236,12 @@ async function waitForReply(
     // This is where a run spends minutes; without a checkpoint here a cancel
     // would only take effect after the reply finished streaming.
     if (isCancelled()) throw new DriverError('cancelled', 'Cancelled.');
-    const streaming = pick(config.streaming) !== null;
+    // `streaming` is the reply-settle heuristic's only guard against returning
+    // early, so a dead/stale stop-button selector lets a placeholder settle as
+    // the answer. Reasoning models (GLM) have no stable CSS stop control, so the
+    // adapter's isGenerating() predicate (reads the live "thinking" UI) is
+    // OR'd in as an authoritative in-progress signal.
+    const streaming = pick(config.streaming) !== null || (config.isGenerating?.() ?? false);
     const turns = pickAll(config.assistantMessage);
     const grew = turns.length > before;
     const text = grew ? lastAssistantText(config) : '';
