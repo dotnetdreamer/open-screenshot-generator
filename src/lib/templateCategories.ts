@@ -44,6 +44,8 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'zenfit-yoga.json',
+      'blogio-articles.json',
       'breathora-breathing.json',
       'vowly-wedding.json',
       'verda-eco.json',

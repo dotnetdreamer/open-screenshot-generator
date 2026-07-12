@@ -1,0 +1,1651 @@
+{
+ "id": "template_zenfit_yoga",
+ "name": "Zenfit Yoga",
+ "description": "App Store & Play Store screenshots for a fitness and yoga app. Sky blue panels with soft waves, a lotus mark, activity bubbles, a get started button, tilted and straight phone mockups, and an activity dashboard finale.",
+ "previewImage": "/data/projects/previews/zenfit-yoga.png",
+ "timestamp": "2026-07-12T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "zf_ab1",
+   "name": "Health",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zf_b1_h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 170
+     },
+     "size": {
+      "width": 1170,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Health",
+     "fontSize": 54,
+     "color": "#14415E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b1_s",
+     "type": "text",
+     "name": "Subtitle",
+     "position": {
+      "x": 60,
+      "y": 410
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Fitness Yoga App",
+     "fontSize": 25,
+     "color": "#6E92A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b1_blob",
+     "type": "shape",
+     "name": "Backdrop blob",
+     "position": {
+      "x": 190,
+      "y": 560
+     },
+     "size": {
+      "width": 910,
+      "height": 800
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_flower",
+     "type": "shape",
+     "name": "Lotus flower",
+     "position": {
+      "x": 470,
+      "y": 730
+     },
+     "size": {
+      "width": 350,
+      "height": 350
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M50 30 C57.52 -9.53 104.29 24.45 69.02 43.82 C108.94 38.76 91.07 93.74 61.76 66.18 C78.91 102.58 21.09 102.58 38.24 66.18 C8.93 93.74 -8.94 38.76 30.98 43.82 C-4.29 24.45 42.48 -9.53 50 30 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_spark1",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 300,
+      "y": 640
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.7,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_spark2",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 950,
+      "y": 1160
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_ring",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 1070,
+      "y": 470
+     },
+     "size": {
+      "width": 160,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.35,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b1_wave",
+     "type": "shape",
+     "name": "Blue wave edge",
+     "position": {
+      "x": -5,
+      "y": 1440
+     },
+     "size": {
+      "width": 1300,
+      "height": 520
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M0 26 C4.67 25.33 19.33 17 28 22 C36.67 27 43.67 55 52 56 C60.33 57 70 34.33 78 28 C86 21.67 96.33 19.67 100 18 L100 100 L0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_fill",
+     "type": "shape",
+     "name": "Blue fill",
+     "position": {
+      "x": -5,
+      "y": 1930
+     },
+     "size": {
+      "width": 1300,
+      "height": 880
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "borderRadius": 0
+    },
+    {
+     "id": "zf_b1_script",
+     "type": "text",
+     "name": "Script line",
+     "position": {
+      "x": 150,
+      "y": 1760
+     },
+     "size": {
+      "width": 860,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Best workouts\nfor you",
+     "fontSize": 36,
+     "color": "#FFFFFF",
+     "fontFamily": "Pacifico",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "zf_b1_bub1",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 950,
+      "y": 1640
+     },
+     "size": {
+      "width": 200,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "zf_b1_bub1i",
+     "type": "shape",
+     "name": "Heart",
+     "position": {
+      "x": 1000,
+      "y": 1690
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#EF6A52",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_bub2",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 130,
+      "y": 1600
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.95
+    },
+    {
+     "id": "zf_b1_bub2i",
+     "type": "shape",
+     "name": "Bolt",
+     "position": {
+      "x": 167,
+      "y": 1635
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_bub3",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 880,
+      "y": 2080
+     },
+     "size": {
+      "width": 160,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "zf_b1_bub3i",
+     "type": "shape",
+     "name": "Flower",
+     "position": {
+      "x": 917,
+      "y": 2117
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M50 30 C57.52 -9.53 104.29 24.45 69.02 43.82 C108.94 38.76 91.07 93.74 61.76 66.18 C78.91 102.58 21.09 102.58 38.24 66.18 C8.93 93.74 -8.94 38.76 30.98 43.82 C-4.29 24.45 42.48 -9.53 50 30 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b1_dot1",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 240,
+      "y": 2200
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5
+    },
+    {
+     "id": "zf_b1_dot2",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 1130,
+      "y": 1930
+     },
+     "size": {
+      "width": 50,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5
+    },
+    {
+     "id": "zf_b1_btn",
+     "type": "shape",
+     "name": "Get started button",
+     "position": {
+      "x": 445,
+      "y": 2400
+     },
+     "size": {
+      "width": 400,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#EF6A52",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "borderRadius": 65
+    },
+    {
+     "id": "zf_b1_btnt",
+     "type": "text",
+     "name": "Button label",
+     "position": {
+      "x": 445,
+      "y": 2400
+     },
+     "size": {
+      "width": 400,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Get started",
+     "fontSize": 14,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    }
+   ]
+  },
+  {
+   "id": "zf_ab2",
+   "name": "Connect",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zf_b2_blob",
+     "type": "shape",
+     "name": "Backdrop blob",
+     "position": {
+      "x": 100,
+      "y": 260
+     },
+     "size": {
+      "width": 1090,
+      "height": 1240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M50 4 C60.1 4.17 73.09 21.67 79.44 33 C85.8 44.33 93.01 64.17 88.11 72 C83.2 79.83 62.99 79.83 50 80 C37.01 80.17 15.36 81 10.16 73 C4.97 65 12.18 43.5 18.82 32 C25.46 20.5 39.9 3.83 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b2_ring",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 60,
+      "y": 170
+     },
+     "size": {
+      "width": 180,
+      "height": 180
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.3,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b2_spark1",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1120,
+      "y": 250
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b2_bub1",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 85,
+      "y": 1620
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "zf_b2_bub1i",
+     "type": "shape",
+     "name": "User",
+     "position": {
+      "x": 125,
+      "y": 1660
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M34 30 A16 16 0 1 0 66 30 A16 16 0 1 0 34 30 Z M18 88 C18 66 32 56 50 56 C68 56 82 66 82 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b2_bub2",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 1085,
+      "y": 520
+     },
+     "size": {
+      "width": 176,
+      "height": 176
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "zf_b2_bub2i",
+     "type": "shape",
+     "name": "Heart",
+     "position": {
+      "x": 1128,
+      "y": 562
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#EF6A52",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b2_phone",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 180,
+      "y": 330
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -12,
+     "scale": 1.55,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#161A24",
+     "screenshotSrc": "/data/projects/app-screens/app-feed-sky.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "zf_b2_block",
+     "type": "shape",
+     "name": "Blue block",
+     "position": {
+      "x": -80,
+      "y": 2140
+     },
+     "size": {
+      "width": 1450,
+      "height": 800
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "borderRadius": 80
+    },
+    {
+     "id": "zf_b2_h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 2260
+     },
+     "size": {
+      "width": 1170,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Connect",
+     "fontSize": 50,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b2_s",
+     "type": "text",
+     "name": "Subtitle",
+     "position": {
+      "x": 60,
+      "y": 2490
+     },
+     "size": {
+      "width": 1170,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "with your body & mind",
+     "fontSize": 25,
+     "color": "#E7F7FF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b2_spark2",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1090,
+      "y": 2250
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b2_spark3",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 150,
+      "y": 2620
+     },
+     "size": {
+      "width": 50,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.6,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ]
+  },
+  {
+   "id": "zf_ab3",
+   "name": "Find Class",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zf_b3_h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Find",
+     "fontSize": 54,
+     "color": "#14415E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b3_s",
+     "type": "text",
+     "name": "Subtitle",
+     "position": {
+      "x": 60,
+      "y": 390
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "your workout class",
+     "fontSize": 25,
+     "color": "#6E92A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b3_ring",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 90,
+      "y": 550
+     },
+     "size": {
+      "width": 140,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.3,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b3_spark1",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1120,
+      "y": 600
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b3_wave",
+     "type": "shape",
+     "name": "Blue wave edge",
+     "position": {
+      "x": -5,
+      "y": 880
+     },
+     "size": {
+      "width": 1300,
+      "height": 500
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M0 52 C3 47.67 11.67 25.67 18 26 C24.33 26.33 31 54.67 38 54 C45 53.33 52.67 22.67 60 22 C67.33 21.33 75.33 47.67 82 50 C88.67 52.33 97 38.33 100 36 L100 100 L0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b3_fill",
+     "type": "shape",
+     "name": "Blue fill",
+     "position": {
+      "x": -5,
+      "y": 1360
+     },
+     "size": {
+      "width": 1300,
+      "height": 1436
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "borderRadius": 0
+    },
+    {
+     "id": "zf_b3_bub1",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 80,
+      "y": 1500
+     },
+     "size": {
+      "width": 180,
+      "height": 180
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "zf_b3_bub1i",
+     "type": "shape",
+     "name": "Magnifier",
+     "position": {
+      "x": 123,
+      "y": 1543
+     },
+     "size": {
+      "width": 94,
+      "height": 94
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M16 42 A26 26 0 1 0 68 42 A26 26 0 1 0 16 42 Z M26 42 A16 16 0 1 0 58 42 A16 16 0 1 0 26 42 Z M60 68 L68 60 L92 84 L84 92 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b3_bub2",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 1050,
+      "y": 1900
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "zf_b3_bub2i",
+     "type": "shape",
+     "name": "Calendar",
+     "position": {
+      "x": 1091,
+      "y": 1941
+     },
+     "size": {
+      "width": 88,
+      "height": 88
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M16 16 H84 A8 8 0 0 1 92 24 V84 A8 8 0 0 1 84 92 H16 A8 8 0 0 1 8 84 V24 A8 8 0 0 1 16 16 ZM28 6 H36 V22 H28 ZM64 6 H72 V22 H64 ZM14 36 H86 V42 H14 ZM22 52 H30 V60 H22 ZM38 52 H46 V60 H38 ZM54 52 H62 V60 H54 ZM70 52 H78 V60 H70 ZM22 68 H30 V76 H22 ZM38 68 H46 V76 H38 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b3_dot1",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 170,
+      "y": 2350
+     },
+     "size": {
+      "width": 50,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5
+    },
+    {
+     "id": "zf_b3_dot2",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 1140,
+      "y": 1310
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5
+    },
+    {
+     "id": "zf_b3_phone",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 165,
+      "y": 700
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.6,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#161A24",
+     "screenshotSrc": "/data/projects/app-screens/app-list-sky.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "zf_ab4",
+   "name": "Choose Exercises",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zf_b4_ring",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 80,
+      "y": 150
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.35,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b4_spark1",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1150,
+      "y": 120
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b4_ribbon",
+     "type": "shape",
+     "name": "Blue ribbon",
+     "position": {
+      "x": -80,
+      "y": 1050
+     },
+     "size": {
+      "width": 1450,
+      "height": 620
+     },
+     "rotation": -18,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M0 36 Q12.5 16 25 36 Q37.5 56 50 36 Q62.5 16 75 36 Q87.5 56 100 36 L100 62 Q87.5 82 75 62 Q62.5 42 50 62 Q37.5 82 25 62 Q12.5 42 0 62 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b4_phone_back",
+     "type": "device",
+     "name": "Phone back",
+     "position": {
+      "x": 350,
+      "y": 300
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 10,
+     "scale": 1.26,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#161A24",
+     "screenshotSrc": "/data/projects/app-screens/app-player-sky.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "zf_b4_phone_front",
+     "type": "device",
+     "name": "Phone front",
+     "position": {
+      "x": 120,
+      "y": 580
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -10,
+     "scale": 1.36,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#161A24",
+     "screenshotSrc": "/data/projects/app-screens/app-grid-sky.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "zf_b4_dot1",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 1150,
+      "y": 1780
+     },
+     "size": {
+      "width": 50,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5
+    },
+    {
+     "id": "zf_b4_dot2",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 90,
+      "y": 2160
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.4
+    },
+    {
+     "id": "zf_b4_h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 2360
+     },
+     "size": {
+      "width": 1170,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Choose",
+     "fontSize": 50,
+     "color": "#14415E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b4_s",
+     "type": "text",
+     "name": "Subtitle",
+     "position": {
+      "x": 60,
+      "y": 2580
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "multiple exercises",
+     "fontSize": 25,
+     "color": "#6E92A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    }
+   ]
+  },
+  {
+   "id": "zf_ab5",
+   "name": "Monitor Activity",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#2FB0E8",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2FB0E8",
+    "color2": "#1E97D2",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "zf_b5_h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Monitor",
+     "fontSize": 54,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b5_s",
+     "type": "text",
+     "name": "Subtitle",
+     "position": {
+      "x": 60,
+      "y": 390
+     },
+     "size": {
+      "width": 1170,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "all your activities",
+     "fontSize": 25,
+     "color": "#E7F7FF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "zf_b5_spark1",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1120,
+      "y": 290
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.85,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b5_spark2",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 140,
+      "y": 680
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.7,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b5_ring",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 60,
+      "y": 480
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.3,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "zf_b5_wave",
+     "type": "shape",
+     "name": "White wave edge",
+     "position": {
+      "x": -5,
+      "y": 1750
+     },
+     "size": {
+      "width": 1300,
+      "height": 450
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M0 52 C3 47.67 11.67 25.67 18 26 C24.33 26.33 31 54.67 38 54 C45 53.33 52.67 22.67 60 22 C67.33 21.33 75.33 47.67 82 50 C88.67 52.33 97 38.33 100 36 L100 100 L0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b5_fill",
+     "type": "shape",
+     "name": "White fill",
+     "position": {
+      "x": -5,
+      "y": 2180
+     },
+     "size": {
+      "width": 1300,
+      "height": 630
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "borderRadius": 0
+    },
+    {
+     "id": "zf_b5_bub1",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 85,
+      "y": 1180
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.95
+    },
+    {
+     "id": "zf_b5_bub1i",
+     "type": "shape",
+     "name": "Chart",
+     "position": {
+      "x": 126,
+      "y": 1221
+     },
+     "size": {
+      "width": 88,
+      "height": 88
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M14 56 H30 V90 H14 ZM42 36 H58 V90 H42 ZM70 14 H86 V90 H70 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b5_bub2",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 1060,
+      "y": 1500
+     },
+     "size": {
+      "width": 160,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.95
+    },
+    {
+     "id": "zf_b5_bub2i",
+     "type": "shape",
+     "name": "Bolt",
+     "position": {
+      "x": 1100,
+      "y": 1538
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#EF6A52",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 1,
+     "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "zf_b5_dot1",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 1150,
+      "y": 900
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5
+    },
+    {
+     "id": "zf_b5_phone",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 165,
+      "y": 640
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.6,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#161A24",
+     "screenshotSrc": "/data/projects/app-screens/app-dashboard-sky.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  }
+ ]
+}

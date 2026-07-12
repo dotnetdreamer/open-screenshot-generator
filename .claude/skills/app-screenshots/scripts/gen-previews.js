@@ -36,7 +36,7 @@ const SLUGS = [
   'voyago-travel', 'finexa-crypto', 'flixio-kids', 'listenly-audio', 'tripora-travel',
   'tunio-music', 'coinly-crypto', 'stockio-invest', 'threadly-social', 'beatforge-studio',
   'podly-podcasts', 'cinevault-stream', 'sereno-mind', 'droply-habits', 'zeeb-fashion',
-  'lingua-learn', 'verda-eco',
+  'lingua-learn', 'verda-eco', 'zenfit-yoga', 'blogio-articles',
   // Apple Watch category (behind the "Apple Watch" tab).
   'watch-breathora', 'watch-vowly',
   'watch-smart-appscreens', 'watch-editors-choice', 'watch-dark-aso',

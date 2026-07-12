@@ -106,8 +106,10 @@ export type DeviceStyleType =
 // original near-frontal product shot; 'front' is dead-on (no yaw at all — the
 // watch group's straight-on look); the rest recline the device toward the
 // camera in increasing steps (matching common mockup panels). 'floating' and
-// 'drifting' add an in-image diagonal roll for tossed-phone hero collages.
-export type Device3DPose = 'classic' | 'front' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying' | 'floating' | 'drifting' | 'isometric';
+// 'drifting' add an in-image diagonal roll for tossed-phone hero collages;
+// 'leaning' is a gentle diagonal rest (screen ~90% visible) and 'soaring' a
+// dramatic opposite-lean float with the camera above the face.
+export type Device3DPose = 'classic' | 'front' | 'upright' | 'side' | 'tilted' | 'reclined' | 'laying' | 'floating' | 'drifting' | 'leaning' | 'soaring' | 'isometric';
 
 // Body finish for the true-3D device styles. 'titanium' is the original look
 // and remains the default for existing projects.

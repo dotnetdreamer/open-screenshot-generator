@@ -59,9 +59,9 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
 
 // Element sizes per pose (keep in sync with IPHONE_3D_SIZES / ANDROID_3D_SIZES
 // in ElementPalette.tsx so thumbnails match the dropped elements' aspect).
-const IP = { upright: { w: 600, h: 1300 }, side: { w: 600, h: 1300 }, tilted: { w: 640, h: 1120 }, reclined: { w: 720, h: 900 }, laying: { w: 800, h: 680 }, floating: { w: 760, h: 830 }, drifting: { w: 900, h: 700 }, isometric: { w: 900, h: 480 } };
-const AND = { upright: { w: 600, h: 1333 }, side: { w: 600, h: 1333 }, tilted: { w: 640, h: 1150 }, reclined: { w: 720, h: 920 }, laying: { w: 800, h: 700 }, floating: { w: 760, h: 830 }, drifting: { w: 900, h: 700 }, isometric: { w: 900, h: 480 } };
-const WATCH = { front: { w: 580, h: 1200 }, upright: { w: 560, h: 1240 }, side: { w: 560, h: 1240 }, tilted: { w: 660, h: 1100 }, reclined: { w: 720, h: 900 }, laying: { w: 800, h: 700 }, floating: { w: 740, h: 840 }, drifting: { w: 880, h: 700 }, isometric: { w: 900, h: 520 } };
+const IP = { upright: { w: 600, h: 1300 }, side: { w: 600, h: 1300 }, tilted: { w: 640, h: 1120 }, reclined: { w: 720, h: 900 }, laying: { w: 800, h: 680 }, floating: { w: 760, h: 830 }, drifting: { w: 900, h: 700 }, leaning: { w: 780, h: 910 }, soaring: { w: 760, h: 950 }, isometric: { w: 900, h: 480 } };
+const AND = { upright: { w: 600, h: 1333 }, side: { w: 600, h: 1333 }, tilted: { w: 640, h: 1150 }, reclined: { w: 720, h: 920 }, laying: { w: 800, h: 700 }, floating: { w: 760, h: 830 }, drifting: { w: 900, h: 700 }, leaning: { w: 780, h: 910 }, soaring: { w: 760, h: 950 }, isometric: { w: 900, h: 480 } };
+const WATCH = { front: { w: 580, h: 1200 }, upright: { w: 560, h: 1240 }, side: { w: 560, h: 1240 }, tilted: { w: 660, h: 1100 }, reclined: { w: 720, h: 900 }, laying: { w: 800, h: 700 }, floating: { w: 740, h: 840 }, drifting: { w: 880, h: 700 }, leaning: { w: 760, h: 900 }, soaring: { w: 740, h: 950 }, isometric: { w: 900, h: 520 } };
 
 (async () => {
   fs.mkdirSync(OUT_DIR, { recursive: true });

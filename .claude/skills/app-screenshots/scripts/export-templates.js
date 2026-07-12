@@ -48,6 +48,8 @@ const TEMPLATES = [
   { slug: 'zeeb-fashion', card: 'Zeeb Fashion', boards: 5 },
   { slug: 'budgetly-finance', card: 'Budgetly Finance', boards: 8 },
   { slug: 'verda-eco', card: 'Verda Eco', boards: 5 },
+  { slug: 'zenfit-yoga', card: 'Zenfit Yoga', boards: 5 },
+  { slug: 'blogio-articles', card: 'Blogio Articles', boards: 4 },
   { slug: 'watch-breathora', card: 'Breathora Watch', boards: 5, tab: 'Apple Watch' },
   { slug: 'watch-vowly', card: 'Vowly Watch', boards: 5, tab: 'Apple Watch' },
   { slug: 'watch-smart-appscreens', card: 'Smart AppScreens', boards: 5, tab: 'Apple Watch' },

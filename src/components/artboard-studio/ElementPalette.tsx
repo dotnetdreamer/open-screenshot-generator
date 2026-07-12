@@ -38,7 +38,7 @@ type PaletteDragStart = (
 
 // ---- 3D device pose groups (thumbnails pre-rendered to /elements/device-3d) ----
 
-const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting', 'isometric'];
+const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting', 'leaning', 'soaring', 'isometric'];
 // The watch leads with the straight-on look (classic watch product shot);
 // phones don't offer it — a zero-yaw phone reads as a flat 2D mockup.
 const WATCH_POSE_ORDER: Device3DPose[] = ['front', ...POSE_ORDER];
@@ -57,6 +57,8 @@ const IPHONE_3D_SIZES: Record<Device3DPose, { width: number; height: number }> =
   laying: { width: 800, height: 680 },
   floating: { width: 760, height: 830 },
   drifting: { width: 900, height: 700 },
+  leaning: { width: 780, height: 910 },
+  soaring: { width: 760, height: 950 },
   isometric: { width: 900, height: 480 },
 };
 const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
@@ -69,6 +71,8 @@ const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> 
   laying: { width: 800, height: 700 },
   floating: { width: 760, height: 830 },
   drifting: { width: 900, height: 700 },
+  leaning: { width: 780, height: 910 },
+  soaring: { width: 760, height: 950 },
   isometric: { width: 900, height: 480 },
 };
 // The watch body keeps native proportions inside the box (the band dominates
@@ -83,6 +87,8 @@ const WATCH_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = 
   laying: { width: 800, height: 700 },
   floating: { width: 740, height: 840 },
   drifting: { width: 880, height: 700 },
+  leaning: { width: 760, height: 900 },
+  soaring: { width: 740, height: 950 },
   isometric: { width: 900, height: 520 },
 };
 

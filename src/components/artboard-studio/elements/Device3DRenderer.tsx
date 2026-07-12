@@ -87,6 +87,14 @@ const POSES: Record<Device3DPose, { yaw: number; pitch: number; roll?: number; b
   laying: { yaw: 28, pitch: 66 },
   floating: { yaw: 34, pitch: 36, roll: -20, bodyAspect: 2.05 },
   drifting: { yaw: 32, pitch: 46, roll: -35, bodyAspect: 2.05 },
+  // Gentle diagonal rest: mild yaw toward the exposed rail, slight backward
+  // pitch, strong in-image lean (clockwise on side 'left'). Long axis runs
+  // diagonally but the screen stays ~90% visible.
+  leaning: { yaw: 21, pitch: 10, roll: -31, bodyAspect: 2.05 },
+  // Dramatic float: deeper yaw, NEGATIVE pitch (camera above the face, top
+  // edge toward the viewer) and a heavy opposite lean (counter-clockwise on
+  // side 'right'). Reads as a phone sailing diagonally across the canvas.
+  soaring: { yaw: 35, pitch: -15, roll: -36, bodyAspect: 2.05 },
   // Exact yaw/pitch/roll decomposition of the classic 2D isometric mockup
   // projection: spin the phone 60° on the table, then view the table from
   // arccos(0.6) ≈ 53° above (SVG equivalent: rotate(∓60) scale(1, 0.6)).

@@ -74,6 +74,36 @@ const THEMES = {
     accent: '#e2574a',
     accentSoft: '#fbdfd9',
   },
+  // Fresh light skeleton with a vivid sky-blue accent (for bright fitness and
+  // health templates such as zenfit-yoga) — the `light` structure cooled toward
+  // blue with a cyan-blue accent.
+  sky: {
+    bg: '#f2f9fd',
+    surface: '#ffffff',
+    surfaceAlt: '#e2f1fa',
+    block: '#cee4f2',
+    blockSoft: '#dfeef8',
+    icon: '#9cb9cb',
+    navBg: '#ffffff',
+    hairline: '#e9f3fa',
+    accent: '#2fb0e8',
+    accentSoft: '#d4edfb',
+  },
+  // Crisp light skeleton with a strong royal-blue accent (for editorial and
+  // reading templates such as blogio-articles) — the `light` greys with the
+  // soft indigo accent swapped for a saturated royal blue.
+  royal: {
+    bg: '#f4f6fc',
+    surface: '#ffffff',
+    surfaceAlt: '#e9edf8',
+    block: '#d6ddef',
+    blockSoft: '#e4e9f6',
+    icon: '#a5adc9',
+    navBg: '#ffffff',
+    hairline: '#edf0f9',
+    accent: '#4a63e7',
+    accentSoft: '#dee4fc',
+  },
   // Light skeleton with a soft eco-green accent (for green/nature templates such
   // as verda-eco) — same neutral greys as `light`, accent swapped indigo→green.
   eco: {
