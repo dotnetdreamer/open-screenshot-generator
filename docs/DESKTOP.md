@@ -24,7 +24,8 @@ so there is one codebase for web and desktop.
 | `src/lib/ai/freeProviders.ts` | Keyless AI providers for the desktop free mode (Pollinations, Ollama, LM Studio) |
 | `src/lib/ai/webAdapters.ts` | One registry (identity + DOM selectors) shared by the desktop agent, the extension, and the UI |
 | `src/lib/ai/webDriverCore.ts` | Transport-agnostic DOM driver shared by the desktop agent and the extension |
-| `.github/workflows/desktop.yml` | CI matrix build (Windows + macOS) on version tags |
+| `.github/workflows/desktop.yml` | Manually triggered release build (Windows + macOS + Linux); owns the version bump and tag |
+| `scripts/set-version.mjs` | Sets the version across the four files that carry it |
 
 ## Prerequisites
 
@@ -75,12 +76,40 @@ open the webview inspector on the main window. The choice is persisted
   the Mac App Store build at risk. Release builds on macOS/Linux hide the menu
   item rather than offer a dead one; debug builds there still have it.
 
-## Versioning
+## Versioning and cutting a release
 
-Bump `version` in `src-tauri/tauri.conf.json` (this is the version shown in
-installers and required to increase for store updates). Tag the commit
-`v<version>` and push the tag; CI builds Windows and macOS bundles and attaches
-them to a draft GitHub release.
+The version lives in four files that must agree: `src-tauri/tauri.conf.json`
+(what installers display, and what stores require to increase on every update),
+`package.json`, `src-tauri/Cargo.toml`, and `src-tauri/Cargo.lock`. Never edit
+them by hand. `scripts/set-version.mjs` sets all four at once:
+
+```sh
+node scripts/set-version.mjs patch      # 0.1.0 -> 0.1.1
+node scripts/set-version.mjs minor      # 0.1.0 -> 0.2.0
+node scripts/set-version.mjs 1.4.0      # exact
+node scripts/set-version.mjs patch --dry-run   # just print the next version
+```
+
+It refuses a version that is not newer than the current one, because neither
+Cargo nor the Windows installer will downgrade in place.
+
+Releases are cut by hand, never automatically: nothing builds on a push or a
+tag. Go to **Actions > Release desktop app (Tauri) > Run workflow** and pick:
+
+| Input | Effect |
+| --- | --- |
+| `bump` | `patch` (default), `minor` or `major`, applied to the current version |
+| `version` | An exact version, e.g. `1.2.0`. Overrides `bump` when set. |
+| `dry_run` | Build the installers and attach them to the run as artifacts. No version bump, no tag, no release. |
+
+A real run bumps the four files, commits that as `release: v<version>` on the
+default branch, tags it, builds Windows, macOS and Linux, and publishes a
+GitHub release with the installers attached. Use `dry_run` first when you have
+changed anything that could affect the build.
+
+The bundles are unsigned, so users get a SmartScreen or Gatekeeper prompt on
+first launch (the release notes tell them how to get past it). See the store
+sections below for signing.
 
 ## Icons
 
