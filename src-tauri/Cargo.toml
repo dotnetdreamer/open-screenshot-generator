@@ -1,6 +1,6 @@
 [package]
 name = "artboard-studio"
-version = "0.1.0"
+version = "0.1.1"
 description = "Artboard Studio - device mockup and app screenshot design studio"
 authors = ["CCRS Tech <info@ccrstech.com>"]
 edition = "2021"
