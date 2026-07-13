@@ -1,0 +1,241 @@
+{
+  "id": "template_pv_forest",
+  "name": "Forest Wellness",
+  "description": "Calm green App Preview video layout for wellness apps: soft headlines over a forest gradient with a breathing session recording. Upload your screen recording to the phone and export the MP4.",
+  "previewImage": "/data/projects/previews/pv-forest-wellness.png",
+  "timestamp": "2026-07-12T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_pv_forest_0",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#14532D",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#14532D",
+        "color2": "#3F9142",
+        "angle": 150
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_d40",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-dashboard-forest.png",
+          "objectFit": "cover",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b0_h41",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Breathe. Focus. Rest.",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b0_s42",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 420
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Five minutes a day to a calmer you",
+          "fontSize": 11.4,
+          "color": "#D3F0DA",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b0_g43",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 490,
+            "y": 1000
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#B7F5C4",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_pv_forest_1",
+      "name": "Feature",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#166534",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#166534",
+        "color2": "#65A30D",
+        "angle": 170
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_d44",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-player-forest.png",
+          "objectFit": "cover",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b1_h45",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Sessions that stick",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b1_s46",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 400
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Guided audio for sleep, stress and focus",
+          "fontSize": 11.4,
+          "color": "#E4F7D8",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b1_g47",
+          "type": "gesture",
+          "name": "Swipe hint",
+          "position": {
+            "x": 300,
+            "y": 1100
+          },
+          "size": {
+            "width": 280,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-right",
+          "color": "#B7F5C4",
+          "triggerTime": 2.6,
+          "gestureDuration": 1.4
+        }
+      ]
+    }
+  ]
+}

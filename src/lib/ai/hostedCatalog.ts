@@ -1,6 +1,6 @@
 import type { Project } from '@/types/artboard';
 import { buildFullCatalogArtifacts, type AliasMap } from './aliasCatalog';
-import { buildTemplateCatalog } from './templateCatalog';
+import { agentUsableTemplates, buildTemplateCatalog } from './templateCatalog';
 
 /**
  * The repository-hosted template catalog.
@@ -62,10 +62,13 @@ function absoluteUrl(path: string): string {
  * the token and the refs.
  */
 export function buildHostedCatalog(templates: Project[]): HostedCatalog {
-  const entries = buildTemplateCatalog(templates);
+  // Filter FIRST: the t<n> refs are entry indices, so the preview lines must be
+  // numbered over the same list the catalog entries were built from.
+  const usable = agentUsableTemplates(templates);
+  const entries = buildTemplateCatalog(usable);
   const artifacts = buildFullCatalogArtifacts(entries);
 
-  const previews = templates
+  const previews = usable
     .map((template, i) => `t${i} preview: ${absoluteUrl(template.previewImage ?? '')}`)
     .filter((line) => !line.endsWith(': '));
 

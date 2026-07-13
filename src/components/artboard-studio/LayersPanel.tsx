@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import type { ArtboardElement } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LayersPanelProps {
@@ -38,6 +38,12 @@ const getElementIcon = (element: ArtboardElement) => {
       }
     case 'device':
        return <SmartphoneIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
+    case 'video':
+      return <ClapperboardIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
+    case 'video-device':
+      return <SmartphoneIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
+    case 'gesture':
+      return <PointerIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
     default:
       return <ImagePlusIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
   }
@@ -61,6 +67,12 @@ const getElementLabel = (element: ArtboardElement): string => {
         label = `${element.shapeType.charAt(0).toUpperCase() + element.shapeType.slice(1)} Shape`;
     } else if (element.type === 'device') {
         label = `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)} Device`;
+    } else if (element.type === 'video-device') {
+        label = `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)} Recording`;
+    } else if (element.type === 'video') {
+        label = 'Recording';
+    } else if (element.type === 'gesture') {
+        label = `${element.gestureType.charAt(0).toUpperCase() + element.gestureType.slice(1)} Hint`;
     }
     return label;
 };

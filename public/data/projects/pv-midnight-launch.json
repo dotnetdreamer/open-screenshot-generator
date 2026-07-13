@@ -1,0 +1,243 @@
+{
+  "id": "template_pv_midnight",
+  "name": "Midnight Launch",
+  "description": "Dark hero App Preview video layout. Bold white headline over a deep navy gradient, recording playing in a titanium iPhone with a tap hint. Upload your screen recording to the phone and export the MP4.",
+  "previewImage": "/data/projects/previews/pv-midnight-launch.png",
+  "timestamp": "2026-07-12T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_pv_midnight_0",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#0B1020",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0B1020",
+        "color2": "#1E2A5A",
+        "angle": 160
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_d0",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-dashboard-dark.png",
+          "objectFit": "cover",
+          "frameColor": "#1e1e1e",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b0_h1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your day, on autopilot",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b0_s2",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 420
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Plan, track and finish everything in one place",
+          "fontSize": 11.4,
+          "color": "#B9C4E8",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b0_g3",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 500,
+            "y": 1050
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#8AB4FF",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_pv_midnight_1",
+      "name": "Feature",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#141A33",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#141A33",
+        "color2": "#2A1E5A",
+        "angle": 200
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_d4",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-list-dark.png",
+          "objectFit": "cover",
+          "frameColor": "#1e1e1e",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b1_h5",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Swipe to complete",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b1_s6",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 400
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clear your list with one gesture",
+          "fontSize": 11.4,
+          "color": "#B9C4E8",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b1_g7",
+          "type": "gesture",
+          "name": "Swipe hint",
+          "position": {
+            "x": 300,
+            "y": 1100
+          },
+          "size": {
+            "width": 280,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-right",
+          "color": "#8AB4FF",
+          "triggerTime": 2.6,
+          "gestureDuration": 1.4
+        }
+      ]
+    }
+  ]
+}

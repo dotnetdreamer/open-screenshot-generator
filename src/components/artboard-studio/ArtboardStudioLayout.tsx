@@ -2,7 +2,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
-import { isTauri, saveBlobToDisk, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
+import { isTauri, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
+import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
+import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
 import {
   SidebarProvider,
   Sidebar,
@@ -21,7 +23,8 @@ import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
-import { ExportDialog, type ExportSelection } from './ExportDialog';
+import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
+import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
 import { startDesktopMcpBridge, getMcpStatus, listenMcpStatus, type McpDesignApi } from '@/lib/mcp/desktopMcpServer';
 import { McpServerStatus } from './McpServerStatus';
@@ -373,6 +376,13 @@ export function ArtboardStudioLayout() {
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  // App Preview video export: per-board analysis (which boards carry video
+  // content) is recomputed when the export dialog opens; progress/abort state
+  // drives the dialog's render section.
+  const [videoInfos, setVideoInfos] = useState<Record<string, ArtboardVideoInfo>>({});
+  const [isVideoExporting, setIsVideoExporting] = useState(false);
+  const [videoProgress, setVideoProgress] = useState<VideoExportProgress | null>(null);
+  const videoExportAbortRef = useRef<AbortController | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
@@ -461,14 +471,17 @@ export function ArtboardStudioLayout() {
         try {
           const project = await db.projects.get(activeProjectId);
           if (project && project.projectData) {
-            setArtboards(project.projectData);
+            // Projects saved before recordings became their own element type
+            // still carry them on the screenshot device — convert on load.
+            const projectData = migrateVideoDevices(project.projectData);
+            setArtboards(projectData);
             setCurrentProjectName(project.name || 'Untitled Project');
-            setHistory([JSON.parse(JSON.stringify(project.projectData))]);
+            setHistory([JSON.parse(JSON.stringify(projectData))]);
             setHistoryIndex(0);
             // Auto-select the first artboard so a refreshed project opens ready to
             // edit (matches loadProjectFromData, the click-a-template path). Without
             // this, refreshing into ?projectId left nothing selected.
-            setActiveArtboardId(project.projectData.length > 0 ? project.projectData[0].id : null);
+            setActiveArtboardId(projectData.length > 0 ? projectData[0].id : null);
             setSelectedElementIdOnActiveArtboard(null);
             setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
           } else {
@@ -1141,6 +1154,135 @@ export function ArtboardStudioLayout() {
     }
   };
 
+  // Re-analyze which boards carry video content (recordings, gestures,
+  // animations) each time the export dialog opens. Async because recording
+  // durations live in the Dexie media table.
+  useEffect(() => {
+    if (!isExportDialogOpen) return;
+    let cancelled = false;
+    (async () => {
+      const infos: Record<string, ArtboardVideoInfo> = {};
+      for (const ab of artboards) {
+        try {
+          infos[ab.id] = await analyzeArtboardForVideo(ab);
+        } catch (error) {
+          console.warn('Video analysis failed for artboard', ab.name, error);
+        }
+      }
+      if (!cancelled) setVideoInfos(infos);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isExportDialogOpen, artboards]);
+
+  // An App Preview project is one that carries recording mockups, recordings,
+  // gesture hints or animations — it gets the video export dialog.
+  const isAppPreviewProject = useMemo(() => projectHasVideoContent(artboards), [artboards]);
+
+  const videoBoards = artboards.filter((ab) => {
+    const info = videoInfos[ab.id];
+    return !!info && (info.hasVideo || info.hasMotion);
+  });
+  const suggestedVideoDuration = videoBoards.reduce(
+    (max, ab) => Math.max(max, videoInfos[ab.id]?.suggestedDuration ?? 0),
+    0
+  ) || 15;
+
+  // Render each video-bearing artboard to its own MP4 (sequentially — the
+  // encoder and the sprite captures both want the main thread).
+  const handleExportVideo = async (request: VideoExportRequest) => {
+    const boards = artboards.filter((ab) => {
+      const info = videoInfos[ab.id];
+      if (!info) return false;
+      // Safe mode exports raw footage, so it needs an actual recording.
+      return request.rawRecordingOnly ? info.hasVideo : info.hasVideo || info.hasMotion;
+    });
+    if (boards.length === 0) {
+      toast({
+        title: 'Nothing to export',
+        description: request.rawRecordingOnly
+          ? 'App Store safe mode needs a screen recording on an artboard.'
+          : 'Add a screen recording, gesture or animation first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    let exportDir: string | null | undefined;
+    if (isTauri() && boards.length > 1) {
+      exportDir = await pickExportDirectory('Choose a folder for the exported videos');
+      if (exportDir === null) return;
+    }
+
+    const abort = new AbortController();
+    videoExportAbortRef.current = abort;
+    setIsVideoExporting(true);
+    const orderPadWidth = Math.max(2, String(artboards.length).length);
+    try {
+      for (const [index, board] of boards.entries()) {
+        const size =
+          request.sizeMode === 'appstore-portrait'
+            ? { width: 886, height: 1920 }
+            : request.sizeMode === 'appstore-landscape'
+              ? { width: 1920, height: 886 }
+              : board.size;
+        const totalFrames = Math.max(1, Math.round(request.durationSeconds * request.fps));
+        setVideoProgress({
+          boardName: board.name,
+          boardIndex: index + 1,
+          boardCount: boards.length,
+          frame: 0,
+          totalFrames,
+        });
+        const blob = await exportArtboardVideo(board, {
+          fps: request.fps,
+          durationSeconds: request.durationSeconds,
+          width: size.width,
+          height: size.height,
+          rawRecordingOnly: request.rawRecordingOnly,
+          signal: abort.signal,
+          onProgress: (frame, total) =>
+            setVideoProgress({
+              boardName: board.name,
+              boardIndex: index + 1,
+              boardCount: boards.length,
+              frame,
+              totalFrames: total,
+            }),
+        });
+        const orderPrefix = String(artboards.indexOf(board) + 1).padStart(orderPadWidth, '0');
+        const filename = `${orderPrefix}_${board.name.replace(/\s+/g, '_')}_AppPreview.mp4`;
+        const savedPath = exportDir
+          ? await saveBlobToPath(blob, exportDir, filename)
+          : await saveBlobToDisk(blob, filename);
+        if (savedPath === null) continue; // user cancelled this file's save dialog
+        toast({
+          title: 'Video Exported',
+          description: savedPath ? `Saved to ${savedPath}` : `"${filename}" has been downloaded.`,
+        });
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        toast({ title: 'Video export cancelled' });
+      } else {
+        console.error('Video export failed:', error);
+        toast({
+          title: 'Video Export Failed',
+          description: error instanceof Error ? error.message : 'See console for details.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsVideoExporting(false);
+      setVideoProgress(null);
+      videoExportAbortRef.current = null;
+    }
+  };
+
+  const handleCancelVideoExport = () => {
+    videoExportAbortRef.current?.abort();
+  };
 
   const handleUndo = useCallback(() => {
     if (historyIndex > 0) {
@@ -1504,7 +1646,7 @@ export function ArtboardStudioLayout() {
       
       // Apply proper positioning to the artboards
       console.log("Loading project data with positioning for:", projectName);
-      const finalArtboards = calculateArtboardPositions(projectData);
+      const finalArtboards = calculateArtboardPositions(migrateVideoDevices(projectData));
       console.log("Final artboards with positions:", finalArtboards.map((ab: ArtboardState) => ({ id: ab.id, position: ab.position })));
       
       // Set project details first to avoid triggering effects
@@ -2130,13 +2272,31 @@ const generateRandomProjectName = (): string => {
             />
           )}
 
-          <ExportDialog
-            isOpen={isExportDialogOpen}
-            onOpenChange={setIsExportDialogOpen}
-            onConfirmExport={handleConfirmExport}
-            currentFormat={activeDeviceFormat}
-            currentSize={artboards[0]?.size}
-          />
+          {/* App Preview video projects get their own dialog: video first, no
+              App Store screenshot-size generation (meaningless for a video
+              board), PNG demoted to a still. Screenshot projects keep the
+              original dialog untouched. */}
+          {isAppPreviewProject ? (
+            <AppPreviewExportDialog
+              isOpen={isExportDialogOpen}
+              onOpenChange={setIsExportDialogOpen}
+              videoBoardCount={videoBoards.length}
+              suggestedVideoDuration={suggestedVideoDuration}
+              onExportVideo={handleExportVideo}
+              onCancelVideoExport={handleCancelVideoExport}
+              onExportStills={() => handleConfirmExport({ asIs: true, generateFormats: [] })}
+              videoProgress={videoProgress}
+              isVideoExporting={isVideoExporting}
+            />
+          ) : (
+            <ExportDialog
+              isOpen={isExportDialogOpen}
+              onOpenChange={setIsExportDialogOpen}
+              onConfirmExport={handleConfirmExport}
+              currentFormat={activeDeviceFormat}
+              currentSize={artboards[0]?.size}
+            />
+          )}
 
           <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
             <DialogContent className="sm:max-w-md">

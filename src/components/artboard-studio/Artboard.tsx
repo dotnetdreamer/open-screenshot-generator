@@ -7,7 +7,10 @@ import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
 import { ImageElement } from './elements/ImageElement';
-import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps } from '@/types/artboard';
+import { VideoElement } from './elements/VideoElement';
+import { VideoDeviceElement } from './elements/VideoDeviceElement';
+import { GestureElement } from './elements/GestureElement';
+import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
@@ -214,6 +217,69 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           }
         }
         newElementToAdd = imageProps;
+      } else if (type === 'video') {
+        const videoProps: VideoElementProps = {
+          ...newElementBase,
+          type: 'video',
+          size: { width: 500, height: 900 }, // portrait recording footprint
+          objectFit: 'cover' as const,
+          opacity: 1,
+          borderRadius: 0,
+        };
+        if (styleProps) {
+          if (typeof styleProps.videoSrc === 'string') videoProps.videoSrc = styleProps.videoSrc;
+          if (typeof styleProps.name === 'string' && styleProps.name) videoProps.name = styleProps.name;
+          if (styleProps.defaultSize?.width && styleProps.defaultSize?.height) {
+            videoProps.size = { width: styleProps.defaultSize.width, height: styleProps.defaultSize.height };
+          }
+        }
+        newElementToAdd = videoProps;
+      } else if (type === 'video-device') {
+        const videoDevice: VideoDeviceElementProps = {
+          ...newElementBase,
+          type: 'video-device',
+          deviceType: (subType as DeviceType) || 'iphone-15-pro',
+          size: { width: 520, height: 1040 }, // 0.5-aspect box, like the screenshot mockups
+          objectFit: 'cover',
+        };
+        if (typeof styleProps?.frameColor === 'string') videoDevice.frameColor = styleProps.frameColor;
+        if (typeof styleProps?.notchColor === 'string') videoDevice.notchColor = styleProps.notchColor;
+        if (typeof styleProps?.frameOpacity === 'number') videoDevice.frameOpacity = styleProps.frameOpacity;
+        if (styleProps?.frameStyle === 'solid' || styleProps?.frameStyle === 'outline') {
+          videoDevice.frameStyle = styleProps.frameStyle;
+        }
+        if (typeof styleProps?.name === 'string' && styleProps.name) videoDevice.name = styleProps.name;
+        if (styleProps?.defaultSize?.width && styleProps?.defaultSize?.height) {
+          videoDevice.size = { width: styleProps.defaultSize.width, height: styleProps.defaultSize.height };
+        }
+        // Center devices by their real size (click) or clamp fully inside the
+        // artboard (drop) — the generic drop position assumes small elements.
+        if (!dropPosition) {
+          videoDevice.position = {
+            x: Math.max(0, (artboard.size.width - videoDevice.size.width) / 2),
+            y: Math.max(0, (artboard.size.height - videoDevice.size.height) / 2),
+          };
+        } else {
+          videoDevice.position = {
+            x: Math.max(0, Math.min(videoDevice.position.x, artboard.size.width - videoDevice.size.width)),
+            y: Math.max(0, Math.min(videoDevice.position.y, artboard.size.height - videoDevice.size.height)),
+          };
+        }
+        newElementToAdd = videoDevice;
+      } else if (type === 'gesture') {
+        const gestureProps: GestureElementProps = {
+          ...newElementBase,
+          type: 'gesture',
+          gestureType: (styleProps?.gestureType as GestureType) || 'tap',
+          color: typeof styleProps?.color === 'string' ? styleProps.color : '#ffffff',
+          size: { width: 160, height: 160 },
+          gestureRepeat: true,
+        };
+        if (typeof styleProps?.name === 'string' && styleProps.name) gestureProps.name = styleProps.name;
+        if (styleProps?.defaultSize?.width && styleProps?.defaultSize?.height) {
+          gestureProps.size = { width: styleProps.defaultSize.width, height: styleProps.defaultSize.height };
+        }
+        newElementToAdd = gestureProps;
       } else if (type === 'shape' && subType) {
         const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',
@@ -488,10 +554,30 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
               )}
               {element.type === 'shape' && <ShapeElement element={element} />}
               {element.type === 'device' && (
-                <DeviceFrameElement 
-                  element={element} 
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                  isSelected={selectedElementId === element.id} 
+                <DeviceFrameElement
+                  element={element}
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
+                  isSelected={selectedElementId === element.id}
+                />
+              )}
+              {element.type === 'video' && (
+                <VideoElement
+                  element={element as VideoElementProps}
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
+                  isSelected={selectedElementId === element.id}
+                />
+              )}
+              {element.type === 'video-device' && (
+                <VideoDeviceElement
+                  element={element as VideoDeviceElementProps}
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
+                  isSelected={selectedElementId === element.id}
+                />
+              )}
+              {element.type === 'gesture' && (
+                <GestureElement
+                  element={element as GestureElementProps}
+                  isSelected={selectedElementId === element.id}
                 />
               )}
             </DraggableElement>

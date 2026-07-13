@@ -127,25 +127,43 @@ async function uploadScreenshotToSelected(page, filePath) {
 
 /**
  * Trigger the app's PNG export and wait for the files to download.
- * The toolbar button opens the "Export Screenshots" dialog; by default this
- * confirms it as-is (current canvas only). Pass extraFormats with checkbox
- * ids ('gen-ios', 'gen-ipad-pro-13', 'gen-ipad-11') to also generate App
- * Store sizes — remember each adds one download per artboard.
+ *
+ * The toolbar button opens ONE OF TWO dialogs, depending on the project:
+ * - Screenshot projects get "Export Screenshots" (#export-as-is + optional
+ *   App Store size checkboxes). extraFormats ('gen-ios', 'gen-ipad-pro-13',
+ *   'gen-ipad-11') tick those; each adds one download per artboard.
+ * - App Preview VIDEO projects get "Export App Preview Video" (#apv-styled),
+ *   whose PNG path is the "Export PNG stills instead" button. extraFormats
+ *   does not apply there (a video board has no App Store screenshot tiers).
  */
 async function exportArtboards(page, downloadDir, expectedCount, timeoutMs = 180000, extraFormats = []) {
   await clickByTitle(page, 'Export Artboards as Images');
-  await page.waitForFunction("!!document.querySelector('#export-as-is')", { timeout: 15000, polling: 500 });
+  await page.waitForFunction(
+    "!!document.querySelector('#export-as-is') || !!document.querySelector('#apv-styled')",
+    { timeout: 15000, polling: 500 }
+  );
   await sleep(300);
-  for (const id of extraFormats) {
-    await page.evaluate((id) => document.getElementById(id)?.click(), id);
+  const isVideoDialog = await page.evaluate(() => !!document.querySelector('#apv-styled'));
+  if (isVideoDialog) {
+    await page.evaluate(() => {
+      const btn = [...document.querySelectorAll('[role="dialog"] button')].find((b) =>
+        (b.textContent || '').includes('Export PNG stills')
+      );
+      if (!btn) throw new Error('App Preview dialog: PNG stills button not found');
+      btn.click();
+    });
+  } else {
+    for (const id of extraFormats) {
+      await page.evaluate((id) => document.getElementById(id)?.click(), id);
+    }
+    await page.evaluate(() => {
+      const btn = [...document.querySelectorAll('[role="dialog"] button')].find(
+        (b) => (b.textContent || '').trim() === 'Export'
+      );
+      if (!btn) throw new Error('dialog Export button not found');
+      btn.click();
+    });
   }
-  await page.evaluate(() => {
-    const btn = [...document.querySelectorAll('[role="dialog"] button')].find(
-      (b) => (b.textContent || '').trim() === 'Export'
-    );
-    if (!btn) throw new Error('dialog Export button not found');
-    btn.click();
-  });
   const deadline = Date.now() + timeoutMs;
   let files = [];
   while (Date.now() < deadline) {

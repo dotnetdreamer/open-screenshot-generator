@@ -29,6 +29,25 @@ export interface ExportSelection {
   generateFormats: DeviceFormat[];
 }
 
+// Shared with AppPreviewExportDialog (the video projects' own dialog), which
+// owns all the video UI — this screenshot dialog has none.
+export type VideoSizeMode = 'appstore-portrait' | 'appstore-landscape' | 'artboard';
+
+export interface VideoExportRequest {
+  fps: number; // 30 or 60
+  durationSeconds: number; // 1..30
+  sizeMode: VideoSizeMode;
+  rawRecordingOnly: boolean;
+}
+
+export interface VideoExportProgress {
+  boardName: string;
+  boardIndex: number; // 1-based
+  boardCount: number;
+  frame: number;
+  totalFrames: number;
+}
+
 interface ExportDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -162,6 +181,7 @@ export function ExportDialog({
               })}
             </div>
           </div>
+
         </div>
 
         <DialogFooter>

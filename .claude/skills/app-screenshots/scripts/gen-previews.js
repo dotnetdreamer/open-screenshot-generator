@@ -41,6 +41,9 @@ const SLUGS = [
   'watch-breathora', 'watch-vowly',
   'watch-smart-appscreens', 'watch-editors-choice', 'watch-dark-aso',
   'watch-ultra-showcase', 'watch-lavender', 'watch-sunset',
+  // App Preview Videos category (behind the "App Preview Videos" tab).
+  'pv-midnight-launch', 'pv-sunrise-fitness', 'pv-minimal-light',
+  'pv-ocean-social', 'pv-royal-shop', 'pv-forest-wellness',
 ];
 
 // Slugs whose card lives behind a non-default Radix tab; the value is the tab
@@ -50,6 +53,9 @@ const SLUG_TAB = {
   'watch-smart-appscreens': 'Apple Watch', 'watch-editors-choice': 'Apple Watch',
   'watch-dark-aso': 'Apple Watch', 'watch-ultra-showcase': 'Apple Watch',
   'watch-lavender': 'Apple Watch', 'watch-sunset': 'Apple Watch',
+  'pv-midnight-launch': 'App Preview Videos', 'pv-sunrise-fitness': 'App Preview Videos',
+  'pv-minimal-light': 'App Preview Videos', 'pv-ocean-social': 'App Preview Videos',
+  'pv-royal-shop': 'App Preview Videos', 'pv-forest-wellness': 'App Preview Videos',
 };
 
 function meta(slug) {

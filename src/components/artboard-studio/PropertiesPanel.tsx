@@ -2,14 +2,17 @@
 
 import type React from 'react';
 import { useEffect, useState, useRef } from 'react';
-import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState } from '@/types/artboard';
+import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, ElementAnimation, ElementAnimationPreset } from '@/types/artboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon } from 'lucide-react';
+import { saveMedia } from '@/lib/mediaStore';
+import { VIDEO_ACCEPT } from './elements/VideoElement';
+import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -24,6 +27,14 @@ import {
 } from "@/components/ui/select";
 import { getFontOptions, getGroupedFontOptions } from '@/services/fontService';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
+
+// Panel headings. Derived names read badly for the compound types
+// ("Video-device Properties"), so the user-facing ones are spelled out.
+const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
+  'video-device': 'Recording Mockup',
+  video: 'Recording Properties',
+  gesture: 'Gesture Hint',
+};
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -143,6 +154,7 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   // Use a ref to track client-side initialization
   const isClient = useRef(false);
+  const { toast } = useToast();
   const [isClientSide, setIsClientSide] = useState(false);
   
   // Background state for artboard
@@ -350,6 +362,61 @@ export function PropertiesPanel({
     setUploadPurpose(purpose);
     hiddenFileInputRef.current?.click();
   };
+
+  // App Preview recordings (device screen video + standalone video element)
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
+  const handleRecordingSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+    if (!file || !selectedElement) return;
+    try {
+      const { id, probe } = await saveMedia(file, file.name);
+      if (selectedElement.type === 'video-device') {
+        onUpdateElement({
+          mediaId: id,
+          naturalVideoWidth: probe.width,
+          naturalVideoHeight: probe.height,
+          durationSeconds: probe.duration,
+          trimStart: undefined,
+          trimEnd: undefined,
+        });
+      } else if (selectedElement.type === 'video') {
+        onUpdateElement({
+          mediaId: id,
+          videoSrc: undefined,
+          naturalVideoWidth: probe.width,
+          naturalVideoHeight: probe.height,
+          durationSeconds: probe.duration,
+          trimStart: undefined,
+          trimEnd: undefined,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Could not load recording',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const secondsInput = (value: number | undefined, onChange: (v: number | undefined) => void, id: string, placeholder: string) => (
+    <Input
+      id={id}
+      type="number"
+      min={0}
+      step={0.1}
+      className="h-8 text-xs"
+      value={value ?? ''}
+      placeholder={placeholder}
+      onChange={(e) => {
+        const raw = e.target.value;
+        if (raw === '') return onChange(undefined);
+        const v = parseFloat(raw);
+        if (!Number.isNaN(v) && v >= 0) onChange(v);
+      }}
+    />
+  );
 
   const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -699,6 +766,478 @@ export function PropertiesPanel({
         accept="image/*"
       />
     </>
+  );
+
+  // Phone/tablet mockup playing a screen recording. Deliberately NOT the
+  // screenshot device panel: no screenshot upload, no screenshot rect sliders,
+  // no 3D pose or perspective (a recording only composites into a flat frame).
+  const renderVideoDeviceProperties = (element: VideoDeviceElementProps) => (
+    <>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="vdDeviceModel" className="text-xs">Device Model</Label>
+        <Select
+          value={element.deviceType}
+          onValueChange={(v) => onUpdateElement({ deviceType: v as DeviceType })}
+        >
+          <SelectTrigger id="vdDeviceModel" className="h-8 text-xs">
+            <SelectValue placeholder="Select Device" />
+          </SelectTrigger>
+          <SelectContent>
+            {DEVICE_PICKER_GROUPS.filter((g) => g.platform !== 'neutral').map((group) => (
+              <SelectGroup key={group.label}>
+                <SelectLabel>{group.label}</SelectLabel>
+                {group.devices
+                  // Watches can't host an App Preview video (Apple takes
+                  // screenshots only for watchOS), so they're left out.
+                  .filter((d) => d.category !== 'watch')
+                  .map((d) => (
+                    <SelectItem key={d.id} value={d.id}>{d.label}</SelectItem>
+                  ))}
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col space-y-1.5 border rounded-md p-2 bg-muted/30">
+        <Label className="text-xs font-medium flex items-center gap-1">
+          <ClapperboardIcon className="w-3.5 h-3.5" />
+          Screen Recording
+        </Label>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => videoFileInputRef.current?.click()}
+            className="text-xs h-8"
+          >
+            <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+            {element.mediaId ? 'Change Recording' : 'Upload Recording'}
+          </Button>
+          {element.mediaId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-8"
+              onClick={() =>
+                onUpdateElement({
+                  mediaId: undefined,
+                  trimStart: undefined,
+                  trimEnd: undefined,
+                  durationSeconds: undefined,
+                  naturalVideoWidth: undefined,
+                  naturalVideoHeight: undefined,
+                })
+              }
+            >
+              <Trash2Icon className="w-3 h-3 mr-1" />
+              Remove
+            </Button>
+          )}
+        </div>
+        {element.mediaId ? (
+          <>
+            {element.durationSeconds ? (
+              <p className="text-[11px] text-muted-foreground">
+                {element.naturalVideoWidth}×{element.naturalVideoHeight}, {element.durationSeconds.toFixed(1)}s
+              </p>
+            ) : null}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="grid gap-1">
+                <Label htmlFor="vdTrimStart" className="text-xs">Trim start (s)</Label>
+                {secondsInput(element.trimStart, (v) => onUpdateElement({ trimStart: v }), 'vdTrimStart', '0')}
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="vdTrimEnd" className="text-xs">Trim end (s)</Label>
+                {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vdTrimEnd', 'full length')}
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="text-[11px] text-muted-foreground">
+            Record your app on the phone, then drop the MP4 or MOV in here. It
+            plays inside the screen and renders into the exported video.
+          </p>
+        )}
+      </div>
+
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="vdFit" className="text-xs">Recording Fit</Label>
+        <Select
+          value={element.objectFit || 'cover'}
+          onValueChange={(v) => onUpdateElement({ objectFit: v as VideoDeviceElementProps['objectFit'] })}
+        >
+          <SelectTrigger id="vdFit" className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cover">Cover (fill the screen)</SelectItem>
+            <SelectItem value="contain">Contain (show all of it)</SelectItem>
+            <SelectItem value="fill">Stretch</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="vdScale" className="text-xs">
+          Scale: {Math.round((element.scale || 1) * 100)}%
+        </Label>
+        <Slider
+          id="vdScale"
+          min={10}
+          max={500}
+          step={1}
+          value={[(element.scale || 1) * 100]}
+          onValueChange={(value) => onUpdateElement({ scale: value[0] / 100 })}
+          className="my-2"
+        />
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="vdRotation" className="text-xs">
+          Rotation: {Math.round(element.rotation || 0)}°
+        </Label>
+        <Slider
+          id="vdRotation"
+          min={-180}
+          max={180}
+          step={1}
+          value={[element.rotation || 0]}
+          onValueChange={(value) => onUpdateElement({ rotation: value[0] })}
+          className="my-2"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 min-w-[100%]">
+        <div>
+          <Label htmlFor="vdFrameColor" className="text-xs">Frame Color</Label>
+          <div className="flex mt-1.5">
+            <Input
+              id="vdFrameColor"
+              type="color"
+              className="w-8 h-8 p-1 cursor-pointer"
+              value={element.frameColor || '#1e1e1e'}
+              onChange={(e) => onUpdateElement({ frameColor: e.target.value })}
+            />
+            <Input
+              type="text"
+              className="flex-1 h-8 ml-2 text-xs"
+              value={element.frameColor || ''}
+              placeholder="default"
+              onChange={(e) => onUpdateElement({ frameColor: e.target.value || undefined })}
+            />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="vdNotchColor" className="text-xs">Notch Color</Label>
+          <div className="flex mt-1.5">
+            <Input
+              id="vdNotchColor"
+              type="color"
+              className="w-8 h-8 p-1 cursor-pointer"
+              value={element.notchColor || '#000000'}
+              onChange={(e) => onUpdateElement({ notchColor: e.target.value })}
+            />
+            <Input
+              type="text"
+              className="flex-1 h-8 ml-2 text-xs"
+              value={element.notchColor || ''}
+              placeholder="default"
+              onChange={(e) => onUpdateElement({ notchColor: e.target.value || undefined })}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="vdFrameOpacity" className="text-xs">
+          Frame Opacity: {Math.round((element.frameOpacity ?? 1) * 100)}%
+        </Label>
+        <Slider
+          id="vdFrameOpacity"
+          min={0}
+          max={100}
+          step={1}
+          value={[(element.frameOpacity ?? 1) * 100]}
+          onValueChange={(v) => onUpdateElement({ frameOpacity: v[0] / 100 })}
+          className="my-2"
+        />
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="vdFrameStyle" className="text-xs">Frame Style</Label>
+        <Select
+          value={element.frameStyle || 'solid'}
+          onValueChange={(v) => onUpdateElement({ frameStyle: v as VideoDeviceElementProps['frameStyle'] })}
+        >
+          <SelectTrigger id="vdFrameStyle" className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="solid">Solid</SelectItem>
+            <SelectItem value="outline">Outline</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </>
+  );
+
+  const renderVideoProperties = (element: VideoElementProps) => (
+    <>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => videoFileInputRef.current?.click()}
+          className="text-xs h-8"
+        >
+          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+          {element.mediaId || element.videoSrc ? 'Change Recording' : 'Upload Recording'}
+        </Button>
+      </div>
+      {element.durationSeconds ? (
+        <p className="text-xs text-muted-foreground">
+          {element.naturalVideoWidth}×{element.naturalVideoHeight}, {element.durationSeconds.toFixed(1)}s
+        </p>
+      ) : null}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="vTrimStart" className="text-xs">Trim start (s)</Label>
+          {secondsInput(element.trimStart, (v) => onUpdateElement({ trimStart: v }), 'vTrimStart', '0')}
+        </div>
+        <div className="grid gap-1">
+          <Label htmlFor="vTrimEnd" className="text-xs">Trim end (s)</Label>
+          {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vTrimEnd', 'full length')}
+        </div>
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="videoObjectFit" className="text-xs">Fit</Label>
+        <Select
+          value={element.objectFit || 'cover'}
+          onValueChange={(value) => onUpdateElement({ objectFit: value as VideoElementProps['objectFit'] })}
+        >
+          <SelectTrigger id="videoObjectFit" className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cover">Cover</SelectItem>
+            <SelectItem value="contain">Contain</SelectItem>
+            <SelectItem value="fill">Fill</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="videoOpacity" className="text-xs">
+          Opacity: {Math.round((element.opacity ?? 1) * 100)}%
+        </Label>
+        <Slider
+          id="videoOpacity"
+          min={0}
+          max={100}
+          step={1}
+          value={[(element.opacity ?? 1) * 100]}
+          onValueChange={(value) => onUpdateElement({ opacity: value[0] / 100 })}
+          className="my-2"
+        />
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="videoRadius" className="text-xs">
+          Corner Radius: {element.borderRadius || 0}px
+        </Label>
+        <Slider
+          id="videoRadius"
+          min={0}
+          max={200}
+          step={1}
+          value={[element.borderRadius || 0]}
+          onValueChange={(value) => onUpdateElement({ borderRadius: value[0] })}
+          className="my-2"
+        />
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="videoScale" className="text-xs">
+          Scale: {Math.round((element.scale || 1) * 100)}%
+        </Label>
+        <Slider
+          id="videoScale"
+          min={10}
+          max={500}
+          step={1}
+          value={[(element.scale || 1) * 100]}
+          onValueChange={(value) => onUpdateElement({ scale: value[0] / 100 })}
+          className="my-2"
+        />
+      </div>
+    </>
+  );
+
+  const renderGestureProperties = (element: GestureElementProps) => (
+    <>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="gestureType" className="text-xs">Gesture</Label>
+        <Select
+          value={element.gestureType}
+          onValueChange={(value) => onUpdateElement({ gestureType: value as GestureType })}
+        >
+          <SelectTrigger id="gestureType" className="h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tap">Tap</SelectItem>
+            <SelectItem value="double-tap">Double Tap</SelectItem>
+            <SelectItem value="swipe-left">Swipe Left</SelectItem>
+            <SelectItem value="swipe-right">Swipe Right</SelectItem>
+            <SelectItem value="swipe-up">Swipe Up</SelectItem>
+            <SelectItem value="swipe-down">Swipe Down</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="gestureColor" className="text-xs">Color</Label>
+        <div className="flex mt-1.5">
+          <Input
+            id="gestureColor"
+            type="color"
+            className="w-8 h-8 p-1 cursor-pointer"
+            value={element.color || '#ffffff'}
+            onChange={(e) => onUpdateElement({ color: e.target.value })}
+          />
+          <Input
+            type="text"
+            className="flex-1 h-8 ml-2 text-xs"
+            value={element.color || ''}
+            onChange={(e) => onUpdateElement({ color: e.target.value })}
+          />
+        </div>
+      </div>
+      <div className="flex items-center gap-2 pt-1">
+        <input
+          id="gestureRepeat"
+          type="checkbox"
+          className="h-4 w-4 accent-primary"
+          checked={element.gestureRepeat ?? false}
+          onChange={(e) => onUpdateElement({ gestureRepeat: e.target.checked })}
+        />
+        <Label htmlFor="gestureRepeat" className="text-xs">Loop for the whole video</Label>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {!element.gestureRepeat && (
+          <div className="grid gap-1">
+            <Label htmlFor="gestureTrigger" className="text-xs">Plays at (s)</Label>
+            {secondsInput(element.triggerTime, (v) => onUpdateElement({ triggerTime: v }), 'gestureTrigger', '0.5')}
+          </div>
+        )}
+        <div className="grid gap-1">
+          <Label htmlFor="gestureDuration" className="text-xs">Length (s)</Label>
+          {secondsInput(element.gestureDuration, (v) => onUpdateElement({ gestureDuration: v }), 'gestureDuration', '1.2')}
+        </div>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Loops on the canvas as a preview. In the exported video it plays at the
+        time set above.
+      </p>
+    </>
+  );
+
+  // Enter/exit animation for the exported App Preview video. Available on
+  // every visual element type; gestures carry their own timing instead.
+  const updateAnimation = (patch: Partial<ElementAnimation>) => {
+    if (!selectedElement) return;
+    const next: ElementAnimation = { ...(selectedElement.animation || {}), ...patch };
+    if (!next.enter) {
+      next.enterDelay = undefined;
+      next.enterDuration = undefined;
+    }
+    if (!next.exit) {
+      next.exitStart = undefined;
+      next.exitDuration = undefined;
+    }
+    onUpdateElement({ animation: next.enter || next.exit ? next : undefined });
+  };
+
+  const ANIMATION_OPTIONS: { value: ElementAnimationPreset; label: string }[] = [
+    { value: 'fade', label: 'Fade' },
+    { value: 'slide-up', label: 'Slide Up' },
+    { value: 'slide-down', label: 'Slide Down' },
+    { value: 'slide-left', label: 'Slide Left' },
+    { value: 'slide-right', label: 'Slide Right' },
+    { value: 'scale-up', label: 'Scale Up' },
+    { value: 'pop', label: 'Pop' },
+  ];
+
+  const renderAnimationProperties = (element: ArtboardElement) => (
+    <div className="border-t pt-3 flex flex-col space-y-2">
+      <Label className="text-xs font-medium flex items-center gap-1">
+        <ClapperboardIcon className="w-3.5 h-3.5" />
+        Video Animation
+      </Label>
+      <p className="text-[11px] text-muted-foreground">
+        Plays in the exported App Preview video. The canvas stays static.
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="animEnter" className="text-xs">Enter</Label>
+          <Select
+            value={element.animation?.enter ?? 'none'}
+            onValueChange={(value) =>
+              updateAnimation({ enter: value === 'none' ? undefined : (value as ElementAnimationPreset) })
+            }
+          >
+            <SelectTrigger id="animEnter" className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {ANIMATION_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {element.animation?.enter && (
+          <>
+            <div className="grid gap-1">
+              <Label htmlFor="animEnterDelay" className="text-xs">Delay (s)</Label>
+              {secondsInput(element.animation?.enterDelay, (v) => updateAnimation({ enterDelay: v }), 'animEnterDelay', '0')}
+            </div>
+            <div className="grid gap-1">
+              <Label htmlFor="animEnterDuration" className="text-xs">Length (s)</Label>
+              {secondsInput(element.animation?.enterDuration, (v) => updateAnimation({ enterDuration: v }), 'animEnterDuration', '0.6')}
+            </div>
+          </>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="animExit" className="text-xs">Exit</Label>
+          <Select
+            value={element.animation?.exit ?? 'none'}
+            onValueChange={(value) =>
+              updateAnimation({ exit: value === 'none' ? undefined : (value as ElementAnimationPreset) })
+            }
+          >
+            <SelectTrigger id="animExit" className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {ANIMATION_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {element.animation?.exit && (
+          <>
+            <div className="grid gap-1">
+              <Label htmlFor="animExitStart" className="text-xs">Starts at (s)</Label>
+              {secondsInput(element.animation?.exitStart, (v) => updateAnimation({ exitStart: v }), 'animExitStart', 'never')}
+            </div>
+            <div className="grid gap-1">
+              <Label htmlFor="animExitDuration" className="text-xs">Length (s)</Label>
+              {secondsInput(element.animation?.exitDuration, (v) => updateAnimation({ exitDuration: v }), 'animExitDuration', '0.6')}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 
   // Update text styling - simplified to directly update element
@@ -1737,7 +2276,8 @@ export function PropertiesPanel({
       <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
         <div className="px-4 py-3 border-b bg-card">
           <div className="font-medium text-foreground">
-            {selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)} Properties
+            {ELEMENT_PANEL_TITLES[selectedElement.type] ??
+              `${selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)} Properties`}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
@@ -1745,8 +2285,12 @@ export function PropertiesPanel({
           {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
           {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
           {selectedElement.type === 'image' && renderImageProperties(selectedElement as ImageElementProps)}
+          {selectedElement.type === 'video' && renderVideoProperties(selectedElement as VideoElementProps)}
+          {selectedElement.type === 'video-device' && renderVideoDeviceProperties(selectedElement as VideoDeviceElementProps)}
+          {selectedElement.type === 'gesture' && renderGestureProperties(selectedElement as GestureElementProps)}
+          {selectedElement.type !== 'gesture' && renderAnimationProperties(selectedElement)}
         </div>
-        
+
         {/* Move the hidden file input outside of device-specific rendering */}
         <Input
           type="file"
@@ -1754,6 +2298,13 @@ export function PropertiesPanel({
           onChange={handleFileSelected}
           className="hidden"
           accept="image/*"
+        />
+        <Input
+          type="file"
+          ref={videoFileInputRef}
+          onChange={handleRecordingSelected}
+          className="hidden"
+          accept={VIDEO_ACCEPT}
         />
       </div>
     );

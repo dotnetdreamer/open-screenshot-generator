@@ -21,7 +21,11 @@ import {
   DiamondIcon,
   ImageIcon,
   LayersIcon,
-  ChevronLeftIcon
+  ChevronLeftIcon,
+  ClapperboardIcon,
+  PointerIcon,
+  MoveHorizontalIcon,
+  MoveVerticalIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType, ArtboardElement, Device3DPose } from '@/types/artboard';
 import { LayersPanel } from './LayersPanel';
@@ -435,7 +439,89 @@ export function ElementPalette({
 
         <TabsContent value="elements" className="flex-grow p-3 pt-2 mt-0 min-h-0">
           <ScrollArea className="h-full">
-            {openCategoryId === 'basic' ? (
+            {openCategoryId === 'app-preview' ? (
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mb-2 h-7 px-1.5 text-xs"
+                  onClick={() => setOpenCategoryId(null)}
+                >
+                  <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
+                  Back
+                </Button>
+                <p className="text-[11px] text-muted-foreground mb-2 px-1">
+                  Build App Store preview videos: put your screen recording in a
+                  phone, add gesture hints, then export the MP4.
+                </p>
+                <div className="grid grid-cols-3 gap-2 pr-1">
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="video-device"
+                    subType="iphone-15-pro"
+                    label="iPhone + Recording"
+                    icon={<SmartphoneIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ name: 'iPhone Recording' }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="video-device"
+                    subType="android-punch-hole"
+                    label="Android + Recording"
+                    icon={<SmartphoneIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ name: 'Android Recording', defaultSize: { width: 520, height: 1073 } }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="video"
+                    label="Recording (no frame)"
+                    icon={<ClapperboardIcon className="w-6 h-6 text-primary" />}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="gesture"
+                    label="Tap"
+                    icon={<PointerIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ gestureType: 'tap', name: 'Tap hint' }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="gesture"
+                    label="Double Tap"
+                    icon={<PointerIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ gestureType: 'double-tap', name: 'Double tap hint' }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="gesture"
+                    label="Swipe Left"
+                    icon={<MoveHorizontalIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ gestureType: 'swipe-left', name: 'Swipe left hint', defaultSize: { width: 320, height: 160 } }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="gesture"
+                    label="Swipe Right"
+                    icon={<MoveHorizontalIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ gestureType: 'swipe-right', name: 'Swipe right hint', defaultSize: { width: 320, height: 160 } }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="gesture"
+                    label="Swipe Up"
+                    icon={<MoveVerticalIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ gestureType: 'swipe-up', name: 'Swipe up hint', defaultSize: { width: 160, height: 320 } }}
+                  />
+                  <DraggableItem
+                    onDragStart={handleDragStart}
+                    type="gesture"
+                    label="Swipe Down"
+                    icon={<MoveVerticalIcon className="w-6 h-6 text-primary" />}
+                    styleProps={{ gestureType: 'swipe-down', name: 'Swipe down hint', defaultSize: { width: 160, height: 320 } }}
+                  />
+                </div>
+              </div>
+            ) : openCategoryId === 'basic' ? (
               <div>
                 <Button
                   variant="ghost"
@@ -567,6 +653,18 @@ export function ElementPalette({
                       <CircleIcon key="c" className="w-5 h-5 text-primary" />,
                       <TriangleIcon key="tr" className="w-5 h-5 text-primary" />,
                       <StarIcon key="st" className="w-5 h-5 text-primary" />,
+                    ]}
+                  />
+                  <DeviceCategoryCard
+                    label="App Preview"
+                    onOpen={() => setOpenCategoryId('app-preview')}
+                    previews={[
+                      <ClapperboardIcon key="v" className="w-5 h-5 text-primary" />,
+                      <PointerIcon key="p" className="w-5 h-5 text-primary" />,
+                      <MoveHorizontalIcon key="h" className="w-5 h-5 text-primary" />,
+                      <MoveVerticalIcon key="vv" className="w-5 h-5 text-primary" />,
+                      <PointerIcon key="p2" className="w-5 h-5 text-primary rotate-12" />,
+                      <ClapperboardIcon key="v2" className="w-5 h-5 text-primary -rotate-6" />,
                     ]}
                   />
                   {ELEMENT_CATEGORIES.map(category => (

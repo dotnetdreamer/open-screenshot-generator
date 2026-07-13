@@ -7,7 +7,10 @@ import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
 import { ImageElement } from './elements/ImageElement';
-import type { ArtboardState, ImageElementProps, DeviceFrameElementProps, TextElementProps, ShapeElementProps } from '@/types/artboard';
+import { VideoElement } from './elements/VideoElement';
+import { VideoDeviceElement } from './elements/VideoDeviceElement';
+import { GestureElement } from './elements/GestureElement';
+import type { ArtboardState, ImageElementProps, DeviceFrameElementProps, TextElementProps, ShapeElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps } from '@/types/artboard';
 
 interface PreviewDialogProps {
   artboards: ArtboardState[];
@@ -88,6 +91,23 @@ function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: n
                 onUpdate={noop}
                 isSelected={false}
               />
+            )}
+            {element.type === 'video' && (
+              <VideoElement
+                element={element as VideoElementProps}
+                onUpdate={noop}
+                isSelected={false}
+              />
+            )}
+            {element.type === 'video-device' && (
+              <VideoDeviceElement
+                element={element as VideoDeviceElementProps}
+                onUpdate={noop}
+                isSelected={false}
+              />
+            )}
+            {element.type === 'gesture' && (
+              <GestureElement element={element as GestureElementProps} isSelected={false} />
             )}
           </div>
         ))}

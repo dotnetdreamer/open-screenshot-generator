@@ -105,6 +105,21 @@ export async function pickExportDirectory(
   return dir as string | null;
 }
 
+/** Write a Blob into a previously picked folder (Tauri only). */
+export async function saveBlobToPath(
+  blob: Blob,
+  dir: string,
+  fileName: string
+): Promise<string> {
+  const [{ writeFile }, { join }] = await Promise.all([
+    import('@tauri-apps/plugin-fs'),
+    import('@tauri-apps/api/path'),
+  ]);
+  const path = await join(dir, sanitizeFileName(fileName));
+  await writeFile(path, new Uint8Array(await blob.arrayBuffer()));
+  return path;
+}
+
 /** Write a data: URL into a previously picked folder (Tauri only). */
 export async function saveDataUrlToPath(
   dataUrl: string,

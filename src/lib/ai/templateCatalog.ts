@@ -47,8 +47,19 @@ function truncate(value: string, max: number): string {
   return flat.length > max ? `${flat.slice(0, max - 1)}...` : flat;
 }
 
+// Categories the agent must never choose. App Preview video templates are
+// built around a screen RECORDING the agent has no way to supply, and their
+// mockups are 'video-device' elements with no screenshot slots — offering them
+// would silently drop the user's uploaded screenshots.
+const AGENT_EXCLUDED_CATEGORIES = new Set(['app-preview']);
+
+/** The templates the agent may build from. Applied by every catalog path. */
+export function agentUsableTemplates(templates: Project[]): Project[] {
+  return templates.filter((t) => !AGENT_EXCLUDED_CATEGORIES.has(t.category ?? ''));
+}
+
 export function buildTemplateCatalog(templates: Project[]): CatalogEntry[] {
-  return templates.map((template) => ({
+  return agentUsableTemplates(templates).map((template) => ({
     id: template.id,
     name: template.name,
     category: template.category ?? 'uncategorized',

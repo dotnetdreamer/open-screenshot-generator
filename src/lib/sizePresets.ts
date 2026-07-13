@@ -99,6 +99,18 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
     ],
   },
   {
+    // Sits after the Play groups so findMatchingPreset keeps resolving the
+    // shared 1080x1920 size to the Play phone entry (first match wins).
+    key: 'appstore-previews',
+    label: 'App Preview Videos',
+    presets: [
+      { id: 'preview-iphone', label: 'iPhone App Preview (Portrait)', width: 886, height: 1920, aspectLabel: '~9:19.5', note: 'App Store preview VIDEO size for all modern iPhones (6.9" down to 6.1"). Design here, then use Export > App Preview Video.', required: true },
+      { id: 'preview-iphone-landscape', label: 'iPhone App Preview (Landscape)', width: 1920, height: 886, aspectLabel: '~19.5:9', note: 'Landscape preview video tier for landscape-first apps and games.' },
+      { id: 'preview-ipad', label: 'iPad App Preview (Portrait)', width: 1200, height: 1600, aspectLabel: '3:4', note: 'App Store preview video size for all iPad tiers (13", 11", 10.5").' },
+      { id: 'preview-ipad-landscape', label: 'iPad App Preview (Landscape)', width: 1600, height: 1200, aspectLabel: '4:3', note: 'Landscape iPad preview video tier.' },
+    ],
+  },
+  {
     key: 'marketing',
     label: 'Marketing & Graphics',
     presets: [

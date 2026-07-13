@@ -1,0 +1,235 @@
+{
+  "id": "template_pv_minimal",
+  "name": "Minimal Light",
+  "description": "Clean light App Preview video layout: dark headlines on soft gray, a white iPhone and subtle tap hints. Upload your screen recording to the phone and export the MP4.",
+  "previewImage": "/data/projects/previews/pv-minimal-light.png",
+  "timestamp": "2026-07-12T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_pv_minimal_0",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#F4F5F7",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_d16",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-list-light.png",
+          "objectFit": "cover",
+          "frameColor": "#f5f5f7",
+          "notchColor": "#111111",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b0_h17",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Less app, more done",
+          "fontSize": 24.6,
+          "color": "#111827",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b0_s18",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 420
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The to-do list that stays out of your way",
+          "fontSize": 11.4,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b0_g19",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 500,
+            "y": 1020
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#111827",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_pv_minimal_1",
+      "name": "Feature",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#ECEEF2",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_d20",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-grid-light.png",
+          "objectFit": "cover",
+          "frameColor": "#f5f5f7",
+          "notchColor": "#111111",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b1_h21",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Organized in seconds",
+          "fontSize": 24.6,
+          "color": "#111827",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b1_s22",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 400
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Drag, drop and get on with your day",
+          "fontSize": 11.4,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b1_g23",
+          "type": "gesture",
+          "name": "Swipe hint",
+          "position": {
+            "x": 300,
+            "y": 1150
+          },
+          "size": {
+            "width": 280,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-left",
+          "color": "#111827",
+          "triggerTime": 2.6,
+          "gestureDuration": 1.4
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-VERIFICATION-TOKEN: abs-0adeabe7
+VERIFICATION-TOKEN: abs-e3e79f38
 Artboard Studio template catalog. Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.
 
 t0 | Zenfit Yoga | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a fitness and yoga app. Sky blue panels with soft waves, a lotus mark,...
@@ -7,11 +7,11 @@ t0 | Zenfit Yoga | category:screenshots | 5 artboards, 5 device slots | App Stor
   artboard 2 "Find Class" devices[d1:iphone-15] texts[x6:"Find", x7:"your workout class"]
   artboard 3 "Choose Exercises" devices[d2:iphone-15, d3:iphone-15] texts[x8:"Choose", x9:"multiple exercises"]
   artboard 4 "Monitor Activity" devices[d4:iphone-15] texts[x10:"Monitor", x11:"all your activities"]
-t1 | Blogio Articles | category:screenshots | 4 artboards, 4 device slots | App Store & Play Store screenshots for a blog and article reading app. Clean white panels with bold royal blu...
+t1 | Blogio Articles | category:screenshots | 4 artboards, 6 device slots | App Store & Play Store screenshots for a blog and article reading app. Clean white panels with bold royal blu...
   artboard 0 "Best Award" devices[d0:iphone-17-pro-max] texts[x0:"BEST AWARD", x1:"The award winning reading app"]
-  artboard 1 "Article Hero" devices[d1:iphone-17-pro-max] texts[]
-  artboard 2 "Achieve Goals" devices[d2:iphone-15] texts[x2:"Achieve Your Goals One Step at a Time", x3:"Save the stories that move you"]
-  artboard 3 "Reach Potential" devices[d3:iphone-15] texts[x4:"Reach Your Full Potential Today", x5:"Follow writers you love and grow with every..."]
+  artboard 1 "Article Hero" devices[d1:iphone-17-pro-max, d2:iphone-17-pro-max] texts[]
+  artboard 2 "Achieve Goals" devices[d3:iphone-17-pro-max, d4:iphone-15] texts[x2:"Achieve Your Goals One Step at a Time", x3:"Save the stories that move you"]
+  artboard 3 "Reach Potential" devices[d5:iphone-15] texts[x4:"Reach Your Full Potential Today", x5:"Follow writers you love and grow with every..."]
 t2 | Breathora Breathing | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a breathing and mindfulness app. Deep forest green hero with a laurel ...
   artboard 0 "Better Breathing" devices[d0:iphone-15] texts[x0:"The #1 App For Better Breathing", x1:"100,000+", x2:"★★★★★", x3:"R E V I E W S", x4:"DAILY", x5:"VERVE", x6:"Fortena", x7:"healthbeat"]
   artboard 1 "Testimonials" devices[] texts[x8:"3,000,000+ People Change Their Lives", x9:"★★★★★", x10:"It's so easy to use and helps me feel calm ...", x11:"Lily Loren", x12:"★★★★", x13:"★", x14:"As a physical therapist, I now recommend th...", x15:"Tia Sheyal"]

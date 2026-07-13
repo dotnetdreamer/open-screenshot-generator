@@ -1,0 +1,243 @@
+{
+  "id": "template_pv_royal",
+  "name": "Royal Shop",
+  "description": "Premium purple App Preview video layout for shopping apps: a product grid recording, gold accents and a tap hint. Upload your screen recording to the phone and export the MP4.",
+  "previewImage": "/data/projects/previews/pv-royal-shop.png",
+  "timestamp": "2026-07-12T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_pv_royal_0",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#3B1B6E",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#3B1B6E",
+        "color2": "#7B2FBF",
+        "angle": 155
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_d32",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-grid-royal.png",
+          "objectFit": "cover",
+          "frameColor": "#1e1e1e",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b0_h33",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shop the good stuff",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b0_s34",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 420
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Curated drops, delivered to your door",
+          "fontSize": 11.4,
+          "color": "#E3D2FF",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b0_g35",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 500,
+            "y": 1060
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#F0C36D",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_pv_royal_1",
+      "name": "Feature",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#5B21B6",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#5B21B6",
+        "color2": "#9D4EDD",
+        "angle": 175
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_d36",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-feed-royal.png",
+          "objectFit": "cover",
+          "frameColor": "#1e1e1e",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b1_h37",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Checkout in a tap",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b1_s38",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 400
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Saved cards, instant tracking, easy returns",
+          "fontSize": 11.4,
+          "color": "#E3D2FF",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b1_g39",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 480,
+            "y": 1490
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#F0C36D",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    }
+  ]
+}

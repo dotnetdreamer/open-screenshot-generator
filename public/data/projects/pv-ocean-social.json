@@ -1,0 +1,241 @@
+{
+  "id": "template_pv_ocean",
+  "name": "Ocean Social",
+  "description": "Fresh blue App Preview video layout for social and chat apps: white headlines over an ocean gradient with a chat recording and tap hint. Upload your screen recording to the phone and export the MP4.",
+  "previewImage": "/data/projects/previews/pv-ocean-social.png",
+  "timestamp": "2026-07-12T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_pv_ocean_0",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#0E7490",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0E7490",
+        "color2": "#2563EB",
+        "angle": 140
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_d24",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-chat-sky.png",
+          "objectFit": "cover",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b0_h25",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Closer to your people",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b0_s26",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 420
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Chats, calls and moments in one stream",
+          "fontSize": 11.4,
+          "color": "#CFF3FF",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b0_g27",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 490,
+            "y": 1120
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#7DE3FF",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_pv_ocean_1",
+      "name": "Feature",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#2563EB",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#2563EB",
+        "color2": "#7C3AED",
+        "angle": 160
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_d28",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-feed-sky.png",
+          "objectFit": "cover",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b1_h29",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A feed that gets you",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b1_s30",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 400
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Scroll what matters, mute what does not",
+          "fontSize": 11.4,
+          "color": "#DCE6FF",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b1_g31",
+          "type": "gesture",
+          "name": "Swipe hint",
+          "position": {
+            "x": 373,
+            "y": 880
+          },
+          "size": {
+            "width": 140,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-up",
+          "color": "#FFFFFF",
+          "triggerTime": 2.6,
+          "gestureDuration": 1.4
+        }
+      ]
+    }
+  ]
+}

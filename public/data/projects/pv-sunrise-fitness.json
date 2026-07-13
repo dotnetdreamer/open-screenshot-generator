@@ -1,0 +1,241 @@
+{
+  "id": "template_pv_sunrise",
+  "name": "Sunrise Fitness",
+  "description": "Energetic App Preview video layout on a sunrise gradient: white headlines, a workout recording in the phone and swipe hints. Upload your screen recording to the phone and export the MP4.",
+  "previewImage": "/data/projects/previews/pv-sunrise-fitness.png",
+  "timestamp": "2026-07-12T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tpl_pv_sunrise_0",
+      "name": "Hero",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#FF6A3D",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FF6A3D",
+        "color2": "#FFB13D",
+        "angle": 150
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b0_d8",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-dashboard-coral.png",
+          "objectFit": "cover",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b0_h9",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Train harder, smarter",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b0_s10",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 420
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Live workouts that adapt to your pace",
+          "fontSize": 11.4,
+          "color": "#FFE8D6",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b0_g11",
+          "type": "gesture",
+          "name": "Tap hint",
+          "position": {
+            "x": 490,
+            "y": 980
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#FFFFFF",
+          "triggerTime": 1.6,
+          "gestureDuration": 1.2
+        }
+      ]
+    },
+    {
+      "id": "tpl_pv_sunrise_1",
+      "name": "Feature",
+      "position": {
+        "x": 15,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "backgroundColor": "#FF3D77",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FF3D77",
+        "color2": "#FF8A3D",
+        "angle": 170
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "b1_d12",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 183,
+            "y": 560
+          },
+          "size": {
+            "width": 520,
+            "height": 1040
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "posterSrc": "/data/projects/app-screens/app-player-coral.png",
+          "objectFit": "cover",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.8
+          }
+        },
+        {
+          "id": "b1_h13",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 43,
+            "y": 170
+          },
+          "size": {
+            "width": 800,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Every rep counts",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.25,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "b1_s14",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 83,
+            "y": 400
+          },
+          "size": {
+            "width": 720,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Watch your streaks grow week after week",
+          "fontSize": 11.4,
+          "color": "#FFE0E9",
+          "fontFamily": "Poppins",
+          "fontWeight": "normal",
+          "textAlign": "center",
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "b1_g15",
+          "type": "gesture",
+          "name": "Swipe hint",
+          "position": {
+            "x": 373,
+            "y": 900
+          },
+          "size": {
+            "width": 140,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-up",
+          "color": "#FFFFFF",
+          "triggerTime": 2.6,
+          "gestureDuration": 1.4
+        }
+      ]
+    }
+  ]
+}

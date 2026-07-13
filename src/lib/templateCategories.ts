@@ -117,6 +117,25 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     ],
   },
   {
+    id: 'app-preview',
+    label: 'App Preview Videos',
+    blurb: 'App Store preview video layouts. Drop your screen recording into the phone, then export an MP4 from Export > App Preview Video.',
+    // Apple's preview video size for all modern iPhones (886x1920). Boards
+    // designed here export 1:1 to the store spec.
+    defaultSize: { width: 886, height: 1920 },
+    previewAspect: '3 / 1',
+    previewFit: 'contain',
+    gridClassName: 'grid-cols-1 lg:grid-cols-2',
+    files: [
+      'pv-midnight-launch.json',
+      'pv-sunrise-fitness.json',
+      'pv-minimal-light.json',
+      'pv-ocean-social.json',
+      'pv-royal-shop.json',
+      'pv-forest-wellness.json',
+    ],
+  },
+  {
     id: 'play-feature-graphic',
     label: 'Google Feature Graphic',
     blurb: 'Google Play 1024×500 feature banner.',

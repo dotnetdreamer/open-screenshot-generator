@@ -8,7 +8,33 @@ export interface Size {
   height: number;
 }
 
-export type ElementType = 'text' | 'shape' | 'device' | 'image';
+// 'device' is the screenshot mockup; 'video-device' is its App Preview sibling
+// that plays a screen recording inside the same frame (see VideoDeviceElement).
+// They share the frame chrome (elements/deviceChrome.tsx) but nothing else:
+// a video device has no screenshot rect, no 3D pose, and its own properties.
+export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture';
+
+// Enter/exit animation presets for App Preview video exports. On the canvas
+// elements render static; the presets only play in the exported MP4 (and the
+// gesture overlays' looping editor preview). Times are in seconds from the
+// start of the video.
+export type ElementAnimationPreset =
+  | 'fade'
+  | 'slide-up'
+  | 'slide-down'
+  | 'slide-left'
+  | 'slide-right'
+  | 'scale-up'
+  | 'pop';
+
+export interface ElementAnimation {
+  enter?: ElementAnimationPreset;
+  enterDelay?: number; // seconds; default 0
+  enterDuration?: number; // seconds; default 0.6
+  exit?: ElementAnimationPreset; // played in reverse (element leaves)
+  exitStart?: number; // absolute second the exit begins; default: never
+  exitDuration?: number; // seconds; default 0.6
+}
 
 // Ensure our element types are properly defined for copy/paste operations
 export interface BaseElement {
@@ -19,6 +45,7 @@ export interface BaseElement {
   size: Size; // Base size, actual display size is base * scale
   rotation: number; // degrees
   scale: number; // multiplier, 1 = 100%
+  animation?: ElementAnimation; // App Preview video enter/exit animation
 }
 
 export interface TextElementProps extends BaseElement {
@@ -137,6 +164,33 @@ export interface DeviceFrameElementProps extends BaseElement {
   notchColor?: string; // overrides the notch / island / punch-hole fill
 }
 
+// Phone/tablet mockup with a SCREEN RECORDING playing inside its screen — the
+// centrepiece of an App Preview video. Deliberately separate from
+// DeviceFrameElementProps: no screenshotRect, no 3D pose, no perspective
+// matrix, because a recording only composites into a flat, front-facing frame.
+// The recording blob lives in the Dexie `media` table (recordings are tens or
+// hundreds of MB; inlining them as base64 in the project row would break it) —
+// the element stores only the row id.
+export interface VideoDeviceElementProps extends BaseElement {
+  type: 'video-device';
+  deviceType: DeviceType;
+  mediaId?: string; // Dexie media row id of the recording
+  trimStart?: number; // seconds into the recording playback starts
+  trimEnd?: number; // seconds into the recording playback stops
+  objectFit?: 'contain' | 'cover' | 'fill'; // how the recording fills the screen
+  // Placeholder shown on the canvas (and in exports) until a recording is
+  // uploaded, so templates read as designs instead of black rectangles.
+  posterSrc?: string;
+  naturalVideoWidth?: number;
+  naturalVideoHeight?: number;
+  durationSeconds?: number;
+  // Same colored-device presets as the flat screenshot frames.
+  frameColor?: string;
+  frameOpacity?: number;
+  frameStyle?: 'solid' | 'outline';
+  notchColor?: string;
+}
+
 export interface ImageElementProps extends BaseElement {
   type: 'image';
   imageSrc?: string;
@@ -152,7 +206,50 @@ export interface ImageElementProps extends BaseElement {
   matrix3d?: string; // Custom CSS matrix3d transform
 }
 
-export type ArtboardElement = TextElementProps | ShapeElementProps | DeviceFrameElementProps | ImageElementProps;
+// A standalone video layer (frameless recordings, full-bleed clips). Source is
+// either a media-table blob (user uploads) or a URL (template/demo assets).
+export interface VideoElementProps extends BaseElement {
+  type: 'video';
+  mediaId?: string; // Dexie media table row id (user-uploaded recording)
+  videoSrc?: string; // URL source (public asset) — used when mediaId is unset
+  objectFit?: 'contain' | 'cover' | 'fill';
+  borderRadius?: number;
+  opacity?: number;
+  trimStart?: number; // seconds into the recording playback starts
+  trimEnd?: number; // seconds into the recording playback stops
+  naturalVideoWidth?: number;
+  naturalVideoHeight?: number;
+  durationSeconds?: number; // source duration, probed on upload
+}
+
+// Animated gesture hints (tap ripples, swipe trails) for App Preview videos.
+// On the canvas they loop forever so the designer can see them; in the export
+// they play once at triggerTime (or loop when gestureRepeat is set).
+export type GestureType =
+  | 'tap'
+  | 'double-tap'
+  | 'swipe-left'
+  | 'swipe-right'
+  | 'swipe-up'
+  | 'swipe-down';
+
+export interface GestureElementProps extends BaseElement {
+  type: 'gesture';
+  gestureType: GestureType;
+  color: string;
+  triggerTime?: number; // seconds into the video the gesture plays; default 0.5
+  gestureDuration?: number; // seconds one play lasts; default 1.2
+  gestureRepeat?: boolean; // loop for the whole video instead of playing once
+}
+
+export type ArtboardElement =
+  | TextElementProps
+  | ShapeElementProps
+  | DeviceFrameElementProps
+  | ImageElementProps
+  | VideoElementProps
+  | VideoDeviceElementProps
+  | GestureElementProps;
 
 export interface ArtboardState {
   id: string;

@@ -408,3 +408,31 @@ html {
 }
 
 /* End of global styles */
+
+/* App Preview gesture hint previews (GestureElement.tsx). The exported video
+   redraws these procedurally (src/lib/video/gestures.ts); keep the motion in
+   sync when editing. */
+@keyframes abs-gesture-tap-dot {
+  0% { transform: scale(1); opacity: 0.9; }
+  25% { transform: scale(0.85); opacity: 0.9; }
+  75% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes abs-gesture-tap-ring {
+  0%, 20% { transform: scale(0.35); opacity: 0; }
+  30% { transform: scale(0.4); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes abs-gesture-swipe-x {
+  0%, 12% { transform: translateX(-160%); opacity: 0; }
+  25% { opacity: 0.95; }
+  80% { transform: translateX(160%); opacity: 0.95; }
+  100% { transform: translateX(160%); opacity: 0; }
+}
+@keyframes abs-gesture-swipe-y {
+  0%, 12% { transform: translateY(-160%); opacity: 0; }
+  25% { opacity: 0.95; }
+  80% { transform: translateY(160%); opacity: 0.95; }
+  100% { transform: translateY(160%); opacity: 0; }
+}
+

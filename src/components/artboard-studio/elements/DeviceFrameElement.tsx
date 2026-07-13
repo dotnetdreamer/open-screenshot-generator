@@ -9,6 +9,7 @@ import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import { Device3DRenderer } from './Device3DRenderer';
+import { getFlatDeviceChrome, getFlatFrameStyles } from './deviceChrome';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -90,209 +91,16 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   // renders at size * scale — so any px value must be derived from the effective width.
   const effectiveWidth = element.size.width * (element.scale || 1);
 
-  // Label, native aspect, and screen geometry (bezel padding + screen corner
-  // radius) live in the device registry — the single source of truth shared
-  // with the swap engine and pickers. Only per-device chrome (outer radius,
-  // body color, notch JSX) stays in the switch below.
-  const deviceDescriptor = getDeviceDescriptor(element.deviceType);
-  const deviceLabel = deviceDescriptor.label;
-  const framePaddingPercent = deviceDescriptor.screen?.paddingPercent
-    ?? { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 };
-  const screenBorderRadius = deviceDescriptor.screen
-    ? `${effectiveWidth * deviceDescriptor.screen.radiusFactor}px`
-    : 'calc(0.8rem * var(--scale-factor, 1))';
-  let deviceFrameOuterBorderRadius = 'calc(1rem * var(--scale-factor, 1))';
-  let deviceFrameBgColor = '#111';
-  let notchElement: React.ReactNode = null;
-
-  if (element.deviceType !== 'custom') {
-    switch (element.deviceType) {
-      case 'iphone-15':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.14}px`;
-        // Dynamic Island: rendered inside the screen. Width is % of screen,
-        // aspect-ratio locks the pill shape no matter how the frame is resized.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: '1.6%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '26%',
-            aspectRatio: '3.5 / 1',
-            backgroundColor: 'var(--notch-bg, #000)',
-            borderRadius: '9999px',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-
-      case 'iphone-15-pro':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.14}px`;
-        deviceFrameBgColor = '#1e1e1e'; // Darker titanium color
-        // Dynamic Island: rendered inside the screen. Width is % of screen,
-        // aspect-ratio locks the pill shape no matter how the frame is resized.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: '1.6%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '26%',
-            aspectRatio: '3.5 / 1',
-            backgroundColor: 'var(--notch-bg, #000)',
-            borderRadius: '9999px',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-
-      case 'iphone-17-pro-max':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.15}px`;
-        deviceFrameBgColor = '#1e1e1e';
-        // Dynamic Island pill, anchored inside the screen like the 15 Pro.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: '1.5%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '25%',
-            aspectRatio: '3.6 / 1',
-            backgroundColor: 'var(--notch-bg, #000)',
-            borderRadius: '9999px',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-
-      case 'iphone-14':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.13}px`;
-        // Classic notch: rendered inside the screen, glued to its top edge.
-        // aspect-ratio + percentage radii keep the shape identical at any size.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '32%',
-            aspectRatio: '4.6 / 1',
-            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
-            borderBottomLeftRadius: '11% 50%',
-            borderBottomRightRadius: '11% 50%',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-
-      case 'iphone-13':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.12}px`;
-        // Classic notch: rendered inside the screen, glued to its top edge.
-        // aspect-ratio + percentage radii keep the shape identical at any size.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '34%',
-            aspectRatio: '4.4 / 1',
-            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
-            borderBottomLeftRadius: '11% 48%',
-            borderBottomRightRadius: '11% 48%',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-
-      case 'iphone-x':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.12}px`;
-        // Classic notch: rendered inside the screen, glued to its top edge.
-        // aspect-ratio + percentage radii keep the shape identical at any size.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '36%',
-            aspectRatio: '4.2 / 1',
-            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
-            borderBottomLeftRadius: '12% 50%',
-            borderBottomRightRadius: '12% 50%',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-
-      case 'iphone':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.1}px`;
-        break;
-      case 'android-bar':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.025}px`;
-        break;
-      case 'android-notch':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.025}px`;
-        // Notch rendered inside the screen, glued to its top edge.
-        // aspect-ratio + percentage radii keep the shape identical at any size.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '32%',
-            aspectRatio: '5 / 1',
-            backgroundColor: `var(--notch-bg, var(--frame-bg, ${deviceFrameBgColor}))`,
-            borderBottomLeftRadius: '12% 60%',
-            borderBottomRightRadius: '12% 60%',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-      case 'android-punch-hole':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.025}px`;
-        // Camera cutout rendered inside the screen; aspect-ratio keeps it a
-        // perfect circle no matter how the frame is resized.
-        notchElement = (
-          <div style={{
-            position: 'absolute',
-            top: '1.2%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '5%',
-            aspectRatio: '1 / 1',
-            backgroundColor: 'var(--notch-bg, #000)',
-            borderRadius: '50%',
-            zIndex: 3, // Above screen content
-          }} />
-        );
-        break;
-      case 'tablet':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.02}px`;
-        break;
-      case 'ipad-pro-13':
-        // Modern iPad Pro/Air slab: uniform thin bezel, softly rounded body.
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.05}px`;
-        deviceFrameBgColor = '#1e1e1e';
-        break;
-      case 'ipad-11':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.055}px`;
-        deviceFrameBgColor = '#1e1e1e';
-        break;
-      case 'tablet-7':
-        // Chunkier bezels than the 10-inch; typical budget Android slate.
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.045}px`;
-        break;
-      case 'tablet-10':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.032}px`;
-        break;
-      case 'desktop':
-        deviceFrameOuterBorderRadius = `${effectiveWidth * 0.013}px`;
-        deviceFrameBgColor = '#333';
-        break;
-    }
-  }
+  // Per-device chrome (outer radius, body colour, notch/island/punch-hole) is
+  // shared with VideoDeviceElement — see elements/deviceChrome.tsx. Screen
+  // geometry itself still comes from the device registry via that module.
+  const chrome = getFlatDeviceChrome(element.deviceType, effectiveWidth);
+  const deviceLabel = chrome.label;
+  const framePaddingPercent = chrome.paddingPercent;
+  const screenBorderRadius = chrome.screenBorderRadius;
+  const deviceFrameOuterBorderRadius = chrome.outerBorderRadius;
+  const deviceFrameBgColor = chrome.bodyColor;
+  const notchElement = element.deviceType === 'custom' ? null : chrome.notch;
 
   // SVG-based rendering for device frames with perspective transforms
   const renderDeviceSVG = (
@@ -596,8 +404,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         style={containerStyle}
       >
         {/* Use the same DOM structure for both modes */}
-        <div style={frameStyle}>
-          <div style={screenStyle}> {/* Using the unified screen style */}
+        <div style={frameStyle} data-device-frame={element.id}>
+          <div style={screenStyle} data-device-screen={element.id}> {/* Using the unified screen style */}
             {/* All notches/islands/cutouts are anchored inside the screen so they
                 stay glued to its top edge at any size or aspect ratio */}
             {notchElement}
