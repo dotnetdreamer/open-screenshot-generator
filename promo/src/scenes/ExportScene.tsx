@@ -9,16 +9,17 @@ import {
 import { Headline, Kicker, Sub } from "../components/text";
 import { C, FONT_BODY, FONT_DISPLAY } from "../theme";
 
-const FILES = [
+export const FILES = [
   { name: "01_Iconic_iPhone.png", size: "1290 x 2796", store: "App Store", tint: "#6FB3B5" },
   { name: "02_Watch_More.png", size: "1080 x 1920", store: "Google Play", tint: "#D4AF37" },
   { name: "03_Awarded_iPad_13.png", size: "2064 x 2752", store: "App Store", tint: "#8FD0C2" },
 ];
 
-const FileCard: React.FC<{
+export const FileCard: React.FC<{
   file: (typeof FILES)[number];
   delay: number;
-}> = ({ file, delay }) => {
+  width?: number;
+}> = ({ file, delay, width = 480 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({
@@ -34,7 +35,7 @@ const FileCard: React.FC<{
   return (
     <div
       style={{
-        width: 480,
+        width,
         borderRadius: 22,
         border: `1px solid ${C.stroke}`,
         background: C.card,

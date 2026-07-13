@@ -11,10 +11,15 @@ import { Background } from "./components/Background";
 import { Scene } from "./components/Scene";
 import { Intro } from "./scenes/Intro";
 import { EditorScene } from "./scenes/EditorScene";
+import { EditorSceneMobile } from "./scenes/EditorSceneMobile";
 import { DevicesScene } from "./scenes/DevicesScene";
+import { DevicesSceneMobile } from "./scenes/DevicesSceneMobile";
 import { TemplatesScene } from "./scenes/TemplatesScene";
+import { TemplatesSceneMobile } from "./scenes/TemplatesSceneMobile";
 import { AgentScene } from "./scenes/AgentScene";
+import { AgentSceneMobile } from "./scenes/AgentSceneMobile";
 import { ExportScene } from "./scenes/ExportScene";
+import { ExportSceneMobile } from "./scenes/ExportSceneMobile";
 import { LocalScene } from "./scenes/LocalScene";
 import { Outro } from "./scenes/Outro";
 
@@ -53,8 +58,22 @@ const FAST: SceneSpec[] = [
   { from: 920, duration: 160, component: Outro, fadeOut: false },
 ];
 
+// Portrait 1080x1920 cut at the fast pacing. Centered scenes (Intro, Local,
+// Outro) already fit a phone screen; the rest have portrait layouts.
+const MOBILE: SceneSpec[] = [
+  { from: 0, duration: 105, component: Intro, fadeIn: false },
+  { from: 95, duration: 150, component: EditorSceneMobile },
+  { from: 235, duration: 150, component: DevicesSceneMobile },
+  { from: 375, duration: 150, component: TemplatesSceneMobile },
+  { from: 515, duration: 165, component: AgentSceneMobile },
+  { from: 670, duration: 135, component: ExportSceneMobile },
+  { from: 795, duration: 135, component: LocalScene },
+  { from: 920, duration: 160, component: Outro, fadeOut: false },
+];
+
 export const TOTAL_DURATION = 1560;
 export const FAST_DURATION = 1080;
+export const MOBILE_DURATION = 1080;
 
 const PromoBase: React.FC<{ scenes: SceneSpec[] }> = ({ scenes }) => {
   const { durationInFrames } = useVideoConfig();
@@ -89,3 +108,4 @@ const PromoBase: React.FC<{ scenes: SceneSpec[] }> = ({ scenes }) => {
 
 export const Promo: React.FC = () => <PromoBase scenes={FULL} />;
 export const PromoFast: React.FC = () => <PromoBase scenes={FAST} />;
+export const PromoMobile: React.FC = () => <PromoBase scenes={MOBILE} />;

@@ -13,14 +13,14 @@ import { SelectionFrame } from "../components/SelectionFrame";
 import { Window } from "../components/Window";
 import { C, FONT_BODY } from "../theme";
 
-const STEPS = [
+export const STEPS = [
   "Reads your screenshots",
   "Picks the right template",
   "Places every screen in a frame",
   "Rewrites the copy for your app",
 ];
 
-const Step: React.FC<{ label: string; delay: number }> = ({ label, delay }) => {
+export const Step: React.FC<{ label: string; delay: number }> = ({ label, delay }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({

@@ -3,7 +3,7 @@ import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
 import { Headline, Kicker, Sub } from "../components/text";
 import { C } from "../theme";
 
-const ROW_A = [
+export const ROW_A = [
   "strips/breathora-breathing.png",
   "strips/vowly-wedding.png",
   "strips/castique-podcast.png",
@@ -11,7 +11,7 @@ const ROW_A = [
   "strips/luxe-glow.png",
   "strips/coinly-crypto.png",
 ];
-const ROW_B = [
+export const ROW_B = [
   "strips/connectly-chat.png",
   "strips/cinevault-stream.png",
   "strips/inquira.png",
@@ -20,12 +20,12 @@ const ROW_B = [
   "strips/playverse-games.png",
 ];
 
-const CARD_H = 210;
+export const CARD_H = 210;
 const CARD_W = CARD_H * 3; // preview strips are 3:1
 const GAP = 28;
 const SPAN = (CARD_W + GAP) * ROW_A.length;
 
-const Row: React.FC<{ srcs: string[]; y: number; dir: 1 | -1; speed: number }> = ({
+export const Row: React.FC<{ srcs: string[]; y: number; dir: 1 | -1; speed: number }> = ({
   srcs,
   y,
   dir,

@@ -57,10 +57,12 @@ export const Background: React.FC = () => {
           </group>
         </ThreeCanvas>
       </AbsoluteFill>
+      {/* 73% x 83% matches the old 1400x900 px ellipse on 1920x1080 and
+          keeps the vignette proportional on the portrait cut. */}
       <AbsoluteFill
         style={{
           background:
-            "radial-gradient(1400px 900px at 50% 46%, transparent 55%, rgba(0,0,0,0.55) 100%)",
+            "radial-gradient(73% 83% at 50% 46%, transparent 55%, rgba(0,0,0,0.55) 100%)",
         }}
       />
     </AbsoluteFill>

@@ -90,14 +90,93 @@ const Phone: React.FC<{
   );
 };
 
+type PhoneSpec = React.ComponentProps<typeof Phone>;
+
+/** Landscape spread: hero phone center, two wingmen left and right. */
+const WIDE: PhoneSpec[] = [
+  {
+    screen: "devices/app-feed-light.png",
+    x: 2.05,
+    y: 0.35,
+    z: -1.3,
+    height: 2.95,
+    baseRotY: -0.34,
+    rotZ: 0.09,
+    phase: 2.1,
+    delay: 30,
+  },
+  {
+    screen: "devices/app-dashboard-sky.png",
+    x: -2.0,
+    y: -0.05,
+    z: -1.5,
+    height: 2.8,
+    baseRotY: 0.38,
+    rotZ: -0.07,
+    phase: 3.4,
+    delay: 40,
+  },
+  {
+    screen: "devices/app-player-dark.png",
+    x: 0.05,
+    y: 0,
+    z: 0,
+    height: 3.6,
+    baseRotY: -0.22,
+    rotZ: -0.05,
+    phase: 0.7,
+    delay: 18,
+  },
+];
+
+/** Portrait stack for the mobile cut: hero center, wingmen tucked diagonally. */
+const TALL: PhoneSpec[] = [
+  {
+    screen: "devices/app-feed-light.png",
+    x: -1.42,
+    y: 1.12,
+    z: -1.7,
+    height: 2.65,
+    baseRotY: 0.36,
+    rotZ: 0.08,
+    phase: 2.1,
+    delay: 30,
+  },
+  {
+    screen: "devices/app-dashboard-sky.png",
+    x: 1.48,
+    y: -1.1,
+    z: -1.6,
+    height: 2.55,
+    baseRotY: -0.34,
+    rotZ: -0.09,
+    phase: 3.4,
+    delay: 40,
+  },
+  {
+    screen: "devices/app-player-dark.png",
+    x: 0.02,
+    y: 0.05,
+    z: 0,
+    height: 3.45,
+    baseRotY: -0.22,
+    rotZ: -0.05,
+    phase: 0.7,
+    delay: 18,
+  },
+];
+
 /**
  * Real three.js scene for the device mockups: lit, slowly turning phone
- * models with the skeleton screenshots as emissive screens.
+ * models with the skeleton screenshots as emissive screens. The "tall"
+ * layout rearranges the phones for the portrait (mobile) composition.
  */
-export const Devices3D: React.FC<{ width: number; height: number }> = ({
-  width,
-  height,
-}) => {
+export const Devices3D: React.FC<{
+  width: number;
+  height: number;
+  layout?: "wide" | "tall";
+}> = ({ width, height, layout = "wide" }) => {
+  const phones = layout === "tall" ? TALL : WIDE;
   return (
     <ThreeCanvas
       width={width}
@@ -108,39 +187,9 @@ export const Devices3D: React.FC<{ width: number; height: number }> = ({
       <directionalLight position={[4, 6, 6]} intensity={1.9} />
       <pointLight position={[-7, -2, 3]} intensity={60} color="#6FB3B5" />
       <pointLight position={[7, -5, -1]} intensity={38} color="#D4AF37" />
-      <Phone
-        screen="devices/app-feed-light.png"
-        x={2.05}
-        y={0.35}
-        z={-1.3}
-        height={2.95}
-        baseRotY={-0.34}
-        rotZ={0.09}
-        phase={2.1}
-        delay={30}
-      />
-      <Phone
-        screen="devices/app-dashboard-sky.png"
-        x={-2.0}
-        y={-0.05}
-        z={-1.5}
-        height={2.8}
-        baseRotY={0.38}
-        rotZ={-0.07}
-        phase={3.4}
-        delay={40}
-      />
-      <Phone
-        screen="devices/app-player-dark.png"
-        x={0.05}
-        y={0}
-        z={0}
-        height={3.6}
-        baseRotY={-0.22}
-        rotZ={-0.05}
-        phase={0.7}
-        delay={18}
-      />
+      {phones.map((p) => (
+        <Phone key={p.screen} {...p} />
+      ))}
     </ThreeCanvas>
   );
 };
