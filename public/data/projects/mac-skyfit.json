@@ -1,0 +1,1063 @@
+{
+ "id": "mac-skyfit-template",
+ "name": "Skyfit Coach",
+ "description": "Mac App Store screenshots for a wellness coaching app: sky blue and white panels, playful waves, rings and sparkles, a script accent line, and 3D MacBook and iMac mockups running light sky-accent screens. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-skyfit.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Coach",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Ring-1",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 300,
+      "y": 250
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Sparkle-2",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 2200,
+      "y": 220
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.7,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Headline-3",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 110
+     },
+     "size": {
+      "width": 2200,
+      "height": 167
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Coach yourself daily",
+     "fontSize": 34,
+     "color": "#14415E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-4",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 300
+     },
+     "size": {
+      "width": 2200,
+      "height": 69
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Wellness coaching, built for your Mac",
+     "fontSize": 14,
+     "color": "#6E92A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Blob-5",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 655,
+      "y": 380
+     },
+     "size": {
+      "width": 1250,
+      "height": 930
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Mac-6",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 805,
+      "y": 430
+     },
+     "size": {
+      "width": 950,
+      "height": 741
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-sky.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Wave-7",
+     "type": "shape",
+     "name": "Wave",
+     "position": {
+      "x": 0,
+      "y": 1150
+     },
+     "size": {
+      "width": 2560,
+      "height": 450
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 52 C3 47.67 11.67 25.67 18 26 C24.33 26.33 31 54.67 38 54 C45 53.33 52.67 22.67 60 22 C67.33 21.33 75.33 47.67 82 50 C88.67 52.33 97 38.33 100 36 L100 100 L0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Script-8",
+     "type": "text",
+     "name": "Script",
+     "position": {
+      "x": 680,
+      "y": 1390
+     },
+     "size": {
+      "width": 1200,
+      "height": 84
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your best self, daily",
+     "fontSize": 17,
+     "color": "#FFFFFF",
+     "fontFamily": "Pacifico",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "CTA pill-9",
+     "type": "shape",
+     "name": "CTA pill",
+     "position": {
+      "x": 1120,
+      "y": 1490
+     },
+     "size": {
+      "width": 320,
+      "height": 84
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#EF6A52",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 42,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "CTA-a",
+     "type": "text",
+     "name": "CTA",
+     "position": {
+      "x": 1120,
+      "y": 1490
+     },
+     "size": {
+      "width": 320,
+      "height": 84
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Get started",
+     "fontSize": 10,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sparkle-b",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 350,
+      "y": 1440
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Sparkle-c",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 2150,
+      "y": 1470
+     },
+     "size": {
+      "width": 48,
+      "height": 48
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ],
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Connect",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Ring-d",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 300,
+      "y": 160
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Heart chip-e",
+     "type": "shape",
+     "name": "Heart chip",
+     "position": {
+      "x": 2140,
+      "y": 180
+     },
+     "size": {
+      "width": 130,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Heart-f",
+     "type": "shape",
+     "name": "Heart",
+     "position": {
+      "x": 2173,
+      "y": 213
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#EF6A52",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Mac-g",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 530,
+      "y": 60
+     },
+     "size": {
+      "width": 1500,
+      "height": 1100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "tilted",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-music-sky.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Blue band-h",
+     "type": "shape",
+     "name": "Blue band",
+     "position": {
+      "x": 0,
+      "y": 1180
+     },
+     "size": {
+      "width": 2560,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 0,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Headline-i",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 1230
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Connect",
+     "fontSize": 30,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-j",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 1400
+     },
+     "size": {
+      "width": 2200,
+      "height": 69
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "with your body & mind",
+     "fontSize": 14,
+     "color": "#E7F7FF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sparkle-k",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1900,
+      "y": 1260
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ],
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Find",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-l",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 100
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Find your workout class",
+     "fontSize": 30,
+     "color": "#14415E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-m",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 270
+     },
+     "size": {
+      "width": 2200,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Search hundreds of guided sessions",
+     "fontSize": 13,
+     "color": "#6E92A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Hill-n",
+     "type": "shape",
+     "name": "Hill",
+     "position": {
+      "x": 0,
+      "y": 950
+     },
+     "size": {
+      "width": 2560,
+      "height": 650
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#CFEAF9",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Mac-o",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 530,
+      "y": 400
+     },
+     "size": {
+      "width": 1500,
+      "height": 1091
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-sky.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Sparkle-p",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 350,
+      "y": 800
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Sparkle-q",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 2180,
+      "y": 700
+     },
+     "size": {
+      "width": 52,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Ring-r",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 2250,
+      "y": 1150
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.5,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    }
+   ],
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Choose",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-s",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 100
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Choose multiple workouts",
+     "fontSize": 30,
+     "color": "#14415E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-t",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 270
+     },
+     "size": {
+      "width": 2200,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Mix yoga, cardio and mindfulness",
+     "fontSize": 13,
+     "color": "#6E92A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Bubble-u",
+     "type": "shape",
+     "name": "Bubble",
+     "position": {
+      "x": 2300,
+      "y": 300
+     },
+     "size": {
+      "width": 160,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#E3F3FC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot-v",
+     "type": "shape",
+     "name": "Dot",
+     "position": {
+      "x": 200,
+      "y": 380
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Mac left-w",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 90,
+      "y": 480
+     },
+     "size": {
+      "width": 1250,
+      "height": 902
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "side",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-kanban-sky.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Mac right-x",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 1200,
+      "y": 500
+     },
+     "size": {
+      "width": 1300,
+      "height": 953
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "tilted",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-music-sky.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Sparkle-y",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1240,
+      "y": 420
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#2FB0E8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.8,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ],
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Monitor",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-z",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 100
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Monitor all your activities",
+     "fontSize": 30,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-10",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 270
+     },
+     "size": {
+      "width": 2200,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Progress that follows you across devices",
+     "fontSize": 13,
+     "color": "#E7F7FF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-11",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 730,
+      "y": 420
+     },
+     "size": {
+      "width": 1100,
+      "height": 858
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-sky.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Wave-12",
+     "type": "shape",
+     "name": "Wave",
+     "position": {
+      "x": 0,
+      "y": 1380
+     },
+     "size": {
+      "width": 2560,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 52 C3 47.67 11.67 25.67 18 26 C24.33 26.33 31 54.67 38 54 C45 53.33 52.67 22.67 60 22 C67.33 21.33 75.33 47.67 82 50 C88.67 52.33 97 38.33 100 36 L100 100 L0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Sparkle-13",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 320,
+      "y": 480
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Ring-14",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 2230,
+      "y": 350
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.6,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Sparkle-15",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 2280,
+      "y": 1120
+     },
+     "size": {
+      "width": 52,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ],
+   "backgroundColor": "#2FB0E8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2FB0E8",
+    "color2": "#1E97D2",
+    "angle": 180
+   },
+   "zoom": 1
+  }
+ ]
+}

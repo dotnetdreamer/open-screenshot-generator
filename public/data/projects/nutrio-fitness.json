@@ -1,0 +1,735 @@
+{
+ "id": "template_nutrio_fitness",
+ "name": "Nutrio Fitness",
+ "description": "App Store & Play Store screenshots for a fitness and nutrition app. White panels with pastel blobs, fanned and tilted classic phones with purple gradient screens, dotted accents and wavy shapes.",
+ "previewImage": "/data/projects/previews/nutrio-fitness.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "nutrio_fitness_ab1",
+   "name": "Hero",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nf_blob_soft_1",
+     "type": "shape",
+     "name": "Lavender blob top-left",
+     "position": {
+      "x": -220,
+      "y": -220
+     },
+     "size": {
+      "width": 980,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#CFC8F9"
+    },
+    {
+     "id": "nf_text_2",
+     "type": "text",
+     "name": "Heading",
+     "position": {
+      "x": 90,
+      "y": 120
+     },
+     "size": {
+      "width": 960,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your personalized\nfitness and\nnutrition app",
+     "fontSize": 30,
+     "color": "#23233F",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.28
+    },
+    {
+     "id": "nf_blob_wavy_3",
+     "type": "shape",
+     "name": "Indigo blob bottom-left",
+     "position": {
+      "x": -260,
+      "y": 2360
+     },
+     "size": {
+      "width": 760,
+      "height": 680
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 3 C58.37 3.33 67.18 25.08 73.38 36.5 C79.59 47.92 91.14 64.42 87.24 71.5 C83.34 78.58 62.7 78.83 50 79 C37.3 79.17 15.5 79.92 11.03 72.5 C6.55 65.08 16.66 46.08 23.15 34.5 C29.65 22.92 41.63 2.67 50 3 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#6C5BE8"
+    },
+    {
+     "id": "nf_phone_4",
+     "type": "device",
+     "name": "Phone right (behind)",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": 560,
+      "y": 430
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.7,
+     "rotation": 15,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nf_phone_5",
+     "type": "device",
+     "name": "Phone left (front)",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": -140,
+      "y": 860
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.7,
+     "rotation": -25,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutrio_fitness_ab2",
+   "name": "Explore",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nf_blob_pebble_6",
+     "type": "shape",
+     "name": "Pink blob top",
+     "position": {
+      "x": 230,
+      "y": -260
+     },
+     "size": {
+      "width": 1050,
+      "height": 920
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 20 C61.26 19.83 78 21.17 84.64 30 C91.28 38.83 95.61 61.83 89.84 73 C84.06 84.17 63.13 97.08 50 97 C36.87 96.92 16.51 83.5 11.03 72.5 C5.54 61.5 10.6 39.75 17.09 31 C23.59 22.25 38.74 20.17 50 20 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F8A5AD"
+    },
+    {
+     "id": "nf_wave_zigzag_7",
+     "type": "shape",
+     "name": "White zigzag",
+     "position": {
+      "x": 800,
+      "y": 60
+     },
+     "size": {
+      "width": 220,
+      "height": 120
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 66 L12.5 34 L25 66 L37.5 34 L50 66 L62.5 34 L75 66 L87.5 34 L100 66",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 10
+     },
+     "fillColor": "#FFFFFF",
+     "strokeWidth": 5
+    },
+    {
+     "id": "nf_rect_8",
+     "type": "shape",
+     "name": "Hanging stripe 1",
+     "position": {
+      "x": 760,
+      "y": 560
+     },
+     "size": {
+      "width": 16,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F8A5AD",
+     "borderRadius": 8
+    },
+    {
+     "id": "nf_rect_9",
+     "type": "shape",
+     "name": "Hanging stripe 2",
+     "position": {
+      "x": 804,
+      "y": 560
+     },
+     "size": {
+      "width": 16,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F8A5AD",
+     "borderRadius": 8
+    },
+    {
+     "id": "nf_rect_10",
+     "type": "shape",
+     "name": "Hanging stripe 3",
+     "position": {
+      "x": 848,
+      "y": 560
+     },
+     "size": {
+      "width": 16,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F8A5AD",
+     "borderRadius": 8
+    },
+    {
+     "id": "nf_rect_11",
+     "type": "shape",
+     "name": "Hanging stripe 4",
+     "position": {
+      "x": 892,
+      "y": 560
+     },
+     "size": {
+      "width": 16,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F8A5AD",
+     "borderRadius": 8
+    },
+    {
+     "id": "nf_rect_12",
+     "type": "shape",
+     "name": "Hanging stripe 5",
+     "position": {
+      "x": 936,
+      "y": 560
+     },
+     "size": {
+      "width": 16,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F8A5AD",
+     "borderRadius": 8
+    },
+    {
+     "id": "nf_phone_13",
+     "type": "device",
+     "name": "Phone fan left (back)",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": -210,
+      "y": 1150
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.62,
+     "rotation": -32,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nf_phone_14",
+     "type": "device",
+     "name": "Phone fan middle",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": 170,
+      "y": 980
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.62,
+     "rotation": -12,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nf_phone_15",
+     "type": "device",
+     "name": "Phone fan right (front)",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": 600,
+      "y": 1120
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.62,
+     "rotation": 10,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutrio_fitness_ab3",
+   "name": "Track",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nf_blob_drift_16",
+     "type": "shape",
+     "name": "Pink blob top-right",
+     "position": {
+      "x": 600,
+      "y": -280
+     },
+     "size": {
+      "width": 980,
+      "height": 840
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 20 C61.26 19.83 78 21.17 84.64 30 C91.28 38.83 95.61 61.83 89.84 73 C84.06 84.17 63.13 97.08 50 97 C36.87 96.92 16.51 83.5 11.03 72.5 C5.54 61.5 10.6 39.75 17.09 31 C23.59 22.25 38.74 20.17 50 20 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F8A5AD"
+    },
+    {
+     "id": "nf_wave_zigzag_17",
+     "type": "shape",
+     "name": "White zigzag",
+     "position": {
+      "x": 820,
+      "y": 120
+     },
+     "size": {
+      "width": 230,
+      "height": 130
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 66 L12.5 34 L25 66 L37.5 34 L50 66 L62.5 34 L75 66 L87.5 34 L100 66",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 10
+     },
+     "fillColor": "#FFFFFF",
+     "strokeWidth": 5
+    },
+    {
+     "id": "nf_blob_soft_18",
+     "type": "shape",
+     "name": "Lavender blob mid-left",
+     "position": {
+      "x": -200,
+      "y": 1650
+     },
+     "size": {
+      "width": 520,
+      "height": 460
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E4E0FB"
+    },
+    {
+     "id": "nf_phone_19",
+     "type": "device",
+     "name": "Phone A tilted top",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": -120,
+      "y": 240
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.55,
+     "rotation": -18,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nf_phone_20",
+     "type": "device",
+     "name": "Phone B upright bottom",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": 520,
+      "y": 1450
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.55,
+     "rotation": 0,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "nutrio_fitness_ab4",
+   "name": "Workouts",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nf_phone_21",
+     "type": "device",
+     "name": "Phone top-center",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": 195,
+      "y": -820
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.5,
+     "rotation": 0,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nf_text_22",
+     "type": "text",
+     "name": "Caption",
+     "position": {
+      "x": 195,
+      "y": 1290
+     },
+     "size": {
+      "width": 900,
+      "height": 360
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Personalized\nworkouts",
+     "fontSize": 38,
+     "color": "#23233F",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.25
+    },
+    {
+     "id": "nf_pattern_dots_23",
+     "type": "shape",
+     "name": "Pink dot grid",
+     "position": {
+      "x": 400,
+      "y": 1760
+     },
+     "size": {
+      "width": 520,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M7.4 10 A2.6 2.6 0 1 0 12.6 10 A2.6 2.6 0 1 0 7.4 10 ZM23.4 10 A2.6 2.6 0 1 0 28.6 10 A2.6 2.6 0 1 0 23.4 10 ZM39.4 10 A2.6 2.6 0 1 0 44.6 10 A2.6 2.6 0 1 0 39.4 10 ZM55.4 10 A2.6 2.6 0 1 0 60.6 10 A2.6 2.6 0 1 0 55.4 10 ZM71.4 10 A2.6 2.6 0 1 0 76.6 10 A2.6 2.6 0 1 0 71.4 10 ZM87.4 10 A2.6 2.6 0 1 0 92.6 10 A2.6 2.6 0 1 0 87.4 10 ZM7.4 26 A2.6 2.6 0 1 0 12.6 26 A2.6 2.6 0 1 0 7.4 26 ZM23.4 26 A2.6 2.6 0 1 0 28.6 26 A2.6 2.6 0 1 0 23.4 26 ZM39.4 26 A2.6 2.6 0 1 0 44.6 26 A2.6 2.6 0 1 0 39.4 26 ZM55.4 26 A2.6 2.6 0 1 0 60.6 26 A2.6 2.6 0 1 0 55.4 26 ZM71.4 26 A2.6 2.6 0 1 0 76.6 26 A2.6 2.6 0 1 0 71.4 26 ZM87.4 26 A2.6 2.6 0 1 0 92.6 26 A2.6 2.6 0 1 0 87.4 26 ZM7.4 42 A2.6 2.6 0 1 0 12.6 42 A2.6 2.6 0 1 0 7.4 42 ZM23.4 42 A2.6 2.6 0 1 0 28.6 42 A2.6 2.6 0 1 0 23.4 42 ZM39.4 42 A2.6 2.6 0 1 0 44.6 42 A2.6 2.6 0 1 0 39.4 42 ZM55.4 42 A2.6 2.6 0 1 0 60.6 42 A2.6 2.6 0 1 0 55.4 42 ZM71.4 42 A2.6 2.6 0 1 0 76.6 42 A2.6 2.6 0 1 0 71.4 42 ZM87.4 42 A2.6 2.6 0 1 0 92.6 42 A2.6 2.6 0 1 0 87.4 42 ZM7.4 58 A2.6 2.6 0 1 0 12.6 58 A2.6 2.6 0 1 0 7.4 58 ZM23.4 58 A2.6 2.6 0 1 0 28.6 58 A2.6 2.6 0 1 0 23.4 58 ZM39.4 58 A2.6 2.6 0 1 0 44.6 58 A2.6 2.6 0 1 0 39.4 58 ZM55.4 58 A2.6 2.6 0 1 0 60.6 58 A2.6 2.6 0 1 0 55.4 58 ZM71.4 58 A2.6 2.6 0 1 0 76.6 58 A2.6 2.6 0 1 0 71.4 58 ZM87.4 58 A2.6 2.6 0 1 0 92.6 58 A2.6 2.6 0 1 0 87.4 58 ZM7.4 74 A2.6 2.6 0 1 0 12.6 74 A2.6 2.6 0 1 0 7.4 74 ZM23.4 74 A2.6 2.6 0 1 0 28.6 74 A2.6 2.6 0 1 0 23.4 74 ZM39.4 74 A2.6 2.6 0 1 0 44.6 74 A2.6 2.6 0 1 0 39.4 74 ZM55.4 74 A2.6 2.6 0 1 0 60.6 74 A2.6 2.6 0 1 0 55.4 74 ZM71.4 74 A2.6 2.6 0 1 0 76.6 74 A2.6 2.6 0 1 0 71.4 74 ZM87.4 74 A2.6 2.6 0 1 0 92.6 74 A2.6 2.6 0 1 0 87.4 74 ZM7.4 90 A2.6 2.6 0 1 0 12.6 90 A2.6 2.6 0 1 0 7.4 90 ZM23.4 90 A2.6 2.6 0 1 0 28.6 90 A2.6 2.6 0 1 0 23.4 90 ZM39.4 90 A2.6 2.6 0 1 0 44.6 90 A2.6 2.6 0 1 0 39.4 90 ZM55.4 90 A2.6 2.6 0 1 0 60.6 90 A2.6 2.6 0 1 0 55.4 90 ZM71.4 90 A2.6 2.6 0 1 0 76.6 90 A2.6 2.6 0 1 0 71.4 90 ZM87.4 90 A2.6 2.6 0 1 0 92.6 90 A2.6 2.6 0 1 0 87.4 90 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0A0B4",
+     "opacity": 0.9
+    },
+    {
+     "id": "nf_blob_wavy_24",
+     "type": "shape",
+     "name": "Yellow blob bottom",
+     "position": {
+      "x": -110,
+      "y": 2280
+     },
+     "size": {
+      "width": 1500,
+      "height": 900
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 3 C58.37 3.33 67.18 25.08 73.38 36.5 C79.59 47.92 91.14 64.42 87.24 71.5 C83.34 78.58 62.7 78.83 50 79 C37.3 79.17 15.5 79.92 11.03 72.5 C6.55 65.08 16.66 46.08 23.15 34.5 C29.65 22.92 41.63 2.67 50 3 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFC93D"
+    }
+   ]
+  },
+  {
+   "id": "nutrio_fitness_ab5",
+   "name": "Nutrition",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nf_blob_soft_25",
+     "type": "shape",
+     "name": "Lavender blob top-right",
+     "position": {
+      "x": 760,
+      "y": -180
+     },
+     "size": {
+      "width": 820,
+      "height": 700
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E4E0FB"
+    },
+    {
+     "id": "nf_blob_wavy_26",
+     "type": "shape",
+     "name": "Yellow blob bottom",
+     "position": {
+      "x": -160,
+      "y": 2200
+     },
+     "size": {
+      "width": 1600,
+      "height": 950
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 3 C58.37 3.33 67.18 25.08 73.38 36.5 C79.59 47.92 91.14 64.42 87.24 71.5 C83.34 78.58 62.7 78.83 50 79 C37.3 79.17 15.5 79.92 11.03 72.5 C6.55 65.08 16.66 46.08 23.15 34.5 C29.65 22.92 41.63 2.67 50 3 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFC93D"
+    },
+    {
+     "id": "nf_pattern_dots_27",
+     "type": "shape",
+     "name": "Pink dot grid left",
+     "position": {
+      "x": -80,
+      "y": 1500
+     },
+     "size": {
+      "width": 360,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M7.4 10 A2.6 2.6 0 1 0 12.6 10 A2.6 2.6 0 1 0 7.4 10 ZM23.4 10 A2.6 2.6 0 1 0 28.6 10 A2.6 2.6 0 1 0 23.4 10 ZM39.4 10 A2.6 2.6 0 1 0 44.6 10 A2.6 2.6 0 1 0 39.4 10 ZM55.4 10 A2.6 2.6 0 1 0 60.6 10 A2.6 2.6 0 1 0 55.4 10 ZM71.4 10 A2.6 2.6 0 1 0 76.6 10 A2.6 2.6 0 1 0 71.4 10 ZM87.4 10 A2.6 2.6 0 1 0 92.6 10 A2.6 2.6 0 1 0 87.4 10 ZM7.4 26 A2.6 2.6 0 1 0 12.6 26 A2.6 2.6 0 1 0 7.4 26 ZM23.4 26 A2.6 2.6 0 1 0 28.6 26 A2.6 2.6 0 1 0 23.4 26 ZM39.4 26 A2.6 2.6 0 1 0 44.6 26 A2.6 2.6 0 1 0 39.4 26 ZM55.4 26 A2.6 2.6 0 1 0 60.6 26 A2.6 2.6 0 1 0 55.4 26 ZM71.4 26 A2.6 2.6 0 1 0 76.6 26 A2.6 2.6 0 1 0 71.4 26 ZM87.4 26 A2.6 2.6 0 1 0 92.6 26 A2.6 2.6 0 1 0 87.4 26 ZM7.4 42 A2.6 2.6 0 1 0 12.6 42 A2.6 2.6 0 1 0 7.4 42 ZM23.4 42 A2.6 2.6 0 1 0 28.6 42 A2.6 2.6 0 1 0 23.4 42 ZM39.4 42 A2.6 2.6 0 1 0 44.6 42 A2.6 2.6 0 1 0 39.4 42 ZM55.4 42 A2.6 2.6 0 1 0 60.6 42 A2.6 2.6 0 1 0 55.4 42 ZM71.4 42 A2.6 2.6 0 1 0 76.6 42 A2.6 2.6 0 1 0 71.4 42 ZM87.4 42 A2.6 2.6 0 1 0 92.6 42 A2.6 2.6 0 1 0 87.4 42 ZM7.4 58 A2.6 2.6 0 1 0 12.6 58 A2.6 2.6 0 1 0 7.4 58 ZM23.4 58 A2.6 2.6 0 1 0 28.6 58 A2.6 2.6 0 1 0 23.4 58 ZM39.4 58 A2.6 2.6 0 1 0 44.6 58 A2.6 2.6 0 1 0 39.4 58 ZM55.4 58 A2.6 2.6 0 1 0 60.6 58 A2.6 2.6 0 1 0 55.4 58 ZM71.4 58 A2.6 2.6 0 1 0 76.6 58 A2.6 2.6 0 1 0 71.4 58 ZM87.4 58 A2.6 2.6 0 1 0 92.6 58 A2.6 2.6 0 1 0 87.4 58 ZM7.4 74 A2.6 2.6 0 1 0 12.6 74 A2.6 2.6 0 1 0 7.4 74 ZM23.4 74 A2.6 2.6 0 1 0 28.6 74 A2.6 2.6 0 1 0 23.4 74 ZM39.4 74 A2.6 2.6 0 1 0 44.6 74 A2.6 2.6 0 1 0 39.4 74 ZM55.4 74 A2.6 2.6 0 1 0 60.6 74 A2.6 2.6 0 1 0 55.4 74 ZM71.4 74 A2.6 2.6 0 1 0 76.6 74 A2.6 2.6 0 1 0 71.4 74 ZM87.4 74 A2.6 2.6 0 1 0 92.6 74 A2.6 2.6 0 1 0 87.4 74 ZM7.4 90 A2.6 2.6 0 1 0 12.6 90 A2.6 2.6 0 1 0 7.4 90 ZM23.4 90 A2.6 2.6 0 1 0 28.6 90 A2.6 2.6 0 1 0 23.4 90 ZM39.4 90 A2.6 2.6 0 1 0 44.6 90 A2.6 2.6 0 1 0 39.4 90 ZM55.4 90 A2.6 2.6 0 1 0 60.6 90 A2.6 2.6 0 1 0 55.4 90 ZM71.4 90 A2.6 2.6 0 1 0 76.6 90 A2.6 2.6 0 1 0 71.4 90 ZM87.4 90 A2.6 2.6 0 1 0 92.6 90 A2.6 2.6 0 1 0 87.4 90 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0A0B4",
+     "opacity": 0.9
+    },
+    {
+     "id": "nf_phone_28",
+     "type": "device",
+     "name": "Phone big tilted",
+     "deviceType": "iphone-x",
+     "styleType": "normal",
+     "frameColor": "#2A2A2E",
+     "position": {
+      "x": 160,
+      "y": 330
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.8,
+     "rotation": -5,
+     "screenshotSrc": "/data/projects/nutrio-screen-gradient.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  }
+ ]
+}

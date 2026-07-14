@@ -1,0 +1,610 @@
+{
+ "id": "mac-boardly-template",
+ "name": "Boardly Tasks",
+ "description": "Mac App Store screenshots for a project management app: color-block two-tone boards in orange, violet and green, playful accent headlines, and 3D MacBook and iMac mockups straddling the blocks. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-boardly.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Super powers",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Logo tile-6x",
+     "type": "shape",
+     "name": "Logo tile",
+     "position": {
+      "x": 220,
+      "y": 170
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#6A62E1",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 16,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Logo-6y",
+     "type": "text",
+     "name": "Logo",
+     "position": {
+      "x": 310,
+      "y": 170
+     },
+     "size": {
+      "width": 400,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "boardly",
+     "fontSize": 13,
+     "color": "#232653",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline 1-6z",
+     "type": "text",
+     "name": "Headline 1",
+     "position": {
+      "x": 220,
+      "y": 300
+     },
+     "size": {
+      "width": 1200,
+      "height": 167
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Tools with",
+     "fontSize": 34,
+     "color": "#232653",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline 2a-70",
+     "type": "text",
+     "name": "Headline 2a",
+     "position": {
+      "x": 220,
+      "y": 470
+     },
+     "size": {
+      "width": 460,
+      "height": 167
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Super",
+     "fontSize": 34,
+     "color": "#F1512D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline 2b-71",
+     "type": "text",
+     "name": "Headline 2b",
+     "position": {
+      "x": 590,
+      "y": 470
+     },
+     "size": {
+      "width": 700,
+      "height": 167
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Powers",
+     "fontSize": 34,
+     "color": "#232653",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-72",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 220,
+      "y": 700
+     },
+     "size": {
+      "width": 900,
+      "height": 104
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Customise, plan, capture and get\nmore done with AI",
+     "fontSize": 12,
+     "color": "#6E7287",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac back-73",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 450,
+      "y": 850
+     },
+     "size": {
+      "width": 1000,
+      "height": 722
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "side",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-editor-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Mac front-74",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 1150,
+      "y": 640
+     },
+     "size": {
+      "width": 1150,
+      "height": 836
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-kanban-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#E3E3EE",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Velocity",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Orange block-75",
+     "type": "shape",
+     "name": "Orange block",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 2560,
+      "height": 1030
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F1512D",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 0,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Mac-76",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 605,
+      "y": 160
+     },
+     "size": {
+      "width": 1350,
+      "height": 982
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-kanban-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Headline-77",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 1230
+     },
+     "size": {
+      "width": 2200,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Boost your team’s velocity\nby up to 35%",
+     "fontSize": 22,
+     "color": "#F1512D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#FBE5DE",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "One board",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Grey block-78",
+     "type": "shape",
+     "name": "Grey block",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 2560,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E3E3EE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 0,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Headline 1-79",
+     "type": "text",
+     "name": "Headline 1",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 118
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "One board",
+     "fontSize": 24,
+     "color": "#6A62E1",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline 2-7a",
+     "type": "text",
+     "name": "Headline 2",
+     "position": {
+      "x": 180,
+      "y": 260
+     },
+     "size": {
+      "width": 2200,
+      "height": 118
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "for all of your projects",
+     "fontSize": 24,
+     "color": "#232653",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-7b",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 630,
+      "y": 480
+     },
+     "size": {
+      "width": 1300,
+      "height": 904
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#6A62E1",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Status",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Green block-7c",
+     "type": "shape",
+     "name": "Green block",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 2560,
+      "height": 1030
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#178B57",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 0,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Mac-7d",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 605,
+      "y": 160
+     },
+     "size": {
+      "width": 1350,
+      "height": 982
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Headline-7e",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 1220
+     },
+     "size": {
+      "width": 2200,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Automatic\nstatus updates",
+     "fontSize": 22,
+     "color": "#178B57",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#E0F0E8",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Pixel perfect",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Blush block-7f",
+     "type": "shape",
+     "name": "Blush block",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 2560,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FBE5DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 0,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Headline 1-7g",
+     "type": "text",
+     "name": "Headline 1",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 118
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Pixel perfect",
+     "fontSize": 24,
+     "color": "#F1512D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline 2-7h",
+     "type": "text",
+     "name": "Headline 2",
+     "position": {
+      "x": 180,
+      "y": 260
+     },
+     "size": {
+      "width": 2200,
+      "height": 118
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "planning for your team",
+     "fontSize": 24,
+     "color": "#232653",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-7i",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 705,
+      "y": 480
+     },
+     "size": {
+      "width": 1150,
+      "height": 897
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-mail-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#F1512D",
+   "zoom": 1
+  }
+ ]
+}

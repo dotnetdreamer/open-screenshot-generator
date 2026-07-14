@@ -49,12 +49,53 @@ const DARK = {
   textStrong: '#f2f2f7',
   line: '#333338',
 };
+// Custom bases for themes whose source template isn't plain light/dark.
+const CORAL_BASE = {
+  bg: '#fdf4f1',
+  sidebar: '#f7e9e4',
+  surface: '#ffffff',
+  surfaceAlt: '#fbeeea',
+  block: '#e8d2ca',
+  blockSoft: '#f3e2dc',
+  icon: '#b59c93',
+  textStrong: '#3a2723',
+  line: '#f0ddd6',
+};
+const FOREST_BASE = {
+  bg: '#16301f',
+  sidebar: '#1c3a26',
+  surface: '#234730',
+  surfaceAlt: '#1e3d29',
+  block: '#3f6b4f',
+  blockSoft: '#2d543a',
+  icon: '#7fa98d',
+  textStrong: '#eaf6ee',
+  line: '#2a4f36',
+};
+const GOLD_BASE = {
+  bg: '#121419',
+  sidebar: '#171a20',
+  surface: '#1d2129',
+  surfaceAlt: '#181c22',
+  block: '#3a414d',
+  blockSoft: '#262b34',
+  icon: '#98a0ac',
+  textStrong: '#f0f2f5',
+  line: '#2a303b',
+};
 const THEMES = {
   light: { base: LIGHT, accent: '#6366f1', accentSoft: '#e0e3fd' },
   dark: { base: DARK, accent: '#7c86ff', accentSoft: '#2c3060' },
   amber: { base: LIGHT, accent: '#e8a413', accentSoft: '#fbeecb' },
   lime: { base: DARK, accent: '#c8f04a', accentSoft: '#3a4218' },
   blue: { base: DARK, accent: '#4c8dff', accentSoft: '#1c3560' },
+  // Themes matching the Mac template palettes (one per source template family).
+  sky: { base: LIGHT, accent: '#2fb0e8', accentSoft: '#d8eefb' },
+  royal: { base: LIGHT, accent: '#4a63e7', accentSoft: '#dfe4fc' },
+  eco: { base: LIGHT, accent: '#2fa96a', accentSoft: '#d9f0e3' },
+  coral: { base: CORAL_BASE, accent: '#e2574a', accentSoft: '#fadcd7' },
+  forest: { base: FOREST_BASE, accent: '#9fdfae', accentSoft: '#2e5c3c' },
+  gold: { base: GOLD_BASE, accent: '#ffc233', accentSoft: '#3a3012' },
 };
 const THEME_NAMES = Object.keys(THEMES);
 const theme = (name) => ({ ...THEMES[name].base, accent: THEMES[name].accent, accentSoft: THEMES[name].accentSoft });

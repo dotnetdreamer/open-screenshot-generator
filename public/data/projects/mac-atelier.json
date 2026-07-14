@@ -1,0 +1,1587 @@
+{
+ "id": "mac-atelier-template",
+ "name": "Atelier Noir",
+ "description": "Mac App Store screenshots for a creative studio app: near-black boards, gold serif headlines, dark testimonial and stat cards, a gold laurel rating, and 3D MacBook and iMac mockups running dark gold-accent screens. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-atelier.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Numbers",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker-8j",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 180,
+      "y": 130
+     },
+     "size": {
+      "width": 2200,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "№ 01 · A STUDIO FOR MAKERS",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-8k",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 210
+     },
+     "size": {
+      "width": 2200,
+      "height": 294
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Craft from\nreal numbers.",
+     "fontSize": 34,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Swoosh-8l",
+     "type": "shape",
+     "name": "Swoosh",
+     "position": {
+      "x": 1070,
+      "y": 530
+     },
+     "size": {
+      "width": 420,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFC233",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0.46 59.96 L1.94 60.64 L3.86 61.77 L6.33 63.38 L9.2 65.28 L12.37 67.32 L15.78 69.36 L19.37 71.28 L23.12 72.95 L27.07 74.21 L30.99 74.79 L34.48 74.78 L37.7 74.47 L40.91 73.88 L44.1 72.99 L47.24 71.79 L50.35 70.28 L53.42 68.47 L56.47 66.33 L59.52 63.88 L62.64 61.05 L65.97 57.55 L69.55 53.28 L73.28 48.46 L77.08 43.28 L80.83 37.96 L84.43 32.71 L87.76 27.74 L90.7 23.28 L93.13 19.54 L94.95 16.74 A1.2 1.2 0 0 1 93.05 15.26 L90.77 17.75 L87.86 21.17 L84.46 25.3 L80.69 29.92 L76.67 34.79 L72.52 39.69 L68.38 44.4 L64.37 48.68 L60.65 52.27 L57.36 54.95 L54.38 56.95 L51.5 58.59 L48.77 59.88 L46.2 60.82 L43.76 61.46 L41.44 61.83 L39.22 61.96 L37.05 61.88 L34.91 61.62 L33.01 61.21 L31.33 60.56 L29.39 59.47 L27.1 57.93 L24.64 56.04 L22.13 53.93 L19.66 51.71 L17.32 49.51 L15.15 47.41 L13.14 45.5 L11.54 44.04 A9.7 9.7 0 0 1 0.46 59.96 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Mac-8m",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 530,
+      "y": 640
+     },
+     "size": {
+      "width": 1500,
+      "height": 1091
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-gold.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Script-8n",
+     "type": "text",
+     "name": "Script",
+     "position": {
+      "x": 2020,
+      "y": 1380
+     },
+     "size": {
+      "width": 440,
+      "height": 59
+     },
+     "rotation": -6,
+     "scale": 1,
+     "content": "measure twice, cut once",
+     "fontSize": 12,
+     "color": "#FFC233",
+     "fontFamily": "Pacifico",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#181D25",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#181D25",
+    "color2": "#0B0D10",
+    "angle": 180
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Workspace",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker-8o",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 180,
+      "y": 130
+     },
+     "size": {
+      "width": 2200,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "№ 02 · THE WORKSPACE",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-8p",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 210
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Every project,\nstitched in.",
+     "fontSize": 30,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-8q",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 260,
+      "y": 560
+     },
+     "size": {
+      "width": 620,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "C1 title-8r",
+     "type": "text",
+     "name": "C1 title",
+     "position": {
+      "x": 300,
+      "y": 590
+     },
+     "size": {
+      "width": 400,
+      "height": 69
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Concepts",
+     "fontSize": 14,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "C1 sub-8s",
+     "type": "text",
+     "name": "C1 sub",
+     "position": {
+      "x": 300,
+      "y": 665
+     },
+     "size": {
+      "width": 400,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "11 boards",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "C1 desc-8t",
+     "type": "text",
+     "name": "C1 desc",
+     "position": {
+      "x": 300,
+      "y": 715
+     },
+     "size": {
+      "width": 540,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "From moodboard to first draft.",
+     "fontSize": 9,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-8u",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 260,
+      "y": 850
+     },
+     "size": {
+      "width": 620,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "C2 title-8v",
+     "type": "text",
+     "name": "C2 title",
+     "position": {
+      "x": 300,
+      "y": 880
+     },
+     "size": {
+      "width": 400,
+      "height": 69
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Sprints",
+     "fontSize": 14,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "C2 sub-8w",
+     "type": "text",
+     "name": "C2 sub",
+     "position": {
+      "x": 300,
+      "y": 955
+     },
+     "size": {
+      "width": 400,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "4 active",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "C2 desc-8x",
+     "type": "text",
+     "name": "C2 desc",
+     "position": {
+      "x": 300,
+      "y": 1005
+     },
+     "size": {
+      "width": 540,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Everyday flows, kickoff to review.",
+     "fontSize": 9,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-8y",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 260,
+      "y": 1140
+     },
+     "size": {
+      "width": 620,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "C3 title-8z",
+     "type": "text",
+     "name": "C3 title",
+     "position": {
+      "x": 300,
+      "y": 1170
+     },
+     "size": {
+      "width": 400,
+      "height": 69
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Releases",
+     "fontSize": 14,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "C3 sub-90",
+     "type": "text",
+     "name": "C3 sub",
+     "position": {
+      "x": 300,
+      "y": 1245
+     },
+     "size": {
+      "width": 400,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "10 shipped",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "C3 desc-91",
+     "type": "text",
+     "name": "C3 desc",
+     "position": {
+      "x": 300,
+      "y": 1295
+     },
+     "size": {
+      "width": 540,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Final cuts, ready for the store.",
+     "fontSize": 9,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-92",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 1150,
+      "y": 520
+     },
+     "size": {
+      "width": 1300,
+      "height": 938
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "side",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-editor-gold.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#181D25",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#181D25",
+    "color2": "#0B0D10",
+    "angle": 180
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Routine",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker-93",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 180,
+      "y": 130
+     },
+     "size": {
+      "width": 2200,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "№ 03 · FROM THE MAKERS",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-94",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 210
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Stitched into\nthe routine",
+     "fontSize": 30,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-95",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 180,
+      "y": 560
+     },
+     "size": {
+      "width": 700,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "T1 stars-96",
+     "type": "text",
+     "name": "T1 stars",
+     "position": {
+      "x": 220,
+      "y": 600
+     },
+     "size": {
+      "width": 300,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 10,
+     "color": "#FFC233",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "T1 quote-97",
+     "type": "text",
+     "name": "T1 quote",
+     "position": {
+      "x": 220,
+      "y": 690
+     },
+     "size": {
+      "width": 620,
+      "height": 137
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "The board remembers every\ndeadline. My diary finally\nstays closed.",
+     "fontSize": 11,
+     "color": "#F4F5F7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "T1 name-98",
+     "type": "text",
+     "name": "T1 name",
+     "position": {
+      "x": 220,
+      "y": 890
+     },
+     "size": {
+      "width": 500,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "— Mara V. · Berlin",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-99",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 930,
+      "y": 560
+     },
+     "size": {
+      "width": 700,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "T2 stars-9a",
+     "type": "text",
+     "name": "T2 stars",
+     "position": {
+      "x": 970,
+      "y": 600
+     },
+     "size": {
+      "width": 300,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 10,
+     "color": "#FFC233",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "T2 quote-9b",
+     "type": "text",
+     "name": "T2 quote",
+     "position": {
+      "x": 970,
+      "y": 690
+     },
+     "size": {
+      "width": 620,
+      "height": 137
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "I capture the idea while the\nclient is still talking.\nNothing gets lost.",
+     "fontSize": 11,
+     "color": "#F4F5F7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "T2 name-9c",
+     "type": "text",
+     "name": "T2 name",
+     "position": {
+      "x": 970,
+      "y": 890
+     },
+     "size": {
+      "width": 500,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "— Bilal · Faisalabad",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-9d",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 1680,
+      "y": 560
+     },
+     "size": {
+      "width": 700,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "T3 stars-9e",
+     "type": "text",
+     "name": "T3 stars",
+     "position": {
+      "x": 1720,
+      "y": 600
+     },
+     "size": {
+      "width": 300,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 10,
+     "color": "#FFC233",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "T3 quote-9f",
+     "type": "text",
+     "name": "T3 quote",
+     "position": {
+      "x": 1720,
+      "y": 690
+     },
+     "size": {
+      "width": 620,
+      "height": 137
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "No signal at the venue, no\nproblem. Every file is\nalready on my Mac.",
+     "fontSize": 11,
+     "color": "#F4F5F7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "T3 name-9g",
+     "type": "text",
+     "name": "T3 name",
+     "position": {
+      "x": 1720,
+      "y": 890
+     },
+     "size": {
+      "width": 500,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "— Shahid · Peshawar",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Laurel-9h",
+     "type": "shape",
+     "name": "Laurel",
+     "position": {
+      "x": 1070,
+      "y": 1120
+     },
+     "size": {
+      "width": 420,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#A67A10",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M30.66 76.62 L28.46 74.86 L26.41 72.93 L24.53 70.83 L22.84 68.57 L21.35 66.18 L20.07 63.67 L19.01 61.06 L18.18 58.36 L17.58 55.61 L17.22 52.82 L17.1 50 L17.22 47.18 L17.58 44.39 L18.18 41.64 L19.01 38.94 L20.07 36.33 L21.35 33.82 L22.84 31.43 L24.53 29.17 L26.41 27.07 L28.46 25.14 L30.66 23.38 L31.72 24.84 L29.63 26.5 L27.7 28.33 L25.92 30.31 L24.33 32.45 L22.92 34.71 L21.71 37.08 L20.71 39.55 L19.92 42.09 L19.36 44.7 L19.01 47.34 L18.9 50 L19.01 52.66 L19.36 55.3 L19.92 57.91 L20.71 60.45 L21.71 62.92 L22.92 65.29 L24.33 67.55 L25.92 69.69 L27.7 71.67 L29.63 73.5 L31.72 75.16 Z M27.35 72.6 Q29.83 67.61 26.85 62.91 Q24.36 67.89 27.35 72.6 Z M21.86 65.24 Q18.42 61.22 13.22 62.17 Q16.66 66.19 21.86 65.24 Z M18.69 56.63 Q23.04 54.16 23.02 49.15 Q18.67 51.62 18.69 56.63 Z M18.1 47.47 Q17.56 42.78 13.17 41.04 Q13.71 45.73 18.1 47.47 Z M20.13 38.52 Q24.55 38.87 26.88 35.09 Q22.45 34.74 20.13 38.52 Z M24.62 30.51 Q26.54 26.84 24.07 23.5 Q22.14 27.18 24.62 30.51 Z M69.34 76.62 L71.54 74.86 L73.59 72.93 L75.47 70.83 L77.16 68.57 L78.65 66.18 L79.93 63.67 L80.99 61.06 L81.82 58.36 L82.42 55.61 L82.78 52.82 L82.9 50 L82.78 47.18 L82.42 44.39 L81.82 41.64 L80.99 38.94 L79.93 36.33 L78.65 33.82 L77.16 31.43 L75.47 29.17 L73.59 27.07 L71.54 25.14 L69.34 23.38 L68.28 24.84 L70.37 26.5 L72.3 28.33 L74.08 30.31 L75.67 32.45 L77.08 34.71 L78.29 37.08 L79.29 39.55 L80.08 42.09 L80.64 44.7 L80.99 47.34 L81.1 50 L80.99 52.66 L80.64 55.3 L80.08 57.91 L79.29 60.45 L78.29 62.92 L77.08 65.29 L75.67 67.55 L74.08 69.69 L72.3 71.67 L70.37 73.5 L68.28 75.16 Z M72.65 72.6 Q77.65 75.08 82.35 72.08 Q77.35 69.6 72.65 72.6 Z M78.14 65.24 Q79.62 60.17 75.99 56.32 Q74.5 61.4 78.14 65.24 Z M81.31 56.63 Q86.29 56.13 88.29 51.55 Q83.31 52.04 81.31 56.63 Z M81.9 47.47 Q80.62 42.93 76.02 41.9 Q77.29 46.44 81.9 47.47 Z M79.87 38.52 Q83.39 35.82 82.58 31.45 Q79.06 34.16 79.87 38.52 Z M75.38 30.51 Q72.33 27.7 68.47 29.23 Q71.52 32.04 75.38 30.51 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Rating-9i",
+     "type": "text",
+     "name": "Rating",
+     "position": {
+      "x": 1170,
+      "y": 1200
+     },
+     "size": {
+      "width": 220,
+      "height": 108
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "4.9",
+     "fontSize": 22,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Loved-9j",
+     "type": "text",
+     "name": "Loved",
+     "position": {
+      "x": 980,
+      "y": 1440
+     },
+     "size": {
+      "width": 600,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "loved by makers",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#181D25",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#181D25",
+    "color2": "#0B0D10",
+    "angle": 180
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "More",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker-9k",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 180,
+      "y": 130
+     },
+     "size": {
+      "width": 2200,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "№ 04 · THE NUMBERS",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-9l",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 210
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "More than\nthe numbers.",
+     "fontSize": 30,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-9m",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 560,
+      "y": 560
+     },
+     "size": {
+      "width": 1050,
+      "height": 819
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-gold.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Card-9n",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 1700,
+      "y": 660
+     },
+     "size": {
+      "width": 560,
+      "height": 420
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Slip header-9o",
+     "type": "text",
+     "name": "Slip header",
+     "position": {
+      "x": 1740,
+      "y": 700
+     },
+     "size": {
+      "width": 480,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "ORDER SLIP · № 0214",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Slip r1 l-9p",
+     "type": "text",
+     "name": "Slip r1 l",
+     "position": {
+      "x": 1740,
+      "y": 780
+     },
+     "size": {
+      "width": 200,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Customer",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Slip r1 v-9q",
+     "type": "text",
+     "name": "Slip r1 v",
+     "position": {
+      "x": 1960,
+      "y": 780
+     },
+     "size": {
+      "width": 280,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Imran Sahib",
+     "fontSize": 8,
+     "color": "#F4F5F7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Slip r2 l-9r",
+     "type": "text",
+     "name": "Slip r2 l",
+     "position": {
+      "x": 1740,
+      "y": 850
+     },
+     "size": {
+      "width": 200,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Files",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Slip r2 v-9s",
+     "type": "text",
+     "name": "Slip r2 v",
+     "position": {
+      "x": 1960,
+      "y": 850
+     },
+     "size": {
+      "width": 280,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "12 assets",
+     "fontSize": 8,
+     "color": "#F4F5F7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Slip r3 l-9t",
+     "type": "text",
+     "name": "Slip r3 l",
+     "position": {
+      "x": 1740,
+      "y": 920
+     },
+     "size": {
+      "width": 200,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Status",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Slip r3 v-9u",
+     "type": "text",
+     "name": "Slip r3 v",
+     "position": {
+      "x": 1960,
+      "y": 920
+     },
+     "size": {
+      "width": 280,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Approved ✓",
+     "fontSize": 8,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Waveform-9v",
+     "type": "shape",
+     "name": "Waveform",
+     "position": {
+      "x": 1760,
+      "y": 990
+     },
+     "size": {
+      "width": 420,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFC233",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M0 100 L0 66 L5 50 L10 62 L15 34 L20 56 L25 22 L30 52 L35 30 L40 58 L45 14 L50 48 L55 28 L60 56 L65 38 L70 60 L75 46 L82 62 L100 64 L100 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ],
+   "backgroundColor": "#181D25",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#181D25",
+    "color2": "#0B0D10",
+    "angle": 180
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Private",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker-9w",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 180,
+      "y": 130
+     },
+     "size": {
+      "width": 2200,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "№ 05 · PRIVATE BY DESIGN",
+     "fontSize": 9,
+     "color": "#FFC233",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-9x",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 210
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Works where\nyou work.",
+     "fontSize": 30,
+     "color": "#F4F5F7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-9y",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 660,
+      "y": 560
+     },
+     "size": {
+      "width": 560,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "S1 n-9z",
+     "type": "text",
+     "name": "S1 n",
+     "position": {
+      "x": 660,
+      "y": 590
+     },
+     "size": {
+      "width": 560,
+      "height": 108
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "128",
+     "fontSize": 22,
+     "color": "#FFC233",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "S1 c-a0",
+     "type": "text",
+     "name": "S1 c",
+     "position": {
+      "x": 660,
+      "y": 730
+     },
+     "size": {
+      "width": 560,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "projects tracked,\neach with its real name",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-a1",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 1340,
+      "y": 560
+     },
+     "size": {
+      "width": 560,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "S2 n-a2",
+     "type": "text",
+     "name": "S2 n",
+     "position": {
+      "x": 1340,
+      "y": 590
+     },
+     "size": {
+      "width": 560,
+      "height": 108
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "40+",
+     "fontSize": 22,
+     "color": "#FFC233",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "S2 c-a3",
+     "type": "text",
+     "name": "S2 c",
+     "position": {
+      "x": 1340,
+      "y": 730
+     },
+     "size": {
+      "width": 560,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "file formats,\nsketch to final export",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-a4",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 660,
+      "y": 900
+     },
+     "size": {
+      "width": 560,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "S3 n-a5",
+     "type": "text",
+     "name": "S3 n",
+     "position": {
+      "x": 660,
+      "y": 930
+     },
+     "size": {
+      "width": 560,
+      "height": 108
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "14",
+     "fontSize": 22,
+     "color": "#FFC233",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "S3 c-a6",
+     "type": "text",
+     "name": "S3 c",
+     "position": {
+      "x": 660,
+      "y": 1070
+     },
+     "size": {
+      "width": 560,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "team seats,\nno per-file charges",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card-a7",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 1340,
+      "y": 900
+     },
+     "size": {
+      "width": 560,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1D2129",
+     "strokeColor": "#3A4150",
+     "strokeWidth": 2,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "S4 n-a8",
+     "type": "text",
+     "name": "S4 n",
+     "position": {
+      "x": 1340,
+      "y": 930
+     },
+     "size": {
+      "width": 560,
+      "height": 108
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "0",
+     "fontSize": 22,
+     "color": "#FFC233",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "S4 c-a9",
+     "type": "text",
+     "name": "S4 c",
+     "position": {
+      "x": 1340,
+      "y": 1070
+     },
+     "size": {
+      "width": 560,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "internet needed,\never",
+     "fontSize": 8,
+     "color": "#98A0AC",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Lock-aa",
+     "type": "shape",
+     "name": "Lock",
+     "position": {
+      "x": 1258,
+      "y": 1270
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFC233",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 8 C35 8 26 19 26 32 V42 H36 V32 C36 24 41 16 50 16 C59 16 64 24 64 32 V42 H74 V32 C74 19 65 8 50 8 Z M30 42 H70 A8 8 0 0 1 78 50 V80 A8 8 0 0 1 70 88 H30 A8 8 0 0 1 22 80 V50 A8 8 0 0 1 30 42 Z M43 60 A7 7 0 1 0 57 60 A7 7 0 1 0 43 60 Z M46 64 H54 L57 78 H43 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Private-ab",
+     "type": "text",
+     "name": "Private",
+     "position": {
+      "x": 180,
+      "y": 1330
+     },
+     "size": {
+      "width": 2200,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Everything stays on your Mac",
+     "fontSize": 12,
+     "color": "#F4F5F7",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Script-ac",
+     "type": "text",
+     "name": "Script",
+     "position": {
+      "x": 180,
+      "y": 1410
+     },
+     "size": {
+      "width": 2200,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "no account, no cloud, ever",
+     "fontSize": 10,
+     "color": "#FFC233",
+     "fontFamily": "Pacifico",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#181D25",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#181D25",
+    "color2": "#0B0D10",
+    "angle": 180
+   },
+   "zoom": 1
+  }
+ ]
+}

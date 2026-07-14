@@ -1,0 +1,901 @@
+{
+ "id": "template_lotus_calm",
+ "name": "Lotus Calm",
+ "description": "App Store & Play Store screenshots for a calm, mindfulness or lifestyle app. Soft sunrise gradients, serif headings, an app-of-the-day laurel, botanical accents and cream phone mockups.",
+ "previewImage": "/data/projects/previews/lotus-calm.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "lotus_calm_ab1",
+   "name": "Intro",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#EFD3C8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#DEE7E6",
+    "color2": "#EFD3C8",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "lotus-hill-back-1",
+     "type": "shape",
+     "name": "hill-back",
+     "position": {
+      "x": -60,
+      "y": 2100
+     },
+     "size": {
+      "width": 1400,
+      "height": 640
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E3C1BC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.85,
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-hill-back-fill",
+     "type": "shape",
+     "name": "hill fill",
+     "position": {
+      "x": -60,
+      "y": 2480
+     },
+     "size": {
+      "width": 1400,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E3C1BC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "lotus-hill-front-2",
+     "type": "shape",
+     "name": "hill-front",
+     "position": {
+      "x": -60,
+      "y": 2280
+     },
+     "size": {
+      "width": 1400,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#D8AEAC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-hill-front-fill",
+     "type": "shape",
+     "name": "hill fill",
+     "position": {
+      "x": -60,
+      "y": 2650
+     },
+     "size": {
+      "width": 1400,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#D8AEAC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1
+    },
+    {
+     "id": "lotus-bird-3",
+     "type": "shape",
+     "name": "bird",
+     "position": {
+      "x": 1000,
+      "y": 170
+     },
+     "size": {
+      "width": 70,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#8a8577",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-bird-4",
+     "type": "shape",
+     "name": "bird",
+     "position": {
+      "x": 1090,
+      "y": 240
+     },
+     "size": {
+      "width": 55,
+      "height": 32
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#8a8577",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-ghost-phone-5",
+     "type": "shape",
+     "name": "ghost-phone",
+     "position": {
+      "x": 480,
+      "y": 500
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 8,
+     "scale": 1.5,
+     "shapeType": "custom-svg",
+     "fillColor": "#8C8570",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M14 2 H86 Q98 2 98 14 V186 Q98 198 86 198 H14 Q2 198 2 186 V14 Q2 2 14 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 200",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-phone-6",
+     "type": "device",
+     "name": "phone",
+     "position": {
+      "x": 660,
+      "y": 330
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 8,
+     "scale": 1.5,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#F4EDDD",
+     "screenshotSrc": "/data/projects/lotus-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "lotus-app-icon-7",
+     "type": "shape",
+     "name": "app-icon",
+     "position": {
+      "x": 90,
+      "y": 130
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "customPath": "M28 8 H72 A20 20 0 0 1 92 28 V72 A20 20 0 0 1 72 92 H28 A20 20 0 0 1 8 72 V28 A20 20 0 0 1 28 8 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-lotus-8",
+     "type": "shape",
+     "name": "lotus",
+     "position": {
+      "x": 117,
+      "y": 158
+     },
+     "size": {
+      "width": 95,
+      "height": 95
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E88A8F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "customPath": "M50 30 C57.52 -9.53 104.29 24.45 69.02 43.82 C108.94 38.76 91.07 93.74 61.76 66.18 C78.91 102.58 21.09 102.58 38.24 66.18 C8.93 93.74 -8.94 38.76 30.98 43.82 C-4.29 24.45 42.48 -9.53 50 30 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-headline-glow-9",
+     "type": "text",
+     "name": "headline-glow",
+     "position": {
+      "x": 96,
+      "y": 906
+     },
+     "size": {
+      "width": 620,
+      "height": 640
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your\nIntro\nText",
+     "fontSize": 50,
+     "color": "#FFFFFF",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.18
+    },
+    {
+     "id": "lotus-headline-10",
+     "type": "text",
+     "name": "headline",
+     "position": {
+      "x": 90,
+      "y": 900
+     },
+     "size": {
+      "width": 620,
+      "height": 640
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your\nIntro\nText",
+     "fontSize": 50,
+     "color": "#4B4433",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.18
+    },
+    {
+     "id": "lotus-laurel-l-11",
+     "type": "shape",
+     "name": "laurel-l",
+     "position": {
+      "x": 110,
+      "y": 2320
+     },
+     "size": {
+      "width": 200,
+      "height": 280
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-laurel-r-12",
+     "type": "shape",
+     "name": "laurel-r",
+     "position": {
+      "x": 430,
+      "y": 2320
+     },
+     "size": {
+      "width": 200,
+      "height": 280
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-badge-title-13",
+     "type": "text",
+     "name": "badge-title",
+     "position": {
+      "x": 230,
+      "y": 2360
+     },
+     "size": {
+      "width": 280,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "APP OF\nTHE DAY",
+     "fontSize": 19,
+     "color": "#FFFFFF",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "lotus-badge-year-14",
+     "type": "text",
+     "name": "badge-year",
+     "position": {
+      "x": 290,
+      "y": 2530
+     },
+     "size": {
+      "width": 160,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "2026",
+     "fontSize": 13,
+     "color": "#FFFFFF",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    }
+   ]
+  },
+  {
+   "id": "lotus_calm_ab2",
+   "name": "Showcase",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F0D8CE",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E7E3D9",
+    "color2": "#F0D8CE",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "lotus-bird-15",
+     "type": "shape",
+     "name": "bird",
+     "position": {
+      "x": 150,
+      "y": 280
+     },
+     "size": {
+      "width": 70,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#8a8577",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-bird-16",
+     "type": "shape",
+     "name": "bird",
+     "position": {
+      "x": 260,
+      "y": 230
+     },
+     "size": {
+      "width": 55,
+      "height": 32
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#8a8577",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-bird-17",
+     "type": "shape",
+     "name": "bird",
+     "position": {
+      "x": 210,
+      "y": 360
+     },
+     "size": {
+      "width": 45,
+      "height": 26
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#8a8577",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-ghost-phone-18",
+     "type": "shape",
+     "name": "ghost-phone",
+     "position": {
+      "x": 560,
+      "y": 200
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 16,
+     "scale": 1.6,
+     "shapeType": "custom-svg",
+     "fillColor": "#8C8570",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.8,
+     "customPath": "M14 2 H86 Q98 2 98 14 V186 Q98 198 86 198 H14 Q2 198 2 186 V14 Q2 2 14 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 200",
+      "strokeOnly": true,
+      "baseStrokeWidth": 1
+     }
+    },
+    {
+     "id": "lotus-phone-19",
+     "type": "device",
+     "name": "phone",
+     "position": {
+      "x": 30,
+      "y": 560
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -8,
+     "scale": 1.6,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#F4EDDD",
+     "screenshotSrc": "/data/projects/lotus-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "lotus_calm_ab3",
+   "name": "Feature One",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FDF7EA",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "lotus-sprig-20",
+     "type": "shape",
+     "name": "sprig",
+     "position": {
+      "x": -40,
+      "y": 2540
+     },
+     "size": {
+      "width": 360,
+      "height": 300
+     },
+     "rotation": -15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E2CE9E",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "customPath": "M18.66 79.07 L81.08 22.86 L79.34 20.93 L16.92 77.14 ZM28 70 Q22.23 61.44 12 60 Q17.77 68.56 28 70 ZM35 63 Q37.29 72.21 46 76 Q43.71 66.79 35 63 ZM45 54 Q39.87 45.27 30 43 Q35.13 51.73 45 54 ZM52 48 Q54.45 57.08 63 61 Q60.55 51.92 52 48 ZM61 40 Q56.22 31.67 47 29 Q51.78 37.33 61 40 ZM68 33 Q70.39 41.18 78 45 Q75.61 36.82 68 33 ZM76.6 21 A3.4 3.4 0 1 0 83.4 21 A3.4 3.4 0 1 0 76.6 21 ZM84.2 27 A2.8 2.8 0 1 0 89.8 27 A2.8 2.8 0 1 0 84.2 27 ZM83.4 14 A2.6 2.6 0 1 0 88.6 14 A2.6 2.6 0 1 0 83.4 14 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-heading-21",
+     "type": "text",
+     "name": "heading",
+     "position": {
+      "x": 145,
+      "y": 170
+     },
+     "size": {
+      "width": 1000,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Heading Text",
+     "fontSize": 42,
+     "color": "#4B4433",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "lotus-sub-22",
+     "type": "text",
+     "name": "sub",
+     "position": {
+      "x": 95,
+      "y": 380
+     },
+     "size": {
+      "width": 1100,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your longer subheading text\ngoes here",
+     "fontSize": 21,
+     "color": "#6B6355",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.4
+    },
+    {
+     "id": "lotus-phone-23",
+     "type": "device",
+     "name": "phone",
+     "position": {
+      "x": 210,
+      "y": 660
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.45,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#F4EDDD",
+     "screenshotSrc": "/data/projects/lotus-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "lotus_calm_ab4",
+   "name": "Feature Two",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F8F2D5",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "lotus-waves-24",
+     "type": "shape",
+     "name": "waves",
+     "position": {
+      "x": 435,
+      "y": 2600
+     },
+     "size": {
+      "width": 420,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E4D372",
+     "strokeColor": "transparent",
+     "strokeWidth": 5,
+     "opacity": 1,
+     "customPath": "M0 14 Q10 2 20 14 Q30 26 40 14 Q50 2 60 14 Q70 26 80 14 Q90 2 100 14 M0 38 Q10 26 20 38 Q30 50 40 38 Q50 26 60 38 Q70 50 80 38 Q90 26 100 38 M0 62 Q10 50 20 62 Q30 74 40 62 Q50 50 60 62 Q70 74 80 62 Q90 50 100 62 M0 86 Q10 74 20 86 Q30 98 40 86 Q50 74 60 86 Q70 98 80 86 Q90 74 100 86",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 6
+     }
+    },
+    {
+     "id": "lotus-heading-25",
+     "type": "text",
+     "name": "heading",
+     "position": {
+      "x": 145,
+      "y": 170
+     },
+     "size": {
+      "width": 1000,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Heading Text",
+     "fontSize": 42,
+     "color": "#4B4433",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "lotus-sub-26",
+     "type": "text",
+     "name": "sub",
+     "position": {
+      "x": 95,
+      "y": 380
+     },
+     "size": {
+      "width": 1100,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your longer subheading text\ngoes here",
+     "fontSize": 21,
+     "color": "#6B6355",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.4
+    },
+    {
+     "id": "lotus-phone-27",
+     "type": "device",
+     "name": "phone",
+     "position": {
+      "x": 210,
+      "y": 660
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.45,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#F4EDDD",
+     "screenshotSrc": "/data/projects/lotus-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "lotus_calm_ab5",
+   "name": "Feature Three",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FAE7E3",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "lotus-sprig-28",
+     "type": "shape",
+     "name": "sprig",
+     "position": {
+      "x": 1000,
+      "y": 2480
+     },
+     "size": {
+      "width": 380,
+      "height": 320
+     },
+     "rotation": 160,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#EFA79D",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 1,
+     "customPath": "M18.66 79.07 L81.08 22.86 L79.34 20.93 L16.92 77.14 ZM28 70 Q22.23 61.44 12 60 Q17.77 68.56 28 70 ZM35 63 Q37.29 72.21 46 76 Q43.71 66.79 35 63 ZM45 54 Q39.87 45.27 30 43 Q35.13 51.73 45 54 ZM52 48 Q54.45 57.08 63 61 Q60.55 51.92 52 48 ZM61 40 Q56.22 31.67 47 29 Q51.78 37.33 61 40 ZM68 33 Q70.39 41.18 78 45 Q75.61 36.82 68 33 ZM76.6 21 A3.4 3.4 0 1 0 83.4 21 A3.4 3.4 0 1 0 76.6 21 ZM84.2 27 A2.8 2.8 0 1 0 89.8 27 A2.8 2.8 0 1 0 84.2 27 ZM83.4 14 A2.6 2.6 0 1 0 88.6 14 A2.6 2.6 0 1 0 83.4 14 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "lotus-heading-29",
+     "type": "text",
+     "name": "heading",
+     "position": {
+      "x": 145,
+      "y": 170
+     },
+     "size": {
+      "width": 1000,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Heading Text",
+     "fontSize": 42,
+     "color": "#4B4433",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "lotus-sub-30",
+     "type": "text",
+     "name": "sub",
+     "position": {
+      "x": 95,
+      "y": 380
+     },
+     "size": {
+      "width": 1100,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your longer subheading text\ngoes here",
+     "fontSize": 21,
+     "color": "#6B6355",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.4
+    },
+    {
+     "id": "lotus-phone-31",
+     "type": "device",
+     "name": "phone",
+     "position": {
+      "x": 210,
+      "y": 660
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.45,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#F4EDDD",
+     "screenshotSrc": "/data/projects/lotus-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  }
+ ]
+}

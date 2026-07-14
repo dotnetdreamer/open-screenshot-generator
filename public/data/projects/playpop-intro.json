@@ -1,0 +1,744 @@
+{
+ "id": "template_playpop_intro",
+ "name": "PlayPop Intro",
+ "description": "App Store & Play Store screenshots for a playful app launch. Periwinkle purple panels, chunky rounded headlines, a brush underline, laurel rating badge, gold stars, yellow squiggles and tilted dark phone mockups.",
+ "previewImage": "/data/projects/previews/playpop-intro.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "playpop_intro_ab1",
+   "name": "Intro",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#7B70F1",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "pp_ell_1",
+     "type": "shape",
+     "name": "Phone backdrop",
+     "position": {
+      "x": 520,
+      "y": 1660
+     },
+     "size": {
+      "width": 900,
+      "height": 750
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#6C60E8",
+     "opacity": 0.5
+    },
+    {
+     "id": "pp_dev_2",
+     "type": "device",
+     "name": "Tilted phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#9A91F7",
+     "position": {
+      "x": 640,
+      "y": 430
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 14,
+     "scale": 1.6,
+     "screenshotSrc": "/data/projects/playpop-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "pp_shp_3",
+     "type": "shape",
+     "name": "Logo mark",
+     "position": {
+      "x": 90,
+      "y": 110
+     },
+     "size": {
+      "width": 85,
+      "height": 85
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 L94 28 L50 50 L6 28 Z M14 44 L6 48 L50 70 L94 48 L86 44 L50 62 Z M14 64 L6 68 L50 90 L94 68 L86 64 L50 82 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "pp_txt_4",
+     "type": "text",
+     "name": "Logo text",
+     "position": {
+      "x": 195,
+      "y": 112
+     },
+     "size": {
+      "width": 260,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "logo",
+     "fontSize": 22,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "pp_shp_5",
+     "type": "shape",
+     "name": "Brush underline",
+     "position": {
+      "x": 95,
+      "y": 1275
+     },
+     "size": {
+      "width": 500,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M4.21 74.67 L6.09 74.54 L8.45 74.31 L11.21 73.97 L14.32 73.51 L17.68 72.93 L21.24 72.22 L24.9 71.37 L28.6 70.38 L32.28 69.23 L35.82 67.94 L39.3 66.47 L42.84 64.82 L46.43 63 L50.03 61.04 L53.63 58.96 L57.19 56.78 L60.68 54.53 L64.07 52.23 L67.33 49.91 L70.45 47.58 L73.56 45.11 L76.73 42.43 L79.88 39.63 L82.95 36.77 L85.89 33.92 L88.63 31.17 L91.12 28.59 L93.29 26.24 L95.08 24.2 L96.44 22.55 A0.7 0.7 0 0 1 95.56 21.45 L93.64 22.43 L91.29 23.81 L88.57 25.51 L85.57 27.45 L82.36 29.58 L79 31.81 L75.57 34.08 L72.14 36.32 L68.78 38.45 L65.55 40.42 L62.32 42.34 L58.97 44.35 L55.55 46.39 L52.09 48.47 L48.62 50.54 L45.17 52.59 L41.76 54.59 L38.44 56.52 L35.23 58.36 L32.18 60.06 L29.13 61.67 L25.92 63.22 L22.62 64.73 L19.31 66.18 L16.07 67.57 L12.98 68.89 L10.12 70.13 L7.58 71.29 L5.44 72.36 L3.79 73.33 L4.21 74.67 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FF8E7A"
+    },
+    {
+     "id": "pp_txt_6",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 90,
+      "y": 940
+     },
+     "size": {
+      "width": 700,
+      "height": 640
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Main\nintro\ntext",
+     "fontSize": 52,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "pp_shp_7",
+     "type": "shape",
+     "name": "Laurel left",
+     "position": {
+      "x": 110,
+      "y": 2360
+     },
+     "size": {
+      "width": 200,
+      "height": 280
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "pp_shp_8",
+     "type": "shape",
+     "name": "Laurel right",
+     "position": {
+      "x": 430,
+      "y": 2360
+     },
+     "size": {
+      "width": 200,
+      "height": 280
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "pp_txt_9",
+     "type": "text",
+     "name": "Rating star",
+     "position": {
+      "x": 250,
+      "y": 2400
+     },
+     "size": {
+      "width": 90,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★",
+     "fontSize": 28,
+     "color": "#FFC24B",
+     "fontFamily": "Arial",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "pp_txt_10",
+     "type": "text",
+     "name": "Rating value",
+     "position": {
+      "x": 330,
+      "y": 2395
+     },
+     "size": {
+      "width": 160,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "4.8",
+     "fontSize": 30,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "pp_txt_11",
+     "type": "text",
+     "name": "Rating caption",
+     "position": {
+      "x": 235,
+      "y": 2530
+     },
+     "size": {
+      "width": 270,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Avg. rating",
+     "fontSize": 14,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    }
+   ]
+  },
+  {
+   "id": "playpop_intro_ab2",
+   "name": "Showcase",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#7B70F1",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "pp_ell_12",
+     "type": "shape",
+     "name": "Phone backdrop",
+     "position": {
+      "x": -60,
+      "y": 1450
+     },
+     "size": {
+      "width": 1000,
+      "height": 850
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#6C60E8",
+     "opacity": 0.5
+    },
+    {
+     "id": "pp_dev_13",
+     "type": "device",
+     "name": "Big phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#9A91F7",
+     "position": {
+      "x": 0,
+      "y": -120
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 8,
+     "scale": 2.05,
+     "screenshotSrc": "/data/projects/playpop-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "pp_txt_14",
+     "type": "text",
+     "name": "Caption",
+     "position": {
+      "x": 145,
+      "y": 2380
+     },
+     "size": {
+      "width": 1000,
+      "height": 360
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your heading\ntext here",
+     "fontSize": 42,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    }
+   ]
+  },
+  {
+   "id": "playpop_intro_ab3",
+   "name": "Guide",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#7B70F1",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "pp_txt_15",
+     "type": "text",
+     "name": "Heading",
+     "position": {
+      "x": 145,
+      "y": 150
+     },
+     "size": {
+      "width": 1000,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your heading\ntext here",
+     "fontSize": 44,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "pp_shp_16",
+     "type": "shape",
+     "name": "Yellow squiggle",
+     "position": {
+      "x": 660,
+      "y": 545
+     },
+     "size": {
+      "width": 360,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 50 Q6.25 30 12.5 50 Q18.75 70 25 50 Q31.25 30 37.5 50 Q43.75 70 50 50 Q56.25 30 62.5 50 Q68.75 70 75 50 Q81.25 30 87.5 50 Q93.75 70 100 50",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 10
+     },
+     "fillColor": "#FFCB3D",
+     "strokeWidth": 9
+    },
+    {
+     "id": "pp_dev_17",
+     "type": "device",
+     "name": "Centered phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#9A91F7",
+     "position": {
+      "x": 180,
+      "y": 760
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.55,
+     "screenshotSrc": "/data/projects/playpop-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "pp_shp_18",
+     "type": "shape",
+     "name": "Dotted arrow",
+     "position": {
+      "x": 1055,
+      "y": 2440
+     },
+     "size": {
+      "width": 230,
+      "height": 200
+     },
+     "rotation": -30,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M3.6 50 A2.4 2.4 0 1 0 8.4 50 A2.4 2.4 0 1 0 3.6 50 ZM12.2 50 A2.4 2.4 0 1 0 17 50 A2.4 2.4 0 1 0 12.2 50 ZM20.8 50 A2.4 2.4 0 1 0 25.6 50 A2.4 2.4 0 1 0 20.8 50 ZM29.4 50 A2.4 2.4 0 1 0 34.2 50 A2.4 2.4 0 1 0 29.4 50 ZM38 50 A2.4 2.4 0 1 0 42.8 50 A2.4 2.4 0 1 0 38 50 ZM46.6 50 A2.4 2.4 0 1 0 51.4 50 A2.4 2.4 0 1 0 46.6 50 ZM55.2 50 A2.4 2.4 0 1 0 60 50 A2.4 2.4 0 1 0 55.2 50 ZM63.8 50 A2.4 2.4 0 1 0 68.6 50 A2.4 2.4 0 1 0 63.8 50 ZM72.4 50 A2.4 2.4 0 1 0 77.2 50 A2.4 2.4 0 1 0 72.4 50 ZM85 41.5 L96 50 L85 58.5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFCB3D",
+     "strokeWidth": 6
+    },
+    {
+     "id": "pp_shp_19",
+     "type": "shape",
+     "name": "Cursor",
+     "position": {
+      "x": 1000,
+      "y": 2462
+     },
+     "size": {
+      "width": 95,
+      "height": 95
+     },
+     "rotation": -15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M94 50 L10 12 L28 50 L10 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF"
+    }
+   ]
+  },
+  {
+   "id": "playpop_intro_ab4",
+   "name": "Rating",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#7B70F1",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "pp_ell_20",
+     "type": "shape",
+     "name": "Phone backdrop",
+     "position": {
+      "x": 145,
+      "y": -500
+     },
+     "size": {
+      "width": 1000,
+      "height": 1300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#6C60E8",
+     "opacity": 0.5
+    },
+    {
+     "id": "pp_dev_21",
+     "type": "device",
+     "name": "Top phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#9A91F7",
+     "position": {
+      "x": 195,
+      "y": -880
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/playpop-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "pp_txt_22",
+     "type": "text",
+     "name": "Stars",
+     "position": {
+      "x": 245,
+      "y": 1520
+     },
+     "size": {
+      "width": 800,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★ ★ ★ ★ ★",
+     "fontSize": 40,
+     "color": "#FFC24B",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "pp_txt_23",
+     "type": "text",
+     "name": "Heading",
+     "position": {
+      "x": 145,
+      "y": 1810
+     },
+     "size": {
+      "width": 1000,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your heading\ntext here",
+     "fontSize": 44,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "pp_shp_24",
+     "type": "shape",
+     "name": "Spark dashes",
+     "position": {
+      "x": 1055,
+      "y": 1700
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 30 L50 4 M64.14 35.86 L82.53 17.47 M70 50 L96 50 M64.14 64.14 L82.53 82.53 M50 70 L50 96 M35.86 64.14 L17.47 82.53 M30 50 L4 50 M35.86 35.86 L17.47 17.47",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 8
+     },
+     "fillColor": "#FF8E7A",
+     "strokeWidth": 4
+    },
+    {
+     "id": "pp_shp_25",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1010,
+      "y": 1650
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FF8E7A"
+    }
+   ]
+  },
+  {
+   "id": "playpop_intro_ab5",
+   "name": "Done",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#7B70F1",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "pp_txt_26",
+     "type": "text",
+     "name": "Heading",
+     "position": {
+      "x": 145,
+      "y": 150
+     },
+     "size": {
+      "width": 1000,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your heading\ntext here",
+     "fontSize": 44,
+     "color": "#FFFFFF",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "pp_dev_27",
+     "type": "device",
+     "name": "Centered phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#9A91F7",
+     "position": {
+      "x": 180,
+      "y": 700
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.55,
+     "screenshotSrc": "/data/projects/playpop-screen-dots.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "pp_shp_28",
+     "type": "shape",
+     "name": "Check circle",
+     "position": {
+      "x": 960,
+      "y": 560
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 12 C26 12 12 28 13 50 C14 73 31 88 53 87 C76 86 89 68 88 47 C87 27 70 13 50 14 C36 15 24 24 19 36",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 4
+     },
+     "fillColor": "#4CD79A",
+     "strokeWidth": 6
+    },
+    {
+     "id": "pp_shp_29",
+     "type": "shape",
+     "name": "Check mark",
+     "position": {
+      "x": 1035,
+      "y": 635
+     },
+     "size": {
+      "width": 185,
+      "height": 185
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#4CD79A"
+    }
+   ]
+  }
+ ]
+}

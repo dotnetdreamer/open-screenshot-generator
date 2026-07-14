@@ -1,0 +1,890 @@
+{
+ "id": "mac-postbox-template",
+ "name": "Postbox Mail",
+ "description": "Mac App Store screenshots for an email app: calm periwinkle boards, elegant serif headlines, floating detail cards and colour swatches, and 3D MacBook and iMac mockups running mail screens. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-postbox.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Results",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Logo tile-7j",
+     "type": "shape",
+     "name": "Logo tile",
+     "position": {
+      "x": 220,
+      "y": 200
+     },
+     "size": {
+      "width": 130,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#16182B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 30,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Envelope-7k",
+     "type": "shape",
+     "name": "Envelope",
+     "position": {
+      "x": 252,
+      "y": 232
+     },
+     "size": {
+      "width": 66,
+      "height": 66
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M8 22 H92 V78 H8 Z M14 27 L50 55 L86 27 L86 33 L50 61 L14 33 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Headline-7l",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 220,
+      "y": 420
+     },
+     "size": {
+      "width": 780,
+      "height": 372
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Get the\nbest results\nwith US",
+     "fontSize": 30,
+     "color": "#16182B",
+     "fontFamily": "Georgia",
+     "fontWeight": "bold",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-7m",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 1020,
+      "y": 460
+     },
+     "size": {
+      "width": 1450,
+      "height": 1055
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-mail-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#DCE4FB",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Stand out",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-7n",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Stand out",
+     "fontSize": 30,
+     "color": "#16182B",
+     "fontFamily": "Georgia",
+     "fontWeight": "bold",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-7o",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 290
+     },
+     "size": {
+      "width": 2200,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "in a crowded space",
+     "fontSize": 12,
+     "color": "#3A3F52",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "normal",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-7p",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 580,
+      "y": 440
+     },
+     "size": {
+      "width": 1400,
+      "height": 1018
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-mail-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Card-7q",
+     "type": "shape",
+     "name": "Card",
+     "position": {
+      "x": 1850,
+      "y": 560
+     },
+     "size": {
+      "width": 360,
+      "height": 210
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 20,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Card title-7r",
+     "type": "text",
+     "name": "Card title",
+     "position": {
+      "x": 1880,
+      "y": 585
+     },
+     "size": {
+      "width": 300,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Coffee Table",
+     "fontSize": 9,
+     "color": "#16182B",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "bold",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card price-7s",
+     "type": "text",
+     "name": "Card price",
+     "position": {
+      "x": 1880,
+      "y": 645
+     },
+     "size": {
+      "width": 300,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "$899.99",
+     "fontSize": 12,
+     "color": "#16182B",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "bold",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Card stars-7t",
+     "type": "text",
+     "name": "Card stars",
+     "position": {
+      "x": 1880,
+      "y": 710
+     },
+     "size": {
+      "width": 300,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★  5.0",
+     "fontSize": 8,
+     "color": "#F2A814",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#DCE4FB",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Save time",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-7u",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Save time",
+     "fontSize": 30,
+     "color": "#16182B",
+     "fontFamily": "Georgia",
+     "fontWeight": "bold",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-7v",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 290
+     },
+     "size": {
+      "width": 2200,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "with AI styling",
+     "fontSize": 12,
+     "color": "#3A3F52",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "normal",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-7w",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 580,
+      "y": 450
+     },
+     "size": {
+      "width": 1400,
+      "height": 1010
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "side",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Pencil chip-7x",
+     "type": "shape",
+     "name": "Pencil chip",
+     "position": {
+      "x": 2120,
+      "y": 260
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#ADB9F8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.95
+    },
+    {
+     "id": "Pencil-7y",
+     "type": "shape",
+     "name": "Pencil",
+     "position": {
+      "x": 2150,
+      "y": 290
+     },
+     "size": {
+      "width": 50,
+      "height": 50
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M62 14 L86 38 L38 86 L10 90 L14 62 Z M70 6 L94 30 L86 38 L62 14 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Swatch 1-7z",
+     "type": "shape",
+     "name": "Swatch 1",
+     "position": {
+      "x": 350,
+      "y": 1150
+     },
+     "size": {
+      "width": 150,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#D8CBB5",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Swatch 2-80",
+     "type": "shape",
+     "name": "Swatch 2",
+     "position": {
+      "x": 520,
+      "y": 1150
+     },
+     "size": {
+      "width": 150,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#B9C1CF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Swatch 3-81",
+     "type": "shape",
+     "name": "Swatch 3",
+     "position": {
+      "x": 690,
+      "y": 1150
+     },
+     "size": {
+      "width": 150,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C9A96E",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    }
+   ],
+   "backgroundColor": "#DCE4FB",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Tools",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-82",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Powerful tools",
+     "fontSize": 30,
+     "color": "#16182B",
+     "fontFamily": "Georgia",
+     "fontWeight": "bold",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-83",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 290
+     },
+     "size": {
+      "width": 2200,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "for customising",
+     "fontSize": 12,
+     "color": "#3A3F52",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "normal",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-84",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 740,
+      "y": 470
+     },
+     "size": {
+      "width": 1080,
+      "height": 842
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Dot card-85",
+     "type": "shape",
+     "name": "Dot card",
+     "position": {
+      "x": 930,
+      "y": 1360
+     },
+     "size": {
+      "width": 700,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 26,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Dot 1-86",
+     "type": "shape",
+     "name": "Dot 1",
+     "position": {
+      "x": 990,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#D9A188",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot 2-87",
+     "type": "shape",
+     "name": "Dot 2",
+     "position": {
+      "x": 1070,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#8FD4B8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot 3-88",
+     "type": "shape",
+     "name": "Dot 3",
+     "position": {
+      "x": 1150,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#E799A3",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot 4-89",
+     "type": "shape",
+     "name": "Dot 4",
+     "position": {
+      "x": 1230,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F2B94B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot 5-8a",
+     "type": "shape",
+     "name": "Dot 5",
+     "position": {
+      "x": 1310,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#CFD86A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot 6-8b",
+     "type": "shape",
+     "name": "Dot 6",
+     "position": {
+      "x": 1390,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#16182B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Dot 7-8c",
+     "type": "shape",
+     "name": "Dot 7",
+     "position": {
+      "x": 1470,
+      "y": 1407
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#C6C9D2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    }
+   ],
+   "backgroundColor": "#DCE4FB",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Global",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Headline-8d",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Global reach",
+     "fontSize": 30,
+     "color": "#16182B",
+     "fontFamily": "Georgia",
+     "fontWeight": "bold",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-8e",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 290
+     },
+     "size": {
+      "width": 2200,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "with localisation",
+     "fontSize": 12,
+     "color": "#3A3F52",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "normal",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-8f",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 580,
+      "y": 460
+     },
+     "size": {
+      "width": 1400,
+      "height": 974
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-editor-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Sort chip-8g",
+     "type": "shape",
+     "name": "Sort chip",
+     "position": {
+      "x": 300,
+      "y": 320
+     },
+     "size": {
+      "width": 560,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 18,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Sort label-8h",
+     "type": "text",
+     "name": "Sort label",
+     "position": {
+      "x": 340,
+      "y": 320
+     },
+     "size": {
+      "width": 420,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Sort by:  Recommended",
+     "fontSize": 9,
+     "color": "#3A3F52",
+     "fontFamily": "Noto Sans",
+     "fontWeight": "normal",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Grid-8i",
+     "type": "shape",
+     "name": "Grid",
+     "position": {
+      "x": 790,
+      "y": 347
+     },
+     "size": {
+      "width": 36,
+      "height": 36
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#16182B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M20 12 H36 A8 8 0 0 1 44 20 V36 A8 8 0 0 1 36 44 H20 A8 8 0 0 1 12 36 V20 A8 8 0 0 1 20 12 ZM64 12 H80 A8 8 0 0 1 88 20 V36 A8 8 0 0 1 80 44 H64 A8 8 0 0 1 56 36 V20 A8 8 0 0 1 64 12 ZM20 56 H36 A8 8 0 0 1 44 64 V80 A8 8 0 0 1 36 88 H20 A8 8 0 0 1 12 80 V64 A8 8 0 0 1 20 56 ZM64 56 H80 A8 8 0 0 1 88 64 V80 A8 8 0 0 1 80 88 H64 A8 8 0 0 1 56 80 V64 A8 8 0 0 1 64 56 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ],
+   "backgroundColor": "#DCE4FB",
+   "zoom": 1
+  }
+ ]
+}

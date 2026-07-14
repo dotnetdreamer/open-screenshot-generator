@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'playpop-intro', 'lotus-calm', 'cvcraft-resume', 'nutrio-fitness',
   'breathora-breathing', 'vowly-wedding',
   'connectly-chat', 'budgetly-finance', 'listly-tasks', 'inboxly-mail', 'darzi-studio',
   'beauty-glam', 'castique-podcast', 'inquira', 'zyluxe-beauty', 'nexmind',
@@ -42,6 +43,8 @@ const SLUGS = [
   'watch-ultra-showcase', 'watch-lavender', 'watch-sunset',
   // Mac category (behind the "Mac" tab).
   'mac-flowdesk', 'mac-pulseform',
+  'mac-skyfit', 'mac-inkpress', 'mac-everglade', 'mac-festivo', 'mac-terra',
+  'mac-loopchat', 'mac-ledgerly', 'mac-boardly', 'mac-postbox', 'mac-atelier',
   // App Preview Videos category (behind the "App Preview Videos" tab).
   'pv-midnight-launch', 'pv-sunrise-fitness', 'pv-minimal-light',
   'pv-ocean-social', 'pv-royal-shop', 'pv-forest-wellness',
@@ -54,6 +57,10 @@ const SLUG_TAB = {
   'watch-dark-aso': 'Apple Watch', 'watch-ultra-showcase': 'Apple Watch',
   'watch-lavender': 'Apple Watch', 'watch-sunset': 'Apple Watch',
   'mac-flowdesk': 'Mac', 'mac-pulseform': 'Mac',
+  'mac-skyfit': 'Mac', 'mac-inkpress': 'Mac', 'mac-everglade': 'Mac',
+  'mac-festivo': 'Mac', 'mac-terra': 'Mac', 'mac-loopchat': 'Mac',
+  'mac-ledgerly': 'Mac', 'mac-boardly': 'Mac', 'mac-postbox': 'Mac',
+  'mac-atelier': 'Mac',
   'pv-midnight-launch': 'App Preview Videos', 'pv-sunrise-fitness': 'App Preview Videos',
   'pv-minimal-light': 'App Preview Videos', 'pv-ocean-social': 'App Preview Videos',
   'pv-royal-shop': 'App Preview Videos', 'pv-forest-wellness': 'App Preview Videos',

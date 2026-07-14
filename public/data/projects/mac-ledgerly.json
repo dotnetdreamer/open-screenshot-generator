@@ -1,0 +1,1289 @@
+{
+ "id": "mac-ledgerly-template",
+ "name": "Ledgerly Money",
+ "description": "Mac App Store screenshots for a finance app: dark olive and pistachio boards, sticker-shadow feature chips, a green receipt card with expense rows, and 3D MacBook and iMac mockups running dashboard screens. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-ledgerly.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Actually use",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Rings-5g",
+     "type": "shape",
+     "name": "Rings",
+     "position": {
+      "x": 2050,
+      "y": 80
+     },
+     "size": {
+      "width": 500,
+      "height": 500
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C7EC96",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.15,
+     "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 ZM14 50 A36 36 0 1 0 86 50 A36 36 0 1 0 14 50 ZM24 50 A26 26 0 1 0 76 50 A26 26 0 1 0 24 50 ZM34 50 A16 16 0 1 0 66 50 A16 16 0 1 0 34 50 ZM44 50 A6 6 0 1 0 56 50 A6 6 0 1 0 44 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Logo tile-5h",
+     "type": "shape",
+     "name": "Logo tile",
+     "position": {
+      "x": 220,
+      "y": 180
+     },
+     "size": {
+      "width": 120,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 28,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Money bag-5i",
+     "type": "shape",
+     "name": "Money bag",
+     "position": {
+      "x": 248,
+      "y": 208
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#24350D",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M38 4 H62 C64.5 4 65.8 6.2 64.6 8.3 L59 18 H41 L35.4 8.3 C34.2 6.2 35.5 4 38 4 Z M42 22 H58 C74 30 86 46 86 66 C86 84 71 94 50 94 C29 94 14 84 14 66 C14 46 26 30 42 22 Z M47 40 H53 V46 C59 46.75 63.5 50.5 64.25 56.5 H57.5 C56.75 53.5 53.75 51.25 50 51.25 C46.25 51.25 43.25 53.5 43.25 56.5 C43.25 60.25 47 61 51.5 62.5 C57.5 64 65 65.5 65 72.25 C65 78.25 59.75 82 53 82.75 V88 H47 V82.75 C40.25 82 35.75 77.5 35 71.5 H41.75 C42.5 75.25 45.5 77.5 50 77.5 C54.5 77.5 58.25 75.25 58.25 72.25 C58.25 68.5 54.5 67 49.25 65.5 C43.25 64 36.5 62.5 36.5 56.5 C36.5 51.25 41 46.75 47 46 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Headline 1-5j",
+     "type": "text",
+     "name": "Headline 1",
+     "position": {
+      "x": 220,
+      "y": 360
+     },
+     "size": {
+      "width": 1100,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "A money app",
+     "fontSize": 30,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline 2-5k",
+     "type": "text",
+     "name": "Headline 2",
+     "position": {
+      "x": 220,
+      "y": 520
+     },
+     "size": {
+      "width": 1100,
+      "height": 148
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "you’ll actually use",
+     "fontSize": 30,
+     "color": "#E4FD4B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Chip shadow-5l",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 254,
+      "y": 794
+     },
+     "size": {
+      "width": 460,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1C2A0B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip-5m",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 240,
+      "y": 780
+     },
+     "size": {
+      "width": 460,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip label-5n",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 240,
+      "y": 780
+     },
+     "size": {
+      "width": 460,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "create categories",
+     "fontSize": 11,
+     "color": "#2E4813",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Chip shadow-5o",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 344,
+      "y": 924
+     },
+     "size": {
+      "width": 440,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1C2A0B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip-5p",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 330,
+      "y": 910
+     },
+     "size": {
+      "width": 440,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip label-5q",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 330,
+      "y": 910
+     },
+     "size": {
+      "width": 440,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "set budget limit",
+     "fontSize": 11,
+     "color": "#2E4813",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Chip shadow-5r",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 264,
+      "y": 1054
+     },
+     "size": {
+      "width": 400,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1C2A0B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip-5s",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 250,
+      "y": 1040
+     },
+     "size": {
+      "width": 400,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip label-5t",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 250,
+      "y": 1040
+     },
+     "size": {
+      "width": 400,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "log expenses",
+     "fontSize": 11,
+     "color": "#2E4813",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Chip shadow-5u",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 374,
+      "y": 1184
+     },
+     "size": {
+      "width": 490,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1C2A0B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip-5v",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 360,
+      "y": 1170
+     },
+     "size": {
+      "width": 490,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 45,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Chip label-5w",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 360,
+      "y": 1170
+     },
+     "size": {
+      "width": 490,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "analyze spendings",
+     "fontSize": 11,
+     "color": "#2E4813",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-5x",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 1150,
+      "y": 480
+     },
+     "size": {
+      "width": 1250,
+      "height": 909
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#33490F",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#33490F",
+    "color2": "#4C6B24",
+    "angle": 160
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Manage",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker pill-5y",
+     "type": "shape",
+     "name": "Kicker pill",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2E4813",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 32,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Kicker-5z",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "SMART FINANCE",
+     "fontSize": 8,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-60",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 220
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Manage budgets\nwithout stress",
+     "fontSize": 30,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mic dot-61",
+     "type": "shape",
+     "name": "Mic dot",
+     "position": {
+      "x": 2050,
+      "y": 380
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F3A950",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Mic-62",
+     "type": "shape",
+     "name": "Mic",
+     "position": {
+      "x": 2073,
+      "y": 403
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 6 H50 A12 12 0 0 1 62 18 V38 A12 12 0 0 1 50 50 H50 A12 12 0 0 1 38 38 V18 A12 12 0 0 1 50 6 Z M22 40 V46 C22 62 34 72 46 73 V84 H34 V92 H66 V84 H54 V73 C66 72 78 62 78 46 V40 H70 V46 C70 58 61 66 50 66 C39 66 30 58 30 46 V40 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Lime dot-63",
+     "type": "shape",
+     "name": "Lime dot",
+     "position": {
+      "x": 420,
+      "y": 480
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#E4FD4B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "Mac-64",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 580,
+      "y": 540
+     },
+     "size": {
+      "width": 1400,
+      "height": 1018
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#E2F2D3",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Track",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker pill-65",
+     "type": "shape",
+     "name": "Kicker pill",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2E4813",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 32,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Kicker-66",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "EASY BUDGETING",
+     "fontSize": 8,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-67",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 220
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Track expenses\ninstantly",
+     "fontSize": 30,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Receipt-68",
+     "type": "shape",
+     "name": "Receipt",
+     "position": {
+      "x": 300,
+      "y": 620
+     },
+     "size": {
+      "width": 760,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A4DA60",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 28,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Receipt date-69",
+     "type": "text",
+     "name": "Receipt date",
+     "position": {
+      "x": 340,
+      "y": 660
+     },
+     "size": {
+      "width": 300,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Feb 22",
+     "fontSize": 9,
+     "color": "#2E4813",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Cart-6a",
+     "type": "shape",
+     "name": "Cart",
+     "position": {
+      "x": 345,
+      "y": 745
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#24350D",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M6 8 H22 L27 22 H94 L82 60 H34 L37 70 H82 V80 H30 L16 16 H6 Z M31 89 A7 7 0 1 0 45 89 A7 7 0 1 0 31 89 ZM65 89 A7 7 0 1 0 79 89 A7 7 0 1 0 65 89 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Row 1-6b",
+     "type": "text",
+     "name": "Row 1",
+     "position": {
+      "x": 410,
+      "y": 740
+     },
+     "size": {
+      "width": 420,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Grocery store",
+     "fontSize": 12,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Amt 1-6c",
+     "type": "text",
+     "name": "Amt 1",
+     "position": {
+      "x": 850,
+      "y": 740
+     },
+     "size": {
+      "width": 170,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "-$80",
+     "fontSize": 12,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Wine-6d",
+     "type": "shape",
+     "name": "Wine",
+     "position": {
+      "x": 345,
+      "y": 875
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#24350D",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M30 6 H70 V24 C70 38 61 46 54 48 V78 H66 V86 H34 V78 H46 V48 C39 46 30 38 30 24 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Row 2-6e",
+     "type": "text",
+     "name": "Row 2",
+     "position": {
+      "x": 410,
+      "y": 870
+     },
+     "size": {
+      "width": 420,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Wine",
+     "fontSize": 12,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Amt 2-6f",
+     "type": "text",
+     "name": "Amt 2",
+     "position": {
+      "x": 850,
+      "y": 870
+     },
+     "size": {
+      "width": 170,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "-$20",
+     "fontSize": 12,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Plate-6g",
+     "type": "shape",
+     "name": "Plate",
+     "position": {
+      "x": 345,
+      "y": 1005
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#24350D",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M6 50 A44 44 0 1 0 94 50 A44 44 0 1 0 6 50 ZM17 50 A33 33 0 1 0 83 50 A33 33 0 1 0 17 50 ZM30 50 A20 20 0 1 0 70 50 A20 20 0 1 0 30 50 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     }
+    },
+    {
+     "id": "Row 3-6h",
+     "type": "text",
+     "name": "Row 3",
+     "position": {
+      "x": 410,
+      "y": 1000
+     },
+     "size": {
+      "width": 420,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Dinner out",
+     "fontSize": 12,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Amt 3-6i",
+     "type": "text",
+     "name": "Amt 3",
+     "position": {
+      "x": 850,
+      "y": 1000
+     },
+     "size": {
+      "width": 170,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "-$50",
+     "fontSize": 12,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Stars-6j",
+     "type": "text",
+     "name": "Stars",
+     "position": {
+      "x": 1500,
+      "y": 640
+     },
+     "size": {
+      "width": 700,
+      "height": 65
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 13,
+     "color": "#F3A950",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "Quote-6k",
+     "type": "text",
+     "name": "Quote",
+     "position": {
+      "x": 1450,
+      "y": 780
+     },
+     "size": {
+      "width": 800,
+      "height": 113
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "I went from always feeling behind to\nfinally being in control of my money.",
+     "fontSize": 13,
+     "color": "#2E4813",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Attribution-6l",
+     "type": "text",
+     "name": "Attribution",
+     "position": {
+      "x": 1450,
+      "y": 1010
+     },
+     "size": {
+      "width": 800,
+      "height": 45
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "App review, February 2026",
+     "fontSize": 9,
+     "color": "#5A7534",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#E2F2D3",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Limits",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker pill-6m",
+     "type": "shape",
+     "name": "Kicker pill",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2E4813",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 32,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Kicker-6n",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "EASY PLANNING",
+     "fontSize": 8,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-6o",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 220
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Set monthly\nspending limits",
+     "fontSize": 30,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-6p",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 740,
+      "y": 540
+     },
+     "size": {
+      "width": 1080,
+      "height": 842
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-kanban-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#E2F2D3",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Insights",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Kicker pill-6q",
+     "type": "shape",
+     "name": "Kicker pill",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E4FD4B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 32,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "Kicker-6r",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 1140,
+      "y": 120
+     },
+     "size": {
+      "width": 280,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "MONEY INSIGHTS",
+     "fontSize": 8,
+     "color": "#24350D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Headline-6s",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 220
+     },
+     "size": {
+      "width": 2200,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "See where your\nmoney goes",
+     "fontSize": 30,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Sub-6t",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 180,
+      "y": 500
+     },
+     "size": {
+      "width": 2200,
+      "height": 59
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Break down expenses and discover spending patterns.",
+     "fontSize": 12,
+     "color": "#C9D8B4",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Bars left-6u",
+     "type": "shape",
+     "name": "Bars left",
+     "position": {
+      "x": 250,
+      "y": 300
+     },
+     "size": {
+      "width": 400,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E4FD4B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M0 10 Q12.5 -4 25 10 Q37.5 24 50 10 Q62.5 -4 75 10 Q87.5 24 100 10 L100 24 Q87.5 38 75 24 Q62.5 10 50 24 Q37.5 38 25 24 Q12.5 10 0 24 Z M0 44 Q12.5 30 25 44 Q37.5 58 50 44 Q62.5 30 75 44 Q87.5 58 100 44 L100 58 Q87.5 72 75 58 Q62.5 44 50 58 Q37.5 72 25 58 Q12.5 44 0 58 Z M0 78 Q12.5 64 25 78 Q37.5 92 50 78 Q62.5 64 75 78 Q87.5 92 100 78 L100 92 Q87.5 106 75 92 Q62.5 78 50 92 Q37.5 106 25 92 Q12.5 78 0 92 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Bars right-6v",
+     "type": "shape",
+     "name": "Bars right",
+     "position": {
+      "x": 1950,
+      "y": 1280
+     },
+     "size": {
+      "width": 400,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#F3A950",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9,
+     "customPath": "M0 10 Q12.5 -4 25 10 Q37.5 24 50 10 Q62.5 -4 75 10 Q87.5 24 100 10 L100 24 Q87.5 38 75 24 Q62.5 10 50 24 Q37.5 38 25 24 Q12.5 10 0 24 Z M0 44 Q12.5 30 25 44 Q37.5 58 50 44 Q62.5 30 75 44 Q87.5 58 100 44 L100 58 Q87.5 72 75 58 Q62.5 44 50 58 Q37.5 72 25 58 Q12.5 44 0 58 Z M0 78 Q12.5 64 25 78 Q37.5 92 50 78 Q62.5 64 75 78 Q87.5 92 100 78 L100 92 Q87.5 106 75 92 Q62.5 78 50 92 Q37.5 106 25 92 Q12.5 78 0 92 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Mac-6w",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 580,
+      "y": 580
+     },
+     "size": {
+      "width": 1400,
+      "height": 974
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#33490F",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#33490F",
+    "color2": "#4C6B24",
+    "angle": 160
+   },
+   "zoom": 1
+  }
+ ]
+}

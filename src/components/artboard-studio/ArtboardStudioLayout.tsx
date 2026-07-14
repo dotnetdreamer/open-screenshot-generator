@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { isTauri, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
@@ -422,21 +422,22 @@ export function ArtboardStudioLayout() {
   // Right dock: Properties on top, Layers below, split by a draggable
   // divider. Collapsed it becomes a slim vertical rail (Android Studio
   // style). Open state and the layers section height persist across
-  // relaunches via localStorage. Lazy window reads are safe here: this
-  // subtree renders client-only (see getInitialProjectIdFromUrl). The dock
-  // is pure editor chrome outside every [data-artboard-dom-id] subtree, so
-  // PNG, video and preview output can never include it.
-  const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    try { return window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) !== '0'; } catch { return true; }
-  });
-  const [layersSectionHeight, setLayersSectionHeight] = useState<number>(() => {
-    if (typeof window === 'undefined') return 260;
+  // relaunches via localStorage, but this subtree IS server-rendered, so
+  // the initializers must return the same defaults on both sides; the
+  // persisted values load in the layout effect below, before first paint.
+  // The dock is pure editor chrome outside every [data-artboard-dom-id]
+  // subtree, so PNG, video and preview output can never include it.
+  const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
+  const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
+  useLayoutEffect(() => {
     try {
+      if (window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) === '0') setIsRightDockOpen(false);
       const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
-      return Number.isFinite(stored) ? Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)) : 260;
-    } catch { return 260; }
-  });
+      if (Number.isFinite(stored)) {
+        setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
+      }
+    } catch {}
+  }, []);
   const dockContentRef = useRef<HTMLDivElement | null>(null);
   const dividerDragRef = useRef<{ pointerId: number; startY: number; startHeight: number; lastHeight: number } | null>(null);
 

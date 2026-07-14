@@ -1,0 +1,616 @@
+{
+ "id": "mac-loopchat-template",
+ "name": "Loopchat Desk",
+ "description": "Mac App Store screenshots for a chat app: deep indigo boards, bold condensed caps headlines, magenta and purple quarter-circle decor, and big 3D MacBook and iMac mockups running light chat screens. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-loopchat.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Loopchat",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Wedge-4u",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 2260,
+      "y": 0
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 90,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E0218A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Wedge-4v",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 0,
+      "y": 1360
+     },
+     "size": {
+      "width": 240,
+      "height": 240
+     },
+     "rotation": 270,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E85D8A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Wedge-4w",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 0,
+      "y": 1150
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": 270,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#7B1FA2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Wordmark-4x",
+     "type": "text",
+     "name": "Wordmark",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 128
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "loopchat",
+     "fontSize": 26,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Kicker-4y",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 180,
+      "y": 290
+     },
+     "size": {
+      "width": 2200,
+      "height": 54
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "SERIOUS CHAT ENERGY ON YOUR MAC",
+     "fontSize": 11,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-4z",
+     "type": "device",
+     "name": "iMac",
+     "position": {
+      "x": 705,
+      "y": 440
+     },
+     "size": {
+      "width": 1150,
+      "height": 897
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "imac",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#241B7E",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Journey",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Wedge-50",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 260,
+      "height": 260
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#7B1FA2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Wedge-51",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 2260,
+      "y": 1300
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 180,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E0218A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Headline-52",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 248
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "START YOUR LOOPCHAT JOURNEY,\nUSE OUR TEMPLATES\nAND STAND OUT",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-53",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 480,
+      "y": 520
+     },
+     "size": {
+      "width": 1600,
+      "height": 1173
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "tilted",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#241B7E",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Community",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Wedge-54",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 180,
+      "height": 180
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E0218A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Wedge-55",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 0,
+      "y": 1360
+     },
+     "size": {
+      "width": 240,
+      "height": 240
+     },
+     "rotation": 270,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E85D8A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Mac-56",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 530,
+      "y": -60
+     },
+     "size": {
+      "width": 1500,
+      "height": 1100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "tilted",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-mail-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    },
+    {
+     "id": "Headline-57",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 1180
+     },
+     "size": {
+      "width": 2200,
+      "height": 173
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "CHAT WITH FRIENDS\nAND BUILD YOUR COMMUNITY",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ],
+   "backgroundColor": "#241B7E",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Discover",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Wedge-58",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 2380,
+      "y": 640
+     },
+     "size": {
+      "width": 180,
+      "height": 180
+     },
+     "rotation": 90,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E0218A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Deep dot-59",
+     "type": "shape",
+     "name": "Deep dot",
+     "position": {
+      "x": 260,
+      "y": 1200
+     },
+     "size": {
+      "width": 120,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#0E0838",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "Headline-5a",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 173
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "DISCOVER PEOPLE\nWHO SHARE YOUR PASSIONS",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-5b",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 530,
+      "y": 460
+     },
+     "size": {
+      "width": 1500,
+      "height": 1083
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "side",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#241B7E",
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Inbox",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "Wedge-5c",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 2300,
+      "y": 0
+     },
+     "size": {
+      "width": 260,
+      "height": 260
+     },
+     "rotation": 90,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#7B1FA2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Wedge-5d",
+     "type": "shape",
+     "name": "Wedge",
+     "position": {
+      "x": 0,
+      "y": 1380
+     },
+     "size": {
+      "width": 220,
+      "height": 220
+     },
+     "rotation": 270,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E85D8A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "Headline-5e",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 180,
+      "y": 120
+     },
+     "size": {
+      "width": 2200,
+      "height": 173
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "SMART INBOX\nTHAT KEEPS YOU FOCUSED",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "Mac-5f",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 555,
+      "y": 480
+     },
+     "size": {
+      "width": 1450,
+      "height": 1009
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/mac-screens/mac-mail-light.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#241B7E",
+   "zoom": 1
+  }
+ ]
+}

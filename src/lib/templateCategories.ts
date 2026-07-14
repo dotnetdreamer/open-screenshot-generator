@@ -44,6 +44,10 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'playpop-intro.json',
+      'lotus-calm.json',
+      'cvcraft-resume.json',
+      'nutrio-fitness.json',
       'zenfit-yoga.json',
       'blogio-articles.json',
       'breathora-breathing.json',
@@ -129,6 +133,16 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     files: [
       'mac-flowdesk.json',
       'mac-pulseform.json',
+      'mac-skyfit.json',
+      'mac-inkpress.json',
+      'mac-everglade.json',
+      'mac-festivo.json',
+      'mac-terra.json',
+      'mac-loopchat.json',
+      'mac-ledgerly.json',
+      'mac-boardly.json',
+      'mac-postbox.json',
+      'mac-atelier.json',
     ],
   },
   {
