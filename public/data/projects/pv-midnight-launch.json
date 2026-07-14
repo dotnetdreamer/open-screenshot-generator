@@ -1,12 +1,12 @@
 {
-  "id": "template_pv_midnight",
+  "id": "template_pv_midnight_launch",
   "name": "Midnight Launch",
-  "description": "Dark hero App Preview video layout. Bold white headline over a deep navy gradient, recording playing in a titanium iPhone with a tap hint. Upload your screen recording to the phone and export the MP4.",
+  "description": "Cinematic dark App Preview layout. Condensed two-tone headlines, genre chips and an amber accent over a near-black canvas. Drop your screen recording into the phone and export the MP4.",
   "previewImage": "/data/projects/previews/pv-midnight-launch.png",
-  "timestamp": "2026-07-12T00:00:00.000Z",
+  "timestamp": "2026-07-13T00:00:00.000Z",
   "projectData": [
     {
-      "id": "tpl_pv_midnight_0",
+      "id": "tpl_pv_midnight_launch_0",
       "name": "Hero",
       "position": {
         "x": 15,
@@ -16,98 +16,179 @@
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#0B1020",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#0B1020",
-        "color2": "#1E2A5A",
-        "angle": 160
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b0_d0",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_3",
+          "type": "shape",
+          "name": "Corner Sparkle",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 726,
+            "y": 130
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 90,
+            "height": 90
           },
           "rotation": 0,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-dashboard-dark.png",
-          "objectFit": "cover",
-          "frameColor": "#1e1e1e",
+          "shapeType": "custom-svg",
+          "fillColor": "#F5B301",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b0_h1",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
-          },
-          "size": {
-            "width": 800,
-            "height": 260
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Your day, on autopilot",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
-            "enterDuration": 0.7
-          }
-        },
-        {
-          "id": "b0_s2",
-          "type": "text",
-          "name": "Subline",
-          "position": {
-            "x": 83,
-            "y": 420
-          },
-          "size": {
-            "width": 720,
-            "height": 120
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Plan, track and finish everything in one place",
-          "fontSize": 11.4,
-          "color": "#B9C4E8",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
-          "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "pop",
+            "enterDelay": 1.1,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b0_g3",
-          "type": "gesture",
-          "name": "Tap hint",
+          "id": "s_4",
+          "type": "shape",
+          "name": "Sparkle Small",
           "position": {
-            "x": 500,
-            "y": 1050
+            "x": 62,
+            "y": 552
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F5B301",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.75,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.25,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_5",
+          "type": "text",
+          "name": "Headline White",
+          "position": {
+            "x": 60,
+            "y": 170
+          },
+          "size": {
+            "width": 700,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "EVERY STORY",
+          "fontSize": 31.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_6",
+          "type": "text",
+          "name": "Headline Amber",
+          "position": {
+            "x": 60,
+            "y": 318
+          },
+          "size": {
+            "width": 700,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "IN ONE PLACE",
+          "fontSize": 31.2,
+          "color": "#F5B301",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.3,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_7",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 62,
+            "y": 512
+          },
+          "size": {
+            "width": 700,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Thousands of titles, no ads, no waiting",
+          "fontSize": 10.8,
+          "color": "#A8AEC2",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.65,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_0",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 600
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -4,
+          "scale": 1.02,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-player-dark.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#F4F5F7",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_8",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 384,
+            "y": 1187
           },
           "size": {
             "width": 130,
@@ -116,128 +197,598 @@
           "rotation": 0,
           "scale": 1,
           "gestureType": "tap",
-          "color": "#8AB4FF",
-          "triggerTime": 1.6,
-          "gestureDuration": 1.2
+          "color": "#F5B301",
+          "triggerTime": 1.8,
+          "gestureDuration": 1.3
         }
-      ]
+      ],
+      "backgroundColor": "#101018",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#101018",
+        "color2": "#05050A",
+        "angle": 160
+      }
     },
     {
-      "id": "tpl_pv_midnight_1",
-      "name": "Feature",
+      "id": "tpl_pv_midnight_launch_1",
+      "name": "Watch Anywhere",
       "position": {
-        "x": 15,
+        "x": 296,
         "y": 15
       },
       "size": {
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#141A33",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#141A33",
-        "color2": "#2A1E5A",
-        "angle": 200
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b1_d4",
+          "id": "v_1",
           "type": "video-device",
           "name": "Phone (drop your recording here)",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 143,
+            "y": 150
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 600,
+            "height": 1200
           },
-          "rotation": 0,
-          "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-list-dark.png",
+          "rotation": 3,
+          "scale": 1.02,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-grid-dark.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
           "objectFit": "cover",
-          "frameColor": "#1e1e1e",
+          "frameColor": "#F4F5F7",
           "animation": {
-            "enter": "slide-up",
+            "enter": "scale-up",
             "enterDelay": 0.05,
-            "enterDuration": 0.8
+            "enterDuration": 0.9
           }
         },
         {
-          "id": "b1_h5",
+          "id": "t_9",
           "type": "text",
-          "name": "Headline",
+          "name": "Headline White",
           "position": {
-            "x": 43,
-            "y": 170
+            "x": 60,
+            "y": 1490
           },
           "size": {
-            "width": 800,
-            "height": 260
+            "width": 766,
+            "height": 131
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Swipe to complete",
-          "fontSize": 24.6,
+          "content": "WATCH MORE",
+          "fontSize": 27.6,
           "color": "#FFFFFF",
-          "fontFamily": "Poppins",
+          "fontFamily": "Oswald",
           "fontWeight": "bold",
           "textAlign": "center",
+          "lineHeight": 1.1,
           "animation": {
             "enter": "slide-up",
-            "enterDelay": 0.25,
+            "enterDelay": 0.5,
             "enterDuration": 0.7
           }
         },
         {
-          "id": "b1_s6",
+          "id": "t_a",
           "type": "text",
-          "name": "Subline",
+          "name": "Headline Amber",
           "position": {
-            "x": 83,
-            "y": 400
+            "x": 60,
+            "y": 1621
           },
           "size": {
-            "width": 720,
-            "height": 120
+            "width": 766,
+            "height": 89
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Clear your list with one gesture",
-          "fontSize": 11.4,
-          "color": "#B9C4E8",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
+          "content": "ANYTIME, ANYWHERE",
+          "fontSize": 18.6,
+          "color": "#F5B301",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
           "textAlign": "center",
+          "lineHeight": 1.1,
           "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "slide-up",
+            "enterDelay": 0.65,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "r_b",
+          "type": "shape",
+          "name": "Pill ACTION",
+          "position": {
+            "x": 128,
+            "y": 1706
+          },
+          "size": {
+            "width": 180,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.95,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b1_g7",
-          "type": "gesture",
-          "name": "Swipe hint",
+          "id": "t_c",
+          "type": "text",
+          "name": "Pill Label ACTION",
           "position": {
-            "x": 300,
-            "y": 1100
+            "x": 128,
+            "y": 1716
           },
           "size": {
-            "width": 280,
-            "height": 140
+            "width": 180,
+            "height": 39
           },
           "rotation": 0,
           "scale": 1,
-          "gestureType": "swipe-right",
-          "color": "#8AB4FF",
-          "triggerTime": 2.6,
+          "content": "ACTION",
+          "fontSize": 7.8,
+          "color": "#0B0B10",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.95,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "r_d",
+          "type": "shape",
+          "name": "Pill DRAMA",
+          "position": {
+            "x": 328,
+            "y": 1706
+          },
+          "size": {
+            "width": 180,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.05,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_e",
+          "type": "text",
+          "name": "Pill Label DRAMA",
+          "position": {
+            "x": 328,
+            "y": 1716
+          },
+          "size": {
+            "width": 180,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "DRAMA",
+          "fontSize": 7.8,
+          "color": "#0B0B10",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.05,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "r_f",
+          "type": "shape",
+          "name": "Pill SCI-FI",
+          "position": {
+            "x": 528,
+            "y": 1706
+          },
+          "size": {
+            "width": 180,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.15,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_g",
+          "type": "text",
+          "name": "Pill Label SCI-FI",
+          "position": {
+            "x": 528,
+            "y": 1716
+          },
+          "size": {
+            "width": 180,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "SCI-FI",
+          "fontSize": 7.8,
+          "color": "#0B0B10",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.15,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "r_h",
+          "type": "shape",
+          "name": "Pill COMEDY",
+          "position": {
+            "x": 218,
+            "y": 1784
+          },
+          "size": {
+            "width": 200,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "transparent",
+          "strokeColor": "#4A4A57",
+          "strokeWidth": 2,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.25,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_i",
+          "type": "text",
+          "name": "Pill Label COMEDY",
+          "position": {
+            "x": 218,
+            "y": 1794
+          },
+          "size": {
+            "width": 200,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "COMEDY",
+          "fontSize": 7.8,
+          "color": "#C9CCD6",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.25,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "r_j",
+          "type": "shape",
+          "name": "Pill THRILLER",
+          "position": {
+            "x": 438,
+            "y": 1784
+          },
+          "size": {
+            "width": 220,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "transparent",
+          "strokeColor": "#4A4A57",
+          "strokeWidth": 2,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.35,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_k",
+          "type": "text",
+          "name": "Pill Label THRILLER",
+          "position": {
+            "x": 438,
+            "y": 1794
+          },
+          "size": {
+            "width": 220,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "THRILLER",
+          "fontSize": 7.8,
+          "color": "#C9CCD6",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.35,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "g_l",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 319,
+            "y": 732
+          },
+          "size": {
+            "width": 260,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-up",
+          "color": "#F5B301",
+          "triggerTime": 1.9,
+          "gestureDuration": 1.5
+        }
+      ],
+      "backgroundColor": "#0B0B10",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0B0B10",
+        "color2": "#191322",
+        "angle": 200
+      }
+    },
+    {
+      "id": "tpl_pv_midnight_launch_2",
+      "name": "Downloads",
+      "position": {
+        "x": 577,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "r_m",
+          "type": "shape",
+          "name": "Amber Rule",
+          "position": {
+            "x": 60,
+            "y": 470
+          },
+          "size": {
+            "width": 766,
+            "height": 6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F5B301",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "fillOpacity": 0.55,
+          "animation": {
+            "enter": "slide-right",
+            "enterDelay": 0.45,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_n",
+          "type": "text",
+          "name": "Headline White",
+          "position": {
+            "x": 60,
+            "y": 170
+          },
+          "size": {
+            "width": 766,
+            "height": 142
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "BIG SCREEN",
+          "fontSize": 30,
+          "color": "#FFFFFF",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_o",
+          "type": "text",
+          "name": "Headline Amber",
+          "position": {
+            "x": 60,
+            "y": 312
+          },
+          "size": {
+            "width": 766,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "MAGIC AT HOME",
+          "fontSize": 21,
+          "color": "#F5B301",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.3,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "r_p",
+          "type": "shape",
+          "name": "Pill DOWNLOAD AND GO OFFLINE",
+          "position": {
+            "x": 60,
+            "y": 512
+          },
+          "size": {
+            "width": 480,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "transparent",
+          "strokeColor": "#F5B301",
+          "strokeWidth": 2,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_q",
+          "type": "text",
+          "name": "Pill Label DOWNLOAD AND GO OFFLINE",
+          "position": {
+            "x": 60,
+            "y": 523
+          },
+          "size": {
+            "width": 480,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "DOWNLOAD AND GO OFFLINE",
+          "fontSize": 7.2,
+          "color": "#F5B301",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.7,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_2",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 630
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-feed-dark.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#F4F5F7",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_r",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 378,
+            "y": 1165
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "double-tap",
+          "color": "#F5B301",
+          "triggerTime": 2,
           "gestureDuration": 1.4
         }
-      ]
+      ],
+      "backgroundColor": "#05050A",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#05050A",
+        "color2": "#141018",
+        "angle": 20
+      }
     }
   ]
 }

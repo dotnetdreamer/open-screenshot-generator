@@ -1,13 +1,13 @@
 {
-  "id": "template_pv_royal",
+  "id": "template_pv_royal_shop",
   "name": "Royal Shop",
-  "description": "Premium purple App Preview video layout for shopping apps: a product grid recording, gold accents and a tap hint. Upload your screen recording to the phone and export the MP4.",
+  "description": "Retail App Preview layout. Royal purple brand panel, serif headlines, a brush swoosh and a starburst social-proof badge. Drop your screen recording into the phone and export the MP4.",
   "previewImage": "/data/projects/previews/pv-royal-shop.png",
-  "timestamp": "2026-07-12T00:00:00.000Z",
+  "timestamp": "2026-07-13T00:00:00.000Z",
   "projectData": [
     {
-      "id": "tpl_pv_royal_0",
-      "name": "Hero",
+      "id": "tpl_pv_royal_shop_0",
+      "name": "The Drop",
       "position": {
         "x": 15,
         "y": 15
@@ -16,98 +16,151 @@
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#3B1B6E",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#3B1B6E",
-        "color2": "#7B2FBF",
-        "angle": 155
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b0_d32",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_2t",
+          "type": "shape",
+          "name": "Sparkle",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 710,
+            "y": 250
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 84,
+            "height": 84
           },
           "rotation": 0,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-grid-royal.png",
-          "objectFit": "cover",
-          "frameColor": "#1e1e1e",
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD166",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b0_h33",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
-          },
-          "size": {
-            "width": 800,
-            "height": 260
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Shop the good stuff",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
-            "enterDuration": 0.7
-          }
-        },
-        {
-          "id": "b0_s34",
-          "type": "text",
-          "name": "Subline",
-          "position": {
-            "x": 83,
-            "y": 420
-          },
-          "size": {
-            "width": 720,
-            "height": 120
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Curated drops, delivered to your door",
-          "fontSize": 11.4,
-          "color": "#E3D2FF",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
-          "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "pop",
+            "enterDelay": 1,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b0_g35",
-          "type": "gesture",
-          "name": "Tap hint",
+          "id": "t_2u",
+          "type": "text",
+          "name": "Headline",
           "position": {
-            "x": 500,
-            "y": 1060
+            "x": 60,
+            "y": 180
+          },
+          "size": {
+            "width": 620,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shop",
+          "fontSize": 31.2,
+          "color": "#FFFFFF",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "fontStyle": "italic",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_2v",
+          "type": "text",
+          "name": "Headline Gold",
+          "position": {
+            "x": 60,
+            "y": 328
+          },
+          "size": {
+            "width": 620,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "the drop",
+          "fontSize": 31.2,
+          "color": "#FFD166",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.28,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_2w",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 62,
+            "y": 516
+          },
+          "size": {
+            "width": 620,
+            "height": 49
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "New arrivals every Friday at 6pm",
+          "fontSize": 10.2,
+          "color": "#D6C7FF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.62,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_2q",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 600
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -4,
+          "scale": 1.02,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-grid-royal.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#F2F2F4",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_2x",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 384,
+            "y": 1187
           },
           "size": {
             "width": 130,
@@ -116,115 +169,393 @@
           "rotation": 0,
           "scale": 1,
           "gestureType": "tap",
-          "color": "#F0C36D",
-          "triggerTime": 1.6,
-          "gestureDuration": 1.2
+          "color": "#FFD166",
+          "triggerTime": 1.8,
+          "gestureDuration": 1.3
         }
-      ]
+      ],
+      "backgroundColor": "#5B2BD9",
+      "backgroundType": "solid"
     },
     {
-      "id": "tpl_pv_royal_1",
-      "name": "Feature",
+      "id": "tpl_pv_royal_shop_1",
+      "name": "Verified",
       "position": {
-        "x": 15,
+        "x": 296,
         "y": 15
       },
       "size": {
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#5B21B6",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#5B21B6",
-        "color2": "#9D4EDD",
-        "angle": 175
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b1_d36",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_2y",
+          "type": "shape",
+          "name": "Royal Swoosh",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": -200,
+            "y": 1080
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 1300,
+            "height": 860
           },
-          "rotation": 0,
+          "rotation": -12,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-feed-royal.png",
-          "objectFit": "cover",
-          "frameColor": "#1e1e1e",
+          "shapeType": "custom-svg",
+          "fillColor": "#5B2BD9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4.83 35.25 L6.66 34.69 L8.95 33.51 L11.48 32.02 L14.19 30.4 L16.97 28.87 L19.66 27.64 L22.06 26.9 L23.84 26.78 L24.64 27.13 L24.57 27.46 L25.12 28.55 L26.6 31.45 L28.47 35.75 L30.52 40.93 L32.7 46.56 L34.99 52.24 L37.46 57.69 L40.27 62.68 L44.1 67.21 L50.9 70.43 L58.65 68.74 L63.19 64.75 L66.32 60.28 L68.96 55.42 L71.36 50.35 L73.6 45.33 L75.66 40.71 L77.49 36.91 L78.83 34.44 L79.12 33.65 L78.72 33.42 L79.17 33.08 L80.55 33.18 L82.52 33.87 L84.77 35.04 L87.09 36.49 L89.36 38.03 L91.51 39.46 L93.46 40.61 L95.07 41.18 A1.5 1.5 0 0 1 96.93 38.82 L96.19 37.55 L95.18 35.8 L93.83 33.64 L92.18 31.22 L90.23 28.71 L87.97 26.26 L85.29 24.02 L81.98 22.21 L77.79 21.36 L72.88 22.35 L68.69 25.3 L65.43 29.17 L62.53 33.59 L59.78 38.35 L57.14 43.15 L54.63 47.62 L52.33 51.3 L50.54 53.65 L50.19 54.04 L53.1 53.57 L55.1 54.31 L54.13 53.13 L52.14 49.92 L49.81 45.42 L47.3 40.19 L44.68 34.68 L41.93 29.26 L39 24.26 L35.68 19.9 L31.43 16.54 L26.34 15.16 L21.79 15.74 L18.03 17.41 L14.83 19.63 L12.03 22.13 L9.55 24.73 L7.39 27.27 L5.58 29.56 L4.19 31.42 L3.17 32.75 A1.5 1.5 0 0 1 4.83 35.25 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
+            "enter": "slide-right",
+            "enterDelay": 0.45,
+            "enterDuration": 0.9
           }
         },
         {
-          "id": "b1_h37",
+          "id": "t_2z",
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 43,
-            "y": 170
+            "x": 60,
+            "y": 160
           },
           "size": {
-            "width": 800,
-            "height": 260
+            "width": 766,
+            "height": 137
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Checkout in a tap",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
+          "content": "Verified",
+          "fontSize": 28.8,
+          "color": "#5B2BD9",
+          "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
           "textAlign": "center",
+          "lineHeight": 1.1,
           "animation": {
             "enter": "slide-up",
-            "enterDelay": 0.25,
+            "enterDelay": 0.15,
             "enterDuration": 0.7
           }
         },
         {
-          "id": "b1_s38",
+          "id": "t_30",
           "type": "text",
-          "name": "Subline",
+          "name": "Headline Italic",
           "position": {
-            "x": 83,
-            "y": 400
+            "x": 60,
+            "y": 297
           },
           "size": {
-            "width": 720,
-            "height": 120
+            "width": 766,
+            "height": 106
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Saved cards, instant tracking, easy returns",
-          "fontSize": 11.4,
-          "color": "#E3D2FF",
-          "fontFamily": "Poppins",
+          "content": "products only",
+          "fontSize": 22.2,
+          "color": "#120A2A",
+          "fontFamily": "DM Serif Display",
           "fontWeight": "normal",
+          "fontStyle": "italic",
           "textAlign": "center",
+          "lineHeight": 1.1,
           "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "slide-up",
+            "enterDelay": 0.28,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_2r",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 580
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 6,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-feed-royal.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#1C1C1E",
+          "animation": {
+            "enter": "scale-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "s_31",
+          "type": "shape",
+          "name": "Users Starburst",
+          "position": {
+            "x": 34,
+            "y": 1580
+          },
+          "size": {
+            "width": 280,
+            "height": 280
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD166",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L57.45 22.18 L74 8.43 L70.36 29.64 L91.57 26 L77.82 42.55 L98 50 L77.82 57.45 L91.57 74 L70.36 70.36 L74 91.57 L57.45 77.82 L50 98 L42.55 77.82 L26 91.57 L29.64 70.36 L8.43 74 L22.18 57.45 L2 50 L22.18 42.55 L8.43 26 L29.64 29.64 L26 8.43 L42.55 22.18 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.05,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b1_g39",
-          "type": "gesture",
-          "name": "Tap hint",
+          "id": "t_32",
+          "type": "text",
+          "name": "Users Count",
           "position": {
-            "x": 480,
-            "y": 1490
+            "x": 84,
+            "y": 1660
+          },
+          "size": {
+            "width": 180,
+            "height": 105
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "520K\nshoppers",
+          "fontSize": 12,
+          "color": "#120A2A",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "normal",
+          "fontStyle": "italic",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.15,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "g_33",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 313,
+            "y": 1270
+          },
+          "size": {
+            "width": 260,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-left",
+          "color": "#FFD166",
+          "triggerTime": 2,
+          "gestureDuration": 1.4
+        }
+      ],
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid"
+    },
+    {
+      "id": "tpl_pv_royal_shop_2",
+      "name": "Checkout",
+      "position": {
+        "x": 577,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "c_34",
+          "type": "shape",
+          "name": "Royal Ring",
+          "position": {
+            "x": -70,
+            "y": 1600
+          },
+          "size": {
+            "width": 280,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#5B2BD9",
+          "strokeWidth": 3,
+          "fillOpacity": 0.5,
+          "animation": {
+            "enter": "scale-up",
+            "enterDelay": 0.9,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_2s",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 140
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-dashboard-royal.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#1C1C1E",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "t_35",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 60,
+            "y": 1470
+          },
+          "size": {
+            "width": 766,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Checkout in",
+          "fontSize": 22.2,
+          "color": "#120A2A",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.55,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_36",
+          "type": "text",
+          "name": "Headline Italic",
+          "position": {
+            "x": 60,
+            "y": 1576
+          },
+          "size": {
+            "width": 766,
+            "height": 131
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "two taps",
+          "fontSize": 27.6,
+          "color": "#5B2BD9",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "normal",
+          "fontStyle": "italic",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.68,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "r_37",
+          "type": "shape",
+          "name": "Pill Free returns",
+          "position": {
+            "x": 293,
+            "y": 1748
+          },
+          "size": {
+            "width": 300,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#5B2BD9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_38",
+          "type": "text",
+          "name": "Pill Label Free returns",
+          "position": {
+            "x": 293,
+            "y": 1761
+          },
+          "size": {
+            "width": 300,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Free returns",
+          "fontSize": 8.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "g_39",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 378,
+            "y": 675
           },
           "size": {
             "width": 130,
@@ -232,12 +563,14 @@
           },
           "rotation": 0,
           "scale": 1,
-          "gestureType": "tap",
-          "color": "#F0C36D",
-          "triggerTime": 1.6,
-          "gestureDuration": 1.2
+          "gestureType": "double-tap",
+          "color": "#5B2BD9",
+          "triggerTime": 1.8,
+          "gestureDuration": 1.4
         }
-      ]
+      ],
+      "backgroundColor": "#F3EEFF",
+      "backgroundType": "solid"
     }
   ]
 }

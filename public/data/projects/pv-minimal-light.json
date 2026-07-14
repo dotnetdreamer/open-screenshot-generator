@@ -1,12 +1,12 @@
 {
-  "id": "template_pv_minimal",
+  "id": "template_pv_minimal_light",
   "name": "Minimal Light",
-  "description": "Clean light App Preview video layout: dark headlines on soft gray, a white iPhone and subtle tap hints. Upload your screen recording to the phone and export the MP4.",
+  "description": "Editorial light App Preview layout. Cream paper, serif italic headlines, thin rings and a laurel rating badge. Drop your screen recording into the phone and export the MP4.",
   "previewImage": "/data/projects/previews/pv-minimal-light.png",
-  "timestamp": "2026-07-12T00:00:00.000Z",
+  "timestamp": "2026-07-13T00:00:00.000Z",
   "projectData": [
     {
-      "id": "tpl_pv_minimal_0",
+      "id": "tpl_pv_minimal_light_0",
       "name": "Hero",
       "position": {
         "x": 15,
@@ -16,94 +16,175 @@
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#F4F5F7",
-      "backgroundType": "solid",
       "zoom": 1,
       "elements": [
         {
-          "id": "b0_d16",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "c_1n",
+          "type": "shape",
+          "name": "Ring",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 596,
+            "y": 150
           },
           "size": {
-            "width": 520,
-            "height": 1040
-          },
-          "rotation": 0,
-          "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-list-light.png",
-          "objectFit": "cover",
-          "frameColor": "#f5f5f7",
-          "notchColor": "#111111",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b0_h17",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
-          },
-          "size": {
-            "width": 800,
+            "width": 260,
             "height": 260
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Less app, more done",
-          "fontSize": 24.6,
-          "color": "#111827",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#B4785A",
+          "strokeWidth": 2,
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
-            "enterDuration": 0.7
+            "enter": "scale-up",
+            "enterDelay": 0.9,
+            "enterDuration": 0.9
           }
         },
         {
-          "id": "b0_s18",
-          "type": "text",
-          "name": "Subline",
+          "id": "s_1o",
+          "type": "shape",
+          "name": "Sparkle",
           "position": {
-            "x": 83,
-            "y": 420
+            "x": 700,
+            "y": 430
           },
           "size": {
-            "width": 720,
-            "height": 120
+            "width": 56,
+            "height": 56
           },
           "rotation": 0,
           "scale": 1,
-          "content": "The to-do list that stays out of your way",
-          "fontSize": 11.4,
-          "color": "#6B7280",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
+          "shapeType": "custom-svg",
+          "fillColor": "#B4785A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "pop",
+            "enterDelay": 1.05,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b0_g19",
-          "type": "gesture",
-          "name": "Tap hint",
+          "id": "t_1p",
+          "type": "text",
+          "name": "Headline",
           "position": {
-            "x": 500,
-            "y": 1020
+            "x": 60,
+            "y": 190
+          },
+          "size": {
+            "width": 560,
+            "height": 137
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Built for",
+          "fontSize": 28.8,
+          "color": "#141414",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_1q",
+          "type": "text",
+          "name": "Headline Italic",
+          "position": {
+            "x": 60,
+            "y": 327
+          },
+          "size": {
+            "width": 560,
+            "height": 137
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "quiet focus",
+          "fontSize": 28.8,
+          "color": "#B4785A",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "normal",
+          "fontStyle": "italic",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.3,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_1r",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 62,
+            "y": 508
+          },
+          "size": {
+            "width": 620,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A calmer way to plan the day",
+          "fontSize": 10.8,
+          "color": "#6D6459",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.65,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_1k",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 600
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1.02,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-list-light.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#1C1C1E",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_1s",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 384,
+            "y": 1207
           },
           "size": {
             "width": 130,
@@ -112,124 +193,432 @@
           "rotation": 0,
           "scale": 1,
           "gestureType": "tap",
-          "color": "#111827",
-          "triggerTime": 1.6,
-          "gestureDuration": 1.2
+          "color": "#B4785A",
+          "triggerTime": 1.8,
+          "gestureDuration": 1.3
         }
-      ]
+      ],
+      "backgroundColor": "#F6F3EE",
+      "backgroundType": "solid"
     },
     {
-      "id": "tpl_pv_minimal_1",
-      "name": "Feature",
+      "id": "tpl_pv_minimal_light_1",
+      "name": "Flow",
       "position": {
-        "x": 15,
+        "x": 296,
         "y": 15
       },
       "size": {
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#ECEEF2",
-      "backgroundType": "solid",
       "zoom": 1,
       "elements": [
         {
-          "id": "b1_d20",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
-          "position": {
-            "x": 183,
-            "y": 560
-          },
-          "size": {
-            "width": 520,
-            "height": 1040
-          },
-          "rotation": 0,
-          "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-grid-light.png",
-          "objectFit": "cover",
-          "frameColor": "#f5f5f7",
-          "notchColor": "#111111",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b1_h21",
+          "id": "t_1t",
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 43,
+            "x": 60,
             "y": 170
           },
           "size": {
-            "width": 800,
-            "height": 260
+            "width": 766,
+            "height": 125
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Organized in seconds",
-          "fontSize": 24.6,
-          "color": "#111827",
-          "fontFamily": "Poppins",
+          "content": "One swipe,",
+          "fontSize": 26.4,
+          "color": "#141414",
+          "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
           "textAlign": "center",
+          "lineHeight": 1.1,
           "animation": {
             "enter": "slide-up",
-            "enterDelay": 0.25,
+            "enterDelay": 0.15,
             "enterDuration": 0.7
           }
         },
         {
-          "id": "b1_s22",
+          "id": "t_1u",
           "type": "text",
-          "name": "Subline",
+          "name": "Headline Italic",
           "position": {
-            "x": 83,
-            "y": 400
+            "x": 60,
+            "y": 295
           },
           "size": {
-            "width": 720,
-            "height": 120
+            "width": 766,
+            "height": 106
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Drag, drop and get on with your day",
-          "fontSize": 11.4,
-          "color": "#6B7280",
-          "fontFamily": "Poppins",
+          "content": "everything sorted",
+          "fontSize": 22.2,
+          "color": "#B4785A",
+          "fontFamily": "DM Serif Display",
           "fontWeight": "normal",
+          "fontStyle": "italic",
           "textAlign": "center",
+          "lineHeight": 1.1,
           "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "slide-up",
+            "enterDelay": 0.3,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "s_1v",
+          "type": "shape",
+          "name": "Underline Swoosh",
+          "position": {
+            "x": 300,
+            "y": 420
+          },
+          "size": {
+            "width": 286,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#B4785A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "slide-right",
+            "enterDelay": 0.6,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_1l",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 560
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 5,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-grid-light.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#F2F2F4",
+          "animation": {
+            "enter": "scale-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "c_1w",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 96,
+            "y": 1750
+          },
+          "size": {
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#B4785A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.3,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b1_g23",
-          "type": "gesture",
-          "name": "Swipe hint",
+          "id": "c_1x",
+          "type": "shape",
+          "name": "Dot",
           "position": {
-            "x": 300,
-            "y": 1150
+            "x": 142,
+            "y": 1750
           },
           "size": {
-            "width": 280,
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#B4785A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.5,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.4,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "c_1y",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 188,
+            "y": 1750
+          },
+          "size": {
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#B4785A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.25,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.5,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "g_1z",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 313,
+            "y": 1250
+          },
+          "size": {
+            "width": 260,
             "height": 140
           },
           "rotation": 0,
           "scale": 1,
-          "gestureType": "swipe-left",
-          "color": "#111827",
-          "triggerTime": 2.6,
+          "gestureType": "swipe-right",
+          "color": "#B4785A",
+          "triggerTime": 2,
           "gestureDuration": 1.4
         }
-      ]
+      ],
+      "backgroundColor": "#EDE7DE",
+      "backgroundType": "solid"
+    },
+    {
+      "id": "tpl_pv_minimal_light_2",
+      "name": "Loved",
+      "position": {
+        "x": 577,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "v_1m",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 130
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -3,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-chat-light.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#1C1C1E",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "s_20",
+          "type": "shape",
+          "name": "Laurel Left",
+          "position": {
+            "x": 144,
+            "y": 1450
+          },
+          "size": {
+            "width": 165,
+            "height": 227
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.6,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "s_21",
+          "type": "shape",
+          "name": "Laurel Right",
+          "position": {
+            "x": 577,
+            "y": 1450
+          },
+          "size": {
+            "width": 165,
+            "height": 227
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.6,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_22",
+          "type": "text",
+          "name": "Rating Number",
+          "position": {
+            "x": 268,
+            "y": 1512
+          },
+          "size": {
+            "width": 192,
+            "height": 132
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.9",
+          "fontSize": 28.8,
+          "color": "#141414",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.6,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_23",
+          "type": "text",
+          "name": "Rating Caption",
+          "position": {
+            "x": 478,
+            "y": 1524
+          },
+          "size": {
+            "width": 230,
+            "height": 77
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Loved by\n40,000 users",
+          "fontSize": 8.1,
+          "color": "#141414",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.25,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.6,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_24",
+          "type": "text",
+          "name": "Closing",
+          "position": {
+            "x": 60,
+            "y": 1730
+          },
+          "size": {
+            "width": 766,
+            "height": 94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Start free today",
+          "fontSize": 19.8,
+          "color": "#B4785A",
+          "fontFamily": "DM Serif Display",
+          "fontWeight": "normal",
+          "fontStyle": "italic",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.95,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "g_25",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 378,
+            "y": 665
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "tap",
+          "color": "#141414",
+          "triggerTime": 1.7,
+          "gestureDuration": 1.3
+        }
+      ],
+      "backgroundColor": "#F6F3EE",
+      "backgroundType": "solid"
     }
   ]
 }

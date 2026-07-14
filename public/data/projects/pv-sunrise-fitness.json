@@ -1,13 +1,13 @@
 {
-  "id": "template_pv_sunrise",
+  "id": "template_pv_sunrise_fitness",
   "name": "Sunrise Fitness",
-  "description": "Energetic App Preview video layout on a sunrise gradient: white headlines, a workout recording in the phone and swipe hints. Upload your screen recording to the phone and export the MP4.",
+  "description": "High energy App Preview layout for fitness and habit apps. Warm sunrise gradient, condensed caps, a laurel rating badge and chips, then a cool navy and a cream close. Drop your screen recording into the phone and export the MP4.",
   "previewImage": "/data/projects/previews/pv-sunrise-fitness.png",
-  "timestamp": "2026-07-12T00:00:00.000Z",
+  "timestamp": "2026-07-13T00:00:00.000Z",
   "projectData": [
     {
-      "id": "tpl_pv_sunrise_0",
-      "name": "Hero",
+      "id": "tpl_pv_sunrise_fitness_0",
+      "name": "Results",
       "position": {
         "x": 15,
         "y": 15
@@ -16,97 +16,260 @@
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#FF6A3D",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#FF6A3D",
-        "color2": "#FFB13D",
-        "angle": 150
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b0_d8",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_v",
+          "type": "shape",
+          "name": "Logo Swoosh",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 60,
+            "y": 112
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 84,
+            "height": 54
           },
           "rotation": 0,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-dashboard-coral.png",
-          "objectFit": "cover",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b0_h9",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
+          "shapeType": "custom-svg",
+          "fillColor": "#20120B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0.46 59.96 L1.94 60.64 L3.86 61.77 L6.33 63.38 L9.2 65.28 L12.37 67.32 L15.78 69.36 L19.37 71.28 L23.12 72.95 L27.07 74.21 L30.99 74.79 L34.48 74.78 L37.7 74.47 L40.91 73.88 L44.1 72.99 L47.24 71.79 L50.35 70.28 L53.42 68.47 L56.47 66.33 L59.52 63.88 L62.64 61.05 L65.97 57.55 L69.55 53.28 L73.28 48.46 L77.08 43.28 L80.83 37.96 L84.43 32.71 L87.76 27.74 L90.7 23.28 L93.13 19.54 L94.95 16.74 A1.2 1.2 0 0 1 93.05 15.26 L90.77 17.75 L87.86 21.17 L84.46 25.3 L80.69 29.92 L76.67 34.79 L72.52 39.69 L68.38 44.4 L64.37 48.68 L60.65 52.27 L57.36 54.95 L54.38 56.95 L51.5 58.59 L48.77 59.88 L46.2 60.82 L43.76 61.46 L41.44 61.83 L39.22 61.96 L37.05 61.88 L34.91 61.62 L33.01 61.21 L31.33 60.56 L29.39 59.47 L27.1 57.93 L24.64 56.04 L22.13 53.93 L19.66 51.71 L17.32 49.51 L15.15 47.41 L13.14 45.5 L11.54 44.04 A9.7 9.7 0 0 1 0.46 59.96 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
           },
-          "size": {
-            "width": 800,
-            "height": 260
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Train harder, smarter",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
+            "enter": "fade",
+            "enterDelay": 0.1,
             "enterDuration": 0.7
           }
         },
         {
-          "id": "b0_s10",
+          "id": "t_w",
           "type": "text",
-          "name": "Subline",
+          "name": "Wordmark",
           "position": {
-            "x": 83,
-            "y": 420
+            "x": 158,
+            "y": 100
           },
           "size": {
-            "width": 720,
-            "height": 120
+            "width": 400,
+            "height": 66
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Live workouts that adapt to your pace",
-          "fontSize": 11.4,
-          "color": "#FFE8D6",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
+          "content": "Yourapp.",
+          "fontSize": 13.8,
+          "color": "#20120B",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
           "animation": {
             "enter": "fade",
-            "enterDelay": 0.7,
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_x",
+          "type": "text",
+          "name": "Headline Ink",
+          "position": {
+            "x": 60,
+            "y": 220
+          },
+          "size": {
+            "width": 766,
+            "height": 111
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "TURN EFFORT INTO",
+          "fontSize": 23.4,
+          "color": "#20120B",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.2,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_y",
+          "type": "text",
+          "name": "Headline White",
+          "position": {
+            "x": 60,
+            "y": 331
+          },
+          "size": {
+            "width": 766,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "REAL RESULTS",
+          "fontSize": 27,
+          "color": "#FFFFFF",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.32,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "s_z",
+          "type": "shape",
+          "name": "Laurel Left",
+          "position": {
+            "x": 144,
+            "y": 420
+          },
+          "size": {
+            "width": 165,
+            "height": 227
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#20120B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.85,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b0_g11",
-          "type": "gesture",
-          "name": "Tap hint",
+          "id": "s_10",
+          "type": "shape",
+          "name": "Laurel Right",
           "position": {
-            "x": 490,
-            "y": 980
+            "x": 577,
+            "y": 420
+          },
+          "size": {
+            "width": 165,
+            "height": 227
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#20120B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.85,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_11",
+          "type": "text",
+          "name": "Rating Number",
+          "position": {
+            "x": 268,
+            "y": 482
+          },
+          "size": {
+            "width": 192,
+            "height": 132
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.8",
+          "fontSize": 28.8,
+          "color": "#20120B",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.85,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_12",
+          "type": "text",
+          "name": "Rating Caption",
+          "position": {
+            "x": 478,
+            "y": 494
+          },
+          "size": {
+            "width": 230,
+            "height": 77
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rating on\napp store",
+          "fontSize": 8.1,
+          "color": "#20120B",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.25,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.85,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "v_s",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 665
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-dashboard-dark.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#2A1A12",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_13",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 378,
+            "y": 1260
           },
           "size": {
             "width": 130,
@@ -116,126 +279,527 @@
           "scale": 1,
           "gestureType": "tap",
           "color": "#FFFFFF",
-          "triggerTime": 1.6,
-          "gestureDuration": 1.2
+          "triggerTime": 1.9,
+          "gestureDuration": 1.3
         }
-      ]
+      ],
+      "backgroundColor": "#FF7A3C",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FF7A3C",
+        "color2": "#FFC24B",
+        "angle": 165
+      }
     },
     {
-      "id": "tpl_pv_sunrise_1",
-      "name": "Feature",
+      "id": "tpl_pv_sunrise_fitness_1",
+      "name": "Track",
       "position": {
-        "x": 15,
+        "x": 296,
         "y": 15
       },
       "size": {
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#FF3D77",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#FF3D77",
-        "color2": "#FF8A3D",
-        "angle": 170
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b1_d12",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_14",
+          "type": "shape",
+          "name": "Bolt",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 706,
+            "y": 150
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 100,
+            "height": 140
           },
           "rotation": 0,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-player-coral.png",
-          "objectFit": "cover",
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC24B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b1_h13",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
-          },
-          "size": {
-            "width": 800,
-            "height": 260
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Every rep counts",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
-            "enterDuration": 0.7
-          }
-        },
-        {
-          "id": "b1_s14",
-          "type": "text",
-          "name": "Subline",
-          "position": {
-            "x": 83,
-            "y": 400
-          },
-          "size": {
-            "width": 720,
-            "height": 120
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Watch your streaks grow week after week",
-          "fontSize": 11.4,
-          "color": "#FFE0E9",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
-          "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "pop",
+            "enterDelay": 1,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b1_g15",
-          "type": "gesture",
-          "name": "Swipe hint",
+          "id": "t_15",
+          "type": "text",
+          "name": "Headline White",
           "position": {
-            "x": 373,
-            "y": 900
+            "x": 60,
+            "y": 170
           },
           "size": {
-            "width": 140,
-            "height": 280
+            "width": 620,
+            "height": 125
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "TRACK EVERY",
+          "fontSize": 26.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_16",
+          "type": "text",
+          "name": "Headline Sun",
+          "position": {
+            "x": 60,
+            "y": 295
+          },
+          "size": {
+            "width": 620,
+            "height": 125
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "SESSION",
+          "fontSize": 26.4,
+          "color": "#FFC24B",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.28,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "r_17",
+          "type": "shape",
+          "name": "Pill Runs",
+          "position": {
+            "x": 60,
+            "y": 420
+          },
+          "size": {
+            "width": 150,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A3C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.8,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_18",
+          "type": "text",
+          "name": "Pill Label Runs",
+          "position": {
+            "x": 60,
+            "y": 430
+          },
+          "size": {
+            "width": 150,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Runs",
+          "fontSize": 7.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.8,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "r_19",
+          "type": "shape",
+          "name": "Pill Strength",
+          "position": {
+            "x": 226,
+            "y": 420
+          },
+          "size": {
+            "width": 210,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "transparent",
+          "strokeColor": "#7E8DC9",
+          "strokeWidth": 2,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.9,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_1a",
+          "type": "text",
+          "name": "Pill Label Strength",
+          "position": {
+            "x": 226,
+            "y": 430
+          },
+          "size": {
+            "width": 210,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Strength",
+          "fontSize": 7.8,
+          "color": "#C3CCEE",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 0.9,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "r_1b",
+          "type": "shape",
+          "name": "Pill Recovery",
+          "position": {
+            "x": 452,
+            "y": 420
+          },
+          "size": {
+            "width": 220,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "transparent",
+          "strokeColor": "#7E8DC9",
+          "strokeWidth": 2,
+          "borderRadius": 29,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_1c",
+          "type": "text",
+          "name": "Pill Label Recovery",
+          "position": {
+            "x": 452,
+            "y": 430
+          },
+          "size": {
+            "width": 220,
+            "height": 39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Recovery",
+          "fontSize": 7.8,
+          "color": "#C3CCEE",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "v_t",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 620
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -5,
+          "scale": 1.02,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-list-dark.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#6478E8",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_1d",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 319,
+            "y": 1222
+          },
+          "size": {
+            "width": 260,
+            "height": 300
           },
           "rotation": 0,
           "scale": 1,
           "gestureType": "swipe-up",
+          "color": "#FFC24B",
+          "triggerTime": 2,
+          "gestureDuration": 1.5
+        }
+      ],
+      "backgroundColor": "#141B33",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#141B33",
+        "color2": "#2B3F8C",
+        "angle": 180
+      }
+    },
+    {
+      "id": "tpl_pv_sunrise_fitness_2",
+      "name": "Keep Going",
+      "position": {
+        "x": 577,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "s_1e",
+          "type": "shape",
+          "name": "Coral Splat",
+          "position": {
+            "x": -160,
+            "y": 1590
+          },
+          "size": {
+            "width": 400,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF5A36",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.85,
+          "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.5,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "s_1f",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 742,
+            "y": 1560
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF5A36",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 0 C55 35 65 45 100 50 C65 55 55 65 50 100 C45 65 35 55 0 50 C35 45 45 35 50 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.2,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "v_u",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 140
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 3,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-player-coral.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#20120B",
+          "animation": {
+            "enter": "scale-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "t_1g",
+          "type": "text",
+          "name": "Headline Ink",
+          "position": {
+            "x": 60,
+            "y": 1500
+          },
+          "size": {
+            "width": 766,
+            "height": 103
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "EVERY WORKOUT",
+          "fontSize": 21.6,
+          "color": "#20120B",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.55,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_1h",
+          "type": "text",
+          "name": "Headline Coral",
+          "position": {
+            "x": 60,
+            "y": 1603
+          },
+          "size": {
+            "width": 766,
+            "height": 125
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "COUNTS",
+          "fontSize": 26.4,
+          "color": "#FF5A36",
+          "fontFamily": "Oswald",
+          "fontWeight": "bold",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.68,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_1i",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 143,
+            "y": 1762
+          },
+          "size": {
+            "width": 600,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Streaks, plans and progress in one app",
+          "fontSize": 9.6,
+          "color": "#8A6350",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.95,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "g_1j",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 313,
+            "y": 670
+          },
+          "size": {
+            "width": 260,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "swipe-left",
           "color": "#FFFFFF",
-          "triggerTime": 2.6,
+          "triggerTime": 1.8,
           "gestureDuration": 1.4
         }
-      ]
+      ],
+      "backgroundColor": "#FFF3E6",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FFF3E6",
+        "color2": "#FFE0C2",
+        "angle": 200
+      }
     }
   ]
 }

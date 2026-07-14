@@ -92,7 +92,24 @@ async function openTemplate(page, cardTitle, tab) {
   }, cardTitle, CARDS);
   await page.waitForFunction("location.search.includes('projectId')", { timeout: 30000, polling: 500 });
   await page.waitForFunction("document.querySelectorAll('[data-element-id]').length > 3", { timeout: 60000, polling: 500 });
-  await sleep(4000); // fonts + skeleton images + first paint settle
+  // Wait for the webfonts the project actually uses. A fixed sleep is not
+  // enough: if Google Fonts is slow, the export captures a serif fallback,
+  // whose wider glyphs wrap the headlines and wreck the layout.
+  await page.waitForFunction(
+    () => {
+      const specs = new Set();
+      for (const el of document.querySelectorAll('[data-element-id]')) {
+        for (const n of el.querySelectorAll('*')) {
+          if (!n.textContent || !n.textContent.trim()) continue;
+          const cs = getComputedStyle(n);
+          specs.add(`${cs.fontStyle} ${cs.fontWeight} 40px ${cs.fontFamily}`);
+        }
+      }
+      return document.fonts.status === 'loaded' && [...specs].every((s) => document.fonts.check(s));
+    },
+    { timeout: 60000, polling: 500 }
+  );
+  await sleep(4000); // skeleton images + first paint settle
 }
 
 (async () => {

@@ -1,13 +1,13 @@
 {
-  "id": "template_pv_ocean",
+  "id": "template_pv_ocean_social",
   "name": "Ocean Social",
-  "description": "Fresh blue App Preview video layout for social and chat apps: white headlines over an ocean gradient with a chat recording and tap hint. Upload your screen recording to the phone and export the MP4.",
+  "description": "Playful App Preview layout for social and chat apps. Paint splats, heavy grotesque headlines and sky blues. Drop your screen recording into the phone and export the MP4.",
   "previewImage": "/data/projects/previews/pv-ocean-social.png",
-  "timestamp": "2026-07-12T00:00:00.000Z",
+  "timestamp": "2026-07-13T00:00:00.000Z",
   "projectData": [
     {
-      "id": "tpl_pv_ocean_0",
-      "name": "Hero",
+      "id": "tpl_pv_ocean_social_0",
+      "name": "Together",
       "position": {
         "x": 15,
         "y": 15
@@ -16,97 +16,180 @@
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#0E7490",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#0E7490",
-        "color2": "#2563EB",
-        "angle": 140
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b0_d24",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_29",
+          "type": "shape",
+          "name": "Splat Blue",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 596,
+            "y": -80
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 400,
+            "height": 400
           },
           "rotation": 0,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-chat-sky.png",
-          "objectFit": "cover",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b0_h25",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
+          "shapeType": "custom-svg",
+          "fillColor": "#1D9BF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.9,
+          "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
           },
-          "size": {
-            "width": 800,
-            "height": 260
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Closer to your people",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
+            "enter": "fade",
+            "enterDelay": 0.2,
             "enterDuration": 0.7
           }
         },
         {
-          "id": "b0_s26",
-          "type": "text",
-          "name": "Subline",
+          "id": "s_2a",
+          "type": "shape",
+          "name": "Splat Lavender",
           "position": {
-            "x": 83,
-            "y": 420
+            "x": -110,
+            "y": 1580
           },
           "size": {
-            "width": 720,
-            "height": 120
+            "width": 380,
+            "height": 380
           },
           "rotation": 0,
           "scale": 1,
-          "content": "Chats, calls and moments in one stream",
-          "fontSize": 11.4,
-          "color": "#CFF3FF",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
+          "shapeType": "custom-svg",
+          "fillColor": "#8AB4F8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.85,
+          "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
             "enter": "fade",
-            "enterDelay": 0.7,
-            "enterDuration": 0.6
+            "enterDelay": 0.35,
+            "enterDuration": 0.7
           }
         },
         {
-          "id": "b0_g27",
-          "type": "gesture",
-          "name": "Tap hint",
+          "id": "t_2b",
+          "type": "text",
+          "name": "Headline Ink",
           "position": {
-            "x": 490,
-            "y": 1120
+            "x": 60,
+            "y": 180
+          },
+          "size": {
+            "width": 560,
+            "height": 117
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your people,",
+          "fontSize": 24.6,
+          "color": "#08213A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_2c",
+          "type": "text",
+          "name": "Headline Sky",
+          "position": {
+            "x": 60,
+            "y": 297
+          },
+          "size": {
+            "width": 560,
+            "height": 117
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "one tap away",
+          "fontSize": 24.6,
+          "color": "#1D9BF0",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.3,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_2d",
+          "type": "text",
+          "name": "Subline",
+          "position": {
+            "x": 62,
+            "y": 454
+          },
+          "size": {
+            "width": 600,
+            "height": 49
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Group chats that actually stay fun",
+          "fontSize": 10.2,
+          "color": "#5B7290",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.65,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_26",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 600
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": -4,
+          "scale": 1.02,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-chat-sky.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#0B2942",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_2e",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 384,
+            "y": 1207
           },
           "size": {
             "width": 130,
@@ -115,127 +198,387 @@
           "rotation": 0,
           "scale": 1,
           "gestureType": "tap",
-          "color": "#7DE3FF",
-          "triggerTime": 1.6,
-          "gestureDuration": 1.2
+          "color": "#1D9BF0",
+          "triggerTime": 1.8,
+          "gestureDuration": 1.3
         }
-      ]
+      ],
+      "backgroundColor": "#E7F4FE",
+      "backgroundType": "solid"
     },
     {
-      "id": "tpl_pv_ocean_1",
-      "name": "Feature",
+      "id": "tpl_pv_ocean_social_1",
+      "name": "Share",
       "position": {
-        "x": 15,
+        "x": 296,
         "y": 15
       },
       "size": {
         "width": 886,
         "height": 1920
       },
-      "backgroundColor": "#2563EB",
-      "backgroundType": "gradient",
-      "backgroundGradient": {
-        "color1": "#2563EB",
-        "color2": "#7C3AED",
-        "angle": 160
-      },
       "zoom": 1,
       "elements": [
         {
-          "id": "b1_d28",
-          "type": "video-device",
-          "name": "Phone (drop your recording here)",
+          "id": "s_2f",
+          "type": "shape",
+          "name": "Heart",
           "position": {
-            "x": 183,
-            "y": 560
+            "x": 700,
+            "y": 300
           },
           "size": {
-            "width": 520,
-            "height": 1040
+            "width": 110,
+            "height": 110
           },
-          "rotation": 0,
+          "rotation": 12,
           "scale": 1,
-          "deviceType": "iphone-15-pro",
-          "posterSrc": "/data/projects/app-screens/app-feed-sky.png",
-          "objectFit": "cover",
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6584",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
           "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.05,
-            "enterDuration": 0.8
-          }
-        },
-        {
-          "id": "b1_h29",
-          "type": "text",
-          "name": "Headline",
-          "position": {
-            "x": 43,
-            "y": 170
-          },
-          "size": {
-            "width": 800,
-            "height": 260
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "A feed that gets you",
-          "fontSize": 24.6,
-          "color": "#FFFFFF",
-          "fontFamily": "Poppins",
-          "fontWeight": "bold",
-          "textAlign": "center",
-          "animation": {
-            "enter": "slide-up",
-            "enterDelay": 0.25,
-            "enterDuration": 0.7
-          }
-        },
-        {
-          "id": "b1_s30",
-          "type": "text",
-          "name": "Subline",
-          "position": {
-            "x": 83,
-            "y": 400
-          },
-          "size": {
-            "width": 720,
-            "height": 120
-          },
-          "rotation": 0,
-          "scale": 1,
-          "content": "Scroll what matters, mute what does not",
-          "fontSize": 11.4,
-          "color": "#DCE6FF",
-          "fontFamily": "Poppins",
-          "fontWeight": "normal",
-          "textAlign": "center",
-          "animation": {
-            "enter": "fade",
-            "enterDelay": 0.7,
+            "enter": "pop",
+            "enterDelay": 1.1,
             "enterDuration": 0.6
           }
         },
         {
-          "id": "b1_g31",
-          "type": "gesture",
-          "name": "Swipe hint",
+          "id": "s_2g",
+          "type": "shape",
+          "name": "Sparkle",
           "position": {
-            "x": 373,
-            "y": 880
+            "x": 70,
+            "y": 452
           },
           "size": {
-            "width": 140,
-            "height": 280
+            "width": 60,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#BFE3FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1.25,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_2h",
+          "type": "text",
+          "name": "Headline White",
+          "position": {
+            "x": 60,
+            "y": 180
+          },
+          "size": {
+            "width": 600,
+            "height": 117
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Share the",
+          "fontSize": 24.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.15,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_2i",
+          "type": "text",
+          "name": "Headline Pale",
+          "position": {
+            "x": 60,
+            "y": 297
+          },
+          "size": {
+            "width": 600,
+            "height": 117
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "moment, live",
+          "fontSize": 24.6,
+          "color": "#BFE3FF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.3,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_27",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 610
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 4,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-feed-sky.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#F2F2F4",
+          "animation": {
+            "enter": "scale-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "g_2j",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 378,
+            "y": 1185
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "gestureType": "double-tap",
+          "color": "#FF6584",
+          "triggerTime": 1.9,
+          "gestureDuration": 1.4
+        }
+      ],
+      "backgroundColor": "#0B3C74",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0B3C74",
+        "color2": "#1D9BF0",
+        "angle": 170
+      }
+    },
+    {
+      "id": "tpl_pv_ocean_social_2",
+      "name": "Community",
+      "position": {
+        "x": 577,
+        "y": 15
+      },
+      "size": {
+        "width": 886,
+        "height": 1920
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "s_2k",
+          "type": "shape",
+          "name": "Splat Green",
+          "position": {
+            "x": 640,
+            "y": 1560
+          },
+          "size": {
+            "width": 360,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3DD68C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.85,
+          "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "animation": {
+            "enter": "fade",
+            "enterDelay": 0.5,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "v_28",
+          "type": "video-device",
+          "name": "Phone (drop your recording here)",
+          "position": {
+            "x": 143,
+            "y": 140
+          },
+          "size": {
+            "width": 600,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15",
+          "posterSrc": "/data/projects/app-screens/app-grid-sky.png",
+          "naturalVideoWidth": 1692,
+          "naturalVideoHeight": 3420,
+          "objectFit": "cover",
+          "frameColor": "#0B2942",
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.05,
+            "enterDuration": 0.9
+          }
+        },
+        {
+          "id": "t_2l",
+          "type": "text",
+          "name": "Headline Ink",
+          "position": {
+            "x": 60,
+            "y": 1480
+          },
+          "size": {
+            "width": 766,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "2 million people",
+          "fontSize": 21,
+          "color": "#08213A",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.55,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "t_2m",
+          "type": "text",
+          "name": "Headline Sky",
+          "position": {
+            "x": 60,
+            "y": 1580
+          },
+          "size": {
+            "width": 766,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "already here",
+          "fontSize": 21,
+          "color": "#1D9BF0",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "animation": {
+            "enter": "slide-up",
+            "enterDelay": 0.68,
+            "enterDuration": 0.7
+          }
+        },
+        {
+          "id": "r_2n",
+          "type": "shape",
+          "name": "Pill Join free",
+          "position": {
+            "x": 313,
+            "y": 1720
+          },
+          "size": {
+            "width": 260,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D9BF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 35,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "t_2o",
+          "type": "text",
+          "name": "Pill Label Join free",
+          "position": {
+            "x": 313,
+            "y": 1733
+          },
+          "size": {
+            "width": 260,
+            "height": 45
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Join free",
+          "fontSize": 9,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "animation": {
+            "enter": "pop",
+            "enterDelay": 1,
+            "enterDuration": 0.6
+          }
+        },
+        {
+          "id": "g_2p",
+          "type": "gesture",
+          "name": "Gesture hint",
+          "position": {
+            "x": 313,
+            "y": 710
+          },
+          "size": {
+            "width": 260,
+            "height": 300
           },
           "rotation": 0,
           "scale": 1,
           "gestureType": "swipe-up",
-          "color": "#FFFFFF",
-          "triggerTime": 2.6,
-          "gestureDuration": 1.4
+          "color": "#1D9BF0",
+          "triggerTime": 1.8,
+          "gestureDuration": 1.5
         }
-      ]
+      ],
+      "backgroundColor": "#E7F4FE",
+      "backgroundType": "solid"
     }
   ]
 }
