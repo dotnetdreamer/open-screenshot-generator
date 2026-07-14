@@ -10,7 +10,9 @@
     "render:mobile": "remotion render PromoMobile out/artboard-studio-promo-mobile.mp4",
     "render:ai": "remotion render PromoAI out/artboard-studio-promo-ai.mp4",
     "render:ai-mobile": "remotion render PromoAIMobile out/artboard-studio-promo-ai-mobile.mp4",
+    "render:steps": "remotion render PromoSteps out/artboard-studio-promo-steps.mp4",
     "gen:music": "node scripts/gen-music.js",
+    "gen:music-steps": "node scripts/gen-music-steps.js",
     "still": "remotion still Promo"
   },
   "dependencies": {

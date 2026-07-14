@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 846px; height: 1710px; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(175deg, #E8F6FE 0%, #F5FBFF 42%, #FFFFFF 100%);
+    color: #14415E;
+    position: relative;
+  }
+  .status { display:flex; justify-content:space-between; align-items:center; padding: 26px 44px 0; font-size: 26px; font-weight: 600; color:#14415E; }
+  .status .icons { display:flex; gap:10px; align-items:center; }
+  .bar { width: 34px; height: 20px; border-radius: 5px; background:#14415E; }
+  .dotrow { display:flex; gap:4px; }
+  .dotrow span { width:6px; height:12px; border-radius:2px; background:#14415E; display:inline-block; }
+  .dotrow span:nth-child(2){height:16px}.dotrow span:nth-child(3){height:20px}.dotrow span:nth-child(4){height:24px; opacity:.35}
+
+  header { padding: 48px 44px 8px; display:flex; justify-content:space-between; align-items:flex-start; }
+  .hi { font-size: 30px; color:#6E92A8; font-weight:500; }
+  .name { font-size: 52px; font-weight: 800; letter-spacing: -1px; margin-top: 4px; }
+  .avatar { width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg,#2FB0E8,#7BD3F7); display:flex; align-items:center; justify-content:center; color:#fff; font-size:40px; font-weight:800; box-shadow: 0 10px 24px rgba(47,176,232,.35); }
+
+  .ringcard {
+    margin: 30px 44px 0; border-radius: 40px; padding: 44px;
+    background: linear-gradient(140deg, #2FB0E8 0%, #1D8FC9 60%, #14719F 100%);
+    color: #fff; display: flex; align-items: center; gap: 44px;
+    box-shadow: 0 24px 48px rgba(29,143,201,.35);
+    position: relative; overflow: hidden;
+  }
+  .ringcard::after { content:''; position:absolute; right:-90px; top:-90px; width:280px; height:280px; border-radius:50%; background:rgba(255,255,255,.12); }
+  .ringwrap { position: relative; width: 240px; height: 240px; flex: none; }
+  .ringwrap svg { transform: rotate(-90deg); }
+  .ringlabel { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .ringlabel b { font-size: 56px; font-weight: 800; }
+  .ringlabel i { font-style:normal; font-size: 22px; opacity:.85; }
+  .ringmeta h2 { font-size: 40px; font-weight: 800; margin-bottom: 10px; }
+  .ringmeta p { font-size: 26px; opacity:.9; line-height: 1.45; }
+  .pill { display:inline-block; margin-top: 22px; background:rgba(255,255,255,.2); border:1.5px solid rgba(255,255,255,.5); padding: 12px 28px; border-radius: 999px; font-size: 24px; font-weight: 700; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin: 30px 44px 0; }
+  .stat { background:#fff; border-radius: 34px; padding: 34px; box-shadow: 0 14px 34px rgba(20,65,94,.08); }
+  .stat .ic { width: 72px; height: 72px; border-radius: 22px; display:flex; align-items:center; justify-content:center; font-size: 34px; margin-bottom: 20px; }
+  .stat b { display:block; font-size: 44px; font-weight: 800; letter-spacing:-1px; }
+  .stat span { font-size: 24px; color:#6E92A8; font-weight:600; }
+  .up { color:#18B26B; font-size: 22px; font-weight: 700; margin-left: 8px; }
+
+  .sec { display:flex; justify-content:space-between; align-items:baseline; margin: 44px 44px 0; }
+  .sec h3 { font-size: 34px; font-weight: 800; }
+  .sec a { font-size: 24px; color:#2FB0E8; font-weight:700; text-decoration:none; }
+
+  .classes { display:flex; flex-direction:column; gap: 22px; margin: 24px 44px 0; }
+  .class { background:#fff; border-radius: 30px; padding: 26px 30px; display:flex; align-items:center; gap: 26px; box-shadow: 0 12px 30px rgba(20,65,94,.07); }
+  .thumb { width: 108px; height: 108px; border-radius: 24px; flex:none; display:flex; align-items:center; justify-content:center; font-size: 46px; }
+  .class .tx { flex: 1; }
+  .class .tx b { display:block; font-size: 30px; font-weight: 800; margin-bottom: 6px; }
+  .class .tx span { font-size: 23px; color:#6E92A8; font-weight: 600; }
+  .go { width: 66px; height: 66px; border-radius: 50%; background:#E3F3FC; color:#2FB0E8; display:flex; align-items:center; justify-content:center; font-size: 30px; font-weight: 800; }
+
+  nav { position:absolute; left: 44px; right: 44px; bottom: 40px; height: 128px; background:#14415E; border-radius: 44px; display:flex; align-items:center; justify-content:space-around; box-shadow: 0 24px 50px rgba(20,65,94,.4); }
+  nav .ni { width: 84px; height: 84px; border-radius: 28px; display:flex; align-items:center; justify-content:center; font-size: 38px; color:rgba(255,255,255,.55); }
+  nav .ni.on { background:#2FB0E8; color:#fff; box-shadow: 0 10px 22px rgba(47,176,232,.5); }
+</style>
+</head>
+<body>
+  <div class="status">
+    <span>9:41</span>
+    <div class="icons"><div class="dotrow"><span></span><span></span><span></span><span></span></div><div class="bar"></div></div>
+  </div>
+
+  <header>
+    <div>
+      <div class="hi">Good morning</div>
+      <div class="name">Maya 🧘</div>
+    </div>
+    <div class="avatar">M</div>
+  </header>
+
+  <div class="ringcard">
+    <div class="ringwrap">
+      <svg width="240" height="240" viewBox="0 0 240 240">
+        <circle cx="120" cy="120" r="100" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="24"/>
+        <circle cx="120" cy="120" r="100" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"
+                stroke-dasharray="628" stroke-dashoffset="163"/>
+      </svg>
+      <div class="ringlabel"><b>74%</b><i>daily goal</i></div>
+    </div>
+    <div class="ringmeta">
+      <h2>Keep flowing</h2>
+      <p>26 minutes left to close your movement ring today</p>
+      <span class="pill">Start session</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="stat"><div class="ic" style="background:#E9FBF1">🔥</div><b>486 <span class="up">▲ 12%</span></b><span>Calories burned</span></div>
+    <div class="stat"><div class="ic" style="background:#EAF6FF">👣</div><b>8,241</b><span>Steps today</span></div>
+    <div class="stat"><div class="ic" style="background:#FFF3E9">⏱️</div><b>42 min</b><span>Active time</span></div>
+    <div class="stat"><div class="ic" style="background:#F3EDFF">💧</div><b>1.6 L</b><span>Hydration</span></div>
+  </div>
+
+  <div class="sec"><h3>Today's classes</h3><a>See all</a></div>
+  <div class="classes">
+    <div class="class"><div class="thumb" style="background:#EAF6FF">🌅</div><div class="tx"><b>Sunrise Flow</b><span>20 min · Beginner · Live at 7:30</span></div><div class="go">›</div></div>
+    <div class="class"><div class="thumb" style="background:#E9FBF1">🧘</div><div class="tx"><b>Deep Stretch</b><span>15 min · All levels</span></div><div class="go">›</div></div>
+    <div class="class"><div class="thumb" style="background:#FFF3E9">💪</div><div class="tx"><b>Core Power</b><span>25 min · Intermediate</span></div><div class="go">›</div></div>
+  </div>
+
+  <nav>
+    <div class="ni on">⌂</div>
+    <div class="ni">▶</div>
+    <div class="ni">✚</div>
+    <div class="ni">♥</div>
+    <div class="ni">⚙</div>
+  </nav>
+</body>
+</html>

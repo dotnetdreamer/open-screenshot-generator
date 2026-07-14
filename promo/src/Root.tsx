@@ -9,6 +9,7 @@ import {
   TOTAL_DURATION,
 } from "./Promo";
 import { AI_DURATION, PromoAI, PromoAIMobile } from "./PromoAI";
+import { STEPS_DURATION, StepsPromo } from "./steps/StepsPromo";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -41,6 +42,14 @@ export const RemotionRoot: React.FC = () => {
         id="PromoAIMobile"
         component={PromoAIMobile}
         durationInFrames={AI_DURATION}
+        fps={30}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="PromoSteps"
+        component={StepsPromo}
+        durationInFrames={STEPS_DURATION}
         fps={30}
         width={1080}
         height={1920}

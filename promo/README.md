@@ -7,6 +7,7 @@ A product promo built with [Remotion](https://www.remotion.dev/), three.js and G
 - `PromoMobile` — a portrait 36-second cut for phones, Shorts and Reels (`out/artboard-studio-promo-mobile.mp4`), 1080x1920
 - `PromoAI` — a 10-second cut on the AI features (`out/artboard-studio-promo-ai.mp4`), 1920x1080: the AI agent dialog and the desktop MCP server, shown screen-recording style with an animated cursor and camera zooms onto the UI
 - `PromoAIMobile` — the same 10-second AI cut in portrait for phones, Shorts and Reels (`out/artboard-studio-promo-ai-mobile.mp4`), 1080x1920: deeper zooms since the wide dialog does not fit a phone frame, captions raised above the Shorts UI overlay
+- `PromoSteps` — a 30-second portrait cut (`out/artboard-studio-promo-steps.mp4`), 1080x1920, walking the three steps to store-ready screenshots: pick a template, drop in your screenshot, preview. Its own visual system under `src/steps/` (not shared with the other cuts): a GLSL aurora + drifting-motes three.js backdrop whose palette and energy pulse follow the step beats, deep camera dives with a touch-ripple pointer and a spotlight highlight over the real UI, and its own music bed (`music-steps.m4a`)
 
 All are 30 fps with an original synthesized music bed.
 
@@ -21,7 +22,9 @@ npm run render:fast    # render the fast cut
 npm run render:mobile  # render the portrait cut
 npm run render:ai      # render the 10-second AI cut
 npm run render:ai-mobile  # render the portrait 10-second AI cut
+npm run render:steps   # render the 30-second portrait 3-steps cut
 npm run gen:music      # regenerate public/music.wav (then convert to music.m4a with ffmpeg)
+npm run gen:music-steps  # regenerate public/music-steps.wav (then convert to music-steps.m4a with ffmpeg)
 ```
 
 ## How it is put together
@@ -40,3 +43,10 @@ npm run gen:music      # regenerate public/music.wav (then convert to music.m4a 
 - On-screen copy avoids em/en dashes and does not end sentences with periods.
 - `npx remotion still` is flaky with the WebGL scenes (occasional empty canvas or seek timeout); video renders are reliable. Verify with short segment renders (`--frames=a-b`) instead of stills.
 - To refresh the editor screenshots after UI changes, re-run the capture flow from the app-screenshots skill and replace the files in `public/shots/`.
+
+## The 3-steps cut (`src/steps/`)
+
+- Screenshots come from `scripts/capture-steps.js` (dev server on :9002 required): it drives the real app through the flow (start dialog with the Zenfit Yoga template first, open it, select the straight phone on Find Class, upload `public/steps/upload-screen.png` rendered from `scripts/fitness-screen.html`, open Preview) and writes `public/steps/01..05` at DPR2 plus `rects.json` with the UI bounding boxes. If you recapture, mirror the fresh `rects.json` numbers into `RECTS` in `src/steps/style.ts` — camera keyframes, taps and highlights all derive from them.
+- `Cam.tsx` focuses scene points at a zoom with a handheld micro sway; `Tap.tsx` is the touch-ripple pointer; `Focus.tsx` dims everything but a target rect (plain divs on purpose — SVG mask/filter overlays rendered unreliably here).
+- `Aurora.tsx` is the three.js backdrop: a domain-warped fbm silk shader on a fullscreen quad plus additive drifting motes; palette acts and an energy pulse are keyed to the step beats in `style.ts` (`BEATS`/`ACTS`), which line up with the risers in `scripts/gen-music-steps.js` (104 BPM, D minor, risers at 2.5s/11s/20.5s).
+- Music: `npm run gen:music-steps`, then `ffmpeg -i public/music-steps.wav -c:a aac -b:a 192k public/music-steps.m4a`.
