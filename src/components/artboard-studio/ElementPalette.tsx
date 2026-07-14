@@ -25,6 +25,7 @@ import {
   PointerIcon,
   MoveHorizontalIcon,
   MoveVerticalIcon,
+  LaptopIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType, Device3DPose } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
@@ -77,6 +78,27 @@ const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> 
   soaring: { width: 760, height: 950 },
   isometric: { width: 900, height: 480 },
 };
+// Macs offer a curated pose subset: the tossed-phone poses (floating,
+// drifting, leaning, soaring) and the phone-flat isometric projection read
+// wrong for a laptop or an all-in-one.
+const MACBOOK_POSE_ORDER: Device3DPose[] = ['front', 'upright', 'side', 'tilted', 'reclined'];
+const IMAC_POSE_ORDER: Device3DPose[] = ['front', 'upright', 'side'];
+
+// Like the watch, Mac bodies keep native proportions inside the box, so these
+// track each pose's projected silhouette.
+const MACBOOK_3D_SIZES: Partial<Record<Device3DPose, { width: number; height: number }>> = {
+  front: { width: 1100, height: 800 },
+  upright: { width: 1150, height: 800 },
+  side: { width: 1150, height: 830 },
+  tilted: { width: 1200, height: 880 },
+  reclined: { width: 1200, height: 960 },
+};
+const IMAC_3D_SIZES: Partial<Record<Device3DPose, { width: number; height: number }>> = {
+  front: { width: 1000, height: 780 },
+  upright: { width: 1050, height: 800 },
+  side: { width: 1100, height: 820 },
+};
+
 // The watch body keeps native proportions inside the box (the band dominates
 // the height), so these track each pose's projected case+band extent.
 const WATCH_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
@@ -185,12 +207,13 @@ const ColoredDeviceGlyph: React.FC<{ def: ColoredDeviceTileDef }> = ({ def }) =>
 
 // ---- Device library categories (overview grid -> drill-in, like the Element Library) ----
 
-type DeviceCategoryId = '3d-iphone' | '3d-android' | '3d-watch' | 'colored-iphone' | 'colored-android' | 'mockups';
+type DeviceCategoryId = '3d-iphone' | '3d-android' | '3d-watch' | '3d-mac' | 'colored-iphone' | 'colored-android' | 'mockups';
 
 const DEVICE_CATEGORY_LABELS: Record<DeviceCategoryId, string> = {
   '3d-iphone': '3D iPhone 17 Pro Max',
   '3d-android': '3D Android',
   '3d-watch': '3D Apple Watch',
+  '3d-mac': '3D Mac',
   'colored-iphone': 'Colored iPhone',
   'colored-android': 'Colored Android',
   'mockups': 'Device Mockups',
@@ -200,6 +223,7 @@ const DEVICE_CATEGORY_LABELS: Record<DeviceCategoryId, string> = {
 const IPHONE_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white', 'upright-right-white'];
 const ANDROID_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white', 'upright-right-white'];
 const WATCH_3D_PREVIEWS = ['front-right-black', 'front-left-white', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white'];
+const MAC_3D_PREVIEWS = ['macbook-front-right-black', 'imac-front-right-black', 'macbook-upright-right-white', 'imac-side-left-white', 'macbook-side-right-black', 'macbook-tilted-right-black'];
 
 /** Category card for the device library overview (mini previews + label). */
 const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void }> = ({ label, previews, onOpen }) => (
@@ -734,6 +758,50 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                         ))
                       )
                     )}
+                  {openDeviceCategoryId === '3d-mac' && (
+                    <>
+                      {COLORS_3D.map((color) =>
+                        MACBOOK_POSE_ORDER.map((pose) =>
+                          SIDES_3D.map((side) => (
+                            <Device3DThumbTile
+                              key={`mb-${color}-${pose}-${side}`}
+                              src={`/elements/device-3d/macbook-${pose}-${side}-${color}.png`}
+                              label={color === 'black' ? 'MacBook Black' : 'MacBook Silver'}
+                              title={`Add MacBook 3D — ${pose} ${side} (${color})`}
+                              deviceType="macbook"
+                              styleProps={{
+                                styleType: side === 'left' ? '3d-left' : '3d-right',
+                                pose3d: pose,
+                                frameColor3d: color,
+                                defaultSize: MACBOOK_3D_SIZES[pose],
+                              }}
+                              onDragStart={handleDragStart}
+                            />
+                          ))
+                        )
+                      )}
+                      {COLORS_3D.map((color) =>
+                        IMAC_POSE_ORDER.map((pose) =>
+                          SIDES_3D.map((side) => (
+                            <Device3DThumbTile
+                              key={`im-${color}-${pose}-${side}`}
+                              src={`/elements/device-3d/imac-${pose}-${side}-${color}.png`}
+                              label={color === 'black' ? 'iMac Black' : 'iMac Silver'}
+                              title={`Add iMac 3D — ${pose} ${side} (${color})`}
+                              deviceType="imac"
+                              styleProps={{
+                                styleType: side === 'left' ? '3d-left' : '3d-right',
+                                pose3d: pose,
+                                frameColor3d: color,
+                                defaultSize: IMAC_3D_SIZES[pose],
+                              }}
+                              onDragStart={handleDragStart}
+                            />
+                          ))
+                        )
+                      )}
+                    </>
+                  )}
                   {openDeviceCategoryId === 'colored-iphone' &&
                     COLORED_IPHONE_TILES.map((def, i) => (
                       <ColoredDeviceTile key={`cip-${i}`} def={def} onDragStart={handleDragStart} />
@@ -759,6 +827,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px' }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-7" label="7-inch Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 600, height: 960 } }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-10" label="10-inch Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 700, height: 1120 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="macbook" label="MacBook" icon={<LaptopIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 1000, height: 579 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="imac" label="iMac" icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 900, height: 668 } }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="desktop" label="Desktop" icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '8px' }} />
                       <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
                     </>
@@ -790,6 +860,13 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     onOpen={() => setOpenDeviceCategoryId('3d-watch')}
                     previews={WATCH_3D_PREVIEWS.map((k) => (
                       <img key={k} src={withBasePath(`/elements/device-3d/watch-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                    ))}
+                  />
+                  <DeviceCategoryCard
+                    label={DEVICE_CATEGORY_LABELS['3d-mac']}
+                    onOpen={() => setOpenDeviceCategoryId('3d-mac')}
+                    previews={MAC_3D_PREVIEWS.map((k) => (
+                      <img key={k} src={withBasePath(`/elements/device-3d/${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard

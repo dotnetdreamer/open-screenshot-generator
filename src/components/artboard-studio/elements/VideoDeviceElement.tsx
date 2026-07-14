@@ -8,7 +8,7 @@ import type { VideoDeviceElementProps as VideoDeviceElementType } from '@/types/
 import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
-import { getFlatDeviceChrome, getFlatFrameStyles } from './deviceChrome';
+import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 import { VIDEO_ACCEPT } from './VideoElement';
 
 interface VideoDeviceElementComponentProps {
@@ -40,7 +40,10 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
     notchColor: element.notchColor,
     scale: element.scale,
   });
-  const isTranslucent = (element.frameOpacity ?? 1) < 1 || element.frameStyle === 'outline';
+  // Chassis devices ignore the outline preset (see deviceChrome), so it must
+  // not suppress the drop shadow either.
+  const isTranslucent =
+    (element.frameOpacity ?? 1) < 1 || (!chrome.chassis && element.frameStyle === 'outline');
 
   const handleRecordingUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -90,6 +93,8 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
         }}
       >
         <div style={frame} data-device-frame={element.id}>
+          {/* MacBook/iMac body shells sit behind the screen area */}
+          {renderChassis(chrome, element.frameOpacity)}
           <div style={screen} data-device-screen={element.id}>
             {/* Cutout sits above the screen content, exactly as on a real phone */}
             {chrome.notch}

@@ -1,0 +1,948 @@
+{
+ "id": "mac-pulseform-template",
+ "name": "Pulseform Training",
+ "description": "Mac App Store screenshots for a fitness app: deep blue gradient with soft organic blobs, bold white headlines, a five-star review board, and black 3D MacBooks running dark lime training screens.",
+ "previewImage": "/data/projects/previews/mac-pulseform.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Strength",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "pf1-b1",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": -220,
+      "y": 840
+     },
+     "size": {
+      "width": 940,
+      "height": 940
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.3
+    },
+    {
+     "id": "pf1-b2",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 1980,
+      "y": -220
+     },
+     "size": {
+      "width": 760,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M91.35 65.05 C88.6 72.95 74.73 77.93 65.21 82.63 C55.7 87.32 43.15 95.71 34.27 93.23 C25.39 90.75 15.26 77.12 11.94 67.75 C8.61 58.38 11.26 47.06 14.29 37 C17.33 26.95 21.91 11.5 30.14 7.4 C38.37 3.31 55.08 7.78 63.68 12.41 C72.28 17.05 77.11 26.44 81.72 35.21 C86.33 43.98 94.1 57.15 91.35 65.05 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.24
+    },
+    {
+     "id": "pf1-b3",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 2190,
+      "y": 1160
+     },
+     "size": {
+      "width": 430,
+      "height": 430
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#1B3E8F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.4
+    },
+    {
+     "id": "pf1-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 330,
+      "y": 88
+     },
+     "size": {
+      "width": 1900,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Build real strength",
+     "fontSize": 34,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf1-s",
+     "type": "text",
+     "name": "Subheadline",
+     "position": {
+      "x": 530,
+      "y": 250
+     },
+     "size": {
+      "width": 1500,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Smarter workouts, better results",
+     "fontSize": 14,
+     "color": "#D9E4FA",
+     "fontFamily": "Merriweather Sans",
+     "fontWeight": "400",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf1-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 500,
+      "y": 372
+     },
+     "size": {
+      "width": 1560,
+      "height": 1134
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-lime.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#2E5BC0",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2E5BC0",
+    "color2": "#23479C",
+    "angle": 200
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Plans",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "pf2-b1",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": -220,
+      "y": 840
+     },
+     "size": {
+      "width": 940,
+      "height": 940
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.3
+    },
+    {
+     "id": "pf2-b2",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 1980,
+      "y": -220
+     },
+     "size": {
+      "width": 760,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M91.35 65.05 C88.6 72.95 74.73 77.93 65.21 82.63 C55.7 87.32 43.15 95.71 34.27 93.23 C25.39 90.75 15.26 77.12 11.94 67.75 C8.61 58.38 11.26 47.06 14.29 37 C17.33 26.95 21.91 11.5 30.14 7.4 C38.37 3.31 55.08 7.78 63.68 12.41 C72.28 17.05 77.11 26.44 81.72 35.21 C86.33 43.98 94.1 57.15 91.35 65.05 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.24
+    },
+    {
+     "id": "pf2-b3",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 2190,
+      "y": 1160
+     },
+     "size": {
+      "width": 430,
+      "height": 430
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#1B3E8F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.4
+    },
+    {
+     "id": "pf2-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 330,
+      "y": 88
+     },
+     "size": {
+      "width": 1900,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Training plans that adapt",
+     "fontSize": 34,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf2-s",
+     "type": "text",
+     "name": "Subheadline",
+     "position": {
+      "x": 530,
+      "y": 250
+     },
+     "size": {
+      "width": 1500,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Progress you can see week after week",
+     "fontSize": 14,
+     "color": "#D9E4FA",
+     "fontFamily": "Merriweather Sans",
+     "fontWeight": "400",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf2-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 500,
+      "y": 372
+     },
+     "size": {
+      "width": 1560,
+      "height": 1134
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-kanban-lime.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#2E5BC0",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2E5BC0",
+    "color2": "#23479C",
+    "angle": 200
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Energy",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "pf3-b1",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": -220,
+      "y": 840
+     },
+     "size": {
+      "width": 940,
+      "height": 940
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.3
+    },
+    {
+     "id": "pf3-b2",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 1980,
+      "y": -220
+     },
+     "size": {
+      "width": 760,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M91.35 65.05 C88.6 72.95 74.73 77.93 65.21 82.63 C55.7 87.32 43.15 95.71 34.27 93.23 C25.39 90.75 15.26 77.12 11.94 67.75 C8.61 58.38 11.26 47.06 14.29 37 C17.33 26.95 21.91 11.5 30.14 7.4 C38.37 3.31 55.08 7.78 63.68 12.41 C72.28 17.05 77.11 26.44 81.72 35.21 C86.33 43.98 94.1 57.15 91.35 65.05 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.24
+    },
+    {
+     "id": "pf3-b3",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 2190,
+      "y": 1160
+     },
+     "size": {
+      "width": 430,
+      "height": 430
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#1B3E8F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.4
+    },
+    {
+     "id": "pf3-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 330,
+      "y": 88
+     },
+     "size": {
+      "width": 1900,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Stay active every day",
+     "fontSize": 34,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf3-s",
+     "type": "text",
+     "name": "Subheadline",
+     "position": {
+      "x": 530,
+      "y": 250
+     },
+     "size": {
+      "width": 1500,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Healthy habits that stick",
+     "fontSize": 14,
+     "color": "#D9E4FA",
+     "fontFamily": "Merriweather Sans",
+     "fontWeight": "400",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf3-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 500,
+      "y": 372
+     },
+     "size": {
+      "width": 1560,
+      "height": 1134
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-music-lime.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#2E5BC0",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2E5BC0",
+    "color2": "#23479C",
+    "angle": 200
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Loved",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "pf4-b1",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": -220,
+      "y": 840
+     },
+     "size": {
+      "width": 940,
+      "height": 940
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.3
+    },
+    {
+     "id": "pf4-b2",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 1980,
+      "y": -220
+     },
+     "size": {
+      "width": 760,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M91.35 65.05 C88.6 72.95 74.73 77.93 65.21 82.63 C55.7 87.32 43.15 95.71 34.27 93.23 C25.39 90.75 15.26 77.12 11.94 67.75 C8.61 58.38 11.26 47.06 14.29 37 C17.33 26.95 21.91 11.5 30.14 7.4 C38.37 3.31 55.08 7.78 63.68 12.41 C72.28 17.05 77.11 26.44 81.72 35.21 C86.33 43.98 94.1 57.15 91.35 65.05 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.24
+    },
+    {
+     "id": "pf4-b3",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 2190,
+      "y": 1160
+     },
+     "size": {
+      "width": 430,
+      "height": 430
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#1B3E8F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.4
+    },
+    {
+     "id": "pf4-k",
+     "type": "text",
+     "name": "Kicker",
+     "position": {
+      "x": 530,
+      "y": 300
+     },
+     "size": {
+      "width": 1500,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "#1 rated training app today",
+     "fontSize": 15,
+     "color": "#EAF0FC",
+     "fontFamily": "Oswald",
+     "fontWeight": "500",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf4-s1",
+     "type": "shape",
+     "name": "Star",
+     "position": {
+      "x": 982.0,
+      "y": 424
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "star",
+     "customPoints": 5,
+     "fillColor": "#FFD24A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "pf4-s2",
+     "type": "shape",
+     "name": "Star",
+     "position": {
+      "x": 1108.0,
+      "y": 424
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "star",
+     "customPoints": 5,
+     "fillColor": "#FFD24A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "pf4-s3",
+     "type": "shape",
+     "name": "Star",
+     "position": {
+      "x": 1234.0,
+      "y": 424
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "star",
+     "customPoints": 5,
+     "fillColor": "#FFD24A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "pf4-s4",
+     "type": "shape",
+     "name": "Star",
+     "position": {
+      "x": 1360.0,
+      "y": 424
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "star",
+     "customPoints": 5,
+     "fillColor": "#FFD24A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "pf4-s5",
+     "type": "shape",
+     "name": "Star",
+     "position": {
+      "x": 1486.0,
+      "y": 424
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "star",
+     "customPoints": 5,
+     "fillColor": "#FFD24A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "pf4-q",
+     "type": "text",
+     "name": "Quote",
+     "position": {
+      "x": 480,
+      "y": 620
+     },
+     "size": {
+      "width": 1600,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "“With Pulseform, training becomes a lifestyle of strength and confidence.”",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Merriweather Sans",
+     "fontWeight": "600",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf4-a",
+     "type": "text",
+     "name": "Source",
+     "position": {
+      "x": 880,
+      "y": 1030
+     },
+     "size": {
+      "width": 800,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Fitness Weekly",
+     "fontSize": 13,
+     "color": "#C7D6F5",
+     "fontFamily": "Merriweather Sans",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "fontStyle": "italic"
+    },
+    {
+     "id": "pf4-brand",
+     "type": "text",
+     "name": "Brand",
+     "position": {
+      "x": 1740,
+      "y": 1380
+     },
+     "size": {
+      "width": 700,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Pulseform",
+     "fontSize": 22,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "700",
+     "textAlign": "right"
+    }
+   ],
+   "backgroundColor": "#2E5BC0",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2E5BC0",
+    "color2": "#23479C",
+    "angle": 200
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Goals",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "pf5-b1",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": -220,
+      "y": 840
+     },
+     "size": {
+      "width": 940,
+      "height": 940
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.3
+    },
+    {
+     "id": "pf5-b2",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 1980,
+      "y": -220
+     },
+     "size": {
+      "width": 760,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#5C86DE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M91.35 65.05 C88.6 72.95 74.73 77.93 65.21 82.63 C55.7 87.32 43.15 95.71 34.27 93.23 C25.39 90.75 15.26 77.12 11.94 67.75 C8.61 58.38 11.26 47.06 14.29 37 C17.33 26.95 21.91 11.5 30.14 7.4 C38.37 3.31 55.08 7.78 63.68 12.41 C72.28 17.05 77.11 26.44 81.72 35.21 C86.33 43.98 94.1 57.15 91.35 65.05 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.24
+    },
+    {
+     "id": "pf5-b3",
+     "type": "shape",
+     "name": "Blob",
+     "position": {
+      "x": 2190,
+      "y": 1160
+     },
+     "size": {
+      "width": 430,
+      "height": 430
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#1B3E8F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "customPath": "M50 4 C59.07 4.12 69.04 15.46 76.87 23.13 C84.7 30.8 96.76 40.81 97 50 C97.24 59.19 86.12 70.78 78.28 78.28 C70.45 85.78 58.96 95.47 50 95 C41.04 94.53 31.88 82.96 24.54 75.46 C17.21 67.96 6.35 58.84 6 50 C5.65 41.16 15.09 30.09 22.42 22.42 C29.76 14.76 40.93 3.88 50 4 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillOpacity": 0.4
+    },
+    {
+     "id": "pf5-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 330,
+      "y": 88
+     },
+     "size": {
+      "width": 1900,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Reach your fitness goals",
+     "fontSize": 34,
+     "color": "#FFFFFF",
+     "fontFamily": "Oswald",
+     "fontWeight": "600",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf5-s",
+     "type": "text",
+     "name": "Subheadline",
+     "position": {
+      "x": 530,
+      "y": 250
+     },
+     "size": {
+      "width": 1500,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Build strength and endurance over time",
+     "fontSize": 14,
+     "color": "#D9E4FA",
+     "fontFamily": "Merriweather Sans",
+     "fontWeight": "400",
+     "textAlign": "center"
+    },
+    {
+     "id": "pf5-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 500,
+      "y": 372
+     },
+     "size": {
+      "width": 1560,
+      "height": 1134
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-lime.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#2E5BC0",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#2E5BC0",
+    "color2": "#23479C",
+    "angle": 200
+   },
+   "zoom": 1
+  }
+ ]
+}

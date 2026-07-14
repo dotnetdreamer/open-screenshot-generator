@@ -80,6 +80,16 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
     ],
   },
   {
+    key: 'appstore-mac',
+    label: 'App Store Mac',
+    presets: [
+      { id: 'mac-2560', label: 'Mac (2560×1600)', width: 2560, height: 1600, aspectLabel: '16:10', note: 'Recommended Mac App Store screenshot size. All Mac screenshots must be 16:10.', required: true },
+      { id: 'mac-2880', label: 'Mac Retina (2880×1800)', width: 2880, height: 1800, aspectLabel: '16:10', note: 'Highest accepted Mac tier (MacBook Pro Retina native).' },
+      { id: 'mac-1440', label: 'Mac (1440×900)', width: 1440, height: 900, aspectLabel: '16:10', note: 'Accepted lower-resolution Mac tier.' },
+      { id: 'mac-1280', label: 'Mac (1280×800)', width: 1280, height: 800, aspectLabel: '16:10', note: 'Smallest accepted Mac tier.' },
+    ],
+  },
+  {
     key: 'play-phone',
     label: 'Google Play Phone',
     presets: [

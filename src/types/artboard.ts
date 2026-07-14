@@ -116,6 +116,8 @@ export type DeviceType =
   | 'tablet-7'
   | 'tablet-10'
   | 'desktop'
+  | 'macbook'
+  | 'imac'
   | 'custom';
 
 export type DeviceStyleType =

@@ -1,0 +1,1014 @@
+{
+ "id": "mac-flowdesk-template",
+ "name": "Flowdesk Focus",
+ "description": "Mac App Store screenshots on a warm golden gradient: bold charcoal headlines, playful confetti chips, and a black 3D MacBook running light productivity screens. Swap each screen to your own app UI.",
+ "previewImage": "/data/projects/previews/mac-flowdesk.png",
+ "timestamp": "2026-07-14T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "artboard-1",
+   "name": "Plan",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "fd1-c1",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 330,
+      "y": 430
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": -18,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 18,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.85
+    },
+    {
+     "id": "fd1-c2",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2150,
+      "y": 380
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 22,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2B2417",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 14,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.9
+    },
+    {
+     "id": "fd1-c3",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2240,
+      "y": 620
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFEDB8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 22,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd1-c4",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 230,
+      "y": 720
+     },
+     "size": {
+      "width": 130,
+      "height": 58
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFF7DF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 26,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd1-c5",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2070,
+      "y": 1190
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 28,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 16,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.7
+    },
+    {
+     "id": "fd1-c6",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 390,
+      "y": 1230
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8940A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd1-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 230,
+      "y": 96
+     },
+     "size": {
+      "width": 2100,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Plan your day in minutes",
+     "fontSize": 30,
+     "color": "#2B2417",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center"
+    },
+    {
+     "id": "fd1-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 480,
+      "y": 330
+     },
+     "size": {
+      "width": 1600,
+      "height": 1164
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-kanban-amber.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#F9D054",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F9D054",
+    "color2": "#EFB728",
+    "angle": 165
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-2",
+   "name": "Progress",
+   "position": {
+    "x": 2615,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "fd2-c1",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 330,
+      "y": 430
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": -18,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 18,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.85
+    },
+    {
+     "id": "fd2-c2",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2150,
+      "y": 380
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 22,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2B2417",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 14,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.9
+    },
+    {
+     "id": "fd2-c3",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2240,
+      "y": 620
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFEDB8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 22,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd2-c4",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 230,
+      "y": 720
+     },
+     "size": {
+      "width": 130,
+      "height": 58
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFF7DF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 26,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd2-c5",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2070,
+      "y": 1190
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 28,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 16,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.7
+    },
+    {
+     "id": "fd2-c6",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 390,
+      "y": 1230
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8940A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd2-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 230,
+      "y": 96
+     },
+     "size": {
+      "width": 2100,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "See progress at a glance",
+     "fontSize": 30,
+     "color": "#2B2417",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center"
+    },
+    {
+     "id": "fd2-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 480,
+      "y": 330
+     },
+     "size": {
+      "width": 1600,
+      "height": 1164
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-dashboard-amber.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#F9D054",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F9D054",
+    "color2": "#EFB728",
+    "angle": 165
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-3",
+   "name": "Notes",
+   "position": {
+    "x": 5215,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "fd3-c1",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 330,
+      "y": 430
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": -18,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 18,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.85
+    },
+    {
+     "id": "fd3-c2",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2150,
+      "y": 380
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 22,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2B2417",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 14,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.9
+    },
+    {
+     "id": "fd3-c3",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2240,
+      "y": 620
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFEDB8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 22,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd3-c4",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 230,
+      "y": 720
+     },
+     "size": {
+      "width": 130,
+      "height": 58
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFF7DF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 26,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd3-c5",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2070,
+      "y": 1190
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 28,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 16,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.7
+    },
+    {
+     "id": "fd3-c6",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 390,
+      "y": 1230
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8940A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd3-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 230,
+      "y": 96
+     },
+     "size": {
+      "width": 2100,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Notes that organize themselves",
+     "fontSize": 30,
+     "color": "#2B2417",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center"
+    },
+    {
+     "id": "fd3-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 480,
+      "y": 330
+     },
+     "size": {
+      "width": 1600,
+      "height": 1164
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-editor-amber.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#F9D054",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F9D054",
+    "color2": "#EFB728",
+    "angle": 165
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-4",
+   "name": "Inbox",
+   "position": {
+    "x": 7815,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "fd4-c1",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 330,
+      "y": 430
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": -18,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 18,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.85
+    },
+    {
+     "id": "fd4-c2",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2150,
+      "y": 380
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 22,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2B2417",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 14,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.9
+    },
+    {
+     "id": "fd4-c3",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2240,
+      "y": 620
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFEDB8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 22,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd4-c4",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 230,
+      "y": 720
+     },
+     "size": {
+      "width": 130,
+      "height": 58
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFF7DF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 26,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd4-c5",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2070,
+      "y": 1190
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 28,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 16,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.7
+    },
+    {
+     "id": "fd4-c6",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 390,
+      "y": 1230
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8940A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd4-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 230,
+      "y": 96
+     },
+     "size": {
+      "width": 2100,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Reach inbox zero every day",
+     "fontSize": 30,
+     "color": "#2B2417",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center"
+    },
+    {
+     "id": "fd4-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 480,
+      "y": 330
+     },
+     "size": {
+      "width": 1600,
+      "height": 1164
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-left",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-mail-amber.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#F9D054",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F9D054",
+    "color2": "#EFB728",
+    "angle": 165
+   },
+   "zoom": 1
+  },
+  {
+   "id": "artboard-5",
+   "name": "Team",
+   "position": {
+    "x": 10415,
+    "y": 15
+   },
+   "size": {
+    "width": 2560,
+    "height": 1600
+   },
+   "elements": [
+    {
+     "id": "fd5-c1",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 330,
+      "y": 430
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": -18,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 18,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.85
+    },
+    {
+     "id": "fd5-c2",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2150,
+      "y": 380
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 22,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2B2417",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 14,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.9
+    },
+    {
+     "id": "fd5-c3",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2240,
+      "y": 620
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFEDB8",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 22,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd5-c4",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 230,
+      "y": 720
+     },
+     "size": {
+      "width": 130,
+      "height": 58
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFF7DF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 26,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd5-c5",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 2070,
+      "y": 1190
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 28,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 16,
+     "borderRadiusType": "uniform",
+     "fillOpacity": 0.7
+    },
+    {
+     "id": "fd5-c6",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 390,
+      "y": 1230
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8940A",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 12,
+     "borderRadiusType": "uniform"
+    },
+    {
+     "id": "fd5-h",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 230,
+      "y": 96
+     },
+     "size": {
+      "width": 2100,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Keep your team in sync",
+     "fontSize": 30,
+     "color": "#2B2417",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center"
+    },
+    {
+     "id": "fd5-mac",
+     "type": "device",
+     "name": "MacBook",
+     "position": {
+      "x": 480,
+      "y": 330
+     },
+     "size": {
+      "width": 1600,
+      "height": 1164
+     },
+     "rotation": 0,
+     "scale": 1,
+     "deviceType": "macbook",
+     "styleType": "3d-right",
+     "pose3d": "front",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/mac-screens/mac-chat-amber.png",
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     },
+     "naturalScreenshotWidth": 2560,
+     "naturalScreenshotHeight": 1600
+    }
+   ],
+   "backgroundColor": "#F9D054",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F9D054",
+    "color2": "#EFB728",
+    "angle": 165
+   },
+   "zoom": 1
+  }
+ ]
+}

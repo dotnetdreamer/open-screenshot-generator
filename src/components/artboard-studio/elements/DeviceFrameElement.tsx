@@ -9,7 +9,7 @@ import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import { Device3DRenderer } from './Device3DRenderer';
-import { getFlatDeviceChrome, getFlatFrameStyles } from './deviceChrome';
+import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -272,9 +272,14 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   const usingSvgPerspectiveMode = element.styleType && element.styleType !== 'normal' && !is3DMode;
 
   // Colored-device presets: recolor / fade / hollow out the flat frame.
+  // MacBook/iMac bodies are drawn by chrome.chassis nodes; the frame div stays
+  // invisible so it doesn't paint a slab behind the lid/base silhouette, and
+  // the outline preset is ignored there (no chassis equivalent — see
+  // deviceChrome.getFlatFrameStyles for the rationale).
+  const hasChassis = !!chrome.chassis;
   const frameFill = element.frameColor ?? deviceFrameBgColor;
   const frameAlpha = element.frameOpacity ?? 1;
-  const isOutlineFrame = element.frameStyle === 'outline';
+  const isOutlineFrame = !hasChassis && element.frameStyle === 'outline';
   const frameFillCss = frameAlpha >= 1
     ? frameFill
     : `color-mix(in srgb, ${frameFill} ${Math.round(frameAlpha * 100)}%, transparent)`;
@@ -302,14 +307,14 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     width: '100%',
     height: '100%',
     // A drop shadow behind a see-through or hollow frame reads as a dark slab
-    boxShadow: isOutlineFrame || frameAlpha < 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
+    boxShadow: hasChassis || isOutlineFrame || frameAlpha < 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    borderRadius: deviceFrameOuterBorderRadius,
-    backgroundColor: isOutlineFrame ? 'transparent' : frameFillCss,
-    border: isOutlineFrame ? `${Math.max(2, effectiveWidth * 0.014)}px solid ${frameFillCss}` : undefined,
+    borderRadius: hasChassis ? 0 : deviceFrameOuterBorderRadius,
+    backgroundColor: hasChassis || isOutlineFrame ? 'transparent' : frameFillCss,
+    border: !hasChassis && isOutlineFrame ? `${Math.max(2, effectiveWidth * 0.014)}px solid ${frameFillCss}` : undefined,
     boxSizing: 'border-box',
     ['--frame-bg' as any]: frameFill,
     ...(element.notchColor ? { ['--notch-bg' as any]: element.notchColor } : {}),
@@ -405,6 +410,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
       >
         {/* Use the same DOM structure for both modes */}
         <div style={frameStyle} data-device-frame={element.id}>
+          {/* MacBook/iMac body shells sit behind the screen area */}
+          {renderChassis(chrome, element.frameOpacity)}
           <div style={screenStyle} data-device-screen={element.id}> {/* Using the unified screen style */}
             {/* All notches/islands/cutouts are anchored inside the screen so they
                 stay glued to its top edge at any size or aspect ratio */}

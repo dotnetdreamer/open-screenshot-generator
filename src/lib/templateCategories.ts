@@ -106,14 +106,29 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
-      'watch-breathora.json',
-      'watch-vowly.json',
       'watch-smart-appscreens.json',
       'watch-editors-choice.json',
       'watch-dark-aso.json',
       'watch-ultra-showcase.json',
       'watch-lavender.json',
       'watch-sunset.json',
+    ],
+  },
+  {
+    id: 'mac',
+    label: 'Mac',
+    blurb: 'Mac App Store screenshot layouts with 3D MacBook mockups.',
+    // Mac App Store screenshots must be 16:10 — 2560×1600 is the standard
+    // high-resolution tier (1280×800, 1440×900 and 2880×1800 also accepted).
+    defaultSize: { width: 2560, height: 1600 },
+    // Mac boards are wide 16:10 frames, so a template's card shows a strip of
+    // a few boards (contained, never cropped), like the other screenshot tabs.
+    previewAspect: '3 / 1',
+    previewFit: 'contain',
+    gridClassName: 'grid-cols-1 lg:grid-cols-2',
+    files: [
+      'mac-flowdesk.json',
+      'mac-pulseform.json',
     ],
   },
   {

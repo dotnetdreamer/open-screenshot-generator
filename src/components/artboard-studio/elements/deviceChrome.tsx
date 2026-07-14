@@ -27,6 +27,13 @@ export interface FlatDeviceChrome {
   /** Bezel insets as % of the effective width (all four derive from width). */
   paddingPercent: { top: number; right: number; bottom: number; left: number };
   label: string;
+  /**
+   * Non-slab devices (MacBook lid + base, iMac slab + stand): the body is
+   * drawn by these absolutely-positioned nodes instead of the frame div's own
+   * background, which goes fully transparent (see getFlatFrameStyles). Nodes
+   * read var(--frame-bg) so the recolour presets still tint the display shell.
+   */
+  chassis?: React.ReactNode;
 }
 
 const DEFAULT_PADDING = { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 };
@@ -95,6 +102,110 @@ function punchHoleNotch(): React.ReactNode {
         zIndex: 3,
       }}
     />
+  );
+}
+
+/**
+ * MacBook chassis: dark display lid (wide top block) over the classic wider
+ * aluminum base bar with a centred thumb scoop. All lengths are % of the
+ * effective width, matching the macbook screen paddings in the device
+ * registry (lid side = 8, lid bezel = 2, lid bottom = base 3.4 + bezel 2.5).
+ */
+function macbookChassis(px: (percent: number) => number): React.ReactNode {
+  const baseH = px(3.4);
+  return (
+    <>
+      <div
+        data-device-chassis="lid"
+        style={{
+          position: 'absolute',
+          left: px(8),
+          right: px(8),
+          top: 0,
+          bottom: baseH,
+          backgroundColor: 'var(--frame-bg, #1a1a1e)',
+          borderRadius: `${px(1.8)}px ${px(1.8)}px ${px(0.4)}px ${px(0.4)}px`,
+        }}
+      />
+      <div
+        data-device-chassis="base"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: baseH,
+          background: 'linear-gradient(180deg, #eceded 0%, #c6c7cc 55%, #8f9096 100%)',
+          borderRadius: `${px(0.4)}px ${px(0.4)}px ${px(1.7)}px ${px(1.7)}px`,
+        }}
+      />
+      <div
+        data-device-chassis="scoop"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          bottom: baseH - px(1.15),
+          width: px(12),
+          height: px(1.15),
+          background: 'linear-gradient(180deg, #94959b, #b9bac0)',
+          borderRadius: `0 0 ${px(1.15)}px ${px(1.15)}px`,
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * iMac chassis: silver display slab (its own background shows through as the
+ * chin below the screen) on a tapered leg + flat foot. Lengths are % of the
+ * effective width, matching the imac registry paddings (bottom 18.1 = stand
+ * 10.6 + chin 7.5).
+ */
+function imacChassis(px: (percent: number) => number): React.ReactNode {
+  const standH = px(10.6);
+  return (
+    <>
+      <div
+        data-device-chassis="slab"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: standH,
+          backgroundColor: 'var(--frame-bg, #e3e3e8)',
+          borderRadius: `${px(1.2)}px`,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+        }}
+      />
+      <div
+        data-device-chassis="leg"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          bottom: px(1.2),
+          width: px(12),
+          height: standH - px(1.2),
+          background: 'linear-gradient(180deg, #c9cacf, #a9aab0)',
+          clipPath: 'polygon(6% 0, 94% 0, 100% 100%, 0 100%)',
+        }}
+      />
+      <div
+        data-device-chassis="foot"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          bottom: 0,
+          width: px(26),
+          height: px(1.2),
+          background: 'linear-gradient(180deg, #d4d5da, #97989e)',
+          borderRadius: `${px(0.6)}px`,
+        }}
+      />
+    </>
   );
 }
 
@@ -180,11 +291,40 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
       chrome.outerBorderRadius = radius(0.013);
       chrome.bodyColor = '#333';
       break;
+    case 'macbook': {
+      const px = (percent: number) => (effectiveWidth * percent) / 100;
+      chrome.bodyColor = '#1a1a1e';
+      chrome.chassis = macbookChassis(px);
+      // Camera-housing notch glued to the screen's top edge. Measured off the
+      // real MacBook Pro: ~11% of the screen width, ~3.5:1, squared top and a
+      // bottom corner radius of about a third of its height — NOT a pill.
+      chrome.notch = classicNotch('11%', '3.5 / 1', '9%', '32%', chrome.bodyColor);
+      break;
+    }
+    case 'imac': {
+      const px = (percent: number) => (effectiveWidth * percent) / 100;
+      chrome.bodyColor = '#e3e3e8';
+      chrome.chassis = imacChassis(px);
+      break;
+    }
     case 'apple-watch':
     case 'custom':
       break;
   }
   return chrome;
+}
+
+/**
+ * The chassis nodes for rendering inside the frame div, honouring the
+ * transparent-device preset: frameOpacity fades the WHOLE body (lid + base /
+ * slab + stand). The wrapper div is static, so the absolutely-positioned
+ * chassis nodes still anchor to the frame div.
+ */
+export function renderChassis(chrome: FlatDeviceChrome, frameOpacity?: number): React.ReactNode {
+  if (!chrome.chassis) return null;
+  const alpha = frameOpacity ?? 1;
+  if (alpha >= 1) return chrome.chassis;
+  return <div data-device-chassis-root="true" style={{ opacity: alpha }}>{chrome.chassis}</div>;
 }
 
 export interface FlatFrameStyleOptions {
@@ -208,7 +348,15 @@ export function getFlatFrameStyles(
 ): { frame: React.CSSProperties; screen: React.CSSProperties; isOutline: boolean } {
   const frameFill = opts.frameColor ?? chrome.bodyColor;
   const frameAlpha = opts.frameOpacity ?? 1;
-  const isOutline = opts.frameStyle === 'outline';
+  // Chassis devices draw their body via chrome.chassis nodes; the frame div
+  // itself must stay invisible or it would paint a slab behind the silhouette.
+  // The outline preset has no chassis equivalent (a hollow laptop reads as
+  // nothing), so it is ignored there — otherwise its only visible effect
+  // would be the shadow suppression below, an incoherent half-applied state.
+  // Opacity DOES apply: the components wrap chrome.chassis in an
+  // opacity-carrying div (see renderChassis) so the whole body fades.
+  const hasChassis = !!chrome.chassis;
+  const isOutline = !hasChassis && opts.frameStyle === 'outline';
   const frameFillCss =
     frameAlpha >= 1
       ? frameFill
@@ -218,14 +366,14 @@ export function getFlatFrameStyles(
     width: '100%',
     height: '100%',
     // A drop shadow behind a see-through or hollow frame reads as a dark slab
-    boxShadow: isOutline || frameAlpha < 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
+    boxShadow: hasChassis || isOutline || frameAlpha < 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    borderRadius: chrome.outerBorderRadius,
-    backgroundColor: isOutline ? 'transparent' : frameFillCss,
-    border: isOutline ? `${Math.max(2, effectiveWidth * 0.014)}px solid ${frameFillCss}` : undefined,
+    borderRadius: hasChassis ? 0 : chrome.outerBorderRadius,
+    backgroundColor: hasChassis || isOutline ? 'transparent' : frameFillCss,
+    border: !hasChassis && isOutline ? `${Math.max(2, effectiveWidth * 0.014)}px solid ${frameFillCss}` : undefined,
     boxSizing: 'border-box',
     ['--frame-bg' as any]: frameFill,
     ...(opts.notchColor ? { ['--notch-bg' as any]: opts.notchColor } : {}),

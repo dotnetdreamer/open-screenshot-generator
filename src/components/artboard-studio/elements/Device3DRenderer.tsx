@@ -48,6 +48,10 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   // Apple Watch Series 10-ish: near-squircle case, big screen radius, and a
   // chunky body (real watches are ~10mm thick on a ~39mm-wide case).
   'apple-watch': { cornerRadius: 0.34, screenRadius: 0.30, bezel: 0.10, thickness: 0.24, notch: 'none' },
+  // Macs build fully custom geometry (see buildMacDevice); these entries only
+  // keep the shared fallback paths (metrics lookups) sensible.
+  'macbook': { cornerRadius: 0.04, screenRadius: 0.012, bezel: 0.02, thickness: 0.05, notch: 'none' },
+  'imac': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.012, thickness: 0.02, notch: 'none' },
 };
 
 // ---- Apple Watch extras (all fractions of the case width, world width = 1) ----
@@ -64,6 +68,48 @@ const WATCH_BAND_COLORS: Record<Device3DFrameColor, number> = {
   titanium: 0x9a9aa2,
   black: 0x1b1b1e,
   white: 0xe4e4e8,
+};
+
+// ---- Mac extras (fractions of the device width, world width = 1) ----
+
+// MacBook: base slab lying flat, lid hinged open at the back. The lid keeps a
+// 16:10 screen with a camera-housing notch; the base carries a keyboard +
+// trackpad deck texture. Like the watch, the body never stretches to the
+// element box.
+const MACBOOK = {
+  baseDepth: 0.70,
+  baseThick: 0.036,
+  lidThick: 0.015,
+  bezelSide: 0.02,
+  bezelTop: 0.02,
+  bezelBottom: 0.035,
+  openTiltDeg: 12, // lid lean back from vertical
+};
+const MACBOOK_SCREEN_W = 1 - 2 * MACBOOK.bezelSide;
+const MACBOOK_SCREEN_H = MACBOOK_SCREEN_W / 1.6;
+const MACBOOK_LID_H = MACBOOK.bezelTop + MACBOOK_SCREEN_H + MACBOOK.bezelBottom;
+
+// iMac: display slab (16:9 screen over a chin) on a tapered leg + flat foot.
+const IMAC = {
+  slabThick: 0.02,
+  bezel: 0.012,
+  chin: 0.08,
+  standH: 0.115,
+  legW: 0.13,
+  footW: 0.32,
+  footDepth: 0.40,
+  footThick: 0.009,
+};
+const IMAC_SCREEN_W = 1 - 2 * IMAC.bezel;
+const IMAC_SCREEN_H = IMAC_SCREEN_W * 9 / 16;
+const IMAC_SLAB_H = IMAC.bezel + IMAC_SCREEN_H + IMAC.chin;
+const IMAC_TOTAL_H = IMAC_SLAB_H + IMAC.standH;
+
+// Aluminum body per finish: the standard silver, space black, bright silver.
+const MAC_BODY_COLORS: Record<Device3DFrameColor, number> = {
+  titanium: 0xaeb0b5,
+  black: 0x37373b,
+  white: 0xd8dadf,
 };
 
 const CAMERA_FOV = 20;
@@ -110,6 +156,25 @@ const FRAME_COLORS: Record<Device3DFrameColor, { rail: number; railRoughness: nu
   white: { rail: 0xdcdce0, railRoughness: 0.32, railEnv: 1.0, button: 0xe6e6ea },
 };
 
+/**
+ * MacBook camera-housing notch: squared top corners (flush with the screen's
+ * top edge) and rounded bottom corners only — the real notch is a chunky tab,
+ * not a pill. Origin-centered like roundedRectShape.
+ */
+function notchTabShape(w: number, h: number, r: number): THREE.Shape {
+  const x = -w / 2;
+  const y = -h / 2;
+  const s = new THREE.Shape();
+  s.moveTo(x, y + h);
+  s.lineTo(x, y + r);
+  s.quadraticCurveTo(x, y, x + r, y);
+  s.lineTo(x + w - r, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h);
+  s.closePath();
+  return s;
+}
+
 function roundedRectShape(w: number, h: number, r: number): THREE.Shape {
   const radius = Math.min(r, w / 2, h / 2);
   const x = -w / 2;
@@ -135,6 +200,96 @@ function normalizeShapeUVs(geo: THREE.BufferGeometry, w: number, h: number) {
     uv.setXY(i, uv.getX(i) / w + 0.5, uv.getY(i) / h + 0.5);
   }
   uv.needsUpdate = true;
+}
+
+/**
+ * MacBook keyboard-deck texture, drawn procedurally: aluminum deck, recessed
+ * key well with a key grid, speaker grilles, and a trackpad. Canvas top row =
+ * texture v=1 = the shape's +y edge, which the deck mesh maps to the HINGE
+ * side, so the keyboard is drawn toward the canvas top.
+ */
+function makeDeckTexture(bodyColor: number): THREE.CanvasTexture {
+  const W = 1024;
+  const H = Math.round(W * MACBOOK.baseDepth);
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // Aluminum deck with a subtle brightness ramp toward the hinge.
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  const body = new THREE.Color(bodyColor);
+  const lighter = body.clone().multiplyScalar(1.07);
+  const darker = body.clone().multiplyScalar(0.93);
+  grad.addColorStop(0, `#${lighter.getHexString()}`);
+  grad.addColorStop(1, `#${darker.getHexString()}`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  const rr = (x: number, y: number, w: number, h: number, r: number, fill: string) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    ctx.fill();
+  };
+
+  // Recessed key well (MacBook Pro style: black well spanning between grilles).
+  const wellX = W * 0.115;
+  const wellY = H * 0.055;
+  const wellW = W * 0.77;
+  const wellH = H * 0.52;
+  rr(wellX, wellY, wellW, wellH, 14, '#0b0b0e');
+
+  // Key grid: a function row + 4 letter rows + a bottom row with a spacebar.
+  const pad = 10;
+  const gap = 6;
+  const rows = 6;
+  const keyH = (wellH - 2 * pad - (rows - 1) * gap) / rows;
+  const keyFill = '#2c2c33';
+  for (let r = 0; r < rows; r++) {
+    const y = wellY + pad + r * (keyH + gap);
+    if (r === rows - 1) {
+      // Bottom row: two modifiers, spacebar, two modifiers.
+      const unit = (wellW - 2 * pad - 5 * gap) / 8;
+      let x = wellX + pad;
+      for (const wMul of [1, 1, 4, 1, 1]) {
+        const w = unit * wMul + (wMul - 1) * gap * 0.25;
+        rr(x, y, w, keyH, 6, keyFill);
+        x += w + gap;
+      }
+      continue;
+    }
+    const cols = r === 0 ? 14 : 13;
+    const kw = (wellW - 2 * pad - (cols - 1) * gap) / cols;
+    const kh = r === 0 ? keyH * 0.7 : keyH;
+    for (let c = 0; c < cols; c++) {
+      rr(wellX + pad + c * (kw + gap), y, kw, kh, 6, keyFill);
+    }
+  }
+
+  // Speaker grilles: fine horizontal ribbing beside the key well.
+  ctx.fillStyle = `#${darker.clone().multiplyScalar(0.82).getHexString()}`;
+  for (const gx of [W * 0.035, W * 0.905]) {
+    for (let y = wellY + 6; y < wellY + wellH - 6; y += 7) {
+      ctx.fillRect(gx, y, W * 0.06, 2.6);
+    }
+  }
+
+  // Trackpad: a shade darker than the deck, hairline border.
+  const tpW = W * 0.40;
+  const tpH = H * 0.36;
+  const tpX = (W - tpW) / 2;
+  const tpY = H * 0.615;
+  rr(tpX, tpY, tpW, tpH, 12, `#${darker.clone().multiplyScalar(0.96).getHexString()}`);
+  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(tpX, tpY, tpW, tpH, 12);
+  ctx.stroke();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
 /**
@@ -197,11 +352,17 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
 
     const metrics = DEVICE_METRICS[deviceType] ?? DEFAULT_METRICS;
     const isWatch = deviceType === 'apple-watch';
+    const isMacbook = deviceType === 'macbook';
+    const isImac = deviceType === 'imac';
+    const isMac = isMacbook || isImac;
     const disposables: Array<{ dispose(): void }> = [];
     let texture: THREE.Texture | null = null;
     let textureImage: HTMLImageElement | null = null;
     let shotMesh: THREE.Mesh | null = null;
-    let screenSize = { w: 0, h: 0, radius: 0, z: 0 };
+    // x/y are local offsets inside shotParent (the MacBook's shot rides the
+    // tilted lid group; the iMac's screen sits above the chin, off-center).
+    let screenSize = { w: 0, h: 0, radius: 0, z: 0, x: 0, y: 0 };
+    let shotParent: THREE.Object3D = group;
     let disposed = false;
 
     // All renders are synchronous (render-on-demand, no rAF loop): the drawing
@@ -217,7 +378,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     // (Re)creates the screenshot plane for the current screen size + texture.
     const updateShot = () => {
       if (shotMesh) {
-        group.remove(shotMesh);
+        shotMesh.parent?.remove(shotMesh);
         shotMesh.geometry.dispose();
         (shotMesh.material as THREE.Material).dispose();
         shotMesh = null;
@@ -257,9 +418,152 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       // Screens emit light — unlit material so the screenshot shows at full brightness.
       const mat = new THREE.MeshBasicMaterial({ map: texture, toneMapped: false });
       shotMesh = new THREE.Mesh(geo, mat);
-      shotMesh.position.z = screenSize.z + 0.001;
+      shotMesh.position.set(screenSize.x, screenSize.y, screenSize.z + 0.001);
       shotMesh.renderOrder = 1;
-      group.add(shotMesh);
+      shotParent.add(shotMesh);
+    };
+
+    // Extruded rounded-rect slab with welded bevel normals — the shared
+    // building block for phone bodies, the MacBook base/lid and the iMac slab.
+    const extrudeSlab = (w: number, h: number, thickness: number, cornerRadius: number, bevelRatio = 0.22) => {
+      const bevel = thickness * bevelRatio;
+      const depth = thickness - 2 * bevel;
+      const shape = roundedRectShape(w - 2 * bevel, h - 2 * bevel, Math.max(cornerRadius - bevel, 0.008));
+      const raw = new THREE.ExtrudeGeometry(shape, {
+        depth,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 8,
+        curveSegments: 48,
+      });
+      const geo = track(toCreasedNormals(raw, THREE.MathUtils.degToRad(30)));
+      raw.dispose();
+      geo.translate(0, 0, -depth / 2); // z spans [-thickness/2, thickness/2]
+      return geo;
+    };
+
+    // MacBook: flat base with a keyboard-deck texture + lid hinged open at the
+    // back; iMac: display slab over a chin, on a tapered leg + flat foot. Both
+    // keep native proportions (like the watch) and center on the overall
+    // silhouette so poses pivot mid-body.
+    const buildMacDevice = () => {
+      const finish = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+      const aluColor = MAC_BODY_COLORS[frameColor] ?? MAC_BODY_COLORS.titanium;
+      const aluMat = track(new THREE.MeshStandardMaterial({ color: aluColor, metalness: 0.85, roughness: 0.42, envMapIntensity: finish.railEnv }));
+      const bezelMat = track(new THREE.MeshStandardMaterial({ color: 0x0b0b0d, metalness: 0.35, roughness: 0.3 }));
+      const screenMat = track(new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.1, roughness: 0.25 }));
+      const mac = new THREE.Group();
+      group.add(mac);
+
+      if (isMacbook) {
+        const M = MACBOOK;
+        const tiltRad = THREE.MathUtils.degToRad(M.openTiltDeg);
+        const totalH = M.baseThick + MACBOOK_LID_H * Math.cos(tiltRad);
+        mac.position.y = -totalH / 2; // ground y=0 in mac-local coords
+
+        // Base slab, lying flat: extruded in XY then rotated so the extrusion
+        // (thickness) runs along +y; top face at y = baseThick.
+        const baseGeo = extrudeSlab(1, M.baseDepth, M.baseThick, 0.045);
+        baseGeo.rotateX(-Math.PI / 2);
+        baseGeo.translate(0, M.baseThick / 2, 0);
+        mac.add(new THREE.Mesh(baseGeo, aluMat));
+
+        // Keyboard + trackpad deck, just above the base top face.
+        const deckW = 0.955;
+        const deckD = M.baseDepth - 0.035;
+        const deckGeo = track(new THREE.ShapeGeometry(roundedRectShape(deckW, deckD, 0.03), 24));
+        normalizeShapeUVs(deckGeo, deckW, deckD);
+        const deckTexture = track(makeDeckTexture(aluColor));
+        deckTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        // Low metalness so the drawn keys/trackpad read instead of washing out
+        // under the environment reflection.
+        const deckMat = track(new THREE.MeshStandardMaterial({ map: deckTexture, metalness: 0.3, roughness: 0.58, envMapIntensity: finish.railEnv * 0.55 }));
+        const deck = new THREE.Mesh(deckGeo, deckMat);
+        deck.rotation.x = -Math.PI / 2; // shape +y -> world -z (hinge side)
+        deck.position.y = M.baseThick + 0.0012;
+        mac.add(deck);
+
+        // Lid group at the hinge; rotate the whole group so the screen,
+        // screenshot and notch all lean back together.
+        const hingeZ = -M.baseDepth / 2 + 0.012;
+        const lid = new THREE.Group();
+        lid.position.set(0, M.baseThick - 0.004, hingeZ);
+        lid.rotation.x = -tiltRad;
+        mac.add(lid);
+
+        const lidGeo = extrudeSlab(1, MACBOOK_LID_H, M.lidThick, 0.035);
+        lidGeo.translate(0, MACBOOK_LID_H / 2, 0);
+        lid.add(new THREE.Mesh(lidGeo, aluMat));
+
+        // Black display bezel covering the lid's inner face.
+        const bezelGeo = track(new THREE.ShapeGeometry(roundedRectShape(0.982, MACBOOK_LID_H - 0.014, 0.028), 24));
+        const bezelMesh = new THREE.Mesh(bezelGeo, bezelMat);
+        bezelMesh.position.set(0, MACBOOK_LID_H / 2, M.lidThick / 2 + 0.0008);
+        lid.add(bezelMesh);
+
+        // Screen face + camera-housing notch inside the bezel.
+        const screenCenterY = M.bezelBottom + MACBOOK_SCREEN_H / 2;
+        const screenGeo = track(new THREE.ShapeGeometry(roundedRectShape(MACBOOK_SCREEN_W, MACBOOK_SCREEN_H, 0.014), 24));
+        const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+        screenMesh.position.set(0, screenCenterY, M.lidThick / 2 + 0.0016);
+        lid.add(screenMesh);
+
+        shotParent = lid;
+        screenSize = { w: MACBOOK_SCREEN_W, h: MACBOOK_SCREEN_H, radius: 0.014, z: M.lidThick / 2 + 0.0016, x: 0, y: screenCenterY };
+
+        // Real MacBook Pro proportions: ~11% of the screen width, ~3.5:1,
+        // squared top, bottom radius about a third of its height.
+        const notchW = MACBOOK_SCREEN_W * 0.11;
+        const notchH = notchW / 3.5;
+        const notchGeo = track(new THREE.ShapeGeometry(notchTabShape(notchW, notchH, notchH * 0.33), 12));
+        const notchMesh = new THREE.Mesh(notchGeo, track(new THREE.MeshBasicMaterial({ color: 0x000000 })));
+        notchMesh.position.set(0, M.bezelBottom + MACBOOK_SCREEN_H - notchH / 2, M.lidThick / 2 + 0.0032);
+        notchMesh.renderOrder = 2;
+        lid.add(notchMesh);
+      } else {
+        // iMac. Ground y=0 in mac-local coords; slab sits on the stand.
+        mac.position.y = -IMAC_TOTAL_H / 2;
+
+        const slabGeo = extrudeSlab(1, IMAC_SLAB_H, IMAC.slabThick, 0.022);
+        slabGeo.translate(0, IMAC.standH + IMAC_SLAB_H / 2, 0);
+        mac.add(new THREE.Mesh(slabGeo, aluMat));
+
+        // Front bezel plate (white on the silver finishes, near-black on the
+        // dark one); the chin strip goes body-coloured over it.
+        const frontZ = IMAC.slabThick / 2;
+        const faceColor = frameColor === 'black' ? 0x161618 : 0xe9e9ee;
+        const faceMat = track(new THREE.MeshStandardMaterial({ color: faceColor, metalness: 0.15, roughness: 0.5 }));
+        const faceGeo = track(new THREE.ShapeGeometry(roundedRectShape(0.988, IMAC_SLAB_H - 0.012, 0.018), 24));
+        const face = new THREE.Mesh(faceGeo, faceMat);
+        face.position.set(0, IMAC.standH + IMAC_SLAB_H / 2, frontZ + 0.0008);
+        mac.add(face);
+
+        const chinGeo = track(new THREE.ShapeGeometry(roundedRectShape(0.988, IMAC.chin - 0.012, 0.012), 12));
+        const chin = new THREE.Mesh(chinGeo, aluMat);
+        chin.position.set(0, IMAC.standH + (IMAC.chin - 0.006) / 2 + 0.003, frontZ + 0.0016);
+        mac.add(chin);
+
+        const screenCenterY = IMAC.standH + IMAC.chin + IMAC_SCREEN_H / 2;
+        const screenGeo = track(new THREE.ShapeGeometry(roundedRectShape(IMAC_SCREEN_W, IMAC_SCREEN_H, 0.012), 24));
+        const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+        screenMesh.position.set(0, screenCenterY, frontZ + 0.0024);
+        mac.add(screenMesh);
+
+        shotParent = mac;
+        screenSize = { w: IMAC_SCREEN_W, h: IMAC_SCREEN_H, radius: 0.012, z: frontZ + 0.0024, x: 0, y: screenCenterY };
+
+        // Stand: tapered leg behind the slab + flat foot running backward.
+        const legGeo = track(new THREE.BoxGeometry(IMAC.legW, IMAC.standH + 0.02, 0.012));
+        const leg = new THREE.Mesh(legGeo, aluMat);
+        leg.position.set(0, IMAC.standH / 2 + 0.008, -IMAC.slabThick / 2 - 0.008);
+        mac.add(leg);
+
+        const footGeo = extrudeSlab(IMAC.footW, IMAC.footDepth, IMAC.footThick, 0.03);
+        footGeo.rotateX(-Math.PI / 2);
+        footGeo.translate(0, IMAC.footThick / 2, -IMAC.footDepth / 2 + 0.10);
+        mac.add(new THREE.Mesh(footGeo, aluMat));
+      }
     };
 
     // Builds body + screen + notch + buttons for the element's current aspect ratio.
@@ -267,6 +571,13 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       for (const child of [...group.children]) group.remove(child);
       for (const d of disposables.splice(0)) d.dispose();
       shotMesh = null;
+      shotParent = group;
+
+      if (isMac) {
+        buildMacDevice();
+        updateShot();
+        return;
+      }
 
       const w = 1;
       const h = isWatch
@@ -307,7 +618,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       const sw = w - 2 * bezelWorld;
       const sh = h - 2 * bezelWorld;
       const sr = Math.max(metrics.screenRadius - bezelWorld * 0.5, 0.02);
-      screenSize = { w: sw, h: sh, radius: sr, z: frontZ + 0.0015 };
+      screenSize = { w: sw, h: sh, radius: sr, z: frontZ + 0.0015, x: 0, y: 0 };
 
       const screenGeo = track(new THREE.ShapeGeometry(roundedRectShape(sw, sh, sr), 24));
       const screenMat = track(new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.1, roughness: 0.25 }));
@@ -431,10 +742,42 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       // |x| <= tan(fov/2)·aspect·(dist − z) horizontally — solve for dist.
       const t2 = metrics.thickness / 2;
       const fitPoints: THREE.Vector3[] = [];
-      for (const sx of [-0.5, 0.5]) {
-        for (const sy of [-0.5, 0.5]) {
+      if (isMacbook) {
+        // Base footprint + the opened lid's top edge (leaning back past the
+        // hinge), in the centered coords buildMacDevice uses.
+        const M = MACBOOK;
+        const tiltRad = THREE.MathUtils.degToRad(M.openTiltDeg);
+        const cy = (M.baseThick + MACBOOK_LID_H * Math.cos(tiltRad)) / 2;
+        const hingeZ = -M.baseDepth / 2 + 0.012;
+        const lidTopY = M.baseThick - 0.004 + MACBOOK_LID_H * Math.cos(tiltRad);
+        const lidTopZ = hingeZ - MACBOOK_LID_H * Math.sin(tiltRad);
+        for (const sx of [-0.5, 0.5]) {
           for (const sz of [-1, 1]) {
-            fitPoints.push(new THREE.Vector3(sx, sy * h, sz * t2));
+            fitPoints.push(new THREE.Vector3(sx, -cy, sz * M.baseDepth * 0.5));
+            fitPoints.push(new THREE.Vector3(sx, M.baseThick - cy, sz * M.baseDepth * 0.5));
+          }
+          fitPoints.push(new THREE.Vector3(sx, lidTopY - cy, lidTopZ - M.lidThick));
+          fitPoints.push(new THREE.Vector3(sx, lidTopY - cy, lidTopZ + M.lidThick));
+        }
+      } else if (isImac) {
+        // Slab corners + the foot's ground footprint.
+        const cy = IMAC_TOTAL_H / 2;
+        for (const sx of [-0.5, 0.5]) {
+          for (const sz of [-1, 1]) {
+            fitPoints.push(new THREE.Vector3(sx, IMAC_TOTAL_H - cy, sz * IMAC.slabThick * 0.5));
+            fitPoints.push(new THREE.Vector3(sx, IMAC.standH - cy, sz * IMAC.slabThick * 0.5));
+          }
+        }
+        for (const sx of [-1, 1]) {
+          fitPoints.push(new THREE.Vector3(sx * IMAC.footW * 0.5, -cy, 0.10));
+          fitPoints.push(new THREE.Vector3(sx * IMAC.footW * 0.5, -cy, 0.10 - IMAC.footDepth));
+        }
+      } else {
+        for (const sx of [-0.5, 0.5]) {
+          for (const sy of [-0.5, 0.5]) {
+            for (const sz of [-1, 1]) {
+              fitPoints.push(new THREE.Vector3(sx, sy * h, sz * t2));
+            }
           }
         }
       }
@@ -453,12 +796,13 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       const corner = new THREE.Vector3();
       let dist = 0.1;
       // The watch's bent-back straps make its projection strongly asymmetric
-      // (unlike the near-planar phones), so solve for a camera offset that
-      // centers the projected bounds as well as the fitting distance. A few
-      // fixed-point iterations converge well within a pixel.
+      // (unlike the near-planar phones) — and so do the Macs (lid leaning back
+      // over a forward base, stand foot running backward) — so solve for a
+      // camera offset that centers the projected bounds as well as the fitting
+      // distance. A few fixed-point iterations converge well within a pixel.
       let offX = 0;
       let offY = 0;
-      const iterations = isWatch ? 4 : 1;
+      const iterations = isWatch || isMac ? 4 : 1;
       for (let i = 0; i < iterations; i++) {
         dist = 0.1;
         for (const p of fitPoints) {

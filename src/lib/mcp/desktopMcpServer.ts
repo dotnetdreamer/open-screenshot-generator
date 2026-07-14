@@ -109,6 +109,7 @@ const DEVICE_TYPES = [
   'iphone', 'iphone-x', 'iphone-13', 'iphone-14', 'iphone-15', 'iphone-15-pro',
   'iphone-17-pro-max', 'ipad-pro-13', 'ipad-11', 'apple-watch', 'android-bar',
   'android-notch', 'android-punch-hole', 'tablet', 'tablet-7', 'tablet-10', 'desktop',
+  'macbook', 'imac',
 ];
 
 function textResult(value: unknown): ToolResult {

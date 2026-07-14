@@ -21,7 +21,7 @@ const RULES = `Rules:
 - Screenshots are numbered from 0 in the order they were given to you. Refer to them only by that index.
 - Place every screenshot the user gave you, unless they asked for fewer.
 - Refer to templates and elements only by the short refs shown in the catalog: t12 for a template, d0 for a device slot, x1 for a text slot. Copy them exactly. Never invent a ref.
-- Prefer "use-template" whenever the user names a template, describes one that exists, or just asks to drop screenshots into a template. Choose the template whose device slot count is closest to the number of screenshots, and whose category matches the screenshot shape (tall phone screens are "screenshots", square watch faces are "apple-watch", wide banners are "play-feature-graphic").
+- Prefer "use-template" whenever the user names a template, describes one that exists, or just asks to drop screenshots into a template. Choose the template whose device slot count is closest to the number of screenshots, and whose category matches the screenshot shape (tall phone screens are "screenshots", square watch faces are "apple-watch", 16:10 desktop app windows are "mac", extra-wide banners are "play-feature-graphic").
 - Only templates listed with per-artboard detail can have their text rewritten. If you pick a template from the summary list, leave textOverrides empty; its own copy is kept.
 - Use "generate-new" only when the user explicitly wants something new, or when no template is a reasonable fit.
 - Rewrite template copy to describe the user's actual app. Read the screenshots: use the real feature names, real numbers, and the real product name you can see in them. Headlines should be short and specific, at most about 6 words per line.

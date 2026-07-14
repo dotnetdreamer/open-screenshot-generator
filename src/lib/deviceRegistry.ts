@@ -58,6 +58,13 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'tablet-7': { id: 'tablet-7', label: '7-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 800 / 1280, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 4.5, right: 4.5, bottom: 4.5, left: 4.5 }, radiusFactor: 0.03 } },
   'tablet-10': { id: 'tablet-10', label: '10-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 1600 / 2560, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.025 } },
   'desktop': { id: 'desktop', label: 'Desktop Monitor', platform: 'neutral', category: 'desktop', nativeAspect: 16 / 9, screen: { paddingPercent: { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 }, radiusFactor: 0.009 } },
+  // Macs. The element box is the FULL silhouette (lid + base for the MacBook,
+  // slab + stand for the iMac), so the screen paddings carry the chassis:
+  // the MacBook's side padding is the base overhang beyond the lid bezel, and
+  // the iMac's bottom padding spans chin + stand. No counterpart: like the
+  // watch, platform swaps leave Mac mockups as-is.
+  'macbook': { id: 'macbook', label: 'MacBook', platform: 'ios', category: 'desktop', nativeAspect: 100 / 57.9, screen: { paddingPercent: { top: 2, right: 10, bottom: 5.9, left: 10 }, radiusFactor: 0.008 } },
+  'imac': { id: 'imac', label: 'iMac', platform: 'ios', category: 'desktop', nativeAspect: 100 / 74.2, screen: { paddingPercent: { top: 1.5, right: 1.5, bottom: 18.1, left: 1.5 }, radiusFactor: 0.012 } },
   'custom': { id: 'custom', label: 'Custom Mockup', platform: 'neutral', category: 'custom', nativeAspect: 9 / 16 },
 };
 
@@ -83,6 +90,7 @@ export const DEVICE_PICKER_GROUPS: ReadonlyArray<{
     { label: 'iPhone', platform: 'ios', category: 'phone' },
     { label: 'iPad', platform: 'ios', category: 'tablet' },
     { label: 'Apple Watch', platform: 'ios', category: 'watch' },
+    { label: 'Mac', platform: 'ios', category: 'desktop' },
     { label: 'Android', platform: 'android', category: null },
     { label: 'Other', platform: 'neutral', category: null },
   ] as const

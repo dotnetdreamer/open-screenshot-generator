@@ -83,6 +83,7 @@ const SERIALIZE_LEVELS: SerializeLevel[] = [
 const TERSE_CATEGORIES: Record<string, string> = {
   screenshots: 'scr',
   'apple-watch': 'watch',
+  mac: 'mac',
   'play-feature-graphic': 'fg',
 };
 
@@ -124,15 +125,19 @@ function tokenize(value: string): string[] {
 
 /**
  * Which canvas category the uploads look like. Tall images are phone
- * screenshots, wide ones are Play feature graphics, near-square ones are
- * watch faces. Majority vote across uploads; null when there are none.
+ * screenshots, 16:10 desktop windows are Mac screenshots, wider ones are Play
+ * feature graphics, near-square ones are watch faces. Majority vote across
+ * uploads; null when there are none. The mac band is deliberately narrow
+ * (1.4-1.7): every Mac App Store tier is exactly 1.6, while 16:9 (1.78) stays
+ * in the feature-graphic bucket it always voted for.
  */
 function inferCategory(screenshots: PrefilterInput['screenshots']): string | null {
   if (screenshots.length === 0) return null;
-  const votes = { screenshots: 0, 'apple-watch': 0, 'play-feature-graphic': 0 };
+  const votes = { screenshots: 0, 'apple-watch': 0, mac: 0, 'play-feature-graphic': 0 };
   for (const shot of screenshots) {
     if (shot.height > shot.width * 1.4) votes.screenshots++;
-    else if (shot.width > shot.height * 1.4) votes['play-feature-graphic']++;
+    else if (shot.width > shot.height * 1.7) votes['play-feature-graphic']++;
+    else if (shot.width > shot.height * 1.4) votes.mac++;
     else votes['apple-watch']++;
   }
   return (Object.entries(votes) as [string, number][]).reduce((a, b) =>
