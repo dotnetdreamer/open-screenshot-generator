@@ -5,6 +5,8 @@ A product promo built with [Remotion](https://www.remotion.dev/), three.js and G
 - `Promo` — the full 52-second cut (`out/artboard-studio-promo.mp4`), 1920x1080
 - `PromoFast` — a tighter 36-second cut (`out/artboard-studio-promo-fast.mp4`), 1920x1080
 - `PromoMobile` — a portrait 36-second cut for phones, Shorts and Reels (`out/artboard-studio-promo-mobile.mp4`), 1080x1920
+- `PromoAI` — a 10-second cut on the AI features (`out/artboard-studio-promo-ai.mp4`), 1920x1080: the AI agent dialog and the desktop MCP server, shown screen-recording style with an animated cursor and camera zooms onto the UI
+- `PromoAIMobile` — the same 10-second AI cut in portrait for phones, Shorts and Reels (`out/artboard-studio-promo-ai-mobile.mp4`), 1080x1920: deeper zooms since the wide dialog does not fit a phone frame, captions raised above the Shorts UI overlay
 
 All are 30 fps with an original synthesized music bed.
 
@@ -17,6 +19,8 @@ npm run studio         # open Remotion Studio to preview and scrub the timeline
 npm run render         # render the full cut
 npm run render:fast    # render the fast cut
 npm run render:mobile  # render the portrait cut
+npm run render:ai      # render the 10-second AI cut
+npm run render:ai-mobile  # render the portrait 10-second AI cut
 npm run gen:music      # regenerate public/music.wav (then convert to music.m4a with ffmpeg)
 ```
 

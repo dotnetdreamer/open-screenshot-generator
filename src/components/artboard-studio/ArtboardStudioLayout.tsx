@@ -19,6 +19,7 @@ import {
 import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
 import { CanvasArea } from './CanvasArea';
+import { CanvasContextMenu } from './CanvasContextMenu';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
 import { Logo } from './Logo';
@@ -340,6 +341,16 @@ export function ArtboardStudioLayout() {
   // read per request by the bridge (see the block above the render return).
   const mcpApiRef = useRef<McpDesignApi | null>(null);
   const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
+  // Custom right-click menu over the canvas. pastePoint is the click location
+  // in artboard coordinates so Paste can drop the element under the cursor.
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    elementId: string | null;
+    artboardId: string | null;
+    pastePoint: Point | null;
+  } | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // Start the desktop MCP bridge (desktop only): handle requests the Rust
   // transport forwards, and surface the connection URL when the user toggles
@@ -1549,15 +1560,17 @@ export function ArtboardStudioLayout() {
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
 
 
-  // Define the copy element handler
-  const handleCopyElement = () => {
-    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-      const activeAb = artboards.find(ab => ab.id === activeArtboardId);
+  // Define the copy element handler. Explicit ids come from the context menu
+  // (copy exactly what was right-clicked); the keyboard shortcut passes none
+  // and falls back to the current selection.
+  const handleCopyElement = (targetArtboardId?: string | null, targetElementId?: string | null) => {
+    const artboardId = targetArtboardId ?? activeArtboardId;
+    const elementId = targetElementId ?? selectedElementIdOnActiveArtboard;
+    if (artboardId && elementId) {
+      const activeAb = artboards.find(ab => ab.id === artboardId);
       if (activeAb) {
-        const elementToCopy = activeAb.elements.find(
-          el => el.id === selectedElementIdOnActiveArtboard
-        );
-        
+        const elementToCopy = activeAb.elements.find(el => el.id === elementId);
+
         if (elementToCopy) {
           copyToClipboard(elementToCopy);
           toast({ title: "Copied", description: `${elementToCopy.type} element copied to clipboard.` });
@@ -1566,20 +1579,32 @@ export function ArtboardStudioLayout() {
     }
   };
 
-  // Define the paste element handler
-  const handlePasteElement = () => {
-    if (activeArtboardId && clipboardItem) {
-      const newElement = { 
+  // Define the paste element handler. The context menu passes the right-clicked
+  // artboard and a paste point (artboard coordinates) so the element lands
+  // under the cursor; the keyboard shortcut offsets from the original instead.
+  const handlePasteElement = (targetArtboardId?: string | null, pastePoint?: Point | null) => {
+    const artboardId = targetArtboardId ?? activeArtboardId;
+    if (artboardId && clipboardItem) {
+      const targetArtboard = artboards.find(ab => ab.id === artboardId);
+      const elementWidth = clipboardItem.size?.width ?? 0;
+      const elementHeight = clipboardItem.size?.height ?? 0;
+      const position = pastePoint && targetArtboard
+        ? {
+            x: Math.max(0, Math.min(pastePoint.x - elementWidth / 2, targetArtboard.size.width - elementWidth)),
+            y: Math.max(0, Math.min(pastePoint.y - elementHeight / 2, targetArtboard.size.height - elementHeight)),
+          }
+        : {
+            x: clipboardItem.position.x + 20, // Offset position slightly
+            y: clipboardItem.position.y + 20
+          };
+      const newElement = {
         ...JSON.parse(JSON.stringify(clipboardItem)),
         id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, // New unique ID
-        position: { 
-          x: clipboardItem.position.x + 20, // Offset position slightly
-          y: clipboardItem.position.y + 20 
-        }
+        position
       };
-      
+
       const updatedArtboards = artboards.map(ab => {
-        if (ab.id === activeArtboardId) {
+        if (ab.id === artboardId) {
           return {
             ...ab,
             elements: [...ab.elements, newElement]
@@ -1587,18 +1612,74 @@ export function ArtboardStudioLayout() {
         }
         return ab;
       });
-      
+
       handleArtboardsUpdate(updatedArtboards);
+      if (artboardId !== activeArtboardId) {
+        setActiveArtboardId(artboardId);
+      }
       setSelectedElementIdOnActiveArtboard(newElement.id);
       toast({ title: "Pasted", description: `${newElement.type} element pasted to artboard.` });
-    } else if (!activeArtboardId) {
-      toast({ 
-        title: "Cannot Paste", 
-        description: "Please select an artboard first.", 
-        variant: "destructive" 
+    } else if (!artboardId) {
+      toast({
+        title: "Cannot Paste",
+        description: "Please select an artboard first.",
+        variant: "destructive"
       });
     }
   };
+
+  // Custom right-click: block the browser menu everywhere in the studio (text
+  // fields keep the native menu so text copy/paste still works) and open our
+  // menu when the click lands in the canvas area. Right-clicking an element
+  // selects it first, like every design tool.
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+
+      if (isPreviewOpen) return;
+      if (!canvasContainerRef.current?.contains(target)) {
+        setContextMenu(null);
+        return;
+      }
+
+      const elementNode = target.closest('[data-element-id]');
+      const artboardNode = target.closest('[data-artboard-dom-id]');
+      const elementId = elementNode?.getAttribute('data-element-id') ?? null;
+      const artboardId = artboardNode?.getAttribute('data-artboard-dom-id') ?? null;
+
+      // Convert the click to artboard coordinates via the rendered size, which
+      // already includes the display scale and every ancestor zoom transform.
+      let pastePoint: Point | null = null;
+      if (artboardNode) {
+        const rect = artboardNode.getBoundingClientRect();
+        const originalWidth = Number(artboardNode.getAttribute('data-original-width'));
+        if (rect.width > 0 && originalWidth > 0) {
+          const renderedScale = rect.width / originalWidth;
+          pastePoint = {
+            x: (e.clientX - rect.left) / renderedScale,
+            y: (e.clientY - rect.top) / renderedScale,
+          };
+        }
+      }
+
+      if (artboardId) {
+        setActiveArtboardId(artboardId);
+        setSelectedElementIdOnActiveArtboard(elementId);
+      }
+      setContextMenu({ x: e.clientX, y: e.clientY, elementId, artboardId, pastePoint });
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => document.removeEventListener('contextmenu', handleContextMenu);
+  }, [isPreviewOpen]);
   
   // Add keyboard shortcuts for copy and paste
   useEffect(() => {
@@ -2210,10 +2291,6 @@ const generateRandomProjectName = (): string => {
             onSetActiveTool={setActiveTool}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
-            onCopyElement={handleCopyElement}
-            onPasteElement={handlePasteElement}
-            canCopy={!!selectedElementIdOnActiveArtboard}
-            canPaste={!!clipboardItem && !!activeArtboardId}
             currentProjectName={currentProjectName}
             onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
@@ -2224,7 +2301,7 @@ const generateRandomProjectName = (): string => {
           {/* Main content area with flex layout */}
           <div className="flex flex-1 overflow-hidden h-full">
             {/* Canvas area - takes remaining space */}
-            <div className="flex-1 relative overflow-hidden">
+            <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden">
               <CanvasArea
                 artboards={artboards}
                 onUpdateArtboards={handleArtboardsUpdate}
@@ -2274,6 +2351,18 @@ const generateRandomProjectName = (): string => {
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
               <McpServerStatus className="absolute bottom-4 right-4 z-40" />
+
+              {contextMenu && (
+                <CanvasContextMenu
+                  x={contextMenu.x}
+                  y={contextMenu.y}
+                  canCopy={!!contextMenu.elementId && !!contextMenu.artboardId}
+                  canPaste={!!clipboardItem && !!(contextMenu.artboardId || activeArtboardId)}
+                  onCopy={() => handleCopyElement(contextMenu.artboardId, contextMenu.elementId)}
+                  onPaste={() => handlePasteElement(contextMenu.artboardId, contextMenu.pastePoint)}
+                  onClose={() => setContextMenu(null)}
+                />
+              )}
             </div>
 
             {/* Right dock: Properties on top, Layers below, resizable split.

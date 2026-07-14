@@ -8,6 +8,8 @@
     "render": "remotion render Promo out/artboard-studio-promo.mp4",
     "render:fast": "remotion render PromoFast out/artboard-studio-promo-fast.mp4",
     "render:mobile": "remotion render PromoMobile out/artboard-studio-promo-mobile.mp4",
+    "render:ai": "remotion render PromoAI out/artboard-studio-promo-ai.mp4",
+    "render:ai-mobile": "remotion render PromoAIMobile out/artboard-studio-promo-ai-mobile.mp4",
     "gen:music": "node scripts/gen-music.js",
     "still": "remotion still Promo"
   },

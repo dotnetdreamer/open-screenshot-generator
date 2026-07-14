@@ -82,6 +82,8 @@ export function DraggableElement({
     mode: 'move' | 'rotate' | 'scale' | 'resize',
     handleType?: HandleType
   ) => {
+    // Only the left button drags; right-click opens the context menu instead
+    if (e.button !== 0) return;
     e.preventDefault();
     e.stopPropagation();
     if (!elementRef.current) return;

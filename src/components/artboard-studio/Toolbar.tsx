@@ -10,8 +10,6 @@ import {
   MousePointerIcon,
   HandIcon,
   LayoutTemplateIcon,
-  CopyIcon,
-  ClipboardPasteIcon,
   FileTextIcon,
   FolderOpenIcon,
   EyeIcon,
@@ -35,7 +33,6 @@ import { Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { findMatchingPreset } from '@/lib/sizePresets';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
-import { useClipboard } from '@/contexts/ClipboardContext';
 
 interface ToolbarProps {
   onNewArtboard: () => void;
@@ -56,10 +53,6 @@ interface ToolbarProps {
   onUpdateArtboardSize: (width: number, height: number) => void;
   initialArtboardSize?: Size; // New prop to get current size
   className?: string;
-  onCopyElement?: () => void;
-  onPasteElement?: () => void;
-  canCopy?: boolean;
-  canPaste?: boolean;
   currentProjectName?: string;
   onRenameProject?: (newName: string) => void;
   onSelectDeviceFormat?: (preset: DeviceFormatPreset) => void;
@@ -87,10 +80,6 @@ export function Toolbar({
   onUpdateArtboardSize,
   initialArtboardSize,
   className,
-  onCopyElement,
-  onPasteElement,
-  canCopy = false,
-  canPaste = false,
   currentProjectName,
   onRenameProject,
   onSelectDeviceFormat,
@@ -98,7 +87,6 @@ export function Toolbar({
 }: ToolbarProps) {
   const deviceFormatLabel =
     DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? 'Devices';
-  const { clipboardItem } = useClipboard();
   // Canvas Size dialog (replaces the old inline width/height/apply controls)
   const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false);
   const matchedSizePreset = findMatchingPreset(initialArtboardSize);
@@ -197,27 +185,6 @@ export function Toolbar({
           title="Select Template"
         >
           <LayoutTemplateIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-
-        {/* Add Copy and Paste buttons here, after Select Template */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onCopyElement}
-          disabled={!canCopy}
-          title="Copy (Ctrl+C)"
-        >
-          <CopyIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onPasteElement}
-          disabled={!canPaste}
-          title="Paste (Ctrl+V)"
-        >
-          <ClipboardPasteIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
       </div>
 
