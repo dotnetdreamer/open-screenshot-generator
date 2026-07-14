@@ -2243,7 +2243,7 @@ const generateRandomProjectName = (): string => {
               <Logo withBackground className="h-10 w-10 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8" />
               <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
                 <span className="truncate text-base font-semibold leading-tight tracking-tight">Artboard Studio</span>
-                <span className="truncate text-xs leading-tight text-muted-foreground">App screenshot designer</span>
+                <span className="text-xs leading-tight text-muted-foreground">Canva for App Store &amp; Play Store graphics</span>
               </div>
             </div>
           </SidebarHeader>

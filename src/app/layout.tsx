@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Artboard Studio',
-  description: 'Create stunning artboards and device mockups easily.',
+  description: 'Canva for App Store & Play Store graphics. Design app store screenshots and preview videos in your browser, no account needed.',
 };
 
 export default function RootLayout({

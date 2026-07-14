@@ -1,3 +1,6 @@
+"use client";
+
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -9,6 +12,11 @@ export function Logo({ className, withBackground = false }: LogoProps) {
   const frame = withBackground ? "stroke-white" : "stroke-primary";
   const frameFaded = withBackground ? "stroke-white/40" : "stroke-primary/40";
   const detail = withBackground ? "fill-white" : "fill-primary";
+  // The gradient id must be unique per instance: url(#...) resolves to the
+  // first matching id in the document, and if that copy sits in a
+  // display:none subtree (the MobileNotice overlay on desktop) the gradient
+  // paints nothing and the background disappears.
+  const gradientId = `as-logo-bg-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
   return (
     <svg
@@ -20,12 +28,12 @@ export function Logo({ className, withBackground = false }: LogoProps) {
       {withBackground && (
         <>
           <defs>
-            <linearGradient id="asLogoBg" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stopColor="#6FB3B5" />
               <stop offset="1" stopColor="#457E80" />
             </linearGradient>
           </defs>
-          <rect width="512" height="512" rx="112" fill="url(#asLogoBg)" />
+          <rect width="512" height="512" rx="112" fill={`url(#${gradientId})`} />
         </>
       )}
       {/* back phone */}
