@@ -82,6 +82,13 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const selectedRowRef = useRef<HTMLDivElement>(null);
+
+  // Keep the selected row visible when selection happens on the canvas;
+  // 'nearest' makes this a no-op if the row is already in view.
+  useEffect(() => {
+    selectedRowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [selectedElementId]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -142,6 +149,7 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
               {reversedElements.map((element, index) => (
                 <div
                   key={element.id}
+                  ref={element.id === selectedElementId ? selectedRowRef : undefined}
                   className={cn(
                     "flex items-center w-full justify-start p-1 rounded-md text-sm",
                     element.id === selectedElementId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
