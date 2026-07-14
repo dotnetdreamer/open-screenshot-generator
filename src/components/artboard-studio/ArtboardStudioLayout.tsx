@@ -403,6 +403,22 @@ export function ArtboardStudioLayout() {
   const [videoProgress, setVideoProgress] = useState<VideoExportProgress | null>(null);
   const videoExportAbortRef = useRef<AbortController | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  // Desktop only: Help > About in the native menu bar opens the same dialog
+  // as the sidebar's About option (settings.rs emits abs-open-about).
+  useEffect(() => {
+    if (!isTauri()) return;
+    let disposed = false;
+    let unlisten: () => void = () => {};
+    (async () => {
+      const { listen } = await import('@tauri-apps/api/event');
+      unlisten = await listen('abs-open-about', () => setIsAboutOpen(true));
+      if (disposed) unlisten();
+    })();
+    return () => {
+      disposed = true;
+      unlisten();
+    };
+  }, []);
   // Right dock: Properties on top, Layers below, split by a draggable
   // divider. Collapsed it becomes a slim vertical rail (Android Studio
   // style). Open state and the layers section height persist across

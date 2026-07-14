@@ -21,11 +21,16 @@ use tauri::{AppHandle, Emitter, Manager, Runtime};
 /// The frontend can listen on this channel for live settings updates.
 const SETTINGS_EVENT_CHANNEL: &str = "abs-settings-changed";
 
+/// Tells the frontend to open its About dialog (the same one the sidebar's
+/// About option shows). Emitted when Help > About is clicked.
+const ABOUT_EVENT_CHANNEL: &str = "abs-open-about";
+
 const SETTINGS_FILE: &str = "settings.json";
 const MENU_ID_SHOW_ASSISTANT: &str = "abs-settings-show-assistant";
 const MENU_ID_MCP_SERVER: &str = "abs-settings-mcp-server";
 const MENU_ID_DEVTOOLS: &str = "abs-settings-devtools";
 const MENU_ID_RELOAD_WINDOW: &str = "abs-settings-reload-window";
+const MENU_ID_ABOUT: &str = "abs-help-about";
 
 /// `#[serde(default)]` keeps old settings files readable as fields get added.
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -141,7 +146,70 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     }
     let settings_menu = settings_menu.build()?;
 
-    let menu = Menu::default(app)?;
+    // The platform-default menus, rebuilt by hand for two differences from
+    // Menu::default(): Edit has no Select All (it only selects the page's DOM
+    // text, which is meaningless over a canvas app), and Help > About opens
+    // the frontend's About dialog instead of the bare native about box.
+    let menu = Menu::new(app)?;
+
+    // macOS keeps its conventional app menu; About there stays native since
+    // that entry describes the bundle, while Help > About below is ours.
+    #[cfg(target_os = "macos")]
+    {
+        let pkg = app.package_info();
+        let about_metadata = tauri::menu::AboutMetadata {
+            name: Some(pkg.name.clone()),
+            version: Some(pkg.version.to_string()),
+            ..Default::default()
+        };
+        let app_menu = SubmenuBuilder::new(app, pkg.name.clone())
+            .about(Some(about_metadata))
+            .separator()
+            .services()
+            .separator()
+            .hide()
+            .hide_others()
+            .separator()
+            .quit()
+            .build()?;
+        menu.append(&app_menu)?;
+    }
+
+    let file_menu = {
+        let file = SubmenuBuilder::new(app, "File").close_window();
+        #[cfg(not(target_os = "macos"))]
+        let file = file.quit();
+        file.build()?
+    };
+
+    let edit_menu = SubmenuBuilder::new(app, "Edit")
+        .undo()
+        .redo()
+        .separator()
+        .cut()
+        .copy()
+        .paste()
+        .build()?;
+
+    #[cfg(target_os = "macos")]
+    let view_menu = SubmenuBuilder::new(app, "View").fullscreen().build()?;
+
+    let window_menu = {
+        let window = SubmenuBuilder::new(app, "Window").minimize().maximize();
+        #[cfg(target_os = "macos")]
+        let window = window.separator();
+        window.close_window().build()?
+    };
+
+    let about_item = MenuItemBuilder::with_id(MENU_ID_ABOUT, "About Artboard Studio").build(app)?;
+    let help_menu = SubmenuBuilder::new(app, "Help").item(&about_item).build()?;
+
+    menu.append(&file_menu)?;
+    menu.append(&edit_menu)?;
+    #[cfg(target_os = "macos")]
+    menu.append(&view_menu)?;
+    menu.append(&window_menu)?;
+    menu.append(&help_menu)?;
     menu.append(&settings_menu)?;
 
     // macOS has one app-wide menu bar. On Windows/Linux the menu attaches per
@@ -180,6 +248,10 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                 if let Some(main) = app.get_webview_window("main") {
                     let _ = main.reload();
                 }
+            }
+            // The dialog lives in the frontend; just ask it to open.
+            MENU_ID_ABOUT => {
+                let _ = app.emit_to("main", ABOUT_EVENT_CHANNEL, ());
             }
             _ => {}
         }
