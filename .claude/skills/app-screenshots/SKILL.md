@@ -25,11 +25,16 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 
 ## App selectors
 
-- Start screen: button with exact text `Start Blank`. The template gallery is still the first thing on
+- Start screen: the blank-canvas card is a button whose text contains `Start blank` (lowercase b — it reads "Start blank" inside the "Start with a blank canvas" card). The template gallery is still the first thing on
   screen; an **AI agent banner** sits above the tabs. `lib.js` `openAgentScreen(page)` steps into that
   agent screen (back out via `button[aria-label="Back"]`), and `clickByTextContains` clicks a button by
   a text fragment.
-- Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Layers`.
+- Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Images`. There is NO Layers tab anymore:
+  Properties (top) and Layers (bottom) live in one right dock with a draggable divider
+  (`[role="separator"]`) between them. Collapse the dock via `button[aria-label="Collapse right panel"]`;
+  collapsed it becomes a slim vertical rail — expand via `button[aria-label="Expand right panel"]` or the
+  rotated `Open Properties` / `Open Layers` buttons (by `title`). Dock state persists in localStorage
+  (`abs-right-dock-open`, `abs-right-dock-layers-height`), so reset those keys if a test needs the default layout.
 - Palette categories: `button[title="Browse <Category>"]` (e.g. `Browse 3D iPhone 17 Pro Max`, `Browse Colored iPhone`, `Browse Basic`); close with the `Back` button.
 - Tiles: `button[title="Add <label>"]` (e.g. `Add iPhone 17 Pro Max 3D — tilted right (black)`, `Add Transparent device`).
 - Toolbar by `title` attr: `New Artboard` (new artboard becomes active), `Export Artboards as Images`, `Zoom In`, `Zoom Out`.

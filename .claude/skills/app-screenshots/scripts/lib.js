@@ -75,11 +75,13 @@ async function openAgentScreen(page) {
 /** Open the app and start a blank project; resolves once the app has settled. */
 async function startBlankProject(page) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  // The blank-canvas card's button reads "Start blank" (inside the
+  // "Start with a blank canvas" card), so match by fragment, not exact text.
   await page.waitForFunction(
-    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim() === 'Start Blank')",
+    "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').includes('Start blank'))",
     { timeout: 90000, polling: 500 }
   );
-  await clickByText(page, 'Start Blank');
+  await clickByTextContains(page, 'Start blank');
   // Project creation lands asynchronously; interacting earlier races a re-render.
   await page.waitForFunction("location.search.includes('projectId')", { timeout: 30000, polling: 500 });
   await sleep(1500);

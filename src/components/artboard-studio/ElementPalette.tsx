@@ -20,15 +20,13 @@ import {
   StarIcon,
   DiamondIcon,
   ImageIcon,
-  LayersIcon,
   ChevronLeftIcon,
   ClapperboardIcon,
   PointerIcon,
   MoveHorizontalIcon,
   MoveVerticalIcon,
 } from "lucide-react";
-import type { ElementType, ShapeType, DeviceType, ArtboardElement, Device3DPose } from '@/types/artboard';
-import { LayersPanel } from './LayersPanel';
+import type { ElementType, ShapeType, DeviceType, Device3DPose } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
 import { IMAGE_CATEGORIES, type LibraryImageDef } from '@/lib/imageLibrary';
 import { withBasePath } from '@/lib/basePath';
@@ -273,13 +271,6 @@ const ImageLibraryTile: React.FC<{
 
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
-  activeArtboardElements: ArtboardElement[];
-  selectedElementIdOnActiveArtboard: string | null;
-  onSelectElementInLayerPanel: (elementId: string) => void;
-  onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
-  onDeleteElement: (elementId: string) => void;
-  onRenameElement: (elementId: string, newName: string) => void;
-  activeArtboardName?: string;
 }
 
 const DraggableItem: React.FC<{
@@ -370,16 +361,7 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
   );
 };
 
-export function ElementPalette({
-  onAddElement,
-  activeArtboardElements,
-  selectedElementIdOnActiveArtboard,
-  onSelectElementInLayerPanel,
-  onMoveElementLayer,
-  onDeleteElement,
-  onRenameElement,
-  activeArtboardName
-}: ElementPaletteProps) {
+export function ElementPalette({ onAddElement }: ElementPaletteProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
   const [openDeviceCategoryId, setOpenDeviceCategoryId] = useState<DeviceCategoryId | null>(null);
@@ -393,7 +375,10 @@ export function ElementPalette({
   const [activeTab, setActiveTab] = useState('elements');
   useEffect(() => {
     const saved = window.sessionStorage.getItem('palette-active-tab');
-    if (saved && saved !== activeTab) setActiveTab(saved);
+    // 'layers' was a palette tab before the layers panel moved to the floating
+    // bottom-right card; a stale saved value would select a tab that no longer
+    // exists and blank the palette.
+    if (saved && saved !== 'layers' && saved !== activeTab) setActiveTab(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const handleTabChange = (value: string) => {
@@ -418,7 +403,7 @@ export function ElementPalette({
   return (
     <div className="h-full flex flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-        <TabsList className="grid w-[95%] grid-cols-4 mx-auto mt-2 h-auto p-0.5">
+        <TabsList className="grid w-[95%] grid-cols-3 mx-auto mt-2 h-auto p-0.5">
           <TabsTrigger value="elements" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <TypeIcon className="w-4 h-4" />
             Elements
@@ -430,10 +415,6 @@ export function ElementPalette({
           <TabsTrigger value="images" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <ImageIcon className="w-4 h-4" />
             Images
-          </TabsTrigger>
-          <TabsTrigger value="layers" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
-            <LayersIcon className="w-4 h-4" />
-            Layers
           </TabsTrigger>
         </TabsList>
 
@@ -884,17 +865,6 @@ export function ElementPalette({
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="layers" className="flex-grow p-3 pt-2 mt-0">
-          <LayersPanel
-            elements={activeArtboardElements}
-            selectedElementId={selectedElementIdOnActiveArtboard}
-            onSelectElement={onSelectElementInLayerPanel}
-            onMoveElementLayer={onMoveElementLayer}
-            onDeleteElement={onDeleteElement}
-            onRenameElement={onRenameElement}
-            activeArtboardName={activeArtboardName}
-          />
-        </TabsContent>
       </Tabs>
     </div>
   );

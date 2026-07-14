@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, Menu, SubmenuBuilder};
+use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, Menu, MenuItemBuilder, SubmenuBuilder};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
 /// The frontend can listen on this channel for live settings updates.
@@ -25,6 +25,7 @@ const SETTINGS_FILE: &str = "settings.json";
 const MENU_ID_SHOW_ASSISTANT: &str = "abs-settings-show-assistant";
 const MENU_ID_MCP_SERVER: &str = "abs-settings-mcp-server";
 const MENU_ID_DEVTOOLS: &str = "abs-settings-devtools";
+const MENU_ID_RELOAD_WINDOW: &str = "abs-settings-reload-window";
 
 /// `#[serde(default)]` keeps old settings files readable as fields get added.
 #[derive(Clone, Serialize, Deserialize, Default)]
@@ -124,13 +125,19 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .build(app)?;
     app.manage(DevtoolsMenuItem(devtools.clone()));
 
+    let reload_window = MenuItemBuilder::with_id(MENU_ID_RELOAD_WINDOW, "Reload window")
+        .accelerator("CmdOrCtrl+R")
+        .build(app)?;
+
     let mut settings_menu = SubmenuBuilder::new(app, "Settings")
         .item(&show_assistant)
-        .item(&mcp_server);
+        .item(&mcp_server)
+        .separator()
+        .item(&reload_window);
     // A release build on macOS/Linux cannot open the inspector at all, so offer
     // no item rather than a dead one.
     if crate::devtools::SUPPORTED {
-        settings_menu = settings_menu.separator().item(&devtools);
+        settings_menu = settings_menu.item(&devtools);
     }
     let settings_menu = settings_menu.build()?;
 
@@ -165,6 +172,14 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                 let checked = devtools.is_checked().unwrap_or(false);
                 update(app, |settings| settings.devtools_open = checked);
                 crate::devtools::apply(app, checked);
+            }
+            // Not a setting, just an action: reload the app webview in place,
+            // like a browser refresh. The splash handshake is reload-safe
+            // (reveal() is idempotent), so nothing else needs to happen.
+            MENU_ID_RELOAD_WINDOW => {
+                if let Some(main) = app.get_webview_window("main") {
+                    let _ = main.reload();
+                }
             }
             _ => {}
         }

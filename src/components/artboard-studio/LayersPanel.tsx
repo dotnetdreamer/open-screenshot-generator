@@ -2,13 +2,14 @@
 import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import type { ArtboardElement } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Flat section of the right dock (bottom half, under the resize divider in
+// ArtboardStudioLayout): header strip + scrolling list, filling whatever
+// height the dock gives it.
 interface LayersPanelProps {
   elements: ArtboardElement[];
   selectedElementId: string | null;
@@ -54,7 +55,7 @@ const getElementLabel = (element: ArtboardElement): string => {
     if (element.name && element.name.trim()) {
         return element.name;
     }
-    
+
     // Fallback to auto-generated labels
     let label = `${element.type.charAt(0).toUpperCase() + element.type.slice(1)}`;
     if (element.type === 'text' && element.content) {
@@ -117,30 +118,23 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
       handleRenameCancel();
     }
   };
-  if (!activeArtboardName) {
-    return (
-      <Card className="shadow-md mt-4">
-        <CardHeader className="p-3">
-          <CardTitle className="text-base">Layers</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 text-sm text-muted-foreground">
-          Select an artboard to see its layers.
-        </CardContent>
-      </Card>
-    );
-  }
 
   const reversedElements = [...elements].reverse(); // Display top-most element at the top of the list
 
   return (
-    <Card className="shadow-md mt-4">
-      <CardHeader className="p-3">
-        <CardTitle className="text-base truncate" title={activeArtboardName}>
-          Layers: {activeArtboardName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="max-h-[calc(100vh_-_550px)]"> {/* Adjusted max-height */}
+    <div className="flex h-full flex-col bg-card">
+      <div className="flex h-9 shrink-0 items-center gap-1.5 border-b px-3">
+        <LayersIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <span className="truncate text-sm font-semibold" title={activeArtboardName}>
+          {activeArtboardName ? `Layers: ${activeArtboardName}` : 'Layers'}
+        </span>
+      </div>
+      {!activeArtboardName ? (
+        <div className="p-3 text-sm text-muted-foreground">Select an artboard to see its layers.</div>
+      ) : (
+        // Native overflow container, not Radix ScrollArea: ScrollArea under a
+        // height-capped flex parent silently stops scrolling.
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {reversedElements.length === 0 ? (
             <div className="p-3 text-sm text-muted-foreground">No elements on this artboard.</div>
           ) : (
@@ -149,7 +143,7 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                 <div
                   key={element.id}
                   className={cn(
-                    "flex items-center w-full justify-start p-1 rounded-md text-sm", 
+                    "flex items-center w-full justify-start p-1 rounded-md text-sm",
                     element.id === selectedElementId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
                   )}
                 >
@@ -179,19 +173,19 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                     </Button>
                   )}
                   <div className="flex-shrink-0 ml-auto space-x-0.5">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 p-0" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 p-0"
                       title="Move layer up"
                       onClick={() => onMoveElementLayer(element.id, 'up')}
                       disabled={index === 0} // Cannot move top-most element further up
                     >
                       <ArrowUpIcon className="w-3 h-3" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-6 w-6 p-0"
                       title="Move layer down"
                       onClick={() => onMoveElementLayer(element.id, 'down')}
@@ -199,9 +193,9 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                     >
                       <ArrowDownIcon className="w-3 h-3" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
                       title="Delete element"
                       onClick={() => onDeleteElement(element.id)}
@@ -213,8 +207,8 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
               ))}
             </div>
           )}
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </div>
   );
 }

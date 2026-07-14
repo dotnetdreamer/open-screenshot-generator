@@ -38,7 +38,8 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, InfoIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { LayersPanel } from './LayersPanel';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -76,6 +77,13 @@ import { cn } from '@/lib/utils';
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
 const DISPLAY_SCALE_FACTOR = 0.3;
+
+// Right dock (Properties + Layers) persistence. localStorage so the layout
+// survives an app relaunch, not just a reload.
+const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
+const RIGHT_DOCK_LAYERS_HEIGHT_KEY = 'abs-right-dock-layers-height';
+const LAYERS_SECTION_MIN = 120; // px, keeps the layers list usable
+const PROPERTIES_SECTION_MIN = 160; // px, keeps the properties form usable
 
 // Update the function with reduced margin
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
@@ -384,6 +392,31 @@ export function ArtboardStudioLayout() {
   const [videoProgress, setVideoProgress] = useState<VideoExportProgress | null>(null);
   const videoExportAbortRef = useRef<AbortController | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  // Right dock: Properties on top, Layers below, split by a draggable
+  // divider. Collapsed it becomes a slim vertical rail (Android Studio
+  // style). Open state and the layers section height persist across
+  // relaunches via localStorage. Lazy window reads are safe here: this
+  // subtree renders client-only (see getInitialProjectIdFromUrl). The dock
+  // is pure editor chrome outside every [data-artboard-dom-id] subtree, so
+  // PNG, video and preview output can never include it.
+  const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    try { return window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) !== '0'; } catch { return true; }
+  });
+  const [layersSectionHeight, setLayersSectionHeight] = useState<number>(() => {
+    if (typeof window === 'undefined') return 260;
+    try {
+      const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
+      return Number.isFinite(stored) ? Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)) : 260;
+    } catch { return 260; }
+  });
+  const dockContentRef = useRef<HTMLDivElement | null>(null);
+  const dividerDragRef = useRef<{ pointerId: number; startY: number; startHeight: number; lastHeight: number } | null>(null);
+
+  const setRightDockOpen = (open: boolean) => {
+    setIsRightDockOpen(open);
+    try { window.localStorage.setItem(RIGHT_DOCK_OPEN_KEY, open ? '1' : '0'); } catch {}
+  };
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -2142,13 +2175,6 @@ const generateRandomProjectName = (): string => {
                   toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
                 }
               }}
-              activeArtboardElements={activeArtboardElements}
-              selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
-              onSelectElementInLayerPanel={handleSelectElementFromLayerPanel}
-              onMoveElementLayer={handleMoveElementLayer}
-              onDeleteElement={handleDeleteElementFromLayerPanel}
-              onRenameElement={handleRenameElementFromLayerPanel}
-              activeArtboardName={activeArtboardName}
             />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
@@ -2250,18 +2276,122 @@ const generateRandomProjectName = (): string => {
               <McpServerStatus className="absolute bottom-4 right-4 z-40" />
             </div>
 
-            {/* Properties panel - right sidebar */}
-            <div className="w-80 flex-shrink-0 h-full">
-              <PropertiesPanel
-                selectedElement={selectedElementDetails}
-                onUpdateElement={handleUpdateSelectedElement}
-                activeArtboardDetails={
-                  activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
-                }
-                onUpdateArtboardDetails={handleUpdateArtboardDetails}
-                className="h-full"
-              />
-            </div>
+            {/* Right dock: Properties on top, Layers below, resizable split.
+                Collapsed it becomes a slim vertical rail with rotated labels
+                (Android Studio tool-window style). */}
+            {isRightDockOpen ? (
+              <div className="flex h-full w-80 flex-shrink-0 flex-col border-l bg-card" data-export-exclude>
+                <div className="flex h-9 shrink-0 items-center justify-between border-b pl-3 pr-1.5">
+                  <span className="text-sm font-semibold">Properties</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => setRightDockOpen(false)}
+                    title="Collapse right panel"
+                    aria-label="Collapse right panel"
+                  >
+                    <PanelRightCloseIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div ref={dockContentRef} className="flex min-h-0 flex-1 flex-col">
+                  <div className="min-h-[10rem] flex-1 overflow-hidden">
+                    <PropertiesPanel
+                      selectedElement={selectedElementDetails}
+                      onUpdateElement={handleUpdateSelectedElement}
+                      activeArtboardDetails={
+                        activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
+                      }
+                      onUpdateArtboardDetails={handleUpdateArtboardDetails}
+                      className="h-full border-l-0 shadow-none"
+                    />
+                  </div>
+                  <div
+                    role="separator"
+                    aria-orientation="horizontal"
+                    title="Drag to resize"
+                    className="group relative h-2 shrink-0 cursor-row-resize touch-none border-y bg-muted/50 hover:bg-primary/15"
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      dividerDragRef.current = {
+                        pointerId: e.pointerId,
+                        startY: e.clientY,
+                        startHeight: layersSectionHeight,
+                        lastHeight: layersSectionHeight,
+                      };
+                    }}
+                    onPointerMove={(e) => {
+                      const drag = dividerDragRef.current;
+                      if (!drag || drag.pointerId !== e.pointerId) return;
+                      const dockHeight = dockContentRef.current?.getBoundingClientRect().height ?? 800;
+                      const max = Math.max(LAYERS_SECTION_MIN, dockHeight - PROPERTIES_SECTION_MIN);
+                      const next = Math.round(
+                        Math.min(max, Math.max(LAYERS_SECTION_MIN, drag.startHeight + (drag.startY - e.clientY)))
+                      );
+                      drag.lastHeight = next;
+                      setLayersSectionHeight(next);
+                    }}
+                    onPointerUp={(e) => {
+                      const drag = dividerDragRef.current;
+                      if (!drag || drag.pointerId !== e.pointerId) return;
+                      dividerDragRef.current = null;
+                      try { window.localStorage.setItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY, String(drag.lastHeight)); } catch {}
+                    }}
+                    onPointerCancel={() => {
+                      dividerDragRef.current = null;
+                    }}
+                  >
+                    <div className="absolute left-1/2 top-1/2 h-0.5 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground/40 group-hover:bg-primary/60" />
+                  </div>
+                  {/* max-h keeps the properties form usable when a persisted
+                      height is taller than the current window allows */}
+                  <div
+                    style={{ height: layersSectionHeight }}
+                    className="max-h-[calc(100%-10rem)] shrink-0 overflow-hidden"
+                  >
+                    <LayersPanel
+                      elements={activeArtboardElements}
+                      selectedElementId={selectedElementIdOnActiveArtboard}
+                      onSelectElement={handleSelectElementFromLayerPanel}
+                      onMoveElementLayer={handleMoveElementLayer}
+                      onDeleteElement={handleDeleteElementFromLayerPanel}
+                      onRenameElement={handleRenameElementFromLayerPanel}
+                      activeArtboardName={activeArtboardName}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="flex h-full w-9 flex-shrink-0 flex-col items-center gap-1 border-l bg-card py-1.5"
+                data-export-exclude
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setRightDockOpen(true)}
+                  title="Expand right panel"
+                  aria-label="Expand right panel"
+                >
+                  <PanelRightOpenIcon className="h-4 w-4" />
+                </Button>
+                <div className="mt-1 h-px w-5 bg-border" />
+                {(['Properties', 'Layers'] as const).map((label) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    style={{ writingMode: 'vertical-rl' }}
+                    onClick={() => setRightDockOpen(true)}
+                    title={`Open ${label}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {isPreviewOpen && (

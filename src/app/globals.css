@@ -436,3 +436,19 @@ html {
   100% { transform: translateY(160%); opacity: 0; }
 }
 
+
+/* MobileNotice overlay gate: phone-sized viewport AND a coarse pointer, so a
+   desktop browser window snapped narrow never sees it. Dismissal is honored
+   before hydration via the data attribute the inline script in layout.tsx
+   stamps on <html> from sessionStorage. */
+.mobile-notice-overlay {
+  display: none;
+}
+@media (max-width: 767px) and (pointer: coarse) {
+  .mobile-notice-overlay {
+    display: flex;
+  }
+  html[data-mobile-notice-dismissed] .mobile-notice-overlay {
+    display: none;
+  }
+}
