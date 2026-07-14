@@ -33,9 +33,10 @@ jobs:
 
       - run: npm ci
 
+      # Served at the root of the custom domain (editor.openscrgen.app), so no
+      # basePath. NEXT_PUBLIC_BASE_PATH stays unset -> basePath defaults to ''.
+      # public/CNAME carries the custom domain into the published output.
       - run: npm run build
-        env:
-          NEXT_PUBLIC_BASE_PATH: /artboard-studio
 
       - uses: actions/upload-pages-artifact@v3
         with:
