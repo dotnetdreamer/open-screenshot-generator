@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://openscrgen.app/sitemap.xml

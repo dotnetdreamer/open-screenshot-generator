@@ -33,7 +33,7 @@ const initialArtboardState: ArtboardState = {
     {
       id: 'el_intro_text',
       type: 'text',
-      content: 'Welcome to Artboard Studio!',
+      content: 'Welcome to Open Screenshot Generator!',
       position: { x: 50, y: 50 },
       size: { width: 300, height: 50 },
       fontSize: 24,

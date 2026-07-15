@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Artboard Studio',
+  title: 'Open Screenshot Generator',
   description: 'Canva for App Store & Play Store graphics. Design app store screenshots and preview videos in your browser, no account needed.',
 };
 

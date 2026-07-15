@@ -238,7 +238,7 @@ export function McpServerStatus({ className }: { className?: string }) {
             </span>
           </DialogTitle>
           <DialogDescription>
-            Let external AI tools drive Artboard Studio. Add the server to a client below, then ask it to design.
+            Let external AI tools drive Open Screenshot Generator. Add the server to a client below, then ask it to design.
           </DialogDescription>
         </DialogHeader>
 

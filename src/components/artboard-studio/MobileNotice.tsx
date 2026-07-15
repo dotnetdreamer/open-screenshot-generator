@@ -47,7 +47,7 @@ export function MobileNotice() {
           <h2 className="text-lg font-semibold">Best on a desktop browser</h2>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Artboard Studio is a drag and drop design canvas with panels and
+          Open Screenshot Generator is a drag and drop design canvas with panels and
           precise controls. It works best on a desktop browser with a mouse and
           a bigger screen.
         </p>

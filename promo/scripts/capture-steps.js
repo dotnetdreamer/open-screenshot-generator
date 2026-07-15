@@ -35,14 +35,8 @@ const getRect = (sel) => `(() => {
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
 
-  const browser = await puppeteer.launch({
-    executablePath: lib.EDGE,
-    headless: true,
-    args: ['--no-sandbox', `--window-size=${VW},${VH}`],
-    defaultViewport: { width: VW, height: VH, deviceScaleFactor: DPR },
-  });
-  const page = await browser.newPage();
-  page.on('pageerror', (e) => console.log('[pageerror]', String(e).slice(0, 200)));
+  // lib.launch carries the Edge 150 launch workaround (see lib.js startBrowser).
+  const { browser, page } = await lib.launch({ width: VW, height: VH, dpr: DPR });
 
   // ---- 0. The "your screenshot" art (846x1710 @DPR2) --------------------
   const artPage = await browser.newPage();

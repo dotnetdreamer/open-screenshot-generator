@@ -77,7 +77,7 @@ export const AgentSceneMobile: React.FC = () => {
           )}px) rotateY(4deg) rotateX(1.5deg) scale(${interpolate(win, [0, 1], [0.94, 1])})`,
         }}
       >
-        <Window width={W} height={H} title="Artboard Studio">
+        <Window width={W} height={H} title="Open Screenshot Generator">
           <Img
             src={staticFile("shots/agent-dialog.png")}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}

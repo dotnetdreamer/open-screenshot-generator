@@ -24,7 +24,7 @@ import { agentUsableTemplates, buildTemplateCatalog } from './templateCatalog';
 
 /** Where the static export is published. Forks can override at build time. */
 export const PUBLIC_SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://dotnetdreamer.github.io/artboard-studio'
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://editor.openscrgen.app'
 ).replace(/\/$/, '');
 
 export const HOSTED_CATALOG_PATH = '/data/ai/catalog.txt';
@@ -73,7 +73,7 @@ export function buildHostedCatalog(templates: Project[]): HostedCatalog {
     .filter((line) => !line.endsWith(': '));
 
   const body = [
-    'Artboard Studio template catalog. Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.',
+    'Open Screenshot Generator template catalog. Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.',
     '',
     artifacts.catalogText,
     '',

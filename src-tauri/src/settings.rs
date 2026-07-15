@@ -201,7 +201,7 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         window.close_window().build()?
     };
 
-    let about_item = MenuItemBuilder::with_id(MENU_ID_ABOUT, "About Artboard Studio").build(app)?;
+    let about_item = MenuItemBuilder::with_id(MENU_ID_ABOUT, "About Open Screenshot Generator").build(app)?;
     let help_menu = SubmenuBuilder::new(app, "Help").item(&about_item).build()?;
 
     menu.append(&file_menu)?;

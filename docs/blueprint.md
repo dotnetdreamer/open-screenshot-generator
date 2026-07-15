@@ -1,4 +1,4 @@
-# **App Name**: Artboard Studio
+# **App Name**: Open Screenshot Generator
 
 ## Core Features:
 

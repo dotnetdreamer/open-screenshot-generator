@@ -1,7 +1,7 @@
 import { EXT_SOURCE, PAGE_SOURCE, type ExtMessage, type PageMessage, type RunResponse } from './protocol';
 
 /**
- * Runs inside the Artboard Studio page. Relays window.postMessage traffic to
+ * Runs inside the Open Screenshot Generator page. Relays window.postMessage traffic to
  * the background worker and back, which is what lets the app detect the
  * extension without knowing its id (unpacked installs get a random one).
  *

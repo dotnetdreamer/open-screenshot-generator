@@ -1,6 +1,6 @@
 ---
 name: gpt4free-provider-sync
-description: Check the latest xtekky/gpt4free releases for provider additions/changes and decide whether Artboard Studio's AI providers need the same. Use when asked to "check gpt4free", "see what providers gpt4free added/changed", sync/compare our providers against gpt4free, or add a new web AI provider. Also holds the full checklist for wiring a new browser (webview) provider end to end.
+description: Check the latest xtekky/gpt4free releases for provider additions/changes and decide whether Open Screenshot Generator's AI providers need the same. Use when asked to "check gpt4free", "see what providers gpt4free added/changed", sync/compare our providers against gpt4free, or add a new web AI provider. Also holds the full checklist for wiring a new browser (webview) provider end to end.
 ---
 
 # gpt4free provider sync

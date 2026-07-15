@@ -45,7 +45,7 @@ export function WebSessionModePanel({
         <AlertTitle>This mode runs in the desktop app</AlertTitle>
         <AlertDescription>
           A web page cannot reach your session on another site, so driving Claude, ChatGPT or
-          Gemini with your own account happens in the Artboard Studio desktop app. There it is a
+          Gemini with your own account happens in the Open Screenshot Generator desktop app. There it is a
           single click and your login never leaves your machine.
         </AlertDescription>
       </Alert>
@@ -58,8 +58,8 @@ export function WebSessionModePanel({
         <PlugZap className="h-4 w-4 text-emerald-600" />
         <AlertTitle>Runs on this machine</AlertTitle>
         <AlertDescription>
-          Pick an assistant. The first time, a sign-in window opens. Log in once and Artboard
-          Studio drives it for you from then on. Your login stays in that window and never leaves
+          Pick an assistant. The first time, a sign-in window opens. Log in once and Open
+          Screenshot Generator drives it for you from then on. Your login stays in that window and never leaves
           this machine. To watch it work, enable Settings &gt; &quot;Show assistant window while it
           works&quot; in the menu bar.
         </AlertDescription>

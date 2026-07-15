@@ -74,7 +74,8 @@ export const OutroScene: React.FC = () => {
         }}
       >
         <LogoTile from={4} />
-        <Title lines={["Artboard Studio"]} from={12} size={86} />
+        {/* Two lines: the name on one line would overflow the 1080-wide canvas. */}
+        <Title lines={["Open Screenshot", "Generator"]} from={12} size={86} />
         <Sub text="App Store and Play Store screenshots in minutes" from={24} size={32} />
 
         {frame >= 36 && (
@@ -93,7 +94,7 @@ export const OutroScene: React.FC = () => {
               opacity: Math.min(1, urlSpr * 1.4),
             }}
           >
-            dotnetdreamer.github.io/artboard-studio
+            openscrgen.app
           </div>
         )}
 

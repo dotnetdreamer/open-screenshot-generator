@@ -59,18 +59,24 @@ export const Outro: React.FC = () => {
         }}
       >
         <Logo size={230} startAt={0} speed={1.6} />
+        {/* Two lines: the name on one line would overflow the 1080-wide
+            portrait cut, which reuses this scene. */}
         <div
           style={{
             fontFamily: FONT_DISPLAY,
             fontWeight: 700,
             fontSize: 84,
+            lineHeight: 1.04,
             letterSpacing: "-0.02em",
+            textAlign: "center",
             color: C.ink,
             opacity: Math.min(1, name * 1.5),
             transform: `translateY(${interpolate(name, [0, 1], [40, 0])}px)`,
           }}
         >
-          Artboard Studio
+          Open Screenshot
+          <br />
+          Generator
         </div>
         <div
           style={{
@@ -99,7 +105,7 @@ export const Outro: React.FC = () => {
             boxShadow: "0 18px 50px rgba(111,179,181,0.3)",
           }}
         >
-          dotnetdreamer.github.io/artboard-studio
+          openscrgen.app
         </div>
       </div>
     </AbsoluteFill>

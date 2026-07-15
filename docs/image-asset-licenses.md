@@ -147,7 +147,7 @@ promo art for their own apps — which is the badges' intended purpose.
 - The standard license does not permit distributing a Stock asset in a way
   whose *primary purpose* is for third parties to extract it as a standalone
   file. These palette assets exist to compose the app's exports (composite
-  works). If Artboard Studio is ever marketed as a general-purpose stock/asset
+  works). If Open Screenshot Generator is ever marketed as a general-purpose stock/asset
   marketplace, revisit this: <https://stock.adobe.com/license-terms>.
 - To remove or swap an asset: delete its file from
   `public/elements/images/<group>/` and its entry in `src/lib/imageLibrary.ts`.

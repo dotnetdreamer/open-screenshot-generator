@@ -18,7 +18,7 @@ name: Release desktop app (Tauri)
 # installers attached.
 #
 # NOTE: NEXT_PUBLIC_BASE_PATH must stay UNSET here. The GitHub Pages deploy
-# (deploy.yml) builds under /artboard-studio; the desktop app is served from
+# (deploy.yml) builds under /open-screenshot-generator; the desktop app is served from
 # the bundle root, so a base path would 404 every asset.
 
 on:
@@ -96,7 +96,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
           git commit -m "release: v${version}"
-          git tag -a "v${version}" -m "Artboard Studio v${version}"
+          git tag -a "v${version}" -m "Open Screenshot Generator v${version}"
 
           # Branch and tag pushed separately and explicitly. --follow-tags would
           # skip the tag, since it only pushes annotated tags reachable from the
@@ -191,7 +191,7 @@ jobs:
           # dry run and publish exactly the release it was meant to suppress.
           # Keep the non-empty value in the `&&` slot.
           tagName: ${{ !inputs.dry_run && format('v{0}', needs.version.outputs.version) || '' }}
-          releaseName: ${{ !inputs.dry_run && format('Artboard Studio v{0}', needs.version.outputs.version) || '' }}
+          releaseName: ${{ !inputs.dry_run && format('Open Screenshot Generator v{0}', needs.version.outputs.version) || '' }}
           # Published, not a draft: all three legs append to the same release,
           # so it stays live while the slower platforms are still uploading.
           releaseDraft: false
@@ -229,7 +229,7 @@ jobs:
         shell: pwsh
         run: |
           $release = 'src-tauri/target/release'
-          $exe = @('Artboard Studio.exe', 'artboard-studio.exe') |
+          $exe = @('Open Screenshot Generator.exe', 'artboard-studio.exe') |
             ForEach-Object { Join-Path $release $_ } |
             Where-Object { Test-Path $_ } |
             Select-Object -First 1
@@ -244,11 +244,11 @@ jobs:
           }
 
           $stage = New-Item -ItemType Directory -Force -Path portable-stage
-          Copy-Item $exe -Destination (Join-Path $stage 'Artboard Studio.exe')
+          Copy-Item $exe -Destination (Join-Path $stage 'Open Screenshot Generator.exe')
           Set-Content -Path (Join-Path $stage 'README.txt') -Value @(
-            'Artboard Studio (portable)',
+            'Open Screenshot Generator (portable)',
             '',
-            'No installation needed. Run "Artboard Studio.exe".',
+            'No installation needed. Run "Open Screenshot Generator.exe".',
             '',
             'Requires the Microsoft Edge WebView2 Runtime. It is preinstalled on',
             'Windows 11 and on most Windows 10 systems. If the app does not start,',
@@ -261,7 +261,7 @@ jobs:
             'settings in %APPDATA%\com.ccrstech.artboardstudio.'
           )
 
-          $zip = 'Artboard.Studio_${{ needs.version.outputs.version }}_x64_portable.zip'
+          $zip = 'Open.Screenshot.Generator_${{ needs.version.outputs.version }}_x64_portable.zip'
           Compress-Archive -Path "$stage/*" -DestinationPath $zip -Force
           Write-Host "Created $zip"
 
@@ -273,7 +273,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload 'v${{ needs.version.outputs.version }}' 'Artboard.Studio_${{ needs.version.outputs.version }}_x64_portable.zip' --clobber
+        run: gh release upload 'v${{ needs.version.outputs.version }}' 'Open.Screenshot.Generator_${{ needs.version.outputs.version }}_x64_portable.zip' --clobber
 
       # tauri-action only uploads to a GitHub release, so a dry run would
       # otherwise leave nothing to inspect. The .app is skipped on purpose:
@@ -290,4 +290,4 @@ jobs:
             src-tauri/target/**/release/bundle/dmg/*.dmg
             src-tauri/target/**/release/bundle/appimage/*.AppImage
             src-tauri/target/**/release/bundle/deb/*.deb
-            Artboard.Studio_*_portable.zip
+            Open.Screenshot.Generator_*_portable.zip

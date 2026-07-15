@@ -1,4 +1,4 @@
-# Artboard Studio
+# Open Screenshot Generator
 
 **Canva for App Store & Play Store graphics.**
 
@@ -8,7 +8,7 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 <p align="center">
   <a href="https://youtu.be/RJmQgoreR2s">
-    <img src="docs/Youtube-Cover.png" alt="Artboard Studio walkthrough on YouTube, click to play" width="900">
+    <img src="docs/Youtube-Cover.png" alt="Open Screenshot Generator walkthrough on YouTube, click to play" width="900">
   </a>
 </p>
 <p align="center">
@@ -31,25 +31,25 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## Download the desktop app
 
-Grab the latest installer from the [Releases page](https://github.com/dotnetdreamer/artboard-studio/releases/latest):
+Grab the latest installer from the [Releases page](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest):
 
 | Platform | File |
 | --- | --- |
-| Windows 10/11 | `Artboard.Studio_<version>_x64-setup.exe` (or the `.msi`) |
-| macOS 10.15+, Intel and Apple silicon | `Artboard.Studio_<version>_universal.dmg` |
+| Windows 10/11 | `Open.Screenshot.Generator_<version>_x64-setup.exe` (or the `.msi`) |
+| macOS 10.15+, Intel and Apple silicon | `Open.Screenshot.Generator_<version>_universal.dmg` |
 | Linux | `.AppImage` (portable) or `.deb` |
 
 The builds are not code-signed yet, so the first launch takes one extra click: on Windows, SmartScreen shows "Windows protected your PC", so choose More info, then Run anyway. On macOS, right-click the app and choose Open to get past Gatekeeper. On Linux, `chmod +x` the AppImage first.
 
-Prefer the browser? The same app runs at [dotnetdreamer.github.io/artboard-studio](https://dotnetdreamer.github.io/artboard-studio/). See [docs/DESKTOP.md](docs/DESKTOP.md) for how the desktop build differs.
+Prefer the browser? The project now lives at [openscrgen.app](https://openscrgen.app), with the editor at [editor.openscrgen.app](https://editor.openscrgen.app). The same app also runs at [dotnetdreamer.github.io/open-screenshot-generator](https://dotnetdreamer.github.io/open-screenshot-generator/). See [docs/DESKTOP.md](docs/DESKTOP.md) for how the desktop build differs.
 
 ## Running it locally
 
 You'll need Node 18.18 or newer (that's Next.js 15's minimum).
 
 ```bash
-git clone https://github.com/<your-username>/artboard-studio.git
-cd artboard-studio
+git clone https://github.com/<your-username>/open-screenshot-generator.git
+cd open-screenshot-generator
 npm install
 npm run dev
 ```

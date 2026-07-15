@@ -6,7 +6,7 @@ import type { LanguageModel } from 'ai';
 /**
  * Provider registry for the "use my API key" mode.
  *
- * Artboard Studio is a static export with no server, so every call is made from
+ * Open Screenshot Generator is a static export with no server, so every call is made from
  * the browser with the user's own key. All four providers serve CORS headers
  * for direct browser calls; Anthropic additionally requires an explicit opt-in
  * header, without which every request fails as an opaque network error.

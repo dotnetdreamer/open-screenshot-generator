@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open Screenshot Generator | App Store and Play Store screenshots</title>
+  <meta name="description" content="Pick a template, drop in your app screenshots, and export every size Google Play and the App Store ask for. Free, private, and it runs in your browser." />
+  <link rel="canonical" href="https://openscrgen.app/" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0a1214" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Open Screenshot Generator" />
+  <meta property="og:title" content="Open Screenshot Generator | App Store and Play Store screenshots" />
+  <meta property="og:description" content="Pick a template, drop in your screenshots, and export every size Google Play and the App Store ask for. Free, private, and it runs in your browser." />
+  <meta property="og:url" content="https://openscrgen.app/" />
+  <meta property="og:image" content="https://openscrgen.app/assets/img/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Open Screenshot Generator | App Store and Play Store screenshots" />
+  <meta name="twitter:description" content="Pick a template, drop in your screenshots, and export every size Google Play and the App Store ask for. Free, private, and it runs in your browser." />
+  <meta name="twitter:image" content="https://openscrgen.app/assets/img/og-image.png" />
+  <meta name="twitter:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
+
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Lay out artboards, place device mockups, load your app screenshots or screen recordings, add text and shapes, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side, and nothing leaves your machine unless the optional AI agent is asked to talk to a provider.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "featureList": [
+          "Templates for App Store and Play Store screenshots",
+          "Device frames for iPhone, Android, tablets, Macs, and Apple Watch",
+          "3D device poses with perspective presets",
+          "App preview video export to MP4 in the browser",
+          "Store ready video conforming for App Store Connect",
+          "AI agent that builds a project from your screenshots",
+          "Everything runs client side, no account and no upload"
+        ],
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "HowTo",
+        "@id": "https://openscrgen.app/#howto",
+        "name": "How to create App Store and Play Store screenshots with Open Screenshot Generator",
+        "description": "Three steps take you from raw screenshots to store ready graphics.",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "position": 1,
+            "name": "Pick a template",
+            "text": "Open the gallery and choose a starting point. Every template is already sized for the stores.",
+            "image": "https://openscrgen.app/assets/img/step-1-template.webp"
+          },
+          {
+            "@type": "HowToStep",
+            "position": 2,
+            "name": "Drop in your screenshots",
+            "text": "Upload screens straight from your phone or emulator. They snap into the device frames and stay clipped to the glass.",
+            "image": "https://openscrgen.app/assets/img/step-2-upload.webp"
+          },
+          {
+            "@type": "HowToStep",
+            "position": 3,
+            "name": "Export for both stores",
+            "text": "One click renders every artboard at the exact pixel sizes Google Play and the App Store expect.",
+            "image": "https://openscrgen.app/assets/img/step-3-export.webp"
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://openscrgen.app/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is Open Screenshot Generator really free?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. The editor is free. There is no account, no watermark, and no paid tier. The full source code is public on GitHub." }
+          },
+          {
+            "@type": "Question",
+            "name": "Where do my screenshots go when I upload them?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Nowhere. The whole editor runs client side in your browser. Projects and uploads are stored in your browser storage on your own machine, and there is no backend to send them to. That storage is a working copy. Clearing your browser site data deletes it, so treat exported PNGs and MP4s as the real output." }
+          },
+          {
+            "@type": "Question",
+            "name": "Which sizes can it export?",
+            "acceptedAnswer": { "@type": "Answer", "text": "The export flow asks which store and which device classes you are targeting, then renders each artboard to PNG at the required dimensions for Google Play and the App Store, including iPhone and iPad sizes." }
+          },
+          {
+            "@type": "Question",
+            "name": "Can it make App Store preview videos?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Drop a screen recording into a phone frame, add your headline and tap hints, and export an MP4. A separate mode conforms your raw capture to exactly what App Store Connect accepts, which is 886 by 1920 at 30 fps in H.264. Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On other browsers the export stops with a clear message, and PNG export works everywhere." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does the AI agent need an API key?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Not necessarily. You can bring your own key for Anthropic, OpenAI, or Google, or use the accounts you are already signed into, like Claude, ChatGPT, or Gemini. The desktop app drives the signed in mode automatically. In the browser it works through a small companion extension, with a manual copy and paste fallback. The desktop app also ships keyless providers." }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need design skills?",
+            "acceptedAnswer": { "@type": "Answer", "text": "No. Templates carry the design decisions for you. Pick one, swap in your screenshots, adjust the words, and export. If you enjoy designing, the full editor with text, shapes, fonts, and 3D device poses is there too." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-header" id="top">
+    <a class="brand" href="#top" aria-label="Open Screenshot Generator, back to top">
+      <img src="assets/logo.svg" alt="" width="34" height="34" />
+      <span class="brand-name">Open Screenshot <em>Generator</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#templates">Templates</a>
+      <a href="#features">Features</a>
+      <a href="#agent">AI agent</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-gold btn-small" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+  </header>
+
+  <main id="main">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <p class="eyebrow reveal">Free. Source on GitHub. Runs in your browser</p>
+      <h1 class="hero-title">
+        <span class="selection">
+          <span class="handle tl"></span><span class="handle tr"></span><span class="handle bl"></span><span class="handle br"></span>
+          <span class="line">Make your app</span>
+          <span class="line">impossible to <em>scroll past</em></span>
+        </span>
+      </h1>
+      <p class="hero-sub reveal">
+        Open Screenshot Generator is a design studio for App Store and Play Store graphics.
+        Pick a template, drop in your screenshots, and export every size both stores ask for.
+        Your work stays on your machine unless you invite the AI agent to help
+      </p>
+      <div class="hero-cta reveal">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest" rel="noopener">Download for desktop</a>
+      </div>
+      <p class="hero-fineprint reveal">Free forever. No account. No watermark</p>
+      <div class="scroll-hint" aria-hidden="true"><span></span>Scroll</div>
+
+      <div class="hero-fallback" aria-hidden="true">
+        <img src="assets/img/strip-cinevault-stream.webp" alt="" loading="eager" />
+        <img src="assets/img/strip-breathora-breathing.webp" alt="" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>App Store screenshots</span><i>✦</i>
+        <span>Play Store screenshots</span><i>✦</i>
+        <span>Preview videos</span><i>✦</i>
+        <span>Feature graphics</span><i>✦</i>
+        <span>Apple Watch</span><i>✦</i>
+        <span>iPhone and Android</span><i>✦</i>
+        <span>Tablets and Macs</span><i>✦</i>
+        <span>3D device poses</span><i>✦</i>
+        <!-- Duplicate pass so the minus fifty percent loop is seamless -->
+        <span>App Store screenshots</span><i>✦</i>
+        <span>Play Store screenshots</span><i>✦</i>
+        <span>Preview videos</span><i>✦</i>
+        <span>Feature graphics</span><i>✦</i>
+        <span>Apple Watch</span><i>✦</i>
+        <span>iPhone and Android</span><i>✦</i>
+        <span>Tablets and Macs</span><i>✦</i>
+        <span>3D device poses</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- ============ STEPS ============ -->
+    <section class="steps" id="how" aria-labelledby="how-title">
+      <div class="steps-pin">
+        <div class="steps-copy">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title">Three steps, and that is the whole process</h2>
+          <ol class="steps-list">
+            <li class="step-item is-active" data-step="0">
+              <span class="step-num" aria-hidden="true">1</span>
+              <h3>Pick a template</h3>
+              <p>Open the gallery and choose a starting point. There are designs for fitness, finance, podcasts, games, chat and plenty more, each one already sized for the stores</p>
+            </li>
+            <li class="step-item" data-step="1">
+              <span class="step-num" aria-hidden="true">2</span>
+              <h3>Drop in your screenshots</h3>
+              <p>Upload screens straight from your phone or emulator. They snap into the device frames and stay clipped to the glass, even when you tilt the phone in 3D</p>
+            </li>
+            <li class="step-item" data-step="2">
+              <span class="step-num" aria-hidden="true">3</span>
+              <h3>Export for both stores</h3>
+              <p>One click renders every artboard at the exact pixel sizes Google Play and the App Store expect. No resizing in another tool and no rejections over pixels</p>
+            </li>
+          </ol>
+          <div class="steps-progress" aria-hidden="true">
+            <span class="steps-counter">01</span>
+            <span class="steps-bar"><span class="steps-bar-fill"></span></span>
+            <span>03</span>
+          </div>
+        </div>
+        <div class="steps-stage" aria-hidden="false">
+          <figure class="step-fallback" data-step="0">
+            <img src="assets/img/step-1-template.webp" alt="The template gallery, showing screenshot sets for yoga, blogging, breathing and wedding apps" loading="lazy" width="1680" height="1260" />
+          </figure>
+          <figure class="step-fallback" data-step="1">
+            <img src="assets/img/step-2-upload.webp" alt="The editor with an uploaded fitness app screenshot selected inside an iPhone frame" loading="lazy" width="1680" height="1260" />
+          </figure>
+          <figure class="step-fallback" data-step="2">
+            <img src="assets/img/step-3-export.webp" alt="The export preview showing a finished artboard at 1290 by 2796 pixels" loading="lazy" width="1680" height="1260" />
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TEMPLATES WALL ============ -->
+    <section class="wall" id="templates" aria-labelledby="wall-title">
+      <div class="wall-pin">
+        <div class="wall-head">
+          <p class="eyebrow">Templates</p>
+          <h2 id="wall-title">Start ahead of the <em>blank page</em></h2>
+          <p class="wall-sub">Every set below was designed and exported inside the app. Streaming, meditation, crypto, podcasts, beauty, games. Pick one and make it yours</p>
+        </div>
+        <div class="wall-fallback">
+          <img src="assets/img/strip-cinevault-stream.webp" alt="A dark streaming app screenshot set with gold headlines" loading="lazy" width="1536" height="512" />
+          <img src="assets/img/strip-breathora-breathing.webp" alt="A deep green screenshot set for a breathing and mindfulness app" loading="lazy" width="1536" height="512" />
+          <img src="assets/img/strip-luxe-glow.webp" alt="A soft pink screenshot set for a beauty subscription app" loading="lazy" width="1536" height="512" />
+          <img src="assets/img/strip-coinly-crypto.webp" alt="A screenshot set for a crypto portfolio app" loading="lazy" width="1536" height="512" />
+          <img src="assets/img/strip-playverse-games.webp" alt="A colorful screenshot set for a gaming app" loading="lazy" width="1536" height="512" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="features" id="features" aria-labelledby="features-title">
+      <p class="eyebrow reveal">What you get</p>
+      <h2 id="features-title" class="reveal">A real design tool, not a screenshot stamper</h2>
+      <ul class="feature-grid">
+        <li class="feature-card reveal">
+          <span class="feature-index" aria-hidden="true">01</span>
+          <h3>Every device that matters</h3>
+          <p>iPhone, Android, tablets, Macs and Apple Watch. Rotate them, scale them, or tilt them into 3D poses. Screenshots stay clipped to the glass whatever you do to the frame</p>
+        </li>
+        <li class="feature-card reveal">
+          <span class="feature-index" aria-hidden="true">02</span>
+          <h3>Design tools that respect you</h3>
+          <p>Text, shapes, arrows, blobs, speech bubbles and images, all freely placed on artboards with layers and undo across the whole project. A curated set of Google Fonts includes Arabic and Urdu families</p>
+        </li>
+        <li class="feature-card reveal">
+          <span class="feature-index" aria-hidden="true">03</span>
+          <h3>App preview videos too</h3>
+          <p>Drop a screen recording into a phone frame, dress it with headlines and tap hints, and export an MP4. A second mode conforms your raw capture to exactly what App Store Connect accepts, so uploads stop bouncing. Video export needs a browser with WebCodecs, like Chrome or Edge, and the desktop app always has it</p>
+        </li>
+        <li class="feature-card reveal">
+          <span class="feature-index" aria-hidden="true">04</span>
+          <h3>An AI agent that does the layout</h3>
+          <p>Hand it your screenshots and one sentence about what you want. It picks a template, places every screen in the right frame, and rewrites the copy for your app</p>
+        </li>
+        <li class="feature-card reveal">
+          <span class="feature-index" aria-hidden="true">05</span>
+          <h3>Private by architecture</h3>
+          <p>There is no backend. Projects live in your browser storage, exports render on your own machine, and your screenshots never travel unless you hand them to the AI provider you choose. Privacy here is not a policy, it is a missing server</p>
+        </li>
+        <li class="feature-card reveal">
+          <span class="feature-index" aria-hidden="true">06</span>
+          <h3>Source in the open, browser and desktop</h3>
+          <p>The full source code is public on GitHub. Use it in any modern browser, or grab the desktop app for Windows, macOS and Linux</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ============ AI AGENT ============ -->
+    <section class="agent" id="agent" aria-labelledby="agent-title">
+      <div class="agent-copy">
+        <p class="eyebrow reveal">The AI agent</p>
+        <h2 id="agent-title" class="reveal">Upload screenshots. Say what you want. <em>Done</em></h2>
+        <p class="reveal">The agent takes your screens plus a sentence like put these in a clean dark template, then chooses the template, fills every frame, and rewrites the headlines for your app. It never draws freehand, so a weak plan gives you an odd design rather than a broken one</p>
+        <ul class="agent-modes">
+          <li class="reveal"><strong>Use my API key</strong> Calls go straight from your browser to Anthropic, OpenAI or Google. Your key stays on your machine</li>
+          <li class="reveal"><strong>Free, use my account</strong> Works with the Claude, ChatGPT or Gemini session you already have open. Fully automatic in the desktop app. In the browser it works through a small companion extension, with a manual copy and paste fallback</li>
+          <li class="reveal"><strong>Free, built in</strong> The desktop app ships keyless providers, including local Ollama and LM Studio</li>
+        </ul>
+      </div>
+      <figure class="agent-shot reveal">
+        <img src="assets/img/shot-agent.webp" alt="The AI agent dialog, asking for screenshots and a sentence about what to build" loading="lazy" width="1920" height="1080" />
+      </figure>
+    </section>
+
+    <!-- ============ PRIVACY ============ -->
+    <section class="privacy-hero" id="privacy-first" aria-labelledby="privacy-title">
+      <h2 id="privacy-title" class="privacy-line">
+        <span class="line">Nothing leaves</span>
+        <span class="line"><em>your machine</em></span>
+      </h2>
+      <p class="privacy-sub reveal">No account. No analytics. No upload. The editor is a static page, your projects live in your own browser storage, and the exports are rendered locally. You could cut your internet after it loads and keep working on the project you have open. The optional AI agent is the one exception, and it only talks to the provider you pick</p>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="cta" id="get-started" aria-labelledby="cta-title">
+      <h2 id="cta-title" class="reveal">Your store page could look better <em>tonight</em></h2>
+      <p class="reveal">Open the editor, pick a template, and export something you are proud to ship</p>
+      <div class="hero-cta reveal">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">Star it on GitHub</a>
+        <a class="btn btn-ghost" href="https://youtu.be/RJmQgoreR2s" rel="noopener">Watch the walkthrough</a>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <p class="eyebrow reveal">Questions</p>
+      <h2 id="faq-title" class="reveal">Fair questions, straight answers</h2>
+      <div class="faq-list">
+        <details class="reveal">
+          <summary>Is Open Screenshot Generator really free?</summary>
+          <p>Yes. The editor is free. There is no account, no watermark, and no paid tier. The full source code is public on GitHub</p>
+        </details>
+        <details class="reveal">
+          <summary>Where do my screenshots go when I upload them?</summary>
+          <p>Nowhere. The whole editor runs client side in your browser. Projects and uploads are stored in your browser storage on your own machine, and there is no backend to send them to. That storage is a working copy. Clearing your browser site data deletes it, so treat exported PNGs and MP4s as the real output</p>
+        </details>
+        <details class="reveal">
+          <summary>Which sizes can it export?</summary>
+          <p>The export flow asks which store and which device classes you are targeting, then renders each artboard to PNG at the required dimensions for Google Play and the App Store, including iPhone and iPad sizes</p>
+        </details>
+        <details class="reveal">
+          <summary>Can it make App Store preview videos?</summary>
+          <p>Yes. Drop a screen recording into a phone frame, add your headline and tap hints, and export an MP4. A separate mode conforms your raw capture to exactly what App Store Connect accepts, which is 886 by 1920 at 30 fps in H.264. Encoding happens in your browser and nothing is uploaded. Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On other browsers the export stops with a clear message, and PNG export works everywhere</p>
+        </details>
+        <details class="reveal">
+          <summary>Does the AI agent need an API key?</summary>
+          <p>Not necessarily. You can bring your own key for Anthropic, OpenAI or Google, or use the accounts you are already signed into, like Claude, ChatGPT or Gemini. The desktop app drives the signed in mode automatically. In the browser it works through a small companion extension, with a manual copy and paste fallback. The desktop app also ships keyless providers</p>
+        </details>
+        <details class="reveal">
+          <summary>Do I need design skills?</summary>
+          <p>No. Templates carry the design decisions for you. Pick one, swap in your screenshots, adjust the words, and export. If you enjoy designing, the full editor with text, shapes, fonts and 3D device poses is there too</p>
+        </details>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="#top" aria-label="Open Screenshot Generator, back to top">
+          <img src="assets/logo.svg" alt="" width="40" height="40" />
+          <span class="brand-name">Open Screenshot <em>Generator</em></span>
+        </a>
+        <p>Store ready screenshots, feature graphics and preview videos, designed in your browser and kept on your machine</p>
+      </div>
+      <nav class="footer-col" aria-label="Product">
+        <h3>Product</h3>
+        <a href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest" rel="noopener">Desktop downloads</a>
+        <a href="https://youtu.be/RJmQgoreR2s" rel="noopener">Video walkthrough</a>
+        <a href="#how">How it works</a>
+      </nav>
+      <nav class="footer-col" aria-label="Project">
+        <h3>Project</h3>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">GitHub</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Report an issue</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator#readme" rel="noopener">Documentation</a>
+      </nav>
+      <nav class="footer-col" aria-label="Legal">
+        <h3>Legal</h3>
+        <a href="privacy.html">Privacy policy</a>
+        <a href="terms.html">Terms of use</a>
+        <a href="mailto:info@ccrstech.com">Contact</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Open Screenshot Generator. Built with care, shipped for free</p>
+      <p>All product screens on this page were exported from the app itself</p>
+    </div>
+  </footer>
+
+  <script>
+    // Progressive enhancement flag: CSS hides fallbacks only when JS and WebGL are alive.
+    document.documentElement.classList.add('js');
+    // Watchdog: if the module or a CDN script never finishes (offline, blocked,
+    // parse error), fall back to the static images instead of hiding content.
+    setTimeout(function () {
+      var c = document.documentElement.classList;
+      if (!c.contains('webgl') && !c.contains('no-webgl')) c.add('no-webgl');
+    }, 7000);
+  </script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.185.0/build/three.module.js" } }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

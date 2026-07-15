@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Artboard Studio companion",
+  "name": "Open Screenshot Generator companion",
   "version": "1.0.0",
-  "description": "Lets Artboard Studio's AI agent use the Claude, ChatGPT, Gemini, Copilot, DeepSeek, Qwen, Perplexity or GLM (Z.ai) account you are already signed into.",
+  "description": "Lets Open Screenshot Generator's AI agent use the Claude, ChatGPT, Gemini, Copilot, DeepSeek, Qwen, Perplexity or GLM (Z.ai) account you are already signed into.",
   "permissions": ["tabs", "scripting"],
   "host_permissions": [
     "https://claude.ai/*",
@@ -25,6 +25,8 @@
         "http://localhost:9002/*",
         "http://localhost:3000/*",
         "http://127.0.0.1:9002/*",
+        "https://editor.openscrgen.app/*",
+        "https://openscrgen.app/*",
         "https://*.github.io/*"
       ],
       "js": ["dist/bridge.js"],

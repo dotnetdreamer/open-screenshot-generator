@@ -1,0 +1,13 @@
+{
+  "name": "Open Screenshot Generator",
+  "short_name": "Open ScrGen",
+  "description": "Free App Store and Play Store screenshot maker that runs in your browser.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0a1214",
+  "theme_color": "#0a1214",
+  "icons": [
+    { "src": "assets/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

@@ -3,7 +3,7 @@
 //! When the user turns it on (Settings menu, off by default), the app hosts a
 //! Model Context Protocol server on `http://127.0.0.1:<port>/mcp` using the
 //! Streamable HTTP transport. Any MCP client (Claude Desktop, Claude Code,
-//! Cursor, ...) can then drive Artboard Studio: list/create artboards, add and
+//! Cursor, ...) can then drive Open Screenshot Generator: list/create artboards, add and
 //! edit elements, set backgrounds, and render an artboard to PNG.
 //!
 //! Split of responsibilities:
@@ -292,7 +292,7 @@ fn bridge_request<R: Runtime>(
     let id = message.get("id").cloned().unwrap_or(Value::Null);
 
     if app.get_webview_window("main").is_none() {
-        return rpc_error(id, -32000, "the Artboard Studio window is not available");
+        return rpc_error(id, -32000, "the Open Screenshot Generator window is not available");
     }
 
     let call_id = format!("call-{}", next_id.fetch_add(1, Ordering::Relaxed));

@@ -1,0 +1,27 @@
+# Open Screenshot Generator
+
+> Open Screenshot Generator is a free design studio for App Store and Play Store graphics, with its source code public on GitHub. It runs entirely in the browser with no account and no backend. Users pick a template, drop in their app screenshots, and export PNGs at the exact sizes Google Play and the Apple App Store require. It also exports App Store preview videos as MP4, encoded locally with WebCodecs in browsers that support it, such as Chrome and Edge, and always in the desktop app.
+
+Key facts:
+
+- The editor lives at https://editor.openscrgen.app/ and requires no signup.
+- Everything runs client side. Projects, screenshots, and recordings are stored in the browser's IndexedDB and never uploaded anywhere. Clearing the browser's site data deletes them, so exported files are the real output.
+- Device frames cover iPhone, Android, tablets, Macs, and Apple Watch, including 3D poses with perspective control.
+- The export flow renders each artboard to PNG at the required store dimensions for Google Play and the App Store.
+- A preview video mode exports MP4 files, and a store ready mode conforms raw captures to 886 by 1920 at 30 fps in H.264 for App Store Connect. Video export needs WebCodecs, so it works in Chrome, Edge, and the desktop app, while PNG export works in any modern browser.
+- An AI agent can build a complete project from the user's screenshots plus one sentence of instructions. It works with the user's own API key for Anthropic, OpenAI, or Google, with an existing Claude, ChatGPT, or Gemini account, or with keyless providers in the desktop app. The signed in account mode is fully automatic in the desktop app, while the browser uses a small companion extension with a manual copy and paste fallback. Anything sent to a provider is governed by that provider's terms, and the agent is entirely optional.
+- Desktop apps are available for Windows, macOS, and Linux.
+- The source code is public at https://github.com/dotnetdreamer/open-screenshot-generator.
+
+## Pages
+
+- [Home](https://openscrgen.app/): product overview, the three step workflow, features, templates, and FAQ.
+- [Privacy policy](https://openscrgen.app/privacy.html): no accounts, no analytics, and no data collection by design.
+- [Terms of use](https://openscrgen.app/terms.html): plain language terms for the free service.
+
+## Related
+
+- [The editor](https://editor.openscrgen.app/): the actual application.
+- [GitHub repository](https://github.com/dotnetdreamer/open-screenshot-generator): source code, issues, and releases.
+- [Desktop downloads](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest): installers for Windows, macOS, and Linux.
+- [Video walkthrough](https://youtu.be/RJmQgoreR2s): a guided tour on YouTube.

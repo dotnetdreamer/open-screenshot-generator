@@ -1,6 +1,6 @@
 # Desktop app (Tauri)
 
-Artboard Studio ships as a native desktop app for Windows and macOS using
+Open Screenshot Generator ships as a native desktop app for Windows and macOS using
 [Tauri v2](https://v2.tauri.app). The same Next.js static export that powers the
 web app is embedded in a native shell (WebView2 on Windows, WKWebView on macOS),
 so there is one codebase for web and desktop.
@@ -45,8 +45,8 @@ npm run tauri:build   # release bundles
 
 Build artifacts land in `src-tauri/target/release/bundle/`:
 
-- Windows: `msi/Artboard Studio_<version>_x64_en-US.msi` and `nsis/Artboard Studio_<version>_x64-setup.exe`
-- macOS: `macos/Artboard Studio.app` and `dmg/Artboard Studio_<version>_<arch>.dmg`
+- Windows: `msi/Open.Screenshot.Generator_<version>_x64_en-US.msi` and `nsis/Open.Screenshot.Generator_<version>_x64-setup.exe` (Tauri replaces the spaces in the product name with dots for these two)
+- macOS: `macos/Open Screenshot Generator.app` and `dmg/Open Screenshot Generator_<version>_<arch>.dmg`
 
 Both installers are immediately usable for direct distribution (download from a
 website, GitHub Releases, etc.). Store submission needs signing, below.
@@ -150,7 +150,7 @@ least resistance for Tauri apps:
    produces signed artifacts.
 3. Host the signed installer at a stable HTTPS URL (a GitHub Release asset URL
    works).
-4. In Partner Center, create a new app, reserve the name "Artboard Studio",
+4. In Partner Center, create a new app, reserve the name "Open Screenshot Generator",
    choose the EXE/MSI app type, and point the submission at the installer URL.
    Fill in the silent install switch (`/S` for NSIS), listing assets (the
    `src-tauri/icons/Square*Logo.png` and `StoreLogo.png` tiles fit the required
@@ -198,8 +198,8 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
 
    ```sh
    xcrun productbuild --sign "3rd Party Mac Developer Installer: <Team Name> (<TeamID>)" \
-     --component "src-tauri/target/universal-apple-darwin/release/bundle/macos/Artboard Studio.app" \
-     /Applications "Artboard Studio.pkg"
+     --component "src-tauri/target/universal-apple-darwin/release/bundle/macos/Open Screenshot Generator.app" \
+     /Applications "Open Screenshot Generator.pkg"
    ```
 
 6. Upload with the Transporter app (or `xcrun altool --upload-app`), then
@@ -288,7 +288,7 @@ already-signed-in Gemini run flash its window open then closed on a cold start.
 
 The desktop app can host a local [Model Context Protocol](https://modelcontextprotocol.io)
 server so an external AI client (Claude Code, Claude Desktop, Cursor, ...) can
-drive Artboard Studio: list/create artboards, add and edit elements, set
+drive Open Screenshot Generator: list/create artboards, add and edit elements, set
 backgrounds, and render an artboard to PNG.
 
 **Turning it on.** It is **off by default** and manual: toggle **Settings ▸ Run

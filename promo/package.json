@@ -2,7 +2,7 @@
   "name": "artboard-studio-promo",
   "version": "0.1.0",
   "private": true,
-  "description": "Remotion promo video for Artboard Studio",
+  "description": "Remotion promo video for Open Screenshot Generator",
   "scripts": {
     "studio": "remotion studio",
     "render": "remotion render Promo out/artboard-studio-promo.mp4",

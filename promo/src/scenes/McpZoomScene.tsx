@@ -174,7 +174,7 @@ const McpDialog: React.FC<{ appearAt: number }> = ({ appearAt }) => {
         </span>
       </div>
       <div style={{ marginTop: 7, fontSize: 15, color: "#68716F" }}>
-        Let external AI tools drive Artboard Studio
+        Let external AI tools drive Open Screenshot Generator
       </div>
 
       <div style={{ marginTop: 24, ...label }}>Server URL</div>

@@ -22,7 +22,7 @@ import type {
 const MCP_REQUEST_EVENT = 'abs-mcp-request';
 const MCP_STATUS_EVENT = 'abs-mcp-status';
 
-const SERVER_INFO = { name: 'artboard-studio', title: 'Artboard Studio', version: '0.1.0' };
+const SERVER_INFO = { name: 'artboard-studio', title: 'Open Screenshot Generator', version: '0.1.0' };
 const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 
 // ---------------------------------------------------------------------------
@@ -385,7 +385,7 @@ export async function handleMcpMessage(
         capabilities: { tools: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
-          'Artboard Studio design tools. Use list_artboards to discover ids, create_artboard / add_element / update_element to build a screen, and export_png to render it.',
+          'Open Screenshot Generator design tools. Use list_artboards to discover ids, create_artboard / add_element / update_element to build a screen, and export_png to render it.',
       });
     case 'ping':
       return rpcResult(id, {});
@@ -397,7 +397,7 @@ export async function handleMcpMessage(
       if (!tool) return rpcError(id, -32602, `Unknown tool: ${name}`);
       if (!api) {
         return rpcResult(id, {
-          content: [{ type: 'text', text: 'Artboard Studio is not ready yet. Try again in a moment.' }],
+          content: [{ type: 'text', text: 'Open Screenshot Generator is not ready yet. Try again in a moment.' }],
           isError: true,
         });
       }

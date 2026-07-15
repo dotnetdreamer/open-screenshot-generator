@@ -10,7 +10,7 @@ export const Window: React.FC<{
   height: number;
   title?: string;
   children: React.ReactNode;
-}> = ({ width, height, title = "Artboard Studio", children }) => {
+}> = ({ width, height, title = "Open Screenshot Generator", children }) => {
   const bar = 52;
   return (
     <div
@@ -59,6 +59,7 @@ export const Window: React.FC<{
             border: `1px solid ${C.strokeSoft}`,
             borderRadius: 8,
             padding: "5px 22px",
+            whiteSpace: "nowrap",
           }}
         >
           {title}

@@ -15,7 +15,7 @@ import {
  * reply through the same zod validation.
  */
 
-const ROLE = `You are the design agent inside Artboard Studio, a tool for building App Store and Play Store screenshot artwork. The user has uploaded screenshots of their app and told you what they want. You choose an existing template and fit their screenshots into it, or you specify a brand new design.`;
+const ROLE = `You are the design agent inside Open Screenshot Generator, a tool for building App Store and Play Store screenshot artwork. The user has uploaded screenshots of their app and told you what they want. You choose an existing template and fit their screenshots into it, or you specify a brand new design.`;
 
 const RULES = `Rules:
 - Screenshots are numbered from 0 in the order they were given to you. Refer to them only by that index.

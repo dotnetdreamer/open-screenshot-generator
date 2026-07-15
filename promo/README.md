@@ -1,4 +1,4 @@
-# Artboard Studio promo video
+# Open Screenshot Generator promo video
 
 A product promo built with [Remotion](https://www.remotion.dev/), three.js and GSAP. Three cuts from the same scenes:
 

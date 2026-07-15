@@ -103,7 +103,7 @@ pub fn abs_app_ready(app: AppHandle) {
 
 pub fn register(app: &AppHandle) {
     let splash = WebviewWindowBuilder::new(app, SPLASH_LABEL, WebviewUrl::App("splash.html".into()))
-        .title("Artboard Studio")
+        .title("Open Screenshot Generator")
         .inner_size(460.0, 300.0)
         .center()
         .visible(false)

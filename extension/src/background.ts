@@ -10,7 +10,7 @@ import { WEB_ADAPTERS, WEB_PROVIDER_IDS } from '../../src/lib/ai/webAdapters';
 /**
  * Routes one generate request: find (or open) the assistant's tab in the
  * background, inject its adapter, hand over the prompt and images, and relay
- * progress and the final answer back to the Artboard Studio tab.
+ * progress and the final answer back to the Open Screenshot Generator tab.
  *
  * The assistant tab is opened inactive so the studio stays on top.
  */

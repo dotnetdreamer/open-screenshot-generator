@@ -1,23 +1,58 @@
 /**
- * Reusable helpers for driving Artboard Studio in headless Edge.
+ * Reusable helpers for driving Open Screenshot Generator in headless Edge.
  * See ../SKILL.md for the rules these encode (clip screenshots, Radix tabs,
  * rAF-starved waits, project-creation settling, download capture).
  */
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { spawn } = require('child_process');
 
 const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const APP_URL = 'http://localhost:9002';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function launch({ width = 1720, height = 1400, downloadDir } = {}) {
-  const browser = await puppeteer.launch({
-    executablePath: EDGE,
-    headless: true,
-    args: ['--no-sandbox', `--window-size=${width},${height}`, '--force-device-scale-factor=1'],
-    defaultViewport: { width, height },
-  });
+/**
+ * Edge 150 broke puppeteer.launch: the process it starts hands off to a child and
+ * exits 0, so puppeteer reports "Failed to launch the browser process: Code: 0".
+ * Start Edge ourselves with a debug port and connect to it instead. Kept as a
+ * fallback rather than the only path, so this keeps working if Edge fixes it.
+ */
+async function startBrowser({ width, height, dpr }) {
+  const args = [
+    '--no-sandbox',
+    `--window-size=${width},${height}`,
+    `--force-device-scale-factor=${dpr}`,
+  ];
+  const defaultViewport = { width, height, deviceScaleFactor: dpr };
+  try {
+    return await puppeteer.launch({ executablePath: EDGE, headless: true, args, defaultViewport });
+  } catch (err) {
+    const port = 9200 + Math.floor(Math.random() * 500);
+    const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'abs-edge-'));
+    const child = spawn(
+      EDGE,
+      ['--headless', `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, ...args, 'about:blank'],
+      { detached: true, stdio: 'ignore' }
+    );
+    child.unref();
+    const browserURL = `http://127.0.0.1:${port}`;
+    for (let i = 0; i < 40; i++) {
+      try {
+        const b = await puppeteer.connect({ browserURL, defaultViewport });
+        return b;
+      } catch {
+        await sleep(250);
+      }
+    }
+    throw new Error(`Edge did not expose a debug port on ${port}: ${err.message}`);
+  }
+}
+
+async function launch({ width = 1720, height = 1400, dpr = 1, downloadDir } = {}) {
+  const browser = await startBrowser({ width, height, dpr });
   const page = await browser.newPage();
   page.on('pageerror', (e) => console.log('[pageerror]', String(e).slice(0, 300)));
   if (downloadDir) {

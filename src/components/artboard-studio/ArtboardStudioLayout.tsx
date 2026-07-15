@@ -373,7 +373,7 @@ export function ArtboardStudioLayout() {
       if (cancelled) return disposeStatus();
       const status = await getMcpStatus();
       if (status.running && status.url) {
-        console.info(`[MCP] Artboard Studio design tools available at ${status.url}`);
+        console.info(`[MCP] Open Screenshot Generator design tools available at ${status.url}`);
       }
     })();
     return () => {
@@ -1834,7 +1834,7 @@ export function ArtboardStudioLayout() {
         if (!importedData.id || !importedData.timestamp || !importedData.projectData) {
           toast({
             title: "Invalid File Format",
-            description: "The selected file does not appear to be a valid Artboard Studio project.",
+            description: "The selected file does not appear to be a valid Open Screenshot Generator project.",
             variant: "destructive",
           });
           return;
@@ -2259,7 +2259,8 @@ const generateRandomProjectName = (): string => {
             <div className="flex items-center gap-3 px-2 py-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <Logo withBackground className="h-10 w-10 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8" />
               <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
-                <span className="truncate text-base font-semibold leading-tight tracking-tight">Artboard Studio</span>
+                {/* Wraps rather than truncates: the name is too long for one line here. */}
+                <span className="text-sm font-semibold leading-tight tracking-tight">Open Screenshot Generator</span>
                 <span className="text-xs leading-tight text-muted-foreground">Canva for App Store &amp; Play Store graphics</span>
               </div>
             </div>
@@ -2540,7 +2541,7 @@ const generateRandomProjectName = (): string => {
                 <div className="flex items-center gap-3">
                   <Logo withBackground className="h-12 w-12" />
                   <div className="text-left">
-                    <DialogTitle>Artboard Studio</DialogTitle>
+                    <DialogTitle>Open Screenshot Generator</DialogTitle>
                     <DialogDescription>Version {packageJson.version}</DialogDescription>
                   </div>
                 </div>
@@ -2556,14 +2557,14 @@ const generateRandomProjectName = (): string => {
               <DialogFooter className="gap-2 sm:justify-between">
                 <Button variant="outline" asChild>
                   <a
-                    href="https://github.com/dotnetdreamer/artboard-studio"
+                    href="https://github.com/dotnetdreamer/open-screenshot-generator"
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
                       // WebViews ignore target=_blank; route to the system browser
                       if (isTauri()) {
                         e.preventDefault();
-                        openExternal("https://github.com/dotnetdreamer/artboard-studio");
+                        openExternal("https://github.com/dotnetdreamer/open-screenshot-generator");
                       }
                     }}
                   >

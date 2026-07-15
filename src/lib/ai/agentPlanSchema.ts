@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { DeviceType } from '@/types/artboard';
 
 /**
- * The single contract between the AI agent and Artboard Studio.
+ * The single contract between the AI agent and Open Screenshot Generator.
  *
  * Both execution modes (API key via the Vercel AI SDK, and the browser-session
  * mode that drives claude.ai / chatgpt.com / gemini.google.com) produce one of
