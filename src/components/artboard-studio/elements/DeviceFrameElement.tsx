@@ -1,6 +1,7 @@
 "use client";
 import type React from 'react';
 import { useState, useRef, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
@@ -8,8 +9,24 @@ import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, Dev
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
-import { Device3DRenderer } from './Device3DRenderer';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
+
+// three.js (~145 KB gz) only ships when a 3D device is actually rendered. A
+// static import pulled the whole WebGL renderer onto the first-paint critical
+// path of every visit, including 2D-only projects. next/dynamic (ssr:false —
+// already implied by 'use client' + output:'export') defers it to the first 3D
+// device mount; a spinner covers the brief chunk fetch.
+const Device3DRenderer = dynamic(
+  () => import('./Device3DRenderer').then((m) => m.Device3DRenderer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      </div>
+    ),
+  }
+);
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;

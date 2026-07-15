@@ -5,7 +5,9 @@ import { BASE_PATH } from '@/lib/basePath';
 // Function to load all available project files from data/projects folder.
 // Iterates the TEMPLATE_CATEGORIES catalog so every returned Project is tagged
 // with its `category` id; the Start-a-New-Project dialog groups them into tabs.
-export async function loadProjectTemplates(): Promise<Project[]> {
+export async function loadProjectTemplates(
+  onProgress?: (done: number, total: number) => void
+): Promise<Project[]> {
   // Flatten the catalog into (category, filename) tasks so every template fetches
   // CONCURRENTLY. The previous nested for-loop awaited each fetch before starting
   // the next, so opening the picker meant ~57 sequential round-trips before the
@@ -14,6 +16,13 @@ export async function loadProjectTemplates(): Promise<Project[]> {
   const tasks = TEMPLATE_CATEGORIES.flatMap((category) =>
     category.files.map((filename) => ({ categoryId: category.id, filename }))
   );
+
+  // Drive the startup progress bar: report each fetch as it settles. Kept off the
+  // hot path (a single counter increment) so it never slows the parallel batch.
+  let done = 0;
+  const total = tasks.length;
+  onProgress?.(0, total);
+  const tick = () => onProgress?.(++done, total);
 
   const results = await Promise.all(
     tasks.map(async ({ categoryId, filename }): Promise<Project | null> => {
@@ -45,6 +54,8 @@ export async function loadProjectTemplates(): Promise<Project[]> {
       } catch (error) {
         console.error(`Error loading project from ${filename}:`, error);
         return null;
+      } finally {
+        tick();
       }
     })
   );

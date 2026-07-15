@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Artboard } from './Artboard';
 import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
@@ -22,61 +23,14 @@ interface CanvasAreaProps {
   onDeleteArtboardFromToolbar: (artboardId: string) => void;
   onMoveArtboardFromToolbar: (artboardId: string, direction: 'left' | 'right') => void;
   activeTool: 'select' | 'pan';
+  // While a project/template is still loading (Dexie read + artboard build),
+  // the parent sets this so the canvas shows a stable skeleton instead of a
+  // fake placeholder artboard. Artboard positioning is owned by the parent
+  // (calculateArtboardPositions in ArtboardStudioLayout), not here.
+  isLoading?: boolean;
 }
 
-const initialArtboardState: ArtboardState = {
-  id: 'artboard_default_1',
-  name: 'My First Artboard',
-  position: { x: 50, y: 50 }, 
-  size: { width: 1290, height: 2796 }, // Updated size
-  elements: [
-    {
-      id: 'el_intro_text',
-      type: 'text',
-      content: 'Welcome to Open Screenshot Generator!',
-      position: { x: 50, y: 50 },
-      size: { width: 300, height: 50 },
-      fontSize: 24,
-      color: '#333333',
-      fontFamily: 'Arial',
-      rotation: 0,
-      scale: 1,
-    } as ArtboardElement,
-    {
-      id: 'el_intro_shape',
-      type: 'shape',
-      shapeType: 'rectangle',
-      position: { x: 100, y: 150 },
-      size: { width: 100, height: 80 },
-      fillColor: 'hsl(var(--primary))',
-      strokeColor: 'hsl(var(--foreground))',
-      strokeWidth: 2,
-      rotation: 0,
-      scale: 1,
-    } as ArtboardElement
-  ],
-  backgroundColor: 'hsl(var(--card))', 
-  zoom: 1, 
-};
-
-// Reduce the margin between artboards
-const ARTBOARD_MARGIN = 15; // Reduced from 30
-const DISPLAY_SCALE_FACTOR = 0.3; // Keep the same scale factor
-
-// Update the calculateArtboardPositions function to maintain closer spacing
-function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
-  let currentX = ARTBOARD_MARGIN;
-  return artboards.map(ab => {
-    const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
-    
-    // Calculate the next position with reduced margin
-    currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
-    
-    return { ...ab, position: newPosition };
-  });
-}
-
-export function CanvasArea({ 
+export function CanvasArea({
     artboards: externalArtboards, 
     onUpdateArtboards,
     onAddElementToArtboard,
@@ -91,8 +45,14 @@ export function CanvasArea({
     onDeleteArtboardFromToolbar,
     onMoveArtboardFromToolbar,
     activeTool,
+    isLoading = false,
 }: CanvasAreaProps) {
-  const [artboards, setArtboards] = useState<ArtboardState[]>(externalArtboards.length > 0 ? externalArtboards : [initialArtboardState]);
+  // The parent is the single source of truth for artboards. We render the prop
+  // directly (no private mirror copy) so a newly loaded template paints on the
+  // same commit it arrives — the old double-buffer painted the previous/empty
+  // state for one frame first, which is what produced the "blank artboard then
+  // real template" flash.
+  const artboards = externalArtboards;
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -105,14 +65,13 @@ export function CanvasArea({
   const panStartCoords = useRef<{ x: number, y: number, scrollLeft: number, scrollTop: number } | null>(null);
 
 
+  // Safety net: if real artboards exist but none is selected (e.g. after a
+  // drag-add that didn't set selection), select the first. The template/project
+  // load paths in the parent already select on load, and with no fake fallback
+  // artboard this can no longer select a phantom id.
   useEffect(() => {
-    // Make sure we're always using the latest external artboards (including size and position changes)
-    const updatedArtboards = externalArtboards.length > 0 ? externalArtboards : [initialArtboardState];
-    setArtboards(updatedArtboards);
-    
-    // If no artboard is currently active and we have artboards, select the first one
-    if (!activeArtboardId && updatedArtboards.length > 0) {
-      setActiveArtboardId(updatedArtboards[0].id);
+    if (!activeArtboardId && externalArtboards.length > 0) {
+      setActiveArtboardId(externalArtboards[0].id);
     }
   }, [externalArtboards, activeArtboardId, setActiveArtboardId]);
 
@@ -120,15 +79,13 @@ export function CanvasArea({
     const newArtboards = artboards.map(ab =>
       ab.id === artboardId ? { ...ab, elements } : ab
     );
-    setArtboards(newArtboards);
-    onUpdateArtboards(newArtboards); 
+    onUpdateArtboards(newArtboards);
   };
 
   const handleUpdateArtboardDetails = (artboardId: string, updatedData: Partial<ArtboardState>) => {
      const newArtboards = artboards.map(ab =>
       ab.id === artboardId ? { ...ab, ...updatedData } : ab
     );
-    setArtboards(newArtboards);
     onUpdateArtboards(newArtboards);
   }
   
@@ -282,6 +239,26 @@ export function CanvasArea({
             height: "100%",
           }}
         >
+          {/* While the project is still loading, show artboard-shaped skeletons
+              instead of a placeholder artboard. This is the stable state the
+              refresh/?projectId path used to fill with the fake "My First
+              Artboard" card. */}
+          {isLoading && artboards.length === 0 && (
+            <div
+              className="flex gap-4 p-2"
+              role="status"
+              aria-label="Loading project"
+              data-export-exclude
+            >
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex flex-col gap-3">
+                  <Skeleton className="h-[560px] w-[270px] rounded-[2rem]" />
+                  <Skeleton className="h-4 w-24 rounded" />
+                </div>
+              ))}
+            </div>
+          )}
+
           {artboards.map((artboard, index) => (
             <div
               key={artboard.id}
@@ -293,7 +270,7 @@ export function CanvasArea({
               }}
             >
               <Artboard
-                ref={el => artboardRefs.current[artboard.id] = el}
+                ref={el => { artboardRefs.current[artboard.id] = el; }}
                 artboard={artboard}
                 isSelected={activeArtboardId === artboard.id}
                 onUpdateArtboardElements={(elements) => handleUpdateArtboardElements(artboard.id, elements)}

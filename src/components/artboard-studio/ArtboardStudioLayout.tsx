@@ -32,6 +32,7 @@ import { McpServerStatus } from './McpServerStatus';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
@@ -41,6 +42,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { LayersPanel } from './LayersPanel';
+import { LoadStatusBar } from './LoadStatusBar';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -335,6 +337,11 @@ export function ArtboardStudioLayout() {
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  // Load-progress feedback for the top status bar. 'templates' = fetching the
+  // template gallery on startup (determinate: done/total); 'project' = opening a
+  // template/saved project into the canvas (indeterminate). 'idle' hides the bar.
+  const [loadPhase, setLoadPhase] = useState<'idle' | 'templates' | 'project'>('templates');
+  const [templateProgress, setTemplateProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
   const { toast } = useToast();
   const artboardRefs = useRef<Record<string, any>>({});
   // Latest design-tool API for the desktop MCP server; assigned each render and
@@ -453,8 +460,11 @@ export function ArtboardStudioLayout() {
   useEffect(() => {
     const loadAvailableProjects = async () => {
       setIsLoadingProjects(true);
+      setLoadPhase('templates');
       try {
-        const projects = await loadProjectTemplates();
+        const projects = await loadProjectTemplates((done, total) => {
+          setTemplateProgress({ done, total });
+        });
         setAvailableProjects(projects);
       } catch (error) {
         console.error('Error loading available projects:', error);
@@ -465,6 +475,8 @@ export function ArtboardStudioLayout() {
         });
       } finally {
         setIsLoadingProjects(false);
+        // Only clear the bar if a project open didn't take over in the meantime.
+        setLoadPhase((phase) => (phase === 'templates' ? 'idle' : phase));
       }
     };
 
@@ -529,6 +541,7 @@ export function ArtboardStudioLayout() {
 
     const loadProject = async () => {
       if (activeProjectId && !isLoadingTemplate) {
+        setLoadPhase('project');
         try {
           const project = await db.projects.get(activeProjectId);
           if (project && project.projectData) {
@@ -556,8 +569,9 @@ export function ArtboardStudioLayout() {
           setActiveProjectId(null); // Clear active project state on error
           toast({ title: "Loading Error", description: "Failed to load project. See console for details.", variant: "destructive" });
           setIsTemplateSelectorOpen(true); // Re-open template selector on error
+        } finally {
+          setLoadPhase('idle');
         }
-      } else {
       }
     };
     loadProject();
@@ -727,6 +741,7 @@ export function ArtboardStudioLayout() {
       return;
     }
     handleArtboardsUpdate(converted);
+    trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
       resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
       swapped > 0 ? `${swapped} mockup(s) swapped` : '',
@@ -939,6 +954,12 @@ export function ArtboardStudioLayout() {
         return;
       }
 
+      trackTemplateSelected({
+        templateId: template.id,
+        templateName: template.name,
+        category: template.category ?? templateTab,
+      });
+
       // Generate a new unique ID for the copied project
       const newProjectId = `project_${Date.now()}`;
       
@@ -1029,6 +1050,8 @@ export function ArtboardStudioLayout() {
       // Desktop-safe save: native dialog in Tauri, anchor download on the web
       const savedPath = await saveBlobToDisk(blob, `artboard-project-${projectData.id}.json`);
       if (savedPath === null) return; // user cancelled the save dialog
+
+      trackExportJson();
 
       toast({
         title: "Project Exported",
@@ -1168,6 +1191,13 @@ export function ArtboardStudioLayout() {
       if (exportDir === null) return;
     }
 
+    trackExportPng({
+      mode: generateFormats.length > 0 ? 'app_store' : 'as_is',
+      formats: generateFormats,
+      artboardCount: original.length,
+      fileCount: totalFiles,
+    });
+
     toast({
       title: "Export Process Initiated",
       description: `Generating images... This might take a moment.`,
@@ -1275,6 +1305,13 @@ export function ArtboardStudioLayout() {
       exportDir = await pickExportDirectory('Choose a folder for the exported videos');
       if (exportDir === null) return;
     }
+
+    trackExportVideo({
+      fps: request.fps,
+      durationSeconds: request.durationSeconds,
+      sizeMode: request.sizeMode,
+      rawRecordingOnly: request.rawRecordingOnly,
+    });
 
     const abort = new AbortController();
     videoExportAbortRef.current = abort;
@@ -2296,7 +2333,8 @@ const generateRandomProjectName = (): string => {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex flex-col overflow-hidden">
+        <SidebarInset className="relative flex flex-col overflow-hidden">
+          <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
           <Toolbar
             onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
@@ -2341,6 +2379,7 @@ const generateRandomProjectName = (): string => {
                 onDeleteArtboardFromToolbar={handleDeleteArtboard}
                 onMoveArtboardFromToolbar={handleMoveArtboard}
                 activeTool={activeTool}
+                isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
 
               {/* Floating zoom control (bottom-left of canvas) */}
