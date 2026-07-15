@@ -89,7 +89,7 @@ export const Outro: React.FC = () => {
             textShadow: "0 2px 18px rgba(6,13,13,0.9)",
           }}
         >
-          Free, open source, and ready when you are
+          Free, private, and ready when you are
         </div>
         <div
           ref={pillRef}

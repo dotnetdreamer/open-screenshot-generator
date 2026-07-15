@@ -68,7 +68,7 @@ export const OutroShort: React.FC = () => {
             textShadow: "0 2px 18px rgba(6,13,13,0.9)",
           }}
         >
-          Free and open source
+          Free and private by design
         </div>
         <div
           style={{
