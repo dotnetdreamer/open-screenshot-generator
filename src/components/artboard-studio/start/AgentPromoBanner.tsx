@@ -10,8 +10,8 @@ interface AgentPromoBannerProps {
 }
 
 /**
- * The AI entry point, sitting above the template tabs in the start dialog and
- * sharing that row with the blank-canvas card.
+ * The AI entry point, sitting beside the recent projects at the foot of the
+ * start dialog and stacked above the blank-canvas card.
  *
  * It shares the screen with the gallery rather than replacing it: templates
  * stay visible and one click away, which is what most sessions still want.

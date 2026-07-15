@@ -13,7 +13,7 @@ interface BlankCanvasCardProps {
   onStartBlank: () => void;
 }
 
-/** The non-AI entry point, sharing the top row of the start dialog with {@link AgentPromoBanner}. */
+/** The non-AI entry point, stacked under {@link AgentPromoBanner} beside the recent projects. */
 export function BlankCanvasCard({ size, categoryLabel, onStartBlank }: BlankCanvasCardProps) {
   return (
     <button

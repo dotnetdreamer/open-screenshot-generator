@@ -2001,17 +2001,6 @@ const generateRandomProjectName = (): string => {
             )}
 
             {dialogView === 'templates' && (
-              <div className="grid shrink-0 items-stretch gap-3 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-                <AgentPromoBanner onStartAgent={() => setDialogView('agent')} />
-                <BlankCanvasCard
-                  size={activeCategory.defaultSize}
-                  categoryLabel={activeCategory.label}
-                  onStartBlank={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}
-                />
-              </div>
-            )}
-
-            {dialogView === 'templates' && (
             <Tabs value={templateTab} onValueChange={setTemplateTab} className="flex min-h-0 flex-1 flex-col">
               <TabsList className="mx-1 self-start">
                 {TEMPLATE_CATEGORIES.map((cat) => (
@@ -2023,8 +2012,13 @@ const generateRandomProjectName = (): string => {
                   </TabsTrigger>
                 ))}
               </TabsList>
+              {/* data-[state=active]:flex, not a bare flex: inactive panels stay
+                  mounted with the hidden attribute, and a bare `flex` overrides
+                  [hidden]{display:none}, so each ghost panel's mt-2 leaked ~8px of
+                  dead space below the gallery. Gating display on the active state
+                  lets hidden win and collapses them. */}
               {TEMPLATE_CATEGORIES.map((cat) => (
-                <TabsContent key={cat.id} value={cat.id} className="mt-2 flex min-h-0 flex-1 flex-col">
+                <TabsContent key={cat.id} value={cat.id} className="mt-2 min-h-0 flex-1 flex-col data-[state=active]:flex">
                   <TemplateGallery
                     projects={availableProjects.filter((p) => p.category === cat.id)}
                     onSelect={handleSelectTemplate}
@@ -2050,50 +2044,62 @@ const generateRandomProjectName = (): string => {
 
             {/* The agent screen needs the full dialog height for its own content. */}
             {dialogView === 'templates' && (
-            <div className="p-4 border-t shrink-0">
-              <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
-              {recentProjects.length > 0 ? (
-                <ScrollArea className="h-[20vh]">
-                  <ul className="divide-y divide-border">
-                    {recentProjects.map((project) => (
-                      <li key={project.id} className="py-1 flex items-center justify-between hover:bg-muted/50 rounded px-1">
-                        <div 
-                          className="flex-grow py-2 cursor-pointer hover:text-primary"
-                          onClick={() => {
-                            setActiveProjectId(project.id);
-                            setIsTemplateSelectorOpen(false);
-                            // --- 4. Set projectId in URL when selecting a project ---
-                            if (typeof window !== "undefined") {
-                              const params = new URLSearchParams(window.location.search);
-                              params.set("projectId", project.id);
-                              window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
-                            }
-                          }}
-                        >
-                          <div className="font-medium">{project.name}</div>
-                          <div className="text-xs text-muted-foreground">Saved on: {project.timestamp.toLocaleString()}</div>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setProjectToDelete(project.id);
-                          }}
-                          // Disable delete button for the currently active project
-                          disabled={project.id === activeProjectId}
-                          title={project.id === activeProjectId ? "Cannot delete the currently open project" : "Delete project"}
-                        >
-                          <Trash2Icon className="h-4 w-4" />
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </ScrollArea>
-              ) : (
-                <p className="text-sm text-muted-foreground">No recent projects found.</p>
-              )}
+            <div className="grid shrink-0 items-stretch gap-4 border-t p-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+              {/* Recent projects, laid out in two columns so they take less height. */}
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
+                {recentProjects.length > 0 ? (
+                  <ScrollArea className="h-[20vh]">
+                    <ul className="grid grid-cols-1 gap-1.5 pr-3 sm:grid-cols-2">
+                      {recentProjects.map((project) => (
+                        <li key={project.id} className="flex min-w-0 items-center justify-between gap-1 rounded-md border border-border/60 px-2 hover:bg-muted/50">
+                          <div
+                            className="min-w-0 flex-grow cursor-pointer py-2 hover:text-primary"
+                            onClick={() => {
+                              setActiveProjectId(project.id);
+                              setIsTemplateSelectorOpen(false);
+                              // --- 4. Set projectId in URL when selecting a project ---
+                              if (typeof window !== "undefined") {
+                                const params = new URLSearchParams(window.location.search);
+                                params.set("projectId", project.id);
+                                window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+                              }
+                            }}
+                          >
+                            <div className="truncate font-medium">{project.name}</div>
+                            <div className="truncate text-xs text-muted-foreground">Saved on: {project.timestamp.toLocaleString()}</div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProjectToDelete(project.id);
+                            }}
+                            // Disable delete button for the currently active project
+                            disabled={project.id === activeProjectId}
+                            title={project.id === activeProjectId ? "Cannot delete the currently open project" : "Delete project"}
+                          >
+                            <Trash2Icon className="h-4 w-4" />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </ScrollArea>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No recent projects found.</p>
+                )}
+              </div>
+              {/* AI agent and blank-canvas entry points, stacked as two rows. */}
+              <div className="grid min-h-[20vh] grid-rows-2 gap-3">
+                <AgentPromoBanner onStartAgent={() => setDialogView('agent')} />
+                <BlankCanvasCard
+                  size={activeCategory.defaultSize}
+                  categoryLabel={activeCategory.label}
+                  onStartBlank={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}
+                />
+              </div>
             </div>
             )}
           </DialogContent>
