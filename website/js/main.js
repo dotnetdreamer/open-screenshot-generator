@@ -153,6 +153,9 @@ function buildScene(THREE) {
   // nothing flashes over the hero while textures stream in.
   state.drifters.visible = false;
   state.wall.position.x = 9999;
+  // Corridor strips render at base * intro * corridorFade, so the intro
+  // reveal and the scroll fade never fight over material.opacity.
+  state.corridorFade = 1;
   state.texCache = new Map();
   scene.add(state.corridor, state.stepCards, state.wall, state.drifters);
   window.__ABS_DEBUG = state;
@@ -179,6 +182,9 @@ function buildScene(THREE) {
   gsap.ticker.add(() => {
     camera.rotation.y += (state.mouse.x * -0.028 - camera.rotation.y) * 0.06;
     camera.rotation.x += (state.mouse.y * -0.02 - camera.rotation.x) * 0.06;
+    state.corridor.children.forEach((m) => {
+      m.material.opacity = m.userData.base * m.userData.intro * state.corridorFade;
+    });
     renderer.render(scene, camera);
   });
 
@@ -277,6 +283,8 @@ async function buildCorridor(state) {
     const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.renderOrder = 1;
+    mesh.userData.base = targetOpacity;
+    mesh.userData.intro = 0;
     const side = i % 2 === 0 ? -1 : 1;
     // Two height bands that hug the top and bottom of the viewport so the
     // hero headline in the middle stays readable.
@@ -285,7 +293,7 @@ async function buildCorridor(state) {
     mesh.rotation.y = side * -(0.42 + rand() * 0.22);
     corridor.add(mesh);
 
-    gsap.to(mat, { opacity: targetOpacity, duration: 1.2, delay: 0.25 + i * 0.09, ease: "power2.out" });
+    gsap.to(mesh.userData, { intro: 1, duration: 1.2, delay: 0.25 + i * 0.09, ease: "power2.out" });
     gsap.from(mesh.position, {
       z: mesh.position.z - 7,
       duration: 1.6,
@@ -313,8 +321,11 @@ function initCorridorScroll(state) {
       endTrigger: ".steps-pin",
       end: "top top",
       scrub: 1,
-      // Past the hero the corridor is done; hide it so stray planes near
-      // the camera cannot smear over later sections.
+      // The strips dissolve over the back half of the ride, so by the time
+      // the group is hidden there is nothing left on screen to pop away.
+      onUpdate(self) {
+        state.corridorFade = 1 - clamp01((self.progress - 0.55) / 0.35);
+      },
       onLeave() { state.corridor.visible = false; },
       onEnterBack() { state.corridor.visible = true; },
     },
@@ -373,6 +384,7 @@ function initStepsScroll(state) {
     end: "+=260%",
     pin: true,
     scrub: 0.7,
+    anticipatePin: 1,
     onUpdate(self) {
       const idx = Math.min(2, Math.floor(self.progress * 2.9999));
       setActiveStep(idx);
@@ -425,13 +437,20 @@ function choreographStepMeshes(state, progress) {
       mesh.position.z = leave * -2.0;
       mesh.rotation.y = leave * 1.05;
       mesh.material.opacity = 1 - leave;
+      if (i === 0) {
+        // The first card has no arrival window before the pin, so it rises
+        // in over the first stretch instead of popping to full opacity.
+        const enter = clamp01(t / 0.08);
+        mesh.position.z += (1 - enter) * -1.6;
+        mesh.material.opacity *= enter * enter;
+      }
       if (i === meshes.length - 1) {
         // Last card stays put, then fades just before the pin releases so
         // it never freezes over the next section.
         mesh.position.x = 0;
         mesh.position.z = 0;
         mesh.rotation.y = 0;
-        mesh.material.opacity = clamp01((1 - t) / 0.15);
+        mesh.material.opacity = clamp01((1 - t) / 0.08);
       }
       // Gentle idle tilt while on stage.
       mesh.rotation.y += Math.sin(t * Math.PI) * 0.06;
@@ -518,6 +537,7 @@ function initWallScroll(state) {
       end: "+=260%",
       pin: true,
       scrub: 1,
+      anticipatePin: 1,
       invalidateOnRefresh: true,
     },
   });
@@ -535,12 +555,13 @@ async function buildDrifters(state) {
     const mat = new THREE.MeshBasicMaterial({
       map: tex,
       transparent: true,
-      opacity: 0.32,
+      opacity: 0,
       depthWrite: false,
     });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.renderOrder = 3;
     mesh.userData.spec = spec;
+    mesh.userData.base = 0.32;
     drifters.add(mesh);
 
     gsap.to(mesh.rotation, {
@@ -564,13 +585,28 @@ async function buildDrifters(state) {
 }
 
 function initDrifterScroll(state) {
+  // The devices breathe in and out over a second rather than snapping,
+  // and the group only truly hides once the fade has finished.
+  const fade = { v: 0 };
+  const apply = () => {
+    state.drifters.children.forEach((m) => {
+      m.material.opacity = m.userData.base * fade.v;
+    });
+    state.drifters.visible = fade.v > 0.001;
+  };
   ScrollTrigger.create({
     trigger: "#features",
     start: "top 80%",
     endTrigger: "#privacy-first",
     end: "bottom top",
     onToggle(self) {
-      state.drifters.visible = self.isActive;
+      gsap.to(fade, {
+        v: self.isActive ? 1 : 0,
+        duration: 1.1,
+        ease: "power2.inOut",
+        overwrite: true,
+        onUpdate: apply,
+      });
     },
   });
   gsap.to(state.drifters.position, {

@@ -1,7 +1,7 @@
 /* ============================================================
    Open Screenshot Generator marketing site
    Palette from the app logo: deep teal ink, teal, gold.
-   Type: Fraunces (display) + Space Grotesk (text).
+   Type: Space Grotesk throughout, weight carries the hierarchy.
    ============================================================ */
 
 :root {
@@ -15,7 +15,7 @@
   --gold-soft: #e8c95c;
   --paper: #f4f1e8;
   --muted: #9ab3b5;
-  --font-display: "Fraunces", Georgia, serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-text: "Space Grotesk", system-ui, sans-serif;
   --max: 1200px;
   --pad: clamp(20px, 5vw, 64px);
@@ -132,7 +132,7 @@ main, .site-header, .site-footer, .marquee { position: relative; z-index: 1; }
   line-height: 1.1;
 }
 .brand-name em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   color: var(--teal);
 }
@@ -257,9 +257,9 @@ main, .site-header, .site-footer, .marquee { position: relative; z-index: 1; }
 
 h1, h2, h3 {
   font-family: var(--font-display);
-  font-weight: 520;
-  line-height: 1.06;
-  letter-spacing: -0.01em;
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
 }
 
 h2 {
@@ -269,8 +269,7 @@ h2 {
 }
 
 h2 em, h1 em {
-  font-style: italic;
-  font-weight: 420;
+  font-style: normal;
   color: var(--gold);
 }
 
@@ -410,8 +409,8 @@ html:not(.js) .hero-fallback {
 }
 .marquee-track span {
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
   color: var(--muted);
 }
 .marquee-track i { color: var(--gold); font-style: normal; font-size: 0.8rem; }
@@ -479,7 +478,7 @@ html:not(.js) .steps-progress { display: none; }
 
 .step-num {
   font-family: var(--font-display);
-  font-style: italic;
+  font-weight: 600;
   font-size: clamp(3.4rem, 6vw, 5.4rem);
   line-height: 1;
   color: transparent;
@@ -611,9 +610,9 @@ html:not(.js) .wall-fallback {
 
 .feature-index {
   font-family: var(--font-display);
-  font-style: italic;
   color: var(--teal);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
   display: block;
   margin-bottom: 40px;
 }
