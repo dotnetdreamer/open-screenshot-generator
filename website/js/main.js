@@ -350,8 +350,18 @@ async function buildStepCards(state) {
   });
 
   /* Project the .steps-stage DOM rect into world space at depth d.
-     Positions are measured relative to the pin container, because during
-     the pin that container fills the viewport exactly. */
+     The two axes are measured differently on purpose, because layoutSteps
+     runs at init/resize while the section still sits far down the document,
+     not yet pinned.
+       Y: measured relative to the pin container (rect.top - pr.top). That
+          cancels the document scroll offset and yields the stage's position
+          inside the pin, which is where it lands once the pin fixes the
+          container to the top of the viewport during its scroll range.
+       X: measured straight from the viewport (no pr.left). There is no
+          horizontal scroll, and .steps-pin has a max-width plus margin auto,
+          so past that cap the container centers; subtracting its left margin
+          would drag the card off the stage and under the copy column (the
+          "image slides under the text on wide screens" bug). */
   state.layoutSteps = () => {
     const stage = document.querySelector(".steps-stage");
     const pin = document.querySelector(".steps-pin");
@@ -363,7 +373,7 @@ async function buildStepCards(state) {
     const d = 8;
     const view = state.viewSize(d);
     const pxToWorld = view.h / vh;
-    const cxPx = rect.left - pr.left + rect.width / 2 - vw / 2;
+    const cxPx = rect.left + rect.width / 2 - vw / 2;
     let cyPx = rect.top - pr.top + rect.height / 2 - vh / 2;
     // Keep the card on screen even when the pinned content overflows small viewports.
     cyPx = Math.max(-vh * 0.18, Math.min(vh * 0.3, cyPx));
