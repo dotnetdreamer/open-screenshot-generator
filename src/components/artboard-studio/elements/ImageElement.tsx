@@ -125,7 +125,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
             draggable={false}
           />
           {isSelected && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+            <div className="touch-show absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
               <Button
                 variant="secondary"
                 size="sm"

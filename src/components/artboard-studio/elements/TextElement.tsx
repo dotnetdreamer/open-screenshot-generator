@@ -32,6 +32,25 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
     }
   };
 
+  // Touch has no reliable dblclick; detect two quick taps ourselves. Only a
+  // selected element receives these events, so the flow is tap to select,
+  // then double-tap to edit.
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') return; // mouse uses native dblclick
+    const now = Date.now();
+    const last = lastTapRef.current;
+    lastTapRef.current = { time: now, x: e.clientX, y: e.clientY };
+    if (
+      last &&
+      now - last.time < 350 &&
+      Math.hypot(e.clientX - last.x, e.clientY - last.y) < 30
+    ) {
+      lastTapRef.current = null;
+      handleDoubleClick();
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
   };
@@ -100,6 +119,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
     <div
       className="w-full h-full flex items-center justify-center"
       onDoubleClick={handleDoubleClick}
+      onPointerUp={handlePointerUp}
       style={{
         width: '100%',
         height: '100%',

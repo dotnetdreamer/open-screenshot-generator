@@ -81,7 +81,7 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
             draggable={false}
           />
           {isSelected && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" data-export-exclude>
+            <div className="touch-show absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" data-export-exclude>
               <Button
                 variant="secondary"
                 size="sm"

@@ -153,7 +153,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
             {isSelected && element.mediaId && (
               <div
                 data-export-exclude
-                className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 hover:opacity-100 transition-opacity"
+                className="touch-show absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 hover:opacity-100 transition-opacity"
                 style={{ zIndex: 5 }}
               >
                 <Button

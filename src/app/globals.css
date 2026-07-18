@@ -452,3 +452,60 @@ html {
     display: none;
   }
 }
+
+/* ---------- Touch device support ---------- */
+
+/* Full-height app shell that tracks the real visible viewport on mobile
+   browsers (URL bar show/hide), falling back to 100vh where dvh is missing. */
+.app-viewport {
+  height: 100vh;
+}
+@supports (height: 100dvh) {
+  .app-viewport {
+    height: 100dvh;
+  }
+}
+
+body {
+  /* No grey flash on tap; taps are canvas gestures, not link clicks */
+  -webkit-tap-highlight-color: transparent;
+  /* Panning the canvas must never trigger pull-to-refresh or back-swipe */
+  overscroll-behavior: none;
+}
+
+/* Canvas scroll viewport: keep rubber-banding from chaining to the page */
+[data-radix-scroll-area-viewport] {
+  overscroll-behavior: contain;
+}
+
+/* Elements and handles are drag targets: no long-press text selection or
+   iOS save-image callout. Text editing re-enables selection below. */
+[data-element-id],
+[data-interaction-handle] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+[data-element-id] textarea,
+[data-element-id] input {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (pointer: coarse) {
+  /* Widen the tappable area of selection handles beyond their visual size.
+     The inset is in the handle's local (pre-transform) space, so the handle's
+     scale transform multiplies it; keep it small or the hit areas of handles
+     near an edge swallow the element body (touch adjustment then snaps taps
+     to a handle and a drag becomes a resize). */
+  [data-interaction-handle]::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+  /* Hover-revealed overlays (e.g. Change Image on a selected image) have no
+     hover to reveal them on touch; show them whenever rendered. */
+  .touch-show {
+    opacity: 1 !important;
+  }
+}

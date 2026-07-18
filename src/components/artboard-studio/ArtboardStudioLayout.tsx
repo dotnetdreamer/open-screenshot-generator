@@ -45,6 +45,7 @@ import { LayersPanel } from './LayersPanel';
 import { LoadStatusBar } from './LoadStatusBar';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
   DialogContent,
@@ -452,6 +453,20 @@ export function ArtboardStudioLayout() {
     setIsRightDockOpen(open);
     try { window.localStorage.setItem(RIGHT_DOCK_OPEN_KEY, open ? '1' : '0'); } catch {}
   };
+
+  // Phone-sized viewports: the dock would cover most of the canvas, so it
+  // starts collapsed and overlays the canvas when opened (see the render).
+  // The auto-close intentionally skips persistence so a desktop session
+  // keeps its own preference.
+  const isMobileViewport = useIsMobile();
+  useEffect(() => {
+    if (isMobileViewport) setIsRightDockOpen(false);
+  }, [isMobileViewport]);
+
+  // Pinch and ctrl+wheel zoom from the canvas; same clamp as the zoom buttons
+  const handleCanvasZoomChange = useCallback((zoom: number) => {
+    setCanvasZoom(Math.min(4, Math.max(0.1, zoom)));
+  }, []);
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1687,7 +1702,10 @@ export function ArtboardStudioLayout() {
   // menu when the click lands in the canvas area. Right-clicking an element
   // selects it first, like every design tool.
   useEffect(() => {
+    let sawNativeContextMenu = false;
+
     const handleContextMenu = (e: MouseEvent) => {
+      sawNativeContextMenu = true;
       const target = e.target as HTMLElement;
       if (
         target instanceof HTMLInputElement ||
@@ -1731,8 +1749,65 @@ export function ArtboardStudioLayout() {
       setContextMenu({ x: e.clientX, y: e.clientY, elementId, artboardId, pastePoint });
     };
 
+    // Long-press = right-click on touch. iOS never fires contextmenu for
+    // touches and Android is inconsistent, so synthesize one after a still
+    // 500ms press on the canvas, unless the native event already came.
+    let longPressTimer: number | null = null;
+    let longPressStart: { x: number; y: number; target: EventTarget | null } | null = null;
+    const clearLongPress = () => {
+      if (longPressTimer !== null) {
+        window.clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      longPressStart = null;
+    };
+    const handleTouchStart = (e: TouchEvent) => {
+      clearLongPress();
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      sawNativeContextMenu = false;
+      longPressStart = { x: touch.clientX, y: touch.clientY, target: e.target };
+      longPressTimer = window.setTimeout(() => {
+        longPressTimer = null;
+        const start = longPressStart;
+        longPressStart = null;
+        if (!start || sawNativeContextMenu) return;
+        if (!canvasContainerRef.current?.contains(start.target as Node)) return;
+        (start.target as HTMLElement | null)?.dispatchEvent(
+          new MouseEvent('contextmenu', {
+            bubbles: true,
+            cancelable: true,
+            clientX: start.x,
+            clientY: start.y,
+          })
+        );
+      }, 500);
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!longPressStart) return;
+      if (e.touches.length !== 1) {
+        clearLongPress();
+        return;
+      }
+      const touch = e.touches[0];
+      if (Math.hypot(touch.clientX - longPressStart.x, touch.clientY - longPressStart.y) > 10) {
+        clearLongPress();
+      }
+    };
+
     document.addEventListener('contextmenu', handleContextMenu);
-    return () => document.removeEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', clearLongPress);
+    document.addEventListener('touchcancel', clearLongPress);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', clearLongPress);
+      document.removeEventListener('touchcancel', clearLongPress);
+      clearLongPress();
+    };
   }, [isPreviewOpen]);
   
   // Add keyboard shortcuts for copy and paste
@@ -2361,7 +2436,7 @@ const generateRandomProjectName = (): string => {
           />
           
           {/* Main content area with flex layout */}
-          <div className="flex flex-1 overflow-hidden h-full">
+          <div className="relative flex flex-1 overflow-hidden h-full">
             {/* Canvas area - takes remaining space */}
             <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden">
               <CanvasArea
@@ -2380,6 +2455,7 @@ const generateRandomProjectName = (): string => {
                 onMoveArtboardFromToolbar={handleMoveArtboard}
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
+                onCanvasZoomChange={handleCanvasZoomChange}
               />
 
               {/* Floating zoom control (bottom-left of canvas) */}
@@ -2432,7 +2508,14 @@ const generateRandomProjectName = (): string => {
                 Collapsed it becomes a slim vertical rail with rotated labels
                 (Android Studio tool-window style). */}
             {isRightDockOpen ? (
-              <div className="flex h-full w-80 flex-shrink-0 flex-col border-l bg-card" data-export-exclude>
+              <div
+                className={cn(
+                  "flex h-full w-80 flex-shrink-0 flex-col border-l bg-card",
+                  // Phones: overlay the canvas instead of squeezing it to nothing
+                  isMobileViewport && "absolute inset-y-0 right-0 z-40 w-[min(20rem,85vw)] shadow-2xl"
+                )}
+                data-export-exclude
+              >
                 <div className="flex h-9 shrink-0 items-center justify-between border-b pl-3 pr-1.5">
                   <span className="text-sm font-semibold">Properties</span>
                   <Button

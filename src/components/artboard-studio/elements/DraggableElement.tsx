@@ -16,9 +16,20 @@ interface DraggableElementProps {
   children: React.ReactNode;
 }
 
-const HANDLE_SIZE_BASE = 10; 
-const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2; 
-const MIN_DISPLAY_SIZE = 20; 
+const HANDLE_SIZE_BASE = 10;
+const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2;
+const MIN_DISPLAY_SIZE = 20;
+
+// Fingers need bigger grab targets than a mouse cursor. Evaluated per bundle
+// load; handles only render client-side (isSelected), so no hydration risk.
+const IS_COARSE_POINTER =
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(pointer: coarse)').matches;
+
+// Screen pixels a pointer must travel before a tap turns into a move, so
+// selecting an element never nudges it by a jittery pixel.
+const DRAG_START_THRESHOLD_PX = 3;
 
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
@@ -52,6 +63,13 @@ export function DraggableElement({
     handleType?: HandleType;
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
+  // The pointer driving the current interaction; other fingers are ignored.
+  const activePointerIdRef = useRef<number | null>(null);
+  const dragStartClientRef = useRef<{ x: number; y: number } | null>(null);
+  const movePassedThresholdRef = useRef(false);
+  // Set once a gesture actually changed the element, so the click the browser
+  // synthesizes at pointerup doesn't also trigger whatever is under the pointer.
+  const didDragRef = useRef(false);
 
   useEffect(() => {
     setPosition(element.position);
@@ -60,40 +78,58 @@ export function DraggableElement({
     setCurrentScale(element.scale);
   }, [element.id, element.position, element.size, element.rotation, element.scale]);
 
-  const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
+  const getPointerPositionInArtboardSpace = (e: { clientX: number; clientY: number }): Point => {
     const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
+      // Derive the on-screen scale from the artboard's rendered size so the
+      // math holds at every canvas zoom (buttons, pinch, trackpad), which the
+      // fixed DISPLAY_SCALE_FACTOR constant alone does not.
+      const originalWidth = Number(artboardDiv.getAttribute('data-original-width'));
+      const renderedScale =
+        artboardRect.width > 0 && originalWidth > 0
+          ? artboardRect.width / originalWidth
+          : artboardZoom * DISPLAY_SCALE_FACTOR;
       return {
-        // Divide by DISPLAY_SCALE_FACTOR to account for the scaled artboard
-        x: (e.clientX - artboardRect.left) / (artboardZoom * DISPLAY_SCALE_FACTOR),
-        y: (e.clientY - artboardRect.top) / (artboardZoom * DISPLAY_SCALE_FACTOR),
+        x: (e.clientX - artboardRect.left) / renderedScale,
+        y: (e.clientY - artboardRect.top) / renderedScale,
       };
     }
-    return { 
-      x: e.clientX / (artboardZoom * DISPLAY_SCALE_FACTOR), 
-      y: e.clientY / (artboardZoom * DISPLAY_SCALE_FACTOR) 
+    return {
+      x: e.clientX / (artboardZoom * DISPLAY_SCALE_FACTOR),
+      y: e.clientY / (artboardZoom * DISPLAY_SCALE_FACTOR)
     };
   };
 
 
   const handleInteractionStart = (
-    e: React.MouseEvent,
+    e: React.PointerEvent,
     mode: 'move' | 'rotate' | 'scale' | 'resize',
     handleType?: HandleType
   ) => {
-    // Only the left button drags; right-click opens the context menu instead
-    if (e.button !== 0) return;
-    e.preventDefault();
+    // One gesture at a time; a second finger belongs to the canvas pinch
+    if (interactionMode) return;
+    // Only the left mouse button drags; right-click opens the context menu.
+    // Touch and pen always drag.
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // Mouse only: prevents text selection and native image drag. For touch,
+    // canceling pointerdown makes Chromium suppress the whole touch-event
+    // stream, which would break the canvas pinch and long-press detection;
+    // scrolling and selection are already blocked by touch-action/user-select.
+    if (e.pointerType === 'mouse') e.preventDefault();
     e.stopPropagation();
     if (!elementRef.current) return;
 
-    if (!isSelected) { 
+    if (!isSelected) {
       onSelect(element.id, e);
     }
+    activePointerIdRef.current = e.pointerId;
+    dragStartClientRef.current = { x: e.clientX, y: e.clientY };
+    movePassedThresholdRef.current = mode !== 'move';
+    didDragRef.current = false;
     setInteractionMode(mode);
 
-    const mousePosArtboard = getMousePositionInArtboardSpace(e);
+    const mousePosArtboard = getPointerPositionInArtboardSpace(e);
     
     const displayWidth = currentSize.width * currentScale;
     const displayHeight = currentSize.height * currentScale;
@@ -114,11 +150,39 @@ export function DraggableElement({
   };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    // Drop the in-flight interaction without committing (browser stole the
+    // gesture, or a two-finger canvas pinch started mid drag)
+    const abortInteraction = () => {
+      setPosition(element.position);
+      setCurrentSize(element.size);
+      setCurrentRotation(element.rotation);
+      setCurrentScale(element.scale);
+      setInteractionMode(null);
+      setInteractionStart(null);
+      activePointerIdRef.current = null;
+      document.body.style.cursor = 'default';
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
       if (!interactionMode || !interactionStart || !elementRef.current) return;
+      if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) return;
+      if (document.documentElement.hasAttribute('data-abs-pinch')) {
+        abortInteraction();
+        return;
+      }
       e.preventDefault();
 
-      const mousePosArtboard = getMousePositionInArtboardSpace(e);
+      // A tap must stay a tap: ignore sub-threshold movement before a move
+      if (!movePassedThresholdRef.current) {
+        const start = dragStartClientRef.current;
+        if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) < DRAG_START_THRESHOLD_PX) {
+          return;
+        }
+        movePassedThresholdRef.current = true;
+      }
+      didDragRef.current = true;
+
+      const mousePosArtboard = getPointerPositionInArtboardSpace(e);
       const { initialPosition, initialSize, initialRotation, initialScale, elementCenter, handleType } = interactionStart;
       
       const rad = currentRotation * (Math.PI / 180); 
@@ -237,9 +301,10 @@ export function DraggableElement({
       setCurrentRotation(newRotation);
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = (e: PointerEvent) => {
       if (!interactionMode || !interactionStart) return;
-      
+      if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) return;
+
       // Only update if there was actually a change
       const hasPositionChanged = position.x !== element.position.x || position.y !== element.position.y;
       const hasSizeChanged = currentSize.width !== element.size.width || currentSize.height !== element.size.height;
@@ -258,12 +323,20 @@ export function DraggableElement({
       
       setInteractionMode(null);
       setInteractionStart(null);
+      activePointerIdRef.current = null;
       document.body.style.cursor = 'default';
     };
 
+    const handlePointerCancel = (e: PointerEvent) => {
+      if (!interactionMode) return;
+      if (activePointerIdRef.current !== null && e.pointerId !== activePointerIdRef.current) return;
+      abortInteraction();
+    };
+
     if (interactionMode) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('pointermove', handlePointerMove);
+      document.addEventListener('pointerup', handlePointerUp);
+      document.addEventListener('pointercancel', handlePointerCancel);
       let cursor = 'default';
       if (interactionMode === 'move') cursor = 'grabbing';
       else if (interactionMode === 'rotate') cursor = 'grabbing'; 
@@ -280,8 +353,9 @@ export function DraggableElement({
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointercancel', handlePointerCancel);
       if (document.body.style.cursor !== 'default' && !interactionMode) {
         document.body.style.cursor = 'default';
       }
@@ -294,35 +368,44 @@ export function DraggableElement({
     height: currentSize.height * currentScale,
   };
 
-  // Adjust handle sizes to be visible at small scale
-  const handleVisualScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
-  const outlineThickness = Math.max(1, 3 * handleVisualScale);
+  // Adjust handle sizes to be visible at small scale; fingers get a bigger
+  // multiplier than a mouse cursor (plus the ::after hit inset in globals.css)
+  const handleVisualScale = (IS_COARSE_POINTER ? 5 : 3) / artboardZoom;
+  const outlineThickness = Math.max(1, 3 * (3 / artboardZoom));
+
+  // On touch, edge handles on a small element would bury its body and turn
+  // every drag into a resize; drop the edges that cannot fit next to the body
+  // (corner scale, rotate and delete stay reachable outside the bounds).
+  const handleArtboardSize = HANDLE_SIZE_BASE * handleVisualScale;
+  const hideTopBottomHandles = IS_COARSE_POINTER && displaySize.height < handleArtboardSize * 2.5;
+  const hideLeftRightHandles = IS_COARSE_POINTER && displaySize.width < handleArtboardSize * 2.5;
 
 
   const HandleComponent: React.FC<{
     positionStyle: React.CSSProperties;
-    onMouseDown: (e: React.MouseEvent) => void;
+    onPointerDown: (e: React.PointerEvent) => void;
     title: string;
     cursor: string;
     children?: React.ReactNode;
     className?: string;
     isCorner?: boolean;
-  }> = ({ positionStyle, onMouseDown, title, cursor, children, className, isCorner = false }) => (
+  }> = ({ positionStyle, onPointerDown, title, cursor, children, className, isCorner = false }) => (
     <div
-      data-interaction-handle 
+      data-interaction-handle
       className={cn(
         "absolute flex items-center justify-center bg-background border border-primary shadow-md opacity-90 hover:opacity-100",
-        isCorner ? "rounded-full" : "rounded-sm", 
+        isCorner ? "rounded-full" : "rounded-sm",
         className
       )}
       style={{
         width: `${HANDLE_SIZE_BASE}px`,
         height: `${HANDLE_SIZE_BASE}px`,
-        transform: `scale(${handleVisualScale})`, 
+        transform: `scale(${handleVisualScale})`,
         cursor: cursor,
+        touchAction: 'none',
         ...positionStyle,
       }}
-      onMouseDown={onMouseDown}
+      onPointerDown={onPointerDown}
       title={title}
     >
       {children}
@@ -344,15 +427,27 @@ export function DraggableElement({
         transformOrigin: 'center center',
         cursor: isSelected && interactionMode === null ? 'grab' : (interactionMode ? document.body.style.cursor : 'pointer'),
         boxSizing: 'border-box',
+        // One finger on an element drags it; the browser must not scroll
+        touchAction: 'none',
       }}
-      onMouseDown={(e) => {
-        if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
-          e.stopPropagation(); // Prevent event from bubbling to artboard
-          if (isSelected) {
-            handleInteractionStart(e, 'move');
-          } else {
-            onSelect(element.id, e); 
-          }
+      onPointerDown={(e) => {
+        const target = e.target as HTMLElement;
+        // Handles start their own interaction; native controls inside the
+        // element (upload buttons, the text editing textarea) keep working.
+        if (target.closest('[data-interaction-handle]')) return;
+        if (target.closest('button, input, textarea, select, [contenteditable="true"]')) return;
+        e.stopPropagation(); // Prevent event from bubbling to artboard
+        // Select and start moving in the same gesture (essential on touch,
+        // where there is no separate hover/press affordance)
+        handleInteractionStart(e, 'move');
+      }}
+      onClickCapture={(e) => {
+        // The click the browser synthesizes after a drag must not activate
+        // whatever ended up under the pointer
+        if (didDragRef.current) {
+          didDragRef.current = false;
+          e.preventDefault();
+          e.stopPropagation();
         }
       }}
       data-element-id={element.id}
@@ -416,7 +511,7 @@ export function DraggableElement({
               <HandleComponent
                 key={corner}
                 positionStyle={posStyle}
-                onMouseDown={(e) => handleInteractionStart(e, 'scale', corner)}
+                onPointerDown={(e) => handleInteractionStart(e, 'scale', corner)}
                 title="Scale Proportional"
                 cursor={cursor}
                 className="bg-primary rounded-full" 
@@ -425,7 +520,11 @@ export function DraggableElement({
             );
           })}
 
-          {(['t', 'b', 'l', 'r'] as HandleType[]).map(edge => {
+          {(['t', 'b', 'l', 'r'] as HandleType[])
+            .filter((edge) =>
+              edge === 't' || edge === 'b' ? !hideTopBottomHandles : !hideLeftRightHandles
+            )
+            .map(edge => {
             let posStyle: React.CSSProperties = {};
             let cursor = 'default';
             if (edge === 't') { posStyle = { top: `${HANDLE_OFFSET}px`, left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`}; cursor = 'ns-resize'; }
@@ -437,7 +536,7 @@ export function DraggableElement({
               <HandleComponent
                 key={edge}
                 positionStyle={posStyle}
-                onMouseDown={(e) => handleInteractionStart(e, 'resize', edge)}
+                onPointerDown={(e) => handleInteractionStart(e, 'resize', edge)}
                 title="Resize"
                 cursor={cursor}
                 className="rounded-sm"
@@ -448,10 +547,11 @@ export function DraggableElement({
 
           <HandleComponent
             positionStyle={{
-              top: `${HANDLE_OFFSET - (HANDLE_SIZE_BASE * 1.5)}px`, 
+              // Farther out on touch so its enlarged hit area clears the body
+              top: `${HANDLE_OFFSET - (HANDLE_SIZE_BASE * (IS_COARSE_POINTER ? 3 : 1.5))}px`,
               left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`,
             }}
-            onMouseDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
+            onPointerDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
             title="Rotate"
             cursor="grab"
             className="rounded-full"
@@ -464,8 +564,9 @@ export function DraggableElement({
                 top: `${HANDLE_OFFSET}px`, 
                 right: `${HANDLE_OFFSET - HANDLE_SIZE_BASE - (HANDLE_SIZE_BASE * 0.5)}px`, 
              }}
-             onMouseDown={(e) => {
-                e.stopPropagation(); 
+             onPointerDown={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 onDeleteElement(element.id);
              }}
              title="Delete Element"

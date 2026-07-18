@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { findMatchingPreset } from '@/lib/sizePresets';
@@ -140,7 +141,10 @@ export function Toolbar({
   };
 
   return (
-    <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2", className)}>
+    <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2 overflow-x-auto [&>*]:shrink-0", className)}>
+      {/* On phones the palette lives in a sheet; this is its only opener */}
+      <SidebarTrigger className="md:hidden" title="Open element palette" />
+
       {/* Project Name Section */}
       <div className="flex items-center space-x-2 mr-4">
         {isEditingProjectName ? (
