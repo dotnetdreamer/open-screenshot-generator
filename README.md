@@ -14,12 +14,7 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/RJmQgoreR2s">
-    <img src="docs/Youtube-Cover.png" alt="Open Screenshot Generator walkthrough on YouTube, click to play" width="900">
-  </a>
-</p>
-<p align="center">
-  <em>Watch the walkthrough on YouTube.</em>
+  <em><a href="https://youtu.be/RJmQgoreR2s">Watch the walkthrough on YouTube.</a></em>
 </p>
 
 ## What it does
