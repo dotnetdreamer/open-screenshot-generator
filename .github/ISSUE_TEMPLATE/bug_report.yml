@@ -1,0 +1,57 @@
+name: Bug report
+description: Something broke or renders wrong
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you do, and what went wrong? A screenshot or screen recording helps a lot for rendering issues.
+      placeholder: I dropped a screenshot into an iPhone frame and...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start from the Zenfit template
+        2. Select the phone mockup
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: false
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where are you running it
+      options:
+        - Web (openscrgen.app / editor.openscrgen.app)
+        - Web (GitHub Pages)
+        - Desktop app (Windows)
+        - Desktop app (macOS)
+        - Desktop app (Linux)
+        - Local dev server
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version and browser
+      description: Desktop app version (Menu, About), or the browser name and version for web.
+      placeholder: v0.1.3 desktop, or Chrome 138 on Windows 11
+    validations:
+      required: false
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      description: For web, anything red in the browser DevTools console (F12) when the bug happens.
+      render: text
+    validations:
+      required: false

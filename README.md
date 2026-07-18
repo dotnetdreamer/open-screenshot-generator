@@ -1,10 +1,17 @@
 # Open Screenshot Generator
 
+[![License: MIT](https://img.shields.io/github/license/dotnetdreamer/open-screenshot-generator)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/dotnetdreamer/open-screenshot-generator)](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest)
+
 **Canva for App Store & Play Store graphics.**
 
 A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
 
 Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
+
+<p align="center">
+  <img src="docs/demo.gif" alt="Open Screenshot Generator demo: placing device mockups on artboards and exporting store-ready screenshots" width="900">
+</p>
 
 <p align="center">
   <a href="https://youtu.be/RJmQgoreR2s">
@@ -18,7 +25,7 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 ## What it does
 
 - Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
-- Device frames for iPhone (X through 15 Pro), Android (bar, notch, punch-hole), tablet, MacBook, iMac, Apple Watch, and desktop, plus custom frames from your own mockup images
+- Device frames for iPhone (X through 17 Pro Max), iPad (11-inch and Pro 13-inch), Android (bar, notch, punch-hole), tablet, MacBook, iMac, Apple Watch, and desktop, plus custom frames from your own mockup images
 - Screenshots dropped into a frame stay clipped to the device screen; frames can be rotated, scaled, and tilted using perspective presets or a raw CSS `matrix3d` if you need full control
 - Text, shapes (rectangles, circles, stars, speech bubbles, custom SVG paths, and more), and plain images as freely placed elements
 - A curated set of Google Fonts, including Arabic and Urdu families like Cairo, Amiri, and Noto Nastaliq Urdu, alongside the usual system fonts
@@ -65,7 +72,7 @@ Prefer the browser? The project now lives at [openscrgen.app](https://openscrgen
 You'll need Node 18.18 or newer (that's Next.js 15's minimum).
 
 ```bash
-git clone https://github.com/<your-username>/open-screenshot-generator.git
+git clone https://github.com/dotnetdreamer/open-screenshot-generator.git
 cd open-screenshot-generator
 npm install
 npm run dev
@@ -77,7 +84,7 @@ The dev server runs on http://localhost:9002 with Turbopack. When the app opens,
   <img src="docs/screenshot-home.png" alt="The start screen: a grid of bundled template cards and a Start Blank button" width="700">
 </p>
 <p align="center">
-  <em>The start screen — pick a template or start with a blank canvas.</em>
+  <em>The start screen: pick a template or start with a blank canvas.</em>
 </p>
 
 Other scripts:
@@ -186,6 +193,8 @@ After adding or editing templates, regenerate the AI agent's hosted catalog with
 
 ## Contributing
 
-Issues and pull requests are welcome. If you're planning something bigger than a bug fix, open an issue first so we can talk it through before you spend time on it.
+Issues and pull requests are welcome. If you're planning something bigger than a bug fix, open an issue first so we can talk it through before you spend time on it. [CONTRIBUTING.md](CONTRIBUTING.md) has the dev setup and the checks to run before a PR.
 
-There's no license file in the repo yet. If that's blocking you from using or contributing to the project, open an issue.
+## License
+
+Open Screenshot Generator is released under the [MIT License](LICENSE).

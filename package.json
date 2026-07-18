@@ -1,7 +1,8 @@
 {
-  "name": "nextn",
+  "name": "open-screenshot-generator",
   "version": "0.1.3",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",

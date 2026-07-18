@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/dotnetdreamer/open-screenshot-generator/discussions
+    about: Ask anything or float an idea in Discussions. Issues are for bugs and concrete feature work.
