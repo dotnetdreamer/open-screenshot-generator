@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" class="no-webgl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8LQTR1SPDK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8LQTR1SPDK');
+  </script>
+
+  <title>Free App Preview Video Maker | Open Screenshot Generator</title>
+  <meta name="description" content="Turn a screen recording into an App Store app preview in your browser. Device frames, headlines, and MP4 export conformed to 886x1920, 30 fps, H.264." />
+  <link rel="canonical" href="https://openscrgen.app/app-preview-video-maker" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0a1214" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Open Screenshot Generator" />
+  <meta property="og:title" content="Free App Preview Video Maker" />
+  <meta property="og:description" content="Screen recording in, store ready MP4 out. Encoded locally in your browser and conformed to exactly what App Store Connect accepts: 886x1920, 30 fps, H.264." />
+  <meta property="og:url" content="https://openscrgen.app/app-preview-video-maker" />
+  <meta property="og:image" content="https://openscrgen.app/assets/img/og-image.png" />
+  <meta property="og:image:alt" content="The Open Screenshot Generator editor with a screen recording inside an iPhone frame." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free App Preview Video Maker" />
+  <meta name="twitter:description" content="Screen recording in, store ready MP4 out. Encoded locally in your browser and conformed to exactly what App Store Connect accepts: 886x1920, 30 fps, H.264." />
+  <meta name="twitter:image" content="https://openscrgen.app/assets/img/og-image.png" />
+  <meta name="twitter:image:alt" content="The Open Screenshot Generator editor with a screen recording inside an iPhone frame." />
+
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://openscrgen.app/app-preview-video-maker#page",
+        "url": "https://openscrgen.app/app-preview-video-maker",
+        "name": "Free App Preview Video Maker",
+        "isPartOf": { "@id": "https://openscrgen.app/#website" },
+        "about": { "@id": "https://openscrgen.app/#app" },
+        "description": "A free app preview video maker that runs in the browser. Device frames, headlines, and MP4 export conformed to App Store Connect's app preview specifications.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
+          { "@type": "ListItem", "position": 2, "name": "App preview video maker", "item": "https://openscrgen.app/app-preview-video-maker" }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What size does an App Store app preview need to be?",
+            "acceptedAnswer": { "@type": "Answer", "text": "886 by 1920 for modern iPhones in portrait, 1200 by 1600 for iPads, at up to 30 fps in H.264 or ProRes 422 HQ with a 500MB limit. The store ready conform here targets the iPhone spec automatically." }
+          },
+          {
+            "@type": "Question",
+            "name": "How long can an app preview be?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Between 15 and 30 seconds, up to three per localization. They appear before your screenshots on the product page." }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I show hands using the app?",
+            "acceptedAnswer": { "@type": "Answer", "text": "No. Apple requires previews to show only content from within the app, captured on device. A person holding the phone or fingers tapping the screen gets rejected." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does video export work in every browser?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On browsers without it the export stops with a clear message. PNG screenshot export works everywhere." }
+          },
+          {
+            "@type": "Question",
+            "name": "How do Google Play preview videos work?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Google Play does not take a video upload. You link a YouTube video on your listing, set to public or unlisted with ads disabled. Both orientations are supported and only the first 30 seconds autoplays, muted." }
+          },
+          {
+            "@type": "Question",
+            "name": "Is there a watermark?",
+            "acceptedAnswer": { "@type": "Answer", "text": "No. Exports are clean, in every mode, always. There is no paid tier holding features back." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Open Screenshot Generator home">
+      <img src="assets/logo.svg" alt="" width="34" height="34" />
+      <span class="brand-name">Open Screenshot <em>Generator</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/#how">How it works</a>
+      <a href="/app-store-screenshot-generator">Screenshots</a>
+      <a href="/app-store-screenshot-sizes">Screenshot sizes</a>
+      <a href="/#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-gold btn-small" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+  </header>
+
+  <main id="main" class="resource">
+
+    <section class="page-hero">
+      <p class="eyebrow">Video. Encoded in your browser</p>
+      <h1>Free app preview <em>video maker</em></h1>
+      <p class="lede">
+        Drop a screen recording into a phone frame, add your headline, and export an MP4 that
+        meets Apple's app preview spec on the first try. Encoding runs locally with WebCodecs,
+        so the recording of your unreleased app never leaves your machine
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="#spec">See Apple's video spec</a>
+      </div>
+      <p class="hero-fineprint">Free forever. No account. No watermark</p>
+    </section>
+
+    <section aria-labelledby="modes-title">
+      <p class="eyebrow">Two ways to use it</p>
+      <h2 id="modes-title">Designed previews, or a straight conform</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">01</span>
+          <h3>The designed preview</h3>
+          <p>Your recording plays inside a device frame on a designed artboard, with headlines and tap hints around it. Export the whole composition as an MP4, the same way you export screenshots as PNGs</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">02</span>
+          <h3>The store ready conform</h3>
+          <p>Already have footage you like? The conform mode takes your raw capture and re-encodes it to 886 by 1920 at 30 fps in H.264, so the size, frame rate and codec checks stop bouncing your upload. Length and content rules stay your job, 15 to 30 seconds of in app footage</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">03</span>
+          <h3>Both, locally</h3>
+          <p>Encoding happens in your browser through WebCodecs. Nothing is uploaded, which matters when the app in the recording is not public yet</p>
+        </li>
+      </ul>
+    </section>
+
+    <section id="spec" aria-labelledby="spec-title">
+      <p class="eyebrow">The rules</p>
+      <h2 id="spec-title">What App Store Connect accepts</h2>
+      <div class="table-scroll">
+        <table class="spec-table">
+          <thead>
+            <tr><th>Rule</th><th>Spec</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Length</td><td>15 to 30 seconds</td></tr>
+            <tr><td>Count</td><td>Up to 3 app previews per localization, shown before your screenshots</td></tr>
+            <tr><td>iPhone size</td><td class="num">886 × 1920 portrait, 1920 × 886 landscape</td></tr>
+            <tr><td>iPad size</td><td class="num">1200 × 1600 portrait, 1600 × 1200 landscape</td></tr>
+            <tr><td>Mac and Apple TV</td><td class="num">1920 × 1080, landscape only</td></tr>
+            <tr><td>Frame rate</td><td>Up to 30 fps</td></tr>
+            <tr><td>Codec</td><td>H.264 or ProRes 422 HQ</td></tr>
+            <tr><td>File size</td><td>Up to 500MB</td></tr>
+            <tr><td>Content</td><td>Footage from inside the app, captured on device. No hands, no over the shoulder shots</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note-box">
+        <strong>The rule people trip on.</strong> App previews must show only what happens inside
+        the app. A beautiful lifestyle shot of someone using your app at a cafe is a rejection.
+        Save that footage for your socials and keep the preview pure screen capture
+      </div>
+    </section>
+
+    <section aria-labelledby="play-title">
+      <p class="eyebrow">The other store</p>
+      <h2 id="play-title">Google Play works differently</h2>
+      <p>
+        Google Play does not take a video upload at all. Your preview video is a YouTube link on
+        the listing, with the 1024 by 500 feature graphic as its cover image
+      </p>
+      <ul>
+        <li>Link a single video, not a playlist or channel, set to public or unlisted</li>
+        <li>Ads and monetization must be off or Google Play will not show it</li>
+        <li>Landscape and portrait both work, match your app's orientation</li>
+        <li>Only the first 30 seconds autoplays, muted, so front load the good part</li>
+        <li>At least 80 percent of the video must show the real app experience</li>
+      </ul>
+      <p>
+        You can still design here. Export your composition as MP4, upload it to YouTube, and
+        design the <a href="/play-store-screenshot-generator">feature graphic</a> in the same project
+      </p>
+    </section>
+
+    <section class="faq" aria-labelledby="faq-title">
+      <p class="eyebrow">Questions</p>
+      <h2 id="faq-title">Fair questions, straight answers</h2>
+      <div class="faq-list">
+        <details>
+          <summary>What size does an App Store app preview need to be?</summary>
+          <p>886 by 1920 for modern iPhones in portrait, 1200 by 1600 for iPads, at up to 30 fps in H.264 or ProRes 422 HQ with a 500MB limit. The store ready conform here targets the iPhone spec automatically</p>
+        </details>
+        <details>
+          <summary>How long can an app preview be?</summary>
+          <p>Between 15 and 30 seconds, up to three per localization. They appear before your screenshots on the product page</p>
+        </details>
+        <details>
+          <summary>Can I show hands using the app?</summary>
+          <p>No. Apple requires previews to show only content from within the app, captured on device. A person holding the phone or fingers tapping the screen gets rejected</p>
+        </details>
+        <details>
+          <summary>Does video export work in every browser?</summary>
+          <p>Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On browsers without it the export stops with a clear message. PNG screenshot export works everywhere</p>
+        </details>
+        <details>
+          <summary>How do Google Play preview videos work?</summary>
+          <p>Google Play does not take a video upload. You link a YouTube video on your listing, set to public or unlisted with ads disabled. Both orientations are supported and only the first 30 seconds autoplays, muted</p>
+        </details>
+        <details>
+          <summary>Is there a watermark?</summary>
+          <p>No. Exports are clean, in every mode, always. There is no paid tier holding features back</p>
+        </details>
+      </div>
+    </section>
+
+    <section aria-labelledby="related-title">
+      <p class="eyebrow">Keep reading</p>
+      <h2 id="related-title">Related pages</h2>
+      <ul class="related-grid">
+        <li><a href="/app-store-screenshot-generator">App Store screenshot generator<span>The still images that sit next to your preview</span></a></li>
+        <li><a href="/app-store-screenshot-sizes">App Store screenshot sizes<span>Every screenshot dimension for 2026</span></a></li>
+        <li><a href="/play-store-screenshot-generator">Play Store screenshot generator<span>Screenshots and the feature graphic for Google's store</span></a></li>
+      </ul>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-title">
+      <h2 id="cta-title">Your app moves. Your store page <em>should too</em></h2>
+      <p>Drop in a recording, dress it, and export a store ready MP4 before your coffee cools</p>
+      <div class="hero-cta">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="https://youtu.be/RJmQgoreR2s" rel="noopener">Watch the walkthrough</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="/" aria-label="Open Screenshot Generator home">
+          <img src="assets/logo.svg" alt="" width="40" height="40" />
+          <span class="brand-name">Open Screenshot <em>Generator</em></span>
+        </a>
+        <p>Store ready screenshots, feature graphics and preview videos, designed in your browser and kept on your machine</p>
+      </div>
+      <nav class="footer-col" aria-label="Resources">
+        <h3>Resources</h3>
+        <a href="/app-store-screenshot-generator">App Store screenshot generator</a>
+        <a href="/play-store-screenshot-generator">Play Store screenshot generator</a>
+        <a href="/app-store-screenshot-sizes">App Store screenshot sizes</a>
+        <a href="/google-play-screenshot-sizes">Google Play screenshot sizes</a>
+        <a href="/app-preview-video-maker">App preview video maker</a>
+        <a href="/appscreens-alternative">AppScreens alternative</a>
+      </nav>
+      <nav class="footer-col" aria-label="Product">
+        <h3>Product</h3>
+        <a href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest" rel="noopener">Desktop downloads</a>
+        <a href="https://youtu.be/RJmQgoreR2s" rel="noopener">Video walkthrough</a>
+      </nav>
+      <nav class="footer-col" aria-label="Project">
+        <h3>Project</h3>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">GitHub</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Report an issue</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator#readme" rel="noopener">Documentation</a>
+      </nav>
+      <nav class="footer-col" aria-label="Legal">
+        <h3>Legal</h3>
+        <a href="/privacy">Privacy policy</a>
+        <a href="/terms">Terms of use</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Contact</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Open Screenshot Generator. Built with care, shipped for free</p>
+      <p>Video specs on this page come from Apple's app preview specifications, checked July 2026</p>
+    </div>
+  </footer>
+</body>
+</html>

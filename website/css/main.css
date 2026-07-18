@@ -729,7 +729,7 @@ html:not(.js) .wall-fallback {
   max-width: var(--max);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1.2fr 1fr 1fr 1fr;
   gap: 40px;
 }
 .footer-brand p { color: var(--muted); font-size: 0.92rem; max-width: 34ch; margin-top: 16px; }
@@ -794,6 +794,100 @@ html:not(.js) .wall-fallback {
 .legal a { color: var(--teal); }
 .legal a:hover { color: var(--gold); }
 .legal strong { color: var(--paper); }
+
+/* ============ Resource pages ============ */
+
+.resource section { padding: clamp(44px, 7vh, 80px) var(--pad); }
+.resource .page-hero { padding-top: 170px; padding-bottom: 26px; }
+.resource h1 {
+  font-size: clamp(2.4rem, 5.4vw, 4.1rem);
+  max-width: 22ch;
+  text-wrap: balance;
+  margin: 10px 0 22px;
+}
+.resource .lede {
+  color: var(--muted);
+  max-width: 62ch;
+  font-size: clamp(1.02rem, 1.35vw, 1.18rem);
+}
+.resource .page-hero .hero-cta { margin-top: 30px; }
+.resource h2 { font-size: clamp(1.7rem, 3.2vw, 2.5rem); margin-bottom: 22px; }
+.resource h3 { font-size: 1.3rem; margin: 34px 0 12px; }
+.resource section > p, .resource section > ul > li { color: var(--muted); max-width: 68ch; }
+.resource section > ul { list-style: none; display: grid; gap: 10px; }
+.resource section > ul > li { padding-left: 22px; position: relative; }
+.resource section > ul > li::before { content: "✦"; position: absolute; left: 0; color: var(--gold); font-size: 0.7rem; top: 6px; }
+.resource .updated { color: var(--muted); font-size: 0.9rem; }
+.resource a { color: var(--teal); }
+.resource a:hover { color: var(--gold); }
+.resource .hero-cta a { color: inherit; }
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  background: rgba(14, 25, 28, 0.6);
+  margin: 22px 0;
+}
+.spec-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 560px; }
+.spec-table th {
+  text-align: left;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--teal);
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(111, 179, 181, 0.25);
+  white-space: nowrap;
+}
+.spec-table td { padding: 13px 18px; border-bottom: 1px solid rgba(111, 179, 181, 0.10); color: var(--muted); vertical-align: top; }
+.spec-table tr:last-child td { border-bottom: none; }
+.spec-table td:first-child { color: var(--paper); font-weight: 500; }
+.spec-table .num { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--paper); }
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-req { background: rgba(212, 175, 55, 0.14); color: var(--gold-soft); border: 1px solid rgba(212, 175, 55, 0.4); }
+.badge-opt { background: rgba(111, 179, 181, 0.10); color: var(--teal); border: 1px solid rgba(111, 179, 181, 0.3); }
+
+.note-box {
+  border-left: 2px solid var(--gold);
+  background: rgba(18, 32, 35, 0.5);
+  padding: 18px 22px;
+  margin: 26px 0;
+  color: var(--muted);
+  max-width: 68ch;
+}
+.note-box strong { color: var(--paper); }
+
+.related-grid { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.related-grid li { padding: 0; }
+.related-grid li::before { content: none; }
+.related-grid a {
+  display: block;
+  height: 100%;
+  padding: 18px 20px;
+  border: 1px solid var(--panel-line);
+  border-radius: 12px;
+  color: var(--paper);
+  text-decoration: none;
+  background: rgba(14, 25, 28, 0.6);
+  font-weight: 500;
+  transition: border-color 0.25s, background 0.25s;
+}
+.related-grid a span { display: block; color: var(--muted); font-size: 0.88rem; font-weight: 400; margin-top: 6px; }
+.related-grid a:hover { border-color: var(--teal); background: rgba(18, 32, 35, 0.8); color: var(--paper); }
+@media (max-width: 860px) { .related-grid { grid-template-columns: 1fr; } }
 
 /* ============ Reveal defaults ============ */
 

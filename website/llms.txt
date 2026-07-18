@@ -16,8 +16,14 @@ Key facts:
 ## Pages
 
 - [Home](https://openscrgen.app/): product overview, the three step workflow, features, templates, and FAQ.
-- [Privacy policy](https://openscrgen.app/privacy.html): no accounts, no analytics, and no data collection by design.
-- [Terms of use](https://openscrgen.app/terms.html): plain language terms for the free service.
+- [App Store screenshot generator](https://openscrgen.app/app-store-screenshot-generator): the free editor pointed at Apple's store, with the sizes it exports.
+- [Play Store screenshot generator](https://openscrgen.app/play-store-screenshot-generator): Google Play screenshots plus the required 1024 by 500 feature graphic.
+- [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): every accepted dimension for 2026, checked against Apple's published specifications, including the required 6.9 inch iPhone tier (1290x2796) and 13 inch iPad tier (2064x2752).
+- [Google Play screenshot sizes](https://openscrgen.app/google-play-screenshot-sizes): screenshot rules (320 to 3840px, max 2:1 ratio), the required 1024x500 feature graphic, the 512x512 icon, and the 1080px featuring rule.
+- [App preview video maker](https://openscrgen.app/app-preview-video-maker): browser based MP4 export conformed to Apple's app preview spec (886x1920, 30 fps, H.264, 15 to 30 seconds), plus Google Play's YouTube video rules.
+- [AppScreens alternative](https://openscrgen.app/appscreens-alternative): an honest comparison with AppScreens, including where each tool wins.
+- [Privacy policy](https://openscrgen.app/privacy): no accounts, no analytics, and no data collection by design.
+- [Terms of use](https://openscrgen.app/terms): plain language terms for the free service.
 
 ## Related
 

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" class="no-webgl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8LQTR1SPDK"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-8LQTR1SPDK');
+  </script>
+
+  <title>Free App Store Screenshot Generator | Open Screenshot Generator</title>
+  <meta name="description" content="Design App Store screenshots in your browser for free. iPhone and iPad frames, 3D poses, and one click export at every size Apple asks for. No account, no watermark." />
+  <link rel="canonical" href="https://openscrgen.app/app-store-screenshot-generator" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0a1214" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Open Screenshot Generator" />
+  <meta property="og:title" content="Free App Store Screenshot Generator" />
+  <meta property="og:description" content="Templates, iPhone and iPad frames, 3D poses, and one click export at every size Apple asks for. No account, no watermark, no upload." />
+  <meta property="og:url" content="https://openscrgen.app/app-store-screenshot-generator" />
+  <meta property="og:image" content="https://openscrgen.app/assets/img/og-image.png" />
+  <meta property="og:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free App Store Screenshot Generator" />
+  <meta name="twitter:description" content="Templates, iPhone and iPad frames, 3D poses, and one click export at every size Apple asks for. No account, no watermark, no upload." />
+  <meta name="twitter:image" content="https://openscrgen.app/assets/img/og-image.png" />
+  <meta name="twitter:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
+
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/main.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://openscrgen.app/app-store-screenshot-generator#page",
+        "url": "https://openscrgen.app/app-store-screenshot-generator",
+        "name": "Free App Store Screenshot Generator",
+        "isPartOf": { "@id": "https://openscrgen.app/#website" },
+        "about": { "@id": "https://openscrgen.app/#app" },
+        "description": "A free, open source App Store screenshot generator that runs in the browser. Templates, device frames, 3D poses, and export at every size Apple accepts.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
+          { "@type": "ListItem", "position": 2, "name": "App Store screenshot generator", "item": "https://openscrgen.app/app-store-screenshot-generator" }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is this App Store screenshot generator really free?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. There is no account, no watermark, no export limit, and no paid tier. The full source code is public on GitHub." }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I have to design every iPhone size separately?",
+            "acceptedAnswer": { "@type": "Answer", "text": "No. Design at the 6.9 inch size, such as 1290 by 2796, and the App Store scales it down for smaller iPhones automatically. If you want pixel perfect control over a specific tier, the editor can resize the canvas to any accepted dimension." }
+          },
+          {
+            "@type": "Question",
+            "name": "Where do my screenshots go when I upload them?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Nowhere. The editor runs entirely in your browser. Projects and uploads live in your browser storage on your own machine, and there is no backend to send them to." }
+          },
+          {
+            "@type": "Question",
+            "name": "What does it export?",
+            "acceptedAnswer": { "@type": "Answer", "text": "PNG files rendered at the exact pixel dimensions App Store Connect expects, for every device class you target. Apple accepts PNG and JPEG and rejects images with alpha channels." }
+          },
+          {
+            "@type": "Question",
+            "name": "Can it make Play Store screenshots too?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. The same editor exports Google Play phone and tablet screenshots and the 1024 by 500 feature graphic. The Play Store screenshot generator page has the details." }
+          },
+          {
+            "@type": "Question",
+            "name": "Does it make app preview videos as well?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes, in Chrome, Edge or the desktop app, where video export has WebCodecs. Drop a screen recording into a device frame and export an MP4, or conform a raw capture to exactly what App Store Connect accepts. The app preview video maker page explains both modes." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Open Screenshot Generator home">
+      <img src="assets/logo.svg" alt="" width="34" height="34" />
+      <span class="brand-name">Open Screenshot <em>Generator</em></span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/#how">How it works</a>
+      <a href="/#templates">Templates</a>
+      <a href="/app-store-screenshot-sizes">Screenshot sizes</a>
+      <a href="/#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-gold btn-small" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+  </header>
+
+  <main id="main" class="resource">
+
+    <section class="page-hero">
+      <p class="eyebrow">Free. Open source. Runs in your browser</p>
+      <h1>Free App Store <em>screenshot generator</em></h1>
+      <p class="lede">
+        Pick a template, drop in your app screens, and export every iPhone, iPad, Mac and
+        Apple Watch size Apple accepts. There is no account, no watermark and no upload.
+        The editor runs entirely in your browser, so your screenshots never leave your machine
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="#sizes">See every size it exports</a>
+      </div>
+      <p class="hero-fineprint">Free forever. No account. No watermark</p>
+    </section>
+
+    <section aria-labelledby="what-title">
+      <p class="eyebrow">What you get</p>
+      <h2 id="what-title">Built for App Store screenshots, not adapted to them</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">01</span>
+          <h3>Templates already sized</h3>
+          <p>Screenshot sets for fitness, finance, streaming, games, chat and more. Every artboard starts at store dimensions, so you design once and export without resizing</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">02</span>
+          <h3>Real device frames</h3>
+          <p>iPhone, iPad, Mac and Apple Watch frames, flat or tilted into 3D poses. Your screens stay clipped to the glass whatever you do to the device</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">03</span>
+          <h3>Every size in one click</h3>
+          <p>The export flow renders each artboard at the App Store dimensions you target, from the 6.9 inch iPhone tier down to iPad, Mac and Apple Watch</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">04</span>
+          <h3>A full design toolkit</h3>
+          <p>Text, shapes, arrows, speech bubbles and images, all freely placed with layers and undo. A curated set of Google Fonts includes Arabic and Urdu families</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">05</span>
+          <h3>An AI agent, if you want it</h3>
+          <p>Hand it your screens and one sentence about what you want. It picks a template, fills every frame and rewrites the copy for your app. Entirely optional</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">06</span>
+          <h3>Private by architecture</h3>
+          <p>There is no backend. Projects live in your browser storage and exports render on your machine. Privacy here is not a policy, it is a missing server</p>
+        </li>
+      </ul>
+    </section>
+
+    <section id="sizes" aria-labelledby="sizes-title">
+      <p class="eyebrow">Export targets</p>
+      <h2 id="sizes-title">Every size Apple asks for</h2>
+      <div class="table-scroll">
+        <table class="spec-table">
+          <thead>
+            <tr><th>Device</th><th>Primary size</th><th>Status</th><th>Also accepted</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>iPhone 6.9"</td>
+              <td class="num">1290 × 2796</td>
+              <td><span class="badge badge-req">Required</span></td>
+              <td>1260 × 2736, 1320 × 2868, landscape mirrors</td>
+            </tr>
+            <tr>
+              <td>iPad 13"</td>
+              <td class="num">2064 × 2752</td>
+              <td><span class="badge badge-req">Required for iPad apps</span></td>
+              <td>2048 × 2732, landscape mirrors</td>
+            </tr>
+            <tr>
+              <td>Apple Watch</td>
+              <td class="num">422 × 514</td>
+              <td><span class="badge badge-req">Required for watch apps</span></td>
+              <td>Five smaller sizes, from 416 × 496 down to 312 × 390</td>
+            </tr>
+            <tr>
+              <td>Mac</td>
+              <td class="num">2560 × 1600</td>
+              <td><span class="badge badge-req">Required for Mac apps</span></td>
+              <td>Any 16:10 tier from 1280 × 800 up to 2880 × 1800</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note-box">
+        <strong>The shortcut Apple gives you.</strong> Upload only the largest size in a device
+        family and the App Store scales it down for smaller models automatically. In practice one
+        6.9 inch iPhone set and one 13 inch iPad set cover almost every listing
+      </div>
+      <p>
+        The full reference, including the 6.5 inch fallback rule, the Apple TV and Vision Pro sizes,
+        legacy tiers and every accepted alternative, is on the
+        <a href="/app-store-screenshot-sizes">App Store screenshot sizes</a> page
+      </p>
+    </section>
+
+    <section aria-labelledby="steps-title">
+      <p class="eyebrow">How it works</p>
+      <h2 id="steps-title">From raw screens to store ready in three steps</h2>
+      <ul class="feature-grid">
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">01</span>
+          <h3>Pick a template</h3>
+          <p>Open the gallery and choose a starting point. Every set is already sized for the App Store, so the design decisions are made before you arrive</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">02</span>
+          <h3>Drop in your screenshots</h3>
+          <p>Upload screens straight from your phone or simulator. They snap into the device frames and stay clipped to the glass, even in 3D poses</p>
+        </li>
+        <li class="feature-card">
+          <span class="feature-index" aria-hidden="true">03</span>
+          <h3>Export for the store</h3>
+          <p>One click renders every artboard at the exact pixel sizes App Store Connect expects. No resizing in another tool and no rejections over pixels</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="faq" aria-labelledby="faq-title">
+      <p class="eyebrow">Questions</p>
+      <h2 id="faq-title">Fair questions, straight answers</h2>
+      <div class="faq-list">
+        <details>
+          <summary>Is this App Store screenshot generator really free?</summary>
+          <p>Yes. There is no account, no watermark, no export limit, and no paid tier. The full source code is public on GitHub</p>
+        </details>
+        <details>
+          <summary>Do I have to design every iPhone size separately?</summary>
+          <p>No. Design at the 6.9 inch size, such as 1290 by 2796, and the App Store scales it down for smaller iPhones automatically. If you want pixel perfect control over a specific tier, the editor can resize the canvas to any accepted dimension</p>
+        </details>
+        <details>
+          <summary>Where do my screenshots go when I upload them?</summary>
+          <p>Nowhere. The editor runs entirely in your browser. Projects and uploads live in your browser storage on your own machine, and there is no backend to send them to</p>
+        </details>
+        <details>
+          <summary>What does it export?</summary>
+          <p>PNG files rendered at the exact pixel dimensions App Store Connect expects, for every device class you target. Apple accepts PNG and JPEG and rejects images with alpha channels</p>
+        </details>
+        <details>
+          <summary>Can it make Play Store screenshots too?</summary>
+          <p>Yes. The same editor exports Google Play phone and tablet screenshots and the 1024 by 500 feature graphic. The <a href="/play-store-screenshot-generator">Play Store screenshot generator</a> page has the details</p>
+        </details>
+        <details>
+          <summary>Does it make app preview videos as well?</summary>
+          <p>Yes, in Chrome, Edge or the desktop app, where video export has WebCodecs. Drop a screen recording into a device frame and export an MP4, or conform a raw capture to exactly what App Store Connect accepts. The <a href="/app-preview-video-maker">app preview video maker</a> page explains both modes</p>
+        </details>
+      </div>
+    </section>
+
+    <section aria-labelledby="related-title">
+      <p class="eyebrow">Keep reading</p>
+      <h2 id="related-title">Related pages</h2>
+      <ul class="related-grid">
+        <li><a href="/app-store-screenshot-sizes">App Store screenshot sizes<span>Every required dimension for 2026, from Apple's current spec</span></a></li>
+        <li><a href="/play-store-screenshot-generator">Play Store screenshot generator<span>The same free editor, pointed at Google Play</span></a></li>
+        <li><a href="/app-preview-video-maker">App preview video maker<span>MP4 previews conformed to what App Store Connect accepts</span></a></li>
+      </ul>
+    </section>
+
+    <section class="cta" aria-labelledby="cta-title">
+      <h2 id="cta-title">Your product page could look better <em>tonight</em></h2>
+      <p>Open the editor, pick a template, and export a full App Store set before your coffee cools</p>
+      <div class="hero-cta">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">Star it on GitHub</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="brand" href="/" aria-label="Open Screenshot Generator home">
+          <img src="assets/logo.svg" alt="" width="40" height="40" />
+          <span class="brand-name">Open Screenshot <em>Generator</em></span>
+        </a>
+        <p>Store ready screenshots, feature graphics and preview videos, designed in your browser and kept on your machine</p>
+      </div>
+      <nav class="footer-col" aria-label="Resources">
+        <h3>Resources</h3>
+        <a href="/app-store-screenshot-generator">App Store screenshot generator</a>
+        <a href="/play-store-screenshot-generator">Play Store screenshot generator</a>
+        <a href="/app-store-screenshot-sizes">App Store screenshot sizes</a>
+        <a href="/google-play-screenshot-sizes">Google Play screenshot sizes</a>
+        <a href="/app-preview-video-maker">App preview video maker</a>
+        <a href="/appscreens-alternative">AppScreens alternative</a>
+      </nav>
+      <nav class="footer-col" aria-label="Product">
+        <h3>Product</h3>
+        <a href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest" rel="noopener">Desktop downloads</a>
+        <a href="https://youtu.be/RJmQgoreR2s" rel="noopener">Video walkthrough</a>
+      </nav>
+      <nav class="footer-col" aria-label="Project">
+        <h3>Project</h3>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">GitHub</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Report an issue</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator#readme" rel="noopener">Documentation</a>
+      </nav>
+      <nav class="footer-col" aria-label="Legal">
+        <h3>Legal</h3>
+        <a href="/privacy">Privacy policy</a>
+        <a href="/terms">Terms of use</a>
+        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Contact</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Open Screenshot Generator. Built with care, shipped for free</p>
+      <p>Store specs on this page were checked against Apple's published requirements in July 2026</p>
+    </div>
+  </footer>
+</body>
+</html>
