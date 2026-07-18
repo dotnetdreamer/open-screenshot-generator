@@ -3,11 +3,7 @@
 [![License: MIT](https://img.shields.io/github/license/dotnetdreamer/open-screenshot-generator)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/dotnetdreamer/open-screenshot-generator)](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest)
 
-**Canva for App Store & Play Store graphics.**
-
-A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
-
-Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
+**Canva for App Store & Play Store graphics**
 
 <p align="center">
   <img src="docs/demo.gif" alt="Open Screenshot Generator demo: placing device mockups on artboards and exporting store-ready screenshots" width="900">
@@ -16,6 +12,10 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 <p align="center">
   <em><a href="https://youtu.be/RJmQgoreR2s">Watch the walkthrough on YouTube.</a></em>
 </p>
+
+A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
+
+Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
 
 ## What it does
 
