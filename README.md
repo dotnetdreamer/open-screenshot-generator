@@ -18,7 +18,7 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 ## What it does
 
 - Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
-- Device frames for iPhone (X through 15 Pro), Android (bar, notch, punch-hole), tablet, and desktop, plus custom frames from your own mockup images
+- Device frames for iPhone (X through 15 Pro), Android (bar, notch, punch-hole), tablet, MacBook, iMac, Apple Watch, and desktop, plus custom frames from your own mockup images
 - Screenshots dropped into a frame stay clipped to the device screen; frames can be rotated, scaled, and tilted using perspective presets or a raw CSS `matrix3d` if you need full control
 - Text, shapes (rectangles, circles, stars, speech bubbles, custom SVG paths, and more), and plain images as freely placed elements
 - A curated set of Google Fonts, including Arabic and Urdu families like Cairo, Amiri, and Noto Nastaliq Urdu, alongside the usual system fonts
@@ -28,6 +28,23 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 - App Store preview videos: drop a screen recording into a phone frame, dress it with headlines and tap hints, and export an MP4 (see below)
 - Bundled example projects to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
+
+## Feature checklist: web vs desktop
+
+The editor itself is identical in the browser and in the desktop app (it is the same build). The desktop shell adds the integrations that need a native process: embedded sign-in windows for the free AI mode, keyless local AI providers, and the MCP server.
+
+| Feature | Web | Desktop |
+| --- | :---: | :---: |
+| All editor features: artboards, device mockups, 3D poses, templates, store-size PNG export | ✅ | ✅ |
+| App preview videos: styled MP4 export, plus store-ready recording conversion (886x1920, 30fps, H.264) | ✅ ¹ | ✅ |
+| AI agent with your own API key (Anthropic, OpenAI, Google) | ✅ | ✅ |
+| AI agent on the Claude, ChatGPT or Gemini account you already have (beta: Copilot, DeepSeek, Qwen, Perplexity) | ✅ ² | ✅ |
+| AI agent with free built-in providers (Pollinations, or local Ollama / LM Studio), no key and no account | ➖ | ✅ |
+| MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor | ➖ | ✅ |
+
+¹ Needs a browser with the WebCodecs H.264 encoder (Chrome or Edge). PNG export works everywhere.
+
+² In the browser this mode works through a manual relay: copy the prompt into your chat, paste the reply back. The desktop app automates the whole run in an embedded window, nothing extra to install.
 
 ## Download the desktop app
 
