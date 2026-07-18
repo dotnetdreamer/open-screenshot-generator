@@ -83,15 +83,65 @@ async function init() {
   initReveals();
   initStepsDomSync(scene);
   if (scene) {
+    // Wire every ScrollTrigger NOW, before textures finish loading. The two
+    // pinned sections insert ~260vh of spacer each; creating them only after
+    // scene.ready (the old order) inflated the document underneath a user who
+    // had already scrolled during the load, which dropped their absolute
+    // scroll offset into the middle of the wall pin. Template strips then
+    // replaced whatever they were reading, and scrolling up marched the rest
+    // of the parade across the screen. The mesh choreography all guards
+    // against still-empty groups.
+    withScrollAnchor(() => {
+      initCorridorScroll(scene);
+      initStepsScroll(scene);
+      initWallScroll(scene);
+      initDrifterScroll(scene);
+      ScrollTrigger.refresh();
+    });
     await scene.ready;
     if (scene.layoutSteps) scene.layoutSteps();
     if (scene.layoutWall) scene.layoutWall();
-    initCorridorScroll(scene);
-    initStepsScroll(scene);
-    initWallScroll(scene);
-    initDrifterScroll(scene);
+    // Upload every texture to the GPU now, while the page is settled, so the
+    // first on-screen frame of each section never pays the upload cost
+    // mid-scroll.
+    scene.scene.traverse((o) => {
+      if (o.isMesh && o.material.map) scene.renderer.initTexture(o.material.map);
+    });
+    ScrollTrigger.refresh();
+    syncSceneToScroll(scene);
+  } else {
+    ScrollTrigger.refresh();
   }
-  ScrollTrigger.refresh();
+}
+
+/* Pin spacers change the document height the moment the pinned triggers are
+   created. If the user has already scrolled (slow network, restored scroll
+   position), keep the section they are looking at anchored in the viewport
+   instead of letting the content teleport underneath their scroll offset. */
+function withScrollAnchor(fn) {
+  if (window.scrollY < 8) { fn(); return; }
+  const probe = [...document.querySelectorAll("main > section, footer")]
+    .find((el) => el.getBoundingClientRect().bottom > 60);
+  const before = probe ? probe.getBoundingClientRect().top : 0;
+  fn();
+  if (probe) window.scrollBy(0, probe.getBoundingClientRect().top - before);
+}
+
+/* Force the scene to agree with wherever the scroll already sits. Refresh
+   restores scrub positions but does not re-fire enter/leave callbacks for
+   states that were established before the triggers existed. */
+function syncSceneToScroll(state) {
+  const c = state.corridorST;
+  if (c) {
+    state.corridor.visible = c.progress < 1;
+    state.corridorFade = 1 - clamp01((c.progress - 0.55) / 0.35);
+  }
+  const s = state.stepsST;
+  if (s) {
+    fadeStepCards(state, s.isActive ? 1 : 0);
+    if (s.isActive) choreographStepMeshes(state, s.progress);
+    setActiveStep(Math.max(0, Math.min(2, Math.floor(s.progress * 2.9999))));
+  }
 }
 
 function staticMode() {
@@ -143,6 +193,9 @@ function buildScene(THREE) {
     drifters: new THREE.Group(),
     stepMeshes: [],
     wallMeshes: [],
+    // Read by the wall scrub's end value before layoutWall exists (the
+    // triggers are wired while textures still stream in).
+    wallSpan: 0,
     mouse: { x: 0, y: 0 },
     viewSize(dist) {
       const h = 2 * dist * Math.tan((camera.fov * Math.PI) / 360);
@@ -188,8 +241,8 @@ function buildScene(THREE) {
     renderer.render(scene, camera);
   });
 
-  // Scroll triggers are wired only after every texture resolved, so no
-  // tween ever reads a half-initialized layout value.
+  // Groups and triggers exist from the start; textures stream in behind them
+  // and init() re-layouts + refreshes once this resolves.
   state.ready = Promise.all([
     buildCorridor(state),
     buildStepCards(state),
@@ -312,7 +365,7 @@ async function buildCorridor(state) {
 }
 
 function initCorridorScroll(state) {
-  gsap.to(state.corridor.position, {
+  const tween = gsap.to(state.corridor.position, {
     z: 38,
     ease: "none",
     scrollTrigger: {
@@ -323,13 +376,18 @@ function initCorridorScroll(state) {
       scrub: 1,
       // The strips dissolve over the back half of the ride, so by the time
       // the group is hidden there is nothing left on screen to pop away.
+      // Visibility rides on onUpdate as well as the edge callbacks: edges
+      // can be skipped when triggers are created at an arbitrary scroll
+      // position, onUpdate cannot.
       onUpdate(self) {
         state.corridorFade = 1 - clamp01((self.progress - 0.55) / 0.35);
+        state.corridor.visible = self.progress < 1;
       },
       onLeave() { state.corridor.visible = false; },
       onEnterBack() { state.corridor.visible = true; },
     },
   });
+  state.corridorST = tween.scrollTrigger;
 }
 
 /* ============ Step cards ============ */
@@ -388,7 +446,7 @@ async function buildStepCards(state) {
 }
 
 function initStepsScroll(state) {
-  ScrollTrigger.create({
+  state.stepsST = ScrollTrigger.create({
     trigger: ".steps-pin",
     start: "top top",
     end: "+=260%",
@@ -534,7 +592,7 @@ function initWallScroll(state) {
   };
   apply();
 
-  gsap.fromTo(proxy, {
+  const tween = gsap.fromTo(proxy, {
     x: () => halfW() + 3,
   }, {
     x: () => -(state.wallSpan + halfW()),
@@ -551,6 +609,7 @@ function initWallScroll(state) {
       invalidateOnRefresh: true,
     },
   });
+  state.wallST = tween.scrollTrigger;
 }
 
 /* ============ Drifting devices ============ */
