@@ -8,6 +8,12 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'calora-macros', card: 'Calora Macros', boards: 5 },
+  { slug: 'puzzlo-word', card: 'Puzzlo Word', boards: 5 },
+  { slug: 'sproutly-parenting', card: 'Sproutly Parenting', boards: 5 },
+  { slug: 'zapio-remote', card: 'Zapio Remote', boards: 5 },
+  { slug: 'runzo-coach', card: 'Runzo Coach', boards: 5 },
+  { slug: 'nookly-focus', card: 'Nookly Focus', boards: 5 },
   { slug: 'breathora-breathing', card: 'Breathora Breathing', boards: 5 },
   { slug: 'vowly-wedding', card: 'Vowly Wedding', boards: 5 },
   { slug: 'beauty-glam', card: 'Beauty Glam', boards: 5 },

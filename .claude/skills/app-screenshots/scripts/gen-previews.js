@@ -27,6 +27,8 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'calora-macros', 'puzzlo-word', 'sproutly-parenting',
+  'zapio-remote', 'runzo-coach', 'nookly-focus',
   'playpop-intro', 'lotus-calm', 'cvcraft-resume', 'nutrio-fitness',
   'breathora-breathing', 'vowly-wedding',
   'connectly-chat', 'budgetly-finance', 'listly-tasks', 'inboxly-mail', 'darzi-studio',
@@ -150,11 +152,9 @@ async function openTemplate(page, cardTitle, tab) {
   }
 
   // ---- Pass B: compose strips + rewrite previewImage (one shared browser) ----
-  const browser = await puppeteer.launch({
-    executablePath: EDGE, headless: true, args: ['--no-sandbox'],
-    defaultViewport: { width: CW, height: CH, deviceScaleFactor: 2 },
-  });
-  const page = await browser.newPage();
+  // lib.launch has the spawn+connect fallback for Edge 150's broken
+  // puppeteer.launch; a direct launch here dies on that Edge build.
+  const { browser, page } = await launch({ width: CW, height: CH, dpr: 2 });
   let done = 0;
   for (const slug of list) {
     const dir = path.join(SRC, slug);

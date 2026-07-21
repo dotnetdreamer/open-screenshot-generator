@@ -1,0 +1,2016 @@
+{
+ "id": "template_sproutly_parenting",
+ "name": "Sproutly Parenting",
+ "description": "App Store & Play Store screenshots for a positive parenting coach app. Warm blush editorial panels, serif headlines with a script accent, a family photo with floating worry chips, a gold laurel badge, a dark navy daily plan phone screen and a fanned scenario card simulator.",
+ "previewImage": "/data/projects/previews/sproutly-parenting.png",
+ "timestamp": "2026-07-20T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "sproutly_parenting_ab1",
+   "name": "Hero",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FBE7DE",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "sp_txt_1",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 110
+     },
+     "size": {
+      "width": 1230,
+      "height": 380
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Master toddler\nmeltdowns",
+     "fontSize": 44,
+     "color": "#22304E",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "sp_txt_2",
+     "type": "text",
+     "name": "Calmly script",
+     "position": {
+      "x": 345,
+      "y": 470
+     },
+     "size": {
+      "width": 600,
+      "height": 240
+     },
+     "rotation": -4,
+     "scale": 1,
+     "content": "calmly",
+     "fontSize": 40,
+     "color": "#E8674A",
+     "fontFamily": "Pacifico",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "sp_img_3",
+     "type": "image",
+     "name": "Family photo",
+     "position": {
+      "x": 65,
+      "y": 1030
+     },
+     "size": {
+      "width": 1160,
+      "height": 774
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/elements/images/family/family-as334540672.png",
+     "imageAlt": "",
+     "objectFit": "contain",
+     "borderRadius": 0
+    },
+    {
+     "id": "sp_rect_4",
+     "type": "shape",
+     "name": "Chip tantrums shadow",
+     "position": {
+      "x": 84,
+      "y": 864
+     },
+     "size": {
+      "width": 640,
+      "height": 110
+     },
+     "rotation": -5,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_rect_5",
+     "type": "shape",
+     "name": "Chip tantrums pill",
+     "position": {
+      "x": 70,
+      "y": 850
+     },
+     "size": {
+      "width": 640,
+      "height": 110
+     },
+     "rotation": -5,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_txt_6",
+     "type": "text",
+     "name": "Chip tantrums label",
+     "position": {
+      "x": 70,
+      "y": 867.5
+     },
+     "size": {
+      "width": 640,
+      "height": 75
+     },
+     "rotation": -5,
+     "scale": 1,
+     "content": "😤 Tantrums again!",
+     "fontSize": 17,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_7",
+     "type": "shape",
+     "name": "Chip picky shadow",
+     "position": {
+      "x": 754,
+      "y": 1254
+     },
+     "size": {
+      "width": 510,
+      "height": 110
+     },
+     "rotation": 4,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_rect_8",
+     "type": "shape",
+     "name": "Chip picky pill",
+     "position": {
+      "x": 740,
+      "y": 1240
+     },
+     "size": {
+      "width": 510,
+      "height": 110
+     },
+     "rotation": 4,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_txt_9",
+     "type": "text",
+     "name": "Chip picky label",
+     "position": {
+      "x": 740,
+      "y": 1257.5
+     },
+     "size": {
+      "width": 510,
+      "height": 75
+     },
+     "rotation": 4,
+     "scale": 1,
+     "content": "🥦 Picky eater",
+     "fontSize": 17,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_10",
+     "type": "shape",
+     "name": "Chip bedtime shadow",
+     "position": {
+      "x": 69,
+      "y": 1604
+     },
+     "size": {
+      "width": 520,
+      "height": 110
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_rect_11",
+     "type": "shape",
+     "name": "Chip bedtime pill",
+     "position": {
+      "x": 55,
+      "y": 1590
+     },
+     "size": {
+      "width": 520,
+      "height": 110
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_txt_12",
+     "type": "text",
+     "name": "Chip bedtime label",
+     "position": {
+      "x": 55,
+      "y": 1607.5
+     },
+     "size": {
+      "width": 520,
+      "height": 75
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "😴 No bedtime!",
+     "fontSize": 17,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_13",
+     "type": "shape",
+     "name": "Chip dark shadow",
+     "position": {
+      "x": 574,
+      "y": 1894
+     },
+     "size": {
+      "width": 690,
+      "height": 110
+     },
+     "rotation": 3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_rect_14",
+     "type": "shape",
+     "name": "Chip dark pill",
+     "position": {
+      "x": 560,
+      "y": 1880
+     },
+     "size": {
+      "width": 690,
+      "height": 110
+     },
+     "rotation": 3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 55
+    },
+    {
+     "id": "sp_txt_15",
+     "type": "text",
+     "name": "Chip dark label",
+     "position": {
+      "x": 560,
+      "y": 1897.5
+     },
+     "size": {
+      "width": 690,
+      "height": 75
+     },
+     "rotation": 3,
+     "scale": 1,
+     "content": "🌙 Scared of the dark",
+     "fontSize": 17,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_svg_16",
+     "type": "shape",
+     "name": "Laurel left",
+     "position": {
+      "x": 100,
+      "y": 2180
+     },
+     "size": {
+      "width": 300,
+      "height": 400
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_svg_17",
+     "type": "shape",
+     "name": "Laurel right",
+     "position": {
+      "x": 890,
+      "y": 2180
+     },
+     "size": {
+      "width": 300,
+      "height": 400
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_txt_18",
+     "type": "text",
+     "name": "Badge number",
+     "position": {
+      "x": 445,
+      "y": 2140
+     },
+     "size": {
+      "width": 400,
+      "height": 185
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "#1",
+     "fontSize": 40,
+     "color": "#22304E",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.05
+    },
+    {
+     "id": "sp_txt_19",
+     "type": "text",
+     "name": "Badge title",
+     "position": {
+      "x": 195,
+      "y": 2330
+     },
+     "size": {
+      "width": 900,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Positive Parenting\nCoach",
+     "fontSize": 20,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "sp_svg_20",
+     "type": "shape",
+     "name": "Badge leaf",
+     "position": {
+      "x": 491,
+      "y": 2560
+     },
+     "size": {
+      "width": 34,
+      "height": 34
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M8 92 V42 Q8 8 42 8 H92 V58 Q92 92 58 92 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    },
+    {
+     "id": "sp_txt_21",
+     "type": "text",
+     "name": "Badge brand",
+     "position": {
+      "x": 525,
+      "y": 2535
+     },
+     "size": {
+      "width": 280,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Sproutly",
+     "fontSize": 16,
+     "color": "#E8674A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    }
+   ]
+  },
+  {
+   "id": "sproutly_parenting_ab2",
+   "name": "Plan",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FDF4EC",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "sp_txt_22",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 10,
+      "y": 110
+     },
+     "size": {
+      "width": 1270,
+      "height": 380
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Grow your\nparenting skills",
+     "fontSize": 44,
+     "color": "#E8674A",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "sp_rect_23",
+     "type": "shape",
+     "name": "Tile teddy shadow",
+     "position": {
+      "x": 67,
+      "y": 712
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_rect_24",
+     "type": "shape",
+     "name": "Tile teddy card",
+     "position": {
+      "x": 55,
+      "y": 700
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_txt_25",
+     "type": "text",
+     "name": "Tile teddy emoji",
+     "position": {
+      "x": 55,
+      "y": 709
+     },
+     "size": {
+      "width": 150,
+      "height": 132
+     },
+     "rotation": -8,
+     "scale": 1,
+     "content": "🧸",
+     "fontSize": 30,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_26",
+     "type": "shape",
+     "name": "Tile book shadow",
+     "position": {
+      "x": 1097,
+      "y": 692
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 7,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_rect_27",
+     "type": "shape",
+     "name": "Tile book card",
+     "position": {
+      "x": 1085,
+      "y": 680
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 7,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_txt_28",
+     "type": "text",
+     "name": "Tile book emoji",
+     "position": {
+      "x": 1085,
+      "y": 689
+     },
+     "size": {
+      "width": 150,
+      "height": 132
+     },
+     "rotation": 7,
+     "scale": 1,
+     "content": "📚",
+     "fontSize": 30,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_dev_29",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 195,
+      "y": 560
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.5,
+     "rotation": 0,
+     "screenshotSrc": "/data/projects/sproutly-parenting-screen-1.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "sp_txt_30",
+     "type": "text",
+     "name": "Caption",
+     "position": {
+      "x": 45,
+      "y": 2420
+     },
+     "size": {
+      "width": 1200,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Backed by child psychology\n& powered by AI",
+     "fontSize": 22,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.25
+    }
+   ]
+  },
+  {
+   "id": "sproutly_parenting_ab3",
+   "name": "Simulator",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FBEFE7",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "sp_rect_31",
+     "type": "shape",
+     "name": "Card bedtime shadow",
+     "position": {
+      "x": 38,
+      "y": 488
+     },
+     "size": {
+      "width": 600,
+      "height": 760
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_rect_32",
+     "type": "shape",
+     "name": "Card bedtime card",
+     "position": {
+      "x": 20,
+      "y": 470
+     },
+     "size": {
+      "width": 600,
+      "height": 760
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#22304E",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_txt_33",
+     "type": "text",
+     "name": "Card bedtime emoji",
+     "position": {
+      "x": 0,
+      "y": 659
+     },
+     "size": {
+      "width": 460,
+      "height": 246
+     },
+     "rotation": -8,
+     "scale": 1,
+     "content": "🌙",
+     "fontSize": 56,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_34",
+     "type": "text",
+     "name": "Card bedtime label",
+     "position": {
+      "x": -12,
+      "y": 1079
+     },
+     "size": {
+      "width": 640,
+      "height": 90
+     },
+     "rotation": -8,
+     "scale": 1,
+     "content": "Bedtime Routine",
+     "fontSize": 19,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_svg_35",
+     "type": "shape",
+     "name": "Star A1",
+     "position": {
+      "x": 115,
+      "y": 601
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F4D9A0"
+    },
+    {
+     "id": "sp_svg_36",
+     "type": "shape",
+     "name": "Star A2",
+     "position": {
+      "x": 120,
+      "y": 803
+     },
+     "size": {
+      "width": 26,
+      "height": 26
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F4D9A0"
+    },
+    {
+     "id": "sp_svg_37",
+     "type": "shape",
+     "name": "Star A3",
+     "position": {
+      "x": 208,
+      "y": 976
+     },
+     "size": {
+      "width": 20,
+      "height": 20
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#8A94B8"
+    },
+    {
+     "id": "sp_rect_38",
+     "type": "shape",
+     "name": "Card sibling shadow",
+     "position": {
+      "x": 688,
+      "y": 488
+     },
+     "size": {
+      "width": 600,
+      "height": 760
+     },
+     "rotation": 8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_rect_39",
+     "type": "shape",
+     "name": "Card sibling card",
+     "position": {
+      "x": 670,
+      "y": 470
+     },
+     "size": {
+      "width": 600,
+      "height": 760
+     },
+     "rotation": 8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2E7D6B",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_txt_40",
+     "type": "text",
+     "name": "Card sibling emoji",
+     "position": {
+      "x": 850,
+      "y": 705
+     },
+     "size": {
+      "width": 460,
+      "height": 194
+     },
+     "rotation": 8,
+     "scale": 1,
+     "content": "🧒👧",
+     "fontSize": 36,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_41",
+     "type": "text",
+     "name": "Card sibling label",
+     "position": {
+      "x": 662,
+      "y": 1079
+     },
+     "size": {
+      "width": 640,
+      "height": 90
+     },
+     "rotation": 8,
+     "scale": 1,
+     "content": "Sibling Conflict",
+     "fontSize": 19,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_42",
+     "type": "shape",
+     "name": "Card picky shadow",
+     "position": {
+      "x": 363,
+      "y": 318
+     },
+     "size": {
+      "width": 600,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_rect_43",
+     "type": "shape",
+     "name": "Card picky card",
+     "position": {
+      "x": 345,
+      "y": 300
+     },
+     "size": {
+      "width": 600,
+      "height": 760
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8674A",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_txt_44",
+     "type": "text",
+     "name": "Card picky emoji",
+     "position": {
+      "x": 415,
+      "y": 507
+     },
+     "size": {
+      "width": 460,
+      "height": 246
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "🍽️",
+     "fontSize": 56,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_45",
+     "type": "text",
+     "name": "Card picky label",
+     "position": {
+      "x": 325,
+      "y": 905
+     },
+     "size": {
+      "width": 640,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Picky Eating",
+     "fontSize": 19,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_46",
+     "type": "text",
+     "name": "Headline 1",
+     "position": {
+      "x": 145,
+      "y": 1545
+     },
+     "size": {
+      "width": 1000,
+      "height": 215
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Interactive",
+     "fontSize": 46,
+     "color": "#22304E",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.05
+    },
+    {
+     "id": "sp_txt_47",
+     "type": "text",
+     "name": "Headline 2",
+     "position": {
+      "x": 145,
+      "y": 1755
+     },
+     "size": {
+      "width": 1000,
+      "height": 215
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "simulator",
+     "fontSize": 46,
+     "color": "#7C4FBF",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.05
+    },
+    {
+     "id": "sp_txt_48",
+     "type": "text",
+     "name": "Headline sub",
+     "position": {
+      "x": 245,
+      "y": 1985
+     },
+     "size": {
+      "width": 800,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "for everyday moments",
+     "fontSize": 20,
+     "color": "#6E5F57",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_49",
+     "type": "shape",
+     "name": "Chip practice shadow",
+     "position": {
+      "x": 104,
+      "y": 2244
+     },
+     "size": {
+      "width": 880,
+      "height": 115
+     },
+     "rotation": -2,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 57.5
+    },
+    {
+     "id": "sp_rect_50",
+     "type": "shape",
+     "name": "Chip practice pill",
+     "position": {
+      "x": 90,
+      "y": 2230
+     },
+     "size": {
+      "width": 880,
+      "height": 115
+     },
+     "rotation": -2,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 57.5
+    },
+    {
+     "id": "sp_txt_51",
+     "type": "text",
+     "name": "Chip practice label",
+     "position": {
+      "x": 90,
+      "y": 2248
+     },
+     "size": {
+      "width": 880,
+      "height": 79
+     },
+     "rotation": -2,
+     "scale": 1,
+     "content": "🗣️ Practice Real Responses",
+     "fontSize": 18,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_52",
+     "type": "shape",
+     "name": "Chip solve shadow",
+     "position": {
+      "x": 324,
+      "y": 2414
+     },
+     "size": {
+      "width": 940,
+      "height": 115
+     },
+     "rotation": 2,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 57.5
+    },
+    {
+     "id": "sp_rect_53",
+     "type": "shape",
+     "name": "Chip solve pill",
+     "position": {
+      "x": 310,
+      "y": 2400
+     },
+     "size": {
+      "width": 940,
+      "height": 115
+     },
+     "rotation": 2,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 57.5
+    },
+    {
+     "id": "sp_txt_54",
+     "type": "text",
+     "name": "Chip solve label",
+     "position": {
+      "x": 310,
+      "y": 2418
+     },
+     "size": {
+      "width": 940,
+      "height": 79
+     },
+     "rotation": 2,
+     "scale": 1,
+     "content": "🧩 Solve Everyday Challenges",
+     "fontSize": 18,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_svg_55",
+     "type": "shape",
+     "name": "Sparkle top-left",
+     "position": {
+      "x": 90,
+      "y": 190
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 10,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    },
+    {
+     "id": "sp_svg_56",
+     "type": "shape",
+     "name": "Sparkle top-right",
+     "position": {
+      "x": 1150,
+      "y": 230
+     },
+     "size": {
+      "width": 42,
+      "height": 42
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2E7D6B"
+    },
+    {
+     "id": "sp_svg_57",
+     "type": "shape",
+     "name": "Glint mid-left",
+     "position": {
+      "x": 110,
+      "y": 1900
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 L51.53 46.3 L69.8 30.2 L53.7 48.47 L98 50 L53.7 51.53 L69.8 69.8 L51.53 53.7 L50 98 L48.47 53.7 L30.2 69.8 L46.3 51.53 L2 50 L46.3 48.47 L30.2 30.2 L48.47 46.3 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_svg_58",
+     "type": "shape",
+     "name": "Sparkle mid-right",
+     "position": {
+      "x": 1100,
+      "y": 1590
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    }
+   ]
+  },
+  {
+   "id": "sproutly_parenting_ab4",
+   "name": "Progress",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FDF4EC",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "sp_txt_59",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 110
+     },
+     "size": {
+      "width": 1230,
+      "height": 380
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "See the calm\nadd up",
+     "fontSize": 44,
+     "color": "#22304E",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "sp_txt_60",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 145,
+      "y": 480
+     },
+     "size": {
+      "width": 1000,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Daily check-ins turn into\nweekly wins you can see.",
+     "fontSize": 20,
+     "color": "#6E5F57",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "sp_rect_61",
+     "type": "shape",
+     "name": "Tile sun shadow",
+     "position": {
+      "x": 67,
+      "y": 867
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_rect_62",
+     "type": "shape",
+     "name": "Tile sun card",
+     "position": {
+      "x": 55,
+      "y": 855
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_txt_63",
+     "type": "text",
+     "name": "Tile sun emoji",
+     "position": {
+      "x": 55,
+      "y": 864
+     },
+     "size": {
+      "width": 150,
+      "height": 132
+     },
+     "rotation": -8,
+     "scale": 1,
+     "content": "☀️",
+     "fontSize": 30,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_64",
+     "type": "shape",
+     "name": "Tile chart shadow",
+     "position": {
+      "x": 1097,
+      "y": 847
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 7,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_rect_65",
+     "type": "shape",
+     "name": "Tile chart card",
+     "position": {
+      "x": 1085,
+      "y": 835
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 7,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 34
+    },
+    {
+     "id": "sp_txt_66",
+     "type": "text",
+     "name": "Tile chart emoji",
+     "position": {
+      "x": 1085,
+      "y": 844
+     },
+     "size": {
+      "width": 150,
+      "height": 132
+     },
+     "rotation": 7,
+     "scale": 1,
+     "content": "📈",
+     "fontSize": 30,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_dev_67",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 195,
+      "y": 715
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "scale": 1.5,
+     "rotation": 0,
+     "screenshotSrc": "/data/projects/sproutly-parenting-screen-2.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "sp_svg_68",
+     "type": "shape",
+     "name": "Sparkle top-left",
+     "position": {
+      "x": 95,
+      "y": 200
+     },
+     "size": {
+      "width": 52,
+      "height": 52
+     },
+     "rotation": 10,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    },
+    {
+     "id": "sp_svg_69",
+     "type": "shape",
+     "name": "Sparkle top-right",
+     "position": {
+      "x": 1148,
+      "y": 290
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2E7D6B"
+    },
+    {
+     "id": "sp_svg_70",
+     "type": "shape",
+     "name": "Glint bottom-left",
+     "position": {
+      "x": 100,
+      "y": 2590
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 L51.53 46.3 L69.8 30.2 L53.7 48.47 L98 50 L53.7 51.53 L69.8 69.8 L51.53 53.7 L50 98 L48.47 53.7 L30.2 69.8 L46.3 51.53 L2 50 L46.3 48.47 L30.2 30.2 L48.47 46.3 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_svg_71",
+     "type": "shape",
+     "name": "Sparkle bottom-right",
+     "position": {
+      "x": 1135,
+      "y": 2575
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    }
+   ]
+  },
+  {
+   "id": "sproutly_parenting_ab5",
+   "name": "Loved by parents",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FBEFE7",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "sp_rect_72",
+     "type": "shape",
+     "name": "Pill loved shadow",
+     "position": {
+      "x": 199,
+      "y": 154
+     },
+     "size": {
+      "width": 920,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 50
+    },
+    {
+     "id": "sp_rect_73",
+     "type": "shape",
+     "name": "Pill loved pill",
+     "position": {
+      "x": 185,
+      "y": 140
+     },
+     "size": {
+      "width": 920,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 50
+    },
+    {
+     "id": "sp_txt_74",
+     "type": "text",
+     "name": "Pill loved label",
+     "position": {
+      "x": 185,
+      "y": 156
+     },
+     "size": {
+      "width": 920,
+      "height": 68
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "❤️ LOVED BY 50,000 PARENTS",
+     "fontSize": 16,
+     "color": "#E8674A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_75",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 330
+     },
+     "size": {
+      "width": 1230,
+      "height": 360
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Parents feel\nthe difference",
+     "fontSize": 44,
+     "color": "#22304E",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "sp_svg_76",
+     "type": "shape",
+     "name": "Laurel left",
+     "position": {
+      "x": 20,
+      "y": 1150
+     },
+     "size": {
+      "width": 160,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_svg_77",
+     "type": "shape",
+     "name": "Laurel right",
+     "position": {
+      "x": 1110,
+      "y": 1150
+     },
+     "size": {
+      "width": 160,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_rect_78",
+     "type": "shape",
+     "name": "Quote big shadow",
+     "position": {
+      "x": 133,
+      "y": 968
+     },
+     "size": {
+      "width": 1060,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_rect_79",
+     "type": "shape",
+     "name": "Quote big card",
+     "position": {
+      "x": 115,
+      "y": 950
+     },
+     "size": {
+      "width": 1060,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_txt_80",
+     "type": "text",
+     "name": "Quote big text",
+     "position": {
+      "x": 115,
+      "y": 1010
+     },
+     "size": {
+      "width": 1060,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Bedtime went from battle\nto wind down in two weeks.",
+     "fontSize": 22,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "sp_txt_81",
+     "type": "text",
+     "name": "Quote big stars",
+     "position": {
+      "x": 115,
+      "y": 1290
+     },
+     "size": {
+      "width": 1060,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 20,
+     "color": "#C89B3C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_82",
+     "type": "text",
+     "name": "Quote big name",
+     "position": {
+      "x": 115,
+      "y": 1408
+     },
+     "size": {
+      "width": 1060,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Amira, mom of two",
+     "fontSize": 16,
+     "color": "#6E5F57",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_rect_83",
+     "type": "shape",
+     "name": "Quote small shadow",
+     "position": {
+      "x": 398,
+      "y": 1768
+     },
+     "size": {
+      "width": 820,
+      "height": 480
+     },
+     "rotation": 3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8CDBE",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_rect_84",
+     "type": "shape",
+     "name": "Quote small card",
+     "position": {
+      "x": 380,
+      "y": 1750
+     },
+     "size": {
+      "width": 820,
+      "height": 480
+     },
+     "rotation": 3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 36
+    },
+    {
+     "id": "sp_txt_85",
+     "type": "text",
+     "name": "Quote small text",
+     "position": {
+      "x": 380,
+      "y": 1800
+     },
+     "size": {
+      "width": 820,
+      "height": 190
+     },
+     "rotation": 3,
+     "scale": 1,
+     "content": "The simulator scripts\nactually work.",
+     "fontSize": 20,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "sp_txt_86",
+     "type": "text",
+     "name": "Quote small stars",
+     "position": {
+      "x": 380,
+      "y": 2010
+     },
+     "size": {
+      "width": 820,
+      "height": 80
+     },
+     "rotation": 3,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 16,
+     "color": "#C89B3C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_txt_87",
+     "type": "text",
+     "name": "Quote small name",
+     "position": {
+      "x": 380,
+      "y": 2098
+     },
+     "size": {
+      "width": 820,
+      "height": 70
+     },
+     "rotation": 3,
+     "scale": 1,
+     "content": "Dan, dad of three",
+     "fontSize": 14,
+     "color": "#6E5F57",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "sp_svg_88",
+     "type": "shape",
+     "name": "Heart right",
+     "position": {
+      "x": 1040,
+      "y": 690
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 L16 54 Q4 42 4 28 Q4 6 26 6 Q42 6 50 22 Q58 6 74 6 Q96 6 96 28 Q96 42 84 54 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    },
+    {
+     "id": "sp_svg_89",
+     "type": "shape",
+     "name": "Heart left faint",
+     "position": {
+      "x": 165,
+      "y": 745
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": -14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 L16 54 Q4 42 4 28 Q4 6 26 6 Q42 6 50 22 Q58 6 74 6 Q96 6 96 28 Q96 42 84 54 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F1AB98"
+    },
+    {
+     "id": "sp_svg_90",
+     "type": "shape",
+     "name": "Sparkle top-left",
+     "position": {
+      "x": 110,
+      "y": 205
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2E7D6B"
+    },
+    {
+     "id": "sp_svg_91",
+     "type": "shape",
+     "name": "Sparkle top-right",
+     "position": {
+      "x": 1150,
+      "y": 215
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    },
+    {
+     "id": "sp_svg_92",
+     "type": "shape",
+     "name": "Glint mid-left",
+     "position": {
+      "x": 150,
+      "y": 1890
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 L51.53 46.3 L69.8 30.2 L53.7 48.47 L98 50 L53.7 51.53 L69.8 69.8 L51.53 53.7 L50 98 L48.47 53.7 L30.2 69.8 L46.3 51.53 L2 50 L46.3 48.47 L30.2 30.2 L48.47 46.3 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C89B3C"
+    },
+    {
+     "id": "sp_svg_93",
+     "type": "shape",
+     "name": "Heart bottom",
+     "position": {
+      "x": 285,
+      "y": 2300
+     },
+     "size": {
+      "width": 34,
+      "height": 34
+     },
+     "rotation": -10,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 L16 54 Q4 42 4 28 Q4 6 26 6 Q42 6 50 22 Q58 6 74 6 Q96 6 96 28 Q96 42 84 54 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E8674A"
+    },
+    {
+     "id": "sp_txt_94",
+     "type": "text",
+     "name": "Caption",
+     "position": {
+      "x": 45,
+      "y": 2480
+     },
+     "size": {
+      "width": 1200,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Free to try. Cancel anytime.",
+     "fontSize": 20,
+     "color": "#22304E",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    }
+   ]
+  }
+ ]
+}

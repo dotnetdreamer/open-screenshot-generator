@@ -1,0 +1,2338 @@
+{
+ "id": "template_nookly_focus",
+ "name": "Nookly Focus",
+ "description": "App Store & Play Store screenshots for a cozy virtual coworking and focus app. Warm caramel gradients, string-light doodles, cream cloud blobs, gold sparkles and dark warm phone mockups with cozy room scenes.",
+ "previewImage": "/data/projects/previews/nookly-focus.png",
+ "timestamp": "2026-07-20T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "nookly_focus_ab1",
+   "name": "Focus Together",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F8ECD8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F8ECD8",
+    "color2": "#F3DFC2",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nk_shp_1",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 30,
+      "y": 690
+     },
+     "size": {
+      "width": 330,
+      "height": 210
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_2",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 940,
+      "y": 2300
+     },
+     "size": {
+      "width": 330,
+      "height": 215
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_3",
+     "type": "shape",
+     "name": "String lights wire",
+     "position": {
+      "x": 295,
+      "y": 26
+     },
+     "size": {
+      "width": 700,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 50 Q10 18 20 50 Q30 82 40 50 Q50 18 60 50 Q70 82 80 50 Q90 18 100 50",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 12
+     },
+     "fillColor": "#4A3220",
+     "opacity": 0.5,
+     "strokeWidth": 4
+    },
+    {
+     "id": "nk_shp_4",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 354,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_5",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 494,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_6",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 634,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_7",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 774,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_8",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 914,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_9",
+     "type": "shape",
+     "name": "Badge shadow",
+     "position": {
+      "x": 215,
+      "y": 122
+     },
+     "size": {
+      "width": 880,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 48,
+     "fillColor": "#E3CDA8"
+    },
+    {
+     "id": "nk_shp_10",
+     "type": "shape",
+     "name": "Badge pill",
+     "position": {
+      "x": 205,
+      "y": 110
+     },
+     "size": {
+      "width": 880,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 48,
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "nk_txt_11",
+     "type": "text",
+     "name": "Badge text",
+     "position": {
+      "x": 205,
+      "y": 110
+     },
+     "size": {
+      "width": 880,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "👑 THE #1 COZY FOCUS APP",
+     "fontSize": 16,
+     "color": "#C98B4B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_txt_12",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 228
+     },
+     "size": {
+      "width": 1230,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Focus Better\nTogether",
+     "fontSize": 46,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "nk_txt_13",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 30,
+      "y": 640
+     },
+     "size": {
+      "width": 1230,
+      "height": 280
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "A calm virtual world where\nstudents, freelancers, and creators\nwork side by side.",
+     "fontSize": 19,
+     "color": "#8A7460",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "nk_dev_14",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#3A2A1C",
+     "position": {
+      "x": 195,
+      "y": 930
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/nookly-focus-screen-1.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nk_shp_15",
+     "type": "shape",
+     "name": "Heart sticker",
+     "position": {
+      "x": 1055,
+      "y": 845
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F"
+    },
+    {
+     "id": "nk_shp_16",
+     "type": "shape",
+     "name": "Sparkle big",
+     "position": {
+      "x": 118,
+      "y": 975
+     },
+     "size": {
+      "width": 74,
+      "height": 74
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_17",
+     "type": "shape",
+     "name": "Sparkle small",
+     "position": {
+      "x": 78,
+      "y": 895
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C",
+     "opacity": 0.85
+    },
+    {
+     "id": "nk_shp_18",
+     "type": "shape",
+     "name": "Sparkle bottom",
+     "position": {
+      "x": 1115,
+      "y": 2480
+     },
+     "size": {
+      "width": 66,
+      "height": 66
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_19",
+     "type": "shape",
+     "name": "Heart small",
+     "position": {
+      "x": 100,
+      "y": 2540
+     },
+     "size": {
+      "width": 68,
+      "height": 68
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F",
+     "opacity": 0.9
+    }
+   ]
+  },
+  {
+   "id": "nookly_focus_ab2",
+   "name": "Pick Your Spot",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F8ECD8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F8ECD8",
+    "color2": "#F3DFC2",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nk_shp_20",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 40,
+      "y": 640
+     },
+     "size": {
+      "width": 320,
+      "height": 205
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_21",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 950,
+      "y": 1180
+     },
+     "size": {
+      "width": 300,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.75
+    },
+    {
+     "id": "nk_shp_22",
+     "type": "shape",
+     "name": "String lights wire",
+     "position": {
+      "x": 295,
+      "y": 26
+     },
+     "size": {
+      "width": 700,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 50 Q10 18 20 50 Q30 82 40 50 Q50 18 60 50 Q70 82 80 50 Q90 18 100 50",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 12
+     },
+     "fillColor": "#4A3220",
+     "opacity": 0.5,
+     "strokeWidth": 4
+    },
+    {
+     "id": "nk_shp_23",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 354,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_24",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 494,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_25",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 634,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_26",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 774,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_27",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 914,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_txt_28",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 140
+     },
+     "size": {
+      "width": 1230,
+      "height": 535
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Choose\nYour Perfect\nWork Spot",
+     "fontSize": 46,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.05
+    },
+    {
+     "id": "nk_txt_29",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 30,
+      "y": 695
+     },
+     "size": {
+      "width": 1230,
+      "height": 270
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Cozy cafes. Quiet libraries.\nRainy cabins. Spaces designed\nto help you focus.",
+     "fontSize": 19,
+     "color": "#8A7460",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "nk_shp_30",
+     "type": "shape",
+     "name": "Sparkle right",
+     "position": {
+      "x": 1128,
+      "y": 560
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_31",
+     "type": "shape",
+     "name": "Heart left",
+     "position": {
+      "x": 100,
+      "y": 545
+     },
+     "size": {
+      "width": 76,
+      "height": 76
+     },
+     "rotation": -14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F"
+    },
+    {
+     "id": "nk_dev_32",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#3A2A1C",
+     "position": {
+      "x": 195,
+      "y": 970
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/nookly-focus-screen-2.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nk_shp_33",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 734,
+      "y": 2396
+     },
+     "size": {
+      "width": 540,
+      "height": 100
+     },
+     "rotation": -4,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#E3CDA8"
+    },
+    {
+     "id": "nk_shp_34",
+     "type": "shape",
+     "name": "Chip card",
+     "position": {
+      "x": 720,
+      "y": 2380
+     },
+     "size": {
+      "width": 540,
+      "height": 100
+     },
+     "rotation": -4,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "nk_shp_35",
+     "type": "shape",
+     "name": "Chip dot",
+     "position": {
+      "x": 766,
+      "y": 2435
+     },
+     "size": {
+      "width": 20,
+      "height": 20
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#4CAF6D"
+    },
+    {
+     "id": "nk_txt_36",
+     "type": "text",
+     "name": "Chip text",
+     "position": {
+      "x": 820,
+      "y": 2379
+     },
+     "size": {
+      "width": 424,
+      "height": 96
+     },
+     "rotation": -4,
+     "scale": 1,
+     "content": "214 focusing now",
+     "fontSize": 14,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_37",
+     "type": "shape",
+     "name": "Sparkle bottom left",
+     "position": {
+      "x": 105,
+      "y": 2430
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    }
+   ]
+  },
+  {
+   "id": "nookly_focus_ab3",
+   "name": "Live Rooms",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F8ECD8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F8ECD8",
+    "color2": "#F3DFC2",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nk_shp_38",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 30,
+      "y": 700
+     },
+     "size": {
+      "width": 320,
+      "height": 205
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_39",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 950,
+      "y": 2380
+     },
+     "size": {
+      "width": 310,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.75
+    },
+    {
+     "id": "nk_shp_40",
+     "type": "shape",
+     "name": "String lights wire",
+     "position": {
+      "x": 295,
+      "y": 26
+     },
+     "size": {
+      "width": 700,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 50 Q10 18 20 50 Q30 82 40 50 Q50 18 60 50 Q70 82 80 50 Q90 18 100 50",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 12
+     },
+     "fillColor": "#4A3220",
+     "opacity": 0.5,
+     "strokeWidth": 4
+    },
+    {
+     "id": "nk_shp_41",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 354,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_42",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 494,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_43",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 634,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_44",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 774,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_45",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 914,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_txt_46",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 150
+     },
+     "size": {
+      "width": 1230,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Real People.\nReal Focus.\nRight Now.",
+     "fontSize": 46,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "nk_txt_47",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 30,
+      "y": 730
+     },
+     "size": {
+      "width": 1230,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Join thousands working live from\nTokyo, London, New York and beyond.",
+     "fontSize": 19,
+     "color": "#8A7460",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "nk_shp_48",
+     "type": "shape",
+     "name": "Sparkle tr 1",
+     "position": {
+      "x": 1130,
+      "y": 200
+     },
+     "size": {
+      "width": 72,
+      "height": 72
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_49",
+     "type": "shape",
+     "name": "Sparkle tr 2",
+     "position": {
+      "x": 1195,
+      "y": 320
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C",
+     "opacity": 0.85
+    },
+    {
+     "id": "nk_shp_50",
+     "type": "shape",
+     "name": "Heart tr",
+     "position": {
+      "x": 1090,
+      "y": 380
+     },
+     "size": {
+      "width": 66,
+      "height": 66
+     },
+     "rotation": 16,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F"
+    },
+    {
+     "id": "nk_dev_51",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#3A2A1C",
+     "position": {
+      "x": 195,
+      "y": 955
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 3,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/nookly-focus-screen-3.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nk_shp_52",
+     "type": "shape",
+     "name": "Globe shadow",
+     "position": {
+      "x": 82,
+      "y": 2394
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": -6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#E3CDA8"
+    },
+    {
+     "id": "nk_shp_53",
+     "type": "shape",
+     "name": "Globe card",
+     "position": {
+      "x": 70,
+      "y": 2380
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": -6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "nk_txt_54",
+     "type": "text",
+     "name": "Globe emoji",
+     "position": {
+      "x": 70,
+      "y": 2380
+     },
+     "size": {
+      "width": 170,
+      "height": 170
+     },
+     "rotation": -6,
+     "scale": 1,
+     "content": "🌍",
+     "fontSize": 28,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_55",
+     "type": "shape",
+     "name": "Sparkle bl",
+     "position": {
+      "x": 255,
+      "y": 2330
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    }
+   ]
+  },
+  {
+   "id": "nookly_focus_ab4",
+   "name": "Focus Stats",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F8ECD8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F8ECD8",
+    "color2": "#F3DFC2",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nk_shp_56",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 35,
+      "y": 660
+     },
+     "size": {
+      "width": 320,
+      "height": 205
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_57",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 945,
+      "y": 1180
+     },
+     "size": {
+      "width": 300,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.75
+    },
+    {
+     "id": "nk_shp_58",
+     "type": "shape",
+     "name": "String lights wire",
+     "position": {
+      "x": 295,
+      "y": 26
+     },
+     "size": {
+      "width": 700,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 50 Q10 18 20 50 Q30 82 40 50 Q50 18 60 50 Q70 82 80 50 Q90 18 100 50",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 12
+     },
+     "fillColor": "#4A3220",
+     "opacity": 0.5,
+     "strokeWidth": 4
+    },
+    {
+     "id": "nk_shp_59",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 354,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_60",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 494,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_61",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 634,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_62",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 774,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_63",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 914,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_txt_64",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 150
+     },
+     "size": {
+      "width": 1230,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Watch your\nfocus grow\ndaily",
+     "fontSize": 46,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "nk_txt_65",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 30,
+      "y": 730
+     },
+     "size": {
+      "width": 1230,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Hours, streaks, and cozy\nbadges for showing up.",
+     "fontSize": 19,
+     "color": "#8A7460",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "nk_shp_66",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 95,
+      "y": 560
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_67",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1130,
+      "y": 200
+     },
+     "size": {
+      "width": 72,
+      "height": 72
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_68",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1195,
+      "y": 320
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C",
+     "opacity": 0.85
+    },
+    {
+     "id": "nk_shp_69",
+     "type": "shape",
+     "name": "Heart sticker",
+     "position": {
+      "x": 1090,
+      "y": 380
+     },
+     "size": {
+      "width": 66,
+      "height": 66
+     },
+     "rotation": 16,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F"
+    },
+    {
+     "id": "nk_dev_70",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#3A2A1C",
+     "position": {
+      "x": 195,
+      "y": 970
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/nookly-focus-screen-4.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "nk_shp_71",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 664,
+      "y": 2481
+     },
+     "size": {
+      "width": 620,
+      "height": 100
+     },
+     "rotation": -4,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#E3CDA8"
+    },
+    {
+     "id": "nk_shp_72",
+     "type": "shape",
+     "name": "Chip card",
+     "position": {
+      "x": 650,
+      "y": 2465
+     },
+     "size": {
+      "width": 620,
+      "height": 100
+     },
+     "rotation": -4,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "nk_txt_73",
+     "type": "text",
+     "name": "Chip text",
+     "position": {
+      "x": 650,
+      "y": 2464
+     },
+     "size": {
+      "width": 620,
+      "height": 96
+     },
+     "rotation": -4,
+     "scale": 1,
+     "content": "Focus that feels good",
+     "fontSize": 15,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_74",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 105,
+      "y": 2430
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    }
+   ]
+  },
+  {
+   "id": "nookly_focus_ab5",
+   "name": "Testimonial",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F8ECD8",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#F8ECD8",
+    "color2": "#F3DFC2",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "nk_shp_75",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 30,
+      "y": 690
+     },
+     "size": {
+      "width": 330,
+      "height": 210
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_76",
+     "type": "shape",
+     "name": "Cream cloud",
+     "position": {
+      "x": 940,
+      "y": 2510
+     },
+     "size": {
+      "width": 330,
+      "height": 215
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFF9EF",
+     "opacity": 0.8
+    },
+    {
+     "id": "nk_shp_77",
+     "type": "shape",
+     "name": "String lights wire",
+     "position": {
+      "x": 295,
+      "y": 26
+     },
+     "size": {
+      "width": 700,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 50 Q10 18 20 50 Q30 82 40 50 Q50 18 60 50 Q70 82 80 50 Q90 18 100 50",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 12
+     },
+     "fillColor": "#4A3220",
+     "opacity": 0.5,
+     "strokeWidth": 4
+    },
+    {
+     "id": "nk_shp_78",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 354,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_79",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 494,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_80",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 634,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_81",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 774,
+      "y": 81
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_82",
+     "type": "shape",
+     "name": "Light bulb",
+     "position": {
+      "x": 914,
+      "y": 49
+     },
+     "size": {
+      "width": 22,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_83",
+     "type": "shape",
+     "name": "Badge shadow",
+     "position": {
+      "x": 345,
+      "y": 122
+     },
+     "size": {
+      "width": 620,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 48,
+     "fillColor": "#E3CDA8"
+    },
+    {
+     "id": "nk_shp_84",
+     "type": "shape",
+     "name": "Badge pill",
+     "position": {
+      "x": 335,
+      "y": 110
+     },
+     "size": {
+      "width": 620,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 48,
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "nk_txt_85",
+     "type": "text",
+     "name": "Badge text",
+     "position": {
+      "x": 335,
+      "y": 110
+     },
+     "size": {
+      "width": 620,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "✨ FREE TO START",
+     "fontSize": 16,
+     "color": "#C98B4B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_txt_86",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 228
+     },
+     "size": {
+      "width": 1230,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "A calmer way\nto get it done",
+     "fontSize": 46,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "nk_txt_87",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 30,
+      "y": 650
+     },
+     "size": {
+      "width": 1230,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Join a nook, set a timer,\nand settle in.",
+     "fontSize": 19,
+     "color": "#8A7460",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "nk_shp_88",
+     "type": "shape",
+     "name": "Heart sticker",
+     "position": {
+      "x": 100,
+      "y": 545
+     },
+     "size": {
+      "width": 76,
+      "height": 76
+     },
+     "rotation": -14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F"
+    },
+    {
+     "id": "nk_shp_89",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1128,
+      "y": 560
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    },
+    {
+     "id": "nk_shp_90",
+     "type": "shape",
+     "name": "Quote card shadow",
+     "position": {
+      "x": 141,
+      "y": 1068
+     },
+     "size": {
+      "width": 1040,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 36,
+     "fillColor": "#E0C9A8"
+    },
+    {
+     "id": "nk_shp_91",
+     "type": "shape",
+     "name": "Quote card",
+     "position": {
+      "x": 125,
+      "y": 1050
+     },
+     "size": {
+      "width": 1040,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 36,
+     "fillColor": "#FFF9EF"
+    },
+    {
+     "id": "nk_txt_92",
+     "type": "text",
+     "name": "Quote text",
+     "position": {
+      "x": 45,
+      "y": 1110
+     },
+     "size": {
+      "width": 1200,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "It feels like working from\nmy favorite cafe.",
+     "fontSize": 24,
+     "color": "#4A3220",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "nk_txt_93",
+     "type": "text",
+     "name": "Stars",
+     "position": {
+      "x": 45,
+      "y": 1430
+     },
+     "size": {
+      "width": 1200,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 22,
+     "color": "#F0C46C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_txt_94",
+     "type": "text",
+     "name": "Quote name",
+     "position": {
+      "x": 45,
+      "y": 1520
+     },
+     "size": {
+      "width": 1200,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Lena, designer",
+     "fontSize": 16,
+     "color": "#8A7460",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_95",
+     "type": "shape",
+     "name": "Tile shadow",
+     "position": {
+      "x": 137,
+      "y": 2034
+     },
+     "size": {
+      "width": 310,
+      "height": 390
+     },
+     "rotation": -6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#E0C9A8"
+    },
+    {
+     "id": "nk_shp_96",
+     "type": "shape",
+     "name": "Room tile",
+     "position": {
+      "x": 125,
+      "y": 2020
+     },
+     "size": {
+      "width": 310,
+      "height": 390
+     },
+     "rotation": -6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#C98B4B"
+    },
+    {
+     "id": "nk_txt_97",
+     "type": "text",
+     "name": "Tile emoji",
+     "position": {
+      "x": 123,
+      "y": 2070
+     },
+     "size": {
+      "width": 300,
+      "height": 160
+     },
+     "rotation": -6,
+     "scale": 1,
+     "content": "☕",
+     "fontSize": 40,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_txt_98",
+     "type": "text",
+     "name": "Tile label",
+     "position": {
+      "x": 141,
+      "y": 2285
+     },
+     "size": {
+      "width": 300,
+      "height": 70
+     },
+     "rotation": -6,
+     "scale": 1,
+     "content": "Cafe",
+     "fontSize": 16,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_99",
+     "type": "shape",
+     "name": "Tile shadow",
+     "position": {
+      "x": 502,
+      "y": 2034
+     },
+     "size": {
+      "width": 310,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#E0C9A8"
+    },
+    {
+     "id": "nk_shp_100",
+     "type": "shape",
+     "name": "Room tile",
+     "position": {
+      "x": 490,
+      "y": 2020
+     },
+     "size": {
+      "width": 310,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#8BA980"
+    },
+    {
+     "id": "nk_txt_101",
+     "type": "text",
+     "name": "Tile emoji",
+     "position": {
+      "x": 495,
+      "y": 2070
+     },
+     "size": {
+      "width": 300,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "📚",
+     "fontSize": 40,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_txt_102",
+     "type": "text",
+     "name": "Tile label",
+     "position": {
+      "x": 495,
+      "y": 2285
+     },
+     "size": {
+      "width": 300,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Library",
+     "fontSize": 16,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_103",
+     "type": "shape",
+     "name": "Tile shadow",
+     "position": {
+      "x": 867,
+      "y": 2034
+     },
+     "size": {
+      "width": 310,
+      "height": 390
+     },
+     "rotation": 6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#E0C9A8"
+    },
+    {
+     "id": "nk_shp_104",
+     "type": "shape",
+     "name": "Room tile",
+     "position": {
+      "x": 855,
+      "y": 2020
+     },
+     "size": {
+      "width": 310,
+      "height": 390
+     },
+     "rotation": 6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 40,
+     "fillColor": "#6E7FA3"
+    },
+    {
+     "id": "nk_txt_105",
+     "type": "text",
+     "name": "Tile emoji",
+     "position": {
+      "x": 867,
+      "y": 2070
+     },
+     "size": {
+      "width": 300,
+      "height": 160
+     },
+     "rotation": 6,
+     "scale": 1,
+     "content": "🚆",
+     "fontSize": 40,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_txt_106",
+     "type": "text",
+     "name": "Tile label",
+     "position": {
+      "x": 849,
+      "y": 2285
+     },
+     "size": {
+      "width": 300,
+      "height": 70
+     },
+     "rotation": 6,
+     "scale": 1,
+     "content": "Train",
+     "fontSize": 16,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "nk_shp_107",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1150,
+      "y": 1760
+     },
+     "size": {
+      "width": 48,
+      "height": 48
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C",
+     "opacity": 0.85
+    },
+    {
+     "id": "nk_shp_108",
+     "type": "shape",
+     "name": "Heart sticker",
+     "position": {
+      "x": 110,
+      "y": 1780
+     },
+     "size": {
+      "width": 64,
+      "height": 64
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#D9A28F",
+     "opacity": 0.9
+    },
+    {
+     "id": "nk_shp_109",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 105,
+      "y": 2540
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F0C46C"
+    }
+   ]
+  }
+ ]
+}

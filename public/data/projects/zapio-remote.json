@@ -1,0 +1,1917 @@
+{
+ "id": "template_zapio_remote",
+ "name": "Zapio Remote",
+ "description": "App Store & Play Store screenshots for a smart TV remote app. Clean white tech panels with purple accents, a hand held phone with a remote UI, a dark TV mockup with a streaming home screen, and a compatibility list with soft shadow cards.",
+ "previewImage": "/data/projects/previews/zapio-remote.png",
+ "timestamp": "2026-07-20T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "zapio_remote_ab1",
+   "name": "Hero",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zr_svg_1",
+     "type": "shape",
+     "name": "Mint blob",
+     "position": {
+      "x": -160,
+      "y": 2020
+     },
+     "size": {
+      "width": 880,
+      "height": 780
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.6
+    },
+    {
+     "id": "zr_svg_2",
+     "type": "shape",
+     "name": "Sparkle 1",
+     "position": {
+      "x": 1070,
+      "y": 780
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_svg_3",
+     "type": "shape",
+     "name": "Sparkle 2",
+     "position": {
+      "x": 180,
+      "y": 850
+     },
+     "size": {
+      "width": 55,
+      "height": 55
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.75
+    },
+    {
+     "id": "zr_svg_4",
+     "type": "shape",
+     "name": "Sparkle 3",
+     "position": {
+      "x": 1160,
+      "y": 1090
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.6
+    },
+    {
+     "id": "zr_txt_5",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 90,
+      "y": 150
+     },
+     "size": {
+      "width": 900,
+      "height": 405
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Smart TV\nRemote",
+     "fontSize": 48,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "zr_shp_6",
+     "type": "shape",
+     "name": "Wifi chip",
+     "position": {
+      "x": 830,
+      "y": 165
+     },
+     "size": {
+      "width": 120,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 34,
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_7",
+     "type": "shape",
+     "name": "Wifi icon",
+     "position": {
+      "x": 848,
+      "y": 183
+     },
+     "size": {
+      "width": 84,
+      "height": 84
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M10 42 C32 22 68 22 90 42 M24 58 C40 44 60 44 76 58 M38 72 C45 66 55 66 62 72 M47 85 A3 3 0 1 0 53 85 A3 3 0 1 0 47 85 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 8
+     },
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 7
+    },
+    {
+     "id": "zr_txt_8",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 90,
+      "y": 585
+     },
+     "size": {
+      "width": 820,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your phone is the only\nremote you need.",
+     "fontSize": 19,
+     "color": "#6F7480",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "zr_img_9",
+     "type": "image",
+     "name": "Hand phone",
+     "position": {
+      "x": 160,
+      "y": 1000
+     },
+     "size": {
+      "width": 1740,
+      "height": 1725
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/elements/images/touch/touch-as451105828.png",
+     "imageAlt": "",
+     "objectFit": "contain",
+     "borderRadius": 0
+    },
+    {
+     "id": "zr_img_10",
+     "type": "image",
+     "name": "Remote UI overlay",
+     "position": {
+      "x": 302,
+      "y": 1028
+     },
+     "size": {
+      "width": 692,
+      "height": 1448
+     },
+     "rotation": -0.4,
+     "scale": 1,
+     "imageSrc": "/data/projects/zapio-remote-screen-ui.png",
+     "imageAlt": "",
+     "objectFit": "cover",
+     "borderRadius": 96
+    },
+    {
+     "id": "zr_shp_11",
+     "type": "shape",
+     "name": "Caption shadow",
+     "position": {
+      "x": 134,
+      "y": 2284
+     },
+     "size": {
+      "width": 470,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_12",
+     "type": "shape",
+     "name": "Caption pill",
+     "position": {
+      "x": 120,
+      "y": 2270
+     },
+     "size": {
+      "width": 470,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_13",
+     "type": "text",
+     "name": "Caption",
+     "position": {
+      "x": 120,
+      "y": 2280
+     },
+     "size": {
+      "width": 470,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Swipe to navigate",
+     "fontSize": 14,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    }
+   ]
+  },
+  {
+   "id": "zapio_remote_ab2",
+   "name": "TV Control",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F4F1FB",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zr_shp_14",
+     "type": "shape",
+     "name": "TV shadow",
+     "position": {
+      "x": 123,
+      "y": 448
+     },
+     "size": {
+      "width": 1080,
+      "height": 640
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 28,
+     "fillColor": "#E0DCEF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_15",
+     "type": "shape",
+     "name": "TV frame",
+     "position": {
+      "x": 105,
+      "y": 430
+     },
+     "size": {
+      "width": 1080,
+      "height": 640
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 28,
+     "fillColor": "#171C28",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_img_16",
+     "type": "image",
+     "name": "TV screen",
+     "position": {
+      "x": 129,
+      "y": 457
+     },
+     "size": {
+      "width": 1032,
+      "height": 586
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/zapio-remote-screen-tv.png",
+     "imageAlt": "",
+     "objectFit": "cover",
+     "borderRadius": 20
+    },
+    {
+     "id": "zr_shp_17",
+     "type": "shape",
+     "name": "TV stand",
+     "position": {
+      "x": 465,
+      "y": 1072
+     },
+     "size": {
+      "width": 360,
+      "height": 22
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 11,
+     "fillColor": "#171C28",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_18",
+     "type": "shape",
+     "name": "Mint sparkle",
+     "position": {
+      "x": 140,
+      "y": 1150
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.95
+    },
+    {
+     "id": "zr_svg_19",
+     "type": "shape",
+     "name": "Mint sparkle 2",
+     "position": {
+      "x": 700,
+      "y": 2600
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.85
+    },
+    {
+     "id": "zr_svg_20",
+     "type": "shape",
+     "name": "Coral blob",
+     "position": {
+      "x": 950,
+      "y": 2560
+     },
+     "size": {
+      "width": 520,
+      "height": 460
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_dev_21",
+     "type": "device",
+     "name": "Remote phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#171C28",
+     "position": {
+      "x": 845,
+      "y": 1150
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -4,
+     "scale": 1.2,
+     "screenshotSrc": "/data/projects/zapio-remote-screen-2.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "zr_txt_22",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 90,
+      "y": 2010
+     },
+     "size": {
+      "width": 900,
+      "height": 310
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Control\nwith one tap",
+     "fontSize": 34,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "left",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "zr_txt_23",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 90,
+      "y": 2350
+     },
+     "size": {
+      "width": 760,
+      "height": 180
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Pair once and every tap\nlands instantly.",
+     "fontSize": 17,
+     "color": "#6F7480",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.35
+    }
+   ]
+  },
+  {
+   "id": "zapio_remote_ab3",
+   "name": "Compatibility",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zr_svg_54",
+     "type": "shape",
+     "name": "Mint corner wave",
+     "position": {
+      "x": 850,
+      "y": -40
+     },
+     "size": {
+      "width": 500,
+      "height": 330
+     },
+     "rotation": 180,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 12 C8 48 34 70 100 76 V100 H0 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_txt_55",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 405
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Works with\nyour TV",
+     "fontSize": 48,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "zr_txt_56",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 60,
+      "y": 585
+     },
+     "size": {
+      "width": 1170,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "One app for practically\nevery screen at home.",
+     "fontSize": 19,
+     "color": "#6F7480",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "zr_shp_24",
+     "type": "shape",
+     "name": "Row shadow 1",
+     "position": {
+      "x": 223,
+      "y": 848
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_25",
+     "type": "shape",
+     "name": "Row card 1",
+     "position": {
+      "x": 205,
+      "y": 830
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_26",
+     "type": "shape",
+     "name": "Row tile 1",
+     "position": {
+      "x": 239,
+      "y": 862
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 24,
+     "fillColor": "#EFEAFE",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_27",
+     "type": "shape",
+     "name": "Row icon 1",
+     "position": {
+      "x": 257,
+      "y": 880
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M14 14 H86 A6 6 0 0 1 92 20 V64 A6 6 0 0 1 86 70 H14 A6 6 0 0 1 8 64 V20 A6 6 0 0 1 14 14 ZM19 22 H81 A3 3 0 0 1 84 25 V59 A3 3 0 0 1 81 62 H19 A3 3 0 0 1 16 59 V25 A3 3 0 0 1 19 22 Z M44 70 H56 V80 H70 V88 H30 V80 H44 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_28",
+     "type": "text",
+     "name": "Row label 1",
+     "position": {
+      "x": 371,
+      "y": 848
+     },
+     "size": {
+      "width": 500,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Chromecast",
+     "fontSize": 22,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_shp_29",
+     "type": "shape",
+     "name": "Row shadow 2",
+     "position": {
+      "x": 223,
+      "y": 1048
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_30",
+     "type": "shape",
+     "name": "Row card 2",
+     "position": {
+      "x": 205,
+      "y": 1030
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_31",
+     "type": "shape",
+     "name": "Row tile 2",
+     "position": {
+      "x": 239,
+      "y": 1062
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 24,
+     "fillColor": "#E2F6F0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_32",
+     "type": "shape",
+     "name": "Row icon 2",
+     "position": {
+      "x": 257,
+      "y": 1080
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M10 42 C32 22 68 22 90 42 M24 58 C40 44 60 44 76 58 M38 72 C45 66 55 66 62 72 M47 85 A3 3 0 1 0 53 85 A3 3 0 1 0 47 85 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 8
+     },
+     "fillColor": "#2FA98C",
+     "strokeColor": "transparent",
+     "strokeWidth": 5
+    },
+    {
+     "id": "zr_txt_33",
+     "type": "text",
+     "name": "Row label 2",
+     "position": {
+      "x": 371,
+      "y": 1048
+     },
+     "size": {
+      "width": 500,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Android TV",
+     "fontSize": 22,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_shp_34",
+     "type": "shape",
+     "name": "Row shadow 3",
+     "position": {
+      "x": 223,
+      "y": 1248
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_35",
+     "type": "shape",
+     "name": "Row card 3",
+     "position": {
+      "x": 205,
+      "y": 1230
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_36",
+     "type": "shape",
+     "name": "Row tile 3",
+     "position": {
+      "x": 239,
+      "y": 1262
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 24,
+     "fillColor": "#FEEDE6",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_37",
+     "type": "shape",
+     "name": "Row icon 3",
+     "position": {
+      "x": 257,
+      "y": 1280
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M28 14 L84 50 L28 86 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_38",
+     "type": "text",
+     "name": "Row label 3",
+     "position": {
+      "x": 371,
+      "y": 1248
+     },
+     "size": {
+      "width": 500,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Samsung TV",
+     "fontSize": 22,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_shp_39",
+     "type": "shape",
+     "name": "Row shadow 4",
+     "position": {
+      "x": 223,
+      "y": 1448
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_40",
+     "type": "shape",
+     "name": "Row card 4",
+     "position": {
+      "x": 205,
+      "y": 1430
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_41",
+     "type": "shape",
+     "name": "Row tile 4",
+     "position": {
+      "x": 239,
+      "y": 1462
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 24,
+     "fillColor": "#E9EBF2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_42",
+     "type": "shape",
+     "name": "Row icon 4",
+     "position": {
+      "x": 257,
+      "y": 1480
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M14 26 H54 A8 8 0 0 1 62 34 V66 A8 8 0 0 1 54 74 H14 A8 8 0 0 1 6 66 V34 A8 8 0 0 1 14 26 Z M66 42 L94 28 V72 L66 58 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#171C28",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_43",
+     "type": "text",
+     "name": "Row label 4",
+     "position": {
+      "x": 371,
+      "y": 1448
+     },
+     "size": {
+      "width": 500,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "LG TV",
+     "fontSize": 22,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_shp_44",
+     "type": "shape",
+     "name": "Row shadow 5",
+     "position": {
+      "x": 223,
+      "y": 1648
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_45",
+     "type": "shape",
+     "name": "Row card 5",
+     "position": {
+      "x": 205,
+      "y": 1630
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_46",
+     "type": "shape",
+     "name": "Row tile 5",
+     "position": {
+      "x": 239,
+      "y": 1662
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 24,
+     "fillColor": "#FBF3DC",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_47",
+     "type": "shape",
+     "name": "Row icon 5",
+     "position": {
+      "x": 257,
+      "y": 1680
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 34 H84 A8 8 0 0 1 92 42 V80 A8 8 0 0 1 84 88 H16 A8 8 0 0 1 8 80 V42 A8 8 0 0 1 16 34 Z M22 34 L72 8 L76 14 L30 34 Z M18 61 A12 12 0 1 0 42 61 A12 12 0 1 0 18 61 ZM52 48 H82 V54 H52 ZM52 62 H82 V68 H52 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     },
+     "fillColor": "#D9A521",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_48",
+     "type": "text",
+     "name": "Row label 5",
+     "position": {
+      "x": 371,
+      "y": 1648
+     },
+     "size": {
+      "width": 500,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Bravia",
+     "fontSize": 22,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_shp_49",
+     "type": "shape",
+     "name": "Row shadow 6",
+     "position": {
+      "x": 223,
+      "y": 1848
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_50",
+     "type": "shape",
+     "name": "Row card 6",
+     "position": {
+      "x": 205,
+      "y": 1830
+     },
+     "size": {
+      "width": 880,
+      "height": 156
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 26,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_51",
+     "type": "shape",
+     "name": "Row tile 6",
+     "position": {
+      "x": 239,
+      "y": 1862
+     },
+     "size": {
+      "width": 92,
+      "height": 92
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 24,
+     "fillColor": "#E2F6F0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_svg_52",
+     "type": "shape",
+     "name": "Row icon 6",
+     "position": {
+      "x": 257,
+      "y": 1880
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M14 14 H34 V86 H14 ZM40 14 H60 V86 H40 ZM66 14 H86 V86 H66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#4FBFA2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_53",
+     "type": "text",
+     "name": "Row label 6",
+     "position": {
+      "x": 371,
+      "y": 1848
+     },
+     "size": {
+      "width": 500,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Fire TV",
+     "fontSize": 22,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_shp_57",
+     "type": "shape",
+     "name": "More shadow",
+     "position": {
+      "x": 469,
+      "y": 2080
+     },
+     "size": {
+      "width": 380,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 55,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_58",
+     "type": "shape",
+     "name": "More pill",
+     "position": {
+      "x": 455,
+      "y": 2066
+     },
+     "size": {
+      "width": 380,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 55,
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_59",
+     "type": "text",
+     "name": "More text",
+     "position": {
+      "x": 415,
+      "y": 2069
+     },
+     "size": {
+      "width": 460,
+      "height": 105
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "+ 100 more",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    },
+    {
+     "id": "zr_svg_60",
+     "type": "shape",
+     "name": "Sparkle b1",
+     "position": {
+      "x": 110,
+      "y": 2380
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_svg_61",
+     "type": "shape",
+     "name": "Sparkle b2",
+     "position": {
+      "x": 250,
+      "y": 2520
+     },
+     "size": {
+      "width": 55,
+      "height": 55
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.7
+    },
+    {
+     "id": "zr_svg_62",
+     "type": "shape",
+     "name": "Sparkle b3",
+     "position": {
+      "x": 150,
+      "y": 2620
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.55
+    }
+   ]
+  },
+  {
+   "id": "zapio_remote_ab4",
+   "name": "Search",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F7F5FC",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zr_svg_63",
+     "type": "shape",
+     "name": "Mint blob",
+     "position": {
+      "x": -150,
+      "y": 2520
+     },
+     "size": {
+      "width": 520,
+      "height": 460
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.6
+    },
+    {
+     "id": "zr_svg_64",
+     "type": "shape",
+     "name": "Sparkle left",
+     "position": {
+      "x": 110,
+      "y": 960
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.85
+    },
+    {
+     "id": "zr_svg_65",
+     "type": "shape",
+     "name": "Mint sparkle right",
+     "position": {
+      "x": 1150,
+      "y": 1750
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_svg_66",
+     "type": "shape",
+     "name": "Sparkle small",
+     "position": {
+      "x": 1180,
+      "y": 690
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.6
+    },
+    {
+     "id": "zr_txt_67",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 370
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Search at\nfull speed",
+     "fontSize": 44,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "zr_txt_68",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 60,
+      "y": 550
+     },
+     "size": {
+      "width": 1170,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Type with your phone,\nnot with arrow keys.",
+     "fontSize": 19,
+     "color": "#6F7480",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "zr_dev_69",
+     "type": "device",
+     "name": "Search phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#171C28",
+     "position": {
+      "x": 210,
+      "y": 880
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.45,
+     "screenshotSrc": "/data/projects/zapio-remote-screen-4.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "zr_shp_70",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 724,
+      "y": 784
+     },
+     "size": {
+      "width": 560,
+      "height": 96
+     },
+     "rotation": 5,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 48,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_71",
+     "type": "shape",
+     "name": "Chip pill",
+     "position": {
+      "x": 710,
+      "y": 770
+     },
+     "size": {
+      "width": 560,
+      "height": 96
+     },
+     "rotation": 5,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 48,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_72",
+     "type": "text",
+     "name": "Chip text",
+     "position": {
+      "x": 710,
+      "y": 778
+     },
+     "size": {
+      "width": 560,
+      "height": 80
+     },
+     "rotation": 5,
+     "scale": 1,
+     "content": "No more arrow keys",
+     "fontSize": 16,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    }
+   ]
+  },
+  {
+   "id": "zapio_remote_ab5",
+   "name": "Pairing",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#FFFFFF",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "zr_svg_73",
+     "type": "shape",
+     "name": "Teal corner wave",
+     "position": {
+      "x": -60,
+      "y": 2506
+     },
+     "size": {
+      "width": 500,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 12 C8 48 34 70 100 76 V100 H0 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7FD9C4",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_svg_74",
+     "type": "shape",
+     "name": "Coral circle",
+     "position": {
+      "x": 1060,
+      "y": 2640
+     },
+     "size": {
+      "width": 420,
+      "height": 380
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_svg_75",
+     "type": "shape",
+     "name": "Sparkle a",
+     "position": {
+      "x": 140,
+      "y": 900
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.9
+    },
+    {
+     "id": "zr_svg_76",
+     "type": "shape",
+     "name": "Sparkle b",
+     "position": {
+      "x": 1140,
+      "y": 1300
+     },
+     "size": {
+      "width": 55,
+      "height": 55
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.7
+    },
+    {
+     "id": "zr_svg_77",
+     "type": "shape",
+     "name": "Sparkle c",
+     "position": {
+      "x": 1180,
+      "y": 2350
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#7A5CF0",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "opacity": 0.55
+    },
+    {
+     "id": "zr_txt_78",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 60,
+      "y": 150
+     },
+     "size": {
+      "width": 1170,
+      "height": 370
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Paired in\nseconds",
+     "fontSize": 44,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "zr_txt_79",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 60,
+      "y": 550
+     },
+     "size": {
+      "width": 1170,
+      "height": 195
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Zapio finds every TV\non your Wi-Fi.",
+     "fontSize": 19,
+     "color": "#6F7480",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.35
+    },
+    {
+     "id": "zr_dev_80",
+     "type": "device",
+     "name": "Pairing phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#171C28",
+     "position": {
+      "x": 210,
+      "y": 830
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.45,
+     "screenshotSrc": "/data/projects/zapio-remote-screen-5.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "zr_shp_81",
+     "type": "shape",
+     "name": "Caption shadow",
+     "position": {
+      "x": 409,
+      "y": 2634
+     },
+     "size": {
+      "width": 500,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#E4E1F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_shp_82",
+     "type": "shape",
+     "name": "Caption pill",
+     "position": {
+      "x": 395,
+      "y": 2620
+     },
+     "size": {
+      "width": 500,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "borderRadius": 50,
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "zr_txt_83",
+     "type": "text",
+     "name": "Caption",
+     "position": {
+      "x": 395,
+      "y": 2630
+     },
+     "size": {
+      "width": 500,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Works over Wi-Fi",
+     "fontSize": 15,
+     "color": "#14161C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.2
+    }
+   ]
+  }
+ ]
+}

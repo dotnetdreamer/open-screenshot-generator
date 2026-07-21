@@ -13,6 +13,8 @@ export const GOOGLE_FONTS: GoogleFont[] = [
   { family: 'Merriweather Sans', variants: ['300', '400', '500', '600', '700', '800'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Calistoga', category: 'display', fallback: 'cursive', script: 'latin' },
   { family: 'Pacifico', category: 'handwriting', fallback: 'cursive', script: 'latin' },
+  { family: 'Baloo 2', variants: ['400', '500', '600', '700', '800'], category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Caveat', variants: ['400', '500', '600', '700'], category: 'handwriting', fallback: 'cursive', script: 'latin' },
   { family: 'Fira Sans Condensed', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Noto Sans', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'multilingual' },
   

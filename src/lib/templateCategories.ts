@@ -44,6 +44,12 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'calora-macros.json',
+      'puzzlo-word.json',
+      'sproutly-parenting.json',
+      'zapio-remote.json',
+      'runzo-coach.json',
+      'nookly-focus.json',
       'playpop-intro.json',
       'lotus-calm.json',
       'cvcraft-resume.json',

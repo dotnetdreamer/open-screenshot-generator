@@ -164,6 +164,12 @@ in editable templates, not standalone downloads.
 | File | Stock ID | Title | Used in |
 | ---- | -------- | ----- | ------- |
 | fg-paws-photo.png | 87946733 | Dog paw and human hand, isolated on white | fg-paws-hearts.json |
+| calora-as438421128.png | 438421128 | Delicious berry mix isolated on white background (licensed 2026-07-20) | calora-macros.json |
+| calora-as456828278.png | 456828278 | Beautiful Monstera deliciosa or Swiss cheese plant in black pot isolated on a white background. (licensed 2026-07-20) | calora-macros.json |
+| calora-as180087870.png | 180087870 | Bowl with yummy oatmeal and berries against white background (licensed 2026-07-20) | calora-macros.json |
+| calora-as100729629.png | 100729629 | Heavy dumbbell (licensed 2026-07-20) | calora-macros.json |
+| calora-as710579480.png | 710579480 | kettlebell gym equipment on white background (licensed 2026-07-20) | calora-macros.json |
+| calora-as177966215.png | 177966215 | Bottle with protein shake and powder on white background (licensed 2026-07-20) | calora-macros.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock.

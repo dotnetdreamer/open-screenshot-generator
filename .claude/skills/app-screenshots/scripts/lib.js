@@ -25,6 +25,13 @@ async function startBrowser({ width, height, dpr }) {
     '--no-sandbox',
     `--window-size=${width},${height}`,
     `--force-device-scale-factor=${dpr}`,
+    // Headless Edge 150 defers image loads ("lazy placeholders"), which hangs
+    // the in-app html-to-image export; it also throttles backgrounded pages,
+    // stalling long exports. Both bite hardest in the spawn+connect fallback.
+    '--disable-features=LazyImageLoading,AutomaticLazyImageLoading,LazyFrameLoading',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
+    '--disable-background-timer-throttling',
   ];
   const defaultViewport = { width, height, deviceScaleFactor: dpr };
   try {

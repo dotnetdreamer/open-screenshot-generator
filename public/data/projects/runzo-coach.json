@@ -1,0 +1,2905 @@
+{
+ "id": "template_runzo_coach",
+ "name": "Runzo Coach",
+ "description": "App Store & Play Store screenshots for an AI running coach app. Fresh park morning scene with layered rolling hills, a soft sun, floating chat bubbles, white chip cards and green tilted phone mockups.",
+ "previewImage": "/data/projects/previews/runzo-coach.png",
+ "timestamp": "2026-07-20T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "runzo_coach_ab1",
+   "name": "Meet the coach",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#DFF0DC",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#DFF0DC",
+    "color2": "#F3FAF1",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "rz_circ_1",
+     "type": "shape",
+     "name": "Sun halo",
+     "position": {
+      "x": 960,
+      "y": 36
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FDF6D9",
+     "opacity": 0.6
+    },
+    {
+     "id": "rz_circ_2",
+     "type": "shape",
+     "name": "Sun",
+     "position": {
+      "x": 1015,
+      "y": 90
+     },
+     "size": {
+      "width": 190,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F7E9A8"
+    },
+    {
+     "id": "rz_svg_3",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 75,
+      "y": 640
+     },
+     "size": {
+      "width": 300,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_cloud_extra1",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 890,
+      "y": 950
+     },
+     "size": {
+      "width": 300,
+      "height": 120
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_4",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 900,
+      "y": 560
+     },
+     "size": {
+      "width": 250,
+      "height": 165
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_5",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 540,
+      "y": 820
+     },
+     "size": {
+      "width": 230,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_6",
+     "type": "shape",
+     "name": "Hill back",
+     "position": {
+      "x": -140,
+      "y": 2040
+     },
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#BFE3B4"
+    },
+    {
+     "id": "rz_rect_7",
+     "type": "shape",
+     "name": "Hill back fill",
+     "position": {
+      "x": 0,
+      "y": 2513
+     },
+     "size": {
+      "width": 1290,
+      "height": 283
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#BFE3B4",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_8",
+     "type": "shape",
+     "name": "Hill mid",
+     "position": {
+      "x": -500,
+      "y": 2220
+     },
+     "size": {
+      "width": 1900,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#A5D69B"
+    },
+    {
+     "id": "rz_rect_9",
+     "type": "shape",
+     "name": "Hill mid fill",
+     "position": {
+      "x": 0,
+      "y": 2627
+     },
+     "size": {
+      "width": 1290,
+      "height": 169
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A5D69B",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_10",
+     "type": "shape",
+     "name": "Hill front",
+     "position": {
+      "x": -160,
+      "y": 2390
+     },
+     "size": {
+      "width": 1520,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#8CC985"
+    },
+    {
+     "id": "rz_rect_11",
+     "type": "shape",
+     "name": "Hill front fill",
+     "position": {
+      "x": 0,
+      "y": 2757
+     },
+     "size": {
+      "width": 1290,
+      "height": 39
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#8CC985",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_txt_12",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 0,
+      "y": 140
+     },
+     "size": {
+      "width": 1290,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Meet Your\nRunning Coach",
+     "fontSize": 46,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_rect_13",
+     "type": "shape",
+     "name": "Logo pill shadow",
+     "position": {
+      "x": 483,
+      "y": 598
+     },
+     "size": {
+      "width": 360,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C2DCBC",
+     "borderRadius": 55
+    },
+    {
+     "id": "rz_rect_14",
+     "type": "shape",
+     "name": "Logo pill",
+     "position": {
+      "x": 465,
+      "y": 580
+     },
+     "size": {
+      "width": 360,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 55
+    },
+    {
+     "id": "rz_txt_15",
+     "type": "text",
+     "name": "Logo text",
+     "position": {
+      "x": 465,
+      "y": 580
+     },
+     "size": {
+      "width": 360,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "👟 Runzo",
+     "fontSize": 20,
+     "color": "#F2764F",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_txt_16",
+     "type": "text",
+     "name": "You label",
+     "position": {
+      "x": 190,
+      "y": 1315
+     },
+     "size": {
+      "width": 240,
+      "height": 62
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "you",
+     "fontSize": 13,
+     "color": "#7C9583",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_17",
+     "type": "shape",
+     "name": "User bubble shadow",
+     "position": {
+      "x": 178,
+      "y": 1398
+     },
+     "size": {
+      "width": 860,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C2DCBC",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_rect_18",
+     "type": "shape",
+     "name": "User tail",
+     "position": {
+      "x": 220,
+      "y": 1508
+     },
+     "size": {
+      "width": 48,
+      "height": 48
+     },
+     "rotation": 45,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 6
+    },
+    {
+     "id": "rz_rect_19",
+     "type": "shape",
+     "name": "User bubble",
+     "position": {
+      "x": 160,
+      "y": 1380
+     },
+     "size": {
+      "width": 860,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_txt_20",
+     "type": "text",
+     "name": "User text",
+     "position": {
+      "x": 160,
+      "y": 1380
+     },
+     "size": {
+      "width": 860,
+      "height": 170
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Can I run 5K today?",
+     "fontSize": 23,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_21",
+     "type": "shape",
+     "name": "Coach bubble shadow",
+     "position": {
+      "x": 288,
+      "y": 1698
+     },
+     "size": {
+      "width": 1000,
+      "height": 290
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1F7F4C",
+     "borderRadius": 48
+    },
+    {
+     "id": "rz_rect_22",
+     "type": "shape",
+     "name": "Coach tail",
+     "position": {
+      "x": 1150,
+      "y": 1926
+     },
+     "size": {
+      "width": 52,
+      "height": 52
+     },
+     "rotation": 45,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FA96A",
+     "borderRadius": 6
+    },
+    {
+     "id": "rz_rect_23",
+     "type": "shape",
+     "name": "Coach bubble",
+     "position": {
+      "x": 270,
+      "y": 1680
+     },
+     "size": {
+      "width": 1000,
+      "height": 290
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FA96A",
+     "borderRadius": 48
+    },
+    {
+     "id": "rz_svg_24",
+     "type": "shape",
+     "name": "Coach check",
+     "position": {
+      "x": 1178,
+      "y": 1708
+     },
+     "size": {
+      "width": 58,
+      "height": 58
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M6 50 A44 44 0 1 0 94 50 A44 44 0 1 0 6 50 Z M30 52 L44 66 L72 34 L64 27 L44 50 L37 45 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "fillRule": "evenodd"
+     },
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "rz_txt_25",
+     "type": "text",
+     "name": "Coach text",
+     "position": {
+      "x": 330,
+      "y": 1705
+     },
+     "size": {
+      "width": 870,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Yes! Keep an easy pace.\nAim for 32 to 35 min.",
+     "fontSize": 23,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "rz_rect_26",
+     "type": "shape",
+     "name": "Adapt chip shadow",
+     "position": {
+      "x": 221,
+      "y": 2136
+     },
+     "size": {
+      "width": 880,
+      "height": 104
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C2DCBC",
+     "borderRadius": 52
+    },
+    {
+     "id": "rz_rect_27",
+     "type": "shape",
+     "name": "Adapt chip",
+     "position": {
+      "x": 205,
+      "y": 2120
+     },
+     "size": {
+      "width": 880,
+      "height": 104
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 52
+    },
+    {
+     "id": "rz_txt_28",
+     "type": "text",
+     "name": "Adapt chip text",
+     "position": {
+      "x": 205,
+      "y": 2120
+     },
+     "size": {
+      "width": 880,
+      "height": 104
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Adapts to how you feel today",
+     "fontSize": 18,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_svg_29",
+     "type": "shape",
+     "name": "Doodle arrow",
+     "position": {
+      "x": 1060,
+      "y": 2160
+     },
+     "size": {
+      "width": 340,
+      "height": 56
+     },
+     "rotation": 62,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M3.6 50 A2.4 2.4 0 1 0 8.4 50 A2.4 2.4 0 1 0 3.6 50 ZM12.2 50 A2.4 2.4 0 1 0 17 50 A2.4 2.4 0 1 0 12.2 50 ZM20.8 50 A2.4 2.4 0 1 0 25.6 50 A2.4 2.4 0 1 0 20.8 50 ZM29.4 50 A2.4 2.4 0 1 0 34.2 50 A2.4 2.4 0 1 0 29.4 50 ZM38 50 A2.4 2.4 0 1 0 42.8 50 A2.4 2.4 0 1 0 38 50 ZM46.6 50 A2.4 2.4 0 1 0 51.4 50 A2.4 2.4 0 1 0 46.6 50 ZM55.2 50 A2.4 2.4 0 1 0 60 50 A2.4 2.4 0 1 0 55.2 50 ZM63.8 50 A2.4 2.4 0 1 0 68.6 50 A2.4 2.4 0 1 0 63.8 50 ZM72.4 50 A2.4 2.4 0 1 0 77.2 50 A2.4 2.4 0 1 0 72.4 50 ZM85 41.5 L96 50 L85 58.5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#17281C",
+     "strokeWidth": 5
+    },
+    {
+     "id": "rz_svg_30",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 140,
+      "y": 980
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_31",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1150,
+      "y": 1450
+     },
+     "size": {
+      "width": 48,
+      "height": 48
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    },
+    {
+     "id": "rz_svg_32",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 105,
+      "y": 1620
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_33",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 880,
+      "y": 604
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    }
+   ]
+  },
+  {
+   "id": "runzo_coach_ab2",
+   "name": "Plans",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#DFF0DC",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#DFF0DC",
+    "color2": "#F3FAF1",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "rz_circ_34",
+     "type": "shape",
+     "name": "Sun halo",
+     "position": {
+      "x": 960,
+      "y": 36
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FDF6D9",
+     "opacity": 0.6
+    },
+    {
+     "id": "rz_circ_35",
+     "type": "shape",
+     "name": "Sun",
+     "position": {
+      "x": 1015,
+      "y": 90
+     },
+     "size": {
+      "width": 190,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F7E9A8"
+    },
+    {
+     "id": "rz_svg_36",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 75,
+      "y": 720
+     },
+     "size": {
+      "width": 300,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_37",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 935,
+      "y": 600
+     },
+     "size": {
+      "width": 250,
+      "height": 165
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_38",
+     "type": "shape",
+     "name": "Hill back",
+     "position": {
+      "x": -140,
+      "y": 2040
+     },
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#BFE3B4"
+    },
+    {
+     "id": "rz_rect_39",
+     "type": "shape",
+     "name": "Hill back fill",
+     "position": {
+      "x": 0,
+      "y": 2513
+     },
+     "size": {
+      "width": 1290,
+      "height": 283
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#BFE3B4",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_40",
+     "type": "shape",
+     "name": "Hill mid",
+     "position": {
+      "x": -500,
+      "y": 2220
+     },
+     "size": {
+      "width": 1900,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#A5D69B"
+    },
+    {
+     "id": "rz_rect_41",
+     "type": "shape",
+     "name": "Hill mid fill",
+     "position": {
+      "x": 0,
+      "y": 2627
+     },
+     "size": {
+      "width": 1290,
+      "height": 169
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A5D69B",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_42",
+     "type": "shape",
+     "name": "Hill front",
+     "position": {
+      "x": -160,
+      "y": 2390
+     },
+     "size": {
+      "width": 1520,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#8CC985"
+    },
+    {
+     "id": "rz_rect_43",
+     "type": "shape",
+     "name": "Hill front fill",
+     "position": {
+      "x": 0,
+      "y": 2757
+     },
+     "size": {
+      "width": 1290,
+      "height": 39
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#8CC985",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_txt_44",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 0,
+      "y": 140
+     },
+     "size": {
+      "width": 1290,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Plans Built\nFor You",
+     "fontSize": 46,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_txt_45",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 0,
+      "y": 560
+     },
+     "size": {
+      "width": 1290,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Every week adjusts to your\npace, effort, and schedule.",
+     "fontSize": 19,
+     "color": "#56685B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "rz_dev_46",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 195,
+      "y": 900
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 3,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/runzo-coach-screen-1.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "rz_rect_47",
+     "type": "shape",
+     "name": "Pace chip shadow",
+     "position": {
+      "x": 951,
+      "y": 806
+     },
+     "size": {
+      "width": 340,
+      "height": 96
+     },
+     "rotation": 6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C2DCBC",
+     "borderRadius": 48
+    },
+    {
+     "id": "rz_rect_48",
+     "type": "shape",
+     "name": "Pace chip",
+     "position": {
+      "x": 935,
+      "y": 790
+     },
+     "size": {
+      "width": 340,
+      "height": 96
+     },
+     "rotation": 6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 48
+    },
+    {
+     "id": "rz_txt_49",
+     "type": "text",
+     "name": "Pace chip text",
+     "position": {
+      "x": 935,
+      "y": 790
+     },
+     "size": {
+      "width": 340,
+      "height": 96
+     },
+     "rotation": 6,
+     "scale": 1,
+     "content": "Best pace?",
+     "fontSize": 17,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_50",
+     "type": "shape",
+     "name": "Reply chip shadow",
+     "position": {
+      "x": 1014,
+      "y": 882
+     },
+     "size": {
+      "width": 280,
+      "height": 88
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1F7F4C",
+     "borderRadius": 44
+    },
+    {
+     "id": "rz_rect_51",
+     "type": "shape",
+     "name": "Reply chip",
+     "position": {
+      "x": 1000,
+      "y": 868
+     },
+     "size": {
+      "width": 280,
+      "height": 88
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FA96A",
+     "borderRadius": 44
+    },
+    {
+     "id": "rz_txt_52",
+     "type": "text",
+     "name": "Reply chip text",
+     "position": {
+      "x": 1000,
+      "y": 868
+     },
+     "size": {
+      "width": 280,
+      "height": 88
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "6:45 /km",
+     "fontSize": 17,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_svg_53",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 110,
+      "y": 830
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_54",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1190,
+      "y": 1560
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    },
+    {
+     "id": "rz_svg_55",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 90,
+      "y": 2080
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    }
+   ]
+  },
+  {
+   "id": "runzo_coach_ab3",
+   "name": "Start",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#DFF0DC",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#DFF0DC",
+    "color2": "#F3FAF1",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "rz_circ_56",
+     "type": "shape",
+     "name": "Sun halo",
+     "position": {
+      "x": 960,
+      "y": 36
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FDF6D9",
+     "opacity": 0.6
+    },
+    {
+     "id": "rz_circ_57",
+     "type": "shape",
+     "name": "Sun",
+     "position": {
+      "x": 1015,
+      "y": 90
+     },
+     "size": {
+      "width": 190,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F7E9A8"
+    },
+    {
+     "id": "rz_svg_58",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 60,
+      "y": 760
+     },
+     "size": {
+      "width": 290,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_59",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 940,
+      "y": 640
+     },
+     "size": {
+      "width": 250,
+      "height": 165
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_60",
+     "type": "shape",
+     "name": "Hill back",
+     "position": {
+      "x": -140,
+      "y": 2040
+     },
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#BFE3B4"
+    },
+    {
+     "id": "rz_rect_61",
+     "type": "shape",
+     "name": "Hill back fill",
+     "position": {
+      "x": 0,
+      "y": 2513
+     },
+     "size": {
+      "width": 1290,
+      "height": 283
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#BFE3B4",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_62",
+     "type": "shape",
+     "name": "Hill mid",
+     "position": {
+      "x": -500,
+      "y": 2220
+     },
+     "size": {
+      "width": 1900,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#A5D69B"
+    },
+    {
+     "id": "rz_rect_63",
+     "type": "shape",
+     "name": "Hill mid fill",
+     "position": {
+      "x": 0,
+      "y": 2627
+     },
+     "size": {
+      "width": 1290,
+      "height": 169
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A5D69B",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_64",
+     "type": "shape",
+     "name": "Hill front",
+     "position": {
+      "x": -160,
+      "y": 2390
+     },
+     "size": {
+      "width": 1520,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#8CC985"
+    },
+    {
+     "id": "rz_rect_65",
+     "type": "shape",
+     "name": "Hill front fill",
+     "position": {
+      "x": 0,
+      "y": 2757
+     },
+     "size": {
+      "width": 1290,
+      "height": 39
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#8CC985",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_txt_66",
+     "type": "text",
+     "name": "Headline 1",
+     "position": {
+      "x": 0,
+      "y": 140
+     },
+     "size": {
+      "width": 1290,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Run Smarter",
+     "fontSize": 46,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_rect_67",
+     "type": "shape",
+     "name": "Train pill shadow",
+     "position": {
+      "x": 816,
+      "y": 412
+     },
+     "size": {
+      "width": 420,
+      "height": 182
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#D65F3D",
+     "borderRadius": 26
+    },
+    {
+     "id": "rz_rect_68",
+     "type": "shape",
+     "name": "Train pill",
+     "position": {
+      "x": 802,
+      "y": 398
+     },
+     "size": {
+      "width": 420,
+      "height": 182
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F2764F",
+     "borderRadius": 26
+    },
+    {
+     "id": "rz_txt_69",
+     "type": "text",
+     "name": "Headline 2a",
+     "position": {
+      "x": -93,
+      "y": 375
+     },
+     "size": {
+      "width": 870,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Where You",
+     "fontSize": 42,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "right",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_txt_70",
+     "type": "text",
+     "name": "Train text",
+     "position": {
+      "x": 802,
+      "y": 375
+     },
+     "size": {
+      "width": 420,
+      "height": 220
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Train",
+     "fontSize": 42,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_txt_71",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 0,
+      "y": 660
+     },
+     "size": {
+      "width": 1290,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Start every session with a plan\nthat fits the day.",
+     "fontSize": 19,
+     "color": "#56685B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "rz_dev_72",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 195,
+      "y": 950
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -2,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/runzo-coach-screen-2.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "rz_rect_73",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 106,
+      "y": 2612
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#9CC492",
+     "borderRadius": 34
+    },
+    {
+     "id": "rz_rect_74",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 90,
+      "y": 2596
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 34
+    },
+    {
+     "id": "rz_txt_75",
+     "type": "text",
+     "name": "Chip text",
+     "position": {
+      "x": 90,
+      "y": 2596
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "📋 Plan",
+     "fontSize": 17,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_76",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 496,
+      "y": 2612
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#9CC492",
+     "borderRadius": 34
+    },
+    {
+     "id": "rz_rect_77",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 480,
+      "y": 2596
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#DFF3EA",
+     "borderRadius": 34
+    },
+    {
+     "id": "rz_txt_78",
+     "type": "text",
+     "name": "Chip text",
+     "position": {
+      "x": 480,
+      "y": 2596
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "▶ Start",
+     "fontSize": 17,
+     "color": "#1F8A50",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_79",
+     "type": "shape",
+     "name": "Chip shadow",
+     "position": {
+      "x": 886,
+      "y": 2612
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#9CC492",
+     "borderRadius": 34
+    },
+    {
+     "id": "rz_rect_80",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 870,
+      "y": 2596
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 34
+    },
+    {
+     "id": "rz_txt_81",
+     "type": "text",
+     "name": "Chip text",
+     "position": {
+      "x": 870,
+      "y": 2596
+     },
+     "size": {
+      "width": 330,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "📊 Stats",
+     "fontSize": 17,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_svg_82",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 120,
+      "y": 900
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_83",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1160,
+      "y": 880
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    },
+    {
+     "id": "rz_svg_84",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1190,
+      "y": 2280
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    }
+   ]
+  },
+  {
+   "id": "runzo_coach_ab4",
+   "name": "Run summary",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#DFF0DC",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#DFF0DC",
+    "color2": "#F3FAF1",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "rz_circ_100",
+     "type": "shape",
+     "name": "Sun halo",
+     "position": {
+      "x": 960,
+      "y": 36
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FDF6D9",
+     "opacity": 0.6
+    },
+    {
+     "id": "rz_circ_101",
+     "type": "shape",
+     "name": "Sun",
+     "position": {
+      "x": 1015,
+      "y": 90
+     },
+     "size": {
+      "width": 190,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F7E9A8"
+    },
+    {
+     "id": "rz_svg_102",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 70,
+      "y": 640
+     },
+     "size": {
+      "width": 300,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_103",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 940,
+      "y": 470
+     },
+     "size": {
+      "width": 250,
+      "height": 165
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_104",
+     "type": "shape",
+     "name": "Hill back",
+     "position": {
+      "x": -140,
+      "y": 2040
+     },
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#BFE3B4"
+    },
+    {
+     "id": "rz_rect_105",
+     "type": "shape",
+     "name": "Hill back fill",
+     "position": {
+      "x": 0,
+      "y": 2513
+     },
+     "size": {
+      "width": 1290,
+      "height": 283
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#BFE3B4",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_106",
+     "type": "shape",
+     "name": "Hill mid",
+     "position": {
+      "x": -500,
+      "y": 2220
+     },
+     "size": {
+      "width": 1900,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#A5D69B"
+    },
+    {
+     "id": "rz_rect_107",
+     "type": "shape",
+     "name": "Hill mid fill",
+     "position": {
+      "x": 0,
+      "y": 2627
+     },
+     "size": {
+      "width": 1290,
+      "height": 169
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A5D69B",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_108",
+     "type": "shape",
+     "name": "Hill front",
+     "position": {
+      "x": -160,
+      "y": 2390
+     },
+     "size": {
+      "width": 1520,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#8CC985"
+    },
+    {
+     "id": "rz_rect_109",
+     "type": "shape",
+     "name": "Hill front fill",
+     "position": {
+      "x": 0,
+      "y": 2757
+     },
+     "size": {
+      "width": 1290,
+      "height": 39
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#8CC985",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_txt_110",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 0,
+      "y": 140
+     },
+     "size": {
+      "width": 1290,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "See every\nrun clearly",
+     "fontSize": 46,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_txt_111",
+     "type": "text",
+     "name": "Sub",
+     "position": {
+      "x": 0,
+      "y": 560
+     },
+     "size": {
+      "width": 1290,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Splits, pace, and route\nsaved automatically.",
+     "fontSize": 19,
+     "color": "#56685B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.3
+    },
+    {
+     "id": "rz_dev_112",
+     "type": "device",
+     "name": "Phone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 195,
+      "y": 950
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -3,
+     "scale": 1.5,
+     "screenshotSrc": "/data/projects/runzo-coach-screen-3.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "rz_rect_113",
+     "type": "shape",
+     "name": "PB chip shadow",
+     "position": {
+      "x": 951,
+      "y": 846
+     },
+     "size": {
+      "width": 320,
+      "height": 96
+     },
+     "rotation": 6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E9C3B2",
+     "borderRadius": 48
+    },
+    {
+     "id": "rz_rect_114",
+     "type": "shape",
+     "name": "PB chip",
+     "position": {
+      "x": 935,
+      "y": 830
+     },
+     "size": {
+      "width": 320,
+      "height": 96
+     },
+     "rotation": 6,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFF3EE",
+     "borderRadius": 48
+    },
+    {
+     "id": "rz_txt_115",
+     "type": "text",
+     "name": "PB chip text",
+     "position": {
+      "x": 935,
+      "y": 830
+     },
+     "size": {
+      "width": 320,
+      "height": 96
+     },
+     "rotation": 6,
+     "scale": 1,
+     "content": "New PB!",
+     "fontSize": 17,
+     "color": "#D65F3D",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_svg_116",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1228,
+      "y": 748
+     },
+     "size": {
+      "width": 52,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_117",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 110,
+      "y": 780
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_118",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1200,
+      "y": 1600
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    },
+    {
+     "id": "rz_svg_119",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 95,
+      "y": 2070
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    }
+   ]
+  },
+  {
+   "id": "runzo_coach_ab5",
+   "name": "Loved by runners",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#DFF0DC",
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#DFF0DC",
+    "color2": "#F3FAF1",
+    "angle": 180
+   },
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "rz_circ_130",
+     "type": "shape",
+     "name": "Sun halo",
+     "position": {
+      "x": 960,
+      "y": 36
+     },
+     "size": {
+      "width": 300,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#FDF6D9",
+     "opacity": 0.6
+    },
+    {
+     "id": "rz_circ_131",
+     "type": "shape",
+     "name": "Sun",
+     "position": {
+      "x": 1015,
+      "y": 90
+     },
+     "size": {
+      "width": 190,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F7E9A8"
+    },
+    {
+     "id": "rz_svg_132",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 75,
+      "y": 600
+     },
+     "size": {
+      "width": 300,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_133",
+     "type": "shape",
+     "name": "Cloud",
+     "position": {
+      "x": 500,
+      "y": 700
+     },
+     "size": {
+      "width": 230,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M16 74 A13 13 0 0 1 12 49 A17 17 0 0 1 41 33 A18 18 0 0 1 74 36 A14 14 0 0 1 89 58 A9 9 0 0 1 85 74 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF",
+     "opacity": 0.92
+    },
+    {
+     "id": "rz_svg_134",
+     "type": "shape",
+     "name": "Hill back",
+     "position": {
+      "x": -140,
+      "y": 2040
+     },
+     "size": {
+      "width": 1560,
+      "height": 720
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#BFE3B4"
+    },
+    {
+     "id": "rz_rect_135",
+     "type": "shape",
+     "name": "Hill back fill",
+     "position": {
+      "x": 0,
+      "y": 2513
+     },
+     "size": {
+      "width": 1290,
+      "height": 283
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#BFE3B4",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_136",
+     "type": "shape",
+     "name": "Hill mid",
+     "position": {
+      "x": -500,
+      "y": 2220
+     },
+     "size": {
+      "width": 1900,
+      "height": 620
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#A5D69B"
+    },
+    {
+     "id": "rz_rect_137",
+     "type": "shape",
+     "name": "Hill mid fill",
+     "position": {
+      "x": 0,
+      "y": 2627
+     },
+     "size": {
+      "width": 1290,
+      "height": 169
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A5D69B",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_svg_138",
+     "type": "shape",
+     "name": "Hill front",
+     "position": {
+      "x": -160,
+      "y": 2390
+     },
+     "size": {
+      "width": 1520,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M0 60 C4.67 57 18.33 43.33 28 42 C37.67 40.67 46 51.33 58 52 C70 52.67 93 47 100 46 L100 66 L0 66 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#8CC985"
+    },
+    {
+     "id": "rz_rect_139",
+     "type": "shape",
+     "name": "Hill front fill",
+     "position": {
+      "x": 0,
+      "y": 2757
+     },
+     "size": {
+      "width": 1290,
+      "height": 39
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#8CC985",
+     "borderRadius": 0
+    },
+    {
+     "id": "rz_txt_140",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 0,
+      "y": 150
+     },
+     "size": {
+      "width": 1290,
+      "height": 390
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Runners love\nthe coach",
+     "fontSize": 46,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.1
+    },
+    {
+     "id": "rz_rect_141",
+     "type": "shape",
+     "name": "Rating card shadow",
+     "position": {
+      "x": 223,
+      "y": 818
+     },
+     "size": {
+      "width": 880,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C2DCBC",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_rect_142",
+     "type": "shape",
+     "name": "Rating card",
+     "position": {
+      "x": 205,
+      "y": 800
+     },
+     "size": {
+      "width": 880,
+      "height": 560
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_svg_143",
+     "type": "shape",
+     "name": "Laurel left",
+     "position": {
+      "x": -15,
+      "y": 905
+     },
+     "size": {
+      "width": 240,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C9A23C"
+    },
+    {
+     "id": "rz_svg_144",
+     "type": "shape",
+     "name": "Laurel right",
+     "position": {
+      "x": 1065,
+      "y": 905
+     },
+     "size": {
+      "width": 240,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#C9A23C"
+    },
+    {
+     "id": "rz_txt_145",
+     "type": "text",
+     "name": "Rating number",
+     "position": {
+      "x": 205,
+      "y": 830
+     },
+     "size": {
+      "width": 880,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "4.9",
+     "fontSize": 64,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_txt_146",
+     "type": "text",
+     "name": "Stars",
+     "position": {
+      "x": 205,
+      "y": 1070
+     },
+     "size": {
+      "width": 880,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 28,
+     "color": "#C9A23C",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_txt_147",
+     "type": "text",
+     "name": "Rating caption",
+     "position": {
+      "x": 205,
+      "y": 1180
+     },
+     "size": {
+      "width": 880,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "average rating from runners",
+     "fontSize": 17,
+     "color": "#56685B",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_svg_148",
+     "type": "shape",
+     "name": "Doodle arrow",
+     "position": {
+      "x": 990,
+      "y": 1450
+     },
+     "size": {
+      "width": 300,
+      "height": 56
+     },
+     "rotation": 80,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M3.6 50 A2.4 2.4 0 1 0 8.4 50 A2.4 2.4 0 1 0 3.6 50 ZM12.2 50 A2.4 2.4 0 1 0 17 50 A2.4 2.4 0 1 0 12.2 50 ZM20.8 50 A2.4 2.4 0 1 0 25.6 50 A2.4 2.4 0 1 0 20.8 50 ZM29.4 50 A2.4 2.4 0 1 0 34.2 50 A2.4 2.4 0 1 0 29.4 50 ZM38 50 A2.4 2.4 0 1 0 42.8 50 A2.4 2.4 0 1 0 38 50 ZM46.6 50 A2.4 2.4 0 1 0 51.4 50 A2.4 2.4 0 1 0 46.6 50 ZM55.2 50 A2.4 2.4 0 1 0 60 50 A2.4 2.4 0 1 0 55.2 50 ZM63.8 50 A2.4 2.4 0 1 0 68.6 50 A2.4 2.4 0 1 0 63.8 50 ZM72.4 50 A2.4 2.4 0 1 0 77.2 50 A2.4 2.4 0 1 0 72.4 50 ZM85 41.5 L96 50 L85 58.5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#17281C",
+     "strokeWidth": 5
+    },
+    {
+     "id": "rz_txt_149",
+     "type": "text",
+     "name": "Priya label",
+     "position": {
+      "x": 130,
+      "y": 1535
+     },
+     "size": {
+      "width": 240,
+      "height": 62
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Priya",
+     "fontSize": 13,
+     "color": "#7C9583",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_150",
+     "type": "shape",
+     "name": "Review bubble shadow",
+     "position": {
+      "x": 118,
+      "y": 1618
+     },
+     "size": {
+      "width": 840,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#C2DCBC",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_rect_151",
+     "type": "shape",
+     "name": "Review tail",
+     "position": {
+      "x": 180,
+      "y": 1708
+     },
+     "size": {
+      "width": 48,
+      "height": 48
+     },
+     "rotation": 45,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 6
+    },
+    {
+     "id": "rz_rect_152",
+     "type": "shape",
+     "name": "Review bubble",
+     "position": {
+      "x": 100,
+      "y": 1600
+     },
+     "size": {
+      "width": 840,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_txt_153",
+     "type": "text",
+     "name": "Review text",
+     "position": {
+      "x": 100,
+      "y": 1600
+     },
+     "size": {
+      "width": 840,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Finally a plan I stick to.",
+     "fontSize": 20,
+     "color": "#17281C",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_rect_154",
+     "type": "shape",
+     "name": "Review 2 shadow",
+     "position": {
+      "x": 448,
+      "y": 1898
+     },
+     "size": {
+      "width": 760,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1F7F4C",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_rect_155",
+     "type": "shape",
+     "name": "Review 2 tail",
+     "position": {
+      "x": 1090,
+      "y": 1986
+     },
+     "size": {
+      "width": 52,
+      "height": 52
+     },
+     "rotation": 45,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FA96A",
+     "borderRadius": 6
+    },
+    {
+     "id": "rz_rect_156",
+     "type": "shape",
+     "name": "Review 2 bubble",
+     "position": {
+      "x": 430,
+      "y": 1880
+     },
+     "size": {
+      "width": 760,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2FA96A",
+     "borderRadius": 40
+    },
+    {
+     "id": "rz_txt_157",
+     "type": "text",
+     "name": "Review 2 text",
+     "position": {
+      "x": 430,
+      "y": 1880
+     },
+     "size": {
+      "width": 760,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "New PB after 6 weeks!",
+     "fontSize": 20,
+     "color": "#FFFFFF",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_txt_158",
+     "type": "text",
+     "name": "Marco label",
+     "position": {
+      "x": 950,
+      "y": 2060
+     },
+     "size": {
+      "width": 240,
+      "height": 62
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Marco",
+     "fontSize": 13,
+     "color": "#7C9583",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "right",
+     "lineHeight": 1
+    },
+    {
+     "id": "rz_svg_159",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 100,
+      "y": 1330
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_160",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1180,
+      "y": 760
+     },
+     "size": {
+      "width": 48,
+      "height": 48
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    },
+    {
+     "id": "rz_svg_161",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 150,
+      "y": 2150
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#F2764F"
+    },
+    {
+     "id": "rz_svg_162",
+     "type": "shape",
+     "name": "Sparkle",
+     "position": {
+      "x": 1120,
+      "y": 2210
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#2FA96A"
+    }
+   ]
+  }
+ ]
+}
