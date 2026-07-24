@@ -31,7 +31,7 @@ import { startDesktopMcpBridge, getMcpStatus, listenMcpStatus, type McpDesignApi
 import { McpServerStatus } from './McpServerStatus';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
@@ -1589,8 +1589,11 @@ export function ArtboardStudioLayout() {
     handleArtboardsUpdate(updatedArtboards); // Use handleArtboardsUpdate to ensure history and positioning
   };
 
-  // Update the handleUpdateArtboardSize function
-  const handleUpdateArtboardSize = (width: number, height: number) => {
+  // Applies a new canvas size to every artboard. With `scaleContent` (the
+  // Canvas Size dialog's default) each artboard's elements are uniformly
+  // scaled and re-centered — same treatment as the Devices format conversion —
+  // so designs survive aspect-ratio changes instead of getting cropped.
+  const handleUpdateArtboardSize = (width: number, height: number, scaleContent = true) => {
     if (width < 100 || height < 100 || width > 5000 || height > 5000) {
       toast({ 
         title: "Invalid Dimensions", 
@@ -1606,7 +1609,10 @@ export function ArtboardStudioLayout() {
       size: {
         width,
         height
-      }
+      },
+      elements: scaleContent
+        ? scaleElementsToCanvas(artboard.elements, artboard.size, { width, height })
+        : artboard.elements,
     }));
     
     // Recalculate positions to avoid overlap
@@ -1618,7 +1624,9 @@ export function ArtboardStudioLayout() {
     
     toast({ 
       title: "Artboard Size Updated", 
-      description: `All artboards resized to ${width} × ${height} pixels`
+      description: scaleContent
+        ? `All artboards resized to ${width} × ${height} pixels with content scaled to fit.`
+        : `All artboards resized to ${width} × ${height} pixels`
     });
   };
 

@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import type { Size } from '@/types/artboard';
@@ -31,9 +32,11 @@ interface CanvasSizeDialogProps {
   // Current canvas size (all artboards share one), used to preselect the
   // matching preset and prefill the custom fields.
   currentSize?: Size;
-  // Applies the chosen size — same raw resize as the old Width/Height/Apply
-  // controls (resizes every artboard; does not scale content or swap mockups).
-  onApply: (width: number, height: number) => void;
+  // Applies the chosen size to every artboard. `scaleContent` (the dialog's
+  // "Scale content to fit" checkbox, on by default) uniformly scales and
+  // re-centers each artboard's elements so layouts survive the resize;
+  // unchecked reproduces the old raw resize (canvas only, content untouched).
+  onApply: (width: number, height: number, scaleContent: boolean) => void;
 }
 
 const CUSTOM_ID = 'custom';
@@ -65,6 +68,7 @@ export function CanvasSizeDialog({
   const [selectedId, setSelectedId] = useState<string>(CUSTOM_ID);
   const [width, setWidth] = useState<string>('');
   const [height, setHeight] = useState<string>('');
+  const [scaleContent, setScaleContent] = useState(true);
   const widthInputRef = useRef<HTMLInputElement>(null);
 
   // Latest currentSize, read at open time only (see the reset effect below).
@@ -83,6 +87,7 @@ export function CanvasSizeDialog({
     setWidth(String(cs?.width ?? 1290));
     setHeight(String(cs?.height ?? 2796));
     setSelectedId(match ? match.id : CUSTOM_ID);
+    setScaleContent(true);
   }, [isOpen]);
 
   const selectPreset = (preset: CanvasSizePreset) => {
@@ -120,7 +125,7 @@ export function CanvasSizeDialog({
 
   const handleApply = () => {
     if (!valid) return;
-    onApply(numWidth, numHeight);
+    onApply(numWidth, numHeight, scaleContent);
     onOpenChange(false);
   };
 
@@ -142,8 +147,8 @@ export function CanvasSizeDialog({
         <DialogHeader className="shrink-0 space-y-1 border-b px-6 py-4">
           <DialogTitle>Canvas Size</DialogTitle>
           <DialogDescription>
-            Choose a preset or enter a custom size. It resizes every artboard
-            without scaling your content or swapping mockups.
+            Choose a preset or enter a custom size. It resizes every artboard;
+            mockups are not swapped.
           </DialogDescription>
         </DialogHeader>
 
@@ -303,13 +308,27 @@ export function CanvasSizeDialog({
           </section>
         </RadioGroup>
 
-        <DialogFooter className="shrink-0 border-t px-6 py-4">
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button onClick={handleApply} disabled={!valid}>
-            Apply
-          </Button>
+        <DialogFooter className="shrink-0 gap-3 border-t px-6 py-4 sm:justify-between">
+          <label
+            htmlFor="canvas-scale-content"
+            className="flex cursor-pointer items-center gap-2"
+            title="Uniformly scales and re-centers every artboard's elements so the layout survives the resize. Uncheck to resize the canvas only (content keeps its position and size, and may get cropped)."
+          >
+            <Checkbox
+              id="canvas-scale-content"
+              checked={scaleContent}
+              onCheckedChange={(v) => setScaleContent(v === true)}
+            />
+            <span className="text-sm">Scale content to fit</span>
+          </label>
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleApply} disabled={!valid}>
+              Apply
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

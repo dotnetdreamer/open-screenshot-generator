@@ -1,9 +1,9 @@
 import type { Size } from '@/types/artboard';
 
 // The working-canvas size picker's catalog. These presets drive the "Canvas
-// Size" dialog launched from the toolbar. Picking one performs the SAME raw
-// resize the old Width/Height/Apply inputs did (handleUpdateArtboardSize) — it
-// sets every artboard's canvas size, it does NOT scale content or swap mockups
+// Size" dialog launched from the toolbar. Picking one resizes every artboard;
+// by default the content is uniformly scaled and re-centered to fit (the
+// dialog's "Scale content to fit" checkbox), but mockups are never swapped
 // (that is the separate "Devices" format-conversion menu).
 //
 // The catalog is verified/enriched by the `canvas-size-preset-catalog`

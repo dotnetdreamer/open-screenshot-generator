@@ -50,7 +50,7 @@ interface ToolbarProps {
   isArtboardSelected: boolean;
   activeTool: 'select' | 'pan';
   onSetActiveTool: (tool: 'select' | 'pan') => void;
-  onUpdateArtboardSize: (width: number, height: number) => void;
+  onUpdateArtboardSize: (width: number, height: number, scaleContent: boolean) => void;
   initialArtboardSize?: Size; // New prop to get current size
   className?: string;
   currentProjectName?: string;
@@ -256,8 +256,8 @@ export function Toolbar({
 
       <div className="h-8 w-px bg-muted mx-2" />
       
-      {/* Canvas Size — opens the preset picker dialog (replaces the old
-          inline width/height/apply controls; same raw-resize behavior) */}
+      {/* Canvas Size — opens the preset picker dialog. Scales + re-centers
+          content by default; its checkbox can opt out to the raw resize. */}
       <Button
         variant="outline"
         className="h-9 gap-1.5 px-3"

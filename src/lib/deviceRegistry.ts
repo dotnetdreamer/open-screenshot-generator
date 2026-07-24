@@ -303,6 +303,43 @@ export const DEVICE_FORMAT_PRESETS: DeviceFormatPreset[] = [
 // Used by the export flow to offer generating whichever are missing.
 export const APP_STORE_FORMAT_IDS: readonly DeviceFormat[] = ['ios', 'ipad-pro-13', 'ipad-11'];
 
+/**
+ * Uniformly scale an artboard's elements to fit a new canvas size (min of the
+ * width/height ratios) and re-center them — layouts survive intact, with
+ * margins where the aspect ratio differs. Returns the input array unchanged
+ * when the size is identical. Used by the format conversion AND the Canvas
+ * Size dialog, so both resize paths behave the same.
+ */
+export function scaleElementsToCanvas(
+  elements: ArtboardElement[],
+  from: { width: number; height: number },
+  to: { width: number; height: number }
+): ArtboardElement[] {
+  if (from.width === to.width && from.height === to.height) return elements;
+  const factor = Math.min(to.width / from.width, to.height / from.height);
+  const offsetX = (to.width - from.width * factor) / 2;
+  const offsetY = (to.height - from.height * factor) / 2;
+  return elements.map((el) => {
+    const position = {
+      x: el.position.x * factor + offsetX,
+      y: el.position.y * factor + offsetY,
+    };
+    // TextElement renders glyphs at fontSize/0.3 px and IGNORES element.scale
+    // (TextElement.tsx display path), so scaling `scale` would shrink the box
+    // but not the text — it re-wraps and clips. Scale the box and fontSize
+    // directly instead; that mirrors the renderer exactly.
+    if (el.type === 'text') {
+      return {
+        ...el,
+        position,
+        size: { width: el.size.width * factor, height: el.size.height * factor },
+        fontSize: el.fontSize * factor,
+      };
+    }
+    return { ...el, position, scale: (el.scale || 1) * factor };
+  });
+}
+
 export interface FormatConversionResult {
   artboards: ArtboardState[];
   resized: number;
@@ -340,31 +377,7 @@ export function convertArtboardsToFormat(
   const next = artboards.map((ab) => {
     const { width: newW, height: newH } = preset.artboard;
     const sameSize = ab.size.width === newW && ab.size.height === newH;
-    const factor = Math.min(newW / ab.size.width, newH / ab.size.height);
-    const offsetX = (newW - ab.size.width * factor) / 2;
-    const offsetY = (newH - ab.size.height * factor) / 2;
-    let elements = sameSize
-      ? ab.elements
-      : ab.elements.map((el) => {
-          const position = {
-            x: el.position.x * factor + offsetX,
-            y: el.position.y * factor + offsetY,
-          };
-          // TextElement renders glyphs at fontSize/0.3 px and IGNORES
-          // element.scale (TextElement.tsx display path), so scaling `scale`
-          // would shrink the box but not the text — it re-wraps and clips.
-          // Scale the box and fontSize directly instead; that mirrors the
-          // renderer exactly.
-          if (el.type === 'text') {
-            return {
-              ...el,
-              position,
-              size: { width: el.size.width * factor, height: el.size.height * factor },
-              fontSize: el.fontSize * factor,
-            };
-          }
-          return { ...el, position, scale: (el.scale || 1) * factor };
-        });
+    let elements = scaleElementsToCanvas(ab.elements, ab.size, preset.artboard);
     if (!sameSize) resized++;
     const deviceIds = elements.filter((el) => el.type === 'device').map((el) => el.id);
     for (const id of deviceIds) {
