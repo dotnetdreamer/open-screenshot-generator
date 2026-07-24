@@ -84,6 +84,19 @@ export function DraggableElement({
   ) => {
     // Only the left button drags; right-click opens the context menu instead
     if (e.button !== 0) return;
+    // preventDefault below suppresses the browser's native focus transfer,
+    // which would otherwise blur (and thereby commit) an in-progress edit in
+    // a side-panel input — e.g. the text Content field. Blur it explicitly
+    // so pending edits are applied before the canvas interaction starts.
+    // Focus inside this element (the inline text editor) is left alone.
+    const active = document.activeElement as HTMLElement | null;
+    if (
+      active &&
+      (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) &&
+      !elementRef.current?.contains(active)
+    ) {
+      active.blur();
+    }
     e.preventDefault();
     e.stopPropagation();
     if (!elementRef.current) return;

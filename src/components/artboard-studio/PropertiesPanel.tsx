@@ -39,6 +39,13 @@ const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
   onUpdateElement: (updates: Partial<ArtboardElement>) => void;
+  /**
+   * Update an element by id even when it is no longer selected. Used to
+   * commit pending text edits when the input never fires blur (e.g. the
+   * user clicks the artboard, which deselects the element and unmounts
+   * the input before blur is delivered).
+   */
+  onUpdateElementById?: (elementId: string, updates: Partial<ArtboardElement>) => void;
   activeArtboardDetails?: ArtboardState | null;
   onUpdateArtboardDetails?: (updates: Partial<ArtboardState>) => void;
   className?: string;
@@ -148,6 +155,7 @@ const gradientPresets = [
 export function PropertiesPanel({ 
   selectedElement, 
   onUpdateElement, 
+  onUpdateElementById,
   activeArtboardDetails, 
   onUpdateArtboardDetails,
   className 
@@ -165,6 +173,9 @@ export function PropertiesPanel({
   const [activeBackgroundTab, setActiveBackgroundTab] = useState<'solid' | 'gradient'>('solid');
 
   const [localContent, setLocalContent] = useState('');
+  // Uncommitted text-content edit, keyed by element id so it can still be
+  // committed after the element is deselected (blur may never fire).
+  const pendingTextEditRef = useRef<{ elementId: string; content: string } | null>(null);
   const hiddenFileInputRef = useRef<HTMLInputElement>(null);
   const [uploadPurpose, setUploadPurpose] = useState<'customFrame' | 'screenshot' | 'image' | null>(null);
 
@@ -209,10 +220,22 @@ export function PropertiesPanel({
     // Mark as client-side rendered to avoid hydration issues
     isClient.current = true;
     setIsClientSide(true);
+
+    // Commit any text edit left pending for a different (deselected) element
+    // before syncing local state to the new selection.
+    const pending = pendingTextEditRef.current;
+    if (pending && pending.elementId !== selectedElement?.id) {
+      pendingTextEditRef.current = null;
+      onUpdateElementById?.(pending.elementId, { content: pending.content });
+    }
     
     if (selectedElement?.type === 'text') {
       const textElement = selectedElement as TextElementProps;
-      setLocalContent(textElement.content);
+      // Don't clobber an in-progress edit of the same element (e.g. the
+      // element moved while the input still holds unsaved text).
+      if (!pendingTextEditRef.current || pendingTextEditRef.current.elementId !== textElement.id) {
+        setLocalContent(textElement.content);
+      }
       // Set text styling states with default values if not present
       setFontWeight(textElement.fontWeight || 'normal');
       setFontStyle(textElement.fontStyle || 'normal');
@@ -347,13 +370,22 @@ export function PropertiesPanel({
   };
 
   // Text element handlers
-  const handleTextContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setLocalContent(e.target.value);
+  const handleTextContentChange = (elementId: string, content: string) => {
+    setLocalContent(content);
+    pendingTextEditRef.current = { elementId, content };
   };
 
   const handleTextContentBlur = () => {
-    if (selectedElement?.type === 'text' && localContent !== (selectedElement as TextElementProps).content) {
-      onUpdateElement({ content: localContent });
+    const pending = pendingTextEditRef.current;
+    if (!pending) return;
+    pendingTextEditRef.current = null;
+    if (selectedElement?.type === 'text' && selectedElement.id === pending.elementId) {
+      if (pending.content !== (selectedElement as TextElementProps).content) {
+        onUpdateElement({ content: pending.content });
+      }
+    } else {
+      // Selection already moved on; commit to the original element.
+      onUpdateElementById?.(pending.elementId, { content: pending.content });
     }
   };
 
@@ -1306,7 +1338,7 @@ export function PropertiesPanel({
           <Input
             id="textContent"
             value={localContent}
-            onChange={(e) => setLocalContent(e.target.value)}
+            onChange={(e) => handleTextContentChange(element.id, e.target.value)}
             onBlur={handleTextContentBlur}
             className="text-sm"
           />

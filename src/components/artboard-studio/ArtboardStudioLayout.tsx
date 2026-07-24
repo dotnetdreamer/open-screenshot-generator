@@ -718,6 +718,24 @@ export function ArtboardStudioLayout() {
     handleArtboardsUpdate(updatedArtboards);
   };
 
+  // Update an element by id regardless of the current selection. Used by the
+  // properties panel to commit pending text edits after the element has
+  // already been deselected (e.g. the user clicked the artboard background).
+  const handleUpdateElementById = (elementId: string, updates: Partial<ArtboardElement>) => {
+    let found = false;
+    const updatedArtboards = artboards.map(ab => {
+      if (!ab.elements.some(el => el.id === elementId)) return ab;
+      found = true;
+      return {
+        ...ab,
+        elements: ab.elements.map(el =>
+          el.id === elementId ? { ...el, ...updates } as ArtboardElement : el
+        ),
+      };
+    });
+    if (found) handleArtboardsUpdate(updatedArtboards);
+  };
+
   // The project's current device format (phone platform or Play Store
   // tablet), null when mixed/none — drives the Toolbar Devices menu's button
   // label and checkmarks.
@@ -2451,6 +2469,7 @@ const generateRandomProjectName = (): string => {
                     <PropertiesPanel
                       selectedElement={selectedElementDetails}
                       onUpdateElement={handleUpdateSelectedElement}
+                      onUpdateElementById={handleUpdateElementById}
                       activeArtboardDetails={
                         activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
                       }
