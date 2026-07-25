@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the main window: save/open dialogs, writing exported files, opening external links in the system browser, and calling the free AI providers (Pollinations cloud, plus Ollama / LM Studio on localhost) without CORS limits.",
+  "description": "Capability for the main window: save/open dialogs, writing exported files, opening external links in the system browser, calling the free AI providers (Pollinations cloud, plus Ollama / LM Studio on localhost) without CORS limits, and reaching Google Drive / GitHub for the optional 'save to your own storage' account feature.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -15,7 +15,13 @@
       "allow": [
         { "url": "https://text.pollinations.ai/*" },
         { "url": "http://localhost:*" },
-        { "url": "http://127.0.0.1:*" }
+        { "url": "http://127.0.0.1:*" },
+        { "url": "https://oauth2.googleapis.com/*" },
+        { "url": "https://openidconnect.googleapis.com/*" },
+        { "url": "https://www.googleapis.com/*" },
+        { "url": "https://github.com/*" },
+        { "url": "https://api.github.com/*" },
+        { "url": "https://gist.githubusercontent.com/*" }
       ]
     }
   ]

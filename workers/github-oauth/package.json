@@ -1,0 +1,12 @@
+{
+  "name": "osg-github-oauth",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GitHub OAuth token exchange for Open Screenshot Generator. Holds the client secret; stores nothing.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "secret": "wrangler secret put GITHUB_CLIENT_SECRET"
+  }
+}

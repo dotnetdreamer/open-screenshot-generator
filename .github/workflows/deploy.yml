@@ -37,6 +37,10 @@ jobs:
       # basePath. NEXT_PUBLIC_BASE_PATH stays unset -> basePath defaults to ''.
       # public/CNAME carries the custom domain into the published output.
       - run: npm run build
+        env:
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+          NEXT_PUBLIC_GITHUB_OAUTH_PROXY: ${{ vars.NEXT_PUBLIC_GITHUB_OAUTH_PROXY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,5 +1,6 @@
 mod devtools;
 mod mcp_server;
+mod oauth;
 mod settings;
 mod splash;
 mod web_session;
@@ -13,6 +14,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(web_session::WebSessionState::default())
         .manage(mcp_server::McpState::default())
+        .manage(oauth::OauthState::default())
         .invoke_handler(tauri::generate_handler![
             settings::abs_get_settings,
             splash::abs_app_ready,
@@ -26,6 +28,9 @@ pub fn run() {
             mcp_server::abs_mcp_stop,
             mcp_server::abs_mcp_status,
             mcp_server::abs_mcp_respond,
+            oauth::abs_oauth_start,
+            oauth::abs_oauth_await,
+            oauth::abs_oauth_cancel,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.

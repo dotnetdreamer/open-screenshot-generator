@@ -1,0 +1,17 @@
+name = "osg-github-oauth"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Origins allowed to start a sign-in and receive a token. Anything else is
+# refused before GitHub is involved. Add your dev port here, not a wildcard.
+[vars]
+ALLOWED_ORIGINS = "https://editor.openscrgen.app,http://localhost:9002"
+
+# GITHUB_CLIENT_ID is public, but it lives here rather than in the frontend so
+# the whole OAuth config sits in one place.
+GITHUB_CLIENT_ID = "Ov23likBcErPInB2ox1m"
+
+# GITHUB_CLIENT_SECRET is a secret and must NOT go in this file. Run:
+#   npx wrangler secret put GITHUB_CLIENT_SECRET
+# then paste the secret VALUE at the prompt. The argument is the NAME; passing
+# the secret itself there stores your credential in plain sight as the name.

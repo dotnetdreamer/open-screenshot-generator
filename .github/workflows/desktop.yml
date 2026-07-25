@@ -167,6 +167,18 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # "Save to your own storage" accounts (docs/ACCOUNT-SYNC.md). These
+          # reach the frontend through beforeBuildCommand -> npm run build, so
+          # they have to be set here rather than on an earlier step. Public
+          # client ids, not secrets, hence vars and not secrets.
+          #
+          # The desktop Google client is a separate "Desktop app" OAuth client:
+          # desktop signs in over a 127.0.0.1 loopback, which Google rejects for
+          # web clients, so the web id is not a usable fallback here.
+          # There is no OAuth proxy var: desktop uses GitHub's device flow and
+          # never calls the Worker.
+          NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID }}
+          NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
           # Windows only: link the MSVC C runtime statically. The default
           # dynamic linkage makes the exe fail with "VCRUNTIME140.dll was not
           # found" on a clean Windows install without the VC++ redistributable,

@@ -15,7 +15,9 @@ import {
   EyeIcon,
   SmartphoneIcon,
   ChevronDownIcon,
-  RulerIcon
+  RulerIcon,
+  CloudUploadIcon,
+  Loader2Icon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -41,6 +43,10 @@ interface ToolbarProps {
   onExport: () => void;
   onExportJSON: () => void;
   onImportJSON: () => void;
+  /** Push the project to the user's connected storage, or prompt to connect. */
+  onSaveToAccount: () => void;
+  isAccountConnected: boolean;
+  isSavingToAccount?: boolean;
   canUndo: boolean;
   canRedo: boolean;
   onUndo: () => void;
@@ -68,7 +74,10 @@ export function Toolbar({
   onExport,
   onExportJSON,
   onImportJSON,
-  canUndo, 
+  onSaveToAccount,
+  isAccountConnected,
+  isSavingToAccount = false,
+  canUndo,
   canRedo, 
   onUndo, 
   onRedo,
@@ -361,9 +370,33 @@ export function Toolbar({
         <FileTextIcon className="mr-1.5 h-4 w-4" />
       </Button>
 
-      <Button 
-        variant="outline" 
-        onClick={onExport} 
+      {/*
+        Signed out this looks disabled but stays clickable on purpose: a real
+        `disabled` button swallows the click, and the click is how we tell the
+        user they need to connect an account first.
+      */}
+      <Button
+        variant="outline"
+        onClick={onSaveToAccount}
+        disabled={isSavingToAccount}
+        aria-disabled={!isAccountConnected}
+        className={cn('h-8', !isAccountConnected && 'opacity-50')}
+        title={
+          isAccountConnected
+            ? 'Save to account'
+            : 'Save to account, sign in to use this'
+        }
+      >
+        {isSavingToAccount ? (
+          <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" />
+        ) : (
+          <CloudUploadIcon className="mr-1.5 h-4 w-4" />
+        )}
+      </Button>
+
+      <Button
+        variant="outline"
+        onClick={onExport}
         className="h-8"
         title="Export Artboards as Images"
       >

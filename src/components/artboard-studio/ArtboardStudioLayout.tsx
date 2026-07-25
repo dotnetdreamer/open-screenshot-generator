@@ -40,7 +40,19 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { AccountDialog } from './account/AccountDialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  AccountAuthError,
+  bundleFromJson,
+  bundleToJson,
+  importBundle,
+  loadProjectFromAccount,
+  saveProjectToAccount,
+  serializeProject,
+  useAccount,
+} from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
 import { LoadStatusBar } from './LoadStatusBar';
 import packageJson from '../../../package.json';
@@ -410,6 +422,12 @@ export function ArtboardStudioLayout() {
   const [videoProgress, setVideoProgress] = useState<VideoExportProgress | null>(null);
   const videoExportAbortRef = useRef<AbortController | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  // Cloud account (Bring-Your-Own-Storage). `accountHint` is set when the
+  // dialog is opened from a gated action so it can explain why it appeared.
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [accountHint, setAccountHint] = useState<string | undefined>(undefined);
+  const [isSavingToAccount, setIsSavingToAccount] = useState(false);
+  const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
   // Desktop only: Help > About in the native menu bar opens the same dialog
   // as the sidebar's About option (settings.rs emits abs-open-about).
   useEffect(() => {
@@ -1056,17 +1074,14 @@ export function ArtboardStudioLayout() {
         return;
       }
 
-      // Export the exact project data from IndexedDB
-      const projectData = {
-        id: project.id,
-        timestamp: project.timestamp,
-        projectData: project.projectData
-      };
-
-      const jsonString = JSON.stringify(projectData, null, 2);
+      // Bundle the row together with the media blobs it references. Exporting
+      // the row alone (what this used to do) left video elements dead on any
+      // other machine, because recordings live in a separate Dexie table.
+      const bundle = await serializeProject(project);
+      const jsonString = await bundleToJson(bundle);
       const blob = new Blob([jsonString], { type: 'application/json' });
       // Desktop-safe save: native dialog in Tauri, anchor download on the web
-      const savedPath = await saveBlobToDisk(blob, `artboard-project-${projectData.id}.json`);
+      const savedPath = await saveBlobToDisk(blob, `artboard-project-${project.id}.json`);
       if (savedPath === null) return; // user cancelled the save dialog
 
       trackExportJson();
@@ -1085,7 +1100,80 @@ export function ArtboardStudioLayout() {
       });
     }
   };
-  
+
+  // --- cloud account (Bring-Your-Own-Storage) -------------------------------
+
+  const openAccountDialog = (hint?: string) => {
+    setAccountHint(hint);
+    setIsAccountOpen(true);
+  };
+
+  /**
+   * Toolbar "Save to account". Signed out this is how the user finds out they
+   * need to connect, so it opens the dialog instead of doing nothing.
+   */
+  const handleSaveToAccount = async () => {
+    if (!isAccountConnected) {
+      openAccountDialog('Sign in to save this project to your own storage.');
+      return;
+    }
+    if (!activeProjectId) {
+      toast({
+        title: "Nothing to save yet",
+        description: "Create or open a project first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSavingToAccount(true);
+    try {
+      const saved = await saveProjectToAccount(activeProjectId);
+      toast({
+        title: "Saved to your account",
+        description: `"${saved.name}" is in your ${accountSession ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists' : 'storage'}.`,
+      });
+    } catch (error) {
+      // An expired sign-in already cleared the session, so send the user back
+      // through the dialog rather than showing a dead end.
+      if (error instanceof AccountAuthError) {
+        openAccountDialog(error.message);
+      } else {
+        toast({
+          title: "Could not save",
+          description: error instanceof Error ? error.message : "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSavingToAccount(false);
+    }
+  };
+
+  /** Pull a project out of the connected account and open it in the editor. */
+  const handleOpenFromAccount = async (remoteId: string, name: string) => {
+    try {
+      const project = await loadProjectFromAccount(remoteId);
+      const success = await loadProjectFromData(project.projectData, project.name, project.id);
+      if (success) {
+        setIsTemplateSelectorOpen(false);
+        toast({ title: "Project opened", description: `"${project.name}" loaded from your account.` });
+      } else {
+        toast({ title: "Could not open", description: `"${name}" failed to load.`, variant: "destructive" });
+      }
+    } catch (error) {
+      if (error instanceof AccountAuthError) {
+        openAccountDialog(error.message);
+      } else {
+        toast({
+          title: "Could not open",
+          description: error instanceof Error ? error.message : "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   // Capture a list of artboards to PNG downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
@@ -1891,50 +1979,27 @@ export function ArtboardStudioLayout() {
 
       try {
         const fileContent = await file.text();
-        const importedData = JSON.parse(fileContent);
+        // bundleFromJson validates the shape and restores any bundled media.
+        // It still accepts files written before media travelled with the JSON.
+        const bundle = bundleFromJson(JSON.parse(fileContent));
 
-        // Validate the imported data structure
-        if (!importedData.id || !importedData.timestamp || !importedData.projectData) {
-          toast({
-            title: "Invalid File Format",
-            description: "The selected file does not appear to be a valid Open Screenshot Generator project.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Validate that projectData is an array
-        if (!Array.isArray(importedData.projectData)) {
-          toast({
-            title: "Invalid Project Data",
-            description: "The project data format is not valid.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Generate a new unique ID for the imported project
-        const newProjectId = `imported_${Date.now()}`;
-        
-        // Save the imported project to IndexedDB with a new ID
-        await db.projects.put({
-          id: newProjectId,
-          name: `Imported ${importedData.id}`,
-          timestamp: new Date(), // Use current timestamp for when it was imported
-          projectData: JSON.parse(JSON.stringify(importedData.projectData)), // Deep copy
+        const importedName = bundle.manifest.name || `Imported ${bundle.manifest.id}`;
+        const imported = await importBundle(bundle, {
+          // A fresh id keeps an import from overwriting the project it came from.
+          projectId: `imported_${Date.now()}`,
+          name: importedName,
         });
 
-        // Use the common loading function
         const success = await loadProjectFromData(
-          importedData.projectData,
-          `Imported ${importedData.id}`,
-          newProjectId
+          imported.projectData,
+          imported.name,
+          imported.id
         );
 
         if (success) {
           toast({
             title: "Project Imported",
-            description: `Project "${importedData.id}" has been imported successfully.`,
+            description: `Project "${importedName}" has been imported successfully.`,
             variant: "default",
           });
         } else {
@@ -1949,7 +2014,7 @@ export function ArtboardStudioLayout() {
         console.error("Error importing project:", error);
         toast({
           title: "Import Failed",
-          description: "There was an error reading or parsing the JSON file.",
+          description: error instanceof Error ? error.message : "There was an error reading or parsing the JSON file.",
           variant: "destructive",
         });
       }
@@ -2349,6 +2414,29 @@ const generateRandomProjectName = (): string => {
              <SidebarGroup className="p-0">
               <SidebarMenu>
                 <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={accountSession ? `Account, ${accountSession.account.name}` : 'Account'}
+                    className="w-full"
+                    onClick={() => openAccountDialog()}
+                  >
+                    {accountSession ? (
+                      <Avatar className="h-4 w-4 shrink-0">
+                        {accountSession.account.avatarUrl && (
+                          <AvatarImage src={accountSession.account.avatarUrl} alt="" />
+                        )}
+                        <AvatarFallback className="text-[9px]">
+                          {accountSession.account.name.slice(0, 1).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <UserIcon />
+                    )}
+                    <span className="truncate group-data-[collapsible=icon]:hidden">
+                      {accountSession ? accountSession.account.name : 'Account'}
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
                     <span className="group-data-[collapsible=icon]:hidden">About</span>
@@ -2368,6 +2456,9 @@ const generateRandomProjectName = (): string => {
             onExport={() => setIsExportDialogOpen(true)}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
+            onSaveToAccount={handleSaveToAccount}
+            isAccountConnected={isAccountConnected}
+            isSavingToAccount={isSavingToAccount}
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
@@ -2606,6 +2697,16 @@ const generateRandomProjectName = (): string => {
               currentSize={artboards[0]?.size}
             />
           )}
+
+          <AccountDialog
+            open={isAccountOpen}
+            onOpenChange={(open) => {
+              setIsAccountOpen(open);
+              if (!open) setAccountHint(undefined);
+            }}
+            hint={accountHint}
+            onOpenProject={handleOpenFromAccount}
+          />
 
           <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
             <DialogContent className="sm:max-w-md">

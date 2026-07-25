@@ -15,7 +15,23 @@
 
 A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
 
-Everything runs client-side. Projects are saved to your browser's IndexedDB, so there is no account, no backend, and nothing leaves your machine.
+Everything runs client-side. Projects are saved to your browser's IndexedDB, so by default there is no account, no backend, and nothing leaves your machine. If you want your work on more than one device, you can optionally connect your own Google Drive or GitHub account and save projects into storage you own.
+
+## What's new
+
+### 25 July 2026: save projects to your own account
+
+Optional cloud saving that keeps the no-backend promise intact. Connect your own Google Drive or GitHub account and projects are saved into storage you control. We host nothing, pay for nothing, and never hold a copy of your files.
+
+- **Account** button in the left sidebar, **Save to account** in the toolbar
+- **Google Drive** stores the whole project, screen recordings included, in an "Open Screenshot Generator" folder you own. Access is limited to files the app itself created, so connecting it cannot expose the rest of your Drive
+- **GitHub** stores the design as a secret gist. Gists cannot hold video, so projects with recordings are pointed at Drive instead of silently losing them
+- Browse, open, and delete your cloud projects from the account dialog
+- Works in the browser and in the desktop app
+- Entirely optional. Skip it and everything stays local exactly as before
+- Also fixed: local JSON export now bundles screen recordings, so a project carried to another machine keeps its videos instead of arriving with empty frames
+
+Setup instructions are in [docs/ACCOUNT-SYNC.md](docs/ACCOUNT-SYNC.md).
 
 ## What it does
 
@@ -30,6 +46,7 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 - App Store preview videos: drop a screen recording into a phone frame, dress it with headlines and tap hints, and export an MP4 (see below)
 - Bundled example projects to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
+- Optional account saving to your own Google Drive or GitHub, so projects follow you between machines without us storing anything (see below)
 
 ## Feature checklist: web vs desktop
 
@@ -43,6 +60,7 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 | AI agent on the Claude, ChatGPT or Gemini account you already have (beta: Copilot, DeepSeek, Qwen, Perplexity) | ✅ ² | ✅ |
 | AI agent with free built-in providers (Pollinations, or local Ollama / LM Studio), no key and no account | ➖ | ✅ |
 | MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor | ➖ | ✅ |
+| Save projects to your own Google Drive or GitHub account | ✅ ³ | ✅ |
 
 ¹ Needs a browser with the WebCodecs H.264 encoder (Chrome or Edge). PNG export works everywhere.
 

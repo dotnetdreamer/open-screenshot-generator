@@ -45,6 +45,8 @@ next-env.d.ts
 
 .genkit/*
 .env*
+# ...but the template of which public client ids to set is meant to be shared.
+!.env.example
 
 # firebase
 firebase-debug.log
