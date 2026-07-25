@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <em><a href="https://youtu.be/RJmQgoreR2s">Watch the walkthrough on YouTube.</a></em>
+  <em><a href="https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud">Watch the walkthrough on YouTube.</a></em>
 </p>
 
 A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
@@ -21,17 +21,13 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ### 25 July 2026: save projects to your own account
 
-Optional cloud saving that keeps the no-backend promise intact. Connect your own Google Drive or GitHub account and projects are saved into storage you control. We host nothing, pay for nothing, and never hold a copy of your files.
+Optional cloud saving with no backend of ours. Connect your own Google Drive or GitHub and projects are saved into storage you control.
 
-- **Account** button in the left sidebar, **Save to account** in the toolbar
-- **Google Drive** stores the whole project, screen recordings included, in an "Open Screenshot Generator" folder you own. Access is limited to files the app itself created, so connecting it cannot expose the rest of your Drive
-- **GitHub** stores the design as a secret gist. Gists cannot hold video, so projects with recordings are pointed at Drive instead of silently losing them
-- Browse, open, and delete your cloud projects from the account dialog
-- Works in the browser and in the desktop app
-- Entirely optional. Skip it and everything stays local exactly as before
-- Also fixed: local JSON export now bundles screen recordings, so a project carried to another machine keeps its videos instead of arriving with empty frames
+- Drive keeps whole projects including screen recordings, GitHub keeps the design as a secret gist
+- New **Account** button in the sidebar to browse, open, and delete cloud projects
+- Fixed: local JSON export now bundles screen recordings instead of dropping them
 
-Setup instructions are in [docs/ACCOUNT-SYNC.md](docs/ACCOUNT-SYNC.md).
+[Setup](docs/ACCOUNT-SYNC.md)
 
 ## What it does
 
@@ -65,6 +61,8 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 ¹ Needs a browser with the WebCodecs H.264 encoder (Chrome or Edge). PNG export works everywhere.
 
 ² In the browser this mode works through a manual relay: copy the prompt into your chat, paste the reply back. The desktop app automates the whole run in an embedded window, nothing extra to install.
+
+³ Google sign-in is identical on both. GitHub sign-in on the web needs a tiny token-exchange Worker (included, free to run) because GitHub's OAuth requires a client secret that a static site cannot hold; without it the web build asks for a personal access token instead. The desktop app uses GitHub's device flow and needs neither.
 
 ## Download the desktop app
 
