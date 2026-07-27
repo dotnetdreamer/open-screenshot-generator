@@ -68,10 +68,12 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 // Natural-language prompts the user can paste into their AI client to exercise
 // the tools end to end.
 const EXAMPLE_PROMPTS: string[] = [
+  'Find an App Store template with 3 device frames, start a project from it called "Habit Tracker", and rewrite the headlines for a habit tracking app.',
   'Create a new 1290×2796 artboard called "Onboarding" with a purple-to-blue gradient background.',
   'On the active artboard, add a bold white headline "Plan your week" near the top, then a rounded rectangle card below it.',
-  'Add an iPhone 15 Pro mockup centered on the active artboard.',
-  'List all my artboards and describe what is on the active one.',
+  'Add a 3D iPhone tilted to the left on the active artboard, then put an App Store badge under it.',
+  'Show me my recent projects, open the newest one and describe what is on each artboard.',
+  'Browse the elements library for wave shapes and add one across the bottom of the artboard in #1D4ED8.',
   'Set the active artboard background to #0B1120, make the headline 96px, then export it as a PNG.',
 ];
 
@@ -282,6 +284,13 @@ export function McpServerStatus({ className }: { className?: string }) {
                     <CodeBlock
                       code={JSON.stringify(
                         { tool: 'add_element', arguments: { type: 'text', content: 'Plan your week', x: 120, y: 220, fontSize: 96, color: '#FFFFFF' } },
+                        null,
+                        2
+                      )}
+                    />
+                    <CodeBlock
+                      code={JSON.stringify(
+                        { tool: 'add_element', arguments: { libraryId: 'device3d:iphone-tilted-left-black', x: 340, y: 700 } },
                         null,
                         2
                       )}

@@ -11,6 +11,14 @@
 // isTauri() guard); startDesktopMcpBridge() is a no-op outside the desktop app.
 
 import { isTauri } from '@/lib/desktop';
+import {
+  LIBRARY_KINDS,
+  device3dOptions,
+  listLibraryGroups,
+  listLibraryItems,
+  resolveLibraryItem,
+  type LibraryKind,
+} from '@/lib/mcp/assetLibrary';
 import type {
   ArtboardState,
   ElementType,
@@ -41,6 +49,49 @@ export interface McpArtboardSummary {
   backgroundColor: string;
   elementCount: number;
   active: boolean;
+}
+
+/** One template in the Start-a-New-Project gallery. */
+export interface McpTemplateSummary {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  artboardCount: number;
+  /** Device frames across the whole template — how many screenshots it wants. */
+  deviceSlotCount: number;
+  width: number;
+  height: number;
+}
+
+/** A template's fillable slots, per artboard. Element ids are stable. */
+export interface McpTemplateDetail extends McpTemplateSummary {
+  artboards: Array<{
+    index: number;
+    name: string;
+    width: number;
+    height: number;
+    deviceSlots: Array<{ elementId: string; deviceType: string; hasScreenshot: boolean }>;
+    textSlots: Array<{ elementId: string; content: string }>;
+  }>;
+}
+
+/** A saved project in the Recent projects list. */
+export interface McpProjectSummary {
+  id: string;
+  name: string;
+  /** ISO timestamp of the last save. */
+  savedAt: string;
+  artboardCount: number;
+  open: boolean;
+}
+
+/** What creating or opening a project reports back. */
+export interface McpProjectResult {
+  projectId: string;
+  name: string;
+  artboards: McpArtboardSummary[];
+  warnings: string[];
 }
 
 export interface McpDesignApi {
@@ -81,6 +132,27 @@ export interface McpDesignApi {
   }): boolean;
   /** Render an artboard to a PNG data URL. */
   exportPng(input: { artboardId?: string }): Promise<{ dataUrl: string; width: number; height: number }>;
+
+  // -- Templates and projects -------------------------------------------------
+
+  /** The template gallery, optionally filtered by category or free text. */
+  listTemplates(input: { category?: string; query?: string }): McpTemplateSummary[];
+  /** One template with its fillable device/text slots, or null. */
+  getTemplate(templateId: string): McpTemplateDetail | null;
+  /**
+   * Copy a template into a new project, open it, and add it to Recent projects.
+   * Text/screenshot overrides are applied to the copy before it is saved.
+   */
+  createProjectFromTemplate(input: {
+    templateId: string;
+    name?: string;
+    texts?: Array<{ elementId: string; content: string }>;
+    screenshots?: Array<{ elementId: string; src: string }>;
+  }): Promise<McpProjectResult>;
+  /** Saved projects, newest first (the Recent projects list). */
+  listProjects(): Promise<McpProjectSummary[]>;
+  /** Open a saved project in the editor. Null when the id is unknown. */
+  openProject(projectId: string): Promise<McpProjectResult | null>;
 }
 
 // ---------------------------------------------------------------------------
@@ -125,10 +197,10 @@ function textResult(value: unknown): ToolResult {
 // nested { position, size, ...props } shape the design API expects.
 function collectElementProps(args: Record<string, any>): Record<string, unknown> {
   const {
-    artboardId, elementId, type, subType, id, // routing keys, not element props
+    artboardId, elementId, type, subType, id, libraryId, // routing keys, not element props
     x, y, width, height, ...rest
   } = args;
-  void artboardId; void elementId; void type; void subType; void id;
+  void artboardId; void elementId; void type; void subType; void id; void libraryId;
   const props: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(rest)) {
     if (v !== undefined && v !== null) props[k] = v;
@@ -165,9 +237,15 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   objectFit: { type: 'string', description: "'contain' | 'cover' | 'fill' (image/device screenshot)." },
   opacity: { type: 'number', description: 'Opacity 0..1 (images).' },
   screenshotSrc: { type: 'string', description: 'Screenshot URL/data URL to place inside a device frame (device elements).' },
+  screenshotObjectFit: { type: 'string', description: "How the screenshot fills the screen: 'contain' | 'cover' | 'fill' (device elements)." },
   styleType: { type: 'string', description: "Device style, e.g. 'normal', '3d-left', '3d-right' (device elements)." },
   pose3d: { type: 'string', description: "3D pose preset, e.g. 'classic', 'front', 'reclined' (device elements)." },
   frameColor3d: { type: 'string', description: "3D body finish: 'titanium' | 'black' | 'white' (device elements)." },
+  frameColor: { type: 'string', description: 'Body colour of a flat device frame, any CSS colour (device elements).' },
+  frameOpacity: { type: 'number', description: 'Alpha 0..1 for the flat frame colour, for transparent devices (device elements).' },
+  frameStyle: { type: 'string', description: "'solid' or 'outline' (a coloured ring around a hollow frame) (device elements)." },
+  notchColor: { type: 'string', description: 'Fill of the notch / Dynamic Island / punch hole (device elements).' },
+  name: { type: 'string', description: 'Layer name shown in the Layers panel.' },
 };
 
 const TOOLS: ToolDef[] = [
@@ -230,7 +308,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'add_element',
     description:
-      'Add an element to an artboard and return its id. type is one of text, shape, device, image. For shapes set subType to a shape name; for devices set subType to a device type. Position with x/y and size with width/height (artboard pixels).',
+      'Add an element to an artboard and return its id. type is one of text, shape, device, image. For shapes set subType to a shape name; for devices set subType to a device type. Position with x/y and size with width/height (artboard pixels). To place a ready-made asset from the palette (vector element, photo, badge, 3D or coloured device preset) pass libraryId from list_library instead of type/subType.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -240,18 +318,34 @@ const TOOLS: ToolDef[] = [
           type: 'string',
           description: `Shape name (${SHAPE_TYPES.join(', ')}) or device type (${DEVICE_TYPES.join(', ')}).`,
         },
+        libraryId: {
+          type: 'string',
+          description: 'A palette asset id from list_library (e.g. "element:shape-octagon", "image:app-store", "device3d:iphone-tilted-left-black"). Fills in type, subType and the asset artwork; anything you pass alongside it wins.',
+        },
         ...ELEMENT_PROP_SCHEMA,
       },
-      required: ['type'],
     },
     run: (args, api) => {
-      const props = collectElementProps(args);
-      const { id } = api.addElement({
-        artboardId: args.artboardId,
-        type: args.type,
-        subType: args.subType,
-        props,
-      });
+      let { type, subType } = args;
+      let libraryProps: Record<string, unknown> = {};
+      if (args.libraryId) {
+        const resolved = resolveLibraryItem(args.libraryId);
+        if (!resolved) {
+          return { ...textResult(`Unknown libraryId "${args.libraryId}". Call list_library to get valid ids.`), isError: true };
+        }
+        type = type ?? resolved.type;
+        subType = subType ?? resolved.subType;
+        libraryProps = { ...resolved.props };
+        // The asset's own size unless the caller gave explicit dimensions.
+        if (resolved.defaultSize && (args.width === undefined || args.height === undefined)) {
+          libraryProps.size = resolved.defaultSize;
+        }
+      }
+      if (!type) {
+        return { ...textResult('Pass either type (text, shape, device, image) or libraryId.'), isError: true };
+      }
+      const props = { ...libraryProps, ...collectElementProps(args) };
+      const { id } = api.addElement({ artboardId: args.artboardId, type, subType, props });
       return textResult({ id });
     },
   },
@@ -316,6 +410,131 @@ const TOOLS: ToolDef[] = [
         gradient: args.gradient,
       });
       return ok ? textResult({ ok }) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
+    name: 'list_templates',
+    description:
+      'List the ready-made store-screenshot templates (the Start a New Project gallery). Each entry reports how many artboards and device frames it has, so you can pick one that fits the number of screenshots you have. Start here rather than building a design from scratch. App Preview video templates are omitted: their mockups play a screen recording, which cannot be supplied over MCP.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        category: { type: 'string', description: 'Restrict to one gallery tab, e.g. "app-store", "play-store", "apple-watch", "mac".' },
+        query: { type: 'string', description: 'Free-text filter over name, description and category.' },
+      },
+    },
+    run: (args, api) => textResult(api.listTemplates({ category: args.category, query: args.query })),
+  },
+  {
+    name: 'get_template',
+    description:
+      'Get one template\'s fillable slots: per artboard, the device frames (where screenshots go) and the text elements with their current copy. The element ids are stable, so pass them to create_project_from_template or update_element.',
+    inputSchema: {
+      type: 'object',
+      properties: { templateId: { type: 'string' } },
+      required: ['templateId'],
+    },
+    run: (args, api) => {
+      const detail = api.getTemplate(args.templateId);
+      if (!detail) return { ...textResult('No such template. Call list_templates for valid ids.'), isError: true };
+      return textResult(detail);
+    },
+  },
+  {
+    name: 'create_project_from_template',
+    description:
+      'Copy a template into a new project, open it in the editor and add it to Recent projects. Optionally fill text and device screenshots in the same call using element ids from get_template. Returns the new project id and its artboards.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        templateId: { type: 'string' },
+        name: { type: 'string', description: 'Project name. Defaults to "<template> Copy".' },
+        texts: {
+          type: 'array',
+          description: 'Text replacements applied to the copy.',
+          items: {
+            type: 'object',
+            properties: {
+              elementId: { type: 'string' },
+              content: { type: 'string' },
+            },
+            required: ['elementId', 'content'],
+          },
+        },
+        screenshots: {
+          type: 'array',
+          description: 'Screenshots to place inside device frames.',
+          items: {
+            type: 'object',
+            properties: {
+              elementId: { type: 'string', description: 'A device slot id from get_template.' },
+              src: { type: 'string', description: 'Image URL or data: URL.' },
+            },
+            required: ['elementId', 'src'],
+          },
+        },
+      },
+      required: ['templateId'],
+    },
+    run: async (args, api) => {
+      const result = await api.createProjectFromTemplate({
+        templateId: args.templateId,
+        name: args.name,
+        texts: args.texts,
+        screenshots: args.screenshots,
+      });
+      return textResult(result);
+    },
+  },
+  {
+    name: 'list_projects',
+    description: 'List saved projects, newest first (the Recent projects list). `open` marks the one currently in the editor.',
+    inputSchema: { type: 'object', properties: {} },
+    run: async (_args, api) => textResult(await api.listProjects()),
+  },
+  {
+    name: 'open_project',
+    description: 'Open a saved project in the editor so you can inspect or edit its artboards. Use list_projects to find ids.',
+    inputSchema: {
+      type: 'object',
+      properties: { projectId: { type: 'string' } },
+      required: ['projectId'],
+    },
+    run: async (args, api) => {
+      const result = await api.openProject(args.projectId);
+      if (!result) return { ...textResult('No such project. Call list_projects for valid ids.'), isError: true };
+      return textResult(result);
+    },
+  },
+  {
+    name: 'list_library',
+    description:
+      'Browse the palette asset libraries: "elements" (vector shapes, arrows, icons, blobs, waves, patterns), "devices" (flat mockups, 3D posed devices, coloured frames) and "images" (photos of people holding phones, store badges). Without a group you get the groups and their sizes; with a group you get its items. Pass an item\'s libraryId to add_element.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        kind: { type: 'string', enum: LIBRARY_KINDS, description: 'Which library to browse. Omit to list the groups in all three.' },
+        group: { type: 'string', description: 'A group id from a previous call; returns that group\'s items.' },
+        query: { type: 'string', description: 'Free-text filter over item labels and ids.' },
+        limit: { type: 'number', description: 'Max items to return (default 200).' },
+      },
+    },
+    run: (args) => {
+      const kind = args.kind as LibraryKind | undefined;
+      if (kind && !LIBRARY_KINDS.includes(kind)) {
+        return { ...textResult(`Unknown kind "${args.kind}". Use one of: ${LIBRARY_KINDS.join(', ')}.`), isError: true };
+      }
+      // Groups-only view: no kind, or a kind with nothing narrowing it down.
+      if (!kind || (!args.group && !args.query)) {
+        return textResult({
+          groups: listLibraryGroups(kind),
+          ...(kind === 'devices' || !kind
+            ? { device3dOptions: device3dOptions(), note: '3D poses can also be set directly on any device element with styleType + pose3d + frameColor3d.' }
+            : {}),
+        });
+      }
+      const { items, total } = listLibraryItems(kind, { group: args.group, query: args.query, limit: args.limit });
+      return textResult({ items, returned: items.length, total });
     },
   },
   {

@@ -27,8 +27,16 @@ import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Artboard
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
-import { startDesktopMcpBridge, getMcpStatus, listenMcpStatus, type McpDesignApi } from '@/lib/mcp/desktopMcpServer';
+import {
+  startDesktopMcpBridge,
+  getMcpStatus,
+  listenMcpStatus,
+  type McpDesignApi,
+  type McpArtboardSummary,
+  type McpTemplateSummary,
+} from '@/lib/mcp/desktopMcpServer';
 import { McpServerStatus } from './McpServerStatus';
+import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
@@ -975,17 +983,82 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
 
+  // Copy a template into a new saved project and open it. Shared by the gallery
+  // (handleSelectTemplate) and the MCP create_project_from_template tool, so an
+  // AI client's project is indistinguishable from a clicked one: same DB row,
+  // same Recent-projects entry, same editor state.
+  //
+  // `texts`/`screenshots` fill the copy BEFORE it is saved, addressed by the
+  // template's hand-authored element ids. Unknown or wrong-typed ids are
+  // collected as warnings rather than thrown, so one bad id cannot lose a
+  // whole design.
+  const createProjectFromTemplateData = async (
+    template: Project,
+    options?: {
+      nameOverride?: string;
+      texts?: Array<{ elementId: string; content: string }>;
+      screenshots?: Array<{ elementId: string; src: string }>;
+    }
+  ): Promise<{ projectId: string; name: string; artboards: ArtboardState[]; warnings: string[] } | null> => {
+    if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
+      return null;
+    }
+    const projectName = options?.nameOverride?.trim() || `${template.name} Copy`;
+    const newProjectId = `project_${Date.now()}`;
+    const warnings: string[] = [];
+
+    // Normalize artboard positions so templates with arbitrary stored positions
+    // still lay out side by side on first load (same layout applied on add/duplicate).
+    const updatedArtboards = calculateArtboardPositions(
+      JSON.parse(JSON.stringify(template.projectData)) as ArtboardState[]
+    );
+
+    const findElement = (elementId: string): ArtboardElement | null => {
+      for (const ab of updatedArtboards) {
+        const el = ab.elements.find((e) => e.id === elementId);
+        if (el) return el;
+      }
+      return null;
+    };
+
+    for (const { elementId, content } of options?.texts ?? []) {
+      const el = findElement(elementId);
+      if (!el) { warnings.push(`No element "${elementId}" in this template; text skipped.`); continue; }
+      if (el.type !== 'text') { warnings.push(`"${elementId}" is a ${el.type} element, not text; skipped.`); continue; }
+      el.content = content;
+    }
+    for (const { elementId, src } of options?.screenshots ?? []) {
+      const el = findElement(elementId);
+      if (!el) { warnings.push(`No element "${elementId}" in this template; screenshot skipped.`); continue; }
+      if (el.type !== 'device') { warnings.push(`"${elementId}" is a ${el.type} element, not a device frame; skipped.`); continue; }
+      el.screenshotSrc = src;
+      // Match the device element's own upload handler; screenshotRect is left
+      // alone so the template author's crop survives.
+      el.screenshotObjectFit = el.screenshotObjectFit ?? 'cover';
+    }
+
+    await db.projects.put({
+      id: newProjectId,
+      name: projectName,
+      description: template.description,
+      timestamp: new Date(),
+      projectData: JSON.parse(JSON.stringify(updatedArtboards)),
+    });
+
+    const success = await loadProjectFromData(updatedArtboards, projectName, newProjectId);
+    if (!success) return null;
+    return { projectId: newProjectId, name: projectName, artboards: updatedArtboards, warnings };
+  };
+
   // `nameOverride` lets the AI agent name the project itself; the gallery and
   // "Start Blank" paths keep the historic "<template> Copy" naming.
   const handleSelectTemplate = async (template: Project, options?: { nameOverride?: string }) => {
-    const projectName = options?.nameOverride?.trim() || `${template.name} Copy`;
     try {
-      // Validate that template has project data
       if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
-        toast({ 
-          title: "Invalid Template", 
-          description: "The selected template does not contain valid project data.", 
-          variant: "destructive" 
+        toast({
+          title: "Invalid Template",
+          description: "The selected template does not contain valid project data.",
+          variant: "destructive"
         });
         return;
       }
@@ -996,39 +1069,17 @@ export function OpenScreenshotGeneratorLayout() {
         category: template.category ?? templateTab,
       });
 
-      // Generate a new unique ID for the copied project
-      const newProjectId = `project_${Date.now()}`;
-      
-      // Create a deep copy of the template's project data.
-      // Normalize artboard positions so templates with arbitrary stored positions
-      // still lay out side by side on first load (same layout applied on add/duplicate).
-      const updatedArtboards = calculateArtboardPositions(JSON.parse(JSON.stringify(template.projectData)));
+      const created = await createProjectFromTemplateData(template, { nameOverride: options?.nameOverride });
 
-      // Save the copied project to IndexedDB
-      await db.projects.put({
-        id: newProjectId,
-        name: projectName,
-        description: `${template.description}`,
-        timestamp: new Date(),
-        projectData: JSON.parse(JSON.stringify(updatedArtboards)),
-      });
-
-      // Use the common loading function
-      const success = await loadProjectFromData(
-        updatedArtboards,
-        projectName,
-        newProjectId
-      );
-
-      if (success) {
-        toast({ title: "Project Created", description: `Project "${projectName}" created.` });
+      if (created) {
+        toast({ title: "Project Created", description: `Project "${created.name}" created.` });
         return;
       }
-    
-      toast({ 
-        title: "Creation Failed", 
-        description: "Failed to create project from template.", 
-        variant: "destructive" 
+
+      toast({
+        title: "Creation Failed",
+        description: "Failed to create project from template.",
+        variant: "destructive"
       });
     } catch (error) {
       console.error("Error creating project from template:", error);
@@ -2263,6 +2314,37 @@ const generateRandomProjectName = (): string => {
   const resolveBoardId = (artboardId?: string) =>
     artboardId || activeArtboardId || (artboards[0]?.id ?? null);
 
+  // Summarise artboards that are not (yet) in React state — a project the tools
+  // just created or opened, whose setArtboards has not re-rendered us.
+  const summarizeArtboards = (boards: ArtboardState[]): McpArtboardSummary[] =>
+    boards.map((ab, i) => ({
+      id: ab.id,
+      name: ab.name,
+      width: ab.size.width,
+      height: ab.size.height,
+      backgroundColor: ab.backgroundColor,
+      elementCount: ab.elements.length,
+      active: i === 0,
+    }));
+
+  const templateSummary = (template: Project): McpTemplateSummary => {
+    const boards = template.projectData ?? [];
+    const first = boards[0];
+    return {
+      id: template.id,
+      name: template.name,
+      category: template.category ?? 'uncategorized',
+      description: template.description ?? '',
+      artboardCount: boards.length,
+      deviceSlotCount: boards.reduce(
+        (sum, ab) => sum + ab.elements.filter((el) => el.type === 'device').length,
+        0
+      ),
+      width: first?.size.width ?? 0,
+      height: first?.size.height ?? 0,
+    };
+  };
+
   const mcpApi: McpDesignApi = {
     listArtboards: () =>
       artboards.map((ab) => ({
@@ -2380,6 +2462,90 @@ const generateRandomProjectName = (): string => {
         el.style.width = original.width;
         el.style.height = original.height;
       }
+    },
+
+    // -- Templates and projects ----------------------------------------------
+
+    listTemplates: ({ category, query }) => {
+      const q = query?.trim().toLowerCase();
+      // App Preview video templates are hidden for the same reason the in-app
+      // agent hides them: their mockups play a screen RECORDING, which an MCP
+      // client has no way to supply.
+      return agentUsableTemplates(availableProjects)
+        .filter((t) => !category || t.category === category)
+        .map(templateSummary)
+        .filter((t) => !q || `${t.name} ${t.description} ${t.category}`.toLowerCase().includes(q));
+    },
+    getTemplate: (templateId) => {
+      const template = availableProjects.find((t) => t.id === templateId);
+      if (!template) return null;
+      return {
+        ...templateSummary(template),
+        artboards: (template.projectData ?? []).map((ab, index) => ({
+          index,
+          name: ab.name,
+          width: ab.size.width,
+          height: ab.size.height,
+          deviceSlots: ab.elements
+            .filter((el): el is DeviceFrameElementProps => el.type === 'device')
+            .map((el) => ({ elementId: el.id, deviceType: el.deviceType, hasScreenshot: !!el.screenshotSrc })),
+          textSlots: ab.elements
+            .filter((el): el is TextElementProps => el.type === 'text')
+            .map((el) => ({ elementId: el.id, content: el.content })),
+        })),
+      };
+    },
+    createProjectFromTemplate: async ({ templateId, name, texts, screenshots }) => {
+      if (availableProjects.length === 0) {
+        throw new Error('Templates are still loading. Try again in a moment.');
+      }
+      const template = availableProjects.find((t) => t.id === templateId);
+      if (!template) throw new Error(`No template "${templateId}". Call list_templates for valid ids.`);
+      const created = await createProjectFromTemplateData(template, {
+        nameOverride: name,
+        texts,
+        screenshots,
+      });
+      if (!created) throw new Error('Could not create a project from that template.');
+      return {
+        projectId: created.projectId,
+        name: created.name,
+        artboards: summarizeArtboards(created.artboards),
+        warnings: created.warnings,
+      };
+    },
+    listProjects: async () => {
+      const projects = await db.projects.orderBy('timestamp').reverse().toArray();
+      // Read the open project from the URL rather than the closed-over
+      // activeProjectId: loadProjectFromData rewrites the URL synchronously, so
+      // this is right even for a call that lands before React has re-rendered.
+      const openId =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('projectId')
+          : activeProjectId;
+      return projects.map((p) => ({
+        id: p.id,
+        name: p.name,
+        savedAt: new Date(p.timestamp).toISOString(),
+        artboardCount: p.projectData?.length ?? 0,
+        open: p.id === openId,
+      }));
+    },
+    openProject: async (projectId) => {
+      const project = await db.projects.get(projectId);
+      if (!project || !project.projectData) return null;
+      const name = project.name || 'Untitled Project';
+      const success = await loadProjectFromData(project.projectData, name, project.id);
+      if (!success) throw new Error('Could not open that project.');
+      // Let React paint the reopened canvas before the next tool call, so an
+      // export_png right after this finds the artboards in the DOM.
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      return {
+        projectId: project.id,
+        name,
+        artboards: summarizeArtboards(project.projectData),
+        warnings: [],
+      };
     },
   };
   mcpApiRef.current = mcpApi;

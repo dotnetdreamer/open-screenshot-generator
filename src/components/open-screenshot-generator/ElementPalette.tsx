@@ -27,9 +27,28 @@ import {
   MoveVerticalIcon,
   LaptopIcon,
 } from "lucide-react";
-import type { ElementType, ShapeType, DeviceType, Device3DPose } from '@/types/artboard';
+import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
 import { IMAGE_CATEGORIES, type LibraryImageDef } from '@/lib/imageLibrary';
+// 3D pose tables and colored flat presets live in lib/ so the MCP asset library
+// lists exactly what these tiles drop (see lib/mcp/assetLibrary.ts).
+import {
+  POSE_ORDER,
+  WATCH_POSE_ORDER,
+  MACBOOK_POSE_ORDER,
+  IMAC_POSE_ORDER,
+  SIDES_3D,
+  COLORS_3D,
+  IPHONE_3D_SIZES,
+  ANDROID_3D_SIZES,
+  WATCH_3D_SIZES,
+  MACBOOK_3D_SIZES,
+  IMAC_3D_SIZES,
+  COLORED_IPHONE_TILES,
+  COLORED_ANDROID_TILES,
+  coloredDeviceStyleProps,
+  type ColoredDeviceTileDef,
+} from '@/lib/device3dPresets';
 import { withBasePath } from '@/lib/basePath';
 
 type PaletteDragStart = (
@@ -38,83 +57,6 @@ type PaletteDragStart = (
   subType?: ShapeType | DeviceType,
   styleProps?: Record<string, any>
 ) => void;
-
-// ---- 3D device pose groups (thumbnails pre-rendered to /elements/device-3d) ----
-
-const POSE_ORDER: Device3DPose[] = ['upright', 'side', 'tilted', 'reclined', 'laying', 'floating', 'drifting', 'leaning', 'soaring', 'isometric'];
-// The watch leads with the straight-on look (classic watch product shot);
-// phones don't offer it — a zero-yaw phone reads as a flat 2D mockup.
-const WATCH_POSE_ORDER: Device3DPose[] = ['front', ...POSE_ORDER];
-const SIDES_3D = ['left', 'right'] as const;
-const COLORS_3D = ['black', 'white'] as const;
-
-// Element sizes that roughly match each pose's projected aspect so the device
-// fills the element instead of letterboxing.
-const IPHONE_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
-  classic: { width: 600, height: 1300 },
-  front: { width: 600, height: 1300 },
-  upright: { width: 600, height: 1300 },
-  side: { width: 600, height: 1300 },
-  tilted: { width: 640, height: 1120 },
-  reclined: { width: 720, height: 900 },
-  laying: { width: 800, height: 680 },
-  floating: { width: 760, height: 830 },
-  drifting: { width: 900, height: 700 },
-  leaning: { width: 780, height: 910 },
-  soaring: { width: 760, height: 950 },
-  isometric: { width: 900, height: 480 },
-};
-const ANDROID_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
-  classic: { width: 600, height: 1333 },
-  front: { width: 600, height: 1333 },
-  upright: { width: 600, height: 1333 },
-  side: { width: 600, height: 1333 },
-  tilted: { width: 640, height: 1150 },
-  reclined: { width: 720, height: 920 },
-  laying: { width: 800, height: 700 },
-  floating: { width: 760, height: 830 },
-  drifting: { width: 900, height: 700 },
-  leaning: { width: 780, height: 910 },
-  soaring: { width: 760, height: 950 },
-  isometric: { width: 900, height: 480 },
-};
-// Macs offer a curated pose subset: the tossed-phone poses (floating,
-// drifting, leaning, soaring) and the phone-flat isometric projection read
-// wrong for a laptop or an all-in-one.
-const MACBOOK_POSE_ORDER: Device3DPose[] = ['front', 'upright', 'side', 'tilted', 'reclined'];
-const IMAC_POSE_ORDER: Device3DPose[] = ['front', 'upright', 'side'];
-
-// Like the watch, Mac bodies keep native proportions inside the box, so these
-// track each pose's projected silhouette.
-const MACBOOK_3D_SIZES: Partial<Record<Device3DPose, { width: number; height: number }>> = {
-  front: { width: 1100, height: 800 },
-  upright: { width: 1150, height: 800 },
-  side: { width: 1150, height: 830 },
-  tilted: { width: 1200, height: 880 },
-  reclined: { width: 1200, height: 960 },
-};
-const IMAC_3D_SIZES: Partial<Record<Device3DPose, { width: number; height: number }>> = {
-  front: { width: 1000, height: 780 },
-  upright: { width: 1050, height: 800 },
-  side: { width: 1100, height: 820 },
-};
-
-// The watch body keeps native proportions inside the box (the band dominates
-// the height), so these track each pose's projected case+band extent.
-const WATCH_3D_SIZES: Record<Device3DPose, { width: number; height: number }> = {
-  classic: { width: 560, height: 1240 },
-  front: { width: 580, height: 1200 },
-  upright: { width: 560, height: 1240 },
-  side: { width: 560, height: 1240 },
-  tilted: { width: 660, height: 1100 },
-  reclined: { width: 720, height: 900 },
-  laying: { width: 800, height: 700 },
-  floating: { width: 740, height: 840 },
-  drifting: { width: 880, height: 700 },
-  leaning: { width: 760, height: 900 },
-  soaring: { width: 740, height: 950 },
-  isometric: { width: 900, height: 520 },
-};
 
 /** Tile showing a pre-rendered 3D pose thumbnail, draggable like other palette items. */
 const Device3DThumbTile: React.FC<{
@@ -140,47 +82,6 @@ const Device3DThumbTile: React.FC<{
     <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
   </button>
 );
-
-// ---- Colored flat device groups ----
-
-interface ColoredDeviceTileDef {
-  label: string;
-  device: DeviceType;
-  kind: 'island' | 'notch' | 'punch';
-  props: Record<string, any>;
-}
-
-const COLORED_IPHONE_TILES: ColoredDeviceTileDef[] = [
-  { label: 'Fixed color', device: 'iphone-13', kind: 'notch', props: { frameColor: '#f5f5f7' } },
-  { label: 'Transparent device', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#ffffff', frameOpacity: 0.15 } },
-  { label: 'Colored border', device: 'iphone-13', kind: 'notch', props: { frameColor: '#2f6bff' } },
-  { label: 'Colored border, notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#1d4ed8', notchColor: '#1d4ed8' } },
-  { label: 'Colored notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#141416', notchColor: '#f97316' } },
-  { label: 'Colored border, notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#d946ef', notchColor: '#d946ef' } },
-  { label: 'Colored border', device: 'iphone-13', kind: 'notch', props: { frameColor: '#6366f1' } },
-  { label: 'Colored border, notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#f8fafc', notchColor: '#f8fafc' } },
-  { label: 'Colored border opacity', device: 'iphone-13', kind: 'notch', props: { frameColor: '#8b5cf6', frameOpacity: 0.5 } },
-  { label: 'Colored border opacity, notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#2f6bff', frameOpacity: 0.45, notchColor: '#2f6bff' } },
-  { label: 'Colored border outline', device: 'iphone-15-pro', kind: 'island', props: { frameStyle: 'outline', frameColor: '#38bdf8' } },
-  { label: 'Colored border outline', device: 'iphone-13', kind: 'notch', props: { frameStyle: 'outline', frameColor: '#e2e8f0' } },
-  { label: 'Colored border, notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#22c55e', notchColor: '#22c55e' } },
-  { label: 'Colored border, notch', device: 'iphone-15-pro', kind: 'island', props: { frameColor: '#1e40af', notchColor: '#1e40af' } },
-];
-
-const COLORED_ANDROID_TILES: ColoredDeviceTileDef[] = [
-  { label: 'Fixed color', device: 'android-punch-hole', kind: 'punch', props: { frameColor: '#f5f5f7' } },
-  { label: 'Transparent device', device: 'android-punch-hole', kind: 'punch', props: { frameColor: '#ffffff', frameOpacity: 0.15 } },
-  { label: 'Colored border', device: 'android-punch-hole', kind: 'punch', props: { frameColor: '#2f6bff' } },
-  { label: 'Colored border, punch', device: 'android-punch-hole', kind: 'punch', props: { frameColor: '#22c55e', notchColor: '#22c55e' } },
-  { label: 'Colored border opacity', device: 'android-punch-hole', kind: 'punch', props: { frameColor: '#8b5cf6', frameOpacity: 0.5 } },
-  { label: 'Colored border outline', device: 'android-punch-hole', kind: 'punch', props: { frameStyle: 'outline', frameColor: '#38bdf8' } },
-];
-
-const COLORED_DEVICE_SIZES: Partial<Record<DeviceType, { width: number; height: number }>> = {
-  'iphone-13': { width: 600, height: 1300 },
-  'iphone-15-pro': { width: 600, height: 1300 },
-  'android-punch-hole': { width: 600, height: 1333 },
-};
 
 /** Small SVG preview of a colored flat device frame. */
 const ColoredDeviceGlyph: React.FC<{ def: ColoredDeviceTileDef }> = ({ def }) => {
@@ -244,7 +145,7 @@ const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[];
 
 /** Tile for a colored flat device preset. */
 const ColoredDeviceTile: React.FC<{ def: ColoredDeviceTileDef; onDragStart: PaletteDragStart }> = ({ def, onDragStart }) => {
-  const styleProps = { ...def.props, defaultSize: COLORED_DEVICE_SIZES[def.device] };
+  const styleProps = coloredDeviceStyleProps(def);
   const title = `Add ${def.label}`;
   return (
     <button
@@ -803,12 +704,12 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     </>
                   )}
                   {openDeviceCategoryId === 'colored-iphone' &&
-                    COLORED_IPHONE_TILES.map((def, i) => (
-                      <ColoredDeviceTile key={`cip-${i}`} def={def} onDragStart={handleDragStart} />
+                    COLORED_IPHONE_TILES.map((def) => (
+                      <ColoredDeviceTile key={def.id} def={def} onDragStart={handleDragStart} />
                     ))}
                   {openDeviceCategoryId === 'colored-android' &&
-                    COLORED_ANDROID_TILES.map((def, i) => (
-                      <ColoredDeviceTile key={`cand-${i}`} def={def} onDragStart={handleDragStart} />
+                    COLORED_ANDROID_TILES.map((def) => (
+                      <ColoredDeviceTile key={def.id} def={def} onDragStart={handleDragStart} />
                     ))}
                   {openDeviceCategoryId === 'mockups' && (
                     <>

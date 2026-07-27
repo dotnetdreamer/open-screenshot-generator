@@ -290,7 +290,8 @@ already-signed-in Gemini run flash its window open then closed on a cold start.
 
 The desktop app can host a local [Model Context Protocol](https://modelcontextprotocol.io)
 server so an external AI client (Claude Code, Claude Desktop, Cursor, ...) can
-drive Open Screenshot Generator: list/create artboards, add and edit elements, set
+drive Open Screenshot Generator: start a project from a template, open a saved
+one, list/create artboards, add and edit elements (including palette assets), set
 backgrounds, and render an artboard to PNG.
 
 **Turning it on.** It is **off by default** and manual: toggle **Settings ▸ Run
@@ -312,9 +313,25 @@ busy, and the real URL is shown in the toast / `console.info`). For Claude Code:
 claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/mcp
 ```
 
-**Tools.** `list_artboards`, `get_artboard`, `create_artboard`,
-`set_active_artboard`, `add_element`, `update_element`, `delete_element`,
-`set_background`, `export_png` (returns the PNG as an image result).
+**Tools.**
+
+- *Canvas* — `list_artboards`, `get_artboard`, `create_artboard`,
+  `set_active_artboard`, `add_element`, `update_element`, `delete_element`,
+  `set_background`, `export_png` (returns the PNG as an image result).
+- *Templates and projects* — `list_templates`, `get_template` (the fillable
+  device/text slots and their stable element ids), `create_project_from_template`
+  (copies the template, applies optional text/screenshot fills, opens it and
+  lands it in **Recent projects**), `list_projects`, `open_project`.
+- *Palette assets* — `list_library` browses the Elements, Devices and Images
+  libraries the same way the palette does (groups first, then items). Every
+  entry has a `libraryId` that `add_element` accepts in place of `type`/`subType`
+  and expands into exactly what clicking that tile would drop:
+  `element:shape-octagon`, `image:app-store`, `device:iphone-15-pro`,
+  `device3d:iphone-tilted-left-black`, `devicecolor:iphone-outline-sky`.
+
+A model should normally *start from a template* — `list_templates` →
+`get_template` → `create_project_from_template` — and only build from bare
+artboards when nothing fits.
 
 **Architecture.** Rust owns only the *transport*; the tools live in the
 frontend, where the design state is.
@@ -337,6 +354,24 @@ frontend, where the design state is.
   the same path `CanvasArea` uses — so history, DB persistence and the
   per-artboard element sync all keep working. `export_png` reuses the Export
   dialog's `html-to-image` capture recipe.
+- `create_project_from_template` and `open_project` go through
+  `createProjectFromTemplateData` / `loadProjectFromData`, the same functions the
+  template gallery and the Recent-projects list call, so an AI-created project is
+  indistinguishable from a clicked one (same Dexie row, same Recent entry, same
+  `?projectId` URL). `open_project` waits two animation frames before returning
+  so a follow-up `export_png` finds the artboards in the DOM.
+- The `McpDesignApi` closes over the state of the render that built it, which is
+  fine because a client sends its next tool call only after the previous
+  response has travelled back through Rust — React has re-rendered by then and
+  the bridge re-reads the ref. Two mutations dispatched inside a *single* tick
+  would both start from the same artboard array and the second would win, so
+  don't "optimise" the bridge into batching them. `list_projects` sidesteps this
+  entirely by reading the open project from the URL.
+- `list_library` and `add_element`'s `libraryId` resolve through
+  `src/lib/mcp/assetLibrary.ts`, a pure index over `elementLibrary.ts`,
+  `imageLibrary.ts`, `deviceRegistry.ts` and `device3dPresets.ts`. The palette
+  reads the same pose/preset tables (`device3dPresets.ts`), so the two can't
+  drift: adding a pose or a coloured preset exposes it in both at once.
 
 Because it drives the real app, keep it off unless you are using it; it is
 localhost-bound and starts disabled.
