@@ -108,13 +108,13 @@ One thing to watch: `npm start` currently re-runs the dev server rather than ser
 
 ## How the code is organized
 
-The app is a single Next.js page ([src/app/page.tsx](src/app/page.tsx)) that mounts the editor. The interesting parts live under [src/components/artboard-studio/](src/components/artboard-studio/):
+The app is a single Next.js page ([src/app/page.tsx](src/app/page.tsx)) that mounts the editor. The interesting parts live under [src/components/open-screenshot-generator/](src/components/open-screenshot-generator/):
 
-- [ArtboardStudioLayout.tsx](src/components/artboard-studio/ArtboardStudioLayout.tsx) is the top-level component holding most of the state (artboards, selection, undo history, project save/load) and doing the PNG export with `html-to-image`
-- [CanvasArea.tsx](src/components/artboard-studio/CanvasArea.tsx) and [Artboard.tsx](src/components/artboard-studio/Artboard.tsx) render the pannable, zoomable canvas and the individual artboards on it
-- [elements/](src/components/artboard-studio/elements/) holds the renderers for the element types: text, shape, image, device frame (a screenshot mockup), recording mockup, plain video, and gesture hint. The device frame and the recording mockup share their bezels and notches through [deviceChrome.tsx](src/components/artboard-studio/elements/deviceChrome.tsx) so the two cannot drift apart
+- [OpenScreenshotGeneratorLayout.tsx](src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx) is the top-level component holding most of the state (artboards, selection, undo history, project save/load) and doing the PNG export with `html-to-image`
+- [CanvasArea.tsx](src/components/open-screenshot-generator/CanvasArea.tsx) and [Artboard.tsx](src/components/open-screenshot-generator/Artboard.tsx) render the pannable, zoomable canvas and the individual artboards on it
+- [elements/](src/components/open-screenshot-generator/elements/) holds the renderers for the element types: text, shape, image, device frame (a screenshot mockup), recording mockup, plain video, and gesture hint. The device frame and the recording mockup share their bezels and notches through [deviceChrome.tsx](src/components/open-screenshot-generator/elements/deviceChrome.tsx) so the two cannot drift apart
 - [src/lib/video/](src/lib/video/) is the MP4 exporter: sprite capture, per-frame canvas compositing, and the WebCodecs H.264 encode
-- The panels and dialogs around the canvas: [ElementPalette.tsx](src/components/artboard-studio/ElementPalette.tsx), [LayersPanel.tsx](src/components/artboard-studio/LayersPanel.tsx), [PropertiesPanel.tsx](src/components/artboard-studio/PropertiesPanel.tsx), toolbars, and the export/preview dialogs
+- The panels and dialogs around the canvas: [ElementPalette.tsx](src/components/open-screenshot-generator/ElementPalette.tsx), [LayersPanel.tsx](src/components/open-screenshot-generator/LayersPanel.tsx), [PropertiesPanel.tsx](src/components/open-screenshot-generator/PropertiesPanel.tsx), toolbars, and the export/preview dialogs
 
 Around that:
 

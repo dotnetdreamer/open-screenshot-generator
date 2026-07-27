@@ -10,7 +10,7 @@
          provisioning profile (Tauri passes this file verbatim to codesign; it
          does not merge identifiers from the profile the way Xcode does). -->
     <key>com.apple.application-identifier</key>
-    <string>YOURTEAMID.com.ccrstech.artboardstudio</string>
+    <string>YOURTEAMID.com.dotnetdreamer.openscreenshotgenerator</string>
     <key>com.apple.developer.team-identifier</key>
     <string>YOURTEAMID</string>
     <!-- Save/open dialogs write to user-chosen locations. -->

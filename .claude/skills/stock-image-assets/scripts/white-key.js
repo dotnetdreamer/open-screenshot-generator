@@ -3,7 +3,9 @@
 // Usage: node white-key.js <inDir> <outDir> <id1,id2,...>
 const fs = require('fs');
 const path = require('path');
-const sharp = require('c:/Users/ik/Documents/GitHub/artboard-studio/node_modules/sharp');
+// Resolved from the repo root rather than this script's own folder, since the
+// skill has no node_modules of its own.
+const sharp = require(path.join(__dirname, '../../../../node_modules/sharp'));
 
 const [inDir, outDir, idsArg] = process.argv.slice(2);
 const ids = idsArg.split(',');

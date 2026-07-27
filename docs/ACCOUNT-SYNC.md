@@ -139,7 +139,7 @@ src/lib/account/
     googleDrive.ts      GIS (web) / loopback PKCE (desktop) + Drive REST
     github.ts           token (web) / device flow (desktop) + Gist REST
   index.ts              registry + save/load/list/delete
-src/components/artboard-studio/account/AccountDialog.tsx
+src/components/open-screenshot-generator/account/AccountDialog.tsx
 src-tauri/src/oauth.rs  the one-shot loopback listener
 workers/github-oauth/   Cloudflare Worker: the GitHub token exchange, nothing else
 ```
@@ -147,10 +147,12 @@ workers/github-oauth/   Cloudflare Worker: the GitHub token exchange, nothing el
 ## Token storage
 
 The session (including the access token) is kept in `localStorage` under
-`artboard-studio.account`, unencrypted, matching how AI provider keys are
-already stored. On a shared machine, sign out when done. Drive access is
-limited to files this app created, so a leaked token cannot read the rest of
-someone's Drive.
+`open-screenshot-generator.account`, unencrypted, matching how AI provider keys
+are already stored (sessions saved before the rename are moved onto that key on
+first read by [src/lib/legacyStorage.ts](../src/lib/legacyStorage.ts)). On a
+shared machine,
+sign out when done. Drive access is limited to files this app created, so a
+leaked token cannot read the rest of someone's Drive.
 
 ## Media travels with the project
 

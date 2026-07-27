@@ -1,5 +1,6 @@
 mod devtools;
 mod mcp_server;
+mod migrate;
 mod oauth;
 mod settings;
 mod splash;
@@ -7,6 +8,11 @@ mod web_session;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Before Tauri resolves any path or opens the webview profile: the bundle
+    // identifier changed with the rename to Open Screenshot Generator, and
+    // every per-user directory hangs off it.
+    migrate::run();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

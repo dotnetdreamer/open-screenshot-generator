@@ -22,7 +22,11 @@ import type {
 const MCP_REQUEST_EVENT = 'abs-mcp-request';
 const MCP_STATUS_EVENT = 'abs-mcp-status';
 
-const SERVER_INFO = { name: 'artboard-studio', title: 'Open Screenshot Generator', version: '0.1.0' };
+const SERVER_INFO = {
+  name: 'open-screenshot-generator',
+  title: 'Open Screenshot Generator',
+  version: '0.1.0',
+};
 const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 
 // ---------------------------------------------------------------------------

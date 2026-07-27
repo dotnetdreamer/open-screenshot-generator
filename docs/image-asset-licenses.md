@@ -7,7 +7,7 @@ This file is the license record for the assets shipped in
 
 All photographic assets are from the **Adobe Stock free collection**, licensed
 on **2026-07-06** under the **Adobe Stock standard license** through the
-project owner's Adobe account (info@ccrstech.com). The authoritative license
+project owner's Adobe account (info@dotnetdreamer.com). The authoritative license
 history is retained by Adobe: <https://stock.adobe.com/license-history>.
 
 Processing: backgrounds removed (Adobe Photoshop API "select subject" via the
@@ -157,7 +157,7 @@ promo art for their own apps — which is the badges' intended purpose.
 Photographic art baked into the Google Play Feature Graphic templates (Feature
 Graphic tab of the start dialog). Same Adobe Stock free-collection / standard
 license as section 1, licensed **2026-07-07** through the project owner's Adobe
-account (info@ccrstech.com); background removed via the Adobe for Creativity
+account (info@dotnetdreamer.com); background removed via the Adobe for Creativity
 connector ("select subject" cutout). These are composite-work assets embedded
 in editable templates, not standalone downloads.
 

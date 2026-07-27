@@ -19,6 +19,7 @@
  */
 
 import { isTauri } from '@/lib/desktop';
+import { readWithLegacyFallback } from '@/lib/legacyStorage';
 
 export type FreeProviderId = 'pollinations' | 'ollama' | 'lmstudio';
 
@@ -314,7 +315,7 @@ function extractReplyText(payload: unknown): string {
 
 // --- settings persistence ---------------------------------------------------
 
-const STORAGE_KEY = 'artboard-studio.free-ai-settings';
+const STORAGE_KEY = 'open-screenshot-generator.free-ai-settings';
 
 export interface FreeAiSettings {
   provider: FreeProviderId;
@@ -326,7 +327,7 @@ export const EMPTY_FREE_SETTINGS: FreeAiSettings = { provider: 'pollinations', m
 export function loadFreeAiSettings(): FreeAiSettings {
   if (typeof window === 'undefined') return EMPTY_FREE_SETTINGS;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = readWithLegacyFallback(STORAGE_KEY);
     if (!raw) return EMPTY_FREE_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<FreeAiSettings>;
     return {

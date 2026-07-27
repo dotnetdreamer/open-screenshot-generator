@@ -26,7 +26,7 @@ interface CanvasAreaProps {
   // While a project/template is still loading (Dexie read + artboard build),
   // the parent sets this so the canvas shows a stable skeleton instead of a
   // fake placeholder artboard. Artboard positioning is owned by the parent
-  // (calculateArtboardPositions in ArtboardStudioLayout), not here.
+  // (calculateArtboardPositions in OpenScreenshotGeneratorLayout), not here.
   isLoading?: boolean;
 }
 

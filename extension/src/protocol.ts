@@ -4,8 +4,8 @@
  * two in sync.
  */
 
-export const PAGE_SOURCE = 'artboard-studio';
-export const EXT_SOURCE = 'artboard-studio-extension';
+export const PAGE_SOURCE = 'open-screenshot-generator';
+export const EXT_SOURCE = 'open-screenshot-generator-extension';
 
 // The provider list is shared with the app so the two never drift.
 export type { WebProviderId } from '../../src/lib/ai/webAdapters';

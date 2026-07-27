@@ -71,7 +71,7 @@ const edits = [
   ['src-tauri/Cargo.toml', /^(version = ")[^"]+(")/m],
   // Cargo.lock: cargo would fix this itself on the next build, but leaving it
   // stale means the build dirties the tree and `--locked` builds fail.
-  ['src-tauri/Cargo.lock', /(name = "artboard-studio"\r?\nversion = ")[^"]+(")/],
+  ['src-tauri/Cargo.lock', /(name = "open-screenshot-generator"\r?\nversion = ")[^"]+(")/],
 ];
 
 if (!dryRun) {

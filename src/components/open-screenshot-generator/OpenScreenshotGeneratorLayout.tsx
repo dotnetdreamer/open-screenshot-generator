@@ -330,7 +330,7 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
   );
 }
 
-export function ArtboardStudioLayout() {
+export function OpenScreenshotGeneratorLayout() {
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
   const [activeArtboardId, setActiveArtboardId] = useState<string | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);

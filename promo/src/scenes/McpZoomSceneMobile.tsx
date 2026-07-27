@@ -240,7 +240,7 @@ const McpDialog: React.FC<{ appearAt: number }> = ({ appearAt }) => {
             whiteSpace: "pre",
           }}
         >
-          {"claude mcp add --transport http \\\n  artboard-studio http://127.0.0.1:8722/mcp"}
+          {"claude mcp add --transport http \\\n  open-screenshot-generator http://127.0.0.1:8722/mcp"}
         </code>
         <CopyIcon />
       </div>

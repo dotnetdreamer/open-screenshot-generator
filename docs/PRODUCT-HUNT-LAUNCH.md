@@ -13,7 +13,7 @@ Launch on a **Saturday at 12:01 AM Pacific** (12:01 PM in Pakistan) as **"the op
 ## The one blocker and the two decisions only you can make
 
 1. **Add a LICENSE file.** The README currently says there is no license. An "open source" launch without one loses the HN thread to its top comment and likely violates r/opensource rules. Recommendation: MIT (maximum adoption, matches "star it and use it" positioning). Apache-2.0 if you want the patent grant. Decide, add `LICENSE`, set `"license"` in package.json, delete the README paragraph saying there is none.
-2. **Upload the 36 second landscape promo cut (`promo/out/artboard-studio-promo-fast.mp4`) to YouTube** as its own video. PH only takes YouTube URLs. The 52s cut is the fallback; the walkthrough is too long to lead with.
+2. **Upload the 36 second landscape promo cut (`promo/out/open-screenshot-generator-promo-fast.mp4`) to YouTube** as its own video. PH only takes YouTube URLs. The 52s cut is the fallback; the walkthrough is too long to lead with.
 3. **Write your Wave 1 contact list.** 30 to 50 real people you can message personally on launch morning. This is the single strongest predictor of clearing the Saturday bar. If the list is under 30, spend the extra week growing it before launching.
 
 ## Pre-launch checklist
@@ -23,7 +23,7 @@ Launch on a **Saturday at 12:01 AM Pacific** (12:01 PM in Pakistan) as **"the op
 - [x] LICENSE file (MIT, plus `license` fields in package.json and src-tauri/Cargo.toml) + removed the README "no license yet" paragraph
 - [ ] Social preview image, 1280x640, in repo Settings. IMAGE IS READY at `docs/social-preview.png`; still needs the manual upload in Settings, General, Social preview
 - [x] Fix the README quickstart clone URL (it says `<your-username>` instead of `dotnetdreamer`)
-- [x] Add license and release badges at the top of the README; add a short demo GIF above the YouTube cover (`docs/demo.gif`, 16s cut of the rebranded promo-fast render; `docs/promo-fast.mp4` also replaced with the rebranded render, the old copy still showed Artboard Studio branding)
+- [x] Add license and release badges at the top of the README; add a short demo GIF above the YouTube cover (`docs/demo.gif`, 16s cut of the rebranded promo-fast render; `docs/promo-fast.mp4` also replaced with the rebranded render, the old copy still showed the pre-rename branding)
 - [x] Rename package.json `name` from `nextn` to `open-screenshot-generator` (package-lock.json synced too)
 - [x] Root hygiene: delete `.modified`; remove `.idx/` and `apphosting.yaml` if truly unused (the Firebase config undercuts the "no backend" pitch when someone browses the repo)
 - [ ] CONTRIBUTING.md + a bug report issue template DONE; enabling Discussions still needs a manual click (Settings, General, Features) because the fine-grained PAT lacks repo Administration scope

@@ -130,7 +130,7 @@ context windows.
 
 ## 3. Budgeted mode: hard per-message caps
 
-Providers listed in `PROMPT_BUDGETS` ([AgentStartScreen.tsx](../src/components/artboard-studio/start/AgentStartScreen.tsx))
+Providers listed in `PROMPT_BUDGETS` ([AgentStartScreen.tsx](../src/components/open-screenshot-generator/start/AgentStartScreen.tsx))
 get the whole message fitted under a character cap. Currently that is ChatGPT at 3,900
 characters (its free tier bounces longer messages). The wrapper switches to a terse
 variant and the catalog degrades stepwise until it fits: fewer detailed templates, then
@@ -152,7 +152,7 @@ prompt when its fetch fails.
 | [src/lib/ai/hostedCatalog.ts](../src/lib/ai/hostedCatalog.ts) | Hosted-file builder (shared by script and client), verification token, site URL, per-provider fetch-capability cache |
 | [src/lib/ai/promptBuilder.ts](../src/lib/ai/promptBuilder.ts) | All prompt variants: full relay, compact (budgeted), URL mode, API system prompt |
 | [scripts/gen-ai-catalog.mjs](../scripts/gen-ai-catalog.mjs) | Writes `public/data/ai/catalog.txt` at build time; must mirror `projectService.loadProjectTemplates` exactly |
-| [src/components/artboard-studio/start/AgentStartScreen.tsx](../src/components/artboard-studio/start/AgentStartScreen.tsx) | Chooses the strategy per run: URL first, inline fallback, budgets |
+| [src/components/open-screenshot-generator/start/AgentStartScreen.tsx](../src/components/open-screenshot-generator/start/AgentStartScreen.tsx) | Chooses the strategy per run: URL first, inline fallback, budgets |
 | [src/lib/ai/generatePlan.ts](../src/lib/ai/generatePlan.ts) | API key mode; inline compact catalog + alias resolution |
 
 ## Troubleshooting

@@ -234,8 +234,10 @@ const McpDialog: React.FC<{ appearAt: number }> = ({ appearAt }) => {
           boxSizing: "border-box",
         }}
       >
-        <code style={{ fontFamily: MONO, fontSize: 14.5, color: "#232B29", flex: 1, whiteSpace: "nowrap" }}>
-          claude mcp add --transport http artboard-studio http://127.0.0.1:8722/mcp
+        {/* 13.5 rather than the 15 above: the server slug makes this one line
+            82 characters, and nowrap would push it past the card at 14.5. */}
+        <code style={{ fontFamily: MONO, fontSize: 13.5, color: "#232B29", flex: 1, whiteSpace: "nowrap" }}>
+          claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/mcp
         </code>
         <CopyIcon />
       </div>

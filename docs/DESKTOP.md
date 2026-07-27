@@ -170,7 +170,9 @@ Requires an [Apple Developer Program](https://developer.apple.com/programs/)
 membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
 
 1. In your Apple Developer account, create:
-   - an App ID matching `com.ccrstech.artboardstudio`,
+   - an App ID matching `com.dotnetdreamer.openscreenshotgenerator` (the
+     identifier changed completely with the rename, so an account set up before
+     it needs a new App ID and a new provisioning profile),
    - an "Apple Distribution" certificate and a "Mac Installer Distribution"
      certificate,
    - a Mac App Store provisioning profile for the App ID. Download it as
@@ -307,7 +309,7 @@ instructions — **Claude Code**, **Claude Desktop**, **VS Code (Copilot)**,
 busy, and the real URL is shown in the toast / `console.info`). For Claude Code:
 
 ```
-claude mcp add --transport http artboard-studio http://127.0.0.1:8722/mcp
+claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/mcp
 ```
 
 **Tools.** `list_artboards`, `get_artboard`, `create_artboard`,
@@ -330,11 +332,11 @@ frontend, where the design state is.
   through the `abs_mcp_respond` command, which unblocks the waiting HTTP handler
   (180s timeout). Notifications (no id) are acknowledged `202` without bridging.
 - The tool implementations are the `McpDesignApi` built in
-  `ArtboardStudioLayout.tsx` (assigned to a ref each render so the bridge always
-  sees fresh state). They mutate through `handleArtboardsUpdate` — the same path
-  `CanvasArea` uses — so history, DB persistence and the per-artboard element
-  sync all keep working. `export_png` reuses the Export dialog's `html-to-image`
-  capture recipe.
+  `OpenScreenshotGeneratorLayout.tsx` (assigned to a ref each render so the
+  bridge always sees fresh state). They mutate through `handleArtboardsUpdate` —
+  the same path `CanvasArea` uses — so history, DB persistence and the
+  per-artboard element sync all keep working. `export_png` reuses the Export
+  dialog's `html-to-image` capture recipe.
 
 Because it drives the real app, keep it off unless you are using it; it is
 localhost-bound and starts disabled.

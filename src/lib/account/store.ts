@@ -4,12 +4,13 @@
 // persisted to localStorage exactly like the AI provider keys in
 // src/lib/ai/providers.ts. A tiny subscribe/notify store rather than context so
 // the sidebar button, the dialog and the toolbar all read the same value
-// without threading props through ArtboardStudioLayout.
+// without threading props through OpenScreenshotGeneratorLayout.
 
 import { useCallback, useEffect, useState } from 'react';
+import { readWithLegacyFallback, removeWithLegacy } from '@/lib/legacyStorage';
 import type { AccountSession, CloudProviderId } from './types';
 
-const STORAGE_KEY = 'artboard-studio.account';
+const STORAGE_KEY = 'open-screenshot-generator.account';
 
 let current: AccountSession | null = null;
 let hydrated = false;
@@ -18,7 +19,7 @@ const listeners = new Set<() => void>();
 function read(): AccountSession | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = readWithLegacyFallback(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AccountSession>;
     if (!parsed.provider || !parsed.accessToken || !parsed.account?.id) return null;
@@ -32,7 +33,7 @@ function write(session: AccountSession | null): void {
   if (typeof window === 'undefined') return;
   try {
     if (session) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    else window.localStorage.removeItem(STORAGE_KEY);
+    else removeWithLegacy(STORAGE_KEY);
   } catch {
     // Private mode or a full quota: the sign-in just will not survive a reload.
   }

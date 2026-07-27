@@ -24,7 +24,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const HARNESS_TSX = `
 import React from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { Device3DRenderer } from './src/components/artboard-studio/elements/Device3DRenderer';
+import { Device3DRenderer } from './src/components/open-screenshot-generator/elements/Device3DRenderer';
 
 const mountEl = document.getElementById('mount') as HTMLDivElement;
 let root: Root | null = null;

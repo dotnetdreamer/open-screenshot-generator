@@ -8,8 +8,8 @@ import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePl
 import { cn } from '@/lib/utils';
 
 // Flat section of the right dock (bottom half, under the resize divider in
-// ArtboardStudioLayout): header strip + scrolling list, filling whatever
-// height the dock gives it.
+// OpenScreenshotGeneratorLayout): header strip + scrolling list, filling
+// whatever height the dock gives it.
 interface LayersPanelProps {
   elements: ArtboardElement[];
   selectedElementId: string | null;

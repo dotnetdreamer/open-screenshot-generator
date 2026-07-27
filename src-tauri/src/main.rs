@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    artboard_studio_lib::run();
+    open_screenshot_generator_lib::run();
 }

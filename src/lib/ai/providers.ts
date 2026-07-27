@@ -2,6 +2,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
+import { readWithLegacyFallback, removeWithLegacy } from '@/lib/legacyStorage';
 
 /**
  * Provider registry for the "use my API key" mode.
@@ -98,7 +99,7 @@ export function createModel(
 
 // --- settings persistence -------------------------------------------------
 
-const STORAGE_KEY = 'artboard-studio.ai-settings';
+const STORAGE_KEY = 'open-screenshot-generator.ai-settings';
 
 export interface AiSettings {
   provider: AiProviderId;
@@ -111,7 +112,7 @@ export const EMPTY_SETTINGS: AiSettings = { provider: 'anthropic', keys: {}, mod
 export function loadAiSettings(): AiSettings {
   if (typeof window === 'undefined') return EMPTY_SETTINGS;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = readWithLegacyFallback(STORAGE_KEY);
     if (!raw) return EMPTY_SETTINGS;
     const parsed = JSON.parse(raw) as Partial<AiSettings>;
     const provider =
@@ -136,10 +137,5 @@ export function saveAiSettings(settings: AiSettings): void {
 }
 
 export function clearStoredKeys(): void {
-  if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // Ignore.
-  }
+  removeWithLegacy(STORAGE_KEY);
 }

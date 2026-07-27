@@ -2,9 +2,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Static shell shown as the Suspense fallback for the editor. Because
- * ArtboardStudioLayout calls useSearchParams under `output: 'export'`, the page
- * bails out to client-side rendering — without a fallback the served HTML is
- * blank until the whole JS bundle downloads and hydrates. This paints the
+ * OpenScreenshotGeneratorLayout calls useSearchParams under `output: 'export'`,
+ * the page bails out to client-side rendering — without a fallback the served
+ * HTML is blank until the whole JS bundle downloads and hydrates. This paints the
  * editor's frame (left palette rail, toolbar, canvas, right dock) from the first
  * byte, so the app looks present immediately and there's no white flash before
  * hydration.

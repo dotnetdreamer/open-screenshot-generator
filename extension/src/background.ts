@@ -5,6 +5,7 @@ import type {
   RunResponse,
   WebProviderId,
 } from './protocol';
+import { PAGE_SOURCE } from './protocol';
 import { WEB_ADAPTERS, WEB_PROVIDER_IDS } from '../../src/lib/ai/webAdapters';
 
 /**
@@ -166,7 +167,7 @@ function isPageMessage(value: unknown): value is PageMessage {
   return (
     typeof value === 'object' &&
     value !== null &&
-    (value as { source?: unknown }).source === 'artboard-studio'
+    (value as { source?: unknown }).source === PAGE_SOURCE
   );
 }
 

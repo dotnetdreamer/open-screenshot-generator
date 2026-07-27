@@ -241,7 +241,7 @@ jobs:
         shell: pwsh
         run: |
           $release = 'src-tauri/target/release'
-          $exe = @('Open Screenshot Generator.exe', 'artboard-studio.exe') |
+          $exe = @('Open Screenshot Generator.exe', 'open-screenshot-generator.exe') |
             ForEach-Object { Join-Path $release $_ } |
             Where-Object { Test-Path $_ } |
             Select-Object -First 1
@@ -269,8 +269,8 @@ jobs:
             '',
             'Your work is stored in your Windows user profile, not next to the',
             'exe, so it is kept across updates but does not travel with this zip:',
-            'projects live in %LOCALAPPDATA%\com.ccrstech.artboardstudio and',
-            'settings in %APPDATA%\com.ccrstech.artboardstudio.'
+            'projects live in %LOCALAPPDATA%\com.dotnetdreamer.openscreenshotgenerator',
+            'and settings in %APPDATA%\com.dotnetdreamer.openscreenshotgenerator.'
           )
 
           $zip = 'Open.Screenshot.Generator_${{ needs.version.outputs.version }}_x64_portable.zip'

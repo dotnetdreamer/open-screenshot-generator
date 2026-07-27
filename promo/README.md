@@ -2,12 +2,12 @@
 
 A product promo built with [Remotion](https://www.remotion.dev/), three.js and GSAP. Three cuts from the same scenes:
 
-- `Promo` — the full 52-second cut (`out/artboard-studio-promo.mp4`), 1920x1080
-- `PromoFast` — a tighter 36-second cut (`out/artboard-studio-promo-fast.mp4`), 1920x1080
-- `PromoMobile` — a portrait 36-second cut for phones, Shorts and Reels (`out/artboard-studio-promo-mobile.mp4`), 1080x1920
-- `PromoAI` — a 10-second cut on the AI features (`out/artboard-studio-promo-ai.mp4`), 1920x1080: the AI agent dialog and the desktop MCP server, shown screen-recording style with an animated cursor and camera zooms onto the UI
-- `PromoAIMobile` — the same 10-second AI cut in portrait for phones, Shorts and Reels (`out/artboard-studio-promo-ai-mobile.mp4`), 1080x1920: deeper zooms since the wide dialog does not fit a phone frame, captions raised above the Shorts UI overlay
-- `PromoSteps` — a 30-second portrait cut (`out/artboard-studio-promo-steps.mp4`), 1080x1920, walking the three steps to store-ready screenshots: pick a template, drop in your screenshot, preview. Its own visual system under `src/steps/` (not shared with the other cuts): a GLSL aurora + drifting-motes three.js backdrop whose palette and energy pulse follow the step beats, deep camera dives with a touch-ripple pointer and a spotlight highlight over the real UI, and its own music bed (`music-steps.m4a`)
+- `Promo` — the full 52-second cut (`out/open-screenshot-generator-promo.mp4`), 1920x1080
+- `PromoFast` — a tighter 36-second cut (`out/open-screenshot-generator-promo-fast.mp4`), 1920x1080
+- `PromoMobile` — a portrait 36-second cut for phones, Shorts and Reels (`out/open-screenshot-generator-promo-mobile.mp4`), 1080x1920
+- `PromoAI` — a 10-second cut on the AI features (`out/open-screenshot-generator-promo-ai.mp4`), 1920x1080: the AI agent dialog and the desktop MCP server, shown screen-recording style with an animated cursor and camera zooms onto the UI
+- `PromoAIMobile` — the same 10-second AI cut in portrait for phones, Shorts and Reels (`out/open-screenshot-generator-promo-ai-mobile.mp4`), 1080x1920: deeper zooms since the wide dialog does not fit a phone frame, captions raised above the Shorts UI overlay
+- `PromoSteps` — a 30-second portrait cut (`out/open-screenshot-generator-promo-steps.mp4`), 1080x1920, walking the three steps to store-ready screenshots: pick a template, drop in your screenshot, preview. Its own visual system under `src/steps/` (not shared with the other cuts): a GLSL aurora + drifting-motes three.js backdrop whose palette and energy pulse follow the step beats, deep camera dives with a touch-ripple pointer and a spotlight highlight over the real UI, and its own music bed (`music-steps.m4a`)
 
 All are 30 fps with an original synthesized music bed.
 

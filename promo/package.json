@@ -1,16 +1,16 @@
 {
-  "name": "artboard-studio-promo",
+  "name": "open-screenshot-generator-promo",
   "version": "0.1.0",
   "private": true,
   "description": "Remotion promo video for Open Screenshot Generator",
   "scripts": {
     "studio": "remotion studio",
-    "render": "remotion render Promo out/artboard-studio-promo.mp4",
-    "render:fast": "remotion render PromoFast out/artboard-studio-promo-fast.mp4",
-    "render:mobile": "remotion render PromoMobile out/artboard-studio-promo-mobile.mp4",
-    "render:ai": "remotion render PromoAI out/artboard-studio-promo-ai.mp4",
-    "render:ai-mobile": "remotion render PromoAIMobile out/artboard-studio-promo-ai-mobile.mp4",
-    "render:steps": "remotion render PromoSteps out/artboard-studio-promo-steps.mp4",
+    "render": "remotion render Promo out/open-screenshot-generator-promo.mp4",
+    "render:fast": "remotion render PromoFast out/open-screenshot-generator-promo-fast.mp4",
+    "render:mobile": "remotion render PromoMobile out/open-screenshot-generator-promo-mobile.mp4",
+    "render:ai": "remotion render PromoAI out/open-screenshot-generator-promo-ai.mp4",
+    "render:ai-mobile": "remotion render PromoAIMobile out/open-screenshot-generator-promo-ai-mobile.mp4",
+    "render:steps": "remotion render PromoSteps out/open-screenshot-generator-promo-steps.mp4",
     "gen:music": "node scripts/gen-music.js",
     "gen:music-steps": "node scripts/gen-music-steps.js",
     "still": "remotion still Promo"

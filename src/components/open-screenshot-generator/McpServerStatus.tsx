@@ -108,7 +108,7 @@ function clientGuides(url: string) {
       body: (
         <div className="grid gap-2">
           <p className="text-xs text-muted-foreground">Run this in a terminal, then use <code>/mcp</code> in a session:</p>
-          <CodeBlock code={`claude mcp add --transport http artboard-studio ${url}`} />
+          <CodeBlock code={`claude mcp add --transport http open-screenshot-generator ${url}`} />
         </div>
       ),
     },
@@ -125,7 +125,7 @@ function clientGuides(url: string) {
           </p>
           <CodeBlock
             code={JSON.stringify(
-              { mcpServers: { 'artboard-studio': { command: 'npx', args: ['mcp-remote', url] } } },
+              { mcpServers: { 'open-screenshot-generator': { command: 'npx', args: ['mcp-remote', url] } } },
               null,
               2
             )}
@@ -143,7 +143,7 @@ function clientGuides(url: string) {
             <code>.vscode/mcp.json</code> in your workspace:
           </p>
           <CodeBlock
-            code={JSON.stringify({ servers: { 'artboard-studio': { type: 'http', url } } }, null, 2)}
+            code={JSON.stringify({ servers: { 'open-screenshot-generator': { type: 'http', url } } }, null, 2)}
           />
         </div>
       ),
@@ -156,7 +156,7 @@ function clientGuides(url: string) {
           <p className="text-xs text-muted-foreground">
             Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):
           </p>
-          <CodeBlock code={JSON.stringify({ mcpServers: { 'artboard-studio': { url } } }, null, 2)} />
+          <CodeBlock code={JSON.stringify({ mcpServers: { 'open-screenshot-generator': { url } } }, null, 2)} />
         </div>
       ),
     },

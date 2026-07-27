@@ -12,7 +12,7 @@ export function registerAdapter(id: WebProviderId): void {
   const config = WEB_ADAPTERS[id];
 
   // executeScript can inject the same file twice into one tab.
-  const flag = `__artboardStudioAdapter_${id}`;
+  const flag = `__openScreenshotGeneratorAdapter_${id}`;
   if ((window as unknown as Record<string, boolean>)[flag]) return;
   (window as unknown as Record<string, boolean>)[flag] = true;
 
