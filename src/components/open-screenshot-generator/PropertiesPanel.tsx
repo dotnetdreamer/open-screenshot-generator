@@ -152,7 +152,25 @@ const gradientPresets = [
   { color1: '#5D4157', color2: '#A8CABA', angle: 135 }, // Mauve to Pastel Green
 ];
 
-export function PropertiesPanel({ 
+const DEFAULT_GRADIENT = { color1: '#00F260', color2: '#0575E6', angle: 45 };
+
+// Projects can arrive from imports, older saves or the MCP server with a
+// half-filled backgroundGradient, so fill the gaps before it reaches state.
+const normalizeGradient = (
+  gradient?: Partial<NonNullable<ArtboardState['backgroundGradient']>> | null
+) => ({
+  color1: typeof gradient?.color1 === 'string' && gradient.color1
+    ? gradient.color1
+    : DEFAULT_GRADIENT.color1,
+  color2: typeof gradient?.color2 === 'string' && gradient.color2
+    ? gradient.color2
+    : DEFAULT_GRADIENT.color2,
+  angle: typeof gradient?.angle === 'number' && Number.isFinite(gradient.angle)
+    ? gradient.angle
+    : DEFAULT_GRADIENT.angle,
+});
+
+export function PropertiesPanel({
   selectedElement, 
   onUpdateElement, 
   onUpdateElementById,
@@ -167,9 +185,9 @@ export function PropertiesPanel({
   
   // Background state for artboard
   const [solidColor, setSolidColor] = useState('#FFFFFF');
-  const [gradientColor1, setGradientColor1] = useState('#00F260');
-  const [gradientColor2, setGradientColor2] = useState('#0575E6');
-  const [gradientAngle, setGradientAngle] = useState(45);
+  const [gradientColor1, setGradientColor1] = useState(DEFAULT_GRADIENT.color1);
+  const [gradientColor2, setGradientColor2] = useState(DEFAULT_GRADIENT.color2);
+  const [gradientAngle, setGradientAngle] = useState(DEFAULT_GRADIENT.angle);
   const [activeBackgroundTab, setActiveBackgroundTab] = useState<'solid' | 'gradient'>('solid');
 
   const [localContent, setLocalContent] = useState('');
@@ -282,9 +300,10 @@ export function PropertiesPanel({
       setActiveBackgroundTab(activeArtboardDetails.backgroundType || 'solid');
       
       if (activeArtboardDetails.backgroundGradient) {
-        setGradientColor1(activeArtboardDetails.backgroundGradient.color1);
-        setGradientColor2(activeArtboardDetails.backgroundGradient.color2);
-        setGradientAngle(activeArtboardDetails.backgroundGradient.angle);
+        const gradient = normalizeGradient(activeArtboardDetails.backgroundGradient);
+        setGradientColor1(gradient.color1);
+        setGradientColor2(gradient.color2);
+        setGradientAngle(gradient.angle);
       }
     }
   }, [selectedElement, activeArtboardDetails]);
@@ -301,13 +320,16 @@ export function PropertiesPanel({
       backgroundType: tabValue
     };
     
-    // Initialize gradient settings if switching to gradient and not already set
-    if (tabValue === 'gradient' && activeArtboardDetails && !activeArtboardDetails.backgroundGradient) {
-      updates.backgroundGradient = {
-        color1: gradientColor1,
-        color2: gradientColor2,
-        angle: gradientAngle
-      };
+    // Initialize gradient settings when switching to gradient, and repair any
+    // half-filled gradient that came in with the project.
+    if (tabValue === 'gradient' && activeArtboardDetails) {
+      updates.backgroundGradient = normalizeGradient(
+        activeArtboardDetails.backgroundGradient || {
+          color1: gradientColor1,
+          color2: gradientColor2,
+          angle: gradientAngle
+        }
+      );
     }
     
     onUpdateArtboardDetails(updates);
@@ -333,13 +355,13 @@ export function PropertiesPanel({
   ) => {
     if (!onUpdateArtboardDetails || !activeArtboardDetails) return;
     
-    const updates = { 
-      ...(activeArtboardDetails.backgroundGradient || { 
-        color1: gradientColor1, 
-        color2: gradientColor2, 
-        angle: gradientAngle 
-      }) 
-    };
+    const updates = normalizeGradient(
+      activeArtboardDetails.backgroundGradient || {
+        color1: gradientColor1,
+        color2: gradientColor2,
+        angle: gradientAngle
+      }
+    );
     
     if (property === 'color1') {
       setGradientColor1(value as string);

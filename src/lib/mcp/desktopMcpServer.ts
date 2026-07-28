@@ -404,6 +404,12 @@ const TOOLS: ToolDef[] = [
       },
     },
     run: (args, api) => {
+      // A half-filled gradient would land in the artboard state and break the
+      // background controls, so reject it here rather than storing it.
+      const g = args.gradient;
+      if (g && !(typeof g.color1 === 'string' && typeof g.color2 === 'string' && typeof g.angle === 'number')) {
+        return { ...textResult('gradient needs color1, color2 and angle.'), isError: true };
+      }
       const ok = api.setBackground({
         artboardId: args.artboardId,
         backgroundColor: args.backgroundColor,
