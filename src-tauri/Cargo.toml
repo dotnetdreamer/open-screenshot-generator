@@ -22,6 +22,10 @@ tauri-plugin-http = "2"
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Decoding the PNG the MCP export tools hand over for a file-path export, and
+# (on Windows) the assistant-window screenshots. Cross-platform because
+# `export_png { save: true }` writes files on every desktop platform.
+base64 = "0.22"
 
 # Minimal blocking HTTP server for the opt-in local MCP server (mcp_server.rs).
 # Localhost only, one accept thread + a thread per request; no async runtime, and
@@ -35,7 +39,6 @@ tiny_http = "0.12"
 # `with_webview` controller hands back will not line up.
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.38"
-base64 = "0.22"
 windows = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_System_Com",

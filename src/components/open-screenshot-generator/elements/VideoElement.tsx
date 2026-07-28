@@ -74,7 +74,8 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
               width: '100%',
               height: '100%',
               objectFit: element.objectFit || 'cover',
-              opacity: element.opacity ?? 1,
+              // Applied once around the element instead — see the note in
+              // ImageElement and src/lib/elementStyle.ts.
               borderRadius: element.borderRadius ? `${element.borderRadius}px` : undefined,
               display: 'block',
             }}

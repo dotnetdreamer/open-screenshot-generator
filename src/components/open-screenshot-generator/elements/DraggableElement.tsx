@@ -3,6 +3,7 @@ import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { elementVisualStyle } from '@/lib/elementStyle';
 import type { ArtboardElement, Point, Size } from '@/types/artboard';
 
 interface DraggableElementProps {
@@ -411,7 +412,18 @@ export function DraggableElement({
         </>
       )}
 
-      <div style={{ width: '100%', height: '100%', pointerEvents: interactionMode || !isSelected ? 'none' : 'auto' }}>
+      {/* Shadow/blur/opacity go on this wrapper, not on the outer box: that
+          keeps the selection outline and the handles crisp while the rendered
+          artwork picks up the treatment (and casts a silhouette-shaped
+          shadow). See src/lib/elementStyle.ts. */}
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          pointerEvents: interactionMode || !isSelected ? 'none' : 'auto',
+          ...elementVisualStyle(element),
+        }}
+      >
         {children}
       </div>
 

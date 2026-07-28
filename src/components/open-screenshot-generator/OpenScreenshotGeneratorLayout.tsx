@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
-import { isTauri, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
+import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
 import {
@@ -27,12 +27,15 @@ import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Artboard
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
+import { artboardBackground } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
   getMcpStatus,
   listenMcpStatus,
   type McpDesignApi,
   type McpArtboardSummary,
+  type McpElementMeasurement,
+  type McpExportResult,
   type McpTemplateSummary,
 } from '@/lib/mcp/desktopMcpServer';
 import { McpServerStatus } from './McpServerStatus';
@@ -1258,10 +1261,11 @@ export function OpenScreenshotGeneratorLayout() {
         artboardElement.style.transform = 'scale(1)';
         
         // Use html-to-image to capture the artboard at exact specified dimensions
+        const { backgroundColor, backgroundImage } = artboardBackground(artboard);
         const imageDataUrl = await toPng(artboardElement, {
           width: artboard.size.width,
           height: artboard.size.height,
-          backgroundColor: artboard.backgroundColor === 'hsl(var(--card))' || !artboard.backgroundColor ? 'white' : artboard.backgroundColor,
+          backgroundColor,
           pixelRatio: 1, // Set to 1 to avoid doubling resolution
           cacheBust: true, // Prevent caching issues
           // Editor chrome (selection outlines, resize handles, upload buttons)
@@ -1273,6 +1277,7 @@ export function OpenScreenshotGeneratorLayout() {
           style: {
             width: `${artboard.size.width}px`,
             height: `${artboard.size.height}px`,
+            backgroundImage,
           }
         });
         
@@ -2315,8 +2320,10 @@ const generateRandomProjectName = (): string => {
     artboardId || activeArtboardId || (artboards[0]?.id ?? null);
 
   // Summarise artboards that are not (yet) in React state — a project the tools
-  // just created or opened, whose setArtboards has not re-rendered us.
-  const summarizeArtboards = (boards: ArtboardState[]): McpArtboardSummary[] =>
+  // just created or opened, whose setArtboards has not re-rendered us. Those
+  // open on their first board, hence the default; pass activeId when the
+  // selection is something else (e.g. after deleting a board).
+  const summarizeArtboards = (boards: ArtboardState[], activeId?: string | null): McpArtboardSummary[] =>
     boards.map((ab, i) => ({
       id: ab.id,
       name: ab.name,
@@ -2324,8 +2331,69 @@ const generateRandomProjectName = (): string => {
       height: ab.size.height,
       backgroundColor: ab.backgroundColor,
       elementCount: ab.elements.length,
-      active: i === 0,
+      active: activeId === undefined ? i === 0 : ab.id === activeId,
     }));
+
+  // Render one artboard for the MCP export tools. Same capture recipe as the
+  // Export dialog (unscale the node, drop editor chrome, restore afterwards),
+  // plus the two things an external agent needs: an output scale, so a proof
+  // does not have to ship a full-size PNG as base64, and writing straight to
+  // disk through Rust — the JS fs plugin only unlocks paths the user picked in
+  // a dialog, and these exports are unattended.
+  const captureArtboardForMcp = async (
+    board: ArtboardState,
+    options: { scale?: number; save?: boolean; directory?: string; fileName?: string; includeImage?: boolean }
+  ): Promise<McpExportResult> => {
+    const node = document.querySelector(`[data-artboard-dom-id="${board.id}"]`) as HTMLElement | null;
+    if (!node) throw new Error('That artboard is not on screen; open the project in the app first.');
+    const scale = Math.min(4, Math.max(0.1, options.scale ?? 1));
+
+    const original = { transform: node.style.transform, width: node.style.width, height: node.style.height };
+    node.style.transform = 'scale(1)';
+    let dataUrl: string;
+    try {
+      const { backgroundColor, backgroundImage } = artboardBackground(board);
+      dataUrl = await toPng(node, {
+        width: board.size.width,
+        height: board.size.height,
+        backgroundColor,
+        pixelRatio: scale,
+        cacheBust: true,
+        filter: (n) => {
+          const el = n as HTMLElement;
+          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+        },
+        style: { width: `${board.size.width}px`, height: `${board.size.height}px`, backgroundImage },
+      });
+    } finally {
+      node.style.transform = original.transform;
+      node.style.width = original.width;
+      node.style.height = original.height;
+    }
+
+    const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
+    const result: McpExportResult = {
+      artboardId: board.id,
+      name: board.name,
+      width: Math.round(board.size.width * scale),
+      height: Math.round(board.size.height * scale),
+      scale,
+      // Decoded byte count of the PNG, so a caller can see what dropping the
+      // scale actually saved.
+      bytes: Math.round((base64.length * 3) / 4),
+    };
+    if (options.includeImage !== false) result.dataUrl = dataUrl;
+    if (options.save) {
+      if (!isTauri()) throw new Error('Saving to a file needs the desktop app; ask for the image inline instead.');
+      const { invoke } = await import('@tauri-apps/api/core');
+      result.path = await invoke<string>('abs_mcp_write_png', {
+        directory: options.directory ?? null,
+        fileName: sanitizeFileName(options.fileName?.trim() || board.name).replace(/\s+/g, '_'),
+        dataBase64: base64,
+      });
+    }
+    return result;
+  };
 
   const templateSummary = (template: Project): McpTemplateSummary => {
     const boards = template.projectData ?? [];
@@ -2388,6 +2456,107 @@ const generateRandomProjectName = (): string => {
       setActiveArtboardId(id);
       return true;
     },
+    updateArtboard: ({ artboardId, name, width, height, preset, index, scaleContent }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) return null;
+
+      let size = board.size;
+      if (preset) {
+        const p = ALL_CANVAS_SIZE_PRESETS.find((x) => x.id === preset);
+        if (p) size = { width: p.width, height: p.height };
+      }
+      if (width || height) {
+        size = { width: width ?? size.width, height: height ?? size.height };
+      }
+      const resized = size.width !== board.size.width || size.height !== board.size.height;
+      // Resizing without moving the content leaves every element where it was
+      // in absolute pixels, which reads as "the design broke", so scale by
+      // default — the same treatment the Devices format conversion applies.
+      const elements =
+        resized && scaleContent !== false
+          ? scaleElementsToCanvas(board.elements, board.size, size)
+          : board.elements;
+
+      const updated: ArtboardState = {
+        ...board,
+        name: name?.trim() ? name.trim() : board.name,
+        size,
+        elements,
+      };
+      let next = artboards.map((ab) => (ab.id === boardId ? updated : ab));
+      if (typeof index === 'number') {
+        const from = next.findIndex((ab) => ab.id === boardId);
+        const to = Math.max(0, Math.min(next.length - 1, Math.round(index)));
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+      }
+      handleArtboardsUpdate(next);
+      return {
+        id: updated.id,
+        name: updated.name,
+        width: size.width,
+        height: size.height,
+        backgroundColor: updated.backgroundColor,
+        elementCount: updated.elements.length,
+        active: updated.id === activeArtboardId,
+      };
+    },
+    deleteArtboard: ({ artboardId }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) return null;
+      // The canvas toolbar refuses to delete the last artboard (CanvasArea
+      // passes canDeleteArtboard={artboards.length > 1}); a project with no
+      // artboards is a state the UI never produces, so don't create one here.
+      if (artboards.length <= 1) {
+        throw new Error(
+          'That is the only artboard — a project needs at least one. Create another first, or clear this one with delete_element.'
+        );
+      }
+      const remaining = artboards.filter((ab) => ab.id !== boardId);
+      // handleArtboardsUpdate clears the selection when the active board is
+      // gone; point it at a surviving board so later calls without an explicit
+      // artboardId still have a target.
+      const nextActiveId = activeArtboardId === boardId ? remaining[0]?.id ?? null : activeArtboardId;
+      handleArtboardsUpdate(remaining);
+      if (nextActiveId !== activeArtboardId) setActiveArtboardId(nextActiveId);
+      return { deletedId: boardId, artboards: summarizeArtboards(remaining, nextActiveId) };
+    },
+    duplicateArtboard: ({ artboardId, name, index }) => {
+      const boardId = resolveBoardId(artboardId);
+      const source = artboards.find((ab) => ab.id === boardId);
+      if (!source) return null;
+      const stamp = Date.now();
+      const copy: ArtboardState = {
+        ...JSON.parse(JSON.stringify(source)),
+        id: `artboard_${stamp}`,
+        name: name?.trim() || `${source.name} copy`,
+        // Fresh element ids: the copy has to be independently addressable, or
+        // update_element would hit whichever board came first.
+        elements: source.elements.map((el, i) => ({
+          ...JSON.parse(JSON.stringify(el)),
+          id: `el_${stamp}_${i}_${Math.random().toString(36).slice(2, 7)}`,
+        })),
+      };
+      const sourceIndex = artboards.findIndex((ab) => ab.id === boardId);
+      const at = typeof index === 'number'
+        ? Math.max(0, Math.min(artboards.length, Math.round(index)))
+        : sourceIndex + 1;
+      const next = [...artboards];
+      next.splice(at, 0, copy);
+      handleArtboardsUpdate(next);
+      setActiveArtboardId(copy.id);
+      return {
+        id: copy.id,
+        name: copy.name,
+        width: copy.size.width,
+        height: copy.size.height,
+        backgroundColor: copy.backgroundColor,
+        elementCount: copy.elements.length,
+        active: true,
+      };
+    },
     addElement: ({ artboardId, type, subType, props }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
@@ -2399,6 +2568,27 @@ const generateRandomProjectName = (): string => {
       );
       setActiveArtboardId(boardId);
       return { id: element.id };
+    },
+    addElements: ({ artboardId, elements }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) throw new Error('No artboard to add to. Create one first with create_artboard.');
+      // Build every element before touching state: one bad entry aborts the
+      // whole call, so a batch can never leave a half-populated board.
+      const built = elements.map((spec, i) => {
+        const element = buildMcpElement(spec.type as ElementType, spec.subType, (spec.props ?? {}) as Record<string, any>, board);
+        if (!element) {
+          throw new Error(`elements[${i}]: could not create a "${spec.type}" element (shapes and devices need a subType).`);
+        }
+        // buildMcpElement stamps ids from Date.now(), so a same-millisecond
+        // batch would collide without the index.
+        return { ...element, id: `${element.id}_${i}` } as ArtboardElement;
+      });
+      handleArtboardsUpdate(
+        artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: [...ab.elements, ...built] } : ab))
+      );
+      setActiveArtboardId(boardId);
+      return { ids: built.map((el) => el.id) };
     },
     updateElement: ({ artboardId, elementId, props }) => {
       const boardId = resolveBoardId(artboardId);
@@ -2420,6 +2610,165 @@ const generateRandomProjectName = (): string => {
       if (selectedElementIdOnActiveArtboard === elementId) setSelectedElementIdOnActiveArtboard(null);
       return true;
     },
+    reorderElement: ({ artboardId, elementId, action, index }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      const from = board?.elements.findIndex((el) => el.id === elementId) ?? -1;
+      if (!board || from < 0) return null;
+      const last = board.elements.length - 1;
+      let to = from;
+      if (typeof index === 'number') to = Math.round(index);
+      else if (action === 'front') to = last;
+      else if (action === 'back') to = 0;
+      else if (action === 'forward') to = from + 1;
+      else if (action === 'backward') to = from - 1;
+      to = Math.max(0, Math.min(last, to));
+
+      const elements = [...board.elements];
+      const [moved] = elements.splice(from, 1);
+      elements.splice(to, 0, moved);
+      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)));
+      return { index: to, total: elements.length };
+    },
+    measureElement: ({ artboardId, elementId }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      const element = board?.elements.find((el) => el.id === elementId);
+      if (!board || !element) return null;
+      const boardNode = document.querySelector(`[data-artboard-dom-id="${boardId}"]`) as HTMLElement | null;
+      const elementNode = boardNode?.querySelector(`[data-element-id="${elementId}"]`) as HTMLElement | null;
+      if (!boardNode || !elementNode) return null;
+
+      // The canvas draws artboards at 0.3 (times any zoom), so everything the
+      // DOM reports has to be divided back into artboard pixels. Deriving the
+      // factor from the rendered width covers every transform above us.
+      const boardRect = boardNode.getBoundingClientRect();
+      const factor = boardRect.width / board.size.width || 1;
+      const toArtboard = (rect: DOMRect) => ({
+        x: Math.round((rect.left - boardRect.left) / factor),
+        y: Math.round((rect.top - boardRect.top) / factor),
+        width: Math.round(rect.width / factor),
+        height: Math.round(rect.height / factor),
+      });
+
+      const box = toArtboard(elementNode.getBoundingClientRect());
+      const declared = {
+        x: Math.round(element.position.x),
+        y: Math.round(element.position.y),
+        width: Math.round(element.size.width * (element.scale || 1)),
+        height: Math.round(element.size.height * (element.scale || 1)),
+      };
+      const measurement: McpElementMeasurement = {
+        elementId,
+        artboardId: boardId,
+        type: element.type,
+        box,
+        declared,
+        artboard: { width: board.size.width, height: board.size.height },
+      };
+
+      if (element.type === 'text') {
+        const body = elementNode.querySelector('[data-text-body]');
+        if (body) {
+          // A range over the text node gives the union of the line boxes, i.e.
+          // where the glyphs really are — which is the whole point of this
+          // tool, since the copy is centred and can wrap or clip.
+          const range = document.createRange();
+          range.selectNodeContents(body);
+          const ink = range.getBoundingClientRect();
+          range.detach?.();
+          if (ink.width > 0 || ink.height > 0) {
+            measurement.textBox = toArtboard(ink);
+            measurement.clipped =
+              measurement.textBox.height > box.height + 1 || measurement.textBox.width > box.width + 1;
+          }
+        }
+        measurement.renderedFontSize = Math.round(element.fontSize / DISPLAY_SCALE_FACTOR);
+      }
+      return measurement;
+    },
+    groupElements: ({ artboardId, elementIds, groupId, clear }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) return null;
+      const wanted = new Set(elementIds);
+      const hit = board.elements.filter((el) => wanted.has(el.id)).map((el) => el.id);
+      if (hit.length === 0) return null;
+      const nextGroupId = clear ? undefined : groupId?.trim() || `group_${Date.now().toString(36)}`;
+      handleArtboardsUpdate(
+        artboards.map((ab) =>
+          ab.id === boardId
+            ? {
+                ...ab,
+                elements: ab.elements.map((el) =>
+                  wanted.has(el.id) ? ({ ...el, groupId: nextGroupId } as ArtboardElement) : el
+                ),
+              }
+            : ab
+        )
+      );
+      return { groupId: nextGroupId ?? null, elementIds: hit };
+    },
+    transformElements: ({ artboardId, elementIds, groupId, dx, dy, x, y, scale }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) return null;
+      const wanted = new Set(elementIds ?? []);
+      const members = board.elements.filter(
+        (el) => (groupId && el.groupId === groupId) || wanted.has(el.id)
+      );
+      if (members.length === 0) return null;
+
+      // Bounding box of the set, in artboard px, so a scale keeps the
+      // arrangement's centre and a move can be expressed as a corner.
+      const left = Math.min(...members.map((el) => el.position.x));
+      const top = Math.min(...members.map((el) => el.position.y));
+      const right = Math.max(...members.map((el) => el.position.x + el.size.width * (el.scale || 1)));
+      const bottom = Math.max(...members.map((el) => el.position.y + el.size.height * (el.scale || 1)));
+      const centerX = (left + right) / 2;
+      const centerY = (top + bottom) / 2;
+      const factor = typeof scale === 'number' && scale > 0 ? scale : 1;
+      // Scale happens first, so x/y have to be measured against the edges the
+      // group will have AFTER scaling — otherwise combining scale with x/y
+      // lands the box short of where the caller asked for it.
+      const scaledLeft = centerX + (left - centerX) * factor;
+      const scaledTop = centerY + (top - centerY) * factor;
+      const shiftX = (typeof x === 'number' ? x - scaledLeft : 0) + (dx ?? 0);
+      const shiftY = (typeof y === 'number' ? y - scaledTop : 0) + (dy ?? 0);
+
+      const ids = new Set(members.map((el) => el.id));
+      const elements = board.elements.map((el) => {
+        if (!ids.has(el.id)) return el;
+        // Scale about the group centre first, then translate, so the two can
+        // be combined in one call without the order surprising the caller.
+        const position = {
+          x: centerX + (el.position.x - centerX) * factor + shiftX,
+          y: centerY + (el.position.y - centerY) * factor + shiftY,
+        };
+        if (factor === 1) return { ...el, position } as ArtboardElement;
+        // Text ignores element.scale when it draws (see scaleElementsToCanvas),
+        // so its box and font size have to be scaled directly instead.
+        if (el.type === 'text') {
+          return {
+            ...el,
+            position,
+            size: { width: el.size.width * factor, height: el.size.height * factor },
+            fontSize: el.fontSize * factor,
+          } as ArtboardElement;
+        }
+        return { ...el, position, scale: (el.scale || 1) * factor } as ArtboardElement;
+      });
+      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)));
+      return {
+        elementIds: [...ids],
+        bounds: {
+          x: Math.round(scaledLeft + shiftX),
+          y: Math.round(scaledTop + shiftY),
+          width: Math.round((right - left) * factor),
+          height: Math.round((bottom - top) * factor),
+        },
+      };
+    },
     setBackground: ({ artboardId, backgroundColor, gradient }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
@@ -2433,35 +2782,35 @@ const generateRandomProjectName = (): string => {
       handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)));
       return true;
     },
-    exportPng: async ({ artboardId }) => {
+    exportPng: async ({ artboardId, scale, save, directory, fileName, includeImage }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
       if (!board) throw new Error('No such artboard.');
-      const el = document.querySelector(`[data-artboard-dom-id="${boardId}"]`) as HTMLElement | null;
-      if (!el) throw new Error('That artboard is not on screen; open the project in the app first.');
-      // Same capture recipe as the Export dialog: unscale, exclude editor chrome,
-      // render at the artboard's real pixel size, then restore the styles.
-      const original = { transform: el.style.transform, width: el.style.width, height: el.style.height };
-      el.style.transform = 'scale(1)';
-      try {
-        const dataUrl = await toPng(el, {
-          width: board.size.width,
-          height: board.size.height,
-          backgroundColor: board.backgroundColor === 'hsl(var(--card))' || !board.backgroundColor ? 'white' : board.backgroundColor,
-          pixelRatio: 1,
-          cacheBust: true,
-          filter: (node) => {
-            const n = node as HTMLElement;
-            return !(n?.hasAttribute?.('data-export-exclude') || n?.hasAttribute?.('data-interaction-handle'));
-          },
-          style: { width: `${board.size.width}px`, height: `${board.size.height}px` },
-        });
-        return { dataUrl, width: board.size.width, height: board.size.height };
-      } finally {
-        el.style.transform = original.transform;
-        el.style.width = original.width;
-        el.style.height = original.height;
+      return captureArtboardForMcp(board, {
+        scale,
+        save,
+        directory,
+        fileName,
+        includeImage: includeImage ?? !save,
+      });
+    },
+    exportAll: async ({ scale, save, directory, includeImage }) => {
+      if (artboards.length === 0) return [];
+      const shouldSave = save !== false;
+      const results: McpExportResult[] = [];
+      const padTo = Math.max(2, String(artboards.length).length);
+      for (const [index, board] of artboards.entries()) {
+        results.push(
+          await captureArtboardForMcp(board, {
+            scale,
+            save: shouldSave,
+            directory,
+            fileName: `${String(index + 1).padStart(padTo, '0')}_${board.name}`,
+            includeImage: includeImage ?? false,
+          })
+        );
       }
+      return results;
     },
 
     // -- Templates and projects ----------------------------------------------

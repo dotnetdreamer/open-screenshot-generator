@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon } from 'lucide-react';
 import { saveMedia } from '@/lib/mediaStore';
+import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -152,23 +153,9 @@ const gradientPresets = [
   { color1: '#5D4157', color2: '#A8CABA', angle: 135 }, // Mauve to Pastel Green
 ];
 
-const DEFAULT_GRADIENT = { color1: '#00F260', color2: '#0575E6', angle: 45 };
-
-// Projects can arrive from imports, older saves or the MCP server with a
-// half-filled backgroundGradient, so fill the gaps before it reaches state.
-const normalizeGradient = (
-  gradient?: Partial<NonNullable<ArtboardState['backgroundGradient']>> | null
-) => ({
-  color1: typeof gradient?.color1 === 'string' && gradient.color1
-    ? gradient.color1
-    : DEFAULT_GRADIENT.color1,
-  color2: typeof gradient?.color2 === 'string' && gradient.color2
-    ? gradient.color2
-    : DEFAULT_GRADIENT.color2,
-  angle: typeof gradient?.angle === 'number' && Number.isFinite(gradient.angle)
-    ? gradient.angle
-    : DEFAULT_GRADIENT.angle,
-});
+// DEFAULT_GRADIENT / normalizeGradient live in @/lib/artboardBackground so the
+// panel, the canvas renderer and the PNG export all repair a half-filled
+// gradient the same way. See the note there on why that matters.
 
 export function PropertiesPanel({
   selectedElement, 

@@ -12,6 +12,7 @@ import { VideoDeviceElement } from './elements/VideoDeviceElement';
 import { GestureElement } from './elements/GestureElement';
 import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
+import { artboardBackground } from '@/lib/artboardBackground';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { Input } from '@/components/ui/input';
@@ -110,24 +111,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     }
   };
 
-  // Function to get background style that handles CSS variables properly
-  const getBackgroundStyle = (): React.CSSProperties => {
-    if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
-      const { color1, color2, angle } = artboard.backgroundGradient;
-      return {
-        background: `linear-gradient(${angle}deg, ${color1}, ${color2})`,
-      };
-    }
-    
-    // For solid background
-    const backgroundColor = artboard.backgroundColor;
-    // If it's a CSS variable, use it directly
-    if (backgroundColor?.toLowerCase().includes('var(') || backgroundColor?.toLowerCase().includes('hsl')) {
-      return { backgroundColor: 'white' }; // Default to white
-    }
-    
-    return { backgroundColor };
-  };
+  // Function to get background style that handles CSS variables properly.
+  // artboardBackground also repairs a half-filled gradient: an incomplete one
+  // computes to background-image:none, which is how a board ends up rendering
+  // (and exporting) flat white with nothing reporting an error.
+  const getBackgroundStyle = (): React.CSSProperties => artboardBackground(artboard);
 
   const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>(getBackgroundStyle());
 
@@ -136,18 +124,9 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     isClientInitialized.current = true;
     
     setElements(artboard.elements);
-    
+
     // Compute background style based on artboard settings
-    const newBackgroundStyle: React.CSSProperties = {};
-
-    if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
-      const { color1, color2, angle } = artboard.backgroundGradient;
-      newBackgroundStyle.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
-    } else {
-      newBackgroundStyle.backgroundColor = artboard.backgroundColor || 'hsl(var(--card))';
-    }
-
-    setBackgroundStyle(newBackgroundStyle);
+    setBackgroundStyle(artboardBackground(artboard));
   }, [artboard.elements, artboard.backgroundType, artboard.backgroundColor, artboard.backgroundGradient]);
 
   useImperativeHandle(ref, () => ({

@@ -63,6 +63,15 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
   // Calculate line height - could be a number (multiplier) or px value
   const lineHeightValue = element.lineHeight || 1.2;
 
+  // Tracking is expressed in the same units as fontSize, so it has to follow
+  // whichever compensation the branch below applies to fontSize — /0.3 for the
+  // rendered text, *scale for the inline editor's textarea. Using one factor
+  // for both branches would make the tracking jump on a double-click.
+  const trackedSpacing = (fontScale: number) =>
+    typeof element.letterSpacing === 'number' && element.letterSpacing !== 0
+      ? `${element.letterSpacing * fontScale}px`
+      : undefined;
+
   if (isEditing) {
     return (
       <textarea
@@ -85,6 +94,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
           fontSize: `${dynamicFontSize}px`,
           color: element.color,
           lineHeight: lineHeightValue,
+          letterSpacing: trackedSpacing(element.scale),
           fontWeight: element.fontWeight || 'normal',
           fontStyle: element.fontStyle || 'normal',
           textDecoration: element.textDecoration || 'none',
@@ -98,6 +108,10 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
 
   return (
     <div
+      // Marks the node whose contents the MCP measure_element tool ranges over
+      // to report the real glyph box (which no caller can predict from
+      // fontSize alone, given the /0.3 compensation and the wrapping).
+      data-text-body
       className="w-full h-full flex items-center justify-center"
       onDoubleClick={handleDoubleClick}
       style={{
@@ -111,6 +125,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
         lineHeight: lineHeightValue,
+        letterSpacing: trackedSpacing(1 / displayScaleFactor),
         fontWeight: element.fontWeight || 'normal',
         fontStyle: element.fontStyle || 'normal',
         textDecoration: element.textDecoration || 'none',

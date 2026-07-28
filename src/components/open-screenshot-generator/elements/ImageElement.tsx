@@ -117,7 +117,9 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
             fill
             style={{
               objectFit: element.objectFit || 'cover',
-              opacity: element.opacity || 1,
+              // opacity is NOT applied here: it lives on BaseElement now and is
+              // applied once around the whole element (src/lib/elementStyle.ts).
+              // Setting it in both places multiplied it — 0.5 rendered as 0.25.
               borderRadius: element.borderRadius ? `${element.borderRadius}px` : '0px'
             }}
             className="transition-opacity duration-200"

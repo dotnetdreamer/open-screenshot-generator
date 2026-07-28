@@ -21,6 +21,7 @@ import type {
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { getMediaAsset, getMediaUrl } from '@/lib/mediaStore';
+import { normalizeGradient } from '@/lib/artboardBackground';
 import { withBasePath } from '@/lib/basePath';
 import { animationStateAt, animationEndTime } from './animation';
 import { drawGesture, gesturePhaseAt, gestureEndTime } from './gestures';
@@ -107,18 +108,33 @@ interface VideoSource {
   trimEnd: number; // absolute seconds in the source
 }
 
+/**
+ * A rasterized element. `pad` is how many artboard px of margin the capture
+ * carries on every side for a shadow or blur that paints outside the element
+ * box, so the compositor knows to draw it back at the negative offset.
+ */
+interface Sprite {
+  image: HTMLImageElement;
+  pad: number;
+}
+
+/** Draw a padded sprite so its element box lands exactly on (0, 0, w, h). */
+function drawSprite(ctx: CanvasRenderingContext2D, sprite: Sprite, w: number, h: number) {
+  ctx.drawImage(sprite.image, -sprite.pad, -sprite.pad, w + sprite.pad * 2, h + sprite.pad * 2);
+}
+
 type Layer =
-  | { kind: 'sprite'; el: ArtboardElement; sprite: HTMLImageElement }
+  | { kind: 'sprite'; el: ArtboardElement; sprite: Sprite }
   | { kind: 'video'; el: VideoElementProps; source: VideoSource }
   | {
       kind: 'device-video';
       el: VideoDeviceElementProps;
       source: VideoSource;
       // Full frame with its normal (black) screen — drawn UNDER the video.
-      chrome: HTMLImageElement;
+      chrome: Sprite;
       // Notch / island / punch-hole alone on transparency — drawn OVER the
       // video (null for devices without a cutout).
-      notch: HTMLImageElement | null;
+      notch: Sprite | null;
       // screen rect relative to the element box (unrotated px)
       screen: { x: number; y: number; width: number; height: number; radius: number };
     }
@@ -155,33 +171,55 @@ async function captureSprite(
   root: HTMLElement,
   el: ArtboardElement,
   extraFilter?: (node: Node) => boolean
-): Promise<HTMLImageElement | null> {
+): Promise<Sprite | null> {
   const node = elementNode(root, el.id);
   if (!node) return null;
   const boxW = el.size.width * (el.scale || 1);
   const boxH = el.size.height * (el.scale || 1);
+  // A drop shadow or a blur paints OUTSIDE the element box, so capturing at
+  // exactly the box size would chop the shadow off and end a glow in a hard
+  // edge. Grow the canvas by the overspill and shift the node into the middle
+  // of it; the compositor draws the sprite back at the negative offset. Zero
+  // for every element without those props, so existing projects rasterize
+  // exactly as before.
+  const pad = spriteOverspill(el);
   const prev = {
     left: node.style.left,
     top: node.style.top,
     transform: node.style.transform,
   };
-  node.style.left = '0px';
-  node.style.top = '0px';
+  node.style.left = `${pad}px`;
+  node.style.top = `${pad}px`;
   node.style.transform = 'none';
   try {
     const dataUrl = await toPng(node, {
-      width: Math.max(1, Math.round(boxW)),
-      height: Math.max(1, Math.round(boxH)),
+      width: Math.max(1, Math.round(boxW + pad * 2)),
+      height: Math.max(1, Math.round(boxH + pad * 2)),
       pixelRatio: 1,
       cacheBust: true,
       filter: extraFilter ? (n: Node) => SPRITE_FILTER(n) && extraFilter(n) : SPRITE_FILTER,
     });
-    return await dataUrlToImage(dataUrl);
+    return { image: await dataUrlToImage(dataUrl), pad };
   } finally {
     node.style.left = prev.left;
     node.style.top = prev.top;
     node.style.transform = prev.transform;
   }
+}
+
+/**
+ * How far past its own box an element paints, in artboard px. Mirrors the CSS
+ * filters src/lib/elementStyle.ts puts on the element wrapper: a drop-shadow
+ * reaches offset + blur, and a `blur(n)` fades out to roughly 3n.
+ */
+function spriteOverspill(el: ArtboardElement): number {
+  let pad = 0;
+  if (el.shadow) {
+    const { x = 0, y = 0, blur = 0 } = el.shadow;
+    pad = Math.max(pad, Math.max(Math.abs(x), Math.abs(y)) + Math.max(0, blur));
+  }
+  if (typeof el.blur === 'number' && el.blur > 0) pad = Math.max(pad, el.blur * 3);
+  return Math.ceil(pad);
 }
 
 /**
@@ -195,7 +233,7 @@ async function captureSprite(
 async function captureNotchOverlay(
   root: HTMLElement,
   el: VideoDeviceElementProps
-): Promise<HTMLImageElement | null> {
+): Promise<Sprite | null> {
   const node = elementNode(root, el.id);
   if (!node) return null;
   const notch = node.querySelector('[data-device-notch]') as HTMLElement | null;
@@ -323,8 +361,10 @@ function drawFitted(
 
 function drawArtboardBackground(ctx: CanvasRenderingContext2D, ab: ArtboardState) {
   ctx.save();
-  if (ab.backgroundType === 'gradient' && ab.backgroundGradient) {
-    const { color1, color2, angle } = ab.backgroundGradient;
+  if (ab.backgroundType === 'gradient') {
+    // Normalised, so a half-filled gradient paints here exactly as it does on
+    // the canvas instead of throwing off the colour stops.
+    const { color1, color2, angle } = normalizeGradient(ab.backgroundGradient);
     // CSS angle: 0deg points up, 90deg right. Compute the gradient line
     // through the artboard center at that bearing.
     const rad = ((angle - 90) * Math.PI) / 180;
@@ -578,7 +618,7 @@ export async function exportArtboardVideo(
         switch (layer.kind) {
           case 'sprite':
             withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
-              ctx.drawImage(layer.sprite, 0, 0, boxW, boxH);
+              drawSprite(ctx, layer.sprite, boxW, boxH);
             });
             break;
           case 'video':
@@ -601,7 +641,7 @@ export async function exportArtboardVideo(
               const s = layer.screen;
               // Frame (black screen) first, recording clipped into the screen
               // rect over it, cutout back on top — same stack as the DOM.
-              ctx.drawImage(layer.chrome, 0, 0, boxW, boxH);
+              drawSprite(ctx, layer.chrome, boxW, boxH);
               drawFitted(
                 ctx,
                 layer.source.video,
@@ -612,7 +652,7 @@ export async function exportArtboardVideo(
                 layer.el.objectFit || 'cover',
                 s.radius
               );
-              if (layer.notch) ctx.drawImage(layer.notch, 0, 0, boxW, boxH);
+              if (layer.notch) drawSprite(ctx, layer.notch, boxW, boxH);
             });
             break;
           case 'gesture': {

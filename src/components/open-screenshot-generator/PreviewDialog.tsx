@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { XIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { artboardBackground } from '@/lib/artboardBackground';
+import { elementVisualStyle } from '@/lib/elementStyle';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
@@ -20,17 +22,10 @@ interface PreviewDialogProps {
 
 const noop = () => {};
 
-function getArtboardBackgroundStyle(artboard: ArtboardState): React.CSSProperties {
-  if (artboard.backgroundType === 'gradient' && artboard.backgroundGradient) {
-    const { color1, color2, angle } = artboard.backgroundGradient;
-    return { background: `linear-gradient(${angle}deg, ${color1}, ${color2})` };
-  }
-  const backgroundColor = artboard.backgroundColor;
-  if (!backgroundColor || backgroundColor.toLowerCase().includes('var(') || backgroundColor.toLowerCase().includes('hsl')) {
-    return { backgroundColor: '#FFFFFF' };
-  }
-  return { backgroundColor };
-}
+// Shared with the canvas and the PNG export so the preview cannot disagree
+// with what actually renders (including for a half-filled gradient).
+const getArtboardBackgroundStyle = (artboard: ArtboardState): React.CSSProperties =>
+  artboardBackground(artboard);
 
 // Renders an artboard exactly as it exports: same element components as the
 // editor canvas, but read-only and clipped to the artboard bounds.
@@ -67,6 +62,10 @@ function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: n
               height: `${element.size.height * element.scale}px`,
               transform: `rotate(${element.rotation}deg)`,
               transformOrigin: 'center center',
+              // Same shared shadow/blur/opacity the canvas applies through
+              // DraggableElement — this dialog is the other render site, and it
+              // is meant to show exactly what exports.
+              ...elementVisualStyle(element),
             }}
           >
             {element.type === 'text' && (

@@ -36,6 +36,24 @@ export interface ElementAnimation {
   exitDuration?: number; // seconds; default 0.6
 }
 
+// A drop shadow cast by an element's actual silhouette (rendered as a CSS
+// drop-shadow filter, so a star casts a star and transparent PNG edges are
+// respected). Offsets and blur are in artboard pixels, like position and size.
+export interface ElementShadow {
+  x: number;
+  y: number;
+  blur: number;
+  /** Any CSS colour, alpha included, e.g. 'rgba(0,0,0,0.35)'. */
+  color: string;
+}
+
+// A two-stop linear fill, same shape as ArtboardState['backgroundGradient'].
+export interface LinearGradient {
+  color1: string;
+  color2: string;
+  angle: number; // degrees
+}
+
 // Ensure our element types are properly defined for copy/paste operations
 export interface BaseElement {
   id: string;
@@ -46,6 +64,16 @@ export interface BaseElement {
   rotation: number; // degrees
   scale: number; // multiplier, 1 = 100%
   animation?: ElementAnimation; // App Preview video enter/exit animation
+  // Shared visual treatment, applied by DraggableElement around whatever the
+  // per-type renderer draws (see src/lib/elementStyle.ts), so every element
+  // type gets the same shadow/blur/opacity behaviour on canvas and in exports.
+  opacity?: number; // 0..1; 1 (or unset) is fully opaque
+  shadow?: ElementShadow;
+  blur?: number; // gaussian blur radius in artboard px
+  // Free-form tag shared by elements that move together (see the MCP
+  // group_elements / transform_elements tools). Purely an id: the elements
+  // stay independent layers, nothing nests.
+  groupId?: string;
 }
 
 export interface TextElementProps extends BaseElement {
@@ -59,6 +87,9 @@ export interface TextElementProps extends BaseElement {
   textDecoration?: string; // 'none', 'underline', 'line-through'
   textAlign?: string; // 'left', 'center', 'right', 'justify'
   lineHeight?: number; // Line height in pixels or as a multiplier
+  // Tracking, in the same units as fontSize (both are divided by the 0.3
+  // display scale when rendered), so it stays proportional to the type.
+  letterSpacing?: number;
 }
 
 export type ShapeType =
@@ -96,6 +127,9 @@ export interface ShapeElementProps extends BaseElement {
   innerRadius?: number; // Percentage of the outer radius (0-95)
   // For fill color opacity
   fillOpacity?: number; // Opacity value from 0 to 1 (0 = transparent, 1 = opaque)
+  // Two-stop linear gradient fill. Wins over fillColor when set; fillOpacity
+  // still applies through the element's own opacity.
+  fillGradient?: LinearGradient;
 }
 
 export type DeviceType =

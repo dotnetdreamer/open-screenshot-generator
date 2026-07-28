@@ -74,7 +74,10 @@ const EXAMPLE_PROMPTS: string[] = [
   'Add a 3D iPhone tilted to the left on the active artboard, then put an App Store badge under it.',
   'Show me my recent projects, open the newest one and describe what is on each artboard.',
   'Browse the elements library for wave shapes and add one across the bottom of the artboard in #1D4ED8.',
-  'Set the active artboard background to #0B1120, make the headline 96px, then export it as a PNG.',
+  'Build one finished screenshot, then duplicate it four times and change only the headline and the mockup on each copy.',
+  'Upload this app icon once, then place it on every artboard 200px above the headline.',
+  'Give the headline a soft drop shadow, tighten its letter spacing, and tell me the real height of the text.',
+  'Export every artboard at full size into a folder and give me the file paths.',
 ];
 
 // A single example prompt with a copy button.

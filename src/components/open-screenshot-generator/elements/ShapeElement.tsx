@@ -13,35 +13,79 @@ export function ShapeElement({ element }: ShapeElementProps) {
   const scaledWidth = size.width * scale;
   const scaledHeight = size.height * scale;
   
-  // Get fill color with opacity
-  const getFillColorWithOpacity = () => {
+  // Apply fillOpacity to a colour (the shape's own alpha channel, separate
+  // from element.opacity, which fades the layer including its stroke).
+  const withFillOpacity = (color: string) => {
     if (!element.fillOpacity || element.fillOpacity === 1) {
-      return fillColor;
+      return color;
     }
-    
+
     // Convert hex color to rgba if needed
-    if (fillColor.startsWith('#')) {
-      const hex = fillColor.replace('#', '');
+    if (color.startsWith('#')) {
+      const hex = color.replace('#', '');
       const r = parseInt(hex.substr(0, 2), 16);
       const g = parseInt(hex.substr(2, 2), 16);
       const b = parseInt(hex.substr(4, 2), 16);
       return `rgba(${r}, ${g}, ${b}, ${element.fillOpacity})`;
     }
-    
+
     // If already in rgba format, replace the alpha value
-    if (fillColor.startsWith('rgba')) {
-      return fillColor.replace(/[\d\.]+\)$/g, `${element.fillOpacity})`);
+    if (color.startsWith('rgba')) {
+      return color.replace(/[\d\.]+\)$/g, `${element.fillOpacity})`);
     }
-    
+
     // If in rgb format, convert to rgba
-    if (fillColor.startsWith('rgb')) {
-      return fillColor.replace('rgb', 'rgba').replace(')', `, ${element.fillOpacity})`);
+    if (color.startsWith('rgb')) {
+      return color.replace('rgb', 'rgba').replace(')', `, ${element.fillOpacity})`);
     }
-    
-    return fillColor;
+
+    return color;
   };
-  
-  const fillColorWithOpacity = getFillColorWithOpacity();
+
+  const fillColorWithOpacity = withFillOpacity(fillColor);
+
+  // Gradient fill. CSS-painted shapes (rectangle, circle, clip-path polygons)
+  // take it as a background image; SVG-painted ones (library paths, the
+  // diamond ring) need a <linearGradient> def, so both forms are derived here
+  // from the same two stops.
+  const gradient = element.fillGradient;
+  const gradientStops = gradient && typeof gradient.color1 === 'string' && typeof gradient.color2 === 'string' && typeof gradient.angle === 'number'
+    ? { from: withFillOpacity(gradient.color1), to: withFillOpacity(gradient.color2), angle: gradient.angle }
+    : null;
+  const gradientCss = gradientStops
+    ? `linear-gradient(${gradientStops.angle}deg, ${gradientStops.from}, ${gradientStops.to})`
+    : undefined;
+  // Element ids come from template JSON and user projects, so they can hold
+  // characters that are not legal in an SVG fragment id or that would break the
+  // unquoted url(#...) reference. Escaping each one to _<hex>_ keeps the
+  // mapping injective, so two different elements can never share a gradient.
+  const gradientId = `shape-fill-${element.id.replace(/[^A-Za-z0-9_-]/g, (c) => `_${c.charCodeAt(0).toString(16)}_`)}`;
+  // SVG has no angle, only endpoints: project the CSS gradient angle (0deg =
+  // upward, growing clockwise) onto the shape's bounding box.
+  const gradientVector = gradientStops
+    ? (() => {
+        const rad = (gradientStops.angle * Math.PI) / 180;
+        const dx = Math.sin(rad) / 2;
+        const dy = Math.cos(rad) / 2;
+        return { x1: 0.5 - dx, y1: 0.5 + dy, x2: 0.5 + dx, y2: 0.5 - dy };
+      })()
+    : null;
+  // What to hand a `fill=` / `stroke=` attribute, and what to hand a
+  // `background` — a gradient when there is one, the solid fill otherwise.
+  const svgPaint = gradientStops ? `url(#${gradientId})` : fillColorWithOpacity;
+  const cssFillBackground: React.CSSProperties = gradientCss
+    ? { backgroundImage: gradientCss }
+    : { backgroundColor: fillColorWithOpacity };
+
+  const GradientDef = () =>
+    gradientVector ? (
+      <defs>
+        <linearGradient id={gradientId} x1={gradientVector.x1} y1={gradientVector.y1} x2={gradientVector.x2} y2={gradientVector.y2}>
+          <stop offset="0%" stopColor={gradientStops!.from} />
+          <stop offset="100%" stopColor={gradientStops!.to} />
+        </linearGradient>
+      </defs>
+    ) : null;
 
   const commonStyles: React.CSSProperties = {
     width: '100%',
@@ -120,7 +164,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
           style={{
             width: '100%',
             height: '100%',
-            backgroundColor: fillColorWithOpacity,
+            ...cssFillBackground,
             border: strokeWidth > 0 ? `${strokeWidth}px solid ${element.strokeColor}` : 'none',
             borderRadius: getBorderRadius(),
           }}
@@ -133,7 +177,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             <div
               style={{
                 ...commonStyles,
-                backgroundColor: fillColorWithOpacity,
+                ...cssFillBackground,
                 border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
                 borderRadius: '50%',
                 WebkitMask: `radial-gradient(circle at center, transparent ${element.innerRadius}%, black ${element.innerRadius + 1}%)`,
@@ -145,7 +189,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             <div
               style={{
                 ...commonStyles,
-                backgroundColor: fillColorWithOpacity,
+                ...cssFillBackground,
                 border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
                 borderRadius: '50%',
               }}
@@ -183,11 +227,12 @@ export function ShapeElement({ element }: ShapeElementProps) {
             viewBox={special.viewBox || '0 0 100 100'}
             preserveAspectRatio="none"
           >
+            <GradientDef />
             <path
               d={element.customPath}
-              fill={strokeOnly ? 'none' : fillColorWithOpacity}
+              fill={strokeOnly ? 'none' : svgPaint}
               fillRule={special.fillRule === 'evenodd' ? 'evenodd' : undefined}
-              stroke={strokeOnly ? fillColorWithOpacity : (strokeWidth > 0 ? strokeColor : 'none')}
+              stroke={strokeOnly ? svgPaint : (strokeWidth > 0 ? strokeColor : 'none')}
               strokeWidth={effectiveStrokeWidth > 0 ? effectiveStrokeWidth : undefined}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -210,6 +255,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
             >
+              <GradientDef />
               {/* Use a single path with fill-rule to create the ring effect */}
               <path
                 d={`
@@ -219,7 +265,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
                   L 50 ${50 + (40 * element.innerRadius / 100)} 
                   L ${50 + (40 * element.innerRadius / 100)} 50 Z
                 `}
-                fill={fillColorWithOpacity}
+                fill={svgPaint}
                 stroke={strokeWidth > 0 ? strokeColor : 'none'}
                 strokeWidth={strokeWidth}
                 vectorEffect="non-scaling-stroke"
@@ -231,7 +277,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
             <div
               style={{
                 ...commonStyles,
-                backgroundColor: fillColorWithOpacity,
+                ...cssFillBackground,
                 border: strokeWidth > 0 ? `${strokeWidth}px solid ${strokeColor}` : 'none',
                 clipPath: getClipPath(),
               }}

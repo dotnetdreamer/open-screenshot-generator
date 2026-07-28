@@ -43,10 +43,33 @@ const MCP_REQUEST_EVENT: &str = "abs-mcp-request";
 const DEFAULT_PORT: u16 = 8722;
 const PORT_SCAN: u16 = 20;
 
-/// How long a bridged request waits for the frontend before it gives up. Large
-/// because a tool like `export_png` renders the canvas, but bounded so a stuck
-/// UI cannot hang an HTTP client forever.
-const RESPONSE_TIMEOUT: Duration = Duration::from_secs(180);
+/// How long a bridged request waits for the frontend before it gives up.
+///
+/// Short on purpose. MCP clients keep one HTTP connection alive and tiny_http
+/// only reads the next request on a connection once the current one has been
+/// answered, so a single tool call the webview never answers stalls *every*
+/// later request behind it — `initialize` included. With the old flat 180s
+/// budget that read as a permanently wedged server that only an app restart
+/// fixed. A tight default means one bad call costs one bad call.
+const RESPONSE_TIMEOUT: Duration = Duration::from_secs(12);
+
+/// Budget for the tools that genuinely take a while: rendering the canvas,
+/// writing a file, or rebuilding the whole project.
+const SLOW_RESPONSE_TIMEOUT: Duration = Duration::from_secs(180);
+
+/// `tools/call` names that get SLOW_RESPONSE_TIMEOUT. Keep in sync with the
+/// tool table in src/lib/mcp/desktopMcpServer.ts — a name missing from here
+/// just gets the short budget, which is the safe direction to be wrong in.
+const SLOW_TOOLS: &[&str] = &[
+    "export_png",
+    "export_all",
+    "create_project_from_template",
+    "open_project",
+    "upload_asset",
+    "add_elements",
+    "duplicate_artboard",
+    "update_artboard",
+];
 
 /// Max request body we will buffer (generous for base64 image arguments).
 const MAX_BODY: u64 = 32 * 1024 * 1024;
@@ -282,6 +305,20 @@ fn session_id(next_id: &AtomicU64) -> String {
     format!("abs-mcp-{}", next_id.fetch_add(1, Ordering::Relaxed))
 }
 
+/// How long this particular message may take. Everything is on the tight
+/// default except the handful of tools that render or persist.
+fn timeout_for(message: &Value) -> Duration {
+    if message.get("method").and_then(Value::as_str) != Some("tools/call") {
+        return RESPONSE_TIMEOUT;
+    }
+    let name = message.pointer("/params/name").and_then(Value::as_str).unwrap_or_default();
+    if SLOW_TOOLS.contains(&name) {
+        SLOW_RESPONSE_TIMEOUT
+    } else {
+        RESPONSE_TIMEOUT
+    }
+}
+
 /// Forward one JSON-RPC request to the frontend and block for its reply.
 fn bridge_request<R: Runtime>(
     app: &AppHandle<R>,
@@ -295,6 +332,7 @@ fn bridge_request<R: Runtime>(
         return rpc_error(id, -32000, "the Open Screenshot Generator window is not available");
     }
 
+    let timeout = timeout_for(&message);
     let call_id = format!("call-{}", next_id.fetch_add(1, Ordering::Relaxed));
     let (tx, rx) = channel::<Value>();
     pending.lock().unwrap().insert(call_id.clone(), tx);
@@ -305,12 +343,71 @@ fn bridge_request<R: Runtime>(
         return rpc_error(id, -32000, "could not reach the app UI");
     }
 
-    let result = match rx.recv_timeout(RESPONSE_TIMEOUT) {
+    // On timeout the pending entry is dropped below, so a late reply is simply
+    // discarded and the connection is free again immediately: the client can
+    // retry (or call anything else) without restarting the app.
+    let result = match rx.recv_timeout(timeout) {
         Ok(v) => v,
-        Err(_) => rpc_error(id, -32001, "the app did not respond in time"),
+        Err(_) => rpc_error(
+            id,
+            -32001,
+            &format!(
+                "the app did not answer within {}s, so the call was dropped. The server is still running — try again.",
+                timeout.as_secs()
+            ),
+        ),
     };
     pending.lock().unwrap().remove(&call_id);
     result
+}
+
+/// Write an exported image to disk for the `export_png` / `export_all` tools.
+///
+/// Goes through Rust rather than the JS fs plugin because that plugin's scope
+/// only opens up for paths the *user* picked in a dialog, and an MCP export is
+/// unattended. `directory` defaults to "Open Screenshot Generator" under the
+/// user's Downloads folder, and the name is sanitised to a bare `.png` file, so
+/// a tool call cannot pick the path apart to write somewhere unexpected.
+#[tauri::command]
+pub fn abs_mcp_write_png<R: Runtime>(
+    app: AppHandle<R>,
+    directory: Option<String>,
+    file_name: String,
+    data_base64: String,
+) -> Result<String, String> {
+    use base64::Engine;
+    use std::path::PathBuf;
+
+    let dir: PathBuf = match directory.filter(|d| !d.trim().is_empty()) {
+        Some(d) => PathBuf::from(d),
+        None => app
+            .path()
+            .download_dir()
+            .map_err(|e| format!("could not find your Downloads folder: {e}"))?
+            .join("Open Screenshot Generator"),
+    };
+
+    // Keep the caller to a file name: no separators, no traversal, always .png.
+    let base = file_name.rsplit(['/', '\\']).next().unwrap_or_default();
+    // `is_char_boundary` is not optional: slicing 4 bytes off the end of a name
+    // like "Écran.png" would land mid-codepoint and panic, and the release
+    // profile aborts on panic, so one artboard named in a non-ASCII language
+    // would take the whole app down.
+    let base = match base.len().checked_sub(4) {
+        Some(cut) if base.is_char_boundary(cut) && base[cut..].eq_ignore_ascii_case(".png") => &base[..cut],
+        _ => base,
+    };
+    let stem = base.replace([':', '*', '?', '"', '<', '>', '|'], "_");
+    let stem = if stem.trim().is_empty() { "artboard".to_string() } else { stem };
+
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(data_base64.as_bytes())
+        .map_err(|e| format!("the image data was not valid base64: {e}"))?;
+
+    std::fs::create_dir_all(&dir).map_err(|e| format!("could not create {}: {e}", dir.display()))?;
+    let path = dir.join(format!("{stem}.png"));
+    std::fs::write(&path, bytes).map_err(|e| format!("could not write {}: {e}", path.display()))?;
+    Ok(path.to_string_lossy().into_owned())
 }
 
 // ---------------------------------------------------------------------------

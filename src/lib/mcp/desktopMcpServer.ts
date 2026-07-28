@@ -19,6 +19,14 @@ import {
   resolveLibraryItem,
   type LibraryKind,
 } from '@/lib/mcp/assetLibrary';
+import {
+  deleteImageAsset,
+  listImageAssets,
+  resolveAssetProps,
+  saveImageAsset,
+  type StoredAsset,
+} from '@/lib/mcp/assetStore';
+import { ALL_FONTS } from '@/services/fontService';
 import type {
   ArtboardState,
   ElementType,
@@ -94,6 +102,59 @@ export interface McpProjectResult {
   warnings: string[];
 }
 
+/** A rectangle in artboard pixels (top-left origin). */
+export interface McpBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * What an element actually occupies once rendered — the thing no caller can
+ * work out from the stored props alone, because text is laid out at
+ * fontSize/0.3 and wraps inside its box.
+ */
+export interface McpElementMeasurement {
+  elementId: string;
+  artboardId: string;
+  type: string;
+  /** Axis-aligned bounds of the rendered element (includes rotation). */
+  box: McpBox;
+  /** What the stored props ask for: position and size × scale. */
+  declared: McpBox;
+  /** Text only: the box the glyphs really fill. */
+  textBox?: McpBox;
+  /** Text only: glyph size in artboard px (≈ 3.33 × the stored fontSize). */
+  renderedFontSize?: number;
+  /** Text only: the copy is taller/wider than its box and is being clipped. */
+  clipped?: boolean;
+  artboard: { width: number; height: number };
+}
+
+/** One rendered artboard, returned inline, written to disk, or both. */
+export interface McpExportResult {
+  artboardId: string;
+  name: string;
+  /** Output pixel size (artboard size × scale). */
+  width: number;
+  height: number;
+  scale: number;
+  /** Where it was written, when saving to disk was asked for. */
+  path?: string;
+  /** The PNG itself, when it was asked for inline. */
+  dataUrl?: string;
+  /** Size of the encoded PNG, so a caller can see what a scale change saved. */
+  bytes: number;
+}
+
+/** One element to create in a batch. */
+export interface McpElementSpec {
+  type?: ElementType;
+  subType?: string;
+  props: Record<string, unknown>;
+}
+
 export interface McpDesignApi {
   /** Lightweight list of every artboard on the canvas. */
   listArtboards(): McpArtboardSummary[];
@@ -109,6 +170,22 @@ export interface McpDesignApi {
   }): McpArtboardSummary;
   /** Make an artboard the active/selected one. */
   setActiveArtboard(id: string): boolean;
+  /** Rename, resize and/or reorder an artboard. Null when the id is unknown. */
+  updateArtboard(input: {
+    artboardId?: string;
+    name?: string;
+    width?: number;
+    height?: number;
+    preset?: string;
+    /** New position in the canvas order (0-based). */
+    index?: number;
+    /** Scale the elements with the canvas on a resize (default true). */
+    scaleContent?: boolean;
+  }): McpArtboardSummary | null;
+  /** Remove an artboard. Null when the id is unknown. */
+  deleteArtboard(input: { artboardId?: string }): { deletedId: string; artboards: McpArtboardSummary[] } | null;
+  /** Copy an artboard (elements included) and insert the copy after it. */
+  duplicateArtboard(input: { artboardId?: string; name?: string; index?: number }): McpArtboardSummary | null;
   /** Add an element; returns the new element id. */
   addElement(input: {
     artboardId?: string;
@@ -116,6 +193,8 @@ export interface McpDesignApi {
     subType?: string;
     props?: Record<string, unknown>;
   }): { id: string };
+  /** Add several elements in one state update (all or nothing). */
+  addElements(input: { artboardId?: string; elements: McpElementSpec[] }): { ids: string[] };
   /** Merge props into an existing element. */
   updateElement(input: {
     artboardId?: string;
@@ -124,14 +203,55 @@ export interface McpDesignApi {
   }): boolean;
   /** Remove an element. */
   deleteElement(input: { artboardId?: string; elementId: string }): boolean;
+  /** Move an element through the stack (z-order is array order). */
+  reorderElement(input: {
+    artboardId?: string;
+    elementId: string;
+    action?: 'front' | 'back' | 'forward' | 'backward';
+    index?: number;
+  }): { index: number; total: number } | null;
+  /** Measure what an element really occupies on the rendered canvas. */
+  measureElement(input: { artboardId?: string; elementId: string }): McpElementMeasurement | null;
+  /** Tag elements so they can be moved as one. Pass clear to untag them. */
+  groupElements(input: {
+    artboardId?: string;
+    elementIds: string[];
+    groupId?: string;
+    clear?: boolean;
+  }): { groupId: string | null; elementIds: string[] } | null;
+  /** Move/scale a set of elements together, about the set's bounding box. */
+  transformElements(input: {
+    artboardId?: string;
+    elementIds?: string[];
+    groupId?: string;
+    dx?: number;
+    dy?: number;
+    x?: number;
+    y?: number;
+    scale?: number;
+  }): { elementIds: string[]; bounds: McpBox } | null;
   /** Set an artboard's solid colour or gradient background. */
   setBackground(input: {
     artboardId?: string;
     backgroundColor?: string;
     gradient?: { color1: string; color2: string; angle: number };
   }): boolean;
-  /** Render an artboard to a PNG data URL. */
-  exportPng(input: { artboardId?: string }): Promise<{ dataUrl: string; width: number; height: number }>;
+  /** Render one artboard to a PNG (inline, on disk, or both). */
+  exportPng(input: {
+    artboardId?: string;
+    scale?: number;
+    save?: boolean;
+    directory?: string;
+    fileName?: string;
+    includeImage?: boolean;
+  }): Promise<McpExportResult>;
+  /** Render every artboard, normally straight to a folder. */
+  exportAll(input: {
+    scale?: number;
+    save?: boolean;
+    directory?: string;
+    includeImage?: boolean;
+  }): Promise<McpExportResult[]>;
 
   // -- Templates and projects -------------------------------------------------
 
@@ -193,8 +313,34 @@ function textResult(value: unknown): ToolResult {
   return { content: [{ type: 'text', text }], structuredContent: typeof value === 'string' ? undefined : value };
 }
 
+/**
+ * Render export results as MCP content: the summary as text (paths, sizes) plus
+ * an image block per file that asked to come back inline. The data URLs are
+ * stripped out of the summary — they are the payload, not metadata.
+ */
+function exportResultContent(results: McpExportResult[]): ToolResult {
+  const content: ToolContent[] = [];
+  for (const result of results) {
+    if (result.dataUrl) {
+      content.push({
+        type: 'image',
+        data: result.dataUrl.replace(/^data:image\/png;base64,/, ''),
+        mimeType: 'image/png',
+      });
+    }
+  }
+  const summary = results.map(({ dataUrl, ...rest }) => rest);
+  content.push({ type: 'text', text: JSON.stringify(summary.length === 1 ? summary[0] : summary, null, 2) });
+  return { content, structuredContent: summary.length === 1 ? summary[0] : { files: summary } };
+}
+
 // Collect the flat element-property arguments shared by add/update into the
 // nested { position, size, ...props } shape the design API expects.
+//
+// An explicit null means "clear this property" and becomes undefined, which the
+// spread in updateElement drops off the element (and JSON.stringify then leaves
+// out of the saved project). That is the only way to take a shadow or a
+// gradient fill back off once it is set.
 function collectElementProps(args: Record<string, any>): Record<string, unknown> {
   const {
     artboardId, elementId, type, subType, id, libraryId, // routing keys, not element props
@@ -203,7 +349,7 @@ function collectElementProps(args: Record<string, any>): Record<string, unknown>
   void artboardId; void elementId; void type; void subType; void id; void libraryId;
   const props: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(rest)) {
-    if (v !== undefined && v !== null) props[k] = v;
+    if (v !== undefined) props[k] = v === null ? undefined : v;
   }
   if (x !== undefined || y !== undefined) {
     props.position = { x: Number(x ?? 0), y: Number(y ?? 0) } as Point;
@@ -212,6 +358,51 @@ function collectElementProps(args: Record<string, any>): Record<string, unknown>
     props.size = { width: Number(width), height: Number(height) } as Size;
   }
   return props;
+}
+
+// ---------------------------------------------------------------------------
+// Fonts. An unknown family used to fall through to the browser's default serif
+// with no complaint, so a design would silently render in the wrong typeface.
+// ---------------------------------------------------------------------------
+
+const FONT_FAMILIES = ALL_FONTS.map((f) => f.family);
+const FONT_BY_LOWER = new Map(FONT_FAMILIES.map((f) => [f.toLowerCase(), f]));
+
+/** Nearest known families to a miss, for the error message. */
+function similarFonts(requested: string, limit = 5): string[] {
+  const needle = requested.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const scored = FONT_FAMILIES.map((family) => {
+    const hay = family.toLowerCase().replace(/[^a-z0-9]/g, '');
+    let score = 0;
+    if (hay.includes(needle) || needle.includes(hay)) score = 100;
+    else {
+      // Cheap similarity: how many leading characters they share.
+      while (score < Math.min(hay.length, needle.length) && hay[score] === needle[score]) score++;
+    }
+    return { family, score };
+  })
+    .filter((s) => s.score > 1)
+    .sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map((s) => s.family);
+}
+
+/**
+ * Normalise a requested family to its canonical spelling, or explain the miss.
+ * Case- and spacing-insensitive so "fredoka one" and "Roboto  Flex" resolve.
+ */
+function resolveFontFamily(requested: unknown): { family?: string; error?: string } {
+  if (typeof requested !== 'string' || !requested.trim()) return {};
+  const raw = requested.trim();
+  const exact = FONT_BY_LOWER.get(raw.toLowerCase());
+  if (exact) return { family: exact };
+  const collapsed = FONT_BY_LOWER.get(raw.toLowerCase().replace(/\s+/g, ' '));
+  if (collapsed) return { family: collapsed };
+  const near = similarFonts(raw);
+  return {
+    error:
+      `Unknown fontFamily "${raw}". The app only loads the families list_fonts returns, and anything else falls back to a system serif.` +
+      (near.length > 0 ? ` Closest available: ${near.join(', ')}.` : ' Call list_fonts for the full list.'),
+  };
 }
 
 // Shared element-property schema fragment for add/update tools.
@@ -223,20 +414,47 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   rotation: { type: 'number', description: 'Rotation in degrees.' },
   scale: { type: 'number', description: 'Scale multiplier (1 = 100%).' },
   content: { type: 'string', description: 'Text content (text elements).' },
-  fontSize: { type: 'number', description: 'Font size in px (text). ~48 reads well on a phone canvas.' },
+  fontSize: { type: 'number', description: 'Font size (text). Glyphs render about 3.3x this in artboard pixels, so ~48 is a headline on a phone canvas. Use measure_element for the real bounds.' },
   color: { type: 'string', description: 'Text colour, any CSS colour (text).' },
-  fontFamily: { type: 'string', description: 'Font family (text).' },
+  fontFamily: { type: 'string', description: 'Font family (text). Must be one list_fonts returns; anything else is rejected rather than silently falling back.' },
   fontWeight: { type: 'string', description: "e.g. 'normal', 'bold' (text)." },
+  fontStyle: { type: 'string', description: "'normal' | 'italic' (text)." },
+  textDecoration: { type: 'string', description: "'none' | 'underline' | 'line-through' (text)." },
   textAlign: { type: 'string', description: "'left' | 'center' | 'right' (text)." },
+  lineHeight: { type: 'number', description: 'Line height as a multiplier of the font size, e.g. 1.1 for tight headlines (text).' },
+  letterSpacing: { type: 'number', description: 'Tracking, in the same units as fontSize (negative tightens). Text elements.' },
   fillColor: { type: 'string', description: 'Fill colour (shapes).' },
+  fillGradient: {
+    type: 'object',
+    description: 'Two-stop linear gradient fill for a shape; wins over fillColor. Pass null to go back to the solid fill.',
+    properties: {
+      color1: { type: 'string' },
+      color2: { type: 'string' },
+      angle: { type: 'number', description: '0 = bottom to top, 90 = left to right.' },
+    },
+    required: ['color1', 'color2', 'angle'],
+  },
   strokeColor: { type: 'string', description: 'Stroke colour (shapes).' },
   strokeWidth: { type: 'number', description: 'Stroke width in px (shapes).' },
   borderRadius: { type: 'number', description: 'Corner radius in px (rectangle shapes / images).' },
-  fillOpacity: { type: 'number', description: 'Fill opacity 0..1 (shapes).' },
-  imageSrc: { type: 'string', description: 'Image URL or data: URL (image elements).' },
+  fillOpacity: { type: 'number', description: 'Fill opacity 0..1 (shapes). Fades the fill only, not the stroke.' },
+  innerRadius: { type: 'number', description: 'Hollow centre as a percent of the radius, 0..95 — turns a circle or diamond into a ring (shapes).' },
+  imageSrc: { type: 'string', description: 'Image URL, data: URL, or an "asset:<id>" reference from upload_asset (image elements).' },
   objectFit: { type: 'string', description: "'contain' | 'cover' | 'fill' (image/device screenshot)." },
-  opacity: { type: 'number', description: 'Opacity 0..1 (images).' },
-  screenshotSrc: { type: 'string', description: 'Screenshot URL/data URL to place inside a device frame (device elements).' },
+  opacity: { type: 'number', description: 'Opacity 0..1 for the whole element. Works on every element type.' },
+  shadow: {
+    type: 'object',
+    description: 'Drop shadow cast by the element\'s real silhouette (a star casts a star). Offsets and blur are in artboard px. Pass null to remove it.',
+    properties: {
+      x: { type: 'number' },
+      y: { type: 'number' },
+      blur: { type: 'number' },
+      color: { type: 'string', description: "Any CSS colour with alpha, e.g. 'rgba(0,0,0,0.35)'." },
+    },
+    required: ['x', 'y', 'blur', 'color'],
+  },
+  blur: { type: 'number', description: 'Gaussian blur radius in artboard px — use it for soft background glows. Works on every element type.' },
+  screenshotSrc: { type: 'string', description: 'Screenshot URL, data: URL or "asset:<id>" to place inside a device frame (device elements).' },
   screenshotObjectFit: { type: 'string', description: "How the screenshot fills the screen: 'contain' | 'cover' | 'fill' (device elements)." },
   styleType: { type: 'string', description: "Device style, e.g. 'normal', '3d-left', '3d-right' (device elements)." },
   pose3d: { type: 'string', description: "3D pose preset, e.g. 'classic', 'front', 'reclined' (device elements)." },
@@ -247,6 +465,42 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   notchColor: { type: 'string', description: 'Fill of the notch / Dynamic Island / punch hole (device elements).' },
   name: { type: 'string', description: 'Layer name shown in the Layers panel.' },
 };
+
+/**
+ * Turn one add_element-shaped argument bag into a ready element spec:
+ * expand a palette `libraryId`, canonicalise the font family (and reject a
+ * family we do not load), then swap any `asset:<id>` image reference for the
+ * bytes it stands for. Shared by add_element and add_elements so a batch
+ * validates exactly like a single call.
+ */
+async function buildElementSpec(
+  args: Record<string, any>
+): Promise<{ ok: true; spec: McpElementSpec } | { ok: false; message: string }> {
+  let { type, subType } = args;
+  let libraryProps: Record<string, unknown> = {};
+  if (args.libraryId) {
+    const resolved = resolveLibraryItem(args.libraryId);
+    if (!resolved) {
+      return { ok: false, message: `Unknown libraryId "${args.libraryId}". Call list_library to get valid ids.` };
+    }
+    type = type ?? resolved.type;
+    subType = subType ?? resolved.subType;
+    libraryProps = { ...resolved.props };
+    // The asset's own size unless the caller gave explicit dimensions.
+    if (resolved.defaultSize && (args.width === undefined || args.height === undefined)) {
+      libraryProps.size = resolved.defaultSize;
+    }
+  }
+  if (!type) {
+    return { ok: false, message: 'Pass either type (text, shape, device, image) or libraryId.' };
+  }
+  const own = collectElementProps(args);
+  const font = resolveFontFamily(own.fontFamily);
+  if (font.error) return { ok: false, message: font.error };
+  if (font.family) own.fontFamily = font.family;
+  const props = await resolveAssetProps({ ...libraryProps, ...own });
+  return { ok: true, spec: { type, subType, props } };
+}
 
 const TOOLS: ToolDef[] = [
   {
@@ -306,6 +560,68 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'update_artboard',
+    description:
+      'Rename, resize and/or reorder an artboard. Renaming matters because the name becomes the exported file name (a board left as "Blank Artboard" exports as one). Resizing scales the elements with the canvas unless you pass scaleContent:false. index moves the board along the canvas, 0 being leftmost.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        name: { type: 'string' },
+        width: { type: 'number' },
+        height: { type: 'number' },
+        preset: { type: 'string', description: 'A canvas size preset id in place of width/height.' },
+        index: { type: 'number', description: 'New position in the canvas order (0-based).' },
+        scaleContent: { type: 'boolean', description: 'Scale the elements to the new canvas on a resize. Default true.' },
+      },
+    },
+    run: (args, api) => {
+      if (['name', 'width', 'height', 'preset', 'index'].every((k) => args[k] === undefined)) {
+        return { ...textResult('Pass at least one of name, width/height, preset or index.'), isError: true };
+      }
+      const updated = api.updateArtboard({
+        artboardId: args.artboardId,
+        name: args.name,
+        width: args.width,
+        height: args.height,
+        preset: args.preset,
+        index: args.index,
+        scaleContent: args.scaleContent,
+      });
+      return updated ? textResult(updated) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
+    name: 'delete_artboard',
+    description:
+      'Remove an artboard and everything on it. Use it to drop a botched board instead of leaving it in the export. A project needs at least one artboard, so deleting the last one is refused.',
+    inputSchema: {
+      type: 'object',
+      properties: { artboardId: { type: 'string', description: 'Defaults to the active artboard.' } },
+    },
+    run: (args, api) => {
+      const result = api.deleteArtboard({ artboardId: args.artboardId });
+      return result ? textResult(result) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
+    name: 'duplicate_artboard',
+    description:
+      'Copy an artboard with all of its elements and its background, and insert the copy next to it. The fastest way to build a set of store screenshots that share a base: build one board, duplicate it per screen, then change only the headline and the mockup.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        name: { type: 'string', description: 'Name for the copy. Defaults to "<name> copy".' },
+        index: { type: 'number', description: 'Where to insert it (0-based). Defaults to right after the source.' },
+      },
+    },
+    run: (args, api) => {
+      const copy = api.duplicateArtboard({ artboardId: args.artboardId, name: args.name, index: args.index });
+      return copy ? textResult(copy) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
     name: 'add_element',
     description:
       'Add an element to an artboard and return its id. type is one of text, shape, device, image. For shapes set subType to a shape name; for devices set subType to a device type. Position with x/y and size with width/height (artboard pixels). To place a ready-made asset from the palette (vector element, photo, badge, 3D or coloured device preset) pass libraryId from list_library instead of type/subType.',
@@ -325,28 +641,57 @@ const TOOLS: ToolDef[] = [
         ...ELEMENT_PROP_SCHEMA,
       },
     },
-    run: (args, api) => {
-      let { type, subType } = args;
-      let libraryProps: Record<string, unknown> = {};
-      if (args.libraryId) {
-        const resolved = resolveLibraryItem(args.libraryId);
-        if (!resolved) {
-          return { ...textResult(`Unknown libraryId "${args.libraryId}". Call list_library to get valid ids.`), isError: true };
-        }
-        type = type ?? resolved.type;
-        subType = subType ?? resolved.subType;
-        libraryProps = { ...resolved.props };
-        // The asset's own size unless the caller gave explicit dimensions.
-        if (resolved.defaultSize && (args.width === undefined || args.height === undefined)) {
-          libraryProps.size = resolved.defaultSize;
-        }
-      }
-      if (!type) {
-        return { ...textResult('Pass either type (text, shape, device, image) or libraryId.'), isError: true };
-      }
-      const props = { ...libraryProps, ...collectElementProps(args) };
-      const { id } = api.addElement({ artboardId: args.artboardId, type, subType, props });
+    run: async (args, api) => {
+      const built = await buildElementSpec(args);
+      if (!built.ok) return { ...textResult(built.message), isError: true };
+      const { id } = api.addElement({
+        artboardId: args.artboardId,
+        type: built.spec.type as ElementType,
+        subType: built.spec.subType,
+        props: built.spec.props,
+      });
       return textResult({ id });
+    },
+  },
+  {
+    name: 'add_elements',
+    description:
+      'Add several elements to one artboard in a single atomic update. Each entry takes the same arguments as add_element (type/subType or libraryId, x/y/width/height, colours, ...). Prefer this over a loop of add_element calls: it is one round trip instead of N, it lands as one undo step, and if any entry is rejected nothing is added, so you never end up with a half-built board. Elements stack in the order given, first at the back.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elements: {
+          type: 'array',
+          description: 'The elements to add, back to front.',
+          items: {
+            type: 'object',
+            properties: {
+              type: { type: 'string', enum: ['text', 'shape', 'device', 'image'] },
+              subType: { type: 'string', description: `Shape name (${SHAPE_TYPES.join(', ')}) or device type (${DEVICE_TYPES.join(', ')}).` },
+              libraryId: { type: 'string', description: 'A palette asset id from list_library, in place of type/subType.' },
+              ...ELEMENT_PROP_SCHEMA,
+            },
+          },
+        },
+      },
+      required: ['elements'],
+    },
+    run: async (args, api) => {
+      const list = Array.isArray(args.elements) ? args.elements : [];
+      if (list.length === 0) {
+        return { ...textResult('Pass a non-empty `elements` array.'), isError: true };
+      }
+      const specs: McpElementSpec[] = [];
+      for (const [index, entry] of list.entries()) {
+        const built = await buildElementSpec(entry ?? {});
+        if (!built.ok) {
+          return { ...textResult(`elements[${index}]: ${built.message} Nothing was added.`), isError: true };
+        }
+        specs.push(built.spec);
+      }
+      const { ids } = api.addElements({ artboardId: args.artboardId, elements: specs });
+      return textResult({ ids, added: ids.length });
     },
   },
   {
@@ -361,9 +706,13 @@ const TOOLS: ToolDef[] = [
       },
       required: ['elementId'],
     },
-    run: (args, api) => {
+    run: async (args, api) => {
       const props = collectElementProps(args);
-      const ok = api.updateElement({ artboardId: args.artboardId, elementId: args.elementId, props });
+      const font = resolveFontFamily(props.fontFamily);
+      if (font.error) return { ...textResult(font.error), isError: true };
+      if (font.family) props.fontFamily = font.family;
+      const resolved = await resolveAssetProps(props);
+      const ok = api.updateElement({ artboardId: args.artboardId, elementId: args.elementId, props: resolved });
       return ok ? textResult({ ok }) : { ...textResult('No such element.'), isError: true };
     },
   },
@@ -381,6 +730,119 @@ const TOOLS: ToolDef[] = [
     run: (args, api) => {
       const ok = api.deleteElement({ artboardId: args.artboardId, elementId: args.elementId });
       return ok ? textResult({ ok }) : { ...textResult('No such element.'), isError: true };
+    },
+  },
+  {
+    name: 'reorder_element',
+    description:
+      'Change an element\'s z-order. Elements paint in list order (first = back, last = front), and adding one always puts it on top, so this is how you slide a background behind work you have already placed instead of rebuilding the artboard. Pass an action, or an explicit 0-based index.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementId: { type: 'string' },
+        action: {
+          type: 'string',
+          enum: ['front', 'back', 'forward', 'backward'],
+          description: "'front'/'back' jump to the top/bottom of the stack; 'forward'/'backward' move one step.",
+        },
+        index: { type: 'number', description: 'Exact position in the stack, 0 = furthest back. Overrides action.' },
+      },
+      required: ['elementId'],
+    },
+    run: (args, api) => {
+      if (args.action === undefined && args.index === undefined) {
+        return { ...textResult("Pass an action ('front', 'back', 'forward', 'backward') or an index."), isError: true };
+      }
+      const moved = api.reorderElement({
+        artboardId: args.artboardId,
+        elementId: args.elementId,
+        action: args.action,
+        index: args.index,
+      });
+      return moved ? textResult(moved) : { ...textResult('No such element.'), isError: true };
+    },
+  },
+  {
+    name: 'measure_element',
+    description:
+      'Report what an element actually occupies on the rendered canvas, in artboard pixels. Text is the reason this exists: glyphs are laid out at roughly 3.3x the stored fontSize and wrap inside the element box, so the real ink bounds (textBox) cannot be predicted from the props. Use it to align something to a headline\'s true edge, or to check a line is not being clipped, before exporting.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementId: { type: 'string' },
+      },
+      required: ['elementId'],
+    },
+    run: (args, api) => {
+      const measured = api.measureElement({ artboardId: args.artboardId, elementId: args.elementId });
+      if (!measured) {
+        return {
+          ...textResult('No such element, or it is not currently on screen (open the project in the app first).'),
+          isError: true,
+        };
+      }
+      return textResult(measured);
+    },
+  },
+  {
+    name: 'group_elements',
+    description:
+      'Tag elements with a shared groupId so transform_elements can move them together later. They stay separate layers; this only records that they belong to one arrangement (a hero scene, a badge row). Pass clear:true to untag them.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementIds: { type: 'array', items: { type: 'string' } },
+        groupId: { type: 'string', description: 'Reuse or name a group. Generated when omitted.' },
+        clear: { type: 'boolean', description: 'Remove these elements from whatever group they are in.' },
+      },
+      required: ['elementIds'],
+    },
+    run: (args, api) => {
+      const ids = Array.isArray(args.elementIds) ? args.elementIds : [];
+      if (ids.length === 0) return { ...textResult('Pass a non-empty elementIds array.'), isError: true };
+      const result = api.groupElements({
+        artboardId: args.artboardId,
+        elementIds: ids,
+        groupId: args.groupId,
+        clear: args.clear,
+      });
+      return result ? textResult(result) : { ...textResult('No such artboard, or none of those elements exist.'), isError: true };
+    },
+  },
+  {
+    name: 'transform_elements',
+    description:
+      'Move or scale several elements as one unit, about their shared bounding box — one call instead of a coordinated update per element. Target them by elementIds or by a groupId from group_elements. dx/dy nudge; x/y place the group\'s top-left corner; scale grows or shrinks the whole arrangement around its centre, keeping the elements\' relative layout.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementIds: { type: 'array', items: { type: 'string' }, description: 'Explicit members. Omit when using groupId.' },
+        groupId: { type: 'string', description: 'Every element carrying this groupId.' },
+        dx: { type: 'number', description: 'Move right by this many artboard px (negative = left).' },
+        dy: { type: 'number', description: 'Move down by this many artboard px (negative = up).' },
+        x: { type: 'number', description: "New left edge of the group's bounding box." },
+        y: { type: 'number', description: "New top edge of the group's bounding box." },
+        scale: { type: 'number', description: 'Multiplier applied about the bounding-box centre, e.g. 0.8 to shrink the scene by a fifth.' },
+      },
+    },
+    run: (args, api) => {
+      const hasTarget = (Array.isArray(args.elementIds) && args.elementIds.length > 0) || !!args.groupId;
+      if (!hasTarget) return { ...textResult('Pass elementIds or a groupId.'), isError: true };
+      const moved = api.transformElements({
+        artboardId: args.artboardId,
+        elementIds: args.elementIds,
+        groupId: args.groupId,
+        dx: args.dx,
+        dy: args.dy,
+        x: args.x,
+        y: args.y,
+        scale: args.scale,
+      });
+      return moved ? textResult(moved) : { ...textResult('No such artboard, or none of those elements exist.'), isError: true };
     },
   },
   {
@@ -545,20 +1007,119 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'export_png',
-    description: 'Render an artboard to a PNG image and return it. Omit artboardId for the active artboard.',
+    description:
+      'Render an artboard to a PNG. By default it comes back inline as an image, which at full size is megabytes of base64 — while you are iterating pass scale (0.25 gives a readable proof for a sixteenth of the payload). Pass save:true to write the file instead and get its path back, which is what you want for the final delivery.',
     inputSchema: {
       type: 'object',
-      properties: { artboardId: { type: 'string', description: 'Defaults to the active artboard.' } },
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        scale: { type: 'number', description: 'Output scale, 0.1 to 4. 1 = the artboard\'s real pixel size. Use 0.25 for a quick look.' },
+        save: { type: 'boolean', description: 'Write the PNG to disk and return its path.' },
+        directory: { type: 'string', description: 'Folder to save into. Defaults to "Open Screenshot Generator" in your Downloads.' },
+        fileName: { type: 'string', description: 'File name for the saved PNG. Defaults to the artboard name.' },
+        includeImage: { type: 'boolean', description: 'Also return the image inline. Defaults to true, or false when save is set.' },
+      },
     },
     run: async (args, api) => {
-      const { dataUrl, width, height } = await api.exportPng({ artboardId: args.artboardId });
-      const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
-      return {
-        content: [
-          { type: 'image', data: base64, mimeType: 'image/png' },
-          { type: 'text', text: `Rendered ${width}x${height} PNG.` },
-        ],
-      };
+      const result = await api.exportPng({
+        artboardId: args.artboardId,
+        scale: args.scale,
+        save: args.save,
+        directory: args.directory,
+        fileName: args.fileName,
+        includeImage: args.includeImage,
+      });
+      return exportResultContent([result]);
+    },
+  },
+  {
+    name: 'export_all',
+    description:
+      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        scale: { type: 'number', description: 'Output scale, 0.1 to 4. Defaults to 1.' },
+        save: { type: 'boolean', description: 'Write the files to disk. Defaults to true.' },
+        directory: { type: 'string', description: 'Folder to save into. Defaults to "Open Screenshot Generator" in your Downloads.' },
+        includeImage: { type: 'boolean', description: 'Also return every image inline. Defaults to false — it is a lot of data.' },
+      },
+    },
+    run: async (args, api) => {
+      const results = await api.exportAll({
+        scale: args.scale,
+        save: args.save,
+        directory: args.directory,
+        includeImage: args.includeImage,
+      });
+      if (results.length === 0) return { ...textResult('There are no artboards to export.'), isError: true };
+      return exportResultContent(results);
+    },
+  },
+  {
+    name: 'list_fonts',
+    description:
+      'The font families this app actually loads, grouped by script. Only these can be used for fontFamily — add_element and update_element reject anything else rather than letting the browser fall back to a default serif, so check here before inventing a family name.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Free-text filter over family names.' },
+        script: { type: 'string', enum: ['latin', 'arabic', 'urdu', 'multilingual'], description: 'Restrict to one script.' },
+      },
+    },
+    run: (args) => {
+      const q = typeof args.query === 'string' ? args.query.trim().toLowerCase() : '';
+      const fonts = ALL_FONTS.filter(
+        (f) =>
+          (!args.script || (f.script ?? 'latin') === args.script) &&
+          (!q || f.family.toLowerCase().includes(q))
+      ).map((f) => ({
+        family: f.family,
+        category: f.category ?? 'sans-serif',
+        script: f.script ?? 'latin',
+        weights: f.variants ?? ['400'],
+      }));
+      return textResult({ fonts, count: fonts.length, total: ALL_FONTS.length });
+    },
+  },
+  {
+    name: 'upload_asset',
+    description:
+      'Register an image once and get back an "asset:<id>" reference you can pass to imageSrc or screenshotSrc as many times as you like. Send an icon, badge or screenshot through here before placing it on several artboards instead of repeating the data URL in every call.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: { type: 'string', description: 'A data: URL, an http(s) image URL, or bare base64 (then set mimeType).' },
+        name: { type: 'string', description: 'Label shown by list_assets.' },
+        mimeType: { type: 'string', description: "Only needed for bare base64, e.g. 'image/png'." },
+      },
+      required: ['source'],
+    },
+    run: async (args) => {
+      const asset = await saveImageAsset(args.source, { name: args.name, mimeType: args.mimeType });
+      return textResult(asset);
+    },
+  },
+  {
+    name: 'list_assets',
+    description: 'The images registered with upload_asset, newest first, with the reference to pass to imageSrc / screenshotSrc.',
+    inputSchema: { type: 'object', properties: {} },
+    run: async () => {
+      const assets: StoredAsset[] = await listImageAssets();
+      return textResult({ assets, count: assets.length });
+    },
+  },
+  {
+    name: 'delete_asset',
+    description: 'Forget an uploaded asset. Elements already placed keep their copy of the image.',
+    inputSchema: {
+      type: 'object',
+      properties: { assetId: { type: 'string', description: 'The id (or "asset:<id>" reference) from upload_asset.' } },
+      required: ['assetId'],
+    },
+    run: async (args) => {
+      const ok = await deleteImageAsset(args.assetId);
+      return ok ? textResult({ ok }) : { ...textResult('No such asset.'), isError: true };
     },
   },
 ];
@@ -614,7 +1175,10 @@ export async function handleMcpMessage(
         capabilities: { tools: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
-          'Open Screenshot Generator design tools. Use list_artboards to discover ids, create_artboard / add_element / update_element to build a screen, and export_png to render it.',
+          'Open Screenshot Generator design tools. Use list_artboards to discover ids, then build a screen with add_elements (one batched call per board, back to front) and refine with update_element. ' +
+          'A set of store screenshots normally starts from one finished board plus duplicate_artboard. ' +
+          'Send an image through upload_asset once and reuse the asset: reference; check fontFamily against list_fonts; use reorder_element rather than rebuilding a board to fix stacking; ' +
+          'and while iterating call export_png with scale 0.25, keeping full-size or export_all for the final delivery.',
       });
     case 'ping':
       return rpcResult(id, {});
@@ -669,7 +1233,11 @@ export async function startDesktopMcpBridge(
       const { callId, message } = event.payload;
       let response: unknown;
       try {
-        response = await handleMcpMessage(message, getApi());
+        // Answer *something* even if a tool hangs on a promise that never
+        // settles. Rust drops the call at its own (longer) deadline either
+        // way, but replying here frees the client's connection sooner and
+        // tells it which tool misbehaved instead of just "no answer".
+        response = await withWatchdog(handleMcpMessage(message, getApi()), message);
       } catch (e) {
         response = rpcError(message?.id, -32603, e instanceof Error ? e.message : String(e));
       }
@@ -682,6 +1250,43 @@ export async function startDesktopMcpBridge(
     }
   );
   return () => unlisten();
+}
+
+// Kept just under the Rust-side budgets in mcp_server.rs (12s / 180s) so the
+// frontend is the one that reports a stuck tool.
+const HANDLER_TIMEOUT_MS = 10_000;
+const SLOW_HANDLER_TIMEOUT_MS = 170_000;
+const SLOW_TOOLS = new Set([
+  'export_png',
+  'export_all',
+  'create_project_from_template',
+  'open_project',
+  'upload_asset',
+  'add_elements',
+  'duplicate_artboard',
+  'update_artboard',
+]);
+
+function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage): Promise<unknown> {
+  const toolName = message?.method === 'tools/call' ? (message.params?.name as string | undefined) : undefined;
+  const budget = toolName && SLOW_TOOLS.has(toolName) ? SLOW_HANDLER_TIMEOUT_MS : HANDLER_TIMEOUT_MS;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const expiry = new Promise<unknown>((resolve) => {
+    timer = setTimeout(
+      () =>
+        resolve(
+          rpcError(
+            message?.id,
+            -32001,
+            `${toolName ?? message?.method ?? 'The request'} did not finish within ${Math.round(budget / 1000)}s and was abandoned. The app is still running — check whether it is waiting on a dialog.`
+          )
+        ),
+      budget
+    );
+  });
+  return Promise.race([work, expiry]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer);
+  });
 }
 
 export interface McpServerStatus {

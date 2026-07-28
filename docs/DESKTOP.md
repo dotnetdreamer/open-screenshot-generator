@@ -316,8 +316,43 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
 **Tools.**
 
 - *Canvas* — `list_artboards`, `get_artboard`, `create_artboard`,
-  `set_active_artboard`, `add_element`, `update_element`, `delete_element`,
-  `set_background`, `export_png` (returns the PNG as an image result).
+  `set_active_artboard`, `update_artboard` (rename / resize / reorder; a resize
+  scales the elements with the canvas unless `scaleContent:false`),
+  `delete_artboard` (refused on the last one — a project with zero artboards is
+  a state the UI cannot produce and the canvas would read as stuck loading),
+  `duplicate_artboard` (deep copy with fresh element ids — the way to build a
+  set of screenshots that share a base), `set_background`.
+- *Elements* — `add_element`, `add_elements` (a whole board in one atomic
+  update: one round trip, one undo step, and a rejected entry adds nothing),
+  `update_element`, `delete_element`, `reorder_element` (z-order is array
+  order, so this is how a background slides behind existing work instead of
+  rebuilding the board), `measure_element`, `group_elements` +
+  `transform_elements` (move or scale a set about its shared bounding box).
+  Beyond position/size/colour, elements take `opacity`, `shadow`
+  (`{x, y, blur, color}`, cast by the real silhouette), `blur`, plus
+  `fillGradient` on shapes and `letterSpacing` / `lineHeight` on text — passing
+  `null` clears one. See `src/lib/elementStyle.ts`.
+- *Measuring* — `measure_element` returns the rendered box in artboard pixels,
+  and for text the actual glyph bounds (`textBox`) plus a `clipped` flag.
+  Necessary because text lays out at `fontSize / 0.3` and wraps inside its box,
+  so nothing about the real bounds is predictable from the stored props.
+- *Fonts* — `list_fonts` returns the families the app actually loads (from
+  `src/services/fontService.ts`). `add_element` / `update_element` now **reject**
+  an unknown `fontFamily` with the nearest matches, instead of letting the
+  browser fall back to a default serif and silently ship the wrong typeface.
+- *Images* — `upload_asset` stores an image once (Dexie `media` table) and
+  returns an `asset:<id>` reference accepted by `imageSrc` / `screenshotSrc`,
+  so an icon reused across five boards is sent once rather than five times;
+  `list_assets` / `delete_asset` manage them. The reference is expanded to the
+  bytes when the element is built, so the saved project is identical to a
+  hand-made one — the saving is on the wire, not on disk.
+- *Export* — `export_png` takes a `scale` (0.1–4; `0.25` gives a readable proof
+  for a sixteenth of the base64) and `save:true` to write the file and return
+  its **path** instead of the image. `export_all` renders every board in canvas
+  order into one folder as `01_<name>.png`. Files are written by the
+  `abs_mcp_write_png` Rust command, defaulting to
+  *Downloads/Open Screenshot Generator*, because the JS `fs` plugin only unlocks
+  paths the user picked in a dialog and an MCP export is unattended.
 - *Templates and projects* — `list_templates`, `get_template` (the fillable
   device/text slots and their stable element ids), `create_project_from_template`
   (copies the template, applies optional text/screenshot fills, opens it and
@@ -331,7 +366,10 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
 
 A model should normally *start from a template* — `list_templates` →
 `get_template` → `create_project_from_template` — and only build from bare
-artboards when nothing fits.
+artboards when nothing fits. Building from scratch, the cheap path is
+`add_elements` for the first board, `duplicate_artboard` per screen, then
+`update_element` for the copy that differs; `upload_asset` for anything reused;
+`export_png` at `scale: 0.25` while iterating and `export_all` at the end.
 
 **Architecture.** Rust owns only the *transport*; the tools live in the
 frontend, where the design state is.
@@ -346,14 +384,28 @@ frontend, where the design state is.
 - Each JSON-RPC **request** is bridged to the main window over the
   `abs-mcp-request` event; the frontend (`src/lib/mcp/desktopMcpServer.ts`)
   answers `initialize` / `tools/list` / `tools/call` and returns the response
-  through the `abs_mcp_respond` command, which unblocks the waiting HTTP handler
-  (180s timeout). Notifications (no id) are acknowledged `202` without bridging.
+  through the `abs_mcp_respond` command, which unblocks the waiting HTTP
+  handler. Notifications (no id) are acknowledged `202` without bridging.
+- **Timeouts are what keep the server self-healing.** A client keeps one HTTP
+  connection alive and tiny_http will not read the next request on a connection
+  until the current one has been answered, so a single tool call the webview
+  never answers stalls everything queued behind it — `initialize` included. The
+  budget is therefore 12s for ordinary calls and 180s only for the handful that
+  render, write a file or rebuild the project (`SLOW_TOOLS` in `mcp_server.rs`,
+  mirrored in `desktopMcpServer.ts`). On expiry the pending entry is dropped, a
+  JSON-RPC error goes back, a late reply is discarded, and the connection is
+  free again. The frontend runs the same watchdog a couple of seconds earlier so
+  the error names the tool that hung rather than just reporting silence.
 - The tool implementations are the `McpDesignApi` built in
   `OpenScreenshotGeneratorLayout.tsx` (assigned to a ref each render so the
   bridge always sees fresh state). They mutate through `handleArtboardsUpdate` —
   the same path `CanvasArea` uses — so history, DB persistence and the
   per-artboard element sync all keep working. `export_png` reuses the Export
-  dialog's `html-to-image` capture recipe.
+  dialog's `html-to-image` capture recipe, through the shared
+  `artboardCaptureBackground` helper: `html-to-image`'s `backgroundColor` option
+  only paints the colour layer, so a gradient background has to be re-declared
+  through the `style` option (applied to the clone last) or the export comes out
+  flat white while the canvas looks correct.
 - `create_project_from_template` and `open_project` go through
   `createProjectFromTemplateData` / `loadProjectFromData`, the same functions the
   template gallery and the Recent-projects list call, so an AI-created project is
