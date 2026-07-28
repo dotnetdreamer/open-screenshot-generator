@@ -2163,7 +2163,14 @@ export function PropertiesPanel({
   if (!selectedElement && activeArtboardDetails && isClientSide) {
     // Ensure we display a proper hex color, not CSS variables
     const displayColor = cssVarToHex(solidColor);
-    
+    // Never render straight from the colour state: a partial gradient (or a
+    // value kept across a Fast Refresh) would otherwise blow up the panel.
+    const displayGradient = normalizeGradient({
+      color1: gradientColor1,
+      color2: gradientColor2,
+      angle: gradientAngle,
+    });
+
     return (
       <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
         <div className="px-4 py-3 border-b bg-card">
@@ -2229,13 +2236,13 @@ export function PropertiesPanel({
                 <div className="flex items-center space-x-2">
                   <Input
                     type="color"
-                    value={gradientColor1}
+                    value={displayGradient.color1}
                     onChange={(e) => handleGradientChange('color1', e.target.value)}
                     className="w-10 h-10 p-1"
                   />
                   <Input
                     type="text"
-                    value={gradientColor1.toUpperCase()}
+                    value={displayGradient.color1.toUpperCase()}
                     onChange={(e) => handleGradientChange('color1', e.target.value)}
                     className="flex-1 font-mono text-xs"
                   />
@@ -2247,13 +2254,13 @@ export function PropertiesPanel({
                 <div className="flex items-center space-x-2">
                   <Input
                     type="color"
-                    value={gradientColor2}
+                    value={displayGradient.color2}
                     onChange={(e) => handleGradientChange('color2', e.target.value)}
                     className="w-10 h-10 p-1"
                   />
                   <Input
                     type="text"
-                    value={gradientColor2.toUpperCase()}
+                    value={displayGradient.color2.toUpperCase()}
                     onChange={(e) => handleGradientChange('color2', e.target.value)}
                     className="flex-1 font-mono text-xs"
                   />
@@ -2262,14 +2269,14 @@ export function PropertiesPanel({
               
               <div className="space-y-2">
                 <Label htmlFor="gradientAngle" className="text-xs font-medium">
-                  Angle: {gradientAngle}°
+                  Angle: {displayGradient.angle}°
                 </Label>
                 <Slider
                   id="gradientAngle"
                   min={0}
                   max={360}
                   step={1}
-                  value={[gradientAngle]}
+                  value={[displayGradient.angle]}
                   onValueChange={(value) => handleGradientChange('angle', value[0])}
                   className="w-full"
                 />
