@@ -22,8 +22,8 @@ import { CanvasArea } from './CanvasArea';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
-import { TranslateDialog } from './TranslateDialog';
-import { translateText, isTranslationEnabled } from '@/services/translation';
+import { TranslateDialog, getLanguageName } from './TranslateDialog';
+import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
@@ -1777,13 +1777,67 @@ export function OpenScreenshotGeneratorLayout() {
     });
   };
 
-  const handleTranslateProject = async (targetLanguage: string, allArtboards: boolean) => {
+  // Language the project's text is in, if the artboards that carry text all
+  // agree on one. Mixed or unknown falls back to detection.
+  const currentProjectLanguage = useMemo(() => {
+    const languages = new Set(
+      artboards
+        .filter((ab) => ab.elements.some((el) => el.type === 'text'))
+        .map((ab) => ab.language)
+    );
+    if (languages.size !== 1) return undefined;
+    return Array.from(languages)[0];
+  }, [artboards]);
+
+  const handleTranslateProject = async (
+    targetLanguage: string,
+    allArtboards: boolean,
+    sourceLanguage: string = AUTO_DETECT
+  ) => {
     let artboardsToUpdate = artboards;
     if (!allArtboards && activeArtboardId) {
       artboardsToUpdate = artboards.filter((ab) => ab.id === activeArtboardId);
     }
     const modifiedIds = new Set(artboardsToUpdate.map((ab) => ab.id));
-    
+
+    const samples = artboardsToUpdate
+      .flatMap((ab) => ab.elements)
+      .filter((el): el is TextElementProps => el.type === 'text')
+      .map((el) => el.content?.trim())
+      .filter((content): content is string => !!content);
+
+    if (samples.length === 0) {
+      toast({
+        title: "No text found",
+        description: "There are no text elements to translate in the selected artboards."
+      });
+      return;
+    }
+
+    // Resolve the source once for the whole run rather than per element.
+    // Detecting from a single label like "Avg. rating" guesses wrong often, and
+    // every artboard in a project is realistically in one language anyway.
+    let effectiveSource = sourceLanguage || AUTO_DETECT;
+    if (effectiveSource === AUTO_DETECT) {
+      const sample = [...samples]
+        .sort((a, b) => b.length - a.length)
+        .slice(0, 10)
+        .join('\n')
+        .slice(0, 1000);
+      const detected = await detectLanguage(sample);
+      if (detected) {
+        effectiveSource = detected.language;
+      }
+    }
+
+    if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
+      toast({
+        title: "Nothing to translate",
+        description: `The text is already in ${getLanguageName(targetLanguage)}.`
+      });
+      return;
+    }
+
     const newArtboards = [];
     let successCount = 0;
     let failCount = 0;
@@ -1794,22 +1848,33 @@ export function OpenScreenshotGeneratorLayout() {
         newArtboards.push(ab);
         continue;
       }
-      
+
       const updatedElements = [];
+      // Only stamp the artboard's language when every one of its text elements
+      // made it across, otherwise a half-translated artboard would lie about
+      // what language it is in and poison the next run's source.
+      let fullyTranslated = true;
       for (const el of ab.elements) {
         if (rateLimitHit) {
           updatedElements.push(el);
+          fullyTranslated = false;
           continue;
         }
 
         if (el.type === 'text') {
           try {
-            const translatedContent = await translateText(el.content, targetLanguage);
-            updatedElements.push({ ...el, content: translatedContent });
+            const result = await translateText(el.content, targetLanguage, effectiveSource);
+            updatedElements.push({ ...el, content: result.text });
             successCount++;
+            // With source 'auto' the server tells us what it saw; reuse it for
+            // the remaining elements so one detection covers the whole run.
+            if (effectiveSource === AUTO_DETECT && result.detectedLanguage) {
+              effectiveSource = result.detectedLanguage;
+            }
           } catch (e: any) {
             console.error("Failed to translate element", el.id, e);
             updatedElements.push(el);
+            fullyTranslated = false;
             if (e.status === 429) {
               rateLimitHit = true;
             } else {
@@ -1820,9 +1885,13 @@ export function OpenScreenshotGeneratorLayout() {
           updatedElements.push(el);
         }
       }
-      newArtboards.push({ ...ab, elements: updatedElements });
+      newArtboards.push({
+        ...ab,
+        elements: updatedElements,
+        language: fullyTranslated ? targetLanguage : undefined,
+      });
     }
-    
+
     if (rateLimitHit) {
       if (successCount > 0) {
         handleArtboardsUpdate(newArtboards);
@@ -3307,6 +3376,7 @@ const generateRandomProjectName = (): string => {
           <TranslateDialog
             isOpen={isTranslateDialogOpen}
             onOpenChange={setIsTranslateDialogOpen}
+            currentLanguage={currentProjectLanguage}
             onTranslate={handleTranslateProject}
           />
 

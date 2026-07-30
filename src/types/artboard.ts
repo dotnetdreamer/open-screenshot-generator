@@ -302,6 +302,11 @@ export interface ArtboardState {
   };
   zoom: number; // Zoom level for the artboard's content itself
   exportScale?: number; // Optional export scale for higher resolution exports
+  // Language its text elements were last translated into (a code from the
+  // translate dialog's list). Set only when a whole artboard translated
+  // cleanly, so the next run knows what to use as the source instead of
+  // assuming English. Unset means "unknown, detect it".
+  language?: string;
 }
 
 
