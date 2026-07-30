@@ -108,7 +108,7 @@ export function TranslateDialog({
         <DialogHeader>
           <DialogTitle>Translate Text</DialogTitle>
           <DialogDescription>
-            Translate text elements in your artboards. Rate limits apply (2 requests / 5000 characters per minute).
+            Translate text elements in your artboards. Rate limits apply (10 requests / 5000 characters per minute).
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
