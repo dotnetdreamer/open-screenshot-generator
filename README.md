@@ -19,6 +19,10 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 30 July 2026: Automatic Text Translation
+
+You can now automatically translate your artboard text directly inside the editor! With a single click, instantly translate all text elements across your selected artboards (or your entire project) into over 50 different languages. Designing localized app store graphics has never been faster.
+
 ### 25 July 2026: save projects to your own account
 
 Optional cloud saving with no backend of ours. Connect your own Google Drive or GitHub and projects are saved into storage you control.
