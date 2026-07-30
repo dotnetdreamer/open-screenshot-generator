@@ -3324,7 +3324,7 @@ const generateRandomProjectName = (): string => {
               <div className="space-y-3 text-sm text-muted-foreground">
                 <p>
                   A free, open-source editor for designing app store screenshots. Lay out artboards,
-                  drop your screenshots into device frames, and export PNGs sized for Google Play
+                  drop your screenshots into device frames, automatically translate your text into 50+ languages, and export PNGs sized for Google Play
                   and the Apple App Store.
                 </p>
                 <p>Projects are saved locally in your browser. Nothing is uploaded anywhere.</p>

@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Open Screenshot Generator',
-  description: 'Canva for App Store & Play Store graphics. Design app store screenshots and preview videos in your browser, no account needed.',
+  title: 'Open Screenshot Generator - Design & Translate App Store Graphics',
+  description: 'Canva for App Store & Play Store graphics. Design, localize, and automatically translate app store screenshots and preview videos directly in your browser.',
+  keywords: ['app store screenshots', 'play store graphics', 'app screenshot generator', 'localize app screenshots', 'translate app store graphics', 'screenshot maker', 'app store localization'],
 };
 
 export default function RootLayout({
