@@ -98,7 +98,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
           fontWeight: element.fontWeight || 'normal',
           fontStyle: element.fontStyle || 'normal',
           textDecoration: element.textDecoration || 'none',
-          textAlign: element.textAlign || 'left',
+          textAlign: (element.textAlign as any) || 'left',
           boxSizing: 'border-box',
         }}
         className="text-element-editing"
@@ -129,7 +129,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         fontWeight: element.fontWeight || 'normal',
         fontStyle: element.fontStyle || 'normal',
         textDecoration: element.textDecoration || 'none',
-        textAlign: element.textAlign || 'left',
+        textAlign: (element.textAlign as any) || 'left',
         whiteSpace: 'pre-wrap', // Allows line breaks and preserves spaces
         overflow: 'hidden',
         wordBreak: 'break-word',

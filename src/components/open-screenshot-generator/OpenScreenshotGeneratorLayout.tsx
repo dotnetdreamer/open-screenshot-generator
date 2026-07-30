@@ -22,6 +22,8 @@ import { CanvasArea } from './CanvasArea';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog } from './PreviewDialog';
+import { TranslateDialog } from './TranslateDialog';
+import { translateText, isTranslationEnabled } from '@/services/translation';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
@@ -465,6 +467,7 @@ export function OpenScreenshotGeneratorLayout() {
   // subtree, so PNG, video and preview output can never include it.
   const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
+  const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   useLayoutEffect(() => {
     try {
       if (window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) === '0') setIsRightDockOpen(false);
@@ -1774,6 +1777,82 @@ export function OpenScreenshotGeneratorLayout() {
     });
   };
 
+  const handleTranslateProject = async (targetLanguage: string, allArtboards: boolean) => {
+    let artboardsToUpdate = artboards;
+    if (!allArtboards && activeArtboardId) {
+      artboardsToUpdate = artboards.filter((ab) => ab.id === activeArtboardId);
+    }
+    const modifiedIds = new Set(artboardsToUpdate.map((ab) => ab.id));
+    
+    const newArtboards = [];
+    let successCount = 0;
+    let failCount = 0;
+    let rateLimitHit = false;
+
+    for (const ab of artboards) {
+      if (!modifiedIds.has(ab.id)) {
+        newArtboards.push(ab);
+        continue;
+      }
+      
+      const updatedElements = [];
+      for (const el of ab.elements) {
+        if (rateLimitHit) {
+          updatedElements.push(el);
+          continue;
+        }
+
+        if (el.type === 'text') {
+          try {
+            const translatedContent = await translateText(el.content, targetLanguage);
+            updatedElements.push({ ...el, content: translatedContent });
+            successCount++;
+          } catch (e: any) {
+            console.error("Failed to translate element", el.id, e);
+            updatedElements.push(el);
+            if (e.status === 429) {
+              rateLimitHit = true;
+            } else {
+              failCount++;
+            }
+          }
+        } else {
+          updatedElements.push(el);
+        }
+      }
+      newArtboards.push({ ...ab, elements: updatedElements });
+    }
+    
+    if (rateLimitHit) {
+      if (successCount > 0) {
+        handleArtboardsUpdate(newArtboards);
+      }
+      toast({
+        title: "Rate limit exceeded",
+        description: `Successfully translated ${successCount} element(s) before hitting the rate limit. Please wait a minute before trying again.`,
+        variant: "destructive"
+      });
+    } else if (successCount > 0) {
+      handleArtboardsUpdate(newArtboards);
+      toast({
+        title: "Translation complete",
+        description: `Successfully translated ${successCount} text element(s).${failCount > 0 ? ` Failed to translate ${failCount} element(s).` : ''}`
+      });
+    } else if (failCount > 0) {
+      toast({
+        title: "Translation failed",
+        description: "Failed to translate text elements. Please try again later.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "No text found",
+        description: "There are no text elements to translate in the selected artboards."
+      });
+    }
+  };
+
+
   // Preload Google Fonts on component mount
   useEffect(() => {
     preloadGoogleFonts();
@@ -2989,6 +3068,8 @@ const generateRandomProjectName = (): string => {
             onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
+            onTranslate={() => setIsTranslateDialogOpen(true)}
+            isTranslationEnabled={isTranslationEnabled}
             className="sticky top-0 z-50 bg-card border-b"
           />
           
@@ -3221,6 +3302,12 @@ const generateRandomProjectName = (): string => {
             }}
             hint={accountHint}
             onOpenProject={handleOpenFromAccount}
+          />
+
+          <TranslateDialog
+            isOpen={isTranslateDialogOpen}
+            onOpenChange={setIsTranslateDialogOpen}
+            onTranslate={handleTranslateProject}
           />
 
           <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>

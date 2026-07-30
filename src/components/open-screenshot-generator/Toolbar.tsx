@@ -17,7 +17,8 @@ import {
   ChevronDownIcon,
   RulerIcon,
   CloudUploadIcon,
-  Loader2Icon
+  Loader2Icon,
+  GlobeIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -62,6 +63,8 @@ interface ToolbarProps {
   currentProjectName?: string;
   onRenameProject?: (newName: string) => void;
   onSelectDeviceFormat?: (preset: DeviceFormatPreset) => void;
+  onTranslate?: () => void;
+  isTranslationEnabled?: boolean;
   // Format the project's mockups are currently on (phone platform or Play
   // Store tablet); null when mixed or none.
   activeDeviceFormat?: DeviceFormat | null;
@@ -92,6 +95,8 @@ export function Toolbar({
   currentProjectName,
   onRenameProject,
   onSelectDeviceFormat,
+  onTranslate,
+  isTranslationEnabled = true,
   activeDeviceFormat,
 }: ToolbarProps) {
   const deviceFormatLabel =
@@ -351,6 +356,19 @@ export function Toolbar({
         <EyeIcon className="mr-1.5 h-4 w-4" />
         Preview
       </Button>
+
+      {onTranslate && (
+        <Button
+          variant="outline"
+          onClick={onTranslate}
+          disabled={!isTranslationEnabled}
+          className="h-8"
+          title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
+        >
+          <GlobeIcon className="mr-1.5 h-4 w-4" />
+          Translate
+        </Button>
+      )}
 
       <Button
         variant="outline"
