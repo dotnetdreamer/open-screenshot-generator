@@ -99,7 +99,7 @@ export function TranslateDialog({
 }: TranslateDialogProps) {
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
   const [targetLanguage, setTargetLanguage] = useState<string>('es');
-  const [allArtboards, setAllArtboards] = useState<boolean>(true);
+  const [allArtboards, setAllArtboards] = useState<boolean>(false);
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
 
   // Re-seed every time the dialog opens: the project's language changes under
@@ -183,15 +183,20 @@ export function TranslateDialog({
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <div className="col-start-2 col-span-3 flex items-center space-x-2">
-              <Checkbox 
-                id="allArtboards" 
-                checked={allArtboards} 
-                onCheckedChange={(checked) => setAllArtboards(!!checked)} 
-              />
-              <Label htmlFor="allArtboards" className="text-sm font-normal">
-                Translate all artboards
-              </Label>
+            <div className="col-start-2 col-span-3 flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="allArtboards" 
+                  checked={allArtboards} 
+                  onCheckedChange={(checked) => setAllArtboards(!!checked)} 
+                />
+                <Label htmlFor="allArtboards" className="text-sm font-normal">
+                  Translate all artboards
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                To stay within the free translation API limits, we recommend leaving this unchecked and translating your artboards one by one.
+              </p>
             </div>
           </div>
           {sameLanguage && (
