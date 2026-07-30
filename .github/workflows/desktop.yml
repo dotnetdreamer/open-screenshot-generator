@@ -179,6 +179,8 @@ jobs:
           # never calls the Worker.
           NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID }}
           NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+          NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
+          NEXT_PUBLIC_TRANSLATION_FALLBACK_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_FALLBACK_URL }}
           # Windows only: link the MSVC C runtime statically. The default
           # dynamic linkage makes the exe fail with "VCRUNTIME140.dll was not
           # found" on a clean Windows install without the VC++ redistributable,
