@@ -1792,7 +1792,8 @@ export function OpenScreenshotGeneratorLayout() {
   const handleTranslateProject = async (
     targetLanguage: string,
     allArtboards: boolean,
-    sourceLanguage: string = AUTO_DETECT
+    sourceLanguage: string = AUTO_DETECT,
+    targetFont?: string
   ) => {
     let artboardsToUpdate = artboards;
     if (!allArtboards && activeArtboardId) {
@@ -1864,7 +1865,11 @@ export function OpenScreenshotGeneratorLayout() {
         if (el.type === 'text') {
           try {
             const result = await translateText(el.content, targetLanguage, effectiveSource);
-            updatedElements.push({ ...el, content: result.text });
+            updatedElements.push({ 
+              ...el, 
+              content: result.text,
+              ...(targetFont ? { fontFamily: targetFont } : {})
+            });
             successCount++;
             // With source 'auto' the server tells us what it saw; reuse it for
             // the remaining elements so one detection covers the whole run.

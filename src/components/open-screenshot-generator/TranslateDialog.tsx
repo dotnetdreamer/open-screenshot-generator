@@ -20,6 +20,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AUTO_DETECT } from '@/services/translation';
+import { getGroupedFontOptions } from '@/services/fontService';
+import { getRecommendedFontForLanguage } from '@/lib/fontLanguageMatcher';
+import { SelectGroup, SelectLabel } from "@/components/ui/select";
 
 export const LANGUAGES = [
   { code: "sq", name: "Albanian" },
@@ -88,7 +91,7 @@ export interface TranslateDialogProps {
    * keep claiming the text is still English.
    */
   currentLanguage?: string;
-  onTranslate: (targetLanguage: string, allArtboards: boolean, sourceLanguage: string) => Promise<void>;
+  onTranslate: (targetLanguage: string, allArtboards: boolean, sourceLanguage: string, targetFont?: string) => Promise<void>;
 }
 
 export function TranslateDialog({
@@ -99,8 +102,11 @@ export function TranslateDialog({
 }: TranslateDialogProps) {
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
   const [targetLanguage, setTargetLanguage] = useState<string>('es');
+  const [targetFont, setTargetFont] = useState<string>('keep_current');
   const [allArtboards, setAllArtboards] = useState<boolean>(false);
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
+
+  const groupedFonts = getGroupedFontOptions();
 
   // Re-seed every time the dialog opens: the project's language changes under
   // us after each run, so a stale source is worse than no source at all.
@@ -113,17 +119,34 @@ export function TranslateDialog({
     setSourceLanguage(knownSource);
     // After translating to Polish the target is still Polish, which is now a
     // no-op. Offer the reverse trip instead, which is what people want next.
-    setTargetLanguage((prev) =>
-      prev === knownSource ? (knownSource === 'en' ? 'es' : 'en') : prev
-    );
+    setTargetLanguage((prev) => {
+      const newTarget = prev === knownSource ? (knownSource === 'en' ? 'es' : 'en') : prev;
+      
+      // Auto-select font based on initial target language
+      const recommendedFont = getRecommendedFontForLanguage(newTarget);
+      setTargetFont(recommendedFont || 'keep_current');
+      
+      return newTarget;
+    });
   }, [isOpen, currentLanguage]);
+
+  const handleTargetLanguageChange = (lang: string) => {
+    setTargetLanguage(lang);
+    const recommendedFont = getRecommendedFontForLanguage(lang);
+    setTargetFont(recommendedFont || 'keep_current');
+  };
 
   const sameLanguage = sourceLanguage !== AUTO_DETECT && sourceLanguage === targetLanguage;
 
   const handleTranslate = async () => {
     setIsTranslating(true);
     try {
-      await onTranslate(targetLanguage, allArtboards, sourceLanguage);
+      await onTranslate(
+        targetLanguage, 
+        allArtboards, 
+        sourceLanguage, 
+        targetFont === 'keep_current' ? undefined : targetFont
+      );
       onOpenChange(false);
     } catch (error) {
       console.error('Translation failed', error);
@@ -168,7 +191,7 @@ export function TranslateDialog({
               Target
             </Label>
             <div className="col-span-3">
-              <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+              <Select value={targetLanguage} onValueChange={handleTargetLanguageChange}>
                 <SelectTrigger id="language">
                   <SelectValue placeholder="Select a language" />
                 </SelectTrigger>
@@ -178,6 +201,61 @@ export function TranslateDialog({
                       {lang.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="targetFont" className="text-right">
+              Font
+            </Label>
+            <div className="col-span-3">
+              <Select value={targetFont} onValueChange={setTargetFont}>
+                <SelectTrigger id="targetFont">
+                  <SelectValue placeholder="Keep current fonts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="keep_current">Keep current fonts</SelectItem>
+                  <SelectGroup>
+                    <SelectLabel>System Fonts</SelectLabel>
+                    {groupedFonts.system.map(font => (
+                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Latin Fonts</SelectLabel>
+                    {groupedFonts.latin.map(font => (
+                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Arabic Fonts</SelectLabel>
+                    {groupedFonts.arabic.map(font => (
+                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Urdu Fonts</SelectLabel>
+                    {groupedFonts.urdu.map(font => (
+                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Multilingual Fonts</SelectLabel>
+                    {groupedFonts.multilingual.map(font => (
+                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
+                        {font.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
