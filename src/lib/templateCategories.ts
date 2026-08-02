@@ -44,6 +44,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'plannio-student.json',
       'calora-macros.json',
       'puzzlo-word.json',
       'sproutly-parenting.json',

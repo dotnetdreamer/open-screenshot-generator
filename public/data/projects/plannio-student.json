@@ -1,0 +1,2144 @@
+{
+ "id": "template_plannio_student",
+ "name": "Plannio Student",
+ "description": "App Store & Play Store screenshots for a student daily planner app. Bright orange boards, chunky rounded white headlines, a laurel badge, falling task cards with auto schedule chevrons, a natural language input pill and growth insight charts around black and silver iPhones.",
+ "previewImage": "/data/projects/previews/plannio-student.png",
+ "timestamp": "2026-08-02T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "plannio_student_ab1",
+   "name": "Hero",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F5821F",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "ps_txt_1",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 100,
+      "y": 140
+     },
+     "size": {
+      "width": 950,
+      "height": 600
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your last\nDaily\nPlanner",
+     "fontSize": 46,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_2",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 110,
+      "y": 820
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 24
+    },
+    {
+     "id": "ps_txt_3",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 110,
+      "y": 820
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "31",
+     "fontSize": 14,
+     "color": "#4E8FDB",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_4",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 230,
+      "y": 820
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 24
+    },
+    {
+     "id": "ps_txt_5",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 230,
+      "y": 820
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "17",
+     "fontSize": 14,
+     "color": "#E25C4A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_6",
+     "type": "shape",
+     "name": "Chip",
+     "position": {
+      "x": 350,
+      "y": 820
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 24
+    },
+    {
+     "id": "ps_txt_7",
+     "type": "text",
+     "name": "Chip label",
+     "position": {
+      "x": 350,
+      "y": 820
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "✓",
+     "fontSize": 14,
+     "color": "#35A857",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_dev3d_8",
+     "type": "device",
+     "name": "iPhone 3D",
+     "position": {
+      "x": 303.58957478936867,
+      "y": 638.666300932521
+     },
+     "size": {
+      "width": 600,
+      "height": 1300
+     },
+     "rotation": 19,
+     "scale": 1.3602569729243266,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "white",
+     "screenshotSrc": "/data/projects/plannio-screen-day.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "ps_svg_9",
+     "type": "shape",
+     "name": "Laurel left",
+     "position": {
+      "x": 240,
+      "y": 2360
+     },
+     "size": {
+      "width": 240,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "ps_svg_10",
+     "type": "shape",
+     "name": "Laurel right",
+     "position": {
+      "x": 810,
+      "y": 2360
+     },
+     "size": {
+      "width": 240,
+      "height": 330
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#FFFFFF"
+    },
+    {
+     "id": "ps_txt_11",
+     "type": "text",
+     "name": "Built for",
+     "position": {
+      "x": 295,
+      "y": 2365
+     },
+     "size": {
+      "width": 700,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Built for",
+     "fontSize": 27,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_12",
+     "type": "text",
+     "name": "Students",
+     "position": {
+      "x": 295,
+      "y": 2470
+     },
+     "size": {
+      "width": 700,
+      "height": 180
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Students",
+     "fontSize": 34,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ]
+  },
+  {
+   "id": "plannio_student_ab2",
+   "name": "Natural Language",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F5821F",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "ps_svg_13",
+     "type": "shape",
+     "name": "Curl top",
+     "position": {
+      "x": 850,
+      "y": 430
+     },
+     "size": {
+      "width": 420,
+      "height": 110
+     },
+     "rotation": 10,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M7.33 64 L10.32 63.65 L13.2 62.61 L15.85 60.95 L18.2 58.73 L20.15 56.07 L21.65 53.12 L22.67 50 L23.18 46.88 L23.2 43.93 L22.77 41.27 L21.95 39.05 L20.82 37.39 L19.46 36.35 L18 36 L16.54 36.35 L15.18 37.39 L14.05 39.05 L13.23 41.27 L12.8 43.93 L12.82 46.88 L13.33 50 L14.35 53.12 L15.85 56.07 L17.8 58.73 L20.15 60.95 L22.8 62.61 L25.68 63.65 L28.67 64 L31.65 63.65 L34.53 62.61 L37.19 60.95 L39.53 58.73 L41.49 56.07 L42.99 53.12 L44 50 L44.51 46.88 L44.53 43.93 L44.1 41.27 L43.28 39.05 L42.15 37.39 L40.8 36.35 L39.33 36 L37.87 36.35 L36.52 37.39 L35.38 39.05 L34.56 41.27 L34.13 43.93 L34.16 46.88 L34.67 50 L35.68 53.12 L37.18 56.07 L39.13 58.73 L41.48 60.95 L44.14 62.61 L47.01 63.65 L50 64 L52.99 63.65 L55.86 62.61 L58.52 60.95 L60.87 58.73 L62.82 56.07 L64.32 53.12 L65.33 50 L65.84 46.88 L65.87 43.93 L65.44 41.27 L64.62 39.05 L63.48 37.39 L62.13 36.35 L60.67 36 L59.2 36.35 L57.85 37.39 L56.72 39.05 L55.9 41.27 L55.47 43.93 L55.49 46.88 L56 50 L57.01 53.12 L58.51 56.07 L60.47 58.73 L62.81 60.95 L65.47 62.61 L68.35 63.65 L71.33 64 L74.32 63.65 L77.2 62.61 L79.85 60.95 L82.2 58.73 L84.15 56.07 L85.65 53.12 L86.67 50 L87.18 46.88 L87.2 43.93 L86.77 41.27 L85.95 39.05 L84.82 37.39 L83.46 36.35 L82 36 L80.54 36.35 L79.18 37.39 L78.05 39.05 L77.23 41.27 L76.8 43.93 L76.82 46.88 L77.33 50 L78.35 53.12 L79.85 56.07 L81.8 58.73 L84.15 60.95 L86.8 62.61 L89.68 63.65 L92.67 64",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 2.5
+     },
+     "fillColor": "#F79847",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_svg_14",
+     "type": "shape",
+     "name": "Curl bottom",
+     "position": {
+      "x": 95,
+      "y": 2560
+     },
+     "size": {
+      "width": 420,
+      "height": 110
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M7.33 64 L10.32 63.65 L13.2 62.61 L15.85 60.95 L18.2 58.73 L20.15 56.07 L21.65 53.12 L22.67 50 L23.18 46.88 L23.2 43.93 L22.77 41.27 L21.95 39.05 L20.82 37.39 L19.46 36.35 L18 36 L16.54 36.35 L15.18 37.39 L14.05 39.05 L13.23 41.27 L12.8 43.93 L12.82 46.88 L13.33 50 L14.35 53.12 L15.85 56.07 L17.8 58.73 L20.15 60.95 L22.8 62.61 L25.68 63.65 L28.67 64 L31.65 63.65 L34.53 62.61 L37.19 60.95 L39.53 58.73 L41.49 56.07 L42.99 53.12 L44 50 L44.51 46.88 L44.53 43.93 L44.1 41.27 L43.28 39.05 L42.15 37.39 L40.8 36.35 L39.33 36 L37.87 36.35 L36.52 37.39 L35.38 39.05 L34.56 41.27 L34.13 43.93 L34.16 46.88 L34.67 50 L35.68 53.12 L37.18 56.07 L39.13 58.73 L41.48 60.95 L44.14 62.61 L47.01 63.65 L50 64 L52.99 63.65 L55.86 62.61 L58.52 60.95 L60.87 58.73 L62.82 56.07 L64.32 53.12 L65.33 50 L65.84 46.88 L65.87 43.93 L65.44 41.27 L64.62 39.05 L63.48 37.39 L62.13 36.35 L60.67 36 L59.2 36.35 L57.85 37.39 L56.72 39.05 L55.9 41.27 L55.47 43.93 L55.49 46.88 L56 50 L57.01 53.12 L58.51 56.07 L60.47 58.73 L62.81 60.95 L65.47 62.61 L68.35 63.65 L71.33 64 L74.32 63.65 L77.2 62.61 L79.85 60.95 L82.2 58.73 L84.15 56.07 L85.65 53.12 L86.67 50 L87.18 46.88 L87.2 43.93 L86.77 41.27 L85.95 39.05 L84.82 37.39 L83.46 36.35 L82 36 L80.54 36.35 L79.18 37.39 L78.05 39.05 L77.23 41.27 L76.8 43.93 L76.82 46.88 L77.33 50 L78.35 53.12 L79.85 56.07 L81.8 58.73 L84.15 60.95 L86.8 62.61 L89.68 63.65 L92.67 64",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 2.5
+     },
+     "fillColor": "#F79847",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_txt_15",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 165
+     },
+     "size": {
+      "width": 1230,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Add tasks & events\nwith natural language",
+     "fontSize": 28,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "center",
+     "lineHeight": 1.18
+    },
+    {
+     "id": "ps_dev_16",
+     "type": "device",
+     "name": "iPhone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 159,
+      "y": 580
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.62,
+     "screenshotSrc": "/data/projects/plannio-screen-calendar.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "ps_rect_17",
+     "type": "shape",
+     "name": "NL pill",
+     "position": {
+      "x": 105,
+      "y": 1770
+     },
+     "size": {
+      "width": 880,
+      "height": 88
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 44
+    },
+    {
+     "id": "ps_txt_18",
+     "type": "text",
+     "name": "NL text",
+     "position": {
+      "x": 150,
+      "y": 1770
+     },
+     "size": {
+      "width": 660,
+      "height": 88
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Grab dinner with friends at 9",
+     "fontSize": 13,
+     "color": "#23252A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_19",
+     "type": "text",
+     "name": "NL plus",
+     "position": {
+      "x": 890,
+      "y": 1770
+     },
+     "size": {
+      "width": 70,
+      "height": 88
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "+",
+     "fontSize": 16,
+     "color": "#23252A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ]
+  },
+  {
+   "id": "plannio_student_ab3",
+   "name": "Auto Scheduled",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F5821F",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "ps_svg_20",
+     "type": "shape",
+     "name": "Bolt watermark",
+     "position": {
+      "x": 420,
+      "y": 1250
+     },
+     "size": {
+      "width": 800,
+      "height": 1300
+     },
+     "rotation": 12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     },
+     "fillColor": "#E9780F"
+    },
+    {
+     "id": "ps_txt_21",
+     "type": "text",
+     "name": "Headline top",
+     "position": {
+      "x": 45,
+      "y": 190
+     },
+     "size": {
+      "width": 1200,
+      "height": 190
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Auto scheduled",
+     "fontSize": 39,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_22",
+     "type": "shape",
+     "name": "Task card",
+     "position": {
+      "x": 150,
+      "y": 400
+     },
+     "size": {
+      "width": 470,
+      "height": 108
+     },
+     "rotation": -16,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 26
+    },
+    {
+     "id": "ps_rect_23",
+     "type": "shape",
+     "name": "Task bar",
+     "position": {
+      "x": 187.75,
+      "y": 479.13
+     },
+     "size": {
+      "width": 10,
+      "height": 60
+     },
+     "rotation": -16,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#8B6FD9",
+     "borderRadius": 5
+    },
+    {
+     "id": "ps_txt_24",
+     "type": "text",
+     "name": "Task title",
+     "position": {
+      "x": 205.64,
+      "y": 404.71
+     },
+     "size": {
+      "width": 390,
+      "height": 48
+     },
+     "rotation": -16,
+     "scale": 1,
+     "content": "Daily Yoga",
+     "fontSize": 10,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_25",
+     "type": "text",
+     "name": "Task sub",
+     "position": {
+      "x": 217.21,
+      "y": 451.08
+     },
+     "size": {
+      "width": 390,
+      "height": 36
+     },
+     "rotation": -16,
+     "scale": 1,
+     "content": "45m",
+     "fontSize": 7.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_26",
+     "type": "shape",
+     "name": "Task card",
+     "position": {
+      "x": 630,
+      "y": 490
+     },
+     "size": {
+      "width": 470,
+      "height": 108
+     },
+     "rotation": 10,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 26
+    },
+    {
+     "id": "ps_rect_27",
+     "type": "shape",
+     "name": "Task bar",
+     "position": {
+      "x": 663.04,
+      "y": 479.27
+     },
+     "size": {
+      "width": 10,
+      "height": 60
+     },
+     "rotation": 10,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#4E8FDB",
+     "borderRadius": 5
+    },
+    {
+     "id": "ps_txt_28",
+     "type": "text",
+     "name": "Task title",
+     "position": {
+      "x": 695.14,
+      "y": 504.12
+     },
+     "size": {
+      "width": 390,
+      "height": 48
+     },
+     "rotation": 10,
+     "scale": 1,
+     "content": "Reread stats notes",
+     "fontSize": 10,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_29",
+     "type": "text",
+     "name": "Task sub",
+     "position": {
+      "x": 687.85,
+      "y": 551.49
+     },
+     "size": {
+      "width": 390,
+      "height": 36
+     },
+     "rotation": 10,
+     "scale": 1,
+     "content": "1h",
+     "fontSize": 7.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_30",
+     "type": "shape",
+     "name": "Task card",
+     "position": {
+      "x": 330,
+      "y": 565
+     },
+     "size": {
+      "width": 470,
+      "height": 108
+     },
+     "rotation": -7,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 26
+    },
+    {
+     "id": "ps_rect_31",
+     "type": "shape",
+     "name": "Task bar",
+     "position": {
+      "x": 361.49,
+      "y": 613.37
+     },
+     "size": {
+      "width": 10,
+      "height": 60
+     },
+     "rotation": -7,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8A13D",
+     "borderRadius": 5
+    },
+    {
+     "id": "ps_txt_32",
+     "type": "text",
+     "name": "Task title",
+     "position": {
+      "x": 389.4,
+      "y": 572.47
+     },
+     "size": {
+      "width": 390,
+      "height": 48
+     },
+     "rotation": -7,
+     "scale": 1,
+     "content": "Watch Bio 210 lecture",
+     "fontSize": 10,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_33",
+     "type": "text",
+     "name": "Task sub",
+     "position": {
+      "x": 394.52,
+      "y": 620.15
+     },
+     "size": {
+      "width": 390,
+      "height": 36
+     },
+     "rotation": -7,
+     "scale": 1,
+     "content": "1h 5m",
+     "fontSize": 7.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_34",
+     "type": "shape",
+     "name": "Task card",
+     "position": {
+      "x": 700,
+      "y": 645
+     },
+     "size": {
+      "width": 470,
+      "height": 108
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 26
+    },
+    {
+     "id": "ps_rect_35",
+     "type": "shape",
+     "name": "Task bar",
+     "position": {
+      "x": 736.81,
+      "y": 617.24
+     },
+     "size": {
+      "width": 10,
+      "height": 60
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#35A857",
+     "borderRadius": 5
+    },
+    {
+     "id": "ps_txt_36",
+     "type": "text",
+     "name": "Task title",
+     "position": {
+      "x": 766.43,
+      "y": 661.38
+     },
+     "size": {
+      "width": 390,
+      "height": 48
+     },
+     "rotation": 15,
+     "scale": 1,
+     "content": "Meal prep for the week",
+     "fontSize": 10,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_37",
+     "type": "text",
+     "name": "Task sub",
+     "position": {
+      "x": 755.56,
+      "y": 707.94
+     },
+     "size": {
+      "width": 390,
+      "height": 36
+     },
+     "rotation": 15,
+     "scale": 1,
+     "content": "1h",
+     "fontSize": 7.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_svg_38",
+     "type": "shape",
+     "name": "Chevron",
+     "position": {
+      "x": 430,
+      "y": 820
+     },
+     "size": {
+      "width": 430,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M6 0 L50 30 L94 0 L94 26 L50 56 L6 26 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 56"
+     },
+     "fillColor": "#E9780F"
+    },
+    {
+     "id": "ps_svg_39",
+     "type": "shape",
+     "name": "Chevron",
+     "position": {
+      "x": 430,
+      "y": 1000
+     },
+     "size": {
+      "width": 430,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M6 0 L50 30 L94 0 L94 26 L50 56 L6 26 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 56"
+     },
+     "fillColor": "#E9780F"
+    },
+    {
+     "id": "ps_svg_40",
+     "type": "shape",
+     "name": "Chevron",
+     "position": {
+      "x": 430,
+      "y": 1180
+     },
+     "size": {
+      "width": 430,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M6 0 L50 30 L94 0 L94 26 L50 56 L6 26 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 56"
+     },
+     "fillColor": "#E9780F"
+    },
+    {
+     "id": "ps_svg_41",
+     "type": "shape",
+     "name": "Chevron",
+     "position": {
+      "x": 430,
+      "y": 1360
+     },
+     "size": {
+      "width": 430,
+      "height": 240
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M6 0 L50 30 L94 0 L94 26 L50 56 L6 26 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 56"
+     },
+     "fillColor": "#E9780F"
+    },
+    {
+     "id": "ps_rect_42",
+     "type": "shape",
+     "name": "Timeline line",
+     "position": {
+      "x": 299,
+      "y": 1450
+     },
+     "size": {
+      "width": 4,
+      "height": 740
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 2
+    },
+    {
+     "id": "ps_rect_43",
+     "type": "shape",
+     "name": "Row card",
+     "position": {
+      "x": 360,
+      "y": 1450
+     },
+     "size": {
+      "width": 740,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 28
+    },
+    {
+     "id": "ps_circ_44",
+     "type": "shape",
+     "name": "Ring mask",
+     "position": {
+      "x": 281,
+      "y": 1500
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F5821F"
+    },
+    {
+     "id": "ps_svg_45",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 279,
+      "y": 1498
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 5
+     },
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 5
+    },
+    {
+     "id": "ps_txt_46",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 400,
+      "y": 1474
+     },
+     "size": {
+      "width": 480,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Daily Yoga",
+     "fontSize": 10.5,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_47",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 400,
+      "y": 1526
+     },
+     "size": {
+      "width": 480,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "4:30pm - 5:15pm (45min)",
+     "fontSize": 8,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_svg_48",
+     "type": "shape",
+     "name": "Row checkbox",
+     "position": {
+      "x": 1026,
+      "y": 1503
+     },
+     "size": {
+      "width": 34,
+      "height": 34
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 4
+     },
+     "fillColor": "#C9CDD3",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_rect_49",
+     "type": "shape",
+     "name": "Row card",
+     "position": {
+      "x": 360,
+      "y": 1640
+     },
+     "size": {
+      "width": 740,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 28
+    },
+    {
+     "id": "ps_circ_50",
+     "type": "shape",
+     "name": "Ring mask",
+     "position": {
+      "x": 281,
+      "y": 1690
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F5821F"
+    },
+    {
+     "id": "ps_svg_51",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 279,
+      "y": 1688
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 5
+     },
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 5
+    },
+    {
+     "id": "ps_txt_52",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 400,
+      "y": 1664
+     },
+     "size": {
+      "width": 480,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Reread stats notes",
+     "fontSize": 10.5,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_53",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 400,
+      "y": 1716
+     },
+     "size": {
+      "width": 480,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "5:00pm - 6:00pm (1h)",
+     "fontSize": 8,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_svg_54",
+     "type": "shape",
+     "name": "Row checkbox",
+     "position": {
+      "x": 1026,
+      "y": 1693
+     },
+     "size": {
+      "width": 34,
+      "height": 34
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 4
+     },
+     "fillColor": "#C9CDD3",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_rect_55",
+     "type": "shape",
+     "name": "Row card",
+     "position": {
+      "x": 360,
+      "y": 1830
+     },
+     "size": {
+      "width": 740,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 28
+    },
+    {
+     "id": "ps_circ_56",
+     "type": "shape",
+     "name": "Ring mask",
+     "position": {
+      "x": 281,
+      "y": 1880
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F5821F"
+    },
+    {
+     "id": "ps_svg_57",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 279,
+      "y": 1878
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 5
+     },
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 5
+    },
+    {
+     "id": "ps_txt_58",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 400,
+      "y": 1854
+     },
+     "size": {
+      "width": 480,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Watch Bio 210 lecture",
+     "fontSize": 10.5,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_59",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 400,
+      "y": 1906
+     },
+     "size": {
+      "width": 480,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "6:30pm - 7:35pm (1h 5m)",
+     "fontSize": 8,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_svg_60",
+     "type": "shape",
+     "name": "Row checkbox",
+     "position": {
+      "x": 1026,
+      "y": 1883
+     },
+     "size": {
+      "width": 34,
+      "height": 34
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 4
+     },
+     "fillColor": "#C9CDD3",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_rect_61",
+     "type": "shape",
+     "name": "Row card",
+     "position": {
+      "x": 360,
+      "y": 2020
+     },
+     "size": {
+      "width": 740,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 28
+    },
+    {
+     "id": "ps_circ_62",
+     "type": "shape",
+     "name": "Ring mask",
+     "position": {
+      "x": 281,
+      "y": 2070
+     },
+     "size": {
+      "width": 40,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F5821F"
+    },
+    {
+     "id": "ps_svg_63",
+     "type": "shape",
+     "name": "Ring",
+     "position": {
+      "x": 279,
+      "y": 2068
+     },
+     "size": {
+      "width": 44,
+      "height": 44
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 5
+     },
+     "fillColor": "#FFFFFF",
+     "strokeColor": "transparent",
+     "strokeWidth": 5
+    },
+    {
+     "id": "ps_txt_64",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 400,
+      "y": 2044
+     },
+     "size": {
+      "width": 480,
+      "height": 52
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Meal prep for the week",
+     "fontSize": 10.5,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_65",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 400,
+      "y": 2096
+     },
+     "size": {
+      "width": 480,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "8:00pm - 9:00pm (1h)",
+     "fontSize": 8,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_svg_66",
+     "type": "shape",
+     "name": "Row checkbox",
+     "position": {
+      "x": 1026,
+      "y": 2073
+     },
+     "size": {
+      "width": 34,
+      "height": 34
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M50 5 C74.8 5 95 25.2 95 50 C95 74.8 74.8 95 50 95 C25.2 95 5 74.8 5 50 C5 25.2 25.2 5 50 5 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 4
+     },
+     "fillColor": "#C9CDD3",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_txt_67",
+     "type": "text",
+     "name": "Headline bottom",
+     "position": {
+      "x": 30,
+      "y": 2373
+     },
+     "size": {
+      "width": 1230,
+      "height": 245
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "When you have energy\nto do tasks",
+     "fontSize": 28,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    }
+   ]
+  },
+  {
+   "id": "plannio_student_ab4",
+   "name": "Bookmarks",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F5821F",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "ps_txt_68",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 165
+     },
+     "size": {
+      "width": 1230,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Bookmark fav tasks\nfor easy access",
+     "fontSize": 33,
+     "color": "#FFFFFF",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "center",
+     "lineHeight": 1.18
+    },
+    {
+     "id": "ps_svg_69",
+     "type": "shape",
+     "name": "Bookmark outline a",
+     "position": {
+      "x": 1070,
+      "y": 450
+     },
+     "size": {
+      "width": 190,
+      "height": 190
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M25 8 H75 Q82 8 82 15 V92 L50 72 L18 92 V15 Q18 8 25 8 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 2
+     },
+     "fillColor": "#F79847",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_svg_70",
+     "type": "shape",
+     "name": "Bookmark outline b",
+     "position": {
+      "x": 1120,
+      "y": 645
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "customPath": "M25 8 H75 Q82 8 82 15 V92 L50 72 L18 92 V15 Q18 8 25 8 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 2
+     },
+     "fillColor": "#F79847",
+     "strokeColor": "transparent",
+     "strokeWidth": 4
+    },
+    {
+     "id": "ps_dev3d_71",
+     "type": "device",
+     "name": "iPhone 3D",
+     "position": {
+      "x": 118.65830626239017,
+      "y": 864.5737250300228
+     },
+     "size": {
+      "width": 544.0216331990803,
+      "height": 1120
+     },
+     "rotation": 11,
+     "scale": 1.8823088243511499,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "normal",
+     "pose3d": "tilted",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/plannio-screen-inbox.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "ps_rect_72",
+     "type": "shape",
+     "name": "Bookmarks card",
+     "position": {
+      "x": 193.33333333333331,
+      "y": 1260
+     },
+     "size": {
+      "width": 900,
+      "height": 1150
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#FFFFFF",
+     "borderRadius": 44
+    },
+    {
+     "id": "ps_txt_73",
+     "type": "text",
+     "name": "Card title",
+     "position": {
+      "x": 418.7333333333333,
+      "y": 1320.64
+     },
+     "size": {
+      "width": 400,
+      "height": 90
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Bookmarks",
+     "fontSize": 14,
+     "color": "#23252A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_74",
+     "type": "shape",
+     "name": "Done pill",
+     "position": {
+      "x": 857.5033333333333,
+      "y": 1297.66
+     },
+     "size": {
+      "width": 170,
+      "height": 72
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F2F2F4",
+     "borderRadius": 36
+    },
+    {
+     "id": "ps_txt_75",
+     "type": "text",
+     "name": "Done label",
+     "position": {
+      "x": 857.5033333333333,
+      "y": 1297.66
+     },
+     "size": {
+      "width": 170,
+      "height": 72
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Done",
+     "fontSize": 11,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_76",
+     "type": "text",
+     "name": "Caption events",
+     "position": {
+      "x": 245.5933333333333,
+      "y": 1472.51
+     },
+     "size": {
+      "width": 300,
+      "height": 60
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Events",
+     "fontSize": 9,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_77",
+     "type": "shape",
+     "name": "Row bar",
+     "position": {
+      "x": 250.3433333333333,
+      "y": 1565.03
+     },
+     "size": {
+      "width": 8,
+      "height": 64
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E8A13D",
+     "borderRadius": 4
+    },
+    {
+     "id": "ps_txt_78",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 279.25333333333333,
+      "y": 1540.22
+     },
+     "size": {
+      "width": 400,
+      "height": 60
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Work",
+     "fontSize": 11,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_79",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 284.2633333333333,
+      "y": 1605.2800000000002
+     },
+     "size": {
+      "width": 200,
+      "height": 50
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "4h",
+     "fontSize": 8.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_80",
+     "type": "text",
+     "name": "Row plus",
+     "position": {
+      "x": 949.2433333333333,
+      "y": 1521.78
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "+",
+     "fontSize": 14,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_81",
+     "type": "shape",
+     "name": "Divider",
+     "position": {
+      "x": 255.82333333333332,
+      "y": 1690.1999999999998
+     },
+     "size": {
+      "width": 760,
+      "height": 3
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#EEEEEE",
+     "borderRadius": 1
+    },
+    {
+     "id": "ps_txt_82",
+     "type": "text",
+     "name": "Caption tasks",
+     "position": {
+      "x": 259.98333333333335,
+      "y": 1747.13
+     },
+     "size": {
+      "width": 300,
+      "height": 60
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Tasks",
+     "fontSize": 9,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_83",
+     "type": "shape",
+     "name": "Row bar",
+     "position": {
+      "x": 264.74333333333334,
+      "y": 1839.6599999999999
+     },
+     "size": {
+      "width": 8,
+      "height": 64
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#E25C4A",
+     "borderRadius": 4
+    },
+    {
+     "id": "ps_txt_84",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 293.6433333333333,
+      "y": 1814.85
+     },
+     "size": {
+      "width": 400,
+      "height": 60
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Track practice",
+     "fontSize": 11,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_85",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 298.6533333333333,
+      "y": 1879.9
+     },
+     "size": {
+      "width": 200,
+      "height": 50
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "2h",
+     "fontSize": 8.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_86",
+     "type": "text",
+     "name": "Row plus",
+     "position": {
+      "x": 963.6333333333332,
+      "y": 1796.4
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "+",
+     "fontSize": 14,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_rect_87",
+     "type": "shape",
+     "name": "Row bar",
+     "position": {
+      "x": 271.8033333333333,
+      "y": 1974.4699999999998
+     },
+     "size": {
+      "width": 8,
+      "height": 64
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#35A857",
+     "borderRadius": 4
+    },
+    {
+     "id": "ps_txt_88",
+     "type": "text",
+     "name": "Row title",
+     "position": {
+      "x": 300.7133333333333,
+      "y": 1949.6599999999999
+     },
+     "size": {
+      "width": 400,
+      "height": 60
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "Clean room",
+     "fontSize": 11,
+     "color": "#23252A",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_89",
+     "type": "text",
+     "name": "Row sub",
+     "position": {
+      "x": 305.7233333333333,
+      "y": 2014.7199999999998
+     },
+     "size": {
+      "width": 200,
+      "height": 50
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "30m",
+     "fontSize": 8.5,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "500",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_90",
+     "type": "text",
+     "name": "Row plus",
+     "position": {
+      "x": 970.6933333333334,
+      "y": 1931.2199999999998
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": -3,
+     "scale": 1,
+     "content": "+",
+     "fontSize": 14,
+     "color": "#9AA0A8",
+     "fontFamily": "Bricolage Grotesque",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    }
+   ]
+  },
+  {
+   "id": "plannio_student_ab5",
+   "name": "Insights",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#F5821F",
+   "zoom": 1,
+   "elements": [
+    {
+     "id": "ps_txt_91",
+     "type": "text",
+     "name": "Math doodle",
+     "position": {
+      "x": 85,
+      "y": 55
+     },
+     "size": {
+      "width": 300,
+      "height": 116
+     },
+     "rotation": -12,
+     "scale": 1,
+     "content": "E = x²",
+     "fontSize": 24,
+     "color": "#F79847",
+     "fontFamily": "Caveat",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_92",
+     "type": "text",
+     "name": "Math doodle",
+     "position": {
+      "x": 1110,
+      "y": 310
+     },
+     "size": {
+      "width": 140,
+      "height": 97
+     },
+     "rotation": 8,
+     "scale": 1,
+     "content": "π",
+     "fontSize": 20,
+     "color": "#F79847",
+     "fontFamily": "Caveat",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_93",
+     "type": "text",
+     "name": "Math doodle",
+     "position": {
+      "x": 1040,
+      "y": 2430
+     },
+     "size": {
+      "width": 200,
+      "height": 106
+     },
+     "rotation": -10,
+     "scale": 1,
+     "content": "√x",
+     "fontSize": 22,
+     "color": "#F79847",
+     "fontFamily": "Caveat",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_94",
+     "type": "text",
+     "name": "Math doodle",
+     "position": {
+      "x": 110,
+      "y": 2570
+     },
+     "size": {
+      "width": 260,
+      "height": 87
+     },
+     "rotation": 6,
+     "scale": 1,
+     "content": "+ x ÷",
+     "fontSize": 18,
+     "color": "#F79847",
+     "fontFamily": "Caveat",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "ps_txt_95",
+     "type": "text",
+     "name": "Headline",
+     "position": {
+      "x": 30,
+      "y": 165
+     },
+     "size": {
+      "width": 1230,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Track growth\nthrough insights",
+     "fontSize": 33,
+     "color": "#2E2416",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "800",
+     "textAlign": "center",
+     "lineHeight": 1.18
+    },
+    {
+     "id": "ps_dev_96",
+     "type": "device",
+     "name": "iPhone",
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#1A1A1C",
+     "position": {
+      "x": 171,
+      "y": 600
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.58,
+     "screenshotSrc": "/data/projects/plannio-screen-insights.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  }
+ ]
+}

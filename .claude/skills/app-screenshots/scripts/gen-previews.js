@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'plannio-student',
   'calora-macros', 'puzzlo-word', 'sproutly-parenting',
   'zapio-remote', 'runzo-coach', 'nookly-focus',
   'playpop-intro', 'lotus-calm', 'cvcraft-resume', 'nutrio-fitness',

@@ -8,6 +8,7 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'plannio-student', card: 'Plannio Student', boards: 5 },
   { slug: 'calora-macros', card: 'Calora Macros', boards: 5 },
   { slug: 'puzzlo-word', card: 'Puzzlo Word', boards: 5 },
   { slug: 'sproutly-parenting', card: 'Sproutly Parenting', boards: 5 },
