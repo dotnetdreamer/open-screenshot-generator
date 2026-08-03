@@ -22,6 +22,7 @@ interface CanvasAreaProps {
   onDuplicateArtboardFromToolbar: (artboardId: string) => void;
   onDeleteArtboardFromToolbar: (artboardId: string) => void;
   onMoveArtboardFromToolbar: (artboardId: string, direction: 'left' | 'right') => void;
+  onTranslateArtboard?: (artboardId: string) => void;
   activeTool: 'select' | 'pan';
   // While a project/template is still loading (Dexie read + artboard build),
   // the parent sets this so the canvas shows a stable skeleton instead of a
@@ -44,6 +45,7 @@ export function CanvasArea({
     onDuplicateArtboardFromToolbar,
     onDeleteArtboardFromToolbar,
     onMoveArtboardFromToolbar,
+    onTranslateArtboard,
     activeTool,
     isLoading = false,
 }: CanvasAreaProps) {
@@ -289,6 +291,7 @@ export function CanvasArea({
                 onDuplicateArtboard={onDuplicateArtboardFromToolbar}
                 onDeleteArtboard={handleDeleteArtboard}
                 onMoveArtboard={onMoveArtboardFromToolbar}
+                onTranslateArtboard={onTranslateArtboard}
                 canDeleteArtboard={artboards.length > 1}
                 canMoveArtboardLeft={index > 0}
                 canMoveArtboardRight={index < artboards.length - 1}

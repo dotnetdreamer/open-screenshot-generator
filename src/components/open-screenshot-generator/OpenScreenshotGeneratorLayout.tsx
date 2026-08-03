@@ -468,6 +468,13 @@ export function OpenScreenshotGeneratorLayout() {
   const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
+  const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
+
+  const handleTranslateArtboard = (artboardId: string) => {
+    handleArtboardSelection(artboardId);
+    setIsTranslateSingleArtboard(true);
+    setIsTranslateDialogOpen(true);
+  };
   useLayoutEffect(() => {
     try {
       if (window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) === '0') setIsRightDockOpen(false);
@@ -3142,7 +3149,10 @@ const generateRandomProjectName = (): string => {
             onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
-            onTranslate={() => setIsTranslateDialogOpen(true)}
+            onTranslate={() => {
+              setIsTranslateSingleArtboard(false);
+              setIsTranslateDialogOpen(true);
+            }}
             isTranslationEnabled={isTranslationEnabled}
             className="sticky top-0 z-50 bg-card border-b"
           />
@@ -3165,6 +3175,7 @@ const generateRandomProjectName = (): string => {
                 onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
                 onDeleteArtboardFromToolbar={handleDeleteArtboard}
                 onMoveArtboardFromToolbar={handleMoveArtboard}
+                onTranslateArtboard={handleTranslateArtboard}
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
@@ -3382,6 +3393,7 @@ const generateRandomProjectName = (): string => {
             isOpen={isTranslateDialogOpen}
             onOpenChange={setIsTranslateDialogOpen}
             currentLanguage={currentProjectLanguage}
+            disableAllArtboardsOption={isTranslateSingleArtboard}
             onTranslate={handleTranslateProject}
           />
 

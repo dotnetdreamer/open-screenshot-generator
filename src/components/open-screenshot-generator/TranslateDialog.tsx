@@ -23,6 +23,7 @@ import { AUTO_DETECT } from '@/services/translation';
 import { getGroupedFontOptions } from '@/services/fontService';
 import { getRecommendedFontForLanguage } from '@/lib/fontLanguageMatcher';
 import { SelectGroup, SelectLabel } from "@/components/ui/select";
+import { cn } from '@/lib/utils';
 
 export const LANGUAGES = [
   { code: "sq", name: "Albanian" },
@@ -91,6 +92,7 @@ export interface TranslateDialogProps {
    * keep claiming the text is still English.
    */
   currentLanguage?: string;
+  disableAllArtboardsOption?: boolean;
   onTranslate: (targetLanguage: string, allArtboards: boolean, sourceLanguage: string, targetFont?: string) => Promise<void>;
 }
 
@@ -98,6 +100,7 @@ export function TranslateDialog({
   isOpen,
   onOpenChange,
   currentLanguage,
+  disableAllArtboardsOption = false,
   onTranslate,
 }: TranslateDialogProps) {
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
@@ -112,6 +115,9 @@ export function TranslateDialog({
   // us after each run, so a stale source is worse than no source at all.
   useEffect(() => {
     if (!isOpen) return;
+    if (disableAllArtboardsOption) {
+      setAllArtboards(false);
+    }
     const knownSource =
       currentLanguage && LANGUAGES.some((lang) => lang.code === currentLanguage)
         ? currentLanguage
@@ -128,7 +134,7 @@ export function TranslateDialog({
       
       return newTarget;
     });
-  }, [isOpen, currentLanguage]);
+  }, [isOpen, currentLanguage, disableAllArtboardsOption]);
 
   const handleTargetLanguageChange = (lang: string) => {
     setTargetLanguage(lang);
@@ -265,10 +271,11 @@ export function TranslateDialog({
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="allArtboards" 
-                  checked={allArtboards} 
+                  checked={disableAllArtboardsOption ? false : allArtboards} 
+                  disabled={disableAllArtboardsOption}
                   onCheckedChange={(checked) => setAllArtboards(!!checked)} 
                 />
-                <Label htmlFor="allArtboards" className="text-sm font-normal">
+                <Label htmlFor="allArtboards" className={cn("text-sm font-normal", disableAllArtboardsOption && "opacity-50 cursor-not-allowed")}>
                   Translate all artboards
                 </Label>
               </div>

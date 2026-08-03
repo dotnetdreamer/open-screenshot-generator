@@ -9,6 +9,7 @@ import {
   ArrowLeftFromLineIcon,
   ArrowRightFromLineIcon,
   ShuffleIcon, // Using Shuffle as a general move icon
+  Languages,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ interface ArtboardToolbarProps {
   onDuplicate: (artboardId: string) => void;
   onDelete: (artboardId: string) => void;
   onMove: (artboardId: string, direction: 'left' | 'right') => void;
+  onTranslate?: (artboardId: string) => void;
   canDelete: boolean;
   canMoveLeft: boolean;
   canMoveRight: boolean;
@@ -30,6 +32,7 @@ export function ArtboardToolbar({
   onDuplicate,
   onDelete,
   onMove,
+  onTranslate,
   canDelete,
   canMoveLeft,
   canMoveRight,
@@ -63,6 +66,17 @@ export function ArtboardToolbar({
           </TooltipTrigger>
           <TooltipContent side="bottom"><p>Duplicate Artboard</p></TooltipContent>
         </Tooltip>
+
+        {onTranslate && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => onTranslate(artboardId)}>
+                <Languages className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Translate Artboard</p></TooltipContent>
+          </Tooltip>
+        )}
 
         <Tooltip>
           <TooltipTrigger asChild>

@@ -32,6 +32,7 @@ interface ArtboardProps {
   onDuplicateArtboard: (artboardId: string) => void;
   onDeleteArtboard: (artboardId: string) => void;
   onMoveArtboard: (artboardId: string, direction: 'left' | 'right') => void;
+  onTranslateArtboard?: (artboardId: string) => void;
   canDeleteArtboard: boolean;
   canMoveArtboardLeft: boolean;
   canMoveArtboardRight: boolean;
@@ -55,6 +56,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   onDuplicateArtboard,
   onDeleteArtboard,
   onMoveArtboard,
+  onTranslateArtboard,
   canDeleteArtboard,
   canMoveArtboardLeft,
   canMoveArtboardRight,
@@ -442,6 +444,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         onDuplicate={onDuplicateArtboard}
         onDelete={onDeleteArtboard}
         onMove={onMoveArtboard}
+        onTranslate={onTranslateArtboard}
         canDelete={canDeleteArtboard}
         canMoveLeft={canMoveArtboardLeft}
         canMoveRight={canMoveArtboardRight}
