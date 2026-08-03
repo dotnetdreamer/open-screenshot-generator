@@ -160,7 +160,7 @@ export type TextOverride = AgentPlan['textOverrides'][number];
 
 /** Caps the builder enforces. Kept here so the prompt can quote them. */
 export const AGENT_LIMITS = {
-  maxScreenshots: 20,
+  maxScreenshots: 3,
   maxNewDesignArtboards: 6,
   maxTextLength: 200,
 } as const;

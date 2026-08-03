@@ -550,12 +550,12 @@ export function AgentStartScreen({
   return (
     <div className="space-y-6 pb-2">
       <section className="space-y-2">
-        <Label className="text-sm font-medium">1. Add your app screenshots</Label>
+        <Label className="text-sm font-bold">1. Add your app screenshots</Label>
         <ScreenshotUploader screenshots={screenshots} onChange={setScreenshots} disabled={busy} />
       </section>
 
       <section className="space-y-2">
-        <Label htmlFor="agent-instruction" className="text-sm font-medium">
+        <Label htmlFor="agent-instruction" className="text-sm font-bold">
           2. Tell the agent what you want
         </Label>
         <Textarea
@@ -583,7 +583,7 @@ export function AgentStartScreen({
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">3. Choose how the agent runs</Label>
+          <Label className="text-sm font-bold">3. Choose how the agent runs</Label>
           <div className="flex items-center gap-1">
             {desktop && <ClearSessionsButton busy={busy} />}
             <button
