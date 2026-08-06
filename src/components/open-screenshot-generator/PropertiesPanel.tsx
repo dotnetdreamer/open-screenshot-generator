@@ -9,9 +9,10 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages } from 'lucide-react';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, AlignStartVertical, AlignCenterVertical, AlignEndVertical, AlignStartHorizontal, AlignCenterHorizontal, AlignEndHorizontal, AlignHorizontalDistributeCenter, AlignVerticalDistributeCenter } from 'lucide-react';
 import { saveMedia } from '@/lib/mediaStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
+import type { ElementAlignment } from '@/lib/elementAlignment';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,6 +41,12 @@ const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
+  // Total number of selected elements on the active artboard. Values above 1
+  // switch the panel to its multi-select state (count + alignment controls).
+  selectionCount?: number;
+  // Alignment/distribute actions. Single selection aligns inside the
+  // artboard; multi-selection aligns inside the selection's bounding box.
+  onAlignElements?: (mode: ElementAlignment) => void;
   onUpdateElement: (updates: Partial<ArtboardElement>) => void;
   /**
    * Update an element by id even when it is no longer selected. Used to
@@ -165,6 +172,8 @@ const gradientPresets = [
 
 export function PropertiesPanel({
   selectedElement, 
+  selectionCount,
+  onAlignElements,
   onUpdateElement, 
   onUpdateElementById,
   onTranslateElement,
@@ -2163,6 +2172,89 @@ export function PropertiesPanel({
     );
   };
 
+  // Alignment section, shown for both single selections (aligned to the
+  // artboard) and multi-selections (aligned to the selection bounding box,
+  // with distribute once 3+ elements are selected).
+  const renderAlignmentControls = () => {
+    if (!onAlignElements) return null;
+    const count = selectionCount ?? (selectedElement ? 1 : 0);
+    if (count === 0) return null;
+
+    const alignButtons: Array<{ mode: ElementAlignment; title: string; icon: React.ReactNode }> = [
+      { mode: 'left', title: 'Align left', icon: <AlignStartVertical className="h-4 w-4" /> },
+      { mode: 'center-h', title: 'Align center horizontally', icon: <AlignCenterVertical className="h-4 w-4" /> },
+      { mode: 'right', title: 'Align right', icon: <AlignEndVertical className="h-4 w-4" /> },
+      { mode: 'top', title: 'Align top', icon: <AlignStartHorizontal className="h-4 w-4" /> },
+      { mode: 'middle-v', title: 'Align middle vertically', icon: <AlignCenterHorizontal className="h-4 w-4" /> },
+      { mode: 'bottom', title: 'Align bottom', icon: <AlignEndHorizontal className="h-4 w-4" /> },
+    ];
+
+    return (
+      <div className="space-y-2">
+        <Label className="text-xs font-medium">
+          {count > 1 ? 'Align selection' : 'Align to artboard'}
+        </Label>
+        <div className="grid grid-cols-6 gap-1">
+          {alignButtons.map(({ mode, title, icon }) => (
+            <Button
+              key={mode}
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              title={title}
+              aria-label={title}
+              onClick={() => onAlignElements(mode)}
+            >
+              {icon}
+            </Button>
+          ))}
+        </div>
+        {count >= 3 && (
+          <div className="grid grid-cols-2 gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5"
+              title="Distribute horizontally"
+              onClick={() => onAlignElements('distribute-h')}
+            >
+              <AlignHorizontalDistributeCenter className="h-4 w-4 shrink-0" />
+              <span className="text-xs">Distribute H</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5"
+              title="Distribute vertically"
+              onClick={() => onAlignElements('distribute-v')}
+            >
+              <AlignVerticalDistributeCenter className="h-4 w-4 shrink-0" />
+              <span className="text-xs">Distribute V</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Multi-selection: count plus alignment controls. Per-property editing is
+  // single-selection only.
+  if (selectionCount !== undefined && selectionCount > 1) {
+    return (
+      <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
+        <div className="px-4 py-3 border-b bg-card">
+          <div className="font-medium text-foreground">{selectionCount} elements selected</div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          {renderAlignmentControls()}
+          <p className="text-xs text-muted-foreground">
+            Select a single element to edit its properties
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // No element or artboard selected
   if (!selectedElement && !activeArtboardDetails) {
     return (
@@ -2360,6 +2452,7 @@ export function PropertiesPanel({
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          {renderAlignmentControls()}
           {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
           {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
           {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
