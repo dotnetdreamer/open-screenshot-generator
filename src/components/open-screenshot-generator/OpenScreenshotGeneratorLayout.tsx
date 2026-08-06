@@ -469,9 +469,19 @@ export function OpenScreenshotGeneratorLayout() {
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
+  // Set when the run is scoped to one text element (the properties panel
+  // button); null means the dialog translates artboards as before.
+  const [translateElementId, setTranslateElementId] = useState<string | null>(null);
 
   const handleTranslateArtboard = (artboardId: string) => {
     handleArtboardSelection(artboardId);
+    setTranslateElementId(null);
+    setIsTranslateSingleArtboard(true);
+    setIsTranslateDialogOpen(true);
+  };
+
+  const handleTranslateTextElement = (elementId: string) => {
+    setTranslateElementId(elementId);
     setIsTranslateSingleArtboard(true);
     setIsTranslateDialogOpen(true);
   };
@@ -1933,6 +1943,104 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // Artboard whose text the element-scoped dialog is about to translate, so
+  // the source picker can seed from that board rather than the whole project.
+  const translateElementArtboard = translateElementId
+    ? artboards.find((ab) => ab.elements.some((el) => el.id === translateElementId))
+    : undefined;
+
+  const handleTranslateElement = async (
+    elementId: string,
+    targetLanguage: string,
+    sourceLanguage: string = AUTO_DETECT,
+    targetFont?: string
+  ) => {
+    const owner = artboards.find((ab) => ab.elements.some((el) => el.id === elementId));
+    const element = owner?.elements.find((el) => el.id === elementId);
+
+    if (!owner || !element || element.type !== 'text' || !element.content?.trim()) {
+      toast({
+        title: "Nothing to translate",
+        description: "This text element is empty or no longer on the canvas."
+      });
+      return;
+    }
+
+    let effectiveSource = sourceLanguage || AUTO_DETECT;
+    if (effectiveSource === AUTO_DETECT) {
+      const detected = await detectLanguage(element.content.slice(0, 1000));
+      if (detected) {
+        effectiveSource = detected.language;
+      }
+    }
+
+    if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
+      toast({
+        title: "Nothing to translate",
+        description: `The text is already in ${getLanguageName(targetLanguage)}.`
+      });
+      return;
+    }
+
+    let translated: string;
+    try {
+      const result = await translateText(element.content, targetLanguage, effectiveSource);
+      translated = result.text;
+    } catch (e: any) {
+      console.error("Failed to translate element", elementId, e);
+      toast({
+        title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
+        description: e?.status === 429
+          ? "Please wait a minute before trying again."
+          : "Failed to translate this text element. Please try again later.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // The artboard's language stamp describes all of its text. It only stays
+    // true if this was the board's one and only text element; otherwise the
+    // board is now mixed and must go back to being detected.
+    const isOnlyTextElement = !owner.elements.some(
+      (el) => el.type === 'text' && el.id !== elementId
+    );
+
+    handleArtboardsUpdate(
+      artboards.map((ab) =>
+        ab.id !== owner.id
+          ? ab
+          : {
+              ...ab,
+              elements: ab.elements.map((el) =>
+                el.id === elementId
+                  ? { ...el, content: translated, ...(targetFont ? { fontFamily: targetFont } : {}) }
+                  : el
+              ),
+              language: isOnlyTextElement ? targetLanguage : undefined,
+            }
+      )
+    );
+
+    toast({
+      title: "Translation complete",
+      description: `Text translated to ${getLanguageName(targetLanguage)}.`
+    });
+  };
+
+  // The dialog is shared, so route its result to whichever scope opened it.
+  const handleTranslateRequest = async (
+    targetLanguage: string,
+    allArtboards: boolean,
+    sourceLanguage: string = AUTO_DETECT,
+    targetFont?: string
+  ) => {
+    if (translateElementId) {
+      await handleTranslateElement(translateElementId, targetLanguage, sourceLanguage, targetFont);
+      return;
+    }
+    await handleTranslateProject(targetLanguage, allArtboards, sourceLanguage, targetFont);
+  };
+
 
   // Preload Google Fonts on component mount
   useEffect(() => {
@@ -3150,6 +3258,7 @@ const generateRandomProjectName = (): string => {
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
             onTranslate={() => {
+              setTranslateElementId(null);
               setIsTranslateSingleArtboard(false);
               setIsTranslateDialogOpen(true);
             }}
@@ -3250,6 +3359,7 @@ const generateRandomProjectName = (): string => {
                       selectedElement={selectedElementDetails}
                       onUpdateElement={handleUpdateSelectedElement}
                       onUpdateElementById={handleUpdateElementById}
+                      onTranslateElement={handleTranslateTextElement}
                       activeArtboardDetails={
                         activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
                       }
@@ -3391,10 +3501,14 @@ const generateRandomProjectName = (): string => {
 
           <TranslateDialog
             isOpen={isTranslateDialogOpen}
-            onOpenChange={setIsTranslateDialogOpen}
-            currentLanguage={currentProjectLanguage}
+            onOpenChange={(open) => {
+              setIsTranslateDialogOpen(open);
+              if (!open) setTranslateElementId(null);
+            }}
+            currentLanguage={translateElementId ? translateElementArtboard?.language : currentProjectLanguage}
             disableAllArtboardsOption={isTranslateSingleArtboard}
-            onTranslate={handleTranslateProject}
+            scope={translateElementId ? 'element' : 'project'}
+            onTranslate={handleTranslateRequest}
           />
 
           <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>

@@ -81,3 +81,7 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 ## Deeper detail
 
 [reference.md](reference.md) has the per-subsystem breakdown: exact type fields, the AI prompt pipeline and plan schema, the MCP tool list and transport, the 3D pose tables, the video compositor, account sync, and the traps for each. Read only the section you need.
+
+
+## Testing
+- After you are done with testing, kill all process you have launched
