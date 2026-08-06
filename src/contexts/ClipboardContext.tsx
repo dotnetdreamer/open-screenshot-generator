@@ -2,17 +2,19 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ArtboardElement } from '@/types/artboard';
 
-// Define the shape of our clipboard context
+// Define the shape of our clipboard context. Holds a SET of elements so
+// multi-select copy/paste preserves the relative arrangement; a single copy
+// is just a one-element array.
 interface ClipboardContextType {
-  clipboardItem: ArtboardElement | null;
-  copyToClipboard: (element: ArtboardElement) => void;
+  clipboardItems: ArtboardElement[];
+  copyElementsToClipboard: (elements: ArtboardElement[]) => void;
   clearClipboard: () => void;
 }
 
 // Create the context with default values
 const ClipboardContext = createContext<ClipboardContextType>({
-  clipboardItem: null,
-  copyToClipboard: () => {},
+  clipboardItems: [],
+  copyElementsToClipboard: () => {},
   clearClipboard: () => {},
 });
 
@@ -20,21 +22,21 @@ const ClipboardContext = createContext<ClipboardContextType>({
 export const useClipboard = () => useContext(ClipboardContext);
 
 export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [clipboardItem, setClipboardItem] = useState<ArtboardElement | null>(null);
+  const [clipboardItems, setClipboardItems] = useState<ArtboardElement[]>([]);
 
-  // Function to copy an element to clipboard
-  const copyToClipboard = (element: ArtboardElement) => {
+  // Function to copy elements to clipboard
+  const copyElementsToClipboard = (elements: ArtboardElement[]) => {
     // Create a deep copy to avoid reference issues
-    setClipboardItem(JSON.parse(JSON.stringify(element)));
+    setClipboardItems(JSON.parse(JSON.stringify(elements)));
   };
 
   // Function to clear the clipboard
   const clearClipboard = () => {
-    setClipboardItem(null);
+    setClipboardItems([]);
   };
 
   return (
-    <ClipboardContext.Provider value={{ clipboardItem, copyToClipboard, clearClipboard }}>
+    <ClipboardContext.Provider value={{ clipboardItems, copyElementsToClipboard, clearClipboard }}>
       {children}
     </ClipboardContext.Provider>
   );

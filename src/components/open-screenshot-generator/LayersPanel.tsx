@@ -12,8 +12,12 @@ import { cn } from '@/lib/utils';
 // whatever height the dock gives it.
 interface LayersPanelProps {
   elements: ArtboardElement[];
-  selectedElementId: string | null;
-  onSelectElement: (elementId: string) => void;
+  // All selected element ids on this artboard; the last one is the "primary"
+  // selection used for scroll-into-view.
+  selectedElementIds: string[];
+  // Plain click selects the element alone; { additive: true } (Shift/Ctrl/Cmd
+  // click) toggles it in/out of the selection.
+  onSelectElement: (elementId: string, modifiers?: { additive?: boolean }) => void;
   onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   onDeleteElement: (elementId: string) => void;
   onRenameElement: (elementId: string, newName: string) => void;
@@ -78,17 +82,18 @@ const getElementLabel = (element: ArtboardElement): string => {
     return label;
 };
 
-export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName }: LayersPanelProps) {
+export function LayersPanel({ elements, selectedElementIds, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName }: LayersPanelProps) {
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedRowRef = useRef<HTMLDivElement>(null);
+  const primarySelectedElementId = selectedElementIds.length > 0 ? selectedElementIds[selectedElementIds.length - 1] : null;
 
   // Keep the selected row visible when selection happens on the canvas;
   // 'nearest' makes this a no-op if the row is already in view.
   useEffect(() => {
     selectedRowRef.current?.scrollIntoView({ block: 'nearest' });
-  }, [selectedElementId]);
+  }, [primarySelectedElementId]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -135,6 +140,11 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
         <span className="truncate text-sm font-semibold" title={activeArtboardName}>
           {activeArtboardName ? `Layers: ${activeArtboardName}` : 'Layers'}
         </span>
+        {selectedElementIds.length > 1 && (
+          <span className="ml-auto shrink-0 rounded-full border px-1.5 text-[11px] tabular-nums text-muted-foreground">
+            {selectedElementIds.length} selected
+          </span>
+        )}
       </div>
       {!activeArtboardName ? (
         <div className="p-3 text-sm text-muted-foreground">Select an artboard to see its layers.</div>
@@ -149,10 +159,10 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
               {reversedElements.map((element, index) => (
                 <div
                   key={element.id}
-                  ref={element.id === selectedElementId ? selectedRowRef : undefined}
+                  ref={element.id === primarySelectedElementId ? selectedRowRef : undefined}
                   className={cn(
                     "flex items-center w-full justify-start p-1 rounded-md text-sm",
-                    element.id === selectedElementId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
+                    selectedElementIds.includes(element.id) ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"
                   )}
                 >
                   {editingElementId === element.id ? (
@@ -172,7 +182,7 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                     <Button
                       variant="ghost"
                       className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0 max-w-[160px]"
-                      onClick={() => onSelectElement(element.id)}
+                      onClick={(e) => onSelectElement(element.id, { additive: e.shiftKey || e.ctrlKey || e.metaKey })}
                       onDoubleClick={() => handleDoubleClick(element)}
                       title={`Double-click to rename "${getElementLabel(element)}"`}
                     >

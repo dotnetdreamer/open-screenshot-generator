@@ -9,10 +9,22 @@ import type { ArtboardElement, Point, Size } from '@/types/artboard';
 interface DraggableElementProps {
   element: ArtboardElement;
   isSelected: boolean;
-  onSelect: (elementId: string, e: React.MouseEvent) => void;
+  // modifiers.additive (Shift/Ctrl/Cmd click) toggles the element in/out of
+  // the current selection; a plain click selects it alone.
+  onSelect: (elementId: string, modifiers?: { additive?: boolean }) => void;
   onUpdateElement: (element: ArtboardElement) => void;
   onDeleteElement: (elementId: string) => void;
   artboardZoom: number;
+  // Canvas-level zoom, only used to keep the selection handles a constant
+  // on-screen size. Mouse conversion reads the rendered DOM instead.
+  canvasZoom?: number;
+  // Group-drag hooks, provided when this element may be part of a
+  // multi-selection. onGroupDragStart returns true when a multi-selection is
+  // active, in which case the parent translates the whole set and commits
+  // once on onGroupDragEnd.
+  onGroupDragStart?: (elementId: string) => boolean;
+  onGroupDragMove?: (dx: number, dy: number) => void;
+  onGroupDragEnd?: (dx: number, dy: number) => void;
   boundary: { width: number; height: number };
   children: React.ReactNode;
 }
@@ -33,6 +45,10 @@ export function DraggableElement({
   onUpdateElement,
   onDeleteElement,
   artboardZoom,
+  canvasZoom = 1,
+  onGroupDragStart,
+  onGroupDragMove,
+  onGroupDragEnd,
   boundary,
   children
 }: DraggableElementProps) {
@@ -45,14 +61,25 @@ export function DraggableElement({
   const [interactionStart, setInteractionStart] = useState<{
     mouseX: number;
     mouseY: number;
+    clientX: number;
+    clientY: number;
     initialPosition: Point;
     initialSize: Size; 
     initialRotation: number;
     initialScale: number; 
     elementCenter: Point;
     handleType?: HandleType;
+    // Move-mode extras: whether the whole selection is being translated by
+    // the parent, and what a no-movement click means for the selection when
+    // the gesture ends (modifier-click toggles off, plain click on a member
+    // of a multi-selection collapses to it alone).
+    groupDrag?: boolean;
+    clickAction?: 'toggle-off' | 'collapse' | 'none';
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
+  // Latest move delta during a group drag, so mouseup can hand the parent the
+  // final translation for its single history commit.
+  const groupDragDeltaRef = useRef<Point>({ x: 0, y: 0 });
 
   useEffect(() => {
     setPosition(element.position);
@@ -61,14 +88,23 @@ export function DraggableElement({
     setCurrentScale(element.scale);
   }, [element.id, element.position, element.size, element.rotation, element.scale]);
 
+  // Convert a mouse event to artboard coordinates via the artboard's rendered
+  // size, which already includes the display scale, the canvas zoom and every
+  // ancestor transform. Deriving the factor from the DOM (instead of dividing
+  // by constants) keeps the cursor 1:1 with the dragged element at ANY zoom,
+  // with sub-pixel precision.
   const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
-    const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
+    const artboardDiv = (elementRef.current?.closest('[data-artboard-dom-id]') ??
+      elementRef.current?.offsetParent) as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
+      const originalWidth = Number(artboardDiv.getAttribute('data-original-width')) || boundary.width;
+      const renderedScale = artboardRect.width > 0 && originalWidth > 0
+        ? artboardRect.width / originalWidth
+        : artboardZoom * DISPLAY_SCALE_FACTOR;
       return {
-        // Divide by DISPLAY_SCALE_FACTOR to account for the scaled artboard
-        x: (e.clientX - artboardRect.left) / (artboardZoom * DISPLAY_SCALE_FACTOR),
-        y: (e.clientY - artboardRect.top) / (artboardZoom * DISPLAY_SCALE_FACTOR),
+        x: (e.clientX - artboardRect.left) / renderedScale,
+        y: (e.clientY - artboardRect.top) / renderedScale,
       };
     }
     return { 
@@ -81,7 +117,8 @@ export function DraggableElement({
   const handleInteractionStart = (
     e: React.MouseEvent,
     mode: 'move' | 'rotate' | 'scale' | 'resize',
-    handleType?: HandleType
+    handleType?: HandleType,
+    options?: { clickAction?: 'toggle-off' | 'collapse' | 'none' }
   ) => {
     // Only the left button drags; right-click opens the context menu instead
     if (e.button !== 0) return;
@@ -102,10 +139,17 @@ export function DraggableElement({
     e.stopPropagation();
     if (!elementRef.current) return;
 
-    if (!isSelected) { 
-      onSelect(element.id, e);
+    // Handles (scale/rotate/resize) on an unselected element select it first;
+    // move gestures manage their own selection before calling this.
+    if (!isSelected && options?.clickAction === undefined) { 
+      onSelect(element.id, { additive: false });
     }
     setInteractionMode(mode);
+
+    // Moving an element that belongs to a multi-selection translates the
+    // whole set; the parent drives the positions from here on.
+    const groupDrag = mode === 'move' ? (onGroupDragStart?.(element.id) ?? false) : false;
+    groupDragDeltaRef.current = { x: 0, y: 0 };
 
     const mousePosArtboard = getMousePositionInArtboardSpace(e);
     
@@ -115,6 +159,8 @@ export function DraggableElement({
     setInteractionStart({
       mouseX: mousePosArtboard.x,
       mouseY: mousePosArtboard.y,
+      clientX: e.clientX,
+      clientY: e.clientY,
       initialPosition: { ...position },
       initialSize: { ...currentSize }, 
       initialRotation: currentRotation,
@@ -124,6 +170,8 @@ export function DraggableElement({
         y: position.y + displayHeight / 2,
       },
       handleType: handleType,
+      groupDrag,
+      clickAction: options?.clickAction,
     });
   };
 
@@ -134,6 +182,9 @@ export function DraggableElement({
 
       const mousePosArtboard = getMousePositionInArtboardSpace(e);
       const { initialPosition, initialSize, initialRotation, initialScale, elementCenter, handleType } = interactionStart;
+      // Ctrl/Cmd held = free precise movement: bypass any snapping or
+      // rounding and keep full sub-pixel precision.
+      const freeMovement = e.ctrlKey || e.metaKey;
       
       const rad = currentRotation * (Math.PI / 180); 
       const cosR = Math.cos(rad);
@@ -149,13 +200,24 @@ export function DraggableElement({
 
 
       if (interactionMode === 'move') {
+        if (interactionStart.groupDrag) {
+          // The parent translates every selected element by the same delta
+          // and commits once on mouseup. Update this element's own position
+          // too so the dragged one tracks the cursor in the same frame.
+          groupDragDeltaRef.current = { x: dxScreen, y: dyScreen };
+          onGroupDragMove?.(dxScreen, dyScreen);
+          setPosition({ x: initialPosition.x + dxScreen, y: initialPosition.y + dyScreen });
+          return;
+        }
         newPos = { x: initialPosition.x + dxScreen, y: initialPosition.y + dyScreen };
         // No clamping on position, artboard's overflow:hidden will clip.
       } else if (interactionMode === 'rotate') {
         const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
         const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
         newRotation = initialRotation + (angle - startAngle);
-        newRotation = Math.round(newRotation / 1) * 1; 
+        if (!freeMovement) {
+          newRotation = Math.round(newRotation / 1) * 1; 
+        }
 
       } else if (interactionMode === 'scale' && handleType && ['tl', 'tr', 'bl', 'br'].includes(handleType)) { 
         const initialDistToCenter = Math.sqrt(Math.pow(interactionStart.mouseX - elementCenter.x, 2) + Math.pow(interactionStart.mouseY - elementCenter.y, 2));
@@ -251,9 +313,37 @@ export function DraggableElement({
       setCurrentRotation(newRotation);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
       if (!interactionMode || !interactionStart) return;
-      
+
+      // A click (no real movement) on a move interaction never commits; it
+      // only adjusts the selection: modifier-click toggles the element off,
+      // a plain click on a member of a multi-selection collapses to it alone.
+      const movedDistance = Math.hypot(e.clientX - interactionStart.clientX, e.clientY - interactionStart.clientY);
+      const wasClick = interactionMode === 'move' && movedDistance <= 3;
+
+      if (wasClick) {
+        if (interactionStart.clickAction === 'toggle-off') {
+          onSelect(element.id, { additive: true });
+        } else if (interactionStart.clickAction === 'collapse') {
+          onSelect(element.id, { additive: false });
+        }
+        setInteractionMode(null);
+        setInteractionStart(null);
+        document.body.style.cursor = 'default';
+        return;
+      }
+
+      if (interactionStart.groupDrag) {
+        const delta = groupDragDeltaRef.current;
+        onGroupDragEnd?.(delta.x, delta.y);
+        groupDragDeltaRef.current = { x: 0, y: 0 };
+        setInteractionMode(null);
+        setInteractionStart(null);
+        document.body.style.cursor = 'default';
+        return;
+      }
+
       // Only update if there was actually a change
       const hasPositionChanged = position.x !== element.position.x || position.y !== element.position.y;
       const hasSizeChanged = currentSize.width !== element.size.width || currentSize.height !== element.size.height;
@@ -300,7 +390,7 @@ export function DraggableElement({
         document.body.style.cursor = 'default';
       }
     };
-  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, position, currentSize, currentRotation, currentScale, onSelect]);
+  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, canvasZoom, boundary, position, currentSize, currentRotation, currentScale, onSelect, onGroupDragMove, onGroupDragEnd]);
 
 
   const displaySize = {
@@ -308,8 +398,9 @@ export function DraggableElement({
     height: currentSize.height * currentScale,
   };
 
-  // Adjust handle sizes to be visible at small scale
-  const handleVisualScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
+  // Adjust handle sizes to be visible at small scale, and divide out the
+  // canvas zoom so they stay a constant on-screen size at any zoom level.
+  const handleVisualScale = 3 / (artboardZoom * canvasZoom); // Increase from 1 to 3 to make handles more visible
   const outlineThickness = Math.max(1, 3 * handleVisualScale);
 
 
@@ -360,13 +451,26 @@ export function DraggableElement({
         boxSizing: 'border-box',
       }}
       onMouseDown={(e) => {
-        if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
-          e.stopPropagation(); // Prevent event from bubbling to artboard
+        if ((e.target as HTMLElement).closest('[data-interaction-handle]')) return;
+        if (e.button !== 0) return;
+        e.stopPropagation(); // Prevent event from bubbling to artboard
+        const additiveClick = e.shiftKey || e.ctrlKey || e.metaKey;
+        if (additiveClick) {
           if (isSelected) {
-            handleInteractionStart(e, 'move');
+            // Modifier+click on a selected element toggles it off, unless the
+            // gesture turns into a drag (Ctrl+drag = free movement).
+            handleInteractionStart(e, 'move', undefined, { clickAction: 'toggle-off' });
           } else {
-            onSelect(element.id, e); 
+            // Modifier+click on an unselected element adds it to the selection.
+            onSelect(element.id, { additive: true });
+            handleInteractionStart(e, 'move', undefined, { clickAction: 'none' });
           }
+          return;
+        }
+        if (isSelected) {
+          handleInteractionStart(e, 'move', undefined, { clickAction: 'collapse' });
+        } else {
+          onSelect(element.id, { additive: false }); 
         }
       }}
       data-element-id={element.id}
