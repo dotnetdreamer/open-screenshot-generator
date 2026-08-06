@@ -39,19 +39,44 @@ export interface GeneratePlanArgs {
   signal?: AbortSignal;
 }
 
+/**
+ * Character budget for the catalog embedded in the system prompt.
+ *
+ * Unbudgeted, the top rung serializes ~19k chars of catalog into every single
+ * request. This path has no way to fetch anything (`generateObject` exposes no
+ * tool channel, so the browser-session mode's hosted-catalog URL trick is not
+ * available here), so the only lever is how much we serialize.
+ *
+ * 7000 was measured against the shipped 90 agent-usable templates across
+ * several request shapes: it lands on a rung that still carries a detailed
+ * shortlist, while cutting the catalog to roughly a third. Do not lower it
+ * much: around 6000 the ladder drops the shortlist entirely on common inputs,
+ * which costs the model every x ref and with it the ability to rewrite copy.
+ */
+const API_CATALOG_BUDGET_CHARS = 7000;
+
 export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
   // Compact aliased catalog; the reply's refs are mapped back to real ids
   // below. Falls back to the legacy full catalog if the compact build fails.
   let catalog: string;
   let aliasMap: AliasMap | null = null;
+  // Whether the catalog still lists per-artboard slots. The prompt has to say
+  // so honestly: a summary-only catalog has no x refs to override.
+  let hasDetail = true;
   try {
-    const artifacts = buildCatalogArtifacts(buildTemplateCatalog(args.templates), {
-      screenshots: args.screenshots.map((shot) => ({ width: shot.width, height: shot.height })),
-      instruction: args.instruction,
-    });
+    const artifacts = buildCatalogArtifacts(
+      buildTemplateCatalog(args.templates),
+      {
+        screenshots: args.screenshots.map((shot) => ({ width: shot.width, height: shot.height })),
+        instruction: args.instruction,
+      },
+      { budgetChars: API_CATALOG_BUDGET_CHARS }
+    );
     catalog = artifacts.catalogText;
     aliasMap = artifacts.aliasMap;
+    hasDetail = artifacts.hasDetail;
   } catch {
+    // The legacy serializer emits full detail for every template, unbudgeted.
     catalog = serializeCatalog(buildTemplateCatalog(args.templates));
   }
 
@@ -66,7 +91,7 @@ export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
       // The system prompt travels in `instructions`, not as a system message:
       // the AI SDK rejects a 'system' role inside `messages` before the request
       // ever reaches the provider.
-      instructions: buildSystemPrompt(catalog),
+      instructions: buildSystemPrompt(catalog, hasDetail),
       messages: [
         {
           role: 'user',

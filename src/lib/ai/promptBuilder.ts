@@ -17,17 +17,33 @@ import {
 
 const ROLE = `You are the design agent inside Open Screenshot Generator, a tool for building App Store and Play Store screenshot artwork. The user has uploaded screenshots of their app and told you what they want. You choose an existing template and fit their screenshots into it, or you specify a brand new design.`;
 
-const RULES = `Rules:
-- Screenshots are numbered from 0 in the order they were given to you. Refer to them only by that index.
-- Place every screenshot the user gave you, unless they asked for fewer.
-- Refer to templates and elements only by the short refs shown in the catalog: t12 for a template, d0 for a device slot, x1 for a text slot. Copy them exactly. Never invent a ref.
-- Prefer "use-template" whenever the user names a template, describes one that exists, or just asks to drop screenshots into a template. Choose the template whose device slot count is closest to the number of screenshots, and whose category matches the screenshot shape (tall phone screens are "screenshots", square watch faces are "apple-watch", 16:10 desktop app windows are "mac", extra-wide banners are "play-feature-graphic").
-- Only templates listed with per-artboard detail can have their text rewritten. If you pick a template from the summary list, leave textOverrides empty; its own copy is kept.
-- Use "generate-new" only when the user explicitly wants something new, or when no template is a reasonable fit.
-- Rewrite template copy to describe the user's actual app. Read the screenshots: use the real feature names, real numbers, and the real product name you can see in them. Headlines should be short and specific, at most about 6 words per line.
-- Do not rewrite decorative text such as star ratings, press logos, or review counts unless the user asks.
-- Keep every text value under ${AGENT_LIMITS.maxTextLength} characters.
-- Colors are 6 digit hex strings such as "#1A2B3C".`;
+/**
+ * `hasDetail` is false once the catalog budget has degraded past the rung that
+ * still carries a shortlist. There are then no x refs anywhere in the catalog,
+ * so the copy-rewriting rules have nothing to point at: promising the model a
+ * detailed listing it cannot see is what makes it invent refs.
+ */
+function buildRules(hasDetail: boolean): string {
+  return [
+    'Rules:',
+    '- Screenshots are numbered from 0 in the order they were given to you. Refer to them only by that index.',
+    '- Place every screenshot the user gave you, unless they asked for fewer.',
+    '- Refer to templates and elements only by the short refs shown in the catalog: t12 for a template, d0 for a device slot, x1 for a text slot. Copy them exactly. Never invent a ref.',
+    '- Prefer "use-template" whenever the user names a template, describes one that exists, or just asks to drop screenshots into a template. Choose the template whose device slot count is closest to the number of screenshots, and whose category matches the screenshot shape (tall phone screens are "screenshots", square watch faces are "apple-watch", 16:10 desktop app windows are "mac", extra-wide banners are "play-feature-graphic").',
+    hasDetail
+      ? '- Only templates listed with per-artboard detail can have their text rewritten. If you pick a template from the summary list, leave textOverrides empty; its own copy is kept.'
+      : '- No template is listed with per-artboard detail, so leave textOverrides empty. Every template keeps its own copy.',
+    '- Use "generate-new" only when the user explicitly wants something new, or when no template is a reasonable fit.',
+    ...(hasDetail
+      ? [
+          "- Rewrite template copy to describe the user's actual app. Read the screenshots: use the real feature names, real numbers, and the real product name you can see in them. Headlines should be short and specific, at most about 6 words per line.",
+          '- Do not rewrite decorative text such as star ratings, press logos, or review counts unless the user asks.',
+        ]
+      : []),
+    `- Keep every text value under ${AGENT_LIMITS.maxTextLength} characters.`,
+    '- Colors are 6 digit hex strings such as "#1A2B3C".',
+  ].join('\n');
+}
 
 /**
  * Explains the two-tier catalog: full slot detail for the best-fitting
@@ -35,10 +51,13 @@ const RULES = `Rules:
  */
 const CATALOG_HEADER = `Available templates. The best fits for this request are listed first with full detail: one line per artboard showing its device slots (d0, d1, ...) and text slots (x0, x1, ...) with their current copy. The remaining templates are single summary lines; you may pick one by its ref if it truly fits better, but you cannot rewrite its text.`;
 
-export function buildSystemPrompt(catalogText: string): string {
+/** Header for a catalog that degraded past its last detailed rung. */
+const CATALOG_HEADER_SUMMARY_ONLY = `Available templates, one summary line each. Pick one by its ref. Slot detail is not listed, so you cannot rewrite any template's text.`;
+
+export function buildSystemPrompt(catalogText: string, hasDetail = true): string {
   return `${ROLE}
 
-${CATALOG_HEADER}
+${hasDetail ? CATALOG_HEADER : CATALOG_HEADER_SUMMARY_ONLY}
 ${catalogText}
 
 For a brand new design you may only use:
@@ -48,7 +67,7 @@ For a brand new design you may only use:
 - fontFamily: ${AGENT_FONTS.join(', ')}
 - at most ${AGENT_LIMITS.maxNewDesignArtboards} artboards
 
-${RULES}`;
+${buildRules(hasDetail)}`;
 }
 
 /** The plan shape written out as commented JSON, for models with no schema channel. */
@@ -111,7 +130,7 @@ For a brand new design you may only use:
 - fontFamily: ${AGENT_FONTS.join(', ')}
 - at most ${AGENT_LIMITS.maxNewDesignArtboards} artboards
 
-${RULES}
+${buildRules(true)}
 
 Reply with ONE json code block and nothing else, matching exactly this shape (the comments are for you, do not include them):
 
