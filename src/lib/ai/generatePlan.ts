@@ -63,8 +63,11 @@ export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
       // enforces the cross-field rules the JSON Schema cannot express.
       schema: AgentPlanObjectSchema,
       abortSignal: args.signal,
+      // The system prompt travels in `instructions`, not as a system message:
+      // the AI SDK rejects a 'system' role inside `messages` before the request
+      // ever reaches the provider.
+      instructions: buildSystemPrompt(catalog),
       messages: [
-        { role: 'system', content: buildSystemPrompt(catalog) },
         {
           role: 'user',
           content: [
