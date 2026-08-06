@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { Size } from '@/types/artboard';
 import {
   APP_STORE_FORMAT_IDS,
@@ -27,6 +28,8 @@ export interface ExportSelection {
   // (store-correct canvas + matching device mockups), captured, then the
   // canvas is restored — the project itself is never modified.
   generateFormats: DeviceFormat[];
+  // Subset of artboard ids to export; omitted means every artboard.
+  artboardIds?: string[];
 }
 
 // Shared with AppPreviewExportDialog (the video projects' own dialog), which
@@ -57,6 +60,8 @@ interface ExportDialogProps {
   // which App Store sizes are missing.
   currentFormat: DeviceFormat | null;
   currentSize?: Size;
+  // Artboards in canvas order, for the scope checklist.
+  artboards: { id: string; name: string }[];
 }
 
 // Apple's screenshot-specification tiers for the sizes this app can generate
@@ -73,17 +78,22 @@ export function ExportDialog({
   onConfirmExport,
   currentFormat,
   currentSize,
+  artboards,
 }: ExportDialogProps) {
   const [asIs, setAsIs] = useState(true);
   const [generateFormats, setGenerateFormats] = useState<DeviceFormat[]>([]);
+  const [scope, setScope] = useState<'all' | 'pick'>('all');
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
 
   useEffect(() => {
     // Reset selection whenever the dialog is reopened
     if (isOpen) {
       setAsIs(true);
       setGenerateFormats([]);
+      setScope('all');
+      setCheckedIds(artboards.map((ab) => ab.id));
     }
-  }, [isOpen]);
+  }, [isOpen, artboards]);
 
   const currentPreset = useMemo(
     () => DEVICE_FORMAT_PRESETS.find((p) => p.id === currentFormat),
@@ -114,7 +124,24 @@ export function ExportDialog({
     );
   };
 
+  const toggleArtboard = (id: string) => {
+    setCheckedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const nothingSelected = !asIs && generateFormats.length === 0;
+  const noArtboardsPicked = scope === 'pick' && checkedIds.length === 0;
+
+  const handleConfirm = () => {
+    // Canvas order is preserved by filtering the prop list rather than using
+    // checklist click order, so filename order prefixes stay meaningful.
+    const artboardIds =
+      scope === 'all'
+        ? artboards.map((ab) => ab.id)
+        : artboards.filter((ab) => checkedIds.includes(ab.id)).map((ab) => ab.id);
+    onConfirmExport({ asIs, generateFormats, artboardIds });
+  };
 
   const asIsDescription = currentPreset
     ? `${currentPreset.label} layout${currentSize ? ` — ${currentSize.width}×${currentSize.height}` : ''}`
@@ -135,6 +162,41 @@ export function ExportDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
+          <div>
+            <p className="text-sm font-medium mb-2">Artboards to export</p>
+            <RadioGroup
+              value={scope}
+              onValueChange={(v) => setScope(v as 'all' | 'pick')}
+              className="grid gap-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="scope-all" />
+                <Label htmlFor="scope-all">All artboards ({artboards.length})</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="pick" id="scope-pick" />
+                <Label htmlFor="scope-pick">Choose artboards</Label>
+              </div>
+            </RadioGroup>
+            {scope === 'pick' && (
+              // Native overflow div, not ScrollArea: ScrollArea under max-h stops scrolling
+              <div className="mt-2 ml-6 grid max-h-40 gap-2 overflow-y-auto rounded-md border p-3">
+                {artboards.map((ab, index) => (
+                  <div key={ab.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`export-ab-${ab.id}`}
+                      checked={checkedIds.includes(ab.id)}
+                      onCheckedChange={() => toggleArtboard(ab.id)}
+                    />
+                    <Label htmlFor={`export-ab-${ab.id}`} className="font-normal">
+                      {index + 1}. {ab.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="flex items-start space-x-2">
             <Checkbox
               id="export-as-is"
@@ -189,8 +251,8 @@ export function ExportDialog({
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button
-            onClick={() => onConfirmExport({ asIs, generateFormats })}
-            disabled={nothingSelected}
+            onClick={handleConfirm}
+            disabled={nothingSelected || noArtboardsPicked}
           >
             Export
           </Button>

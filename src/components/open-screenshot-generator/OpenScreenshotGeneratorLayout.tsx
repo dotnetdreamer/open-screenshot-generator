@@ -120,10 +120,10 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
   return artboards.map((ab, index) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
     console.log(`Artboard ${index}: size=${ab.size.width}x${ab.size.height}, position=${newPosition.x},${newPosition.y}`);
-    
+
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
-    
+
     return { ...ab, position: newPosition };
   });
 }
@@ -1252,12 +1252,24 @@ export function OpenScreenshotGeneratorLayout() {
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
-  const captureArtboards = async (list: ArtboardState[], exportDir?: string | null) => {
+  const captureArtboards = async (
+    list: ArtboardState[],
+    exportDir?: string | null,
+    options: {
+      // Restrict the capture to these artboard ids; omitted captures the whole
+      // list. Skipped boards still consume their loop index, so filename
+      // order prefixes match the on-canvas positions.
+      selectedIds?: ReadonlySet<string>;
+    } = {},
+  ) => {
+    const { selectedIds } = options;
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
     const orderPadWidth = Math.max(2, String(list.length).length);
 
     for (const [index, artboard] of list.entries()) {
+      if (selectedIds && !selectedIds.has(artboard.id)) continue;
+
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
 
@@ -1276,10 +1288,10 @@ export function OpenScreenshotGeneratorLayout() {
         const originalTransform = artboardElement.style.transform;
         const originalWidth = artboardElement.style.width;
         const originalHeight = artboardElement.style.height;
-        
+
         // Remove scale transform for export
         artboardElement.style.transform = 'scale(1)';
-        
+
         // Use html-to-image to capture the artboard at exact specified dimensions
         const { backgroundColor, backgroundImage } = artboardBackground(artboard);
         const imageDataUrl = await toPng(artboardElement, {
@@ -1300,7 +1312,7 @@ export function OpenScreenshotGeneratorLayout() {
             backgroundImage,
           }
         });
-        
+
         // Restore original styling after export
         artboardElement.style.transform = originalTransform;
         artboardElement.style.width = originalWidth;
@@ -1358,16 +1370,19 @@ export function OpenScreenshotGeneratorLayout() {
   // engine as the Devices menu, rendered, captured, then the original state
   // is restored — plain setArtboards keeps history and the saved project
   // untouched, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats }: ExportSelection) => {
+  const handleConfirmExport = async ({ asIs, generateFormats, artboardIds }: ExportSelection) => {
     setIsExportDialogOpen(false);
 
     const original = artboards;
+    const selectedIds: ReadonlySet<string> = new Set(artboardIds ?? original.map((ab) => ab.id));
+    const selectedCount = original.reduce((n, ab) => n + (selectedIds.has(ab.id) ? 1 : 0), 0);
+    if (selectedCount === 0) return; // the dialog blocks this; never capture nothing
 
     // Desktop batch exports pick one destination folder up front instead of
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const totalFiles = (asIs ? original.length : 0) + generateFormats.length * original.length;
+    const totalFiles = (asIs ? selectedCount : 0) + generateFormats.length * selectedCount;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
       if (exportDir === null) return;
@@ -1376,7 +1391,7 @@ export function OpenScreenshotGeneratorLayout() {
     trackExportPng({
       mode: generateFormats.length > 0 ? 'app_store' : 'as_is',
       formats: generateFormats,
-      artboardCount: original.length,
+      artboardCount: selectedCount,
       fileCount: totalFiles,
     });
 
@@ -1394,7 +1409,7 @@ export function OpenScreenshotGeneratorLayout() {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        await captureArtboards(list, exportDir);
+        await captureArtboards(list, exportDir, { selectedIds });
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
@@ -1452,6 +1467,14 @@ export function OpenScreenshotGeneratorLayout() {
   // An App Preview project is one that carries recording mockups, recordings,
   // gesture hints or animations — it gets the video export dialog.
   const isAppPreviewProject = useMemo(() => projectHasVideoContent(artboards), [artboards]);
+
+  // Stable identity for the ExportDialog scope checklist: a fresh .map on
+  // every render would retrigger the dialog's reset-on-open effect and wipe
+  // the user's picks mid-interaction.
+  const exportDialogBoards = useMemo(
+    () => artboards.map((ab) => ({ id: ab.id, name: ab.name })),
+    [artboards]
+  );
 
   const videoBoards = artboards.filter((ab) => {
     const info = videoInfos[ab.id];
@@ -3486,6 +3509,7 @@ const generateRandomProjectName = (): string => {
               onConfirmExport={handleConfirmExport}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
+              artboards={exportDialogBoards}
             />
           )}
 
