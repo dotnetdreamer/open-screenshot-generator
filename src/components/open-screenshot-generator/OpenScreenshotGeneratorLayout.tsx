@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
-import { toPng } from 'html-to-image';
+import { toPng, toJpeg, toSvg } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
@@ -26,7 +26,7 @@ import { TranslateDialog, getLanguageName } from './TranslateDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
-import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
+import { ExportDialog, type ExportSelection, type ExportImageFormat, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
 import { artboardBackground } from '@/lib/artboardBackground';
@@ -121,11 +121,45 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
   return artboards.map((ab, index) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
     console.log(`Artboard ${index}: size=${ab.size.width}x${ab.size.height}, position=${newPosition.x},${newPosition.y}`);
-    
+
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
-    
+
     return { ...ab, position: newPosition };
+  });
+}
+
+// html-to-image has no WebP encoder, so WebP exports capture PNG first and
+// re-encode through a hidden canvas. The canvas is pre-filled with the
+// artboard colour because WebP export is flattened (no alpha), matching JPEG.
+async function rasterToWebPDataUrl(
+  pngDataUrl: string,
+  backgroundColor: string,
+  quality: number
+): Promise<string> {
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Could not decode the captured PNG for WebP encoding.'));
+    img.src = pngDataUrl;
+  });
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not create a canvas for WebP encoding.');
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0);
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/webp', quality)
+  );
+  if (!blob) throw new Error('WebP encoding failed.');
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Could not read the encoded WebP.'));
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -1250,16 +1284,30 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  // Capture a list of artboards to PNG downloads by grabbing each board's
+  // Capture a list of artboards to image downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
-  const captureArtboards = async (list: ArtboardState[], exportDir?: string | null) => {
+  const captureArtboards = async (
+    list: ArtboardState[],
+    exportDir?: string | null,
+    options: {
+      format?: ExportImageFormat;
+      quality?: number;
+      // Restrict the capture to these artboard ids; omitted captures the whole
+      // list. Skipped boards still consume their loop index, so filename
+      // order prefixes match the on-canvas positions.
+      selectedIds?: ReadonlySet<string>;
+    } = {},
+  ) => {
+    const { format = 'png', quality = 0.92, selectedIds } = options;
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
     const orderPadWidth = Math.max(2, String(list.length).length);
 
     for (const [index, artboard] of list.entries()) {
+      if (selectedIds && !selectedIds.has(artboard.id)) continue;
+
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
 
@@ -1278,13 +1326,13 @@ export function OpenScreenshotGeneratorLayout() {
         const originalTransform = artboardElement.style.transform;
         const originalWidth = artboardElement.style.width;
         const originalHeight = artboardElement.style.height;
-        
+
         // Remove scale transform for export
         artboardElement.style.transform = 'scale(1)';
-        
+
         // Use html-to-image to capture the artboard at exact specified dimensions
         const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-        const imageDataUrl = await toPng(artboardElement, {
+        const captureOptions = {
           width: artboard.size.width,
           height: artboard.size.height,
           backgroundColor,
@@ -1292,7 +1340,7 @@ export function OpenScreenshotGeneratorLayout() {
           cacheBust: true, // Prevent caching issues
           // Editor chrome (selection outlines, resize handles, upload buttons)
           // must never be baked into the exported image
-          filter: (node) => {
+          filter: (node: Node) => {
             const el = node as HTMLElement;
             return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
           },
@@ -1301,8 +1349,21 @@ export function OpenScreenshotGeneratorLayout() {
             height: `${artboard.size.height}px`,
             backgroundImage,
           }
-        });
-        
+        };
+
+        let imageDataUrl: string;
+        if (format === 'jpeg') {
+          // JPEG has no alpha: html-to-image fills transparent pixels with backgroundColor
+          imageDataUrl = await toJpeg(artboardElement, { ...captureOptions, quality });
+        } else if (format === 'svg') {
+          imageDataUrl = await toSvg(artboardElement, captureOptions);
+        } else if (format === 'webp') {
+          const pngDataUrl = await toPng(artboardElement, captureOptions);
+          imageDataUrl = await rasterToWebPDataUrl(pngDataUrl, backgroundColor, quality);
+        } else {
+          imageDataUrl = await toPng(artboardElement, captureOptions);
+        }
+
         // Restore original styling after export
         artboardElement.style.transform = originalTransform;
         artboardElement.style.width = originalWidth;
@@ -1318,7 +1379,8 @@ export function OpenScreenshotGeneratorLayout() {
           ? DEVICE_FORMAT_PRESETS.find((p) => p.id === artboardFormat)?.label
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
-        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
+        const extension = format === 'jpeg' ? 'jpg' : format;
+        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.${extension}`;
         // Desktop-safe save: batch exports write into the pre-picked folder,
         // single files get a native save dialog in Tauri or an anchor
         // download on the web
@@ -1360,16 +1422,19 @@ export function OpenScreenshotGeneratorLayout() {
   // engine as the Devices menu, rendered, captured, then the original state
   // is restored — plain setArtboards keeps history and the saved project
   // untouched, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats }: ExportSelection) => {
+  const handleConfirmExport = async ({ asIs, generateFormats, artboardIds, format, quality }: ExportSelection) => {
     setIsExportDialogOpen(false);
 
     const original = artboards;
+    const selectedIds: ReadonlySet<string> = new Set(artboardIds ?? original.map((ab) => ab.id));
+    const selectedCount = original.reduce((n, ab) => n + (selectedIds.has(ab.id) ? 1 : 0), 0);
+    if (selectedCount === 0) return; // the dialog blocks this; never capture nothing
 
     // Desktop batch exports pick one destination folder up front instead of
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const totalFiles = (asIs ? original.length : 0) + generateFormats.length * original.length;
+    const totalFiles = (asIs ? selectedCount : 0) + generateFormats.length * selectedCount;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
       if (exportDir === null) return;
@@ -1378,7 +1443,7 @@ export function OpenScreenshotGeneratorLayout() {
     trackExportPng({
       mode: generateFormats.length > 0 ? 'app_store' : 'as_is',
       formats: generateFormats,
-      artboardCount: original.length,
+      artboardCount: selectedCount,
       fileCount: totalFiles,
     });
 
@@ -1396,7 +1461,7 @@ export function OpenScreenshotGeneratorLayout() {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        await captureArtboards(list, exportDir);
+        await captureArtboards(list, exportDir, { format, quality, selectedIds });
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
@@ -1454,6 +1519,14 @@ export function OpenScreenshotGeneratorLayout() {
   // An App Preview project is one that carries recording mockups, recordings,
   // gesture hints or animations — it gets the video export dialog.
   const isAppPreviewProject = useMemo(() => projectHasVideoContent(artboards), [artboards]);
+
+  // Stable identity for the ExportDialog scope checklist: a fresh .map on
+  // every render would retrigger the dialog's reset-on-open effect and wipe
+  // the user's picks mid-interaction.
+  const exportDialogBoards = useMemo(
+    () => artboards.map((ab) => ({ id: ab.id, name: ab.name })),
+    [artboards]
+  );
 
   const videoBoards = artboards.filter((ab) => {
     const info = videoInfos[ab.id];
@@ -2651,6 +2724,10 @@ const generateRandomProjectName = (): string => {
   // does not have to ship a full-size PNG as base64, and writing straight to
   // disk through Rust — the JS fs plugin only unlocks paths the user picked in
   // a dialog, and these exports are unattended.
+  //
+  // Deliberately PNG-only: the agent contract promises lossless stills and the
+  // Rust writer (abs_mcp_write_png) stores PNG bytes, so the Export dialog's
+  // format picker (JPEG/SVG/WebP) does not apply here.
   const captureArtboardForMcp = async (
     board: ArtboardState,
     options: { scale?: number; save?: boolean; directory?: string; fileName?: string; includeImage?: boolean }
@@ -3535,6 +3612,7 @@ const generateRandomProjectName = (): string => {
               onConfirmExport={handleConfirmExport}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
+              artboards={exportDialogBoards}
             />
           )}
 
