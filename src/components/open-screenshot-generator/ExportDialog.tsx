@@ -14,12 +14,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
 import type { Size } from '@/types/artboard';
 import {
   APP_STORE_FORMAT_IDS,
   DEVICE_FORMAT_PRESETS,
   type DeviceFormat,
 } from '@/lib/deviceRegistry';
+
+// Image encodings the export can produce. JPEG and WebP are lossy and honor
+// `quality`; both flatten transparency onto the artboard background colour.
+export type ExportImageFormat = 'png' | 'jpeg' | 'svg' | 'webp';
 
 export interface ExportSelection {
   // Export the artboards exactly as they are on the canvas.
@@ -30,6 +35,10 @@ export interface ExportSelection {
   generateFormats: DeviceFormat[];
   // Subset of artboard ids to export; omitted means every artboard.
   artboardIds?: string[];
+  // Image encoding for the captures; omitted means PNG.
+  format?: ExportImageFormat;
+  // Lossy quality (0..1) for JPEG and WebP; ignored for PNG and SVG.
+  quality?: number;
 }
 
 // Shared with AppPreviewExportDialog (the video projects' own dialog), which
@@ -72,6 +81,13 @@ const APP_STORE_TIER_NOTES: Partial<Record<DeviceFormat, string>> = {
   'ipad-11': 'Optional — Apple scales your 13-inch shots down if missing',
 };
 
+const IMAGE_FORMAT_OPTIONS: { id: ExportImageFormat; label: string; note: string }[] = [
+  { id: 'png', label: 'PNG', note: 'Lossless, keeps transparency' },
+  { id: 'jpeg', label: 'JPEG', note: 'Smaller files, flattened background' },
+  { id: 'webp', label: 'WebP', note: 'Small files, flattened background' },
+  { id: 'svg', label: 'SVG', note: 'Scalable vector markup' },
+];
+
 export function ExportDialog({
   isOpen,
   onOpenChange,
@@ -84,6 +100,8 @@ export function ExportDialog({
   const [generateFormats, setGenerateFormats] = useState<DeviceFormat[]>([]);
   const [scope, setScope] = useState<'all' | 'pick'>('all');
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
+  const [format, setFormat] = useState<ExportImageFormat>('png');
+  const [quality, setQuality] = useState(0.92);
 
   useEffect(() => {
     // Reset selection whenever the dialog is reopened
@@ -92,6 +110,8 @@ export function ExportDialog({
       setGenerateFormats([]);
       setScope('all');
       setCheckedIds(artboards.map((ab) => ab.id));
+      setFormat('png');
+      setQuality(0.92);
     }
   }, [isOpen, artboards]);
 
@@ -140,7 +160,7 @@ export function ExportDialog({
       scope === 'all'
         ? artboards.map((ab) => ab.id)
         : artboards.filter((ab) => checkedIds.includes(ab.id)).map((ab) => ab.id);
-    onConfirmExport({ asIs, generateFormats, artboardIds });
+    onConfirmExport({ asIs, generateFormats, artboardIds, format, quality });
   };
 
   const asIsDescription = currentPreset
@@ -155,7 +175,7 @@ export function ExportDialog({
         <DialogHeader>
           <DialogTitle>Export Screenshots</DialogTitle>
           <DialogDescription>
-            Download the artboards as PNGs, and optionally generate the App
+            Download the artboards as images, and optionally generate the App
             Store sizes this project is missing. Generated formats convert the
             canvas and mockups on the fly — your project stays untouched.
           </DialogDescription>
@@ -193,6 +213,45 @@ export function ExportDialog({
                     </Label>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-2">Image format</p>
+            <RadioGroup
+              value={format}
+              onValueChange={(v) => setFormat(v as ExportImageFormat)}
+              className="grid grid-cols-2 gap-3"
+            >
+              {IMAGE_FORMAT_OPTIONS.map((option) => (
+                <div key={option.id} className="flex items-start space-x-2">
+                  <RadioGroupItem value={option.id} id={`format-${option.id}`} className="mt-0.5" />
+                  <div className="grid gap-0.5 leading-none">
+                    <Label htmlFor={`format-${option.id}`}>{option.label}</Label>
+                    <p className="text-xs text-muted-foreground">{option.note}</p>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+            {format === 'svg' && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                SVG export flattens 3D device renders and videos
+              </p>
+            )}
+            {(format === 'jpeg' || format === 'webp') && (
+              <div className="mt-3 grid gap-1.5">
+                <Label htmlFor="export-quality" className="text-sm">
+                  Quality: {Math.round(quality * 100)}%
+                </Label>
+                <Slider
+                  id="export-quality"
+                  min={10}
+                  max={100}
+                  step={1}
+                  value={[Math.round(quality * 100)]}
+                  onValueChange={(v) => setQuality(v[0] / 100)}
+                />
               </div>
             )}
           </div>
