@@ -71,6 +71,7 @@ import {
   useAccount,
 } from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { LoadStatusBar } from './LoadStatusBar';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
@@ -3411,6 +3412,9 @@ const generateRandomProjectName = (): string => {
                       {accountSession ? accountSession.account.name : t('chrome.account')}
                     </span>
                   </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <LanguageSwitcher />
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton tooltip={t('chrome.about')} className="w-full" onClick={() => setIsAboutOpen(true)}>
