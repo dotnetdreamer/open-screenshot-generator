@@ -22,9 +22,17 @@ pointing at Drive, rather than silently dropping the video.
 
 ## Configuration
 
-Both values are **public client ids**, safe to commit to a build. There is no
-client secret anywhere in this feature, by design: a static export cannot keep
-one.
+The client ids are **public**, safe to commit to a build. No *confidential*
+secret is ever shipped to a client: the web export holds none by design, and
+GitHub's belongs to the Worker.
+
+The one exception is the **Google Desktop-app client secret**, which the Tauri
+build carries. Google's token endpoint refuses an installed-app code exchange
+without it (`client_secret is missing.`) even though the flow uses PKCE, and
+Google's own installed-app docs ship it inside the binary for exactly this
+reason. It is a client identifier in practice, not a credential; PKCE plus the
+loopback redirect is what actually secures that flow. The **Web** client's
+secret is a real secret and must never go near the app.
 
 Create `.env.local` (already gitignored) for local work, and set the same values
 as repository secrets / build env for the deployed site.
@@ -33,9 +41,11 @@ as repository secrets / build env for the deployed site.
 # Google, web build (editor.openscrgen.app and localhost dev)
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
 
-# Google, desktop build. Optional: falls back to the web id when unset,
-# but a dedicated Desktop-type client is the correct setup.
+# Google, desktop build. Required for desktop sign-in, and it must be a
+# Desktop-type client: the web id cannot stand in, because Google rejects a
+# 127.0.0.1 redirect on a Web client.
 NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID=yyyyyyyy.apps.googleusercontent.com
+NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET=GOCSPX-zzzzzzzzzzzzzzzz
 
 # GitHub, desktop device flow.
 NEXT_PUBLIC_GITHUB_CLIENT_ID=Ov23lixxxxxxxxxxxxxx
@@ -81,7 +91,9 @@ NEXT_PUBLIC_GITHUB_OAUTH_PROXY=https://osg-github-oauth.<subdomain>.workers.dev
      No redirect URI is needed: the web flow uses the Google Identity Services
      token client, which never redirects.
    - **Desktop app**, for the Tauri build. Google allows any `127.0.0.1` port
-     for installed apps, so nothing needs registering per port.
+     for installed apps, so nothing needs registering per port. Copy **both**
+     its id and its secret: the code exchange fails with `client_secret is
+     missing.` if the secret is left out.
 
 ### GitHub setup
 

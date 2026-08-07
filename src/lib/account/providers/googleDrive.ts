@@ -17,6 +17,13 @@
 //             Google session is alive.
 //   desktop - loopback + PKCE via the system browser (see transport.ts).
 //             Returns a refresh token, so the sign-in survives restarts.
+//             Google's token endpoint requires client_secret for a Desktop-app
+//             client even with PKCE (it answers "client_secret is missing."
+//             otherwise), so that build carries one. Google documents this as
+//             expected for installed apps: the value ships inside every copy of
+//             the binary and is not a secret in any real sense. What actually
+//             protects the exchange is PKCE plus the loopback redirect, which
+//             is why the web build must never be given this client.
 
 import { isTauri } from '@/lib/desktop';
 import {
@@ -33,7 +40,11 @@ import {
 import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow } from '../transport';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
-const DESKTOP_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID ?? CLIENT_ID;
+// No fallback to CLIENT_ID: Google rejects a 127.0.0.1 redirect on a Web
+// client ("Error 400: redirect_uri_mismatch"), so borrowing the web id only
+// moves the failure to after the user has already picked an account.
+const DESKTOP_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID ?? '';
+const DESKTOP_CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET ?? '';
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const SCOPES = `${DRIVE_SCOPE} openid email profile`;
@@ -198,6 +209,7 @@ async function signInDesktop(): Promise<AccountSession> {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formEncode({
       client_id: DESKTOP_CLIENT_ID,
+      client_secret: DESKTOP_CLIENT_SECRET,
       code,
       code_verifier: verifier,
       grant_type: 'authorization_code',
@@ -224,6 +236,7 @@ async function refreshDesktopToken(session: AccountSession): Promise<AccountSess
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formEncode({
         client_id: DESKTOP_CLIENT_ID,
+        client_secret: DESKTOP_CLIENT_SECRET,
         refresh_token: session.refreshToken,
         grant_type: 'refresh_token',
       }),
@@ -387,11 +400,16 @@ export const googleDriveProvider: CloudProvider = {
   id: 'google',
   label: 'Google',
   supportsMedia: true,
-  configHint:
-    'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.',
+  get configHint() {
+    return isTauri()
+      ? 'Google sign-in on desktop needs NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET and NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID (a Desktop-app OAuth client) set at build time. See docs/ACCOUNT-SYNC.md.'
+      : 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';
+  },
 
+  // Desktop checks the secret too, so a build missing it says so up front
+  // instead of sending the user through consent and failing the exchange.
   isConfigured() {
-    return !!(isTauri() ? DESKTOP_CLIENT_ID : CLIENT_ID);
+    return isTauri() ? !!(DESKTOP_CLIENT_ID && DESKTOP_CLIENT_SECRET) : !!CLIENT_ID;
   },
 
   async signIn(): Promise<AccountSession> {
