@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useRef, useState } from 'react';
-import { ImagePlus, Loader2, X } from 'lucide-react';
+import { ImagePlus, LayoutTemplate, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AGENT_LIMITS } from '@/lib/ai/agentPlanSchema';
@@ -11,6 +11,8 @@ interface ScreenshotUploaderProps {
   screenshots: UploadedScreenshot[];
   onChange: (screenshots: UploadedScreenshot[]) => void;
   disabled?: boolean;
+  // Opens the deterministic template proposal flow (no model involved).
+  onSkipAi?: () => void;
 }
 
 /**
@@ -18,7 +20,7 @@ interface ScreenshotUploaderProps {
  * `screenshotIndex` the agent plan refers to, and it is also the order the user
  * must attach files in when they run the manual relay steps.
  */
-export function ScreenshotUploader({ screenshots, onChange, disabled }: ScreenshotUploaderProps) {
+export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }: ScreenshotUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isReading, setIsReading] = useState(false);
@@ -111,6 +113,22 @@ export function ScreenshotUploader({ screenshots, onChange, disabled }: Screensh
       </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
+
+      {onSkipAi && screenshots.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={disabled || isReading}
+            onClick={onSkipAi}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <LayoutTemplate className="mr-1.5 h-3.5 w-3.5" />
+            Skip the AI, pick a template for me
+          </Button>
+        </div>
+      )}
 
       {screenshots.length > 0 && (
         <ul className="flex flex-wrap gap-3">
