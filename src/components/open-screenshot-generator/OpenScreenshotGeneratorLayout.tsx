@@ -1419,27 +1419,45 @@ export function OpenScreenshotGeneratorLayout() {
         continue;
       }
 
+      let imageDataUrl: string | null = null;
+      let fontsSkipped = false;
       try {
         // Store original transform and dimensions
         const originalTransform = artboardElement.style.transform;
         const originalWidth = artboardElement.style.width;
         const originalHeight = artboardElement.style.height;
 
-        // Capture the artboard at exact specified dimensions
+        // Capture the artboard at exact specified dimensions. The scale
+        // transform is stripped for capture, and the original styling is
+        // restored in the finally below no matter which path the capture
+        // takes (including a font-skip retry).
         const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-        const imageDataUrl = await captureArtboardImage(artboardElement, {
+        const captureOptions: ArtboardCaptureOptions = {
           format: image.format,
           quality: image.quality,
           backgroundColor,
           backgroundImage,
           width: artboard.size.width,
           height: artboard.size.height,
-        });
-
-        // Restore original styling after export
-        artboardElement.style.transform = originalTransform;
-        artboardElement.style.width = originalWidth;
-        artboardElement.style.height = originalHeight;
+        };
+        try {
+          artboardElement.style.transform = 'scale(1)';
+          imageDataUrl = await captureArtboardImage(artboardElement, captureOptions);
+        } catch (captureError) {
+          // Retry once without web fonts: a font that fails to embed is the
+          // usual way a capture crashes, and the image is still usable
+          // without it. A second failure propagates to the outer catch.
+          console.warn(`Artboard capture failed for "${artboard.name}", retrying without web fonts.`, captureError);
+          imageDataUrl = await captureArtboardImage(artboardElement, {
+            ...captureOptions,
+            skipFonts: true,
+          });
+          fontsSkipped = true;
+        } finally {
+          artboardElement.style.transform = originalTransform;
+          artboardElement.style.width = originalWidth;
+          artboardElement.style.height = originalHeight;
+        }
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const canvasIndex = order?.indexById[artboard.id] ?? index + 1;
@@ -1471,6 +1489,13 @@ export function OpenScreenshotGeneratorLayout() {
         // dialog now narrates it live, so the caller summarises at the end
         // instead. A lone file still gets its own toast there.
         saved.push({ filename, path: savedPath || undefined });
+
+        if (fontsSkipped) {
+          toast({
+            title: "Fonts skipped",
+            description: "Web fonts couldn't be embedded; text may render in a fallback font.",
+          });
+        }
 
       } catch (error) {
         console.error("Error exporting artboard:", artboard.name, error);
