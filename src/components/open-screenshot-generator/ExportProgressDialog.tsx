@@ -40,11 +40,15 @@ export function ExportProgressDialog({
   onCancel,
   isCancelling,
 }: ExportProgressDialogProps) {
-  // Each file counts as two half-steps (render, save) so a one-file export
-  // still shows the bar move instead of sitting at 0 until it is all over.
+  // Each file spans two steps (render, then save) and both count as partly
+  // done while they run, so the bar keeps moving even on a one-file export
+  // rather than sitting at 0 until the whole thing is over. Monotonic: file N
+  // rendering always reads lower than file N saving, which reads lower than
+  // file N+1 rendering.
   const steps = Math.max(1, (progress?.fileCount ?? 1) * 2);
   const done = progress
-    ? (progress.fileIndex - 1) * 2 + (progress.phase === 'saving' ? 1 : 0)
+    ? (progress.fileIndex - 1) * 2 +
+      (progress.phase === 'saving' ? 1.5 : progress.phase === 'rendering' ? 0.5 : 0)
     : 0;
   const value = Math.min(100, Math.round((done / steps) * 100));
 
