@@ -29,7 +29,7 @@ import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, Artboard
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
-import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
+import { ALL_CANVAS_SIZE_PRESETS, canvasSizeSlug } from '@/lib/sizePresets';
 import { artboardBackground } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
@@ -1364,7 +1364,13 @@ export function OpenScreenshotGeneratorLayout() {
           ? DEVICE_FORMAT_PRESETS.find((p) => p.id === artboardFormat)?.label
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
-        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
+        // Then the canvas size tier the board was exported at. The device
+        // suffix above names the MOCKUP in the board, this names the canvas,
+        // and the two genuinely differ (an iPhone mockup on a Play 1080x1920
+        // board). Generated App Store formats resize the board first, so each
+        // pass tags its own size here rather than the original one.
+        const sizeSuffix = `_${canvasSizeSlug(artboard.size)}`;
+        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}${sizeSuffix}.png`;
         progress?.report({
           fileIndex: progress.startIndex + index,
           boardName: artboard.name,

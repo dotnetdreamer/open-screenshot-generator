@@ -166,3 +166,32 @@ export function findMatchingPreset(size: Size | undefined): CanvasSizePreset | u
     (p) => p.width === size.width && p.height === size.height
   );
 }
+
+/**
+ * Filename-safe tag for a canvas size, e.g. `iPhone-6_9-Portrait_1290x2796`.
+ * PNG exports append it so a folder of screenshots says which store tier each
+ * file targets, not just which board it came from.
+ *
+ * Inch marks and parens are dropped, `6.9` becomes `6_9` (a bare dot inside a
+ * filename reads as an extension boundary), and anything else non-alphanumeric
+ * collapses to a single dash. A custom size that matches no preset degrades to
+ * the bare resolution; a preset whose label already spells out its dimensions
+ * (`Mac (2560×1600)`) does not repeat them.
+ */
+export function canvasSizeSlug(size: Size | undefined): string {
+  if (!size) return '';
+  const width = Math.round(size.width);
+  const height = Math.round(size.height);
+  const resolution = `${width}x${height}`;
+  const preset = findMatchingPreset(size);
+  if (!preset) return resolution;
+  const label = preset.label
+    .replace(/"/g, '')
+    .replace(/\./g, '_')
+    .replace(/[^a-zA-Z0-9_]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  if (!label) return resolution;
+  const spellsOutSize =
+    label.includes(String(width)) && label.includes(String(height));
+  return spellsOutSize ? label : `${label}_${resolution}`;
+}
