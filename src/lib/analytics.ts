@@ -76,12 +76,14 @@ export function trackExportPng(params: {
   formats?: string[];
   artboardCount: number;
   fileCount: number;
+  imageFormat?: 'png' | 'jpeg' | 'webp';
 }): void {
   track('export_png', {
     mode: params.mode,
     formats: params.formats?.join(',') || 'none',
     artboard_count: params.artboardCount,
     file_count: params.fileCount,
+    image_format: params.imageFormat ?? 'png',
   });
 }
 

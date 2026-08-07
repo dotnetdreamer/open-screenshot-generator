@@ -64,12 +64,34 @@ export function createGoogleFontsUrl(fonts: GoogleFont[] = GOOGLE_FONTS): string
   return `https://fonts.googleapis.com/css2?${families.map(f => `family=${f}`).join('&')}&display=swap`;
 }
 
-// Function to preload Google fonts
+// Function to preload Google fonts. html-to-image walks sheet.cssRules of
+// every document stylesheet on each export, and a cross-origin <link> to
+// fonts.googleapis.com throws a SecurityError it can only console.error (once
+// per export, per sheet). To keep the CSS readable we fetch the css2 text and
+// inject it as an inline same-origin <style>. The <link> stays as a fallback
+// for when the fetch fails (offline).
 export function preloadGoogleFonts(fonts: GoogleFont[] = GOOGLE_FONTS): void {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = createGoogleFontsUrl(fonts);
-  document.head.appendChild(link);
+  const href = createGoogleFontsUrl(fonts);
+
+  fetch(href)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Google Fonts request failed with status ${response.status}`);
+      }
+      return response.text();
+    })
+    .then((css) => {
+      const style = document.createElement('style');
+      style.setAttribute('data-google-fonts', '');
+      style.textContent = css;
+      document.head.appendChild(style);
+    })
+    .catch(() => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    });
 }
 
 // Get font options for select components

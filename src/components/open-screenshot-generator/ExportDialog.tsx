@@ -13,12 +13,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Slider } from "@/components/ui/slider";
 import type { Size } from '@/types/artboard';
 import {
   APP_STORE_FORMAT_IDS,
   DEVICE_FORMAT_PRESETS,
   type DeviceFormat,
 } from '@/lib/deviceRegistry';
+
+// Image formats the screenshot export can produce. Every file in a run uses
+// the same one.
+export type ImageFormat = 'png' | 'jpeg' | 'webp';
 
 export interface ExportSelection {
   // Export the artboards exactly as they are on the canvas.
@@ -31,6 +37,11 @@ export interface ExportSelection {
   // instead of the whole project. Off unless the dialog was opened from an
   // artboard's own toolbar.
   currentArtboardOnly: boolean;
+  // Image format for every file this run produces. JPEG and WebP have no
+  // alpha channel, so transparency is flattened onto the artboard background.
+  format: ImageFormat;
+  // JPEG/WebP compression quality on a 0..1 scale (ignored for PNG).
+  quality: number;
 }
 
 // Shared with AppPreviewExportDialog (the video projects' own dialog), which
@@ -100,6 +111,8 @@ export function ExportDialog({
   const [asIs, setAsIs] = useState(true);
   const [generateFormats, setGenerateFormats] = useState<DeviceFormat[]>([]);
   const [currentArtboardOnly, setCurrentArtboardOnly] = useState(false);
+  const [format, setFormat] = useState<ImageFormat>('png');
+  const [quality, setQuality] = useState(0.92);
 
   const canScopeToArtboard = !!activeArtboard;
   // Everything below describes what the export produces, so it has to follow
@@ -114,6 +127,8 @@ export function ExportDialog({
       setAsIs(true);
       setGenerateFormats([]);
       setCurrentArtboardOnly(defaultCurrentArtboardOnly);
+      setFormat('png');
+      setQuality(0.92);
     }
   }, [isOpen, defaultCurrentArtboardOnly]);
 
@@ -168,9 +183,10 @@ export function ExportDialog({
         <DialogHeader>
           <DialogTitle>Export Screenshots</DialogTitle>
           <DialogDescription>
-            Download the artboards as PNGs, and optionally generate the App
-            Store sizes this project is missing. Generated formats convert the
-            canvas and mockups on the fly — your project stays untouched.
+            Download the artboards as PNG, JPEG or WebP images, and optionally
+            generate the App Store sizes this project is missing. Generated
+            formats convert the canvas and mockups on the fly — your project
+            stays untouched.
           </DialogDescription>
         </DialogHeader>
 
@@ -206,6 +222,68 @@ export function ExportDialog({
               </Label>
               <p className="text-xs text-muted-foreground">{scopeDescription}</p>
             </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-0.5">Image format</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Applied to the current canvas export and every generated App
+              Store format. JPEG and WebP flatten transparency onto the
+              artboard background.
+            </p>
+            <RadioGroup
+              value={format}
+              onValueChange={(v) => setFormat(v as ImageFormat)}
+              className="grid gap-3"
+            >
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="png" id="format-png" />
+                <div className="grid gap-0.5 leading-none">
+                  <Label htmlFor="format-png">PNG</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Lossless, keeps transparency. Largest file size.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="jpeg" id="format-jpeg" />
+                <div className="grid gap-0.5 leading-none">
+                  <Label htmlFor="format-jpeg">JPEG</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Small files, no transparency. Best for photos.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="webp" id="format-webp" />
+                <div className="grid gap-0.5 leading-none">
+                  <Label htmlFor="format-webp">WebP</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Small files with good quality. Supported in all modern
+                    browsers.
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+
+            {format !== 'png' && (
+              <div className="grid gap-2 mt-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="export-quality">Quality</Label>
+                  <span className="text-xs text-muted-foreground">
+                    {Math.round(quality * 100)}%
+                  </span>
+                </div>
+                <Slider
+                  id="export-quality"
+                  min={0.5}
+                  max={1}
+                  step={0.01}
+                  value={[quality]}
+                  onValueChange={(v) => setQuality(v[0])}
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -251,7 +329,13 @@ export function ExportDialog({
           </DialogClose>
           <Button
             onClick={() =>
-              onConfirmExport({ asIs, generateFormats, currentArtboardOnly: scopedToArtboard })
+              onConfirmExport({
+                asIs,
+                generateFormats,
+                currentArtboardOnly: scopedToArtboard,
+                format,
+                quality,
+              })
             }
             disabled={nothingSelected}
           >

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
-import { toPng } from 'html-to-image';
+import { toPng, toJpeg } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
@@ -26,7 +26,7 @@ import { TranslateDialog, getLanguageName } from './TranslateDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
-import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
+import { ExportDialog, type ExportSelection, type ImageFormat, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
@@ -106,6 +106,104 @@ import { cn } from '@/lib/utils';
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
 const DISPLAY_SCALE_FACTOR = 0.3;
+
+// File extension per export image format. JPEG is ".jpg" so the file opens in
+// every consumer app without guessing.
+const EXPORT_FORMAT_EXTENSION: Record<ImageFormat, string> = {
+  png: '.png',
+  jpeg: '.jpg',
+  webp: '.webp',
+};
+
+// WebP has no html-to-image capture helper, so capture as PNG and re-encode:
+// draw the flattened PNG onto a hidden canvas pre-filled with the artboard's
+// background color (WebP, like JPEG, has no alpha), then encode with the
+// requested quality. Returns a data URL like the html-to-image helpers.
+const pngDataUrlToWebp = (
+  pngDataUrl: string,
+  quality: number,
+  backgroundColor: string
+): Promise<string> =>
+  new Promise((resolve, reject) => {
+    // window.Image, not the next/image component this module imports
+    const image = new window.Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        reject(new Error('Could not create the WebP encoder canvas.'));
+        return;
+      }
+      context.fillStyle = backgroundColor;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('This browser could not encode WebP.'));
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error ?? new Error('Could not read the WebP image.'));
+          reader.readAsDataURL(blob);
+        },
+        'image/webp',
+        quality
+      );
+    };
+    image.onerror = () => reject(new Error('Could not decode the captured image for WebP.'));
+    image.src = pngDataUrl;
+  });
+
+// Shared capture options for html-to-image, described once so every format
+// branch bakes in the same editor-chrome exclusions and artboard background.
+interface ArtboardCaptureOptions {
+  format: ImageFormat;
+  quality: number;
+  backgroundColor: string;
+  backgroundImage: string;
+  width: number;
+  height: number;
+  skipFonts?: boolean;
+}
+
+const captureArtboardImage = (
+  element: HTMLElement,
+  options: ArtboardCaptureOptions
+): Promise<string> => {
+  const htmlToImageOptions = {
+    width: options.width,
+    height: options.height,
+    backgroundColor: options.backgroundColor,
+    pixelRatio: 1, // Set to 1 to avoid doubling resolution
+    cacheBust: true, // Prevent caching issues
+    skipFonts: options.skipFonts,
+    // Editor chrome (selection outlines, resize handles, upload buttons)
+    // must never be baked into the exported image
+    filter: (node: Node) => {
+      const el = node as HTMLElement;
+      return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+    },
+    style: {
+      width: `${options.width}px`,
+      height: `${options.height}px`,
+      backgroundImage: options.backgroundImage,
+    },
+  };
+  if (options.format === 'jpeg') {
+    return toJpeg(element, { ...htmlToImageOptions, quality: options.quality });
+  }
+  const png = toPng(element, htmlToImageOptions);
+  if (options.format === 'webp') {
+    return png.then((dataUrl) =>
+      pngDataUrlToWebp(dataUrl, options.quality, options.backgroundColor)
+    );
+  }
+  return png;
+};
 
 // Right dock (Properties + Layers) persistence. localStorage so the layout
 // survives an app relaunch, not just a reload.
@@ -1266,7 +1364,7 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  // Capture a list of artboards to PNG downloads by grabbing each board's
+  // Capture a list of artboards to image downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
@@ -1286,7 +1384,10 @@ export function OpenScreenshotGeneratorLayout() {
       // Absolute file number of the first file in this pass, so the counter
       // keeps climbing across the as-is pass and every generated format.
       startIndex: number;
-    }
+    },
+    // Which image format and quality every file in this run should be.
+    // Defaults keep callers that do not care (none today) on PNG.
+    image: { format: ImageFormat; quality: number } = { format: 'png', quality: 0.92 }
   ) => {
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
@@ -1296,8 +1397,8 @@ export function OpenScreenshotGeneratorLayout() {
     const saved: { filename: string; path?: string }[] = [];
 
     for (const [index, artboard] of list.entries()) {
-      // Cancellation lands between files: a half-written PNG helps nobody, and
-      // each capture is short enough that finishing it is barely a wait.
+      // Cancellation lands between files: a half-written image helps nobody,
+      // and each capture is short enough that finishing it is barely a wait.
       if (pngExportCancelRef.current) break;
       progress?.report({
         fileIndex: progress.startIndex + index,
@@ -1318,40 +1419,45 @@ export function OpenScreenshotGeneratorLayout() {
         continue;
       }
 
+      let imageDataUrl: string | null = null;
+      let fontsSkipped = false;
       try {
         // Store original transform and dimensions
         const originalTransform = artboardElement.style.transform;
         const originalWidth = artboardElement.style.width;
         const originalHeight = artboardElement.style.height;
-        
-        // Remove scale transform for export
-        artboardElement.style.transform = 'scale(1)';
-        
-        // Use html-to-image to capture the artboard at exact specified dimensions
+
+        // Capture the artboard at exact specified dimensions. The scale
+        // transform is stripped for capture, and the original styling is
+        // restored in the finally below no matter which path the capture
+        // takes (including a font-skip retry).
         const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-        const imageDataUrl = await toPng(artboardElement, {
+        const captureOptions: ArtboardCaptureOptions = {
+          format: image.format,
+          quality: image.quality,
+          backgroundColor,
+          backgroundImage,
           width: artboard.size.width,
           height: artboard.size.height,
-          backgroundColor,
-          pixelRatio: 1, // Set to 1 to avoid doubling resolution
-          cacheBust: true, // Prevent caching issues
-          // Editor chrome (selection outlines, resize handles, upload buttons)
-          // must never be baked into the exported image
-          filter: (node) => {
-            const el = node as HTMLElement;
-            return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-          },
-          style: {
-            width: `${artboard.size.width}px`,
-            height: `${artboard.size.height}px`,
-            backgroundImage,
-          }
-        });
-        
-        // Restore original styling after export
-        artboardElement.style.transform = originalTransform;
-        artboardElement.style.width = originalWidth;
-        artboardElement.style.height = originalHeight;
+        };
+        try {
+          artboardElement.style.transform = 'scale(1)';
+          imageDataUrl = await captureArtboardImage(artboardElement, captureOptions);
+        } catch (captureError) {
+          // Retry once without web fonts: a font that fails to embed is the
+          // usual way a capture crashes, and the image is still usable
+          // without it. A second failure propagates to the outer catch.
+          console.warn(`Artboard capture failed for "${artboard.name}", retrying without web fonts.`, captureError);
+          imageDataUrl = await captureArtboardImage(artboardElement, {
+            ...captureOptions,
+            skipFonts: true,
+          });
+          fontsSkipped = true;
+        } finally {
+          artboardElement.style.transform = originalTransform;
+          artboardElement.style.width = originalWidth;
+          artboardElement.style.height = originalHeight;
+        }
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const canvasIndex = order?.indexById[artboard.id] ?? index + 1;
@@ -1364,7 +1470,7 @@ export function OpenScreenshotGeneratorLayout() {
           ? DEVICE_FORMAT_PRESETS.find((p) => p.id === artboardFormat)?.label
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
-        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
+        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}${EXPORT_FORMAT_EXTENSION[image.format]}`;
         progress?.report({
           fileIndex: progress.startIndex + index,
           boardName: artboard.name,
@@ -1383,6 +1489,13 @@ export function OpenScreenshotGeneratorLayout() {
         // dialog now narrates it live, so the caller summarises at the end
         // instead. A lone file still gets its own toast there.
         saved.push({ filename, path: savedPath || undefined });
+
+        if (fontsSkipped) {
+          toast({
+            title: "Fonts skipped",
+            description: "Web fonts couldn't be embedded; text may render in a fallback font.",
+          });
+        }
 
       } catch (error) {
         console.error("Error exporting artboard:", artboard.name, error);
@@ -1413,7 +1526,7 @@ export function OpenScreenshotGeneratorLayout() {
   // engine as the Devices menu, rendered, captured, then the original state
   // is restored — plain setArtboards keeps history and the saved project
   // untouched, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly }: ExportSelection) => {
+  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly, format, quality }: ExportSelection) => {
     setIsExportDialogOpen(false);
 
     const original = artboards;
@@ -1462,6 +1575,7 @@ export function OpenScreenshotGeneratorLayout() {
       formats: generateFormats,
       artboardCount: targets.length,
       fileCount: totalFiles,
+      imageFormat: format,
     });
 
     // The progress dialog is on screen for exactly as long as pngProgress is
@@ -1490,7 +1604,7 @@ export function OpenScreenshotGeneratorLayout() {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        return await captureArtboards(list, exportDir, order, { report, formatLabel, startIndex });
+        return await captureArtboards(list, exportDir, order, { report, formatLabel, startIndex }, { format, quality });
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
@@ -3640,7 +3754,14 @@ const generateRandomProjectName = (): string => {
               onExportVideo={handleExportVideo}
               onCancelVideoExport={handleCancelVideoExport}
               onExportStills={(currentArtboardOnly) =>
-                handleConfirmExport({ asIs: true, generateFormats: [], currentArtboardOnly })
+                handleConfirmExport({
+                  asIs: true,
+                  generateFormats: [],
+                  currentArtboardOnly,
+                  // Stills from the video dialog stay PNG, their original format.
+                  format: 'png',
+                  quality: 0.92,
+                })
               }
               videoProgress={videoProgress}
               isVideoExporting={isVideoExporting}
