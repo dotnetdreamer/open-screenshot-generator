@@ -3,6 +3,7 @@ import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@/components/Analytics";
+import { I18nProvider } from "@/i18n";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,8 +29,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
-        {children}
-        <Toaster />
+        {/* Serialized into the static export so the html lang attribute matches
+            the stored/detected UI locale before first paint; the I18nProvider
+            keeps it in sync from then on. Mirrors the MobileNotice pattern. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var l=localStorage.getItem('osg-locale');if(l!=='en'&&l!=='es'){l=(navigator.language||'').toLowerCase().indexOf('es')===0?'es':'en'}document.documentElement.lang=l}catch(e){}",
+          }}
+        />
+        <I18nProvider>
+          {children}
+          <Toaster />
+        </I18nProvider>
         <Analytics />
       </body>
     </html>
