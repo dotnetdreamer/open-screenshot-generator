@@ -56,16 +56,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
+import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AccountAuthError,
   bundleFromJson,
   bundleToJson,
+  findAccountProject,
   importBundle,
   loadProjectFromAccount,
+  newCloudProjectId,
   saveProjectToAccount,
   serializeProject,
   useAccount,
+  type CloudProjectSummary,
 } from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
 import { LoadStatusBar } from './LoadStatusBar';
@@ -452,6 +456,9 @@ export function OpenScreenshotGeneratorLayout() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountHint, setAccountHint] = useState<string | undefined>(undefined);
   const [isSavingToAccount, setIsSavingToAccount] = useState(false);
+  // Set when a save would land on top of a copy already in the account: holds
+  // that copy while the user picks replace or save-as-new.
+  const [saveConflict, setSaveConflict] = useState<CloudProjectSummary | null>(null);
   const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
   // Desktop only: Help > About in the native menu bar opens the same dialog
   // as the sidebar's About option (settings.rs emits abs-open-about).
@@ -563,6 +570,31 @@ export function OpenScreenshotGeneratorLayout() {
 
     fetchRecentProjects();
   }, [activeProjectId]); // Add activeProjectId as a dependency
+
+  // Closing the tab, reloading or hitting Back throws away the editor session,
+  // and anything not pushed to the connected account only exists in this
+  // browser's IndexedDB. `beforeunload` is the one hook that can interrupt
+  // that, and browsers only honour it with their own built-in confirm: a
+  // custom dialog cannot block an unload, and any message we set here is
+  // ignored (Chrome/Firefox/Safari all show fixed wording).
+  //
+  // Web only, on purpose. The desktop shell owns its window lifecycle, and a
+  // Tauri close would either ignore this or strand the user in a prompt the
+  // native window did not ask for.
+  //
+  // Only armed once there is something on the canvas, so the template picker
+  // on a fresh visit never blocks a close.
+  useEffect(() => {
+    if (isTauri() || artboards.length === 0) return;
+    const confirmLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Legacy browsers need a truthy returnValue to raise the prompt at all.
+      event.returnValue = '';
+      return '';
+    };
+    window.addEventListener('beforeunload', confirmLeave);
+    return () => window.removeEventListener('beforeunload', confirmLeave);
+  }, [artboards.length]);
 
   // --- 1. On mount, check for projectId in URL and set as activeProjectId ---
   useEffect(() => {
@@ -1200,6 +1232,52 @@ export function OpenScreenshotGeneratorLayout() {
     setIsAccountOpen(true);
   };
 
+  /** "Google Drive" / "GitHub gists", for copy that names where a save lands. */
+  const accountStorageLabel = accountSession
+    ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists'
+    : 'storage';
+
+  const handleAccountSaveError = (error: unknown) => {
+    // An expired sign-in already cleared the session, so send the user back
+    // through the dialog rather than showing a dead end.
+    if (error instanceof AccountAuthError) {
+      setSaveConflict(null);
+      openAccountDialog(error.message);
+    } else {
+      toast({
+        title: "Could not save",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  /**
+   * The upload itself. Without `copyName` this overwrites whatever is up there
+   * (providers match on project id); with one it saves a second, independent
+   * file and leaves both the cloud original and the local project alone.
+   */
+  const runAccountSave = async (copyName?: string) => {
+    if (!activeProjectId) return;
+    setIsSavingToAccount(true);
+    try {
+      const saved = await saveProjectToAccount(activeProjectId, {
+        saveAsCopy: copyName ? { id: newCloudProjectId(), name: copyName } : undefined,
+      });
+      setSaveConflict(null);
+      toast({
+        title: copyName ? "Saved as a new project" : "Saved to your account",
+        description: copyName
+          ? `"${saved.name}" is a separate file in your ${accountStorageLabel} now. Your open project is unchanged.`
+          : `"${saved.name}" is in your ${accountStorageLabel}.`,
+      });
+    } catch (error) {
+      handleAccountSaveError(error);
+    } finally {
+      setIsSavingToAccount(false);
+    }
+  };
+
   /**
    * Toolbar "Save to account". Signed out this is how the user finds out they
    * need to connect, so it opens the dialog instead of doing nothing.
@@ -1218,28 +1296,24 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
 
+    // Ask before overwriting, but only when there is something to overwrite:
+    // a first save has no choice to offer and should stay one click.
     setIsSavingToAccount(true);
+    let existing: CloudProjectSummary | null = null;
     try {
-      const saved = await saveProjectToAccount(activeProjectId);
-      toast({
-        title: "Saved to your account",
-        description: `"${saved.name}" is in your ${accountSession ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists' : 'storage'}.`,
-      });
+      existing = await findAccountProject(activeProjectId);
     } catch (error) {
-      // An expired sign-in already cleared the session, so send the user back
-      // through the dialog rather than showing a dead end.
-      if (error instanceof AccountAuthError) {
-        openAccountDialog(error.message);
-      } else {
-        toast({
-          title: "Could not save",
-          description: error instanceof Error ? error.message : "Something went wrong.",
-          variant: "destructive",
-        });
-      }
-    } finally {
+      handleAccountSaveError(error);
       setIsSavingToAccount(false);
+      return;
     }
+    setIsSavingToAccount(false);
+
+    if (existing) {
+      setSaveConflict(existing);
+      return;
+    }
+    await runAccountSave();
   };
 
   /** Pull a project out of the connected account and open it in the editor. */
@@ -3681,6 +3755,20 @@ const generateRandomProjectName = (): string => {
             }}
             hint={accountHint}
             onOpenProject={handleOpenFromAccount}
+          />
+
+          <SaveToAccountDialog
+            open={!!saveConflict}
+            onOpenChange={(open) => {
+              if (!open) setSaveConflict(null);
+            }}
+            existingName={saveConflict?.name ?? ''}
+            existingModifiedAt={saveConflict?.modifiedAt}
+            suggestedName={`${currentProjectName} copy`}
+            storageLabel={accountStorageLabel}
+            isSaving={isSavingToAccount}
+            onReplace={() => void runAccountSave()}
+            onSaveCopy={(name) => void runAccountSave(name)}
           />
 
           <TranslateDialog
