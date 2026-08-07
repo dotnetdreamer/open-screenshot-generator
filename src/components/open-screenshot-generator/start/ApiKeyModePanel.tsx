@@ -21,6 +21,7 @@ import {
   saveAiSettings,
   type AiProviderId,
 } from '@/lib/ai/providers';
+import { useT } from '@/i18n';
 
 interface ApiKeyModePanelProps {
   busy: boolean;
@@ -35,6 +36,7 @@ interface ApiKeyModePanelProps {
  * key the user pastes in.
  */
 export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKeyModePanelProps) {
+  const t = useT();
   const [provider, setProvider] = useState<AiProviderId>('anthropic');
   const [model, setModel] = useState<string>(AI_PROVIDERS.anthropic.defaultModel);
   const [apiKey, setApiKey] = useState('');
@@ -79,7 +81,7 @@ export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKey
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="agent-provider">Provider</Label>
+          <Label htmlFor="agent-provider">{t('startPanel.provider')}</Label>
           <Select
             value={provider}
             onValueChange={(value) => switchProvider(value as AiProviderId)}
@@ -98,7 +100,7 @@ export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKey
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="agent-model">Model</Label>
+          <Label htmlFor="agent-model">{t('startPanel.model')}</Label>
           <Select value={model} onValueChange={setModel} disabled={busy}>
             <SelectTrigger id="agent-model">
               <SelectValue />
@@ -117,7 +119,7 @@ export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKey
       <div className="space-y-1.5">
         <Label htmlFor="agent-key" className="flex items-center gap-1.5">
           <KeyRound className="h-3.5 w-3.5" />
-          {info.label} API key
+          {t('startPanel.apiKey', { provider: info.label })}
         </Label>
         <Input
           id="agent-key"
@@ -138,7 +140,7 @@ export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKey
               disabled={busy}
             />
             <Label htmlFor="agent-remember" className="text-xs font-normal text-muted-foreground">
-              Remember on this device (stored unencrypted in this browser)
+              {t('startPanel.remember')}
             </Label>
           </div>
           <button
@@ -146,7 +148,7 @@ export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKey
             onClick={() => void openExternal(info.keyUrl)}
             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
           >
-            Get a key at {info.keyUrlLabel}
+            {t('startPanel.getKey', { site: info.keyUrlLabel })}
             <ExternalLink className="h-3 w-3" />
           </button>
         </div>
@@ -159,11 +161,11 @@ export function ApiKeyModePanel({ busy, disabled, onGenerate, onCancel }: ApiKey
           ) : (
             <Sparkles className="mr-2 h-4 w-4" />
           )}
-          {busy ? 'Designing...' : 'Generate design'}
+          {busy ? t('startPanel.designing') : t('startPanel.generate')}
         </Button>
         {busy && (
           <Button variant="ghost" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         )}
       </div>

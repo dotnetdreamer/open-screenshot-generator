@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useT } from '@/i18n';
 
 export type LoadPhase = "idle" | "templates" | "project";
 
@@ -26,6 +27,7 @@ interface LoadStatusBarProps {
  * doesn't vanish abruptly mid-progress.
  */
 export function LoadStatusBar({ phase, templateProgress, className }: LoadStatusBarProps) {
+  const t = useT();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -48,11 +50,11 @@ export function LoadStatusBar({ phase, templateProgress, className }: LoadStatus
   const label =
     phase === "templates"
       ? total > 0
-        ? `Loading templates ${done} / ${total}`
-        : "Loading templates"
+        ? t('loadStatus.loadingTemplatesCount', { done, total })
+        : t('loadStatus.loadingTemplates')
       : phase === "project"
-        ? "Opening project"
-        : "Ready";
+        ? t('loadStatus.openingProject')
+        : t('loadStatus.ready');
 
   return (
     <div

@@ -20,6 +20,7 @@ import {
   type MediaAsset,
 } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/i18n';
 import { cn } from '@/lib/utils';
 
 // Same signature as ElementPalette's PaletteDragStart, redeclared so this
@@ -44,12 +45,13 @@ const RenameInput: React.FC<{
   onCommit: (name: string) => void;
   onCancel: () => void;
 }> = ({ initial, onCommit, onCancel }) => {
+  const t = useT();
   const [value, setValue] = useState(initial);
   return (
     <Input
       autoFocus
       value={value}
-      aria-label="Rename upload"
+      aria-label={t('uploads.renameUpload')}
       onChange={(e) => setValue(e.target.value)}
       onFocus={(e) => e.currentTarget.select()}
       onBlur={() => onCommit(value)}
@@ -89,6 +91,7 @@ const UploadedImageTile: React.FC<{
   onCancelRename,
   onDelete,
 }) => {
+  const t = useT();
   // Object URL from the shared cache: thumbnails never hold data URLs.
   const thumbUrl = useMediaUrl(asset.id);
 
@@ -116,8 +119,8 @@ const UploadedImageTile: React.FC<{
         }}
         onPointerDown={() => void onEnsureDataUrl(asset.id)}
         onPointerEnter={() => void onEnsureDataUrl(asset.id)}
-        title={`Add ${asset.name}`}
-        aria-label={`Add ${asset.name}`}
+        title={t('uploads.addAsset', { name: asset.name })}
+        aria-label={t('uploads.addAsset', { name: asset.name })}
       >
         {thumbUrl ? (
           <img src={thumbUrl} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
@@ -137,8 +140,8 @@ const UploadedImageTile: React.FC<{
           <button
             type="button"
             onClick={onBeginRename}
-            title={`Rename ${asset.name}`}
-            aria-label={`Rename ${asset.name}`}
+            title={t('uploads.renameAsset', { name: asset.name })}
+            aria-label={t('uploads.renameAsset', { name: asset.name })}
             className="flex h-5 w-5 items-center justify-center rounded-full border bg-background text-muted-foreground shadow transition-colors hover:text-foreground"
           >
             <PencilIcon className="h-3 w-3" />
@@ -146,8 +149,8 @@ const UploadedImageTile: React.FC<{
           <button
             type="button"
             onClick={onDelete}
-            title={`Delete ${asset.name}`}
-            aria-label={`Delete ${asset.name}`}
+            title={t('uploads.deleteAsset', { name: asset.name })}
+            aria-label={t('uploads.deleteAsset', { name: asset.name })}
             className="flex h-5 w-5 items-center justify-center rounded-full border bg-background text-muted-foreground shadow transition-colors hover:text-destructive"
           >
             <Trash2Icon className="h-3 w-3" />
@@ -174,6 +177,7 @@ interface UploadsPanelProps {
  */
 export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelProps) {
   const { toast } = useToast();
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +210,7 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
   const addFiles = async (files: File[]) => {
     const images = files.filter((file) => file.type.startsWith('image/'));
     if (images.length === 0) {
-      if (files.length > 0) setError('Only image files can be uploaded here.');
+      if (files.length > 0) setError(t('uploads.onlyImages'));
       return;
     }
     setError(null);
@@ -218,7 +222,7 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
       }
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Those images could not be read.');
+      setError(err instanceof Error ? err.message : t('uploads.readError'));
     } finally {
       setBusy(false);
     }
@@ -232,7 +236,7 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
       await renameMedia(asset.id, trimmed);
       onChanged();
     } catch {
-      toast({ title: 'Rename failed', description: 'The upload could not be renamed.', variant: 'destructive' });
+      toast({ title: t('uploads.renameFailedTitle'), description: t('uploads.renameFailedDesc'), variant: 'destructive' });
     }
   };
 
@@ -244,7 +248,7 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
       dataUrlCacheRef.current.delete(asset.id);
       onChanged();
     } catch {
-      toast({ title: 'Delete failed', description: 'The upload could not be deleted.', variant: 'destructive' });
+      toast({ title: t('uploads.deleteFailedTitle'), description: t('uploads.deleteFailedDesc'), variant: 'destructive' });
     }
   };
 
@@ -286,7 +290,7 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
           ) : (
             <ImagePlusIcon className="h-6 w-6 text-muted-foreground" />
           )}
-          <p className="text-sm text-muted-foreground">No uploads yet. Drop image files here, or</p>
+          <p className="text-sm text-muted-foreground">{t('uploads.emptyLine')}</p>
           <Button
             type="button"
             variant="outline"
@@ -294,14 +298,14 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
             disabled={busy}
             onClick={() => inputRef.current?.click()}
           >
-            Choose files
+            {t('common.chooseFiles')}
           </Button>
-          <p className="text-xs text-muted-foreground">PNG, JPEG, WebP, GIF or SVG</p>
+          <p className="text-xs text-muted-foreground">{t('uploads.formats')}</p>
         </div>
       ) : (
         <>
           <div className="mb-2 flex items-center justify-between gap-2 px-1">
-            <p className="text-[11px] text-muted-foreground">Drag a tile onto the canvas, or click to add it</p>
+            <p className="text-[11px] text-muted-foreground">{t('uploads.hint')}</p>
             <Button
               type="button"
               variant="outline"
@@ -310,7 +314,7 @@ export function UploadsPanel({ assets, onChanged, onDragStart }: UploadsPanelPro
               disabled={busy}
               onClick={() => inputRef.current?.click()}
             >
-              {busy ? <Loader2Icon className="h-3.5 w-3.5 animate-spin" /> : 'Add'}
+              {busy ? <Loader2Icon className="h-3.5 w-3.5 animate-spin" /> : t('uploads.add')}
             </Button>
           </div>
           <ul className="grid grid-cols-3 gap-2 pr-1">

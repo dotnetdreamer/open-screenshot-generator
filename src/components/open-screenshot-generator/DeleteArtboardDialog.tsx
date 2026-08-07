@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useT } from '@/i18n';
 
 interface DeleteArtboardDialogProps {
   isOpen: boolean;
@@ -27,23 +28,25 @@ export function DeleteArtboardDialog({
   artboardName,
   elementCount,
 }: DeleteArtboardDialogProps) {
+  const t = useT();
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Artboard</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteArtboardDialog.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete "{artboardName}"? This artboard contains {elementCount} {elementCount === 1 ? 'element' : 'elements'}.
-            This action cannot be undone.
+            {elementCount === 1
+              ? t('deleteArtboardDialog.descOne', { name: artboardName })
+              : t('deleteArtboardDialog.descMany', { name: artboardName, count: elementCount })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={onConfirmDelete}
           >
-            Delete
+            {t('common.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

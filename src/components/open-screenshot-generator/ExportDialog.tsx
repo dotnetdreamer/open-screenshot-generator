@@ -21,6 +21,7 @@ import {
   DEVICE_FORMAT_PRESETS,
   type DeviceFormat,
 } from '@/lib/deviceRegistry';
+import { useT } from '@/i18n';
 
 // Image encodings the export can produce. JPEG and WebP are lossy and honor
 // `quality`; both flatten transparency onto the artboard background colour.
@@ -75,17 +76,18 @@ interface ExportDialogProps {
 
 // Apple's screenshot-specification tiers for the sizes this app can generate
 // (https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
-const APP_STORE_TIER_NOTES: Partial<Record<DeviceFormat, string>> = {
-  'ios': 'Required — iPhone 6.9-inch display',
-  'ipad-pro-13': 'Required if your app runs on iPad — 13-inch display',
-  'ipad-11': 'Optional — Apple scales your 13-inch shots down if missing',
+// Keys into the exportDialog.* message namespace.
+const APP_STORE_TIER_NOTE_KEYS: Partial<Record<DeviceFormat, 'exportDialog.tierIos' | 'exportDialog.tierIpadPro' | 'exportDialog.tierIpad11'>> = {
+  'ios': 'exportDialog.tierIos',
+  'ipad-pro-13': 'exportDialog.tierIpadPro',
+  'ipad-11': 'exportDialog.tierIpad11',
 };
 
-const IMAGE_FORMAT_OPTIONS: { id: ExportImageFormat; label: string; note: string }[] = [
-  { id: 'png', label: 'PNG', note: 'Lossless, keeps transparency' },
-  { id: 'jpeg', label: 'JPEG', note: 'Smaller files, flattened background' },
-  { id: 'webp', label: 'WebP', note: 'Small files, flattened background' },
-  { id: 'svg', label: 'SVG', note: 'Scalable vector markup' },
+const IMAGE_FORMAT_OPTIONS: { id: ExportImageFormat; label: string; noteKey: 'exportDialog.formatPngNote' | 'exportDialog.formatJpegNote' | 'exportDialog.formatWebpNote' | 'exportDialog.formatSvgNote' }[] = [
+  { id: 'png', label: 'PNG', noteKey: 'exportDialog.formatPngNote' },
+  { id: 'jpeg', label: 'JPEG', noteKey: 'exportDialog.formatJpegNote' },
+  { id: 'webp', label: 'WebP', noteKey: 'exportDialog.formatWebpNote' },
+  { id: 'svg', label: 'SVG', noteKey: 'exportDialog.formatSvgNote' },
 ];
 
 export function ExportDialog({
@@ -96,6 +98,7 @@ export function ExportDialog({
   currentSize,
   artboards,
 }: ExportDialogProps) {
+  const t = useT();
   const [asIs, setAsIs] = useState(true);
   const [generateFormats, setGenerateFormats] = useState<DeviceFormat[]>([]);
   const [scope, setScope] = useState<'all' | 'pick'>('all');
@@ -164,26 +167,24 @@ export function ExportDialog({
   };
 
   const asIsDescription = currentPreset
-    ? `${currentPreset.label} layout${currentSize ? ` — ${currentSize.width}×${currentSize.height}` : ''}`
+    ? currentSize
+      ? t('exportDialog.asIsPresetSized', { preset: currentPreset.label, width: currentSize.width, height: currentSize.height })
+      : t('exportDialog.asIsPreset', { preset: currentPreset.label })
     : currentSize
-      ? `Current layout — ${currentSize.width}×${currentSize.height}`
-      : 'Current layout';
+      ? t('exportDialog.asIsCurrentSized', { width: currentSize.width, height: currentSize.height })
+      : t('exportDialog.asIsCurrent');
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Export Screenshots</DialogTitle>
-          <DialogDescription>
-            Download the artboards as images, and optionally generate the App
-            Store sizes this project is missing. Generated formats convert the
-            canvas and mockups on the fly — your project stays untouched.
-          </DialogDescription>
+          <DialogTitle>{t('exportDialog.title')}</DialogTitle>
+          <DialogDescription>{t('exportDialog.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
           <div>
-            <p className="text-sm font-medium mb-2">Artboards to export</p>
+            <p className="text-sm font-medium mb-2">{t('exportDialog.scopeLabel')}</p>
             <RadioGroup
               value={scope}
               onValueChange={(v) => setScope(v as 'all' | 'pick')}
@@ -191,11 +192,11 @@ export function ExportDialog({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="all" id="scope-all" />
-                <Label htmlFor="scope-all">All artboards ({artboards.length})</Label>
+                <Label htmlFor="scope-all">{t('exportDialog.scopeAll', { count: artboards.length })}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="pick" id="scope-pick" />
-                <Label htmlFor="scope-pick">Choose artboards</Label>
+                <Label htmlFor="scope-pick">{t('exportDialog.scopePick')}</Label>
               </div>
             </RadioGroup>
             {scope === 'pick' && (
@@ -218,7 +219,7 @@ export function ExportDialog({
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-2">Image format</p>
+            <p className="text-sm font-medium mb-2">{t('exportDialog.formatLabel')}</p>
             <RadioGroup
               value={format}
               onValueChange={(v) => setFormat(v as ExportImageFormat)}
@@ -229,20 +230,20 @@ export function ExportDialog({
                   <RadioGroupItem value={option.id} id={`format-${option.id}`} className="mt-0.5" />
                   <div className="grid gap-0.5 leading-none">
                     <Label htmlFor={`format-${option.id}`}>{option.label}</Label>
-                    <p className="text-xs text-muted-foreground">{option.note}</p>
+                    <p className="text-xs text-muted-foreground">{t(option.noteKey)}</p>
                   </div>
                 </div>
               ))}
             </RadioGroup>
             {format === 'svg' && (
               <p className="mt-2 text-xs text-muted-foreground">
-                SVG export flattens 3D device renders and videos
+                {t('exportDialog.svgFlattenNote')}
               </p>
             )}
             {(format === 'jpeg' || format === 'webp') && (
               <div className="mt-3 grid gap-1.5">
                 <Label htmlFor="export-quality" className="text-sm">
-                  Quality: {Math.round(quality * 100)}%
+                  {t('exportDialog.quality', { value: Math.round(quality * 100) })}
                 </Label>
                 <Slider
                   id="export-quality"
@@ -263,15 +264,15 @@ export function ExportDialog({
               onCheckedChange={(v) => setAsIs(v === true)}
             />
             <div className="grid gap-0.5 leading-none">
-              <Label htmlFor="export-as-is">Export current canvas</Label>
+              <Label htmlFor="export-as-is">{t('exportDialog.exportCurrentCanvas')}</Label>
               <p className="text-xs text-muted-foreground">{asIsDescription}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-0.5">Also generate for the App Store</p>
+            <p className="text-sm font-medium mb-0.5">{t('exportDialog.alsoGenerate')}</p>
             <p className="text-xs text-muted-foreground mb-3">
-              Apple accepts 1–10 JPG/PNG screenshots per display size.
+              {t('exportDialog.appleAccepts')}
             </p>
             <div className="grid gap-3">
               {appStorePresets.map((preset) => {
@@ -293,8 +294,10 @@ export function ExportDialog({
                       </Label>
                       <p className="text-xs text-muted-foreground">
                         {covered
-                          ? 'Already covered by the current canvas'
-                          : APP_STORE_TIER_NOTES[preset.id]}
+                          ? t('exportDialog.coveredByCanvas')
+                          : APP_STORE_TIER_NOTE_KEYS[preset.id]
+                            ? t(APP_STORE_TIER_NOTE_KEYS[preset.id]!)
+                            : null}
                       </p>
                     </div>
                   </div>
@@ -307,13 +310,13 @@ export function ExportDialog({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{t('common.cancel')}</Button>
           </DialogClose>
           <Button
             onClick={handleConfirm}
             disabled={nothingSelected || noArtboardsPicked}
           >
-            Export
+            {t('exportDialog.export')}
           </Button>
         </DialogFooter>
       </DialogContent>

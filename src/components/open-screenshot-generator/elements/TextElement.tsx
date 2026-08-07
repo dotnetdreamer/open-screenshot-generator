@@ -2,6 +2,7 @@
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import type { TextElementProps as TextElementType } from '@/types/artboard';
+import { useT } from '@/i18n';
 
 interface TextElementProps {
   element: TextElementType;
@@ -11,6 +12,7 @@ interface TextElementProps {
 }
 
 export function TextElement({ element, onUpdate, isSelected, artboardZoom }: TextElementProps) {
+  const t = useT();
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(element.content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -137,7 +139,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         padding: '2px', // Consistent with textarea
         boxSizing: 'border-box',
       }}
-      title={isSelected ? "Double-click to edit text" : element.content}
+      title={isSelected ? t('elements.doubleClickEdit') : element.content}
     >
       {element.content}
     </div>

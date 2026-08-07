@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AGENT_LIMITS } from '@/lib/ai/agentPlanSchema';
 import { readScreenshotFile, type UploadedScreenshot } from '@/lib/ai/imageUtils';
+import { useT } from '@/i18n';
 
 interface ScreenshotUploaderProps {
   screenshots: UploadedScreenshot[];
@@ -21,6 +22,7 @@ interface ScreenshotUploaderProps {
  * must attach files in when they run the manual relay steps.
  */
 export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }: ScreenshotUploaderProps) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isReading, setIsReading] = useState(false);
@@ -33,7 +35,7 @@ export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }
 
       const room = AGENT_LIMITS.maxScreenshots - screenshots.length;
       if (room <= 0) {
-        setError(`You can add at most ${AGENT_LIMITS.maxScreenshots} screenshots.`);
+        setError(t('uploader.tooMany', { max: AGENT_LIMITS.maxScreenshots }));
         return;
       }
 
@@ -44,10 +46,10 @@ export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }
         const read = await Promise.all(accepted.map(readScreenshotFile));
         onChange([...screenshots, ...read]);
         if (images.length > accepted.length) {
-          setError(`Only the first ${accepted.length} images were added (limit ${AGENT_LIMITS.maxScreenshots}).`);
+          setError(t('uploader.onlyFirstAdded', { count: accepted.length, max: AGENT_LIMITS.maxScreenshots }));
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Those images could not be read.');
+        setError(err instanceof Error ? err.message : t('uploader.readError'));
       } finally {
         setIsReading(false);
       }
@@ -84,7 +86,7 @@ export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }
           <ImagePlus className="h-6 w-6 text-muted-foreground" />
         )}
         <p className="text-sm text-muted-foreground">
-          Drop your app screenshots here, or
+          {t('uploader.dropText')}
         </p>
         <Button
           type="button"
@@ -93,11 +95,10 @@ export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }
           disabled={disabled || isReading}
           onClick={() => inputRef.current?.click()}
         >
-          Choose files
+          {t('common.chooseFiles')}
         </Button>
         <p className="text-xs text-muted-foreground">
-          PNG or JPG, up to {AGENT_LIMITS.maxScreenshots}. Order matters: the agent refers to them by
-          number.
+          {t('uploader.formatsNote', { max: AGENT_LIMITS.maxScreenshots })}
         </p>
         <input
           ref={inputRef}
@@ -125,7 +126,7 @@ export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }
             className="text-muted-foreground hover:text-foreground"
           >
             <LayoutTemplate className="mr-1.5 h-3.5 w-3.5" />
-            Skip the AI, pick a template for me
+            {t('uploader.skipAi')}
           </Button>
         </div>
       )}
@@ -150,7 +151,7 @@ export function ScreenshotUploader({ screenshots, onChange, disabled, onSkipAi }
                 type="button"
                 onClick={() => remove(shot.id)}
                 disabled={disabled}
-                title={`Remove ${shot.fileName}`}
+                title={t('uploader.removeShot', { name: shot.fileName })}
                 className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full border bg-background text-muted-foreground opacity-0 shadow transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
               >
                 <X className="h-3 w-3" />

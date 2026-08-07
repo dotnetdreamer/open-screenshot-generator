@@ -24,6 +24,7 @@ import { getGroupedFontOptions } from '@/services/fontService';
 import { getRecommendedFontForLanguage } from '@/lib/fontLanguageMatcher';
 import { SelectGroup, SelectLabel } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 export const LANGUAGES = [
   { code: "sq", name: "Albanian" },
@@ -110,6 +111,7 @@ export function TranslateDialog({
   scope = 'project',
   onTranslate,
 }: TranslateDialogProps) {
+  const t = useT();
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
   const [targetLanguage, setTargetLanguage] = useState<string>('es');
   const [targetFont, setTargetFont] = useState<string>('keep_current');
@@ -173,25 +175,25 @@ export function TranslateDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{scope === 'element' ? 'Translate This Text' : 'Translate Text'}</DialogTitle>
+          <DialogTitle>{scope === 'element' ? t('translateDialog.titleElement') : t('translateDialog.titleProject')}</DialogTitle>
           <DialogDescription>
             {scope === 'element'
-              ? 'Translate only the selected text element. Rate limits apply (20 requests / 5000 characters per minute).'
-              : 'Translate text elements in your artboards. Rate limits apply (20 requests / 5000 characters per minute).'}
+              ? t('translateDialog.descElement')
+              : t('translateDialog.descProject')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="sourceLanguage" className="text-right">
-              Source
+              {t('translateDialog.source')}
             </Label>
             <div className="col-span-3">
               <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
                 <SelectTrigger id="sourceLanguage">
-                  <SelectValue placeholder="Detect automatically" />
+                  <SelectValue placeholder={t('translateDialog.detectAutomatically')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={AUTO_DETECT}>Detect automatically</SelectItem>
+                  <SelectItem value={AUTO_DETECT}>{t('translateDialog.detectAutomatically')}</SelectItem>
                   {LANGUAGES.map((lang) => (
                     <SelectItem key={lang.code} value={lang.code}>
                       {lang.name}
@@ -203,12 +205,12 @@ export function TranslateDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="language" className="text-right">
-              Target
+              {t('translateDialog.target')}
             </Label>
             <div className="col-span-3">
               <Select value={targetLanguage} onValueChange={handleTargetLanguageChange}>
                 <SelectTrigger id="language">
-                  <SelectValue placeholder="Select a language" />
+                  <SelectValue placeholder={t('translateDialog.selectLanguage')} />
                 </SelectTrigger>
                 <SelectContent>
                   {LANGUAGES.map((lang) => (
@@ -222,17 +224,17 @@ export function TranslateDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="targetFont" className="text-right">
-              Font
+              {t('translateDialog.font')}
             </Label>
             <div className="col-span-3">
               <Select value={targetFont} onValueChange={setTargetFont}>
                 <SelectTrigger id="targetFont">
-                  <SelectValue placeholder="Keep current fonts" />
+                  <SelectValue placeholder={t('translateDialog.keepCurrentFonts')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="keep_current">Keep current fonts</SelectItem>
+                  <SelectItem value="keep_current">{t('translateDialog.keepCurrentFonts')}</SelectItem>
                   <SelectGroup>
-                    <SelectLabel>System Fonts</SelectLabel>
+                    <SelectLabel>{t('properties.fontGroupSystem')}</SelectLabel>
                     {groupedFonts.system.map(font => (
                       <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
                         {font.label}
@@ -240,7 +242,7 @@ export function TranslateDialog({
                     ))}
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Latin Fonts</SelectLabel>
+                    <SelectLabel>{t('properties.fontGroupLatin')}</SelectLabel>
                     {groupedFonts.latin.map(font => (
                       <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
                         {font.label}
@@ -248,7 +250,7 @@ export function TranslateDialog({
                     ))}
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Arabic Fonts</SelectLabel>
+                    <SelectLabel>{t('properties.fontGroupArabic')}</SelectLabel>
                     {groupedFonts.arabic.map(font => (
                       <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
                         {font.label}
@@ -256,7 +258,7 @@ export function TranslateDialog({
                     ))}
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Urdu Fonts</SelectLabel>
+                    <SelectLabel>{t('properties.fontGroupUrdu')}</SelectLabel>
                     {groupedFonts.urdu.map(font => (
                       <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
                         {font.label}
@@ -264,7 +266,7 @@ export function TranslateDialog({
                     ))}
                   </SelectGroup>
                   <SelectGroup>
-                    <SelectLabel>Multilingual Fonts</SelectLabel>
+                    <SelectLabel>{t('properties.fontGroupMultilingualFonts')}</SelectLabel>
                     {groupedFonts.multilingual.map(font => (
                       <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
                         {font.label}
@@ -286,27 +288,27 @@ export function TranslateDialog({
                     onCheckedChange={(checked) => setAllArtboards(!!checked)}
                   />
                   <Label htmlFor="allArtboards" className={cn("text-sm font-normal", disableAllArtboardsOption && "opacity-50 cursor-not-allowed")}>
-                    Translate all artboards
+                    {t('translateDialog.translateAllArtboards')}
                   </Label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  To stay within the free translation API limits, we recommend leaving this unchecked and translating your artboards one by one.
+                  {t('translateDialog.rateLimitNote')}
                 </p>
               </div>
             </div>
           )}
           {sameLanguage && (
             <p className="text-center text-sm text-destructive">
-              Source and target are both {getLanguageName(targetLanguage)}. Pick a different target.
+              {t('translateDialog.sameLanguage', { language: getLanguageName(targetLanguage) })}
             </p>
           )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isTranslating}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleTranslate} disabled={isTranslating || sameLanguage}>
-            {isTranslating ? 'Translating...' : 'Translate'}
+            {isTranslating ? t('translateDialog.translating') : t('translateDialog.translate')}
           </Button>
         </DialogFooter>
       </DialogContent>

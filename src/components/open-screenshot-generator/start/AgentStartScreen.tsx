@@ -66,6 +66,7 @@ import { RunHistoryDialog } from './RunHistoryDialog';
 import { ScreenshotUploader } from './ScreenshotUploader';
 import { TemplateProposalPicker } from './TemplateProposalPicker';
 import { WebSessionModePanel } from './WebSessionModePanel';
+import { useT } from '@/i18n';
 
 interface AgentStartScreenProps {
   templates: Project[];
@@ -73,11 +74,8 @@ interface AgentStartScreenProps {
   onCreateProject: (project: Project, options: { nameOverride?: string }) => void | Promise<void>;
 }
 
-const EXAMPLE_INSTRUCTIONS = [
-  'Put my screenshots into the template that fits them best',
-  'Use the Breathora template and rewrite the copy for my meditation app',
-  'Design something new from scratch based on my screenshots',
-];
+// Keys into the start.* message namespace; resolved at render time.
+const EXAMPLE_INSTRUCTION_KEYS = ['start.example1', 'start.example2', 'start.example3'] as const;
 
 /**
  * Hard per-message caps, in characters, for providers that reject long
@@ -98,6 +96,7 @@ export function AgentStartScreen({
   isLoadingTemplates,
   onCreateProject,
 }: AgentStartScreenProps) {
+  const t = useT();
   const [screenshots, setScreenshots] = useState<UploadedScreenshot[]>([]);
   const [instruction, setInstruction] = useState('');
   const [busy, setBusy] = useState(false);
@@ -475,7 +474,7 @@ export function AgentStartScreen({
 
   const loginWebProvider = useCallback((provider: WebProviderId) => {
     void loginToProvider(provider).catch(() => {
-      setError('The sign-in window could not be opened.');
+      setError(t('start.signInWindowFailed'));
     });
   }, []);
 
@@ -555,7 +554,7 @@ export function AgentStartScreen({
       setError(
         err instanceof AgentBuildError
           ? err.message
-          : 'That template could not be turned into a project.'
+          : t('start.proposalBuildError')
       );
     } finally {
       setBusy(false);
@@ -575,7 +574,7 @@ export function AgentStartScreen({
   return (
     <div className="space-y-6 pb-2">
       <section className="space-y-2">
-        <Label className="text-sm font-bold">1. Add your app screenshots</Label>
+        <Label className="text-sm font-bold">{t('start.step1')}</Label>
         <ScreenshotUploader
           screenshots={screenshots}
           onChange={setScreenshots}
@@ -598,7 +597,7 @@ export function AgentStartScreen({
         <>
       <section className="space-y-2">
         <Label htmlFor="agent-instruction" className="text-sm font-bold">
-          2. Tell the agent what you want
+          {t('start.step2')}
         </Label>
         <Textarea
           id="agent-instruction"
@@ -606,18 +605,18 @@ export function AgentStartScreen({
           onChange={(e) => setInstruction(e.target.value)}
           rows={3}
           disabled={busy}
-          placeholder="Put my screenshots into a clean dark template and write copy for a habit tracker called Droply."
+          placeholder={t('start.instructionPlaceholder')}
         />
         <div className="flex flex-wrap gap-1.5">
-          {EXAMPLE_INSTRUCTIONS.map((example) => (
+          {EXAMPLE_INSTRUCTION_KEYS.map((key) => (
             <button
-              key={example}
+              key={key}
               type="button"
               disabled={busy}
-              onClick={() => setInstruction(example)}
+              onClick={() => setInstruction(t(key))}
               className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-50"
             >
-              {example}
+              {t(key)}
             </button>
           ))}
         </div>
@@ -625,7 +624,7 @@ export function AgentStartScreen({
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-sm font-bold">3. Choose how the agent runs</Label>
+          <Label className="text-sm font-bold">{t('start.step3')}</Label>
           <div className="flex items-center gap-1">
             {desktop && <ClearSessionsButton busy={busy} />}
             <button
@@ -634,7 +633,7 @@ export function AgentStartScreen({
               className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <History className="h-3.5 w-3.5" />
-              Recent runs
+              {t('start.recentRuns')}
             </button>
           </div>
         </div>
@@ -642,17 +641,17 @@ export function AgentStartScreen({
           <TabsList>
             <TabsTrigger value="web" className="gap-1.5">
               <UserRound className="h-3.5 w-3.5" />
-              Free, use my account
+              {t('start.tabWeb')}
             </TabsTrigger>
             {desktop && (
               <TabsTrigger value="free" className="gap-1.5">
                 <Zap className="h-3.5 w-3.5" />
-                Free, built in
+                {t('start.tabFree')}
               </TabsTrigger>
             )}
             <TabsTrigger value="api" className="gap-1.5">
               <KeyRound className="h-3.5 w-3.5" />
-              Use my API key
+              {t('start.tabApi')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="web" className="mt-4">
@@ -693,14 +692,14 @@ export function AgentStartScreen({
       {error && (
         <Alert variant="destructive" className="relative pr-12">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>That did not work</AlertTitle>
+          <AlertTitle>{t('start.errorTitle')}</AlertTitle>
           <AlertDescription className="whitespace-pre-wrap">{error}</AlertDescription>
           {errorOpId && (
             <button
               type="button"
               onClick={() => setInfoOpen(true)}
-              title="See what happened: full timeline and screenshots"
-              aria-label="See what happened"
+              title={t('start.seeWhatHappened')}
+              aria-label={t('start.seeWhatHappenedAria')}
               className="absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-md text-destructive/70 transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
               <Info className="h-4 w-4" />
@@ -725,6 +724,7 @@ export function AgentStartScreen({
  */
 function ClearSessionsButton({ busy }: { busy: boolean }) {
   const { toast } = useToast();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
 
@@ -734,15 +734,14 @@ function ClearSessionsButton({ busy }: { busy: boolean }) {
       await clearWebSessions();
       clearUrlFetchCapabilities();
       toast({
-        title: 'Sessions cleared',
-        description:
-          'Signed out of every connected assistant. The next run will ask you to sign in again.',
+        title: t('start.sessionsCleared'),
+        description: t('start.sessionsClearedDesc'),
       });
       setOpen(false);
     } catch (err) {
       toast({
-        title: 'Could not clear sessions',
-        description: err instanceof Error ? err.message : 'Something went wrong.',
+        title: t('start.couldNotClearSessions'),
+        description: err instanceof Error ? err.message : t('start.somethingWentWrong'),
         variant: 'destructive',
       });
     } finally {
@@ -759,20 +758,16 @@ function ClearSessionsButton({ busy }: { busy: boolean }) {
           className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Clear sessions
+          {t('start.clearSessions')}
         </button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Clear all assistant sessions?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This signs you out of every connected assistant (Claude, ChatGPT, Gemini, and the
-            rest) by clearing their saved logins. Your projects and run history are not affected.
-            Use it to start fresh if a provider is stuck. You will sign in again on the next run.
-          </AlertDialogDescription>
+          <AlertDialogTitle>{t('start.clearSessionsTitle')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('start.clearSessionsDesc')}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={clearing}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={clearing}>{t('common.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             // Keep the dialog open until the async work settles, then close it
             // ourselves so a failure can stay put and show the error toast.
@@ -783,7 +778,7 @@ function ClearSessionsButton({ busy }: { busy: boolean }) {
             disabled={clearing}
           >
             {clearing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Clear sessions
+            {t('start.clearSessions')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -800,6 +795,7 @@ function PlanSummary({
   busy: boolean;
   onCreate: () => void;
 }) {
+  const t = useT();
   const { summary, warnings, project } = result;
   return (
     <section className="rounded-xl border bg-card p-5">
@@ -815,12 +811,12 @@ function PlanSummary({
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <li>
               {summary.action === 'use-template'
-                ? `Template: ${summary.templateName}`
-                : 'Brand new design'}
+                ? t('start.planTemplate', { name: summary.templateName ?? '' })
+                : t('start.planBrandNew')}
             </li>
-            <li>{summary.artboardCount} artboards</li>
-            <li>{summary.screenshotsPlaced} screenshots placed</li>
-            {summary.textsUpdated > 0 && <li>{summary.textsUpdated} texts rewritten</li>}
+            <li>{t('start.planArtboards', { count: summary.artboardCount })}</li>
+            <li>{t('start.planScreenshots', { count: summary.screenshotsPlaced })}</li>
+            {summary.textsUpdated > 0 && <li>{t('start.planTexts', { count: summary.textsUpdated })}</li>}
           </ul>
           {warnings.length > 0 && (
             <ul className="mt-3 space-y-1 text-xs text-amber-600 dark:text-amber-500">
@@ -832,7 +828,7 @@ function PlanSummary({
         </div>
         <Button onClick={onCreate} disabled={busy}>
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Create project
+          {t('start.createProject')}
         </Button>
       </div>
     </section>

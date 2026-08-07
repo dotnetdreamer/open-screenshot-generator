@@ -22,6 +22,7 @@ import {
   type FreeProviderId,
   type FreeProviderStatus,
 } from '@/lib/ai/freeProviders';
+import { useT } from '@/i18n';
 
 interface FreeProviderModePanelProps {
   screenshotCount: number;
@@ -44,6 +45,7 @@ export function FreeProviderModePanel({
   onGenerate,
   onCancel,
 }: FreeProviderModePanelProps) {
+  const t = useT();
   const [provider, setProvider] = useState<FreeProviderId>('pollinations');
   const [model, setModel] = useState('');
   const [status, setStatus] = useState<FreeProviderStatus | null>(null);
@@ -90,7 +92,7 @@ export function FreeProviderModePanel({
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="free-provider">Provider</Label>
+          <Label htmlFor="free-provider">{t('startPanel.provider')}</Label>
           <Select
             value={provider}
             onValueChange={(value) => switchProvider(value as FreeProviderId)}
@@ -109,10 +111,10 @@ export function FreeProviderModePanel({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="free-model">Model</Label>
+          <Label htmlFor="free-model">{t('startPanel.model')}</Label>
           <Select value={model} onValueChange={setModel} disabled={busy || detecting || !running}>
             <SelectTrigger id="free-model">
-              <SelectValue placeholder={detecting ? 'Checking...' : 'No models found'} />
+              <SelectValue placeholder={detecting ? t('startPanel.checking') : t('startPanel.noModels')} />
             </SelectTrigger>
             <SelectContent>
               {status?.models.map((m) => (
@@ -122,7 +124,7 @@ export function FreeProviderModePanel({
                     {m.vision === true && (
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600">
                         <Eye className="h-3 w-3" />
-                        sees images
+                        {t('startPanel.seesImages')}
                       </span>
                     )}
                   </span>
@@ -136,7 +138,7 @@ export function FreeProviderModePanel({
       {detecting ? (
         <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Checking {info.label}...
+          {t('startPanel.checkingProvider', { provider: info.label })}
         </div>
       ) : running ? (
         <Alert className="border-emerald-500/40 bg-emerald-500/5">
@@ -147,8 +149,10 @@ export function FreeProviderModePanel({
           )}
           <AlertTitle>
             {info.kind === 'cloud'
-              ? 'Free cloud service, ready'
-              : `${info.label} detected, ${status?.models.length ?? 0} model${(status?.models.length ?? 0) === 1 ? '' : 's'} installed`}
+              ? t('startPanel.cloudReady')
+              : (status?.models.length ?? 0) === 1
+                ? t('startPanel.detectedModelsOne', { provider: info.label })
+                : t('startPanel.detectedModelsMany', { provider: info.label, count: status?.models.length ?? 0 })}
           </AlertTitle>
           <AlertDescription>{info.description}</AlertDescription>
         </Alert>
@@ -156,7 +160,7 @@ export function FreeProviderModePanel({
         <Alert>
           <Download className="h-4 w-4" />
           <AlertTitle>
-            {info.kind === 'cloud' ? `${info.label} is unreachable` : `${info.label} is not running`}
+            {info.kind === 'cloud' ? t('startPanel.unreachable', { provider: info.label }) : t('startPanel.notRunning', { provider: info.label })}
           </AlertTitle>
           <AlertDescription className="space-y-2">
             <p>{info.description}</p>
@@ -167,13 +171,13 @@ export function FreeProviderModePanel({
                   onClick={() => void openExternal(info.setupUrl!)}
                   className="inline-flex items-center gap-1 text-primary hover:underline"
                 >
-                  Get it at {info.setupUrlLabel}
+                  {t('startPanel.getItAt', { site: info.setupUrlLabel ?? '' })}
                   <ExternalLink className="h-3 w-3" />
                 </button>
               )}
               <Button size="sm" variant="outline" onClick={() => void detect(provider)}>
                 <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                Refresh
+                {t('common.refresh')}
               </Button>
             </div>
           </AlertDescription>
@@ -182,8 +186,7 @@ export function FreeProviderModePanel({
 
       {running && screenshotCount > 0 && selectedModel && selectedModel.vision !== true && (
         <p className="text-xs text-amber-600 dark:text-amber-500">
-          This model may not be able to see your screenshots. Pick one with the &quot;sees
-          images&quot; badge so the agent can read what is in them.
+          {t('startPanel.visionWarning')}
         </p>
       )}
 
@@ -194,11 +197,11 @@ export function FreeProviderModePanel({
           ) : (
             <Sparkles className="mr-2 h-4 w-4" />
           )}
-          {busy ? 'Designing...' : 'Generate design'}
+          {busy ? t('startPanel.designing') : t('startPanel.generate')}
         </Button>
         {busy && (
           <Button variant="ghost" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         )}
       </div>

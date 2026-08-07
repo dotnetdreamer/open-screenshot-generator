@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { elementVisualStyle } from '@/lib/elementStyle';
+import { useT } from '@/i18n';
 import type { ArtboardElement, Point, Size } from '@/types/artboard';
 
 interface DraggableElementProps {
@@ -52,6 +53,11 @@ export function DraggableElement({
   boundary,
   children
 }: DraggableElementProps) {
+  const t = useT();
+  const scaleProportionalTitle = t('elements.scaleProportional');
+  const resizeTitle = t('elements.resize');
+  const rotateTitle = t('elements.rotate');
+  const deleteTitle = t('elements.deleteElement');
   const [position, setPosition] = useState<Point>(element.position);
   const [currentSize, setCurrentSize] = useState<Size>(element.size); 
   const [currentRotation, setCurrentRotation] = useState<number>(element.rotation);
@@ -546,7 +552,7 @@ export function DraggableElement({
                 key={corner}
                 positionStyle={posStyle}
                 onMouseDown={(e) => handleInteractionStart(e, 'scale', corner)}
-                title="Scale Proportional"
+                title={scaleProportionalTitle}
                 cursor={cursor}
                 className="bg-primary rounded-full" 
                 isCorner 
@@ -567,7 +573,7 @@ export function DraggableElement({
                 key={edge}
                 positionStyle={posStyle}
                 onMouseDown={(e) => handleInteractionStart(e, 'resize', edge)}
-                title="Resize"
+                title={resizeTitle}
                 cursor={cursor}
                 className="rounded-sm"
                 isCorner={false} 
@@ -581,7 +587,7 @@ export function DraggableElement({
               left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`,
             }}
             onMouseDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
-            title="Rotate"
+            title={rotateTitle}
             cursor="grab"
             className="rounded-full"
           >
@@ -597,7 +603,7 @@ export function DraggableElement({
                 e.stopPropagation(); 
                 onDeleteElement(element.id);
              }}
-             title="Delete Element"
+             title={deleteTitle}
              cursor="pointer"
              className="bg-destructive hover:bg-destructive/80 rounded-full" 
            >

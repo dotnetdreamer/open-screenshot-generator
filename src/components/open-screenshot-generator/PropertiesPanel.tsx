@@ -30,14 +30,20 @@ import {
 import { getFontOptions, getGroupedFontOptions } from '@/services/fontService';
 import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
+import { useT } from '@/i18n';
 
 // Panel headings. Derived names read badly for the compound types
 // ("Video-device Properties"), so the user-facing ones are spelled out.
-const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
-  'video-device': 'Recording Mockup',
-  video: 'Recording Properties',
-  gesture: 'Gesture Hint',
-};
+// Values are keys into the properties.* message namespace.
+const ELEMENT_PANEL_TITLE_KEYS: Record<ArtboardElement['type'], string> = {
+  text: 'properties.panelText',
+  shape: 'properties.panelShape',
+  device: 'properties.panelDevice',
+  image: 'properties.panelImage',
+  'video-device': 'properties.panelRecordingMockup',
+  video: 'properties.panelRecording',
+  gesture: 'properties.panelGesture',
+} as const;
 
 interface PropertiesPanelProps {
   selectedElement: ArtboardElement | null;
@@ -65,41 +71,42 @@ interface PropertiesPanelProps {
   className?: string;
 }
 
-// Transform presets for quick application
+// Transform presets for quick application. nameKey/descriptionKey index the
+// properties.* message namespace.
 const transformPresets = [
   {
-    name: 'None',
-    description: 'No transform',
+    nameKey: 'properties.presetNone',
+    descriptionKey: 'properties.presetNoneDesc',
     values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: '' }
   },
   {
-    name: 'Slight Tilt',
-    description: 'Slight perspective tilt',
+    nameKey: 'properties.presetSlightTilt',
+    descriptionKey: 'properties.presetSlightTiltDesc',
     values: { skewX: 0, skewY: 0, perspectiveX: 5, perspectiveY: 2, matrix3d: '' }
   },
   {
-    name: 'Left Perspective',
-    description: 'Strong left perspective',
+    nameKey: 'properties.presetLeftPerspective',
+    descriptionKey: 'properties.presetLeftPerspectiveDesc',
     values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: 25, matrix3d: '' }
   },
   {
-    name: 'Right Perspective',
-    description: 'Strong right perspective',
+    nameKey: 'properties.presetRightPerspective',
+    descriptionKey: 'properties.presetRightPerspectiveDesc',
     values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: -25, matrix3d: '' }
   },
   {
-    name: 'Skew Right',
-    description: 'Skew to the right',
+    nameKey: 'properties.presetSkewRight',
+    descriptionKey: 'properties.presetSkewRightDesc',
     values: { skewX: 15, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: '' }
   },
   {
-    name: 'Skew Left',
-    description: 'Skew to the left',
+    nameKey: 'properties.presetSkewLeft',
+    descriptionKey: 'properties.presetSkewLeftDesc',
     values: { skewX: -15, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: '' }
   },
   {
-    name: 'App Store Style',
-    description: 'Popular app store preview style',
+    nameKey: 'properties.presetAppStore',
+    descriptionKey: 'properties.presetAppStoreDesc',
     values: { skewX: 0, skewY: 0, perspectiveX: 0, perspectiveY: 0, matrix3d: 'matrix3d(1.11397, -0.175046, 0, 6.13e-05, 0.536454, 0.828959, 0, -5.99e-05, 0, 0, 1, 0, -76.0176, 64.4342, 0, 1)' }
   }
 ];
@@ -184,6 +191,7 @@ export function PropertiesPanel({
   // Use a ref to track client-side initialization
   const isClient = useRef(false);
   const { toast } = useToast();
+  const t = useT();
   const [isClientSide, setIsClientSide] = useState(false);
   
   // Background state for artboard
@@ -450,8 +458,8 @@ export function PropertiesPanel({
       }
     } catch (error) {
       toast({
-        title: 'Could not load recording',
-        description: error instanceof Error ? error.message : 'The file could not be read.',
+        title: t('properties.couldNotLoadRecording'),
+        description: error instanceof Error ? error.message : t('properties.fileCouldNotBeRead'),
         variant: 'destructive',
       });
     }
@@ -551,7 +559,7 @@ export function PropertiesPanel({
       {element.deviceType !== 'custom' && (
         <div className="flex flex-col space-y-1 min-w-[150px]">
           <Label htmlFor="deviceModel" className="text-xs">
-            Device Model
+            {t('properties.deviceModel')}
           </Label>
           <Select
             value={element.deviceType}
@@ -564,7 +572,7 @@ export function PropertiesPanel({
             }}
           >
             <SelectTrigger id="deviceModel" className="h-8 text-xs">
-              <SelectValue placeholder="Select Device" />
+              <SelectValue placeholder={t('properties.selectDevice')} />
             </SelectTrigger>
             <SelectContent>
               {DEVICE_PICKER_GROUPS.map((group) => (
@@ -587,7 +595,7 @@ export function PropertiesPanel({
           className="text-xs h-8"
         >
           <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-          {element.customFrameSrc ? 'Change Mockup' : 'Upload Mockup'}
+          {element.customFrameSrc ? t('properties.changeMockup') : t('properties.uploadMockup')}
         </Button>
       )}
       <Button
@@ -597,12 +605,12 @@ export function PropertiesPanel({
         className="text-xs h-8"
       >
         <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-        {element.screenshotSrc ? 'Change Screenshot' : 'Upload Screenshot'}
+        {element.screenshotSrc ? t('properties.changeScreenshot') : t('properties.uploadScreenshot')}
       </Button>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="deviceScale" className="text-xs">
-          Scale: {Math.round((element.scale || 1) * 100)}%
+          {t('properties.scale', { value: Math.round((element.scale || 1) * 100) })}
         </Label>
         <Slider
           id="deviceScale"
@@ -616,7 +624,7 @@ export function PropertiesPanel({
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="deviceRotation" className="text-xs">
-          Rotation: {Math.round(element.rotation || 0)}°
+          {t('properties.rotation', { value: Math.round(element.rotation || 0) })}
         </Label>
         <Slider
           id="deviceRotation"
@@ -632,25 +640,25 @@ export function PropertiesPanel({
       {/* Device style type selector with the new perspective options */}
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="deviceStyleType" className="text-xs">
-          Device Perspective
+          {t('properties.devicePerspective')}
         </Label>
         <Select
           value={element.styleType || 'normal'}
           onValueChange={handleDeviceStyleTypeChange}
         >
           <SelectTrigger id="deviceStyleType" className="h-8 text-xs">
-            <SelectValue placeholder="Select Perspective" />
+            <SelectValue placeholder={t('properties.selectPerspective')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="normal">Normal</SelectItem>
-            <SelectItem value="3d-left">3D — Left Side</SelectItem>
-            <SelectItem value="3d-right">3D — Right Side</SelectItem>
-            <SelectItem value="perspective-left">Left Angle</SelectItem>
-            <SelectItem value="perspective-slight-left">Slight Left</SelectItem>
-            <SelectItem value="perspective-right">Right Angle</SelectItem>
-            <SelectItem value="perspective-slight-right">Slight Right</SelectItem>
-            <SelectItem value="perspective-front">Front Angle</SelectItem>
-            <SelectItem value="custom">Custom Matrix3D</SelectItem>
+            <SelectItem value="normal">{t('properties.perspectiveNormal')}</SelectItem>
+            <SelectItem value="3d-left">{t('properties.perspective3dLeft')}</SelectItem>
+            <SelectItem value="3d-right">{t('properties.perspective3dRight')}</SelectItem>
+            <SelectItem value="perspective-left">{t('properties.perspectiveLeftAngle')}</SelectItem>
+            <SelectItem value="perspective-slight-left">{t('properties.perspectiveSlightLeft')}</SelectItem>
+            <SelectItem value="perspective-right">{t('properties.perspectiveRightAngle')}</SelectItem>
+            <SelectItem value="perspective-slight-right">{t('properties.perspectiveSlightRight')}</SelectItem>
+            <SelectItem value="perspective-front">{t('properties.perspectiveFrontAngle')}</SelectItem>
+            <SelectItem value="custom">{t('properties.perspectiveCustom')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -659,41 +667,41 @@ export function PropertiesPanel({
       {(element.styleType === '3d-left' || element.styleType === '3d-right') && (
         <>
           <div className="flex flex-col space-y-1 min-w-[150px]">
-            <Label htmlFor="devicePose3d" className="text-xs">3D Pose</Label>
+            <Label htmlFor="devicePose3d" className="text-xs">{t('properties.pose3d')}</Label>
             <Select
               value={element.pose3d || 'classic'}
               onValueChange={(v) => onUpdateElement({ pose3d: v as DeviceFrameElementProps['pose3d'] })}
             >
               <SelectTrigger id="devicePose3d" className="h-8 text-xs">
-                <SelectValue placeholder="Select Pose" />
+                <SelectValue placeholder={t('properties.selectPose')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="classic">Classic</SelectItem>
-                <SelectItem value="front">Front</SelectItem>
-                <SelectItem value="upright">Upright</SelectItem>
-                <SelectItem value="side">Side</SelectItem>
-                <SelectItem value="tilted">Tilted</SelectItem>
-                <SelectItem value="reclined">Reclined</SelectItem>
-                <SelectItem value="laying">Laying</SelectItem>
-                <SelectItem value="floating">Floating</SelectItem>
-                <SelectItem value="drifting">Drifting</SelectItem>
-                <SelectItem value="isometric">Isometric</SelectItem>
+                <SelectItem value="classic">{t('properties.poseClassic')}</SelectItem>
+                <SelectItem value="front">{t('properties.poseFront')}</SelectItem>
+                <SelectItem value="upright">{t('properties.poseUpright')}</SelectItem>
+                <SelectItem value="side">{t('properties.poseSide')}</SelectItem>
+                <SelectItem value="tilted">{t('properties.poseTilted')}</SelectItem>
+                <SelectItem value="reclined">{t('properties.poseReclined')}</SelectItem>
+                <SelectItem value="laying">{t('properties.poseLaying')}</SelectItem>
+                <SelectItem value="floating">{t('properties.poseFloating')}</SelectItem>
+                <SelectItem value="drifting">{t('properties.poseDrifting')}</SelectItem>
+                <SelectItem value="isometric">{t('properties.poseIsometric')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex flex-col space-y-1 min-w-[150px]">
-            <Label htmlFor="deviceFinish3d" className="text-xs">Body Finish</Label>
+            <Label htmlFor="deviceFinish3d" className="text-xs">{t('properties.bodyFinish')}</Label>
             <Select
               value={element.frameColor3d || 'titanium'}
               onValueChange={(v) => onUpdateElement({ frameColor3d: v as DeviceFrameElementProps['frameColor3d'] })}
             >
               <SelectTrigger id="deviceFinish3d" className="h-8 text-xs">
-                <SelectValue placeholder="Select Finish" />
+                <SelectValue placeholder={t('properties.selectFinish')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="titanium">Titanium</SelectItem>
-                <SelectItem value="black">Black</SelectItem>
-                <SelectItem value="white">White</SelectItem>
+                <SelectItem value="titanium">{t('properties.finishTitanium')}</SelectItem>
+                <SelectItem value="black">{t('properties.finishBlack')}</SelectItem>
+                <SelectItem value="white">{t('properties.finishWhite')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -705,7 +713,7 @@ export function PropertiesPanel({
         <>
           <div className="grid grid-cols-2 gap-2 min-w-[100%]">
             <div>
-              <Label htmlFor="deviceFrameColor" className="text-xs">Frame Color</Label>
+              <Label htmlFor="deviceFrameColor" className="text-xs">{t('properties.frameColor')}</Label>
               <div className="flex mt-1.5">
                 <Input
                   id="deviceFrameColor"
@@ -718,13 +726,13 @@ export function PropertiesPanel({
                   type="text"
                   className="flex-1 h-8 ml-2 text-xs"
                   value={element.frameColor || ''}
-                  placeholder="default"
+                  placeholder={t('properties.defaultPlaceholder')}
                   onChange={(e) => onUpdateElement({ frameColor: e.target.value || undefined })}
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="deviceNotchColor" className="text-xs">Notch Color</Label>
+              <Label htmlFor="deviceNotchColor" className="text-xs">{t('properties.notchColor')}</Label>
               <div className="flex mt-1.5">
                 <Input
                   id="deviceNotchColor"
@@ -737,7 +745,7 @@ export function PropertiesPanel({
                   type="text"
                   className="flex-1 h-8 ml-2 text-xs"
                   value={element.notchColor || ''}
-                  placeholder="default"
+                  placeholder={t('properties.defaultPlaceholder')}
                   onChange={(e) => onUpdateElement({ notchColor: e.target.value || undefined })}
                 />
               </div>
@@ -745,7 +753,7 @@ export function PropertiesPanel({
           </div>
           <div className="flex flex-col space-y-1 min-w-[150px]">
             <Label htmlFor="deviceFrameOpacity" className="text-xs">
-              Frame Opacity: {Math.round((element.frameOpacity ?? 1) * 100)}%
+              {t('properties.frameOpacity', { value: Math.round((element.frameOpacity ?? 1) * 100) })}
             </Label>
             <Slider
               id="deviceFrameOpacity"
@@ -758,17 +766,17 @@ export function PropertiesPanel({
             />
           </div>
           <div className="flex flex-col space-y-1 min-w-[150px]">
-            <Label htmlFor="deviceFrameStyle" className="text-xs">Frame Style</Label>
+            <Label htmlFor="deviceFrameStyle" className="text-xs">{t('properties.frameStyle')}</Label>
             <Select
               value={element.frameStyle || 'solid'}
               onValueChange={(v) => onUpdateElement({ frameStyle: v as DeviceFrameElementProps['frameStyle'] })}
             >
               <SelectTrigger id="deviceFrameStyle" className="h-8 text-xs">
-                <SelectValue placeholder="Frame Style" />
+                <SelectValue placeholder={t('properties.frameStyle')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="solid">Solid</SelectItem>
-                <SelectItem value="outline">Outline</SelectItem>
+                <SelectItem value="solid">{t('properties.frameStyleSolid')}</SelectItem>
+                <SelectItem value="outline">{t('properties.frameStyleOutline')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -779,7 +787,7 @@ export function PropertiesPanel({
       {element.styleType === 'custom' && (
         <div className="flex flex-col space-y-1 min-w-[100%]">
           <Label htmlFor="customMatrix3d" className="text-xs">
-            Custom Matrix3D
+            {t('properties.customMatrix3d')}
           </Label>
           <Input
             id="customMatrix3d"
@@ -789,7 +797,7 @@ export function PropertiesPanel({
             className="text-xs h-8 font-mono"
           />
           <p className="text-xs text-muted-foreground">
-            Example: matrix3d(1.04438, 0.150877, 0, -5.73e-05, -1.65196, 2.31898, 0, -0.0001854, 0, 0, 1, 0, 64.9858, -3.12602, 0, 1)
+            {t('properties.matrix3dExample')}
           </p>
         </div>
       )}
@@ -798,19 +806,19 @@ export function PropertiesPanel({
       {element.screenshotSrc && element.screenshotRect && (
         <>
           <div className="flex flex-col space-y-1 min-w-[120px]">
-            <Label htmlFor="ssLeft" className="text-xs">Screenshot Left: {screenshotLeft}%</Label>
+            <Label htmlFor="ssLeft" className="text-xs">{t('properties.screenshotLeft', { value: screenshotLeft })}</Label>
             <Slider id="ssLeft" min={-50} max={150} step={0.5} value={[screenshotLeft]} onValueChange={(val) => handleScreenshotRectChange('left', val[0])} />
           </div>
           <div className="flex flex-col space-y-1 min-w-[120px]">
-            <Label htmlFor="ssTop" className="text-xs">Screenshot Top: {screenshotTop}%</Label>
+            <Label htmlFor="ssTop" className="text-xs">{t('properties.screenshotTop', { value: screenshotTop })}</Label>
             <Slider id="ssTop" min={-50} max={150} step={0.5} value={[screenshotTop]} onValueChange={(val) => handleScreenshotRectChange('top', val[0])} />
           </div>
           <div className="flex flex-col space-y-1 min-w-[120px]">
-            <Label htmlFor="ssWidth" className="text-xs">Screenshot Width: {screenshotWidth}%</Label>
+            <Label htmlFor="ssWidth" className="text-xs">{t('properties.screenshotWidth', { value: screenshotWidth })}</Label>
             <Slider id="ssWidth" min={10} max={200} step={0.5} value={[screenshotWidth]} onValueChange={(val) => handleScreenshotRectChange('width', val[0])} />
           </div>
           <div className="flex flex-col space-y-1 min-w-[120px]">
-            <Label htmlFor="ssHeight" className="text-xs">Screenshot Height: {screenshotHeight}%</Label>
+            <Label htmlFor="ssHeight" className="text-xs">{t('properties.screenshotHeight', { value: screenshotHeight })}</Label>
             <Slider id="ssHeight" min={10} max={200} step={0.5} value={[screenshotHeight]} onValueChange={(val) => handleScreenshotRectChange('height', val[0])} />
           </div>
         </>
@@ -831,13 +839,13 @@ export function PropertiesPanel({
   const renderVideoDeviceProperties = (element: VideoDeviceElementProps) => (
     <>
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="vdDeviceModel" className="text-xs">Device Model</Label>
+        <Label htmlFor="vdDeviceModel" className="text-xs">{t('properties.deviceModel')}</Label>
         <Select
           value={element.deviceType}
           onValueChange={(v) => onUpdateElement({ deviceType: v as DeviceType })}
         >
           <SelectTrigger id="vdDeviceModel" className="h-8 text-xs">
-            <SelectValue placeholder="Select Device" />
+            <SelectValue placeholder={t('properties.selectDevice')} />
           </SelectTrigger>
           <SelectContent>
             {DEVICE_PICKER_GROUPS.filter((g) => g.platform !== 'neutral').map((group) => (
@@ -859,7 +867,7 @@ export function PropertiesPanel({
       <div className="flex flex-col space-y-1.5 border rounded-md p-2 bg-muted/30">
         <Label className="text-xs font-medium flex items-center gap-1">
           <ClapperboardIcon className="w-3.5 h-3.5" />
-          Screen Recording
+          {t('properties.screenRecording')}
         </Label>
         <div className="flex gap-2">
           <Button
@@ -869,7 +877,7 @@ export function PropertiesPanel({
             className="text-xs h-8"
           >
             <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-            {element.mediaId ? 'Change Recording' : 'Upload Recording'}
+            {element.mediaId ? t('properties.changeRecording') : t('properties.uploadRecording')}
           </Button>
           {element.mediaId && (
             <Button
@@ -888,7 +896,7 @@ export function PropertiesPanel({
               }
             >
               <Trash2Icon className="w-3 h-3 mr-1" />
-              Remove
+              {t('properties.remove')}
             </Button>
           )}
         </div>
@@ -901,25 +909,24 @@ export function PropertiesPanel({
             ) : null}
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-1">
-                <Label htmlFor="vdTrimStart" className="text-xs">Trim start (s)</Label>
+                <Label htmlFor="vdTrimStart" className="text-xs">{t('properties.trimStart')}</Label>
                 {secondsInput(element.trimStart, (v) => onUpdateElement({ trimStart: v }), 'vdTrimStart', '0')}
               </div>
               <div className="grid gap-1">
-                <Label htmlFor="vdTrimEnd" className="text-xs">Trim end (s)</Label>
-                {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vdTrimEnd', 'full length')}
+                <Label htmlFor="vdTrimEnd" className="text-xs">{t('properties.trimEnd')}</Label>
+                {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vdTrimEnd', t('properties.trimEndPlaceholder'))}
               </div>
             </div>
           </>
         ) : (
           <p className="text-[11px] text-muted-foreground">
-            Record your app on the phone, then drop the MP4 or MOV in here. It
-            plays inside the screen and renders into the exported video.
+            {t('properties.recordingHelp')}
           </p>
         )}
       </div>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="vdFit" className="text-xs">Recording Fit</Label>
+        <Label htmlFor="vdFit" className="text-xs">{t('properties.recordingFit')}</Label>
         <Select
           value={element.objectFit || 'cover'}
           onValueChange={(v) => onUpdateElement({ objectFit: v as VideoDeviceElementProps['objectFit'] })}
@@ -928,16 +935,16 @@ export function PropertiesPanel({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cover">Cover (fill the screen)</SelectItem>
-            <SelectItem value="contain">Contain (show all of it)</SelectItem>
-            <SelectItem value="fill">Stretch</SelectItem>
+            <SelectItem value="cover">{t('properties.fitCover')}</SelectItem>
+            <SelectItem value="contain">{t('properties.fitContain')}</SelectItem>
+            <SelectItem value="fill">{t('properties.fitStretch')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="vdScale" className="text-xs">
-          Scale: {Math.round((element.scale || 1) * 100)}%
+          {t('properties.scale', { value: Math.round((element.scale || 1) * 100) })}
         </Label>
         <Slider
           id="vdScale"
@@ -951,7 +958,7 @@ export function PropertiesPanel({
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="vdRotation" className="text-xs">
-          Rotation: {Math.round(element.rotation || 0)}°
+          {t('properties.rotation', { value: Math.round(element.rotation || 0) })}
         </Label>
         <Slider
           id="vdRotation"
@@ -966,7 +973,7 @@ export function PropertiesPanel({
 
       <div className="grid grid-cols-2 gap-2 min-w-[100%]">
         <div>
-          <Label htmlFor="vdFrameColor" className="text-xs">Frame Color</Label>
+          <Label htmlFor="vdFrameColor" className="text-xs">{t('properties.frameColor')}</Label>
           <div className="flex mt-1.5">
             <Input
               id="vdFrameColor"
@@ -979,13 +986,13 @@ export function PropertiesPanel({
               type="text"
               className="flex-1 h-8 ml-2 text-xs"
               value={element.frameColor || ''}
-              placeholder="default"
+              placeholder={t('properties.defaultPlaceholder')}
               onChange={(e) => onUpdateElement({ frameColor: e.target.value || undefined })}
             />
           </div>
         </div>
         <div>
-          <Label htmlFor="vdNotchColor" className="text-xs">Notch Color</Label>
+          <Label htmlFor="vdNotchColor" className="text-xs">{t('properties.notchColor')}</Label>
           <div className="flex mt-1.5">
             <Input
               id="vdNotchColor"
@@ -998,7 +1005,7 @@ export function PropertiesPanel({
               type="text"
               className="flex-1 h-8 ml-2 text-xs"
               value={element.notchColor || ''}
-              placeholder="default"
+              placeholder={t('properties.defaultPlaceholder')}
               onChange={(e) => onUpdateElement({ notchColor: e.target.value || undefined })}
             />
           </div>
@@ -1006,7 +1013,7 @@ export function PropertiesPanel({
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="vdFrameOpacity" className="text-xs">
-          Frame Opacity: {Math.round((element.frameOpacity ?? 1) * 100)}%
+          {t('properties.frameOpacity', { value: Math.round((element.frameOpacity ?? 1) * 100) })}
         </Label>
         <Slider
           id="vdFrameOpacity"
@@ -1019,7 +1026,7 @@ export function PropertiesPanel({
         />
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="vdFrameStyle" className="text-xs">Frame Style</Label>
+        <Label htmlFor="vdFrameStyle" className="text-xs">{t('properties.frameStyle')}</Label>
         <Select
           value={element.frameStyle || 'solid'}
           onValueChange={(v) => onUpdateElement({ frameStyle: v as VideoDeviceElementProps['frameStyle'] })}
@@ -1028,8 +1035,8 @@ export function PropertiesPanel({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="solid">Solid</SelectItem>
-            <SelectItem value="outline">Outline</SelectItem>
+            <SelectItem value="solid">{t('properties.frameStyleSolid')}</SelectItem>
+            <SelectItem value="outline">{t('properties.frameStyleOutline')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1046,7 +1053,7 @@ export function PropertiesPanel({
           className="text-xs h-8"
         >
           <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-          {element.mediaId || element.videoSrc ? 'Change Recording' : 'Upload Recording'}
+          {element.mediaId || element.videoSrc ? t('properties.changeRecording') : t('properties.uploadRecording')}
         </Button>
       </div>
       {element.durationSeconds ? (
@@ -1056,16 +1063,16 @@ export function PropertiesPanel({
       ) : null}
       <div className="grid grid-cols-2 gap-2">
         <div className="grid gap-1">
-          <Label htmlFor="vTrimStart" className="text-xs">Trim start (s)</Label>
+          <Label htmlFor="vTrimStart" className="text-xs">{t('properties.trimStart')}</Label>
           {secondsInput(element.trimStart, (v) => onUpdateElement({ trimStart: v }), 'vTrimStart', '0')}
         </div>
         <div className="grid gap-1">
-          <Label htmlFor="vTrimEnd" className="text-xs">Trim end (s)</Label>
-          {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vTrimEnd', 'full length')}
+          <Label htmlFor="vTrimEnd" className="text-xs">{t('properties.trimEnd')}</Label>
+          {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vTrimEnd', t('properties.trimEndPlaceholder'))}
         </div>
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="videoObjectFit" className="text-xs">Fit</Label>
+        <Label htmlFor="videoObjectFit" className="text-xs">{t('properties.fit')}</Label>
         <Select
           value={element.objectFit || 'cover'}
           onValueChange={(value) => onUpdateElement({ objectFit: value as VideoElementProps['objectFit'] })}
@@ -1074,15 +1081,15 @@ export function PropertiesPanel({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cover">Cover</SelectItem>
-            <SelectItem value="contain">Contain</SelectItem>
-            <SelectItem value="fill">Fill</SelectItem>
+            <SelectItem value="cover">{t('properties.fitCoverShort')}</SelectItem>
+            <SelectItem value="contain">{t('properties.fitContainShort')}</SelectItem>
+            <SelectItem value="fill">{t('properties.fitFillShort')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="videoOpacity" className="text-xs">
-          Opacity: {Math.round((element.opacity ?? 1) * 100)}%
+          {t('properties.opacity', { value: Math.round((element.opacity ?? 1) * 100) })}
         </Label>
         <Slider
           id="videoOpacity"
@@ -1096,7 +1103,7 @@ export function PropertiesPanel({
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="videoRadius" className="text-xs">
-          Corner Radius: {element.borderRadius || 0}px
+          {t('properties.cornerRadius', { value: element.borderRadius || 0 })}
         </Label>
         <Slider
           id="videoRadius"
@@ -1110,7 +1117,7 @@ export function PropertiesPanel({
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         <Label htmlFor="videoScale" className="text-xs">
-          Scale: {Math.round((element.scale || 1) * 100)}%
+          {t('properties.scale', { value: Math.round((element.scale || 1) * 100) })}
         </Label>
         <Slider
           id="videoScale"
@@ -1128,7 +1135,7 @@ export function PropertiesPanel({
   const renderGestureProperties = (element: GestureElementProps) => (
     <>
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="gestureType" className="text-xs">Gesture</Label>
+        <Label htmlFor="gestureType" className="text-xs">{t('properties.gesture')}</Label>
         <Select
           value={element.gestureType}
           onValueChange={(value) => onUpdateElement({ gestureType: value as GestureType })}
@@ -1137,17 +1144,17 @@ export function PropertiesPanel({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="tap">Tap</SelectItem>
-            <SelectItem value="double-tap">Double Tap</SelectItem>
-            <SelectItem value="swipe-left">Swipe Left</SelectItem>
-            <SelectItem value="swipe-right">Swipe Right</SelectItem>
-            <SelectItem value="swipe-up">Swipe Up</SelectItem>
-            <SelectItem value="swipe-down">Swipe Down</SelectItem>
+            <SelectItem value="tap">{t('gestures.tap')}</SelectItem>
+            <SelectItem value="double-tap">{t('gestures.doubleTap')}</SelectItem>
+            <SelectItem value="swipe-left">{t('gestures.swipeLeft')}</SelectItem>
+            <SelectItem value="swipe-right">{t('gestures.swipeRight')}</SelectItem>
+            <SelectItem value="swipe-up">{t('gestures.swipeUp')}</SelectItem>
+            <SelectItem value="swipe-down">{t('gestures.swipeDown')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div>
-        <Label htmlFor="gestureColor" className="text-xs">Color</Label>
+        <Label htmlFor="gestureColor" className="text-xs">{t('properties.color')}</Label>
         <div className="flex mt-1.5">
           <Input
             id="gestureColor"
@@ -1172,23 +1179,22 @@ export function PropertiesPanel({
           checked={element.gestureRepeat ?? false}
           onChange={(e) => onUpdateElement({ gestureRepeat: e.target.checked })}
         />
-        <Label htmlFor="gestureRepeat" className="text-xs">Loop for the whole video</Label>
+        <Label htmlFor="gestureRepeat" className="text-xs">{t('properties.loopWholeVideo')}</Label>
       </div>
       <div className="grid grid-cols-2 gap-2">
         {!element.gestureRepeat && (
           <div className="grid gap-1">
-            <Label htmlFor="gestureTrigger" className="text-xs">Plays at (s)</Label>
+            <Label htmlFor="gestureTrigger" className="text-xs">{t('properties.playsAt')}</Label>
             {secondsInput(element.triggerTime, (v) => onUpdateElement({ triggerTime: v }), 'gestureTrigger', '0.5')}
           </div>
         )}
         <div className="grid gap-1">
-          <Label htmlFor="gestureDuration" className="text-xs">Length (s)</Label>
+          <Label htmlFor="gestureDuration" className="text-xs">{t('properties.lengthS')}</Label>
           {secondsInput(element.gestureDuration, (v) => onUpdateElement({ gestureDuration: v }), 'gestureDuration', '1.2')}
         </div>
       </div>
       <p className="text-[11px] text-muted-foreground">
-        Loops on the canvas as a preview. In the exported video it plays at the
-        time set above.
+        {t('properties.gestureHelp')}
       </p>
     </>
   );
@@ -1209,28 +1215,28 @@ export function PropertiesPanel({
     onUpdateElement({ animation: next.enter || next.exit ? next : undefined });
   };
 
-  const ANIMATION_OPTIONS: { value: ElementAnimationPreset; label: string }[] = [
-    { value: 'fade', label: 'Fade' },
-    { value: 'slide-up', label: 'Slide Up' },
-    { value: 'slide-down', label: 'Slide Down' },
-    { value: 'slide-left', label: 'Slide Left' },
-    { value: 'slide-right', label: 'Slide Right' },
-    { value: 'scale-up', label: 'Scale Up' },
-    { value: 'pop', label: 'Pop' },
+  const ANIMATION_OPTIONS: { value: ElementAnimationPreset; labelKey: Parameters<typeof t>[0] }[] = [
+    { value: 'fade', labelKey: 'properties.animFade' },
+    { value: 'slide-up', labelKey: 'properties.animSlideUp' },
+    { value: 'slide-down', labelKey: 'properties.animSlideDown' },
+    { value: 'slide-left', labelKey: 'properties.animSlideLeft' },
+    { value: 'slide-right', labelKey: 'properties.animSlideRight' },
+    { value: 'scale-up', labelKey: 'properties.animScaleUp' },
+    { value: 'pop', labelKey: 'properties.animPop' },
   ];
 
   const renderAnimationProperties = (element: ArtboardElement) => (
     <div className="border-t pt-3 flex flex-col space-y-2">
       <Label className="text-xs font-medium flex items-center gap-1">
         <ClapperboardIcon className="w-3.5 h-3.5" />
-        Video Animation
+        {t('properties.videoAnimation')}
       </Label>
       <p className="text-[11px] text-muted-foreground">
-        Plays in the exported App Preview video. The canvas stays static.
+        {t('properties.videoAnimationHelp')}
       </p>
       <div className="grid grid-cols-3 gap-2">
         <div className="grid gap-1">
-          <Label htmlFor="animEnter" className="text-xs">Enter</Label>
+          <Label htmlFor="animEnter" className="text-xs">{t('properties.animEnter')}</Label>
           <Select
             value={element.animation?.enter ?? 'none'}
             onValueChange={(value) =>
@@ -1241,9 +1247,9 @@ export function PropertiesPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="none">{t('properties.animNone')}</SelectItem>
               {ANIMATION_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -1251,11 +1257,11 @@ export function PropertiesPanel({
         {element.animation?.enter && (
           <>
             <div className="grid gap-1">
-              <Label htmlFor="animEnterDelay" className="text-xs">Delay (s)</Label>
+              <Label htmlFor="animEnterDelay" className="text-xs">{t('properties.animDelay')}</Label>
               {secondsInput(element.animation?.enterDelay, (v) => updateAnimation({ enterDelay: v }), 'animEnterDelay', '0')}
             </div>
             <div className="grid gap-1">
-              <Label htmlFor="animEnterDuration" className="text-xs">Length (s)</Label>
+              <Label htmlFor="animEnterDuration" className="text-xs">{t('properties.lengthS')}</Label>
               {secondsInput(element.animation?.enterDuration, (v) => updateAnimation({ enterDuration: v }), 'animEnterDuration', '0.6')}
             </div>
           </>
@@ -1263,7 +1269,7 @@ export function PropertiesPanel({
       </div>
       <div className="grid grid-cols-3 gap-2">
         <div className="grid gap-1">
-          <Label htmlFor="animExit" className="text-xs">Exit</Label>
+          <Label htmlFor="animExit" className="text-xs">{t('properties.animExit')}</Label>
           <Select
             value={element.animation?.exit ?? 'none'}
             onValueChange={(value) =>
@@ -1274,9 +1280,9 @@ export function PropertiesPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="none">{t('properties.animNone')}</SelectItem>
               {ANIMATION_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -1284,11 +1290,11 @@ export function PropertiesPanel({
         {element.animation?.exit && (
           <>
             <div className="grid gap-1">
-              <Label htmlFor="animExitStart" className="text-xs">Starts at (s)</Label>
-              {secondsInput(element.animation?.exitStart, (v) => updateAnimation({ exitStart: v }), 'animExitStart', 'never')}
+              <Label htmlFor="animExitStart" className="text-xs">{t('properties.animStartsAt')}</Label>
+              {secondsInput(element.animation?.exitStart, (v) => updateAnimation({ exitStart: v }), 'animExitStart', t('properties.animNeverPlaceholder'))}
             </div>
             <div className="grid gap-1">
-              <Label htmlFor="animExitDuration" className="text-xs">Length (s)</Label>
+              <Label htmlFor="animExitDuration" className="text-xs">{t('properties.lengthS')}</Label>
               {secondsInput(element.animation?.exitDuration, (v) => updateAnimation({ exitDuration: v }), 'animExitDuration', '0.6')}
             </div>
           </>
@@ -1359,7 +1365,7 @@ export function PropertiesPanel({
       <div className="space-y-4">
         {/* Content */}
         <div className="space-y-2">
-          <Label htmlFor="textContent" className="text-xs font-medium">Content</Label>
+          <Label htmlFor="textContent" className="text-xs font-medium">{t('properties.content')}</Label>
           <div className="flex items-center gap-1.5">
             <Input
               id="textContent"
@@ -1376,10 +1382,10 @@ export function PropertiesPanel({
                 disabled={!isTranslationEnabled || !localContent.trim()}
                 title={
                   isTranslationEnabled
-                    ? "Translate this text"
-                    : "Translation is disabled because API URLs are not configured"
+                    ? t('properties.translateThisText')
+                    : t('toolbar.translateDisabledTitle')
                 }
-                aria-label="Translate this text"
+                aria-label={t('properties.translateThisText')}
                 onClick={() => {
                   // Flush an edit the blur may not have committed yet, so the
                   // dialog translates what is in the box, not the stale value.
@@ -1395,17 +1401,17 @@ export function PropertiesPanel({
         
         {/* Font Family */}
         <div className="space-y-2">
-          <Label htmlFor="fontFamily" className="text-xs font-medium">Font Family</Label>
+          <Label htmlFor="fontFamily" className="text-xs font-medium">{t('properties.fontFamily')}</Label>
           <Select
             value={element.fontFamily || 'Arial'}
             onValueChange={(value) => onUpdateElement({ fontFamily: value })}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Font Family" />
+              <SelectValue placeholder={t('properties.fontFamily')} />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>System Fonts</SelectLabel>
+                <SelectLabel>{t('properties.fontGroupSystem')}</SelectLabel>
                 {groupedFonts.system.map(font => (
                   <SelectItem 
                     key={font.value} 
@@ -1417,7 +1423,7 @@ export function PropertiesPanel({
                 ))}
               </SelectGroup>
               <SelectGroup>
-                <SelectLabel>Latin Fonts</SelectLabel>
+                <SelectLabel>{t('properties.fontGroupLatin')}</SelectLabel>
                 {groupedFonts.latin.map(font => (
                   <SelectItem 
                     key={font.value} 
@@ -1429,7 +1435,7 @@ export function PropertiesPanel({
                 ))}
               </SelectGroup>
               <SelectGroup>
-                <SelectLabel>Arabic Fonts</SelectLabel>
+                <SelectLabel>{t('properties.fontGroupArabic')}</SelectLabel>
                 {groupedFonts.arabic.map(font => (
                   <SelectItem 
                     key={font.value} 
@@ -1441,7 +1447,7 @@ export function PropertiesPanel({
                 ))}
               </SelectGroup>
               <SelectGroup>
-                <SelectLabel>Urdu Fonts</SelectLabel>
+                <SelectLabel>{t('properties.fontGroupUrdu')}</SelectLabel>
                 {groupedFonts.urdu.map(font => (
                   <SelectItem 
                     key={font.value} 
@@ -1453,7 +1459,7 @@ export function PropertiesPanel({
                 ))}
               </SelectGroup>
               <SelectGroup>
-                <SelectLabel>Multilingual</SelectLabel>
+                <SelectLabel>{t('properties.fontGroupMultilingual')}</SelectLabel>
                 {groupedFonts.multilingual.map(font => (
                   <SelectItem 
                     key={font.value} 
@@ -1471,7 +1477,7 @@ export function PropertiesPanel({
         {/* Font Size and Line Height */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="fontSize" className="text-xs font-medium">Font Size</Label>
+            <Label htmlFor="fontSize" className="text-xs font-medium">{t('properties.fontSize')}</Label>
             <Input
               id="fontSize"
               type="number"
@@ -1482,7 +1488,7 @@ export function PropertiesPanel({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="lineHeight" className="text-xs font-medium">Line Height</Label>
+            <Label htmlFor="lineHeight" className="text-xs font-medium">{t('properties.lineHeight')}</Label>
             <Input
               id="lineHeight"
               type="number"
@@ -1496,7 +1502,7 @@ export function PropertiesPanel({
           
         {/* Font Color */}
         <div className="space-y-2">
-          <Label htmlFor="fontColor" className="text-xs font-medium">Color</Label>
+          <Label htmlFor="fontColor" className="text-xs font-medium">{t('properties.color')}</Label>
           <div className="flex items-center gap-2">
             <Input
               id="fontColor"
@@ -1516,14 +1522,14 @@ export function PropertiesPanel({
           
         {/* Font Style */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium">Text Style</Label>
+          <Label className="text-xs font-medium">{t('properties.textStyle')}</Label>
           <div className="flex items-center space-x-1 flex-wrap gap-1">
             <Button
               variant={fontWeight === 'bold' ? 'default' : 'outline'}
               size="icon"
               className="h-8 w-8"
               onClick={() => toggleFontStyle('fontWeight', 'bold')}
-              title="Bold"
+              title={t('properties.bold')}
             >
               <Bold className="h-3.5 w-3.5" />
             </Button>
@@ -1532,7 +1538,7 @@ export function PropertiesPanel({
               size="icon"
               className="h-8 w-8"
               onClick={() => toggleFontStyle('fontStyle', 'italic')}
-              title="Italic"
+              title={t('properties.italic')}
             >
               <Italic className="h-3.5 w-3.5" />
             </Button>
@@ -1541,7 +1547,7 @@ export function PropertiesPanel({
               size="icon"
               className="h-8 w-8"
               onClick={() => toggleFontStyle('textDecoration', 'underline')}
-              title="Underline"
+              title={t('properties.underline')}
             >
               <Underline className="h-3.5 w-3.5" />
             </Button>
@@ -1550,7 +1556,7 @@ export function PropertiesPanel({
               size="icon"
               className="h-8 w-8"
               onClick={() => toggleFontStyle('textDecoration', 'line-through')}
-              title="Strikethrough"
+              title={t('properties.strikethrough')}
             >
               <Strikethrough className="h-3.5 w-3.5" />
             </Button>
@@ -1559,14 +1565,14 @@ export function PropertiesPanel({
           
         {/* Text Alignment */}
         <div className="space-y-2">
-          <Label className="text-xs font-medium">Text Alignment</Label>
+          <Label className="text-xs font-medium">{t('properties.textAlignment')}</Label>
           <div className="flex items-center space-x-1">
             <Button
               variant={textAlign === 'left' ? 'default' : 'outline'}
               size="icon"
               className="h-8 w-8"
               onClick={() => setTextAlignment('left')}
-              title="Align Left"
+              title={t('properties.alignLeft')}
             >
               <AlignLeft className="h-3.5 w-3.5" />
             </Button>
@@ -1575,7 +1581,7 @@ export function PropertiesPanel({
               size="icon"
               className="h-8 w-8"
               onClick={() => setTextAlignment('center')}
-              title="Align Center"
+              title={t('properties.alignCenter')}
             >
               <AlignCenter className="h-3.5 w-3.5" />
             </Button>
@@ -1584,7 +1590,7 @@ export function PropertiesPanel({
               size="icon"
               className="h-8 w-8"
               onClick={() => setTextAlignment('right')}
-              title="Align Right"
+              title={t('properties.alignRight')}
             >
               <AlignRight className="h-3.5 w-3.5" />
             </Button>
@@ -1683,7 +1689,7 @@ export function PropertiesPanel({
       <div className="w-full flex flex-wrap gap-2 items-start">
         {/* Image Upload Button */}
         <div className="flex-shrink-0">
-          <Label className="text-xs mb-1 block">Image</Label>
+          <Label className="text-xs mb-1 block">{t('properties.image')}</Label>
           <Button
             variant="outline"
             size="sm"
@@ -1691,26 +1697,26 @@ export function PropertiesPanel({
             className="text-xs h-8"
           >
             <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-            {element.imageSrc ? 'Change Image' : 'Upload Image'}
+            {element.imageSrc ? t('properties.changeImage') : t('properties.uploadImage')}
           </Button>
         </div>
 
         {/* Object Fit */}
         <div className="w-[120px]">
-          <Label htmlFor="objectFit" className="text-xs mb-1 block">Object Fit</Label>
+          <Label htmlFor="objectFit" className="text-xs mb-1 block">{t('properties.objectFit')}</Label>
           <Select
             value={element.objectFit || 'cover'}
             onValueChange={(value) => onUpdateElement({ objectFit: value as 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' })}
           >
             <SelectTrigger id="objectFit" className="h-8 text-xs">
-              <SelectValue placeholder="Object Fit" />
+              <SelectValue placeholder={t('properties.objectFit')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="cover">Cover</SelectItem>
-              <SelectItem value="contain">Contain</SelectItem>
-              <SelectItem value="fill">Fill</SelectItem>
-              <SelectItem value="none">None</SelectItem>
-              <SelectItem value="scale-down">Scale Down</SelectItem>
+              <SelectItem value="cover">{t('properties.fitCoverShort')}</SelectItem>
+              <SelectItem value="contain">{t('properties.fitContainShort')}</SelectItem>
+              <SelectItem value="fill">{t('properties.fitFillShort')}</SelectItem>
+              <SelectItem value="none">{t('properties.fitNone')}</SelectItem>
+              <SelectItem value="scale-down">{t('properties.fitScaleDown')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1718,7 +1724,7 @@ export function PropertiesPanel({
         {/* Opacity */}
         <div className="w-[120px]">
           <Label htmlFor="opacity" className="text-xs mb-1 block">
-            Opacity: {Math.round((element.opacity || 1) * 100)}%
+            {t('properties.opacity', { value: Math.round((element.opacity || 1) * 100) })}
           </Label>
           <Slider
             id="opacity"
@@ -1734,7 +1740,7 @@ export function PropertiesPanel({
         {/* Border Radius */}
         <div className="w-[120px]">
           <Label htmlFor="imageBorderRadius" className="text-xs mb-1 block">
-            Border Radius: {element.borderRadius || 0}px
+            {t('properties.cornerRadius', { value: element.borderRadius || 0 })}
           </Label>
           <Slider
             id="imageBorderRadius"
@@ -1749,12 +1755,12 @@ export function PropertiesPanel({
 
         {/* Image Alt Text */}
         <div className="flex-1 min-w-[150px]">
-          <Label htmlFor="imageAlt" className="text-xs mb-1 block">Alt Text</Label>
+          <Label htmlFor="imageAlt" className="text-xs mb-1 block">{t('properties.altText')}</Label>
           <Input
             id="imageAlt"
             value={element.imageAlt || ''}
             onChange={(e) => onUpdateElement({ imageAlt: e.target.value })}
-            placeholder="Describe the image"
+            placeholder={t('properties.altTextPlaceholder')}
             className="text-xs h-8"
           />
         </div>
@@ -1762,25 +1768,24 @@ export function PropertiesPanel({
 
       {/* Transform Properties */}
       <div className="space-y-3">
-        <div className="text-sm font-medium text-foreground border-b pb-1">Transform</div>
+        <div className="text-sm font-medium text-foreground border-b pb-1">{t('properties.transform')}</div>
         
         {/* Transform Presets */}
         <div>
-          <Label className="text-xs mb-2 block">Transform Presets</Label>
+          <Label className="text-xs mb-2 block">{t('properties.transformPresets')}</Label>
           <div className="grid grid-cols-2 gap-2">
             {transformPresets.map((preset) => (
               <Button
-                key={preset.name}
+                key={preset.nameKey}
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  console.log('Applying transform preset:', preset.name, preset.values);
                   onUpdateElement(preset.values);
                 }}
                 className="text-xs h-8 justify-start"
-                title={preset.description}
+                title={t(preset.descriptionKey as Parameters<typeof t>[0])}
               >
-                {preset.name}
+                {t(preset.nameKey as Parameters<typeof t>[0])}
               </Button>
             ))}
           </div>
@@ -1790,7 +1795,7 @@ export function PropertiesPanel({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="skewX" className="text-xs mb-1 block">
-              Skew X: {element.skewX || 0}°
+              {t('properties.skewX', { value: element.skewX || 0 })}
             </Label>
             <Slider
               id="skewX"
@@ -1808,7 +1813,7 @@ export function PropertiesPanel({
           
           <div>
             <Label htmlFor="skewY" className="text-xs mb-1 block">
-              Skew Y: {element.skewY || 0}°
+              {t('properties.skewY', { value: element.skewY || 0 })}
             </Label>
             <Slider
               id="skewY"
@@ -1829,7 +1834,7 @@ export function PropertiesPanel({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="perspectiveX" className="text-xs mb-1 block">
-              Perspective X: {element.perspectiveX || 0}°
+              {t('properties.perspectiveX', { value: element.perspectiveX || 0 })}
             </Label>
             <Slider
               id="perspectiveX"
@@ -1847,7 +1852,7 @@ export function PropertiesPanel({
           
           <div>
             <Label htmlFor="perspectiveY" className="text-xs mb-1 block">
-              Perspective Y: {element.perspectiveY || 0}°
+              {t('properties.perspectiveY', { value: element.perspectiveY || 0 })}
             </Label>
             <Slider
               id="perspectiveY"
@@ -1867,7 +1872,7 @@ export function PropertiesPanel({
         {/* Custom Matrix3D */}
         <div>
           <Label htmlFor="matrix3d" className="text-xs mb-1 block">
-            Custom Matrix3D
+            {t('properties.customMatrix3d')}
           </Label>
           <Textarea
             id="matrix3d"
@@ -1877,7 +1882,7 @@ export function PropertiesPanel({
             className="text-xs h-20 resize-none"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Enter a custom CSS matrix3d transform. Leave blank to use individual controls above.
+            {t('properties.matrix3dHelp')}
           </p>
         </div>
 
@@ -1895,7 +1900,7 @@ export function PropertiesPanel({
             })}
             className="text-xs"
           >
-            Reset Transform
+            {t('properties.resetTransform')}
           </Button>
         </div>
       </div>
@@ -1914,7 +1919,7 @@ export function PropertiesPanel({
       {/* Shape Fill and Stroke controls - horizontal layout */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label htmlFor="fillColor">Fill Color</Label>
+          <Label htmlFor="fillColor">{t('properties.fillColor')}</Label>
           <div className="flex mt-1.5">
             <Input
               id="fillColor"
@@ -1932,7 +1937,7 @@ export function PropertiesPanel({
           </div>
         </div>
         <div>
-          <Label htmlFor="strokeColor">Stroke Color</Label>
+          <Label htmlFor="strokeColor">{t('properties.strokeColor')}</Label>
           <div className="flex mt-1.5">
             <Input
               id="strokeColor"
@@ -1952,7 +1957,7 @@ export function PropertiesPanel({
       </div>
       
       <div>
-        <Label htmlFor="strokeWidth">Stroke Width</Label>
+        <Label htmlFor="strokeWidth">{t('properties.strokeWidth')}</Label>
         <div className="flex items-center gap-2">
           <Input
             id="strokeWidth"
@@ -1971,7 +1976,7 @@ export function PropertiesPanel({
       {/* Shape-specific controls */}
       {element.shapeType === 'star' && (
         <div>
-          <Label htmlFor="customPoints">Star Points</Label>
+          <Label htmlFor="customPoints">{t('properties.starPoints')}</Label>
           <div className="flex items-center gap-2">
             <Input
               id="customPoints"
@@ -1991,7 +1996,7 @@ export function PropertiesPanel({
       {/* Circle and Diamond inner radius control */}
       {(element.shapeType === 'circle' || element.shapeType === 'diamond') && (
         <div>
-          <Label htmlFor="innerRadius">Inner Radius</Label>
+          <Label htmlFor="innerRadius">{t('properties.innerRadius')}</Label>
           <div className="flex items-center gap-2">
             <Input
               id="innerRadius"
@@ -2006,14 +2011,14 @@ export function PropertiesPanel({
             <div className="w-12 text-center">{innerRadius}%</div>
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Creates a ring/donut shape when {'>'}0
+            {t('properties.innerRadiusHelp')}
           </div>
         </div>
       )}
 
       {/* Fill Opacity control for all shapes */}
       <div>
-        <Label htmlFor="fillOpacity">Fill Opacity</Label>
+        <Label htmlFor="fillOpacity">{t('properties.fillOpacity')}</Label>
         <div className="flex items-center gap-2">
           <Input
             id="fillOpacity"
@@ -2028,7 +2033,7 @@ export function PropertiesPanel({
           <div className="w-12 text-center">{Math.round(fillOpacity * 100)}%</div>
         </div>
         <div className="text-xs text-muted-foreground mt-1">
-          Adjust transparency of the fill color
+          {t('properties.fillOpacityHelp')}
         </div>
       </div>
 
@@ -2036,7 +2041,7 @@ export function PropertiesPanel({
       {element.shapeType === 'rectangle' && (
         <>
           <div>
-            <Label>Corner Type</Label>
+            <Label>{t('properties.cornerType')}</Label>
             <div className="flex gap-2 mt-1.5">
               <Button
                 variant={borderRadiusType === 'uniform' ? 'default' : 'outline'}
@@ -2044,7 +2049,7 @@ export function PropertiesPanel({
                 onClick={() => handleBorderRadiusTypeChange('uniform')}
                 className="flex-1"
               >
-                Uniform
+                {t('properties.cornerUniform')}
               </Button>
               <Button
                 variant={borderRadiusType === 'individual' ? 'default' : 'outline'}
@@ -2052,14 +2057,14 @@ export function PropertiesPanel({
                 onClick={() => handleBorderRadiusTypeChange('individual')}
                 className="flex-1"
               >
-                Individual
+                {t('properties.cornerIndividual')}
               </Button>
             </div>
           </div>
 
           {borderRadiusType === 'uniform' ? (
             <div>
-              <Label htmlFor="uniformRadius">Corner Radius</Label>
+              <Label htmlFor="uniformRadius">{t('properties.cornerRadiusLabel')}</Label>
               <div className="flex items-center gap-2">
                 <Input
                   id="uniformRadius"
@@ -2077,9 +2082,9 @@ export function PropertiesPanel({
           ) : (
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <Label className="text-sm">Individual Corners</Label>
+                <Label className="text-sm">{t('properties.individualCorners')}</Label>
                 <div className="flex items-center space-x-2">
-                  <div className="text-xs text-muted-foreground">Preview:</div>
+                  <div className="text-xs text-muted-foreground">{t('properties.previewLabel')}</div>
                   <div className="w-10 h-10 border border-dashed border-muted-foreground rounded-md overflow-hidden">
                     <div 
                       className="w-full h-full bg-primary/20"
@@ -2098,7 +2103,7 @@ export function PropertiesPanel({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex justify-between">
-                    <Label htmlFor="cornerTL" className="text-xs">Top Left</Label>
+                    <Label htmlFor="cornerTL" className="text-xs">{t('properties.cornerTopLeft')}</Label>
                     <div className="text-xs">{cornerTopLeft}px</div>
                   </div>
                   <Input
@@ -2115,7 +2120,7 @@ export function PropertiesPanel({
                 
                 <div>
                   <div className="flex justify-between">
-                    <Label htmlFor="cornerTR" className="text-xs">Top Right</Label>
+                    <Label htmlFor="cornerTR" className="text-xs">{t('properties.cornerTopRight')}</Label>
                     <div className="text-xs">{cornerTopRight}px</div>
                   </div>
                   <Input
@@ -2132,7 +2137,7 @@ export function PropertiesPanel({
                 
                 <div>
                   <div className="flex justify-between">
-                    <Label htmlFor="cornerBL" className="text-xs">Bottom Left</Label>
+                    <Label htmlFor="cornerBL" className="text-xs">{t('properties.cornerBottomLeft')}</Label>
                     <div className="text-xs">{cornerBottomLeft}px</div>
                   </div>
                   <Input
@@ -2149,7 +2154,7 @@ export function PropertiesPanel({
                 
                 <div>
                   <div className="flex justify-between">
-                    <Label htmlFor="cornerBR" className="text-xs">Bottom Right</Label>
+                    <Label htmlFor="cornerBR" className="text-xs">{t('properties.cornerBottomRight')}</Label>
                     <div className="text-xs">{cornerBottomRight}px</div>
                   </div>
                   <Input
@@ -2181,18 +2186,18 @@ export function PropertiesPanel({
     if (count === 0) return null;
 
     const alignButtons: Array<{ mode: ElementAlignment; title: string; icon: React.ReactNode }> = [
-      { mode: 'left', title: 'Align left', icon: <AlignStartVertical className="h-4 w-4" /> },
-      { mode: 'center-h', title: 'Align center horizontally', icon: <AlignCenterVertical className="h-4 w-4" /> },
-      { mode: 'right', title: 'Align right', icon: <AlignEndVertical className="h-4 w-4" /> },
-      { mode: 'top', title: 'Align top', icon: <AlignStartHorizontal className="h-4 w-4" /> },
-      { mode: 'middle-v', title: 'Align middle vertically', icon: <AlignCenterHorizontal className="h-4 w-4" /> },
-      { mode: 'bottom', title: 'Align bottom', icon: <AlignEndHorizontal className="h-4 w-4" /> },
+      { mode: 'left', title: t('properties.alignLeftEdge'), icon: <AlignStartVertical className="h-4 w-4" /> },
+      { mode: 'center-h', title: t('properties.alignCenterH'), icon: <AlignCenterVertical className="h-4 w-4" /> },
+      { mode: 'right', title: t('properties.alignRightEdge'), icon: <AlignEndVertical className="h-4 w-4" /> },
+      { mode: 'top', title: t('properties.alignTopEdge'), icon: <AlignStartHorizontal className="h-4 w-4" /> },
+      { mode: 'middle-v', title: t('properties.alignMiddleV'), icon: <AlignCenterHorizontal className="h-4 w-4" /> },
+      { mode: 'bottom', title: t('properties.alignBottomEdge'), icon: <AlignEndHorizontal className="h-4 w-4" /> },
     ];
 
     return (
       <div className="space-y-2">
         <Label className="text-xs font-medium">
-          {count > 1 ? 'Align selection' : 'Align to artboard'}
+          {count > 1 ? t('properties.alignSelection') : t('properties.alignToArtboard')}
         </Label>
         <div className="grid grid-cols-6 gap-1">
           {alignButtons.map(({ mode, title, icon }) => (
@@ -2215,21 +2220,21 @@ export function PropertiesPanel({
               variant="outline"
               size="sm"
               className="h-8 gap-1.5"
-              title="Distribute horizontally"
+              title={t('properties.distributeH')}
               onClick={() => onAlignElements('distribute-h')}
             >
               <AlignHorizontalDistributeCenter className="h-4 w-4 shrink-0" />
-              <span className="text-xs">Distribute H</span>
+              <span className="text-xs">{t('properties.distributeHShort')}</span>
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="h-8 gap-1.5"
-              title="Distribute vertically"
+              title={t('properties.distributeV')}
               onClick={() => onAlignElements('distribute-v')}
             >
               <AlignVerticalDistributeCenter className="h-4 w-4 shrink-0" />
-              <span className="text-xs">Distribute V</span>
+              <span className="text-xs">{t('properties.distributeVShort')}</span>
             </Button>
           </div>
         )}
@@ -2243,12 +2248,12 @@ export function PropertiesPanel({
     return (
       <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
         <div className="px-4 py-3 border-b bg-card">
-          <div className="font-medium text-foreground">{selectionCount} elements selected</div>
+          <div className="font-medium text-foreground">{t('properties.elementsSelected', { count: selectionCount })}</div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
           {renderAlignmentControls()}
           <p className="text-xs text-muted-foreground">
-            Select a single element to edit its properties
+            {t('properties.selectSingle')}
           </p>
         </div>
       </div>
@@ -2260,10 +2265,10 @@ export function PropertiesPanel({
     return (
       <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
         <div className="px-4 py-3 border-b bg-card">
-          <div className="font-medium text-foreground">Properties</div>
+          <div className="font-medium text-foreground">{t('properties.title')}</div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3">
-          <div className="text-sm text-muted-foreground">Select an element or artboard to see its properties.</div>
+          <div className="text-sm text-muted-foreground">{t('properties.selectElementOrArtboard')}</div>
         </div>
       </div>
     );
@@ -2284,23 +2289,23 @@ export function PropertiesPanel({
     return (
       <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
         <div className="px-4 py-3 border-b bg-card">
-          <div className="font-medium text-foreground">Artboard Background</div>
+          <div className="font-medium text-foreground">{t('properties.artboardBackground')}</div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
           {/* Artboard Name */}
           <div className="space-y-2">
-            <Label htmlFor="artboardName" className="text-xs font-medium">Artboard Name</Label>
+            <Label htmlFor="artboardName" className="text-xs font-medium">{t('properties.artboardName')}</Label>
             <Input
               id="artboardName"
               value={activeArtboardDetails.name || ''}
               onChange={(e) => onUpdateArtboardDetails?.({ name: e.target.value })}
-              placeholder="Enter artboard name"
+              placeholder={t('properties.artboardNamePlaceholder')}
               className="text-sm"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="bgType" className="text-xs font-medium">Background Type</Label>
+            <Label htmlFor="bgType" className="text-xs font-medium">{t('properties.backgroundType')}</Label>
             <RadioGroup 
               id="bgType"
               value={activeBackgroundTab}
@@ -2309,18 +2314,18 @@ export function PropertiesPanel({
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="solid" id="solid" />
-                <Label htmlFor="solid" className="text-xs cursor-pointer">Solid Color</Label>
+                <Label htmlFor="solid" className="text-xs cursor-pointer">{t('properties.solidColor')}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="gradient" id="gradient" />
-                <Label htmlFor="gradient" className="text-xs cursor-pointer">Gradient</Label>
+                <Label htmlFor="gradient" className="text-xs cursor-pointer">{t('properties.gradient')}</Label>
               </div>
             </RadioGroup>
           </div>
 
           {activeBackgroundTab === 'solid' ? (
             <div className="space-y-2">
-              <Label htmlFor="bgColor" className="text-xs font-medium">Background Color</Label>
+              <Label htmlFor="bgColor" className="text-xs font-medium">{t('properties.backgroundColor')}</Label>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <Input
@@ -2342,7 +2347,7 @@ export function PropertiesPanel({
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">First Color</Label>
+                <Label className="text-xs font-medium">{t('properties.firstColor')}</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     type="color"
@@ -2360,7 +2365,7 @@ export function PropertiesPanel({
               </div>
               
               <div className="space-y-2">
-                <Label className="text-xs font-medium">Second Color</Label>
+                <Label className="text-xs font-medium">{t('properties.secondColor')}</Label>
                 <div className="flex items-center space-x-2">
                   <Input
                     type="color"
@@ -2379,7 +2384,7 @@ export function PropertiesPanel({
               
               <div className="space-y-2">
                 <Label htmlFor="gradientAngle" className="text-xs font-medium">
-                  Angle: {displayGradient.angle}°
+                  {t('properties.angle', { value: displayGradient.angle })}
                 </Label>
                 <Slider
                   id="gradientAngle"
@@ -2398,13 +2403,13 @@ export function PropertiesPanel({
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="w-full">
                 <Palette className="w-3 h-3 mr-1" />
-                <span>{activeBackgroundTab === 'solid' ? 'Color Presets' : 'Gradient Presets'}</span>
+                <span>{activeBackgroundTab === 'solid' ? t('properties.colorPresets') : t('properties.gradientPresets')}</span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-2">
               <div className="space-y-2">
                 <Label className="text-xs">
-                  {activeBackgroundTab === 'solid' ? 'Color Palette' : 'Gradient Presets'}
+                  {activeBackgroundTab === 'solid' ? t('properties.colorPalette') : t('properties.gradientPresets')}
                 </Label>
                 
                 {activeBackgroundTab === 'solid' ? (
@@ -2447,8 +2452,7 @@ export function PropertiesPanel({
       <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
         <div className="px-4 py-3 border-b bg-card">
           <div className="font-medium text-foreground">
-            {ELEMENT_PANEL_TITLES[selectedElement.type] ??
-              `${selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)} Properties`}
+            {t(ELEMENT_PANEL_TITLE_KEYS[selectedElement.type] as Parameters<typeof t>[0])}
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
@@ -2486,10 +2490,10 @@ export function PropertiesPanel({
   return (
     <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
       <div className="px-4 py-3 border-b bg-card">
-        <div className="font-medium text-foreground">Properties</div>
+        <div className="font-medium text-foreground">{t('properties.title')}</div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        <div className="text-sm text-muted-foreground">Select an element to view properties</div>
+        <div className="text-sm text-muted-foreground">{t('properties.selectElement')}</div>
       </div>
     </div>
   );

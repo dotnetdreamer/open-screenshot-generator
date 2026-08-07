@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import type { ArtboardElement } from '@/types/artboard';
 import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useT, type TFunction } from '@/i18n';
 
 // Flat section of the right dock (bottom half, under the resize divider in
 // OpenScreenshotGeneratorLayout): header strip + scrolling list, filling
@@ -54,7 +55,9 @@ const getElementIcon = (element: ArtboardElement) => {
   }
 };
 
-const getElementLabel = (element: ArtboardElement): string => {
+// The derived subtype names (device ids, shape ids) come from the lib data
+// tables and stay as-is; only the generic words around them are localized.
+const getElementLabel = (element: ArtboardElement, t: TFunction): string => {
     // Use custom name if provided
     if (element.name && element.name.trim()) {
         return element.name;
@@ -63,26 +66,27 @@ const getElementLabel = (element: ArtboardElement): string => {
     // Fallback to auto-generated labels
     let label = `${element.type.charAt(0).toUpperCase() + element.type.slice(1)}`;
     if (element.type === 'text' && element.content) {
-        label = element.content.substring(0, 20) || "Text";
+        label = element.content.substring(0, 20) || t('layers.fallbackText');
         if (element.content.length > 20) label += '...';
     } else if (element.type === 'image') {
-        label = element.imageAlt || 'Image';
+        label = element.imageAlt || t('layers.fallbackImage');
         if (label.length > 20) label = label.substring(0, 20) + '...';
     } else if (element.type === 'shape') {
-        label = `${element.shapeType.charAt(0).toUpperCase() + element.shapeType.slice(1)} Shape`;
+        label = t('layers.shapeLabel', { type: `${element.shapeType.charAt(0).toUpperCase() + element.shapeType.slice(1)}` });
     } else if (element.type === 'device') {
-        label = `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)} Device`;
+        label = t('layers.deviceLabel', { type: `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)}` });
     } else if (element.type === 'video-device') {
-        label = `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)} Recording`;
+        label = t('layers.recordingLabel', { type: `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)}` });
     } else if (element.type === 'video') {
-        label = 'Recording';
+        label = t('layers.recording');
     } else if (element.type === 'gesture') {
-        label = `${element.gestureType.charAt(0).toUpperCase() + element.gestureType.slice(1)} Hint`;
+        label = t('layers.gestureLabel', { type: `${element.gestureType.charAt(0).toUpperCase() + element.gestureType.slice(1)}` });
     }
     return label;
 };
 
 export function LayersPanel({ elements, selectedElementIds, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName }: LayersPanelProps) {
+  const t = useT();
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +109,7 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
 
   const handleDoubleClick = (element: ArtboardElement) => {
     setEditingElementId(element.id);
-    setEditingName(element.name || getElementLabel(element));
+    setEditingName(element.name || getElementLabel(element, t));
   };
 
   const handleRenameSubmit = () => {
@@ -138,22 +142,22 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
       <div className="flex h-9 shrink-0 items-center gap-1.5 border-b px-3">
         <LayersIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="truncate text-sm font-semibold" title={activeArtboardName}>
-          {activeArtboardName ? `Layers: ${activeArtboardName}` : 'Layers'}
+          {activeArtboardName ? t('layers.titleWithBoard', { name: activeArtboardName }) : t('layers.title')}
         </span>
         {selectedElementIds.length > 1 && (
           <span className="ml-auto shrink-0 rounded-full border px-1.5 text-[11px] tabular-nums text-muted-foreground">
-            {selectedElementIds.length} selected
+            {t('layers.selectedCount', { count: selectedElementIds.length })}
           </span>
         )}
       </div>
       {!activeArtboardName ? (
-        <div className="p-3 text-sm text-muted-foreground">Select an artboard to see its layers.</div>
+        <div className="p-3 text-sm text-muted-foreground">{t('layers.noArtboard')}</div>
       ) : (
         // Native overflow container, not Radix ScrollArea: ScrollArea under a
         // height-capped flex parent silently stops scrolling.
         <div className="min-h-0 flex-1 overflow-y-auto">
           {reversedElements.length === 0 ? (
-            <div className="p-3 text-sm text-muted-foreground">No elements on this artboard.</div>
+            <div className="p-3 text-sm text-muted-foreground">{t('layers.empty')}</div>
           ) : (
             <div className="p-2 space-y-1">
               {reversedElements.map((element, index) => (
@@ -175,7 +179,7 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
                         onKeyDown={handleKeyDown}
                         onBlur={handleRenameSubmit}
                         className="h-6 text-xs border-0 p-1 focus-visible:ring-1 focus-visible:ring-primary"
-                        placeholder="Element name..."
+                        placeholder={t('layers.renamePlaceholder')}
                       />
                     </div>
                   ) : (
@@ -184,10 +188,10 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
                       className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0 max-w-[160px]"
                       onClick={(e) => onSelectElement(element.id, { additive: e.shiftKey || e.ctrlKey || e.metaKey })}
                       onDoubleClick={() => handleDoubleClick(element)}
-                      title={`Double-click to rename "${getElementLabel(element)}"`}
+                      title={t('layers.renameTitle', { name: getElementLabel(element, t) })}
                     >
                       {getElementIcon(element)}
-                      <span className="truncate flex-grow ml-1">{getElementLabel(element)}</span>
+                      <span className="truncate flex-grow ml-1">{getElementLabel(element, t)}</span>
                     </Button>
                   )}
                   <div className="flex-shrink-0 ml-auto space-x-0.5">
@@ -195,7 +199,7 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 p-0"
-                      title="Move layer up"
+                      title={t('layers.moveUp')}
                       onClick={() => onMoveElementLayer(element.id, 'up')}
                       disabled={index === 0} // Cannot move top-most element further up
                     >
@@ -205,7 +209,7 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 p-0"
-                      title="Move layer down"
+                      title={t('layers.moveDown')}
                       onClick={() => onMoveElementLayer(element.id, 'down')}
                       disabled={index === reversedElements.length - 1} // Cannot move bottom-most element further down
                     >
@@ -215,7 +219,7 @@ export function LayersPanel({ elements, selectedElementIds, onSelectElement, onM
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      title="Delete element"
+                      title={t('layers.deleteElement')}
                       onClick={() => onDeleteElement(element.id)}
                     >
                       <Trash2Icon className="w-3 h-3" />

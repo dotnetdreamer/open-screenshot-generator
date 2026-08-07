@@ -12,6 +12,7 @@ import { VideoDeviceElement } from './elements/VideoDeviceElement';
 import { GestureElement } from './elements/GestureElement';
 import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/i18n';
 import { readScreenshotFile, type UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { cn } from '@/lib/utils';
@@ -90,6 +91,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   const [elements, setElements] = useState<ArtboardElement[]>(artboard.elements);
   const artboardDivRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const t = useT();
   
   // State for artboard renaming
   const [isEditingName, setIsEditingName] = useState(false);
@@ -182,8 +184,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       shots = await Promise.all(files.map(readScreenshotFile));
     } catch {
       toast({
-        title: 'Could not read those images',
-        description: 'Use PNG, JPEG, WebP, GIF or SVG files.',
+        title: t('artboard.readImagesFailedTitle'),
+        description: t('artboard.readImagesFailedDesc'),
         variant: 'destructive',
       });
       return;
@@ -233,18 +235,22 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     if (selectId) setSelectedElementId(selectId);
     if (deviceTarget && newImages.length > 0) {
       toast({
-        title: 'Images Added',
-        description: `Filled "${deviceTarget.name || 'Device'}" and added ${newImages.length} more image${newImages.length === 1 ? '' : 's'}.`,
+        title: t('artboard.imagesAddedTitle'),
+        description: newImages.length === 1
+          ? t('artboard.filledAndAddedOne', { device: deviceTarget.name || t('artboard.deviceFallback') })
+          : t('artboard.filledAndAddedMany', { device: deviceTarget.name || t('artboard.deviceFallback'), count: newImages.length }),
       });
     } else if (deviceTarget) {
       toast({
-        title: 'Screenshot Placed',
-        description: `Filled "${deviceTarget.name || 'Device'}" with your screenshot.`,
+        title: t('artboard.screenshotPlacedTitle'),
+        description: t('artboard.screenshotPlacedDesc', { device: deviceTarget.name || t('artboard.deviceFallback') }),
       });
     } else {
       toast({
-        title: 'Images Added',
-        description: `${newImages.length} image${newImages.length === 1 ? '' : 's'} added to "${artboard.name}".`,
+        title: t('artboard.imagesAddedTitle'),
+        description: newImages.length === 1
+          ? t('artboard.imagesAddedOne', { artboard: artboard.name })
+          : t('artboard.imagesAddedMany', { artboard: artboard.name, count: newImages.length }),
       });
     }
   };
@@ -488,7 +494,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         setElements(updatedElements);
         onUpdateArtboardElements(updatedElements);
         setSelectedElementId(newElementToAdd.id);
-        toast({ title: "Element Added", description: `${type} element created.`, variant: "default" });
+        toast({ title: t('artboard.elementAddedTitle'), description: t('artboard.elementAddedDesc', { type }), variant: "default" });
         return newElementToAdd.id;
       }
       return undefined;
@@ -688,8 +694,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             }
             if (e.dataTransfer.files.length > 0) {
               toast({
-                title: 'Unsupported file',
-                description: 'Drop image files (PNG, JPEG, WebP, GIF or SVG). Recordings are added to video elements.',
+                title: t('canvas.unsupportedFileTitle'),
+                description: t('canvas.unsupportedFileDesc'),
               });
               return;
             }
@@ -785,14 +791,14 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             onBlur={handleNameSubmit}
             onKeyDown={handleNameKeyDown}
             className="w-full p-1 text-center text-sm"
-            placeholder="Artboard name"
+            placeholder={t('artboard.namePlaceholder')}
           />
         ) : (
           <>
             <span 
               className="cursor-pointer p-0.5 rounded hover:bg-accent transition-colors" 
               onClick={handleDoubleClickName}
-              title="Click to rename artboard"
+              title={t('artboard.clickToRename')}
             >
               <EditIcon className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
             </span>
@@ -804,7 +810,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
                   ? "font-semibold text-primary"
                   : "font-medium text-muted-foreground hover:text-primary"
               )}
-              title="Double-click to rename artboard"
+              title={t('artboard.doubleClickToRename')}
             >
               {artboard.name}
             </span>

@@ -105,6 +105,7 @@ import { Trash2Icon } from 'lucide-react';
 import { useClipboard, ClipboardProvider } from '@/contexts/ClipboardContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
@@ -265,6 +266,7 @@ function createBlankProject(size: Size = { width: 1290, height: 2796 }): Project
 // `emptyState` renders in place of the search + grid when this category has no
 // templates yet (e.g. Feature Graphic before any are authored).
 function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAspect, previewFit, gridClassName }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean; emptyState?: React.ReactNode; previewAspect: string; previewFit: 'cover' | 'contain'; gridClassName: string }) {
+  const t = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const deferredQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
@@ -289,7 +291,7 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
       <div className="relative px-1">
         <SearchIcon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search templates by name or description..."
+          placeholder={t('gallery.searchPlaceholder')}
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           className="pl-9"
@@ -319,7 +321,7 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
           <div className={gridClass}>
             {filteredTemplates.length === 0 && (
               <p className="col-span-full py-8 text-center text-sm text-muted-foreground">
-                {`No templates match "${deferredQuery.trim()}".`}
+                {t('gallery.noMatches', { query: deferredQuery.trim() })}
               </p>
             )}
             {filteredTemplates.map((project: Project) => {
@@ -348,7 +350,7 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
                       )}
                       {screens > 1 && (
                         <span className="absolute right-2 top-2 z-10 rounded-full bg-background/85 px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground shadow-sm backdrop-blur">
-                          {screens} screens
+                          {t('gallery.screens', { count: screens })}
                         </span>
                       )}
                     </div>
@@ -382,6 +384,7 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
 }
 
 export function OpenScreenshotGeneratorLayout() {
+  const t = useT();
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
   const [activeArtboardId, setActiveArtboardId] = useState<string | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
@@ -436,8 +439,8 @@ export function OpenScreenshotGeneratorLayout() {
       disposeStatus = await listenMcpStatus((status) => {
         toast(
           status.running && status.url
-            ? { title: 'MCP server on', description: `External AI tools can connect at ${status.url}` }
-            : { title: 'MCP server off', description: 'External AI tools can no longer reach this app.' }
+            ? { title: t('toasts.mcpServerOn'), description: t('toasts.mcpServerOnDesc', { url: status.url }) }
+            : { title: t('toasts.mcpServerOff'), description: t('toasts.mcpServerOffDesc') }
         );
       });
       if (cancelled) return disposeStatus();
@@ -569,8 +572,8 @@ export function OpenScreenshotGeneratorLayout() {
       } catch (error) {
         console.error('Error loading available projects:', error);
         toast({
-          title: "Loading Error",
-          description: "Failed to load available projects.",
+          title: t('toasts.loadingError'),
+          description: t('toasts.failedToLoadProjects'),
           variant: "destructive"
         });
       } finally {
@@ -661,13 +664,13 @@ export function OpenScreenshotGeneratorLayout() {
           } else {
             console.warn(`Project with ID ${activeProjectId} not found.`);
             setActiveProjectId(null); // Clear active project state
-            toast({ title: "Project Not Found", description: "The selected project could not be loaded.", variant: "destructive" });
+            toast({ title: t('toasts.projectNotFound'), description: t('toasts.projectCouldNotLoad'), variant: "destructive" });
             setIsTemplateSelectorOpen(true); // Re-open template selector
           }
         } catch (error) {
           console.error("Error loading project from Dexie:", error);
           setActiveProjectId(null); // Clear active project state on error
-          toast({ title: "Loading Error", description: "Failed to load project. See console for details.", variant: "destructive" });
+          toast({ title: t('toasts.loadingError'), description: t('toasts.failedToLoadProject'), variant: "destructive" });
           setIsTemplateSelectorOpen(true); // Re-open template selector on error
         } finally {
           setLoadPhase('idle');
@@ -717,8 +720,8 @@ export function OpenScreenshotGeneratorLayout() {
     try {
       await db.projects.delete(projectId);
       toast({ 
-        title: "Project Deleted", 
-        description: "The project has been removed from your recent projects."
+        title: t('toasts.projectDeleted'), 
+        description: t('toasts.projectDeletedDesc')
       });
       // Update the recentProjects list
       const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
@@ -726,8 +729,8 @@ export function OpenScreenshotGeneratorLayout() {
     } catch (error) {
       console.error("Error deleting project:", error);
       toast({ 
-        title: "Delete Failed", 
-        description: "There was an error deleting the project.",
+        title: t('toasts.deleteFailed'), 
+        description: t('toasts.deleteFailedDesc'),
         variant: "destructive"
       });
     } finally {
@@ -847,21 +850,26 @@ export function OpenScreenshotGeneratorLayout() {
     const { artboards: converted, resized, swapped, skipped } = convertArtboardsToFormat(artboards, preset);
     if (resized === 0 && swapped === 0) {
       toast({
-        title: "Nothing to convert",
-        description: `Artboards are already ${preset.artboard.width}×${preset.artboard.height} with ${preset.label} mockups${skipped > 0 ? ` (${skipped} generic tablet/desktop/custom mockup(s) left as-is)` : ''}.`,
+        title: t('toasts.nothingToConvert'),
+        description: t('toasts.nothingToConvertDesc', {
+          width: preset.artboard.width,
+          height: preset.artboard.height,
+          preset: preset.label,
+          skipped: skipped > 0 ? t('toasts.skippedSuffix', { count: skipped }) : '',
+        }),
       });
       return;
     }
     handleArtboardsUpdate(converted);
     trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
-      resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
-      swapped > 0 ? `${swapped} mockup(s) swapped` : '',
-      skipped > 0 ? `${skipped} left as-is (no equivalent)` : '',
+      resized > 0 ? t('toasts.convertedResized', { count: resized, width: preset.artboard.width, height: preset.artboard.height }) : '',
+      swapped > 0 ? t('toasts.convertedSwapped', { count: swapped }) : '',
+      skipped > 0 ? t('toasts.convertedSkipped', { count: skipped }) : '',
     ].filter(Boolean);
     toast({
-      title: `Converted to ${preset.label}`,
-      description: `${parts.join(', ')}. Undo reverts everything.`,
+      title: t('toasts.convertedTo', { preset: preset.label }),
+      description: t('toasts.convertedDesc', { parts: parts.join(', ') }),
     });
   };
 
@@ -880,7 +888,7 @@ export function OpenScreenshotGeneratorLayout() {
         return ab;
       });
       handleArtboardsUpdate(updatedArtboards);
-      toast({ title: "Element Renamed", description: `Element renamed to "${newName}".` });
+      toast({ title: t('toasts.elementRenamed'), description: t('toasts.elementRenamedDesc', { name: newName }) });
     }
   };
 
@@ -898,11 +906,11 @@ export function OpenScreenshotGeneratorLayout() {
             ...project,
             name: trimmedName,
           });
-          toast({ title: "Project Renamed", description: `Project renamed to "${trimmedName}".` });
+          toast({ title: t('toasts.projectRenamed'), description: t('toasts.projectRenamedDesc', { name: trimmedName }) });
         }
       } catch (error) {
         console.error("Error renaming project:", error);
-        toast({ title: "Rename Failed", description: "Failed to rename project.", variant: "destructive" });
+        toast({ title: t('toasts.renameFailed'), description: t('toasts.renameFailedDesc'), variant: "destructive" });
       }
     }
   };
@@ -916,9 +924,9 @@ export function OpenScreenshotGeneratorLayout() {
         setActiveArtboardId(artboardId);
       }
     } else {
-      toast({ title: "Error", description: "Could not add element. Artboard not found or not active.", variant: "destructive" });
+      toast({ title: t('toasts.error'), description: t('toasts.couldNotAddElement'), variant: "destructive" });
     }
-  }, [toast]);
+  }, [toast, t]);
 
   // Get the current size from the first artboard or any active artboard
   const getCurrentArtboardSize = () => {
@@ -957,7 +965,7 @@ export function OpenScreenshotGeneratorLayout() {
     handleArtboardsUpdate(newArtboards);
     setActiveArtboardId(newArtboard.id);
     setSelectedElementIdsOnActiveArtboard([]);
-    toast({ title: "Artboard Created", description: `Artboard "${newArtboard.name}" added.` });
+    toast({ title: t('toasts.artboardCreated'), description: t('toasts.artboardCreatedDesc', { name: newArtboard.name }) });
   };
 
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
@@ -987,7 +995,7 @@ export function OpenScreenshotGeneratorLayout() {
     handleArtboardsUpdate(newArtboardsArray);
     setActiveArtboardId(newArtboard.id);
     setSelectedElementIdsOnActiveArtboard([]);
-    toast({ title: "Artboard Added", description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".` });
+    toast({ title: t('toasts.artboardAdded'), description: t('toasts.artboardAddedDesc', { name: artboards[currentIndex]?.name || 'selected' }) });
   };
   
   const handleDuplicateArtboard = (artboardId: string) => {
@@ -1008,12 +1016,12 @@ export function OpenScreenshotGeneratorLayout() {
   
     handleArtboardsUpdate(newArtboardsArray);
     setActiveArtboardId(duplicatedArtboard.id);
-    toast({ title: "Artboard Duplicated", description: `Artboard "${artboardToDuplicate.name}" duplicated.` });
+    toast({ title: t('toasts.artboardDuplicated'), description: t('toasts.artboardDuplicatedDesc', { name: artboardToDuplicate.name }) });
   };
   
   const handleDeleteArtboard = (artboardId: string) => {
     if (artboards.length <= 1) {
-      toast({ title: "Cannot Delete", description: "You must have at least one artboard.", variant: "destructive" });
+      toast({ title: t('toasts.cannotDelete'), description: t('toasts.mustHaveOneArtboard'), variant: "destructive" });
       return;
     }
     const artboardToDelete = artboards.find(ab => ab.id === artboardId);
@@ -1026,7 +1034,7 @@ export function OpenScreenshotGeneratorLayout() {
       setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
       setSelectedElementIdsOnActiveArtboard([]);
     }
-    toast({ title: "Artboard Deleted", description: `Artboard "${artboardToDelete.name}" deleted.` });
+    toast({ title: t('toasts.artboardDeleted'), description: t('toasts.artboardDeletedDesc', { name: artboardToDelete.name }) });
   };
   
   const handleMoveArtboard = (artboardId: string, direction: 'left' | 'right') => {
@@ -1047,7 +1055,7 @@ export function OpenScreenshotGeneratorLayout() {
     }
   
     handleArtboardsUpdate(newArtboardsArray); 
-    toast({ title: "Artboard Moved", description: `Artboard "${targetArtboard.name}" moved ${direction}.` });
+    toast({ title: t('toasts.artboardMoved'), description: t('toasts.artboardMovedDesc', { name: targetArtboard.name, direction: t(direction === 'left' ? 'toasts.directionLeft' : 'toasts.directionRight') }) });
   };
 
 
@@ -1124,8 +1132,8 @@ export function OpenScreenshotGeneratorLayout() {
     try {
       if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
         toast({
-          title: "Invalid Template",
-          description: "The selected template does not contain valid project data.",
+          title: t('toasts.invalidTemplate'),
+          description: t('toasts.invalidTemplateDesc'),
           variant: "destructive"
         });
         return;
@@ -1140,21 +1148,21 @@ export function OpenScreenshotGeneratorLayout() {
       const created = await createProjectFromTemplateData(template, { nameOverride: options?.nameOverride });
 
       if (created) {
-        toast({ title: "Project Created", description: `Project "${created.name}" created.` });
+        toast({ title: t('toasts.projectCreated'), description: t('toasts.projectCreatedDesc', { name: created.name }) });
         return;
       }
 
       toast({
-        title: "Creation Failed",
-        description: "Failed to create project from template.",
+        title: t('toasts.creationFailed'),
+        description: t('toasts.creationFailedDesc'),
         variant: "destructive"
       });
     } catch (error) {
       console.error("Error creating project from template:", error);
       setIsLoadingTemplate(false); // Reset loading flag on error
       toast({
-        title: "Creation Failed",
-        description: "Failed to create project from template.",
+        title: t('toasts.creationFailed'),
+        description: t('toasts.creationFailedDesc'),
         variant: "destructive"
       });
     }
@@ -1178,15 +1186,15 @@ export function OpenScreenshotGeneratorLayout() {
       setBulkDropScreenshots(shots);
       if (files.length > accepted.length) {
         toast({
-          title: "Some images skipped",
-          description: `Only the first ${accepted.length} images were used.`,
+          title: t('toasts.someImagesSkipped'),
+          description: t('toasts.someImagesSkippedDesc', { count: accepted.length }),
         });
       }
     } catch {
       setBulkDropDialogOpen(false);
       toast({
-        title: "Could not read those images",
-        description: "Use PNG, JPEG, WebP, GIF or SVG files.",
+        title: t('toasts.couldNotReadImages'),
+        description: t('toasts.useImageFiles'),
         variant: "destructive",
       });
     } finally {
@@ -1208,8 +1216,8 @@ export function OpenScreenshotGeneratorLayout() {
       await handleSelectTemplate(built.project, { nameOverride: built.project.name });
     } catch (error) {
       toast({
-        title: "Could not build the project",
-        description: error instanceof Error ? error.message : "Something went wrong.",
+        title: t('toasts.couldNotBuild'),
+        description: error instanceof Error ? error.message : t('toasts.somethingWentWrong'),
         variant: "destructive",
       });
     }
@@ -1228,8 +1236,8 @@ export function OpenScreenshotGeneratorLayout() {
   const handleExportProjectAsJSON = async () => {
     if (!activeProjectId) {
       toast({
-        title: "No Active Project",
-        description: "Please save your project first before exporting.",
+        title: t('toasts.noActiveProject'),
+        description: t('toasts.saveBeforeExport'),
         variant: "destructive",
       });
       return;
@@ -1241,8 +1249,8 @@ export function OpenScreenshotGeneratorLayout() {
       
       if (!project) {
         toast({
-          title: "Project Not Found",
-          description: "Could not find the active project in the database.",
+          title: t('toasts.projectNotFound'),
+          description: t('toasts.couldNotFindActive'),
           variant: "destructive",
         });
         return;
@@ -1261,15 +1269,15 @@ export function OpenScreenshotGeneratorLayout() {
       trackExportJson();
 
       toast({
-        title: "Project Exported",
-        description: savedPath ? `Saved to ${savedPath}` : "Project has been exported as JSON file from database.",
+        title: t('toasts.projectExported'),
+        description: savedPath ? t('toasts.savedTo', { path: savedPath }) : t('toasts.projectExportedDesc'),
         variant: "default",
       });
     } catch (error) {
       console.error("Error exporting project:", error);
       toast({
-        title: "Export Failed",
-        description: "There was an error exporting the project from database.",
+        title: t('toasts.exportFailed'),
+        description: t('toasts.exportFailedDesc'),
         variant: "destructive",
       });
     }
@@ -1288,13 +1296,13 @@ export function OpenScreenshotGeneratorLayout() {
    */
   const handleSaveToAccount = async () => {
     if (!isAccountConnected) {
-      openAccountDialog('Sign in to save this project to your own storage.');
+      openAccountDialog(t('account.gateHintSave'));
       return;
     }
     if (!activeProjectId) {
       toast({
-        title: "Nothing to save yet",
-        description: "Create or open a project first.",
+        title: t('toasts.nothingToSave'),
+        description: t('toasts.createOrOpen'),
         variant: "destructive",
       });
       return;
@@ -1304,8 +1312,11 @@ export function OpenScreenshotGeneratorLayout() {
     try {
       const saved = await saveProjectToAccount(activeProjectId);
       toast({
-        title: "Saved to your account",
-        description: `"${saved.name}" is in your ${accountSession ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists' : 'storage'}.`,
+        title: t('toasts.savedToAccount'),
+        description: t('toasts.savedToAccountDesc', {
+          name: saved.name,
+          storage: accountSession ? (accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists') : t('toasts.storageFallback'),
+        }),
       });
     } catch (error) {
       // An expired sign-in already cleared the session, so send the user back
@@ -1314,8 +1325,8 @@ export function OpenScreenshotGeneratorLayout() {
         openAccountDialog(error.message);
       } else {
         toast({
-          title: "Could not save",
-          description: error instanceof Error ? error.message : "Something went wrong.",
+          title: t('toasts.couldNotSave'),
+          description: error instanceof Error ? error.message : t('toasts.somethingWentWrong'),
           variant: "destructive",
         });
       }
@@ -1331,17 +1342,17 @@ export function OpenScreenshotGeneratorLayout() {
       const success = await loadProjectFromData(project.projectData, project.name, project.id);
       if (success) {
         setIsTemplateSelectorOpen(false);
-        toast({ title: "Project opened", description: `"${project.name}" loaded from your account.` });
+        toast({ title: t('toasts.projectOpened'), description: t('toasts.projectOpenedDesc', { name: project.name }) });
       } else {
-        toast({ title: "Could not open", description: `"${name}" failed to load.`, variant: "destructive" });
+        toast({ title: t('toasts.couldNotOpen'), description: t('toasts.failedToLoad', { name }), variant: "destructive" });
       }
     } catch (error) {
       if (error instanceof AccountAuthError) {
         openAccountDialog(error.message);
       } else {
         toast({
-          title: "Could not open",
-          description: error instanceof Error ? error.message : "Something went wrong.",
+          title: t('toasts.couldNotOpen'),
+          description: error instanceof Error ? error.message : t('toasts.somethingWentWrong'),
           variant: "destructive",
         });
       }
@@ -1378,8 +1389,8 @@ export function OpenScreenshotGeneratorLayout() {
       if (!artboardElement) {
         console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
         toast({
-          title: "Export Warning",
-          description: `Could not find artboard '${artboard.name}' to export.`,
+          title: t('toasts.exportWarning'),
+          description: t('toasts.couldNotFindArtboard', { name: artboard.name }),
           variant: "destructive",
         });
         continue;
@@ -1454,16 +1465,16 @@ export function OpenScreenshotGeneratorLayout() {
         if (savedPath === null) continue; // user cancelled this board's save dialog
 
         toast({
-          title: "Artboard Exported",
-          description: savedPath ? `Saved to ${savedPath}` : `"${artboard.name}" has been downloaded.`,
+          title: t('toasts.artboardExported'),
+          description: savedPath ? t('toasts.savedTo', { path: savedPath }) : t('toasts.artboardDownloaded', { name: artboard.name }),
           variant: "default",
         });
 
       } catch (error) {
         console.error("Error exporting artboard:", artboard.name, error);
         toast({
-          title: "Export Error",
-          description: `Failed to export artboard "${artboard.name}". See console for details.`,
+          title: t('toasts.exportError'),
+          description: t('toasts.exportArtboardFailed', { name: artboard.name }),
           variant: "destructive",
         });
       }
@@ -1500,7 +1511,7 @@ export function OpenScreenshotGeneratorLayout() {
     let exportDir: string | null | undefined;
     const totalFiles = (asIs ? selectedCount : 0) + generateFormats.length * selectedCount;
     if (isTauri() && totalFiles > 1) {
-      exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
+      exportDir = await pickExportDirectory(t('toasts.pickArtboardFolder'));
       if (exportDir === null) return;
     }
 
@@ -1512,8 +1523,8 @@ export function OpenScreenshotGeneratorLayout() {
     });
 
     toast({
-      title: "Export Process Initiated",
-      description: `Generating images... This might take a moment.`,
+      title: t('toasts.exportInitiated'),
+      description: t('toasts.exportInitiatedDesc'),
       variant: "default",
     });
 
@@ -1547,8 +1558,8 @@ export function OpenScreenshotGeneratorLayout() {
     } catch (error) {
       console.error("Error during multi-format export:", error);
       toast({
-        title: "Export Error",
-        description: "Something went wrong during export. See console for details.",
+        title: t('toasts.exportError'),
+        description: t('toasts.exportErrorDesc'),
         variant: "destructive",
       });
     } finally {
@@ -1612,10 +1623,10 @@ export function OpenScreenshotGeneratorLayout() {
     });
     if (boards.length === 0) {
       toast({
-        title: 'Nothing to export',
+        title: t('toasts.nothingToExport'),
         description: request.rawRecordingOnly
-          ? 'App Store safe mode needs a screen recording on an artboard.'
-          : 'Add a screen recording, gesture or animation first.',
+          ? t('toasts.safeModeNeedsRecording')
+          : t('toasts.addRecordingFirst'),
         variant: 'destructive',
       });
       return;
@@ -1623,7 +1634,7 @@ export function OpenScreenshotGeneratorLayout() {
 
     let exportDir: string | null | undefined;
     if (isTauri() && boards.length > 1) {
-      exportDir = await pickExportDirectory('Choose a folder for the exported videos');
+      exportDir = await pickExportDirectory(t('toasts.pickVideoFolder'));
       if (exportDir === null) return;
     }
 
@@ -1677,18 +1688,18 @@ export function OpenScreenshotGeneratorLayout() {
           : await saveBlobToDisk(blob, filename);
         if (savedPath === null) continue; // user cancelled this file's save dialog
         toast({
-          title: 'Video Exported',
-          description: savedPath ? `Saved to ${savedPath}` : `"${filename}" has been downloaded.`,
+          title: t('toasts.videoExported'),
+          description: savedPath ? t('toasts.savedTo', { path: savedPath }) : t('toasts.videoDownloaded', { name: filename }),
         });
       }
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        toast({ title: 'Video export cancelled' });
+        toast({ title: t('toasts.videoExportCancelled') });
       } else {
         console.error('Video export failed:', error);
         toast({
-          title: 'Video Export Failed',
-          description: error instanceof Error ? error.message : 'See console for details.',
+          title: t('toasts.videoExportFailed'),
+          description: error instanceof Error ? error.message : t('toasts.seeConsole'),
           variant: 'destructive',
         });
       }
@@ -1745,21 +1756,21 @@ export function OpenScreenshotGeneratorLayout() {
           ));
           setSelectedElementIdsOnActiveArtboard([]);
           toast({
-            title: removedCount === 1 ? "Element Deleted" : "Elements Deleted",
+            title: removedCount === 1 ? t('toasts.elementDeleted') : t('toasts.elementsDeleted'),
             description: removedCount === 1
-              ? "Element was removed from the artboard."
-              : `${removedCount} elements were removed from the artboard.`,
+              ? t('toasts.elementDeletedDesc')
+              : t('toasts.elementsDeletedDesc', { count: removedCount }),
           });
         } else {
-          toast({title: "Cannot Delete Element", description: "Selected element not found in artboard.", variant: "destructive"});
+          toast({title: t('toasts.cannotDeleteElement'), description: t('toasts.elementNotFound'), variant: "destructive"});
         }
       }
     } else if (activeArtboardId) { 
       handleDeleteArtboard(activeArtboardId); 
     } else {
-      toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
+      toast({title: t('toasts.cannotDelete'), description: t('toasts.noArtboardOrElement'), variant: "destructive"});
     }
-  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, artboards, toast, handleArtboardsUpdate]);
+  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, artboards, toast, handleArtboardsUpdate, t]);
 
   // Arrow-key nudging: arrows move the selection 1 artboard px, Shift+arrows
   // 10 px. One history commit per press via handleArtboardsUpdate.
@@ -1919,9 +1930,9 @@ export function OpenScreenshotGeneratorLayout() {
       if (artboardComponent && artboardComponent.deleteElementByIdG) {
         artboardComponent.deleteElementByIdG(elementId);
         setSelectedElementIdsOnActiveArtboard((prev) => prev.filter((id) => id !== elementId));
-        toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
+        toast({ title: t('toasts.elementDeleted'), description: t('toasts.elementDeletedDesc') });
       } else {
-        toast({ title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive" });
+        toast({ title: t('toasts.cannotDeleteElement'), description: t('toasts.artboardRefNotFound'), variant: "destructive" });
       }
     }
   };
@@ -1978,8 +1989,8 @@ export function OpenScreenshotGeneratorLayout() {
   const handleUpdateArtboardSize = (width: number, height: number, scaleContent = true) => {
     if (width < 100 || height < 100 || width > 5000 || height > 5000) {
       toast({ 
-        title: "Invalid Dimensions", 
-        description: "Width and height must be between 100 and 5000 pixels.",
+        title: t('toasts.invalidDimensions'), 
+        description: t('toasts.invalidDimensionsDesc', { min: 100, max: 5000 }),
         variant: "destructive"
       });
       return;
@@ -2005,10 +2016,10 @@ export function OpenScreenshotGeneratorLayout() {
     pushToHistory(repositionedArtboards);
     
     toast({ 
-      title: "Artboard Size Updated", 
+      title: t('toasts.sizeUpdated'), 
       description: scaleContent
-        ? `All artboards resized to ${width} × ${height} pixels with content scaled to fit.`
-        : `All artboards resized to ${width} × ${height} pixels`
+        ? t('toasts.sizeUpdatedScaled', { width, height })
+        : t('toasts.sizeUpdatedPlain', { width, height })
     });
   };
 
@@ -2044,8 +2055,8 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (samples.length === 0) {
       toast({
-        title: "No text found",
-        description: "There are no text elements to translate in the selected artboards."
+        title: t('toasts.noTextFound'),
+        description: t('toasts.noTextFoundDesc')
       });
       return;
     }
@@ -2068,8 +2079,8 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
       toast({
-        title: "Nothing to translate",
-        description: `The text is already in ${getLanguageName(targetLanguage)}.`
+        title: t('toasts.nothingToTranslate'),
+        description: t('toasts.alreadyInLanguage', { language: getLanguageName(targetLanguage) })
       });
       return;
     }
@@ -2137,26 +2148,26 @@ export function OpenScreenshotGeneratorLayout() {
         handleArtboardsUpdate(newArtboards);
       }
       toast({
-        title: "Rate limit exceeded",
-        description: `Successfully translated ${successCount} element(s) before hitting the rate limit. Please wait a minute before trying again.`,
+        title: t('toasts.rateLimitExceeded'),
+        description: t('toasts.rateLimitDesc', { count: successCount }),
         variant: "destructive"
       });
     } else if (successCount > 0) {
       handleArtboardsUpdate(newArtboards);
       toast({
-        title: "Translation complete",
-        description: `Successfully translated ${successCount} text element(s).${failCount > 0 ? ` Failed to translate ${failCount} element(s).` : ''}`
+        title: t('toasts.translationComplete'),
+        description: `${t('toasts.translationCompleteDesc', { count: successCount })}${failCount > 0 ? t('toasts.translationFailedPart', { count: failCount }) : ''}`
       });
     } else if (failCount > 0) {
       toast({
-        title: "Translation failed",
-        description: "Failed to translate text elements. Please try again later.",
+        title: t('toasts.translationFailed'),
+        description: t('toasts.translationFailedDesc'),
         variant: "destructive"
       });
     } else {
       toast({
-        title: "No text found",
-        description: "There are no text elements to translate in the selected artboards."
+        title: t('toasts.noTextFound'),
+        description: t('toasts.noTextFoundDesc')
       });
     }
   };
@@ -2178,8 +2189,8 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (!owner || !element || element.type !== 'text' || !element.content?.trim()) {
       toast({
-        title: "Nothing to translate",
-        description: "This text element is empty or no longer on the canvas."
+        title: t('toasts.nothingToTranslate'),
+        description: t('toasts.nothingToTranslateEmpty')
       });
       return;
     }
@@ -2194,8 +2205,8 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
       toast({
-        title: "Nothing to translate",
-        description: `The text is already in ${getLanguageName(targetLanguage)}.`
+        title: t('toasts.nothingToTranslate'),
+        description: t('toasts.alreadyInLanguage', { language: getLanguageName(targetLanguage) })
       });
       return;
     }
@@ -2207,10 +2218,10 @@ export function OpenScreenshotGeneratorLayout() {
     } catch (e: any) {
       console.error("Failed to translate element", elementId, e);
       toast({
-        title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
+        title: e?.status === 429 ? t('toasts.rateLimitExceeded') : t('toasts.translationFailed'),
         description: e?.status === 429
-          ? "Please wait a minute before trying again."
-          : "Failed to translate this text element. Please try again later.",
+          ? t('toasts.rateLimitWait')
+          : t('toasts.translationFailedElement'),
         variant: "destructive"
       });
       return;
@@ -2240,8 +2251,8 @@ export function OpenScreenshotGeneratorLayout() {
     );
 
     toast({
-      title: "Translation complete",
-      description: `Text translated to ${getLanguageName(targetLanguage)}.`
+      title: t('toasts.translationComplete'),
+      description: t('toasts.textTranslatedTo', { language: getLanguageName(targetLanguage) })
     });
   };
 
@@ -2293,10 +2304,10 @@ export function OpenScreenshotGeneratorLayout() {
     if (elementsToCopy.length > 0) {
       copyElementsToClipboard(elementsToCopy);
       toast({
-        title: "Copied",
+        title: t('toasts.copied'),
         description: elementsToCopy.length === 1
-          ? `${elementsToCopy[0].type} element copied to clipboard.`
-          : `${elementsToCopy.length} elements copied to clipboard.`,
+          ? t('toasts.copiedOne', { type: elementsToCopy[0].type })
+          : t('toasts.copiedMany', { count: elementsToCopy.length }),
       });
     }
   };
@@ -2344,15 +2355,15 @@ export function OpenScreenshotGeneratorLayout() {
       }
       setSelectedElementIdsOnActiveArtboard(newElements.map(el => el.id));
       toast({
-        title: "Pasted",
+        title: t('toasts.pasted'),
         description: newElements.length === 1
-          ? `${newElements[0].type} element pasted to artboard.`
-          : `${newElements.length} elements pasted to artboard.`,
+          ? t('toasts.pastedOne', { type: newElements[0].type })
+          : t('toasts.pastedMany', { count: newElements.length }),
       });
     } else if (!artboardId) {
       toast({
-        title: "Cannot Paste",
-        description: "Please select an artboard first.",
+        title: t('toasts.cannotPaste'),
+        description: t('toasts.selectArtboardFirst'),
         variant: "destructive"
       });
     }
@@ -2502,14 +2513,14 @@ export function OpenScreenshotGeneratorLayout() {
 
         if (success) {
           toast({
-            title: "Project Imported",
-            description: `Project "${importedName}" has been imported successfully.`,
+            title: t('toasts.projectImported'),
+            description: t('toasts.projectImportedDesc', { name: importedName }),
             variant: "default",
           });
         } else {
           toast({
-            title: "Import Failed",
-            description: "There was an error loading the imported project.",
+            title: t('toasts.importFailed'),
+            description: t('toasts.importFailedDesc'),
             variant: "destructive",
           });
         }
@@ -2517,8 +2528,8 @@ export function OpenScreenshotGeneratorLayout() {
       } catch (error) {
         console.error("Error importing project:", error);
         toast({
-          title: "Import Failed",
-          description: error instanceof Error ? error.message : "There was an error reading or parsing the JSON file.",
+          title: t('toasts.importFailed'),
+          description: error instanceof Error ? error.message : t('toasts.importParseError'),
           variant: "destructive",
         });
       }
@@ -2596,15 +2607,13 @@ const generateRandomProjectName = (): string => {
                     size="icon"
                     className="-ml-2 h-8 w-8 shrink-0"
                     onClick={() => setDialogView('templates')}
-                    aria-label="Back"
+                    aria-label={t('common.back')}
                   >
                     <ChevronLeftIcon className="h-4 w-4" />
                   </Button>
                   <div className="min-w-0 flex-1 text-left">
-                    <DialogTitle>Design with the AI agent</DialogTitle>
-                    <DialogDescription>
-                      Upload your screenshots, say what you want, and let the agent build the project.
-                    </DialogDescription>
+                    <DialogTitle>{t('gallery.agentViewTitle')}</DialogTitle>
+                    <DialogDescription>{t('gallery.agentViewDesc')}</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
@@ -2613,9 +2622,9 @@ const generateRandomProjectName = (): string => {
               // kept for the dialog's accessible name. sr-only takes it out of
               // flow, so it costs no vertical space either.
               <>
-                <DialogTitle className="sr-only">Start a new project</DialogTitle>
+                <DialogTitle className="sr-only">{t('gallery.startDialogTitle')}</DialogTitle>
                 <DialogDescription className="sr-only">
-                  Let the AI agent build it, choose a template, or start with a blank canvas.
+                  {t('gallery.startDialogDesc')}
                 </DialogDescription>
               </>
             )}
@@ -2661,10 +2670,10 @@ const generateRandomProjectName = (): string => {
                     emptyState={
                       <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
                         <p className="max-w-sm text-sm text-muted-foreground">
-                          {`No ${cat.label} templates yet.`}{cat.blurb ? ` ${cat.blurb}` : ''}
+                          {t('gallery.emptyCategory', { category: cat.label })}{cat.blurb ? ` ${cat.blurb}` : ''}
                         </p>
                         <Button variant="outline" onClick={() => handleSelectTemplate(createBlankProject(cat.defaultSize))}>
-                          {`Start blank (${cat.defaultSize.width} × ${cat.defaultSize.height})`}
+                          {t('gallery.startBlankSize', { width: cat.defaultSize.width, height: cat.defaultSize.height })}
                         </Button>
                       </div>
                     }
@@ -2679,7 +2688,7 @@ const generateRandomProjectName = (): string => {
             <div className="grid shrink-0 items-stretch gap-4 border-t p-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
               {/* Recent projects, laid out in two columns so they take less height. */}
               <div className="min-w-0">
-                <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('gallery.recentProjects')}</h3>
                 {recentProjects.length > 0 ? (
                   <ScrollArea className="h-[20vh]">
                     <ul className="grid grid-cols-1 gap-1.5 pr-3 sm:grid-cols-2">
@@ -2699,7 +2708,7 @@ const generateRandomProjectName = (): string => {
                             }}
                           >
                             <div className="truncate font-medium">{project.name}</div>
-                            <div className="truncate text-xs text-muted-foreground">Saved on: {project.timestamp.toLocaleString()}</div>
+                            <div className="truncate text-xs text-muted-foreground">{t('gallery.savedOn', { date: project.timestamp.toLocaleString() })}</div>
                           </div>
                           <Button
                             variant="ghost"
@@ -2711,7 +2720,7 @@ const generateRandomProjectName = (): string => {
                             }}
                             // Disable delete button for the currently active project
                             disabled={project.id === activeProjectId}
-                            title={project.id === activeProjectId ? "Cannot delete the currently open project" : "Delete project"}
+                            title={project.id === activeProjectId ? t('gallery.cannotDeleteOpen') : t('gallery.deleteProject')}
                           >
                             <Trash2Icon className="h-4 w-4" />
                           </Button>
@@ -2720,7 +2729,7 @@ const generateRandomProjectName = (): string => {
                     </ul>
                   </ScrollArea>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No recent projects found.</p>
+                  <p className="text-sm text-muted-foreground">{t('gallery.noRecent')}</p>
                 )}
               </div>
               {/* AI agent and blank-canvas entry points, stacked as two rows. */}
@@ -2741,18 +2750,16 @@ const generateRandomProjectName = (): string => {
         <AlertDialog open={!!projectToDelete} onOpenChange={(open) => !open && setProjectToDelete(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete this project. This action cannot be undone.
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t('gallery.deleteConfirmTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('gallery.deleteConfirmDesc')}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
               <AlertDialogAction 
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => projectToDelete && handleDeleteProject(projectToDelete)}
               >
-                Delete
+                {t('common.delete')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -3364,7 +3371,7 @@ const generateRandomProjectName = (): string => {
               <div className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
                 {/* Wraps rather than truncates: the name is too long for one line here. */}
                 <span className="text-sm font-semibold leading-tight tracking-tight">Open Screenshot Generator</span>
-                <span className="text-xs leading-tight text-muted-foreground">Canva for App Store &amp; Play Store graphics</span>
+                <span className="text-xs leading-tight text-muted-foreground">{t('chrome.tagline')}</span>
               </div>
             </div>
           </SidebarHeader>
@@ -3374,7 +3381,7 @@ const generateRandomProjectName = (): string => {
                 if (activeArtboardId) {
                   handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
                 } else {
-                  toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
+                  toast({ title: t('toasts.noArtboardActive'), description: t('toasts.selectOrCreateArtboard'), variant: "destructive" });
                 }
               }}
             />
@@ -3384,7 +3391,7 @@ const generateRandomProjectName = (): string => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    tooltip={accountSession ? `Account, ${accountSession.account.name}` : 'Account'}
+                    tooltip={accountSession ? t('chrome.accountTooltipNamed', { name: accountSession.account.name }) : t('chrome.account')}
                     className="w-full"
                     onClick={() => openAccountDialog()}
                   >
@@ -3401,14 +3408,14 @@ const generateRandomProjectName = (): string => {
                       <UserIcon />
                     )}
                     <span className="truncate group-data-[collapsible=icon]:hidden">
-                      {accountSession ? accountSession.account.name : 'Account'}
+                      {accountSession ? accountSession.account.name : t('chrome.account')}
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
+                  <SidebarMenuButton tooltip={t('chrome.about')} className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
-                    <span className="group-data-[collapsible=icon]:hidden">About</span>
+                    <span className="group-data-[collapsible=icon]:hidden">{t('chrome.about')}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -3485,7 +3492,7 @@ const generateRandomProjectName = (): string => {
                   size="icon"
                   className="h-8 w-8 rounded-full"
                   onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-                  title="Zoom Out"
+                  title={t('chrome.zoomOut')}
                 >
                   <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
@@ -3493,7 +3500,7 @@ const generateRandomProjectName = (): string => {
                   type="button"
                   onClick={() => setCanvasZoom(1)}
                   className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
-                  title="Reset zoom to 100%"
+                  title={t('chrome.resetZoom')}
                 >
                   {Math.round(canvasZoom * 100)}%
                 </button>
@@ -3502,7 +3509,7 @@ const generateRandomProjectName = (): string => {
                   size="icon"
                   className="h-8 w-8 rounded-full"
                   onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-                  title="Zoom In"
+                  title={t('chrome.zoomIn')}
                 >
                   <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
@@ -3530,14 +3537,14 @@ const generateRandomProjectName = (): string => {
             {isRightDockOpen ? (
               <div className="flex h-full w-80 flex-shrink-0 flex-col border-l bg-card" data-export-exclude>
                 <div className="flex h-9 shrink-0 items-center justify-between border-b pl-3 pr-1.5">
-                  <span className="text-sm font-semibold">Properties</span>
+                  <span className="text-sm font-semibold">{t('chrome.properties')}</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
                     onClick={() => setRightDockOpen(false)}
-                    title="Collapse right panel"
-                    aria-label="Collapse right panel"
+                    title={t('chrome.collapsePanel')}
+                    aria-label={t('chrome.collapsePanel')}
                   >
                     <PanelRightCloseIcon className="h-4 w-4" />
                   </Button>
@@ -3561,7 +3568,7 @@ const generateRandomProjectName = (): string => {
                   <div
                     role="separator"
                     aria-orientation="horizontal"
-                    title="Drag to resize"
+                    title={t('chrome.dragToResize')}
                     className="group relative h-2 shrink-0 cursor-row-resize touch-none border-y bg-muted/50 hover:bg-primary/15"
                     onPointerDown={(e) => {
                       e.preventDefault();
@@ -3624,22 +3631,22 @@ const generateRandomProjectName = (): string => {
                   size="icon"
                   className="h-6 w-6"
                   onClick={() => setRightDockOpen(true)}
-                  title="Expand right panel"
-                  aria-label="Expand right panel"
+                  title={t('chrome.expandPanel')}
+                  aria-label={t('chrome.expandPanel')}
                 >
                   <PanelRightOpenIcon className="h-4 w-4" />
                 </Button>
                 <div className="mt-1 h-px w-5 bg-border" />
-                {(['Properties', 'Layers'] as const).map((label) => (
+                {(['chrome.properties', 'chrome.layers'] as const).map((labelKey) => (
                   <button
-                    key={label}
+                    key={labelKey}
                     type="button"
                     className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     style={{ writingMode: 'vertical-rl' }}
                     onClick={() => setRightDockOpen(true)}
-                    title={`Open ${label}`}
+                    title={t('chrome.openLabel', { label: t(labelKey) })}
                   >
-                    {label}
+                    {t(labelKey)}
                   </button>
                 ))}
               </div>
@@ -3702,15 +3709,15 @@ const generateRandomProjectName = (): string => {
           >
             <DialogContent className="max-w-3xl">
               <DialogHeader>
-                <DialogTitle className="sr-only">Pick a template</DialogTitle>
+                <DialogTitle className="sr-only">{t('proposal.title')}</DialogTitle>
                 <DialogDescription className="sr-only">
-                  We place your dropped screenshots in the device frames of the template you pick.
+                  {t('gallery.bulkDropDesc')}
                 </DialogDescription>
               </DialogHeader>
               {bulkDropReading ? (
                 <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
                   <Loader2Icon className="h-4 w-4 animate-spin" />
-                  Reading your images...
+                  {t('gallery.readingImages')}
                 </div>
               ) : (
                 <TemplateProposalPicker
@@ -3741,17 +3748,13 @@ const generateRandomProjectName = (): string => {
                   <Logo withBackground className="h-12 w-12" />
                   <div className="text-left">
                     <DialogTitle>Open Screenshot Generator</DialogTitle>
-                    <DialogDescription>Version {packageJson.version}</DialogDescription>
+                    <DialogDescription>{t('about.version', { version: packageJson.version })}</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
               <div className="space-y-3 text-sm text-muted-foreground">
-                <p>
-                  A free, open-source editor for designing app store screenshots. Lay out artboards,
-                  drop your screenshots into device frames, automatically translate your text into 50+ languages, and export PNGs sized for Google Play
-                  and the Apple App Store.
-                </p>
-                <p>Projects are saved locally in your browser. Nothing is uploaded anywhere.</p>
+                <p>{t('about.body1')}</p>
+                <p>{t('about.body2')}</p>
               </div>
               <DialogFooter className="gap-2 sm:justify-between">
                 <Button variant="outline" asChild>
@@ -3767,10 +3770,10 @@ const generateRandomProjectName = (): string => {
                       }
                     }}
                   >
-                    View on GitHub
+                    {t('about.viewOnGithub')}
                   </a>
                 </Button>
-                <Button onClick={() => setIsAboutOpen(false)}>Close</Button>
+                <Button onClick={() => setIsAboutOpen(false)}>{t('common.close')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

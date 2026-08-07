@@ -6,6 +6,7 @@ import { UploadCloudIcon, ClapperboardIcon } from 'lucide-react';
 import type { VideoElementProps } from '@/types/artboard';
 import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/i18n';
 import { withBasePath } from '@/lib/basePath';
 
 interface VideoElementComponentProps {
@@ -19,6 +20,7 @@ interface VideoElementComponentProps {
 export const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm';
 
 export function VideoElement({ element, onUpdate, isSelected }: VideoElementComponentProps) {
+  const t = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -48,8 +50,8 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
       });
     } catch (error) {
       toast({
-        title: 'Could not load video',
-        description: error instanceof Error ? error.message : 'The file could not be read.',
+        title: t('elements.couldNotLoadVideo'),
+        description: error instanceof Error ? error.message : t('elements.fileCouldNotBeRead'),
         variant: 'destructive',
       });
     } finally {
@@ -91,7 +93,7 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
                 className="text-xs bg-background/90 hover:bg-background"
               >
                 <UploadCloudIcon className="w-3 h-3 mr-1" />
-                Change Recording
+                {t('elements.changeRecording')}
               </Button>
             </div>
           )}
@@ -100,7 +102,7 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
         <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground border border-dashed border-muted-foreground/20 rounded-lg">
           <ClapperboardIcon className="w-1/4 h-1/4 opacity-25 mb-2" />
           <p className="text-xs text-center px-2 opacity-50">
-            {element.mediaId ? 'Recording not found in this browser' : 'No recording yet'}
+            {element.mediaId ? t('elements.recordingNotFound') : t('elements.noRecordingYet')}
           </p>
           {isSelected && (
             <Button
@@ -111,7 +113,7 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
               onMouseDown={(e) => e.stopPropagation()}
             >
               <UploadCloudIcon className="w-3 h-3 mr-1" />
-              Upload Recording
+              {t('elements.uploadRecording')}
             </Button>
           )}
         </div>

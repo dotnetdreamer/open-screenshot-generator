@@ -53,6 +53,7 @@ import {
   type ColoredDeviceTileDef,
 } from '@/lib/device3dPresets';
 import { withBasePath } from '@/lib/basePath';
+import { useT } from '@/i18n';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -130,12 +131,14 @@ const WATCH_3D_PREVIEWS = ['front-right-black', 'front-left-white', 'side-right-
 const MAC_3D_PREVIEWS = ['macbook-front-right-black', 'imac-front-right-black', 'macbook-upright-right-white', 'imac-side-left-white', 'macbook-side-right-black', 'macbook-tilted-right-black'];
 
 /** Category card for the device library overview (mini previews + label). */
-const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void }> = ({ label, previews, onOpen }) => (
+const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void }> = ({ label, previews, onOpen }) => {
+  const t = useT();
+  return (
   <button
     type="button"
     onClick={onOpen}
     className="flex flex-col items-center gap-1.5 group"
-    title={`Browse ${label}`}
+    title={t('palette.browseCategory', { label })}
   >
     <div className="w-full aspect-square rounded-xl bg-accent/10 group-hover:bg-accent/25 transition-colors p-3 grid grid-cols-3 grid-rows-2 gap-2 place-items-center text-foreground/90">
       {previews.slice(0, 6).map((p, i) => (
@@ -144,7 +147,8 @@ const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[];
     </div>
     <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{label}</span>
   </button>
-);
+  );
+};
 
 /** Tile for a colored flat device preset. */
 const ColoredDeviceTile: React.FC<{ def: ColoredDeviceTileDef; onDragStart: PaletteDragStart }> = ({ def, onDragStart }) => {
@@ -173,6 +177,8 @@ const ImageLibraryTile: React.FC<{
   item: LibraryImageDef;
   onDragStart: PaletteDragStart;
 }> = ({ item, onDragStart }) => {
+  const t = useT();
+  const addLabel = t('palette.addItem', { label: item.label });
   const styleProps = {
     imageSrc: item.src,
     imageAlt: item.label,
@@ -186,8 +192,8 @@ const ImageLibraryTile: React.FC<{
       draggable
       onDragStart={(e) => onDragStart(e, 'image', undefined, styleProps)}
       onClick={() => (onDragStart as any)(null, 'image', undefined, styleProps)}
-      title={`Add ${item.label}`}
-      aria-label={`Add ${item.label}`}
+      title={addLabel}
+      aria-label={addLabel}
     >
       <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
         <img src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
@@ -219,6 +225,7 @@ const DraggableItem: React.FC<{
   styleProps?: Record<string, any>
 }> =
   ({ onDragStart, type, subType, label, icon, className, styleProps }) => {
+  const t = useT();
   return (
     <Button
       variant="ghost"
@@ -226,7 +233,7 @@ const DraggableItem: React.FC<{
       draggable
       onDragStart={(e) => onDragStart(e, type, subType, styleProps)}
       onClick={() => (onDragStart as any)(null, type, subType, styleProps)} // Fallback for click
-      title={`Add ${label}`}
+      title={t('palette.addItem', { label })}
     >
       <div className="flex flex-col items-center text-center w-full">
         <div className="p-2 rounded-md bg-accent/10 mb-1">{icon}</div>
@@ -263,6 +270,8 @@ const LibraryItemTile: React.FC<{
   item: LibraryElementDef;
   onDragStart: (e: React.DragEvent<HTMLElement>, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
 }> = ({ item, onDragStart }) => {
+  const t = useT();
+  const addLabel = t('palette.addItem', { label: item.label });
   return (
     <button
       type="button"
@@ -270,8 +279,8 @@ const LibraryItemTile: React.FC<{
       draggable
       onDragStart={(e) => onDragStart(e, 'shape', 'custom-svg', item.styleProps)}
       onClick={() => (onDragStart as any)(null, 'shape', 'custom-svg', item.styleProps)}
-      title={`Add ${item.label}`}
-      aria-label={`Add ${item.label}`}
+      title={addLabel}
+      aria-label={addLabel}
     >
       <ElementPreview item={item} className="w-full h-full" />
     </button>
@@ -280,12 +289,13 @@ const LibraryItemTile: React.FC<{
 
 /** Category card shown in the library overview grid (mini previews + label). */
 const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) => void }> = ({ category, onOpen }) => {
+  const t = useT();
   return (
     <button
       type="button"
       onClick={() => onOpen(category.id)}
       className="flex flex-col items-center gap-1.5 group"
-      title={`Browse ${category.label}`}
+      title={t('palette.browseCategory', { label: category.label })}
     >
       <div className="w-full aspect-square rounded-xl bg-accent/10 group-hover:bg-accent/25 transition-colors p-3 grid grid-cols-3 grid-rows-2 gap-2 place-items-center text-foreground/90">
         {category.items.slice(0, 6).map(item => (
@@ -298,6 +308,7 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
 };
 
 export function ElementPalette({ onAddElement }: ElementPaletteProps) {
+  const t = useT();
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
   const [openDeviceCategoryId, setOpenDeviceCategoryId] = useState<DeviceCategoryId | null>(null);
@@ -355,15 +366,15 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
         <TabsList className="grid w-[95%] grid-cols-3 mx-auto mt-2 h-auto p-0.5">
           <TabsTrigger value="elements" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <TypeIcon className="w-4 h-4" />
-            Elements
+            {t('palette.tabElements')}
           </TabsTrigger>
           <TabsTrigger value="devices" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <SmartphoneIcon className="w-4 h-4" />
-            Devices
+            {t('palette.tabDevices')}
           </TabsTrigger>
           <TabsTrigger value="images" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <ImageIcon className="w-4 h-4" />
-            Images
+            {t('palette.tabImages')}
           </TabsTrigger>
         </TabsList>
 
@@ -378,18 +389,17 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   onClick={() => setOpenCategoryId(null)}
                 >
                   <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <p className="text-[11px] text-muted-foreground mb-2 px-1">
-                  Build App Store preview videos: put your screen recording in a
-                  phone, add gesture hints, then export the MP4.
+                  {t('palette.appPreviewIntro')}
                 </p>
                 <div className="grid grid-cols-3 gap-2 pr-1">
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="video-device"
                     subType="iphone-15-pro"
-                    label="iPhone + Recording"
+                    label={t('palette.iphoneRecording')}
                     icon={<SmartphoneIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ name: 'iPhone Recording' }}
                   />
@@ -397,55 +407,55 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     onDragStart={handleDragStart}
                     type="video-device"
                     subType="android-punch-hole"
-                    label="Android + Recording"
+                    label={t('palette.androidRecording')}
                     icon={<SmartphoneIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ name: 'Android Recording', defaultSize: { width: 520, height: 1073 } }}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="video"
-                    label="Recording (no frame)"
+                    label={t('palette.recordingNoFrame')}
                     icon={<ClapperboardIcon className="w-6 h-6 text-primary" />}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="gesture"
-                    label="Tap"
+                    label={t('gestures.tap')}
                     icon={<PointerIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ gestureType: 'tap', name: 'Tap hint' }}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="gesture"
-                    label="Double Tap"
+                    label={t('gestures.doubleTap')}
                     icon={<PointerIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ gestureType: 'double-tap', name: 'Double tap hint' }}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="gesture"
-                    label="Swipe Left"
+                    label={t('gestures.swipeLeft')}
                     icon={<MoveHorizontalIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ gestureType: 'swipe-left', name: 'Swipe left hint', defaultSize: { width: 320, height: 160 } }}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="gesture"
-                    label="Swipe Right"
+                    label={t('gestures.swipeRight')}
                     icon={<MoveHorizontalIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ gestureType: 'swipe-right', name: 'Swipe right hint', defaultSize: { width: 320, height: 160 } }}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="gesture"
-                    label="Swipe Up"
+                    label={t('gestures.swipeUp')}
                     icon={<MoveVerticalIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ gestureType: 'swipe-up', name: 'Swipe up hint', defaultSize: { width: 160, height: 320 } }}
                   />
                   <DraggableItem
                     onDragStart={handleDragStart}
                     type="gesture"
-                    label="Swipe Down"
+                    label={t('gestures.swipeDown')}
                     icon={<MoveVerticalIcon className="w-6 h-6 text-primary" />}
                     styleProps={{ gestureType: 'swipe-down', name: 'Swipe down hint', defaultSize: { width: 160, height: 320 } }}
                   />
@@ -460,14 +470,14 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   onClick={() => setOpenCategoryId(null)}
                 >
                   <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <div className="grid grid-cols-3 gap-2 pr-1">
                     {/* Text Element */}
                     <DraggableItem
                       onDragStart={handleDragStart}
                       type="text"
-                      label="Text"
+                      label={t('palette.itemText')}
                       icon={<TypeIcon className="w-6 h-6 text-primary" />}
                     />
 
@@ -475,7 +485,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     <DraggableItem
                       onDragStart={handleDragStart}
                       type="image"
-                      label="Image"
+                      label={t('palette.itemImage')}
                       icon={<ImageIcon className="w-6 h-6 text-primary" />}
                     />
 
@@ -484,21 +494,21 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="rectangle"
-                      label="Rectangle"
+                      label={t('palette.itemRectangle')}
                       icon={<SquareIcon className="w-6 h-6 text-primary" />}
                     />
                     <DraggableItem
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="circle"
-                      label="Circle"
+                      label={t('palette.itemCircle')}
                       icon={<CircleIcon className="w-6 h-6 text-primary" />}
                     />
                     <DraggableItem
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="triangle"
-                      label="Triangle"
+                      label={t('palette.itemTriangle')}
                       icon={<TriangleIcon className="w-6 h-6 text-primary" />}
                     />
 
@@ -507,7 +517,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="star"
-                      label="Star"
+                      label={t('palette.itemStar')}
                       icon={<StarIcon className="w-6 h-6 text-primary" />}
                       styleProps={{ customPoints: 5 }}
                     />
@@ -515,21 +525,21 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="hexagon"
-                      label="Hexagon"
+                      label={t('palette.itemHexagon')}
                       icon={<HexagonIcon className="w-6 h-6 text-primary" />}
                     />
                     <DraggableItem
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="diamond"
-                      label="Diamond"
+                      label={t('palette.itemDiamond')}
                       icon={<DiamondIcon className="w-6 h-6 text-primary" />}
                     />
                     <DraggableItem
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="message"
-                      label="Message"
+                      label={t('palette.itemMessage')}
                       icon={<MessageSquareIcon className="w-6 h-6 text-primary" />}
                       styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)' }}
                     />
@@ -537,7 +547,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="speech-bubble"
-                      label="Speech"
+                      label={t('palette.itemSpeech')}
                       icon={<MessageCircleIcon className="w-6 h-6 text-primary" />}
                       styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)' }}
                     />
@@ -545,7 +555,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                       onDragStart={handleDragStart}
                       type="shape"
                       subType="pentagon"
-                      label="Pentagon"
+                      label={t('palette.itemPentagon')}
                       icon={<div className="w-6 h-6 flex items-center justify-center text-primary">5⬠</div>}
                     />
                 </div>
@@ -559,7 +569,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   onClick={() => setOpenCategoryId(null)}
                 >
                   <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <div className="grid grid-cols-3 gap-2 pr-1">
                   {openCategory.items.map(item => (
@@ -570,11 +580,11 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
             ) : (
               <Card className="shadow-md">
                 <CardHeader className="p-3">
-                  <CardTitle className="text-base">Element Library</CardTitle>
+                  <CardTitle className="text-base">{t('palette.elementLibrary')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
                   <DeviceCategoryCard
-                    label="Basic"
+                    label={t('palette.categoryBasic')}
                     onOpen={() => setOpenCategoryId('basic')}
                     previews={[
                       <TypeIcon key="t" className="w-5 h-5 text-primary" />,
@@ -586,7 +596,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     ]}
                   />
                   <DeviceCategoryCard
-                    label="App Preview"
+                    label={t('palette.categoryAppPreview')}
                     onOpen={() => setOpenCategoryId('app-preview')}
                     previews={[
                       <ClapperboardIcon key="v" className="w-5 h-5 text-primary" />,
@@ -617,7 +627,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   onClick={() => setOpenDeviceCategoryId(null)}
                 >
                   <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-3 pr-1">
                   {openDeviceCategoryId === '3d-iphone' &&
@@ -763,7 +773,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
             ) : (
               <Card className="shadow-md">
                 <CardHeader className="p-3">
-                  <CardTitle className="text-base">Device Library</CardTitle>
+                  <CardTitle className="text-base">{t('palette.deviceLibrary')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
                   <DeviceCategoryCard
@@ -809,7 +819,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     ))}
                   />
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['mockups']}
+                    label={t('palette.deviceMockups')}
                     onOpen={() => setOpenDeviceCategoryId('mockups')}
                     previews={[
                       <SmartphoneIcon key="a" className="w-5 h-5 text-primary" />,
@@ -837,7 +847,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   onClick={() => setOpenImageCategoryId(null)}
                 >
                   <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <UploadsPanel
                   assets={uploadedAssets}
@@ -854,7 +864,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   onClick={() => setOpenImageCategoryId(null)}
                 >
                   <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
-                  Back
+                  {t('common.back')}
                 </Button>
                 <div className="grid grid-cols-3 gap-2 pr-1">
                   {openImageCategory.items.map(item => (
@@ -865,11 +875,11 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
             ) : (
               <Card className="shadow-md">
                 <CardHeader className="p-3">
-                  <CardTitle className="text-base">Image Library</CardTitle>
+                  <CardTitle className="text-base">{t('palette.imageLibrary')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
                   <DeviceCategoryCard
-                    label="Your uploads"
+                    label={t('palette.yourUploads')}
                     onOpen={() => setOpenImageCategoryId('uploads')}
                     previews={
                       uploadedAssets.length > 0

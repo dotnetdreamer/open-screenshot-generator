@@ -23,6 +23,7 @@ import {
   type OperationStatus,
 } from '@/lib/ai/operationLog';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
+import { useT } from '@/i18n';
 
 interface RunHistoryDialogProps {
   open: boolean;
@@ -46,6 +47,7 @@ function whenLabel(t: number): string {
 }
 
 export function RunHistoryDialog({ open, onOpenChange }: RunHistoryDialogProps) {
+  const t = useT();
   const [ops, setOps] = useState<Operation[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -70,21 +72,18 @@ export function RunHistoryDialog({ open, onOpenChange }: RunHistoryDialogProps) 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg gap-0 p-0">
           <DialogHeader className="border-b px-5 py-4">
-            <DialogTitle>Recent runs</DialogTitle>
-            <DialogDescription>
-              Every generate request is saved here with its full timeline and screenshots. Open one
-              to inspect it or download an HTML report.
-            </DialogDescription>
+            <DialogTitle>{t('history.title')}</DialogTitle>
+            <DialogDescription>{t('history.description')}</DialogDescription>
           </DialogHeader>
 
           <div className="max-h-[55vh] overflow-y-auto px-2 py-2">
             {loading && ops.length === 0 ? (
               <div className="flex items-center justify-center py-10 text-muted-foreground">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('common.loading')}
               </div>
             ) : ops.length === 0 ? (
               <p className="py-10 text-center text-sm text-muted-foreground">
-                No runs yet. Generate something and it will show up here.
+                {t('history.empty')}
               </p>
             ) : (
               <ul className="space-y-1">
@@ -104,7 +103,7 @@ export function RunHistoryDialog({ open, onOpenChange }: RunHistoryDialogProps) 
                           </Badge>
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                          {op.instruction.trim() || 'No instruction'}
+                          {op.instruction.trim() || t('history.noInstruction')}
                         </span>
                       </span>
                       <span className="shrink-0 text-right text-xs text-muted-foreground">
@@ -125,7 +124,7 @@ export function RunHistoryDialog({ open, onOpenChange }: RunHistoryDialogProps) 
             <div className="flex justify-end border-t px-5 py-3">
               <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => void clearAll()}>
                 <Trash2 className="mr-2 h-4 w-4" />
-                Clear history
+                {t('history.clearHistory')}
               </Button>
             </div>
           )}

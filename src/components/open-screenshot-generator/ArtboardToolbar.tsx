@@ -12,6 +12,7 @@ import {
   Languages,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 interface ArtboardToolbarProps {
   artboardId: string;
@@ -38,6 +39,7 @@ export function ArtboardToolbar({
   canMoveRight,
   className,
 }: ArtboardToolbarProps) {
+  const t = useT();
   return (
     <TooltipProvider delayDuration={100}>
       <div
@@ -55,7 +57,7 @@ export function ArtboardToolbar({
               <PlusSquareIcon className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Add New Artboard After</p></TooltipContent>
+          <TooltipContent side="bottom"><p>{t('artboard.addAfter')}</p></TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -64,7 +66,7 @@ export function ArtboardToolbar({
               <CopyIcon className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Duplicate Artboard</p></TooltipContent>
+          <TooltipContent side="bottom"><p>{t('artboard.duplicate')}</p></TooltipContent>
         </Tooltip>
 
         {onTranslate && (
@@ -74,7 +76,7 @@ export function ArtboardToolbar({
                 <Languages className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom"><p>Translate Artboard</p></TooltipContent>
+            <TooltipContent side="bottom"><p>{t('artboard.translate')}</p></TooltipContent>
           </Tooltip>
         )}
 
@@ -90,7 +92,7 @@ export function ArtboardToolbar({
               <Trash2Icon className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Delete Artboard</p></TooltipContent>
+          <TooltipContent side="bottom"><p>{t('artboard.delete')}</p></TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -105,7 +107,7 @@ export function ArtboardToolbar({
               <ArrowLeftFromLineIcon className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Move Artboard Left</p></TooltipContent>
+          <TooltipContent side="bottom"><p>{t('artboard.moveLeft')}</p></TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -120,7 +122,7 @@ export function ArtboardToolbar({
               <ArrowRightFromLineIcon className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom"><p>Move Artboard Right</p></TooltipContent>
+          <TooltipContent side="bottom"><p>{t('artboard.moveRight')}</p></TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

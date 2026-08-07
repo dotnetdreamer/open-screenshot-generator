@@ -36,6 +36,7 @@ import { Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { findMatchingPreset } from '@/lib/sizePresets';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
+import { useT } from '@/i18n';
 
 interface ToolbarProps {
   onNewArtboard: () => void;
@@ -99,24 +100,25 @@ export function Toolbar({
   isTranslationEnabled = true,
   activeDeviceFormat,
 }: ToolbarProps) {
+  const t = useT();
   const deviceFormatLabel =
-    DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? 'Devices';
+    DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? t('toolbar.devices');
   // Canvas Size dialog (replaces the old inline width/height/apply controls)
   const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false);
   const matchedSizePreset = findMatchingPreset(initialArtboardSize);
   const sizeButtonLabel = initialArtboardSize
     ? `${initialArtboardSize.width} × ${initialArtboardSize.height}`
-    : 'Canvas Size';
+    : t('toolbar.canvasSize');
 
   // State for project name editing
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
-  const [editingProjectName, setEditingProjectName] = useState(currentProjectName || 'Untitled Project');
+  const [editingProjectName, setEditingProjectName] = useState(currentProjectName || t('toolbar.untitledProject'));
   const projectNameInputRef = useRef<HTMLInputElement>(null);
 
   // Update project name when it changes
   useEffect(() => {
-    setEditingProjectName(currentProjectName || 'Untitled Project');
-  }, [currentProjectName]);
+    setEditingProjectName(currentProjectName || t('toolbar.untitledProject'));
+  }, [currentProjectName, t]);
 
   // Focus input when editing starts
   useEffect(() => {
@@ -128,7 +130,7 @@ export function Toolbar({
 
   const handleProjectNameDoubleClick = () => {
     setIsEditingProjectName(true);
-    setEditingProjectName(currentProjectName || 'Untitled Project');
+    setEditingProjectName(currentProjectName || t('toolbar.untitledProject'));
   };
 
   const handleProjectNameSubmit = () => {
@@ -139,7 +141,7 @@ export function Toolbar({
   };
 
   const handleProjectNameCancel = () => {
-    setEditingProjectName(currentProjectName || 'Untitled Project');
+    setEditingProjectName(currentProjectName || t('toolbar.untitledProject'));
     setIsEditingProjectName(false);
   };
 
@@ -165,16 +167,16 @@ export function Toolbar({
             onKeyDown={handleProjectNameKeyDown}
             onBlur={handleProjectNameSubmit}
             className="h-8 w-48 text-sm font-medium"
-            placeholder="Project name..."
+            placeholder={t('toolbar.projectNamePlaceholder')}
           />
         ) : (
           <div 
             className="flex items-center space-x-1 cursor-pointer hover:bg-accent/50 rounded px-2 py-1"
             onDoubleClick={handleProjectNameDoubleClick}
-            title="Double-click to rename project"
+            title={t('toolbar.renameProjectTitle')}
           >
             <span className="text-sm font-medium text-foreground">
-              {currentProjectName || 'Untitled Project'}
+              {currentProjectName || t('toolbar.untitledProject')}
             </span>
           </div>
         )}
@@ -187,7 +189,7 @@ export function Toolbar({
           variant="outline"
           size="icon"
           onClick={onNewArtboard}
-          title="New Artboard"
+          title={t('toolbar.newArtboard')}
         >
           <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
@@ -196,7 +198,7 @@ export function Toolbar({
           variant="outline"
           size="icon"
           onClick={onSelectTemplate}
-          title="Select Template"
+          title={t('toolbar.selectTemplate')}
         >
           <LayoutTemplateIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
@@ -209,7 +211,7 @@ export function Toolbar({
           variant={activeTool === 'select' ? 'secondary' : 'outline'}
           size="icon"
           onClick={() => onSetActiveTool('select')}
-          title="Selection Tool (V)"
+          title={t('toolbar.selectionTool')}
         >
           <MousePointerIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
@@ -218,7 +220,7 @@ export function Toolbar({
           variant={activeTool === 'pan' ? 'secondary' : 'outline'}
           size="icon"
           onClick={() => onSetActiveTool('pan')}
-          title="Pan Tool (H)"
+          title={t('toolbar.panTool')}
         >
           <HandIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
@@ -233,7 +235,7 @@ export function Toolbar({
               variant="outline"
               className="h-10 gap-1 px-2.5"
               disabled={!canUndo && !canRedo}
-              title="History"
+              title={t('toolbar.history')}
             >
               <UndoIcon className="h-[1.2rem] w-[1.2rem]" />
               <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
@@ -242,12 +244,12 @@ export function Toolbar({
           <DropdownMenuContent align="start">
             <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
               <UndoIcon className="mr-2 h-4 w-4" />
-              Undo
+              {t('toolbar.undo')}
               <DropdownMenuShortcut>⌘Z</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
               <RedoIcon className="mr-2 h-4 w-4" />
-              Redo
+              {t('toolbar.redo')}
               <DropdownMenuShortcut>⇧⌘Z</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -262,7 +264,7 @@ export function Toolbar({
             (!isElementSelected && !isArtboardSelected) && "cursor-not-allowed"
           )}
           disabled={!isElementSelected && !isArtboardSelected}
-          title={isElementSelected ? "Delete Element (Delete)" : isArtboardSelected ? "Delete Artboard (Delete)" : "Select something to delete"}
+          title={isElementSelected ? t('toolbar.deleteElement') : isArtboardSelected ? t('toolbar.deleteArtboard') : t('toolbar.deleteNothing')}
         >
           <Trash2Icon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
@@ -278,8 +280,8 @@ export function Toolbar({
         onClick={() => setIsSizeDialogOpen(true)}
         title={
           matchedSizePreset
-            ? `Canvas size: ${sizeButtonLabel} · ${matchedSizePreset.label}`
-            : `Canvas size: ${sizeButtonLabel}`
+            ? t('toolbar.canvasSizeWithPreset', { size: sizeButtonLabel, preset: matchedSizePreset.label })
+            : t('toolbar.canvasSizePlain', { size: sizeButtonLabel })
         }
       >
         <RulerIcon className="h-4 w-4 opacity-80" />
@@ -307,28 +309,28 @@ export function Toolbar({
             <Button
               variant="outline"
               className="h-8"
-              title="Convert the project to another device format (canvas + mockups)"
+              title={t('toolbar.convertTitle')}
             >
               <SmartphoneIcon className="mr-1.5 h-4 w-4" />
               {deviceFormatLabel}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-xs">Convert project to</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs">{t('toolbar.convertLabel')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {DEVICE_FORMAT_PRESETS.map((preset, i) => (
               <React.Fragment key={preset.id}>
                 {preset.id === 'ipad-pro-13' && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-xs">App Store iPads</DropdownMenuLabel>
+                    <DropdownMenuLabel className="text-xs">{t('toolbar.appStoreIpads')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                   </>
                 )}
                 {preset.id === 'tablet-7' && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-xs">Play Store tablets</DropdownMenuLabel>
+                    <DropdownMenuLabel className="text-xs">{t('toolbar.playStoreTablets')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                   </>
                 )}
@@ -351,10 +353,10 @@ export function Toolbar({
         variant="outline"
         onClick={onPreview}
         className="h-8"
-        title="Preview final result"
+        title={t('toolbar.previewTitle')}
       >
         <EyeIcon className="mr-1.5 h-4 w-4" />
-        Preview
+        {t('toolbar.preview')}
       </Button>
 
       {onTranslate && (
@@ -363,10 +365,10 @@ export function Toolbar({
           onClick={onTranslate}
           disabled={!isTranslationEnabled}
           className="h-8"
-          title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
+          title={isTranslationEnabled ? t('toolbar.translateTitle') : t('toolbar.translateDisabledTitle')}
         >
           <GlobeIcon className="mr-1.5 h-4 w-4" />
-          Translate
+          {t('toolbar.translate')}
         </Button>
       )}
 
@@ -374,7 +376,7 @@ export function Toolbar({
         variant="outline"
         onClick={onImportJSON}
         className="h-8"
-        title="Import Project from JSON"
+        title={t('toolbar.importJsonTitle')}
       >
         <FolderOpenIcon className="mr-1.5 h-4 w-4" />
       </Button>
@@ -383,7 +385,7 @@ export function Toolbar({
         variant="outline" 
         onClick={onExportJSON} 
         className="h-8"
-        title="Export Project as JSON"
+        title={t('toolbar.exportJsonTitle')}
       >
         <FileTextIcon className="mr-1.5 h-4 w-4" />
       </Button>
@@ -401,8 +403,8 @@ export function Toolbar({
         className={cn('h-8', !isAccountConnected && 'opacity-50')}
         title={
           isAccountConnected
-            ? 'Save to account'
-            : 'Save to account, sign in to use this'
+            ? t('toolbar.saveToAccount')
+            : t('toolbar.saveToAccountSignIn')
         }
       >
         {isSavingToAccount ? (
@@ -416,7 +418,7 @@ export function Toolbar({
         variant="outline"
         onClick={onExport}
         className="h-8"
-        title="Export Artboards as Images"
+        title={t('toolbar.exportTitle')}
       >
         <DownloadIcon className="mr-1.5 h-4 w-4" />
       </Button>

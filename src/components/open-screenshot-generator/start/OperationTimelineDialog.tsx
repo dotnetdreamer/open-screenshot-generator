@@ -38,6 +38,7 @@ import {
   type TimelineEntry,
 } from '@/lib/ai/operationLog';
 import { renderOperationReportHtml } from '@/lib/ai/operationReport';
+import { useT } from '@/i18n';
 
 interface OperationTimelineDialogProps {
   operationId: string | null;
@@ -91,6 +92,7 @@ export function OperationTimelineDialog({
   open,
   onOpenChange,
 }: OperationTimelineDialogProps) {
+  const t = useT();
   const { op, loading, reload } = useOperation(operationId, open);
   const [zoom, setZoom] = useState<string | null>(null);
 
@@ -110,12 +112,12 @@ export function OperationTimelineDialog({
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2">
             <Info className="h-4 w-4 text-muted-foreground" />
-            Run timeline
+            {t('timeline.title')}
           </DialogTitle>
           <DialogDescription>
             {op
-              ? 'Everything that happened between the app and the provider for this request.'
-              : 'Loading this run.'}
+              ? t('timeline.descLoaded')
+              : t('timeline.descLoading')}
           </DialogDescription>
         </DialogHeader>
 
@@ -130,7 +132,7 @@ export function OperationTimelineDialog({
             <span className="text-muted-foreground">
               {formatDuration(operationDurationMs(op))}
             </span>
-            <span className="text-muted-foreground">{entries.length} events</span>
+            <span className="text-muted-foreground">{t('timeline.events', { count: entries.length })}</span>
           </div>
         )}
 
@@ -144,11 +146,11 @@ export function OperationTimelineDialog({
         <div className="max-h-[55vh] overflow-y-auto px-5 py-4">
           {loading && !op ? (
             <div className="flex items-center justify-center py-10 text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('common.loading')}
             </div>
           ) : entries.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No events were recorded for this run.
+              {t('timeline.noEvents')}
             </p>
           ) : (
             <ol className="space-y-2.5">
@@ -167,11 +169,11 @@ export function OperationTimelineDialog({
         <DialogFooter className="flex-row items-center justify-between border-t px-5 py-3 sm:justify-between">
           <Button variant="ghost" size="sm" onClick={() => void reload()} disabled={loading}>
             <RefreshCw className={cn('mr-2 h-4 w-4', loading && 'animate-spin')} />
-            Refresh
+            {t('common.refresh')}
           </Button>
           <Button size="sm" onClick={() => void download()} disabled={!op}>
             <Download className="mr-2 h-4 w-4" />
-            Download HTML report
+            {t('timeline.downloadReport')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -189,7 +191,7 @@ export function OperationTimelineDialog({
             onClick={() => setZoom(null)}
             className="fixed inset-0 z-[80] flex items-center justify-center p-6 focus:outline-none"
           >
-            <DialogTitle className="sr-only">Screenshot preview</DialogTitle>
+            <DialogTitle className="sr-only">{t('timeline.screenshotPreview')}</DialogTitle>
             {zoom && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -225,6 +227,7 @@ function TimelineRow({
   startedAt: number;
   onZoom: (src: string) => void;
 }) {
+  const t = useT();
   const meta = KIND_META[entry.kind];
   const Icon =
     entry.kind === 'message' && entry.direction === 'provider-to-app' ? ArrowLeft : meta.icon;
@@ -247,7 +250,7 @@ function TimelineRow({
           type="button"
           onClick={() => onZoom(entry.image!)}
           className="mt-2 block w-full overflow-hidden rounded border transition hover:opacity-90"
-          title="Click to enlarge"
+          title={t('timeline.clickToEnlarge')}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={entry.image} alt={entry.label} className="max-h-56 w-full object-contain bg-muted/30" />

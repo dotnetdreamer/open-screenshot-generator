@@ -4,6 +4,7 @@ import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 interface AgentPromoBannerProps {
   onStartAgent: () => void;
@@ -17,6 +18,7 @@ interface AgentPromoBannerProps {
  * stay visible and one click away, which is what most sessions still want.
  */
 export function AgentPromoBanner({ onStartAgent }: AgentPromoBannerProps) {
+  const t = useT();
   return (
     <button
       type="button"
@@ -37,14 +39,13 @@ export function AgentPromoBanner({ onStartAgent }: AgentPromoBannerProps) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold tracking-tight">Start with the AI agent</h3>
+            <h3 className="text-sm font-semibold tracking-tight">{t('promoBanner.title')}</h3>
             <span className="rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
-              New
+              {t('promoBanner.badge')}
             </span>
           </div>
           <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            Upload your screenshots and say what you want. Run it free with the built-in providers,
-            your Claude, ChatGPT or Gemini account, or your own API key.
+            {t('promoBanner.description')}
           </p>
         </div>
         {/* A span, not a Button: the whole card is already a <button>, and a
@@ -55,7 +56,7 @@ export function AgentPromoBanner({ onStartAgent }: AgentPromoBannerProps) {
             'shrink-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white'
           )}
         >
-          Open the agent
+          {t('promoBanner.cta')}
           <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
       </div>

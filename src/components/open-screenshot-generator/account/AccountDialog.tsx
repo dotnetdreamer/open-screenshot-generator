@@ -41,6 +41,7 @@ import {
   type CloudProviderId,
 } from '@/lib/account';
 import { hasGithubLogin } from '@/lib/account/providers/github';
+import { useT } from '@/i18n';
 
 const TOKEN_HELP_URL = 'https://github.com/settings/tokens?type=beta';
 
@@ -56,6 +57,7 @@ interface AccountDialogProps {
 export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: AccountDialogProps) {
   const { session, isSignedIn, signOut } = useAccount();
   const { toast } = useToast();
+  const t = useT();
 
   const [busyProvider, setBusyProvider] = useState<CloudProviderId | null>(null);
   const [showTokenField, setShowTokenField] = useState(false);
@@ -72,7 +74,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
     try {
       setProjects(await listAccountProjects());
     } catch (error) {
-      setListError(error instanceof Error ? error.message : 'Could not list your projects.');
+      setListError(error instanceof Error ? error.message : t('account.listErrorFallback'));
     } finally {
       setIsListing(false);
     }
@@ -99,7 +101,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
       return;
     }
     if (!provider.isConfigured()) {
-      toast({ title: `${provider.label} is not set up`, description: provider.configHint, variant: 'destructive' });
+      toast({ title: t('account.providerNotSetup', { provider: provider.label }), description: provider.configHint, variant: 'destructive' });
       return;
     }
 
@@ -114,12 +116,12 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
       setToken('');
       setShowTokenField(false);
       setDeviceCode(null);
-      toast({ title: `Connected to ${provider.label}`, description: `Signed in as ${next.account.name}.` });
+      toast({ title: t('account.connected', { provider: provider.label }), description: t('account.connectedDesc', { name: next.account.name }) });
     } catch (error) {
       if (!(error instanceof AccountCancelledError)) {
         toast({
-          title: `Could not connect to ${provider.label}`,
-          description: error instanceof Error ? error.message : 'Something went wrong.',
+          title: t('account.couldNotConnect', { provider: provider.label }),
+          description: error instanceof Error ? error.message : t('account.somethingWentWrong'),
           variant: 'destructive',
         });
       }
@@ -136,22 +138,22 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
     } finally {
       signOut();
       setProjects(null);
-      toast({ title: 'Signed out', description: 'Your projects stay in your own storage.' });
+      toast({ title: t('account.signedOut'), description: t('account.signedOutDesc') });
     }
   };
 
   const handleDelete = async (project: CloudProjectSummary) => {
-    if (!window.confirm(`Delete "${project.name}" from your ${session ? getProvider(session.provider).label : 'cloud'} storage? Your local copy stays.`)) {
+    if (!window.confirm(t('account.confirmDelete', { name: project.name, provider: session ? getProvider(session.provider).label : 'cloud' }))) {
       return;
     }
     try {
       await deleteAccountProject(project.remoteId);
       setProjects((current) => current?.filter((p) => p.remoteId !== project.remoteId) ?? null);
-      toast({ title: 'Deleted', description: `"${project.name}" was removed from your storage.` });
+      toast({ title: t('account.deleted'), description: t('account.deletedDesc', { name: project.name }) });
     } catch (error) {
       toast({
-        title: 'Could not delete',
-        description: error instanceof Error ? error.message : 'Something went wrong.',
+        title: t('account.couldNotDelete'),
+        description: error instanceof Error ? error.message : t('account.somethingWentWrong'),
         variant: 'destructive',
       });
     }
@@ -165,12 +167,12 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CloudIcon className="h-5 w-5" />
-            {isSignedIn ? 'Your account' : 'Save to your own storage'}
+            {isSignedIn ? t('account.titleSignedIn') : t('account.titleSignedOut')}
           </DialogTitle>
           <DialogDescription>
             {isSignedIn
-              ? `Projects are saved to your own ${providerLabel} storage. We never keep a copy.`
-              : 'Connect an account and your projects are saved to storage you own. Nothing is stored on our servers.'}
+              ? t('account.descSignedIn', { provider: providerLabel })
+              : t('account.descSignedOut')}
           </DialogDescription>
         </DialogHeader>
 
@@ -186,20 +188,20 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                 <AvatarFallback>{session.account.name.slice(0, 1).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">Welcome, {session.account.name}</p>
+                <p className="truncate font-medium">{t('account.welcome', { name: session.account.name })}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {session.account.email ? `${session.account.email}, ` : ''}connected to {providerLabel}
+                  {session.account.email ? `${session.account.email}, ` : ''}{t('account.connectedTo', { provider: providerLabel })}
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOutIcon className="mr-1.5 h-4 w-4" />
-                Sign out
+                {t('account.signOut')}
               </Button>
             </div>
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-medium">Projects in your {providerLabel}</h3>
+                <h3 className="text-sm font-medium">{t('account.projectsIn', { provider: providerLabel })}</h3>
                 <Button variant="ghost" size="sm" onClick={refreshProjects} disabled={isListing}>
                   {isListing ? (
                     <Loader2Icon className="h-4 w-4 animate-spin" />
@@ -212,12 +214,12 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
               {listError && <p className="text-sm text-destructive">{listError}</p>}
 
               {!listError && isListing && !projects && (
-                <p className="py-6 text-center text-sm text-muted-foreground">Loading your projects...</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">{t('account.loadingProjects')}</p>
               )}
 
               {!listError && projects?.length === 0 && (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  Nothing saved yet. Use &quot;Save to account&quot; in the toolbar.
+                  {t('account.nothingSaved')}
                 </p>
               )}
 
@@ -237,7 +239,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Open this project"
+                        title={t('account.openProject')}
                         onClick={() => {
                           onOpenProject?.(project.remoteId, project.name);
                           onOpenChange(false);
@@ -248,7 +250,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                       <Button
                         variant="ghost"
                         size="sm"
-                        title="Delete from your storage"
+                        title={t('account.deleteFromStorage')}
                         onClick={() => handleDelete(project)}
                       >
                         <Trash2Icon className="h-4 w-4" />
@@ -277,9 +279,9 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                     ) : (
                       <ProviderMark id={id} />
                     )}
-                    Continue with {provider.label}
+                    {t('account.continueWith', { provider: provider.label })}
                     {!provider.supportsMedia && (
-                      <span className="ml-auto text-xs text-muted-foreground">no video</span>
+                      <span className="ml-auto text-xs text-muted-foreground">{t('account.noVideo')}</span>
                     )}
                   </Button>
 
@@ -292,16 +294,15 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                       className="h-auto p-0 text-xs text-muted-foreground"
                       onClick={() => setShowTokenField(true)}
                     >
-                      Use a personal access token instead
+                      {t('account.useToken')}
                     </Button>
                   )}
 
                   {id === 'github' && showTokenField && !isTauri() && (
                     <div className="space-y-2 rounded-md border p-3">
                       <p className="text-xs text-muted-foreground">
-                        Create a fine-grained token with read and write access to Gists.
-                        {!hasGithubLogin() &&
-                          ' A token is needed here because no sign-in service is configured for this build.'}
+                        {t('account.tokenHelp')}
+                        {!hasGithubLogin() && ` ${t('account.tokenHelpNoService')}`}
                       </p>
                       <Input
                         type="password"
@@ -320,11 +321,11 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                           className="h-auto p-0 text-xs"
                           onClick={() => void openExternal(TOKEN_HELP_URL)}
                         >
-                          Create a token
+                          {t('account.createToken')}
                           <ExternalLinkIcon className="ml-1 h-3 w-3" />
                         </Button>
                         <Button size="sm" disabled={!token.trim() || !!busyProvider} onClick={() => handleSignIn('github')}>
-                          Connect
+                          {t('account.connect')}
                         </Button>
                       </div>
                     </div>
@@ -333,7 +334,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                   {id === 'github' && deviceCode && (
                     <div className="space-y-2 rounded-md border p-3 text-sm">
                       <p className="text-xs text-muted-foreground">
-                        Enter this code on GitHub to finish signing in. This window keeps waiting.
+                        {t('account.deviceCodeHelp')}
                       </p>
                       <p className="text-center text-lg font-mono tracking-widest">{deviceCode.userCode}</p>
                       <Button
@@ -342,7 +343,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                         className="w-full"
                         onClick={() => void openExternal(deviceCode.verificationUri)}
                       >
-                        Open {deviceCode.verificationUri.replace(/^https?:\/\//, '')}
+                        {t('account.openUrl', { url: deviceCode.verificationUri.replace(/^https?:\/\//, '') })}
                         <ExternalLinkIcon className="ml-1.5 h-3 w-3" />
                       </Button>
                     </div>
@@ -352,15 +353,14 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
             })}
 
             <p className="text-xs text-muted-foreground">
-              Google Drive stores full projects including screen recordings. GitHub stores the
-              design only, since gists cannot hold video.
+              {t('account.providersNote')}
             </p>
           </div>
         )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t('common.close')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,12 +1,14 @@
 "use client";
 import type React from 'react';
 import type { ShapeElementProps as ShapeElementType } from '@/types/artboard';
+import { useT } from '@/i18n';
 
 interface ShapeElementProps {
   element: ShapeElementType;
 }
 
 export function ShapeElement({ element }: ShapeElementProps) {
+  const t = useT();
   // Fix stroke width calculation to ensure it's properly applied
   const strokeWidth = element.strokeWidth > 0 ? element.strokeWidth : 0;
   const { shapeType, fillColor, strokeColor, size, scale } = element;
@@ -288,7 +290,7 @@ export function ShapeElement({ element }: ShapeElementProps) {
 
       {/* Fallback for unsupported shapes */}
       {!['rectangle', 'circle', 'triangle', 'message', 'speech-bubble', 'star', 'hexagon', 'pentagon', 'diamond', 'custom-polygon', 'custom-svg'].includes(element.shapeType) && (
-        <div style={commonStyles}>Unsupported shape</div>
+        <div style={commonStyles}>{t('elements.unsupportedShape')}</div>
       )}
     </div>
   );

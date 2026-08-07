@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 import { elementBounds } from '@/lib/elementAlignment';
+import { useT } from '@/i18n';
 
 interface CanvasAreaProps {
   artboards: ArtboardState[];
@@ -66,6 +67,7 @@ export function CanvasArea({
   // state for one frame first, which is what produced the "blank artboard then
   // real template" flash.
   const artboards = externalArtboards;
+  const t = useT();
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const contentInnerRef = useRef<HTMLDivElement>(null);
@@ -387,7 +389,7 @@ export function CanvasArea({
         if (imageFiles.length >= 2 && onImagesDroppedOnEmptyCanvas) {
           onImagesDroppedOnEmptyCanvas(imageFiles);
         } else {
-          toast({ title: "No Artboard Yet", description: "Start a project first, then drop your image onto an artboard." });
+          toast({ title: t('canvas.noArtboardYetTitle'), description: t('canvas.noArtboardYetDesc') });
         }
         return;
       }
@@ -396,15 +398,15 @@ export function CanvasArea({
         if (artboardComponent && (artboardComponent as any).addDroppedImageFiles) {
           (artboardComponent as any).addDroppedImageFiles(imageFiles, { x: e.clientX, y: e.clientY });
         } else {
-          toast({ title: "Error", description: "Could not add images. Artboard not found or ready.", variant: "destructive"});
+          toast({ title: t('canvas.errorTitle'), description: t('canvas.couldNotAddImages'), variant: "destructive"});
         }
       } else {
-        toast({ title: "No Artboard Selected", description: "Select an artboard, then drop your images on it.", variant: "destructive"});
+        toast({ title: t('canvas.noArtboardSelectedTitle'), description: t('canvas.noArtboardSelectedDesc'), variant: "destructive"});
       }
       return;
     }
     if (e.dataTransfer.files.length > 0) {
-      toast({ title: "Unsupported file", description: "Drop image files (PNG, JPEG, WebP, GIF or SVG). Recordings are added to video elements." });
+      toast({ title: t('canvas.unsupportedFileTitle'), description: t('canvas.unsupportedFileDesc') });
       return;
     }
     const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
@@ -421,10 +423,10 @@ export function CanvasArea({
             const dropPosition = { x: e.clientX, y: e.clientY };
             onAddElementToArtboard(activeArtboardId, type, subType, dropPosition, styleProps);
         } else {
-            toast({ title: "Error", description: "Could not add element. Artboard not found or ready.", variant: "destructive"});
+            toast({ title: t('canvas.errorTitle'), description: t('canvas.couldNotAddElement'), variant: "destructive"});
         }
     } else if (type) {
-        toast({ title: "No Artboard Selected", description: "Please select an artboard to add the element.", variant: "destructive"});
+        toast({ title: t('canvas.noArtboardSelectedTitle'), description: t('canvas.selectArtboardForElement'), variant: "destructive"});
     }
   };
 
@@ -505,7 +507,7 @@ export function CanvasArea({
             <div
               className="flex gap-4 p-2"
               role="status"
-              aria-label="Loading project"
+              aria-label={t('canvas.loadingProject')}
               data-export-exclude
             >
               {[0, 1, 2].map((i) => (
@@ -561,7 +563,7 @@ export function CanvasArea({
               isOpen={deleteDialogOpen}
               onOpenChange={setDeleteDialogOpen}
               onConfirmDelete={confirmDeleteArtboard}
-              artboardName={artboards.find(ab => ab.id === artboardToDelete)?.name || 'Untitled Artboard'}
+              artboardName={artboards.find(ab => ab.id === artboardToDelete)?.name || t('canvas.untitledArtboard')}
               elementCount={artboards.find(ab => ab.id === artboardToDelete)?.elements.length || 0}
             />
           )}

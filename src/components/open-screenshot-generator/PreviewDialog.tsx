@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { elementVisualStyle } from '@/lib/elementStyle';
+import { useT } from '@/i18n';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
@@ -116,6 +117,7 @@ function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: n
 }
 
 export function PreviewDialog({ artboards, initialArtboardId, onClose }: PreviewDialogProps) {
+  const t = useT();
   const initialIndex = Math.max(0, artboards.findIndex(ab => ab.id === initialArtboardId));
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
@@ -170,7 +172,7 @@ export function PreviewDialog({ artboards, initialArtboardId, onClose }: Preview
   const THUMB_HEIGHT = 96;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label="Preview">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label={t('previewDialog.ariaLabel')}>
       {/* Header */}
       <div className="flex items-center justify-between px-4" style={{ height: `${HEADER_HEIGHT}px` }}>
         <div className="text-sm text-white/70">
@@ -185,7 +187,7 @@ export function PreviewDialog({ artboards, initialArtboardId, onClose }: Preview
           size="icon"
           onClick={onClose}
           className="text-white hover:bg-white/10 hover:text-white"
-          title="Close preview (Esc)"
+          title={t('previewDialog.closeTitle')}
         >
           <XIcon className="h-5 w-5" />
         </Button>
@@ -199,7 +201,7 @@ export function PreviewDialog({ artboards, initialArtboardId, onClose }: Preview
             size="icon"
             onClick={goPrev}
             className="absolute left-4 top-1/2 z-10 h-12 w-12 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            title="Previous artboard (←)"
+            title={t('previewDialog.previousTitle')}
           >
             <ChevronLeftIcon className="h-6 w-6" />
           </Button>
@@ -217,7 +219,7 @@ export function PreviewDialog({ artboards, initialArtboardId, onClose }: Preview
             size="icon"
             onClick={goNext}
             className="absolute right-4 top-1/2 z-10 h-12 w-12 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
-            title="Next artboard (→)"
+            title={t('previewDialog.nextTitle')}
           >
             <ChevronRightIcon className="h-6 w-6" />
           </Button>

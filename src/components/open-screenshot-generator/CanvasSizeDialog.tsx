@@ -25,6 +25,7 @@ import {
   isValidCanvasSize,
   type CanvasSizePreset,
 } from '@/lib/sizePresets';
+import { useT } from '@/i18n';
 
 interface CanvasSizeDialogProps {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export function CanvasSizeDialog({
   currentSize,
   onApply,
 }: CanvasSizeDialogProps) {
+  const t = useT();
   const [selectedId, setSelectedId] = useState<string>(CUSTOM_ID);
   const [width, setWidth] = useState<string>('');
   const [height, setHeight] = useState<string>('');
@@ -134,9 +136,9 @@ export function CanvasSizeDialog({
 
   const currentLabel = useMemo(() => {
     const match = findMatchingPreset(currentSize);
-    if (!currentSize) return 'Not set';
+    if (!currentSize) return t('canvasSizeDialog.notSet');
     return `${currentSize.width} × ${currentSize.height}${match ? ` · ${match.label}` : ''}`;
-  }, [currentSize]);
+  }, [currentSize, t]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -145,18 +147,15 @@ export function CanvasSizeDialog({
           viewports or at high browser zoom. */}
       <DialogContent className="flex max-h-[92vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
         <DialogHeader className="shrink-0 space-y-1 border-b px-6 py-4">
-          <DialogTitle>Canvas Size</DialogTitle>
-          <DialogDescription>
-            Choose a preset or enter a custom size. It resizes every artboard;
-            mockups are not swapped.
-          </DialogDescription>
+          <DialogTitle>{t('canvasSizeDialog.title')}</DialogTitle>
+          <DialogDescription>{t('canvasSizeDialog.description')}</DialogDescription>
         </DialogHeader>
 
         <div className="flex shrink-0 items-center gap-3 border-b bg-muted/40 px-6 py-3">
           <AspectPreview width={previewW} height={previewH} />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Current
+              {t('canvasSizeDialog.current')}
             </p>
             <p className="truncate text-sm font-semibold tabular-nums">{currentLabel}</p>
           </div>
@@ -169,7 +168,7 @@ export function CanvasSizeDialog({
         <RadioGroup
           value={selectedId}
           onValueChange={handleValueChange}
-          aria-label="Canvas size presets"
+          aria-label={t('canvasSizeDialog.presetsAria')}
           className="show-scrollbar block min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-4"
         >
           <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
@@ -203,7 +202,7 @@ export function CanvasSizeDialog({
                         <RadioGroupItem
                           value={preset.id}
                           id={`size-${preset.id}`}
-                          aria-label={`${preset.label}${preset.required ? ', required' : ''}, ${preset.width} by ${preset.height}${preset.aspectLabel ? `, ${preset.aspectLabel}` : ''}`}
+                          aria-label={`${preset.label}${preset.required ? t('canvasSizeDialog.requiredSuffix') : ''}, ${preset.width} ${t('canvasSizeDialog.byWord')} ${preset.height}${preset.aspectLabel ? `, ${preset.aspectLabel}` : ''}`}
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-2">
@@ -213,7 +212,7 @@ export function CanvasSizeDialog({
                               </span>
                               {preset.required && (
                                 <span className="shrink-0 rounded-sm border border-primary/40 bg-primary/10 px-1 py-0.5 text-[10px] font-bold uppercase leading-none text-foreground">
-                                  Required
+                                  {t('canvasSizeDialog.required')}
                                 </span>
                               )}
                             </span>
@@ -245,7 +244,7 @@ export function CanvasSizeDialog({
           {/* Custom size — preserves the exact old raw-resize capability. */}
           <section className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Custom
+              {t('canvasSizeDialog.custom')}
             </h3>
             <div
               className={cn(
@@ -265,13 +264,13 @@ export function CanvasSizeDialog({
                   requestAnimationFrame(() => widthInputRef.current?.focus())
                 }
               >
-                <RadioGroupItem value={CUSTOM_ID} id={`size-${CUSTOM_ID}`} aria-label="Custom size" />
-                <span className="text-sm font-medium">Custom size</span>
+                <RadioGroupItem value={CUSTOM_ID} id={`size-${CUSTOM_ID}`} aria-label={t('canvasSizeDialog.customSize')} />
+                <span className="text-sm font-medium">{t('canvasSizeDialog.customSize')}</span>
               </label>
               <div className="flex items-end gap-2">
                 <div className="flex flex-col">
                   <Label htmlFor="canvas-custom-width" className="mb-0.5 text-xs text-muted-foreground">
-                    Width
+                    {t('canvasSizeDialog.width')}
                   </Label>
                   <Input
                     id="canvas-custom-width"
@@ -286,7 +285,7 @@ export function CanvasSizeDialog({
                 <span className="pb-1.5 text-muted-foreground">×</span>
                 <div className="flex flex-col">
                   <Label htmlFor="canvas-custom-height" className="mb-0.5 text-xs text-muted-foreground">
-                    Height
+                    {t('canvasSizeDialog.height')}
                   </Label>
                   <Input
                     id="canvas-custom-height"
@@ -302,7 +301,7 @@ export function CanvasSizeDialog({
             </div>
             {!valid && (width !== '' || height !== '') && (
               <p className="text-xs text-destructive">
-                Width and height must be between {CANVAS_SIZE_MIN} and {CANVAS_SIZE_MAX} pixels.
+                {t('canvasSizeDialog.invalidSize', { min: CANVAS_SIZE_MIN, max: CANVAS_SIZE_MAX })}
               </p>
             )}
           </section>
@@ -312,21 +311,21 @@ export function CanvasSizeDialog({
           <label
             htmlFor="canvas-scale-content"
             className="flex cursor-pointer items-center gap-2"
-            title="Uniformly scales and re-centers every artboard's elements so the layout survives the resize. Uncheck to resize the canvas only (content keeps its position and size, and may get cropped)."
+            title={t('canvasSizeDialog.scaleContentTitle')}
           >
             <Checkbox
               id="canvas-scale-content"
               checked={scaleContent}
               onCheckedChange={(v) => setScaleContent(v === true)}
             />
-            <span className="text-sm">Scale content to fit</span>
+            <span className="text-sm">{t('canvasSizeDialog.scaleContent')}</span>
           </label>
           <div className="flex justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t('common.cancel')}</Button>
             </DialogClose>
             <Button onClick={handleApply} disabled={!valid}>
-              Apply
+              {t('common.apply')}
             </Button>
           </div>
         </DialogFooter>

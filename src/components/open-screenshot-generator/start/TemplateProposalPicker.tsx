@@ -12,6 +12,7 @@ import {
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { withBasePath } from '@/lib/basePath';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 interface TemplateProposal {
   template: Project;
@@ -40,6 +41,7 @@ export function TemplateProposalPicker({
   onPick,
   onBack,
 }: TemplateProposalPickerProps) {
+  const t = useT();
   const proposals = useMemo<TemplateProposal[]>(() => {
     if (screenshots.length === 0) return [];
     const byId = new Map(templates.map((template) => [template.id, template]));
@@ -68,17 +70,17 @@ export function TemplateProposalPicker({
             className="-ml-2 h-8 w-8 shrink-0"
             onClick={onBack}
             disabled={busy}
-            aria-label="Back"
+            aria-label={t('common.back')}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
         )}
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-bold">Pick a template</h3>
+          <h3 className="text-sm font-bold">{t('proposal.title')}</h3>
           <p className="text-sm text-muted-foreground">
             {count === 1
-              ? "Pick a template, we'll place your screenshot in its device frames"
-              : `Pick a template, we'll place your ${count} screenshots in its device frames`}
+              ? t('proposal.placeOne')
+              : t('proposal.placeMany', { count })}
           </p>
         </div>
       </div>
@@ -102,11 +104,11 @@ export function TemplateProposalPicker({
 
       {count === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
-          Add at least one screenshot first.
+          {t('proposal.addOneFirst')}
         </p>
       ) : proposals.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
-          No templates with device frames are available.
+          {t('proposal.noTemplates')}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -114,9 +116,9 @@ export function TemplateProposalPicker({
             const fitsAll = slots >= count;
             const fitLine = fitsAll
               ? count === 1
-                ? 'Fits your screenshot'
-                : `Fits all ${count} screenshots`
-              : `Places ${slots} of your ${count} screenshots`;
+                ? t('proposal.fitsOne')
+                : t('proposal.fitsAll', { count })
+              : t('proposal.placesSome', { slots, count });
             const isPlaceholder = !template.previewImage || template.previewImage.includes('placehold.co');
             return (
               <button
@@ -149,8 +151,13 @@ export function TemplateProposalPicker({
                 <div className="space-y-1 p-3">
                   <p className="text-sm font-semibold leading-tight">{template.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {slots} device {slots === 1 ? 'frame' : 'frames'}, {artboards}{' '}
-                    {artboards === 1 ? 'artboard' : 'artboards'}
+                    {slots === 1
+                      ? t('proposal.framesOne', { count: slots })
+                      : t('proposal.framesMany', { count: slots })}
+                    {', '}
+                    {artboards === 1
+                      ? t('proposal.boardsOne', { count: artboards })
+                      : t('proposal.boardsMany', { count: artboards })}
                   </p>
                   <p className={cn('text-xs', fitsAll ? 'text-muted-foreground' : 'text-amber-600 dark:text-amber-500')}>
                     {fitLine}

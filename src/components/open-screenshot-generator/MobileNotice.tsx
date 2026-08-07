@@ -11,10 +11,12 @@ import { useEffect, useState } from 'react';
 import { MonitorIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from './Logo';
+import { useT } from '@/i18n';
 
 const DISMISSED_KEY = 'mobile-notice-dismissed';
 
 export function MobileNotice() {
+  const t = useT();
   const [dismissed, setDismissed] = useState(false);
 
   // Read sessionStorage after mount: the static export renders the overlay
@@ -44,12 +46,10 @@ export function MobileNotice() {
         <Logo withBackground className="mx-auto h-12 w-12" />
         <div className="mt-4 flex items-center justify-center gap-2">
           <MonitorIcon className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">Best on a desktop browser</h2>
+          <h2 className="text-lg font-semibold">{t('mobileNotice.title')}</h2>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Open Screenshot Generator is a drag and drop design canvas with panels and
-          precise controls. It works best on a desktop browser with a mouse and
-          a bigger screen.
+          {t('mobileNotice.body')}
         </p>
         <Button
           className="mt-5 w-full"
@@ -63,7 +63,7 @@ export function MobileNotice() {
             } catch {}
           }}
         >
-          Continue anyway
+          {t('mobileNotice.continue')}
         </Button>
       </div>
       </div>

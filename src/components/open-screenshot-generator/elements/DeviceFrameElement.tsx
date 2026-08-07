@@ -10,6 +10,7 @@ import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
+import { useT } from '@/i18n';
 
 // three.js (~145 KB gz) only ships when a 3D device is actually rendered. A
 // static import pulled the whole WebGL renderer onto the first-paint critical
@@ -35,6 +36,7 @@ interface DeviceFrameElementProps {
 }
 
 export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFrameElementProps) {
+  const t = useT();
   const [screenshot, setScreenshot] = useState<string | undefined>(element.screenshotSrc);
   const [customFrame, setCustomFrame] = useState<string | undefined>(element.customFrameSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -380,7 +382,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                 onClick={() => triggerFileUpload('screenshot')}
                 onMouseDown={(e) => e.stopPropagation()}
               >
-                Upload Screenshot
+                {t('properties.uploadScreenshot')}
               </Button>
             )}
           </div>
@@ -486,7 +488,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                     onClick={() => triggerFileUpload('screenshot')}
                     onMouseDown={(e) => e.stopPropagation()}
                   >
-                    Upload Screenshot
+                    {t('properties.uploadScreenshot')}
                   </Button>
                 )}
               </div>

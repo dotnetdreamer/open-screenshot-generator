@@ -7,6 +7,7 @@ import { UploadCloudIcon, ClapperboardIcon } from 'lucide-react';
 import type { VideoDeviceElementProps as VideoDeviceElementType } from '@/types/artboard';
 import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/i18n';
 import { withBasePath } from '@/lib/basePath';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 import { VIDEO_ACCEPT } from './VideoElement';
@@ -26,6 +27,7 @@ interface VideoDeviceElementComponentProps {
  * no 3D pose.
  */
 export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDeviceElementComponentProps) {
+  const t = useT();
   const videoInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -62,8 +64,8 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
       });
     } catch (error) {
       toast({
-        title: 'Could not load recording',
-        description: error instanceof Error ? error.message : 'The file could not be read.',
+        title: t('elements.couldNotLoadRecording'),
+        description: error instanceof Error ? error.message : t('elements.fileCouldNotBeRead'),
         variant: 'destructive',
       });
     } finally {
@@ -114,7 +116,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
               // Template placeholder until the user drops their recording in.
               <img
                 src={withBasePath(element.posterSrc)}
-                alt="Placeholder app screen"
+                alt={t('elements.uploadedImageAlt')}
                 style={{ width: '100%', height: '100%', objectFit: fit, display: 'block' }}
                 draggable={false}
               />
@@ -122,7 +124,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
                 <ClapperboardIcon className="w-1/4 h-1/4 opacity-50 mb-2" />
                 <p style={{ fontSize: `${Math.max(14, effectiveWidth * 0.055)}px` }}>
-                  {`${chrome.label} — no recording yet`}
+                  {t('elements.deviceNoRecording', { device: chrome.label })}
                 </p>
               </div>
             )}

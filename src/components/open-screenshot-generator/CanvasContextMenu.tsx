@@ -3,6 +3,7 @@ import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CopyIcon, ClipboardPasteIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 
 interface CanvasContextMenuProps {
   x: number;
@@ -28,6 +29,7 @@ export function CanvasContextMenu({
   onPaste,
   onClose,
 }: CanvasContextMenuProps) {
+  const t = useT();
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x, y });
 
@@ -83,7 +85,7 @@ export function CanvasContextMenu({
         }}
       >
         <CopyIcon />
-        Copy
+        {t('canvas.contextCopy')}
         <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+C</span>
       </button>
       <button
@@ -96,7 +98,7 @@ export function CanvasContextMenu({
         }}
       >
         <ClipboardPasteIcon />
-        Paste
+        {t('canvas.contextPaste')}
         <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+V</span>
       </button>
     </div>,

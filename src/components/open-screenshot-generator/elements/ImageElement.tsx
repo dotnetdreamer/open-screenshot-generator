@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImageIcon } from 'lucide-react';
 import type { ImageElementProps } from '@/types/artboard';
 import { cn } from '@/lib/utils';
+import { useT } from '@/i18n';
 import { withBasePath } from '@/lib/basePath';
 
 interface ImageElementComponentProps {
@@ -16,6 +17,7 @@ interface ImageElementComponentProps {
 }
 
 export function ImageElement({ element, onUpdate, isSelected }: ImageElementComponentProps) {
+  const t = useT();
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -113,7 +115,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
         >
           <Image
             src={withBasePath(element.imageSrc)}
-            alt={element.imageAlt || 'Uploaded image'}
+            alt={element.imageAlt || t('elements.uploadedImageAlt')}
             fill
             style={{
               objectFit: element.objectFit || 'cover',
@@ -136,7 +138,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
                 className="text-xs bg-background/90 hover:bg-background"
               >
                 <UploadCloudIcon className="w-3 h-3 mr-1" />
-                Change Image
+                {t('elements.changeImage')}
               </Button>
             </div>
           )}
@@ -144,7 +146,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground border border-dashed border-muted-foreground/20 rounded-lg">
           <ImageIcon className="w-1/4 h-1/4 opacity-25 mb-2" />
-          <p className="text-xs text-center px-2 opacity-50">No image selected</p>
+          <p className="text-xs text-center px-2 opacity-50">{t('elements.noImageSelected')}</p>
           {isSelected && (
             <Button
               variant="outline"
@@ -154,7 +156,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
               onMouseDown={(e) => e.stopPropagation()}
             >
               <UploadCloudIcon className="w-3 h-3 mr-1" />
-              Upload Image
+              {t('elements.uploadImage')}
             </Button>
           )}
         </div>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BRIDGE_STAGE_TEXT, type BridgeStage } from '@/lib/ai/webSessionDesktop';
 import { WEB_PROVIDERS, WEB_PROVIDER_IDS, type WebProviderId } from '@/lib/ai/webAdapters';
+import { useT } from '@/i18n';
 
 interface WebSessionModePanelProps {
   busy: boolean;
@@ -38,16 +39,13 @@ export function WebSessionModePanel({
   onLogin,
   onCancel,
 }: WebSessionModePanelProps) {
+  const t = useT();
   if (!desktop) {
     return (
       <Alert>
         <Monitor className="h-4 w-4" />
-        <AlertTitle>This mode runs in the desktop app</AlertTitle>
-        <AlertDescription>
-          A web page cannot reach your session on another site, so driving Claude, ChatGPT or
-          Gemini with your own account happens in the Open Screenshot Generator desktop app. There it is a
-          single click and your login never leaves your machine.
-        </AlertDescription>
+        <AlertTitle>{t('startPanel.desktopOnlyTitle')}</AlertTitle>
+        <AlertDescription>{t('startPanel.desktopOnlyDesc')}</AlertDescription>
       </Alert>
     );
   }
@@ -56,12 +54,9 @@ export function WebSessionModePanel({
     <div className="space-y-3">
       <Alert className="border-emerald-500/40 bg-emerald-500/5">
         <PlugZap className="h-4 w-4 text-emerald-600" />
-        <AlertTitle>Runs on this machine</AlertTitle>
+        <AlertTitle>{t('startPanel.runsLocally')}</AlertTitle>
         <AlertDescription>
-          Pick an assistant. The first time, a sign-in window opens. Log in once and Open
-          Screenshot Generator drives it for you from then on. Your login stays in that window and never leaves
-          this machine. To watch it work, enable Settings &gt; &quot;Show assistant window while it
-          works&quot; in the menu bar.
+          {t('startPanel.runsLocallyDesc', { menuItem: t('startPanel.assistantWindowMenuItem') })}
         </AlertDescription>
       </Alert>
       <div className="grid gap-2 sm:grid-cols-2">
@@ -74,11 +69,11 @@ export function WebSessionModePanel({
               onClick={() => onRunProvider(id)}
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Use {WEB_PROVIDERS[id].label}
+              {t('startPanel.useProvider', { provider: WEB_PROVIDERS[id].label })}
               {!WEB_PROVIDERS[id].tested && (
                 <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-600">
                   <FlaskConical className="h-3 w-3" />
-                  beta
+                  {t('startPanel.beta')}
                 </span>
               )}
             </Button>
@@ -86,7 +81,7 @@ export function WebSessionModePanel({
               variant="ghost"
               size="icon"
               className="h-9 w-9 shrink-0 text-muted-foreground"
-              title={`Sign in to ${WEB_PROVIDERS[id].label}`}
+              title={t('startPanel.signInTo', { provider: WEB_PROVIDERS[id].label })}
               disabled={busy}
               onClick={() => onLogin(id)}
             >
@@ -99,10 +94,10 @@ export function WebSessionModePanel({
         <div className="flex items-center gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm">
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           <span className="flex-1 text-muted-foreground">
-            {stage ? `${BRIDGE_STAGE_TEXT[stage]}...` : 'Working...'}
+            {stage ? `${BRIDGE_STAGE_TEXT[stage]}...` : t('startPanel.working')}
           </span>
           <Button size="sm" variant="ghost" onClick={onCancel}>
-            Cancel
+            {t('common.cancel')}
           </Button>
         </div>
       )}

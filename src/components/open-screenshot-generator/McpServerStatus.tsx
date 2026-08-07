@@ -28,6 +28,7 @@ import {
   getMcpToolSummaries,
   type McpServerStatus as Status,
 } from '@/lib/mcp/desktopMcpServer';
+import { useT, type TFunction } from '@/i18n';
 
 const DEFAULT_URL = 'http://127.0.0.1:8722/mcp';
 
@@ -42,20 +43,22 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-// Small copy-to-clipboard button with a transient check state.
+// Small copy-to-clipboard button with a transient check state. `label` is a
+// ready-to-show, already-translated title.
 function CopyButton({ value, label }: { value: string; label: string }) {
   const { toast } = useToast();
+  const t = useT();
   const [copied, setCopied] = useState(false);
   return (
     <button
       type="button"
-      title={`Copy ${label}`}
+      title={label}
       onClick={async () => {
         if (await copyText(value)) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         } else {
-          toast({ title: 'Could not copy', description: value });
+          toast({ title: t('mcp.couldNotCopy'), description: value });
         }
       }}
       className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -80,39 +83,44 @@ const EXAMPLE_PROMPTS: string[] = [
   'Export every artboard at full size into a folder and give me the file paths.',
 ];
 
-// A single example prompt with a copy button.
+// A single example prompt with a copy button. Prompt text itself stays in
+// English: it is pasted into an AI client, not UI chrome.
 function ExamplePrompt({ text }: { text: string }) {
+  const t = useT();
   return (
     <div className="flex items-start gap-2 rounded-md border border-border/60 p-2">
       <p className="min-w-0 flex-1 text-[11px] leading-snug text-foreground">{text}</p>
-      <CopyButton value={text} label="prompt" />
+      <CopyButton value={text} label={t('mcp.copyPrompt')} />
     </div>
   );
 }
 
 // A copyable code block (command or config snippet).
 function CodeBlock({ code }: { code: string }) {
+  const t = useT();
   return (
     <div className="relative rounded-md border border-border bg-muted/40">
       <pre className="max-w-full overflow-x-auto p-2.5 pr-9 text-[11px] leading-relaxed">
         <code>{code}</code>
       </pre>
       <div className="absolute right-1 top-1">
-        <CopyButton value={code} label="snippet" />
+        <CopyButton value={code} label={t('mcp.copySnippet')} />
       </div>
     </div>
   );
 }
 
-// Per-client setup instructions, parameterised by the live server URL.
-function clientGuides(url: string) {
+// Per-client setup instructions, parameterised by the live server URL. Menu
+// paths and file names quote the desktop app's native (English-only) UI, so
+// those fragments stay verbatim inside the translated sentences.
+function clientGuides(url: string, t: TFunction) {
   return [
     {
       id: 'claude-code',
       name: 'Claude Code',
       body: (
         <div className="grid gap-2">
-          <p className="text-xs text-muted-foreground">Run this in a terminal, then use <code>/mcp</code> in a session:</p>
+          <p className="text-xs text-muted-foreground">{t('mcp.guideClaudeCodeA')} <code>/mcp</code> {t('mcp.guideClaudeCodeB')}</p>
           <CodeBlock code={`claude mcp add --transport http open-screenshot-generator ${url}`} />
         </div>
       ),
@@ -123,10 +131,10 @@ function clientGuides(url: string) {
       body: (
         <div className="grid gap-2">
           <p className="text-xs text-muted-foreground">
-            Settings → Connectors → <span className="font-medium text-foreground">Add custom connector</span>, then paste the URL above.
+            {t('mcp.guideClaudeDesktopA')} <span className="font-medium text-foreground">{t('mcp.guideClaudeDesktopB')}</span>{t('mcp.guideClaudeDesktopC')}
           </p>
           <p className="text-xs text-muted-foreground">
-            Or add it to <code>claude_desktop_config.json</code> via a stdio bridge, then restart Claude:
+            {t('mcp.guideClaudeDesktopD')} <code>claude_desktop_config.json</code> {t('mcp.guideClaudeDesktopE')}
           </p>
           <CodeBlock
             code={JSON.stringify(
@@ -144,8 +152,8 @@ function clientGuides(url: string) {
       body: (
         <div className="grid gap-2">
           <p className="text-xs text-muted-foreground">
-            Command Palette → <span className="font-medium text-foreground">MCP: Add Server</span> → HTTP → paste the URL, or create{' '}
-            <code>.vscode/mcp.json</code> in your workspace:
+            {t('mcp.guideVscodeA')} <span className="font-medium text-foreground">{t('mcp.guideVscodeB')}</span> {t('mcp.guideVscodeC')}{' '}
+            <code>.vscode/mcp.json</code> {t('mcp.guideVscodeD')}
           </p>
           <CodeBlock
             code={JSON.stringify({ servers: { 'open-screenshot-generator': { type: 'http', url } } }, null, 2)}
@@ -159,7 +167,7 @@ function clientGuides(url: string) {
       body: (
         <div className="grid gap-2">
           <p className="text-xs text-muted-foreground">
-            Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):
+            {t('mcp.guideCursorA')} <code>~/.cursor/mcp.json</code> {t('mcp.guideCursorB')} <code>.cursor/mcp.json</code> {t('mcp.guideCursorC')}
           </p>
           <CodeBlock code={JSON.stringify({ mcpServers: { 'open-screenshot-generator': { url } } }, null, 2)} />
         </div>
@@ -169,6 +177,7 @@ function clientGuides(url: string) {
 }
 
 export function McpServerStatus({ className }: { className?: string }) {
+  const t = useT();
   // Start hidden so the first client render matches the server-rendered HTML
   // (the static export is built without Tauri, so this is absent there). Only
   // after mount do we know we are in the desktop shell and can show the pill —
@@ -201,14 +210,14 @@ export function McpServerStatus({ className }: { className?: string }) {
   const { running, port } = status;
   const url = status.url ?? DEFAULT_URL;
   const tools = getMcpToolSummaries();
-  const guides = clientGuides(url);
+  const guides = clientGuides(url, t);
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <button
           type="button"
-          title="MCP server — click for connection details and tools"
+          title={t('mcp.pillTitle')}
           className={cn(
             'flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs shadow-lg backdrop-blur transition-colors hover:border-primary/50',
             className
@@ -224,7 +233,7 @@ export function McpServerStatus({ className }: { className?: string }) {
           {running ? (
             <span className="tabular-nums text-muted-foreground">:{port}</span>
           ) : (
-            <span className="text-muted-foreground">off</span>
+            <span className="text-muted-foreground">{t('mcp.off')}</span>
           )}
         </button>
       </DialogTrigger>
@@ -232,39 +241,39 @@ export function McpServerStatus({ className }: { className?: string }) {
       <DialogContent className="flex max-h-[88vh] w-[92vw] flex-col gap-0 overflow-hidden sm:max-w-[960px]">
         <DialogHeader className="pb-3">
           <DialogTitle className="flex items-center gap-2">
-            MCP server
+            {t('mcp.dialogTitle')}
             <span
               className={cn(
                 'rounded-full px-2 py-0.5 text-[11px] font-medium',
                 running ? 'bg-green-500/15 text-green-600' : 'bg-muted text-muted-foreground'
               )}
             >
-              {running ? 'Running' : 'Off'}
+              {running ? t('mcp.running') : t('mcp.offBadge')}
             </span>
           </DialogTitle>
           <DialogDescription>
-            Let external AI tools drive Open Screenshot Generator. Add the server to a client below, then ask it to design.
+            {t('mcp.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
           {!running && (
             <p className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-              The server is currently off. Turn it on from the menu bar:{' '}
+              {t('mcp.serverOffNote')}{' '}
               <span className="font-medium">Settings ▸ Run MCP server for external AI tools</span>.
             </p>
           )}
 
           <div className="grid gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Server URL</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t('mcp.serverUrl')}</span>
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-2 py-1.5">
               <code className="min-w-0 flex-1 truncate text-xs">{url}</code>
-              <CopyButton value={url} label="URL" />
+              <CopyButton value={url} label={t('mcp.copyUrl')} />
             </div>
           </div>
 
           <div>
-            <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Set up your client</div>
+            <div className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t('mcp.setupClient')}</div>
             <Accordion type="multiple" defaultValue={[...guides.map((g) => g.id), 'examples', 'tools']} className="w-full">
               {guides.map((g) => (
                 <AccordionItem key={g.id} value={g.id}>
@@ -274,16 +283,16 @@ export function McpServerStatus({ className }: { className?: string }) {
               ))}
 
               <AccordionItem value="examples">
-                <AccordionTrigger className="text-sm">Example prompts</AccordionTrigger>
+                <AccordionTrigger className="text-sm">{t('mcp.examplePrompts')}</AccordionTrigger>
                 <AccordionContent>
                   <div className="grid gap-2">
                     <p className="text-xs text-muted-foreground">
-                      Once connected, paste any of these into your AI client (copy on the right):
+                      {t('mcp.examplePromptsHelp')}
                     </p>
                     {EXAMPLE_PROMPTS.map((text) => (
                       <ExamplePrompt key={text} text={text} />
                     ))}
-                    <p className="pt-1 text-xs text-muted-foreground">Or have it call a tool directly, e.g.:</p>
+                    <p className="pt-1 text-xs text-muted-foreground">{t('mcp.orCallTool')}</p>
                     <CodeBlock
                       code={JSON.stringify(
                         { tool: 'add_element', arguments: { type: 'text', content: 'Plan your week', x: 120, y: 220, fontSize: 96, color: '#FFFFFF' } },
@@ -303,7 +312,7 @@ export function McpServerStatus({ className }: { className?: string }) {
               </AccordionItem>
 
               <AccordionItem value="tools">
-                <AccordionTrigger className="text-sm">Exposed tools ({tools.length})</AccordionTrigger>
+                <AccordionTrigger className="text-sm">{t('mcp.exposedTools', { count: tools.length })}</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2">
                     {tools.map((tool) => (
@@ -312,7 +321,7 @@ export function McpServerStatus({ className }: { className?: string }) {
                         <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{tool.description}</p>
                         {tool.params.length > 0 && (
                           <p className="mt-1 text-[10px] text-muted-foreground/80">
-                            <span className="font-medium">params:</span> {tool.params.join(', ')}
+                            <span className="font-medium">{t('mcp.paramsLabel')}</span> {tool.params.join(', ')}
                           </p>
                         )}
                       </div>
@@ -325,7 +334,7 @@ export function McpServerStatus({ className }: { className?: string }) {
 
           <Separator />
           <p className="text-[11px] text-muted-foreground">
-            Served locally over MCP Streamable HTTP (127.0.0.1). Toggle it any time from the Settings menu.
+            {t('mcp.footerNote')}
           </p>
         </div>
       </DialogContent>
