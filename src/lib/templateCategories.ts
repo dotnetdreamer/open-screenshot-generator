@@ -44,6 +44,9 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      // Scratch template with no preview image — kept first so it's at the top
+      // of the gallery while testing.
+      'temp.json',
       'plannio-student.json',
       'calora-macros.json',
       'puzzlo-word.json',
