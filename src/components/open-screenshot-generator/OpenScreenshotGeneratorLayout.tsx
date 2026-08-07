@@ -28,6 +28,7 @@ import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
+import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
 import { artboardBackground } from '@/lib/artboardBackground';
 import {
@@ -427,6 +428,17 @@ export function OpenScreenshotGeneratorLayout() {
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  // Seeds the export dialog's "Selected artboard only" box. The toolbar's
+  // Download opens the dialog project-wide; an artboard's own Download opens
+  // it already scoped to that board.
+  const [exportScopedToArtboard, setExportScopedToArtboard] = useState(false);
+  // Live PNG export readout. Non-null for exactly as long as a run is in
+  // flight, which is also what keeps the progress dialog on screen. Cancel is
+  // a ref, not state, because the capture loop reads it between files and
+  // must see the latest value without a re-render.
+  const [pngProgress, setPngProgress] = useState<PngExportProgress | null>(null);
+  const [isCancellingPngExport, setIsCancellingPngExport] = useState(false);
+  const pngExportCancelRef = useRef(false);
   // App Preview video export: per-board analysis (which boards carry video
   // content) is recomputed when the export dialog opens; progress/abort state
   // drives the dialog's render section.
@@ -478,6 +490,12 @@ export function OpenScreenshotGeneratorLayout() {
     setTranslateElementId(null);
     setIsTranslateSingleArtboard(true);
     setIsTranslateDialogOpen(true);
+  };
+
+  const handleExportArtboard = (artboardId: string) => {
+    handleArtboardSelection(artboardId);
+    setExportScopedToArtboard(true);
+    setIsExportDialogOpen(true);
   };
 
   const handleTranslateTextElement = (elementId: string) => {
@@ -1252,12 +1270,41 @@ export function OpenScreenshotGeneratorLayout() {
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
-  const captureArtboards = async (list: ArtboardState[], exportDir?: string | null) => {
+  const captureArtboards = async (
+    list: ArtboardState[],
+    exportDir?: string | null,
+    // Canvas position (1-based) per artboard id, plus how many boards the
+    // project has. A scoped export passes only a subset of the canvas, so
+    // without this the fourth artboard would still be filed as "01_".
+    order?: { indexById: Record<string, number>; total: number },
+    // Progress plumbing. `report` is fed one update per phase change so the
+    // dialog can name what it is on; `formatLabel` tags a generated App Store
+    // pass. Returns the files actually written so the caller can summarise.
+    progress?: {
+      report: (update: Omit<PngExportProgress, 'fileCount'>) => void;
+      formatLabel?: string;
+      // Absolute file number of the first file in this pass, so the counter
+      // keeps climbing across the as-is pass and every generated format.
+      startIndex: number;
+    }
+  ) => {
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
-    const orderPadWidth = Math.max(2, String(list.length).length);
+    const orderPadWidth = Math.max(2, String(order?.total ?? list.length).length);
+    // `path` is set only where the file landed somewhere nameable (Tauri); a
+    // web anchor download has no path to report.
+    const saved: { filename: string; path?: string }[] = [];
 
     for (const [index, artboard] of list.entries()) {
+      // Cancellation lands between files: a half-written PNG helps nobody, and
+      // each capture is short enough that finishing it is barely a wait.
+      if (pngExportCancelRef.current) break;
+      progress?.report({
+        fileIndex: progress.startIndex + index,
+        boardName: artboard.name,
+        formatLabel: progress.formatLabel,
+        phase: 'rendering',
+      });
       // Find the DOM element for the artboard content
       const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
 
@@ -1307,7 +1354,8 @@ export function OpenScreenshotGeneratorLayout() {
         artboardElement.style.height = originalHeight;
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
-        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
+        const canvasIndex = order?.indexById[artboard.id] ?? index + 1;
+        const orderPrefix = String(canvasIndex).padStart(orderPadWidth, '0');
         // Suffix with the artboard's device format (iPhone/Android/tablet) so the
         // same board exported for different stores stays distinguishable on disk.
         // Detected per artboard, not project-wide, so mixed projects tag correctly.
@@ -1317,6 +1365,12 @@ export function OpenScreenshotGeneratorLayout() {
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
         const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
+        progress?.report({
+          fileIndex: progress.startIndex + index,
+          boardName: artboard.name,
+          formatLabel: progress.formatLabel,
+          phase: 'saving',
+        });
         // Desktop-safe save: batch exports write into the pre-picked folder,
         // single files get a native save dialog in Tauri or an anchor
         // download on the web
@@ -1325,11 +1379,10 @@ export function OpenScreenshotGeneratorLayout() {
           : await saveDataUrlToDisk(imageDataUrl, filename);
         if (savedPath === null) continue; // user cancelled this board's save dialog
 
-        toast({
-          title: "Artboard Exported",
-          description: savedPath ? `Saved to ${savedPath}` : `"${artboard.name}" has been downloaded.`,
-          variant: "default",
-        });
+        // One toast per file drowns a 12-file App Store run, and the progress
+        // dialog now narrates it live, so the caller summarises at the end
+        // instead. A lone file still gets its own toast there.
+        saved.push({ filename, path: savedPath || undefined });
 
       } catch (error) {
         console.error("Error exporting artboard:", artboard.name, error);
@@ -1340,6 +1393,8 @@ export function OpenScreenshotGeneratorLayout() {
         });
       }
     }
+
+    return saved;
   };
 
   // Two rAFs get past React's commit and the browser's next paint after a
@@ -1358,16 +1413,45 @@ export function OpenScreenshotGeneratorLayout() {
   // engine as the Devices menu, rendered, captured, then the original state
   // is restored — plain setArtboards keeps history and the saved project
   // untouched, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats }: ExportSelection) => {
+  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly }: ExportSelection) => {
     setIsExportDialogOpen(false);
 
     const original = artboards;
+
+    // "Selected artboard only" narrows what gets captured, never what gets
+    // rendered: the format conversions below still run over the whole canvas
+    // so a converted board sits in the same layout it always did, and only
+    // the selected id is grabbed from the DOM.
+    const scopedId =
+      currentArtboardOnly && activeArtboardId && original.some((ab) => ab.id === activeArtboardId)
+        ? activeArtboardId
+        : null;
+    const scope = (list: ArtboardState[]) =>
+      scopedId ? list.filter((ab) => ab.id === scopedId) : list;
+    // Canvas positions captured up front, so scoped filenames keep their real
+    // "04_" prefix instead of restarting at 01.
+    const order = {
+      indexById: Object.fromEntries(original.map((ab, i) => [ab.id, i + 1])),
+      total: original.length,
+    };
+
+    const targets = scope(original);
+    if (targets.length === 0) {
+      toast({
+        title: "Nothing to export",
+        description: currentArtboardOnly
+          ? "Select an artboard on the canvas first."
+          : "Add an artboard first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Desktop batch exports pick one destination folder up front instead of
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const totalFiles = (asIs ? original.length : 0) + generateFormats.length * original.length;
+    const totalFiles = (asIs ? targets.length : 0) + generateFormats.length * targets.length;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
       if (exportDir === null) return;
@@ -1376,42 +1460,68 @@ export function OpenScreenshotGeneratorLayout() {
     trackExportPng({
       mode: generateFormats.length > 0 ? 'app_store' : 'as_is',
       formats: generateFormats,
-      artboardCount: original.length,
+      artboardCount: targets.length,
       fileCount: totalFiles,
     });
 
-    toast({
-      title: "Export Process Initiated",
-      description: `Generating images... This might take a moment.`,
-      variant: "default",
+    // The progress dialog is on screen for exactly as long as pngProgress is
+    // set, so seed it before the first capture: the App Store passes spend
+    // their first second converting the canvas, with nothing else to show.
+    pngExportCancelRef.current = false;
+    setIsCancellingPngExport(false);
+    setPngProgress({
+      fileIndex: 1,
+      fileCount: totalFiles,
+      boardName: targets[0].name,
+      phase: 'preparing',
     });
+    const report = (update: Omit<PngExportProgress, 'fileCount'>) =>
+      setPngProgress({ ...update, fileCount: totalFiles });
 
     // 3D device canvases re-render supersampled while an export is in flight
     // (see Device3DRenderer); dispatched per capture pass so devices swapped
     // in by a format conversion get the treatment too. The small wait lets
     // that buffer swap present.
-    const captureWithExportEvents = async (list: ArtboardState[]) => {
+    const captureWithExportEvents = async (
+      list: ArtboardState[],
+      startIndex: number,
+      formatLabel?: string
+    ) => {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        await captureArtboards(list, exportDir);
+        return await captureArtboards(list, exportDir, order, { report, formatLabel, startIndex });
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
     };
 
+    const saved: { filename: string; path?: string }[] = [];
+    // Counts files *attempted*, not saved, so a board that fails to capture
+    // does not drag the "image 3 of 12" counter backwards for the rest.
+    let nextFileIndex = 1;
     try {
       if (asIs) {
-        await captureWithExportEvents(original);
+        saved.push(...(await captureWithExportEvents(targets, nextFileIndex)));
+        nextFileIndex += targets.length;
       }
       for (const formatId of generateFormats) {
+        if (pngExportCancelRef.current) break;
         const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
         if (!preset) continue;
+        const startIndex = nextFileIndex;
+        nextFileIndex += targets.length;
+        report({
+          fileIndex: startIndex,
+          boardName: targets[0].name,
+          formatLabel: preset.label,
+          phase: 'preparing',
+        });
         const { artboards: converted } = convertArtboardsToFormat(original, preset);
         const repositioned = calculateArtboardPositions(converted);
         setArtboards(repositioned);
         await waitForCanvasToSettle(400);
-        await captureWithExportEvents(repositioned);
+        saved.push(...(await captureWithExportEvents(scope(repositioned), startIndex, preset.label)));
       }
     } catch (error) {
       console.error("Error during multi-format export:", error);
@@ -1424,7 +1534,41 @@ export function OpenScreenshotGeneratorLayout() {
       if (generateFormats.length > 0) {
         setArtboards(original);
       }
+      setPngProgress(null);
+      setIsCancellingPngExport(false);
+      const cancelled = pngExportCancelRef.current;
+      pngExportCancelRef.current = false;
+
+      // One summary instead of a toast per file. A single-file export names
+      // where it went, which is the useful bit on desktop.
+      if (saved.length === 1 && !cancelled) {
+        toast({
+          title: "Artboard Exported",
+          description: saved[0].path
+            ? `Saved to ${saved[0].path}`
+            : `"${saved[0].filename}" has been downloaded.`,
+        });
+      } else if (saved.length > 0) {
+        toast({
+          title: cancelled ? "Export Stopped" : "Export Complete",
+          description: exportDir
+            ? `${saved.length} of ${totalFiles} images saved to ${exportDir}`
+            : `${saved.length} of ${totalFiles} images downloaded`,
+          variant: cancelled ? "destructive" : "default",
+        });
+      } else if (cancelled) {
+        toast({ title: "Export Cancelled" });
+      }
     }
+  };
+
+  // Asks the running export to stop. It finishes the image already in flight
+  // (see captureArtboards) rather than leaving a truncated PNG behind, so the
+  // dialog stays up, disabled, until the loop actually unwinds.
+  const handleCancelPngExport = () => {
+    if (!pngProgress) return;
+    pngExportCancelRef.current = true;
+    setIsCancellingPngExport(true);
   };
 
   // Re-analyze which boards carry video content (recordings, gestures,
@@ -1466,6 +1610,7 @@ export function OpenScreenshotGeneratorLayout() {
   // encoder and the sprite captures both want the main thread).
   const handleExportVideo = async (request: VideoExportRequest) => {
     const boards = artboards.filter((ab) => {
+      if (request.currentArtboardOnly && ab.id !== activeArtboardId) return false;
       const info = videoInfos[ab.id];
       if (!info) return false;
       // Safe mode exports raw footage, so it needs an actual recording.
@@ -1474,9 +1619,11 @@ export function OpenScreenshotGeneratorLayout() {
     if (boards.length === 0) {
       toast({
         title: 'Nothing to export',
-        description: request.rawRecordingOnly
-          ? 'App Store safe mode needs a screen recording on an artboard.'
-          : 'Add a screen recording, gesture or animation first.',
+        description: request.currentArtboardOnly
+          ? 'The selected artboard has no recording, gesture or animation to render.'
+          : request.rawRecordingOnly
+            ? 'App Store safe mode needs a screen recording on an artboard.'
+            : 'Add a screen recording, gesture or animation first.',
         variant: 'destructive',
       });
       return;
@@ -2050,6 +2197,19 @@ export function OpenScreenshotGeneratorLayout() {
   const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
+
+  // What a "Selected artboard only" export would produce. Format is detected
+  // from this one board, not from the project, so a mixed project reports the
+  // selected board's own device correctly.
+  const activeArtboardSummary = useMemo(() => {
+    if (!activeArtboard) return null;
+    const format = detectArtboardsFormat([activeArtboard]);
+    return {
+      name: activeArtboard.name,
+      size: activeArtboard.size,
+      format: format === 'mixed' ? null : format,
+    };
+  }, [activeArtboard]);
 
 
   // Define the copy element handler. Explicit ids come from the context menu
@@ -3236,7 +3396,10 @@ const generateRandomProjectName = (): string => {
             onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
-            onExport={() => setIsExportDialogOpen(true)}
+            onExport={() => {
+              setExportScopedToArtboard(false);
+              setIsExportDialogOpen(true);
+            }}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             onSaveToAccount={handleSaveToAccount}
@@ -3285,6 +3448,7 @@ const generateRandomProjectName = (): string => {
                 onDeleteArtboardFromToolbar={handleDeleteArtboard}
                 onMoveArtboardFromToolbar={handleMoveArtboard}
                 onTranslateArtboard={handleTranslateArtboard}
+                onExportArtboard={handleExportArtboard}
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
@@ -3475,9 +3639,14 @@ const generateRandomProjectName = (): string => {
               suggestedVideoDuration={suggestedVideoDuration}
               onExportVideo={handleExportVideo}
               onCancelVideoExport={handleCancelVideoExport}
-              onExportStills={() => handleConfirmExport({ asIs: true, generateFormats: [] })}
+              onExportStills={(currentArtboardOnly) =>
+                handleConfirmExport({ asIs: true, generateFormats: [], currentArtboardOnly })
+              }
               videoProgress={videoProgress}
               isVideoExporting={isVideoExporting}
+              activeArtboardName={activeArtboardName ?? null}
+              artboardCount={artboards.length}
+              defaultCurrentArtboardOnly={exportScopedToArtboard}
             />
           ) : (
             <ExportDialog
@@ -3486,8 +3655,17 @@ const generateRandomProjectName = (): string => {
               onConfirmExport={handleConfirmExport}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
+              activeArtboard={activeArtboardSummary}
+              artboardCount={artboards.length}
+              defaultCurrentArtboardOnly={exportScopedToArtboard}
             />
           )}
+
+          <ExportProgressDialog
+            progress={pngProgress}
+            onCancel={handleCancelPngExport}
+            isCancelling={isCancellingPngExport}
+          />
 
           <AccountDialog
             open={isAccountOpen}

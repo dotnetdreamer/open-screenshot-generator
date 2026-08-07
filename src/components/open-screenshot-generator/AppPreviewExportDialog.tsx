@@ -10,6 +10,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -37,9 +38,15 @@ interface AppPreviewExportDialogProps {
   suggestedVideoDuration: number;
   onExportVideo: (request: VideoExportRequest) => void;
   onCancelVideoExport: () => void;
-  onExportStills: () => void;
+  onExportStills: (currentArtboardOnly: boolean) => void;
   videoProgress: VideoExportProgress | null;
   isVideoExporting: boolean;
+  // Name of the artboard the canvas has selected, null when none is. Drives
+  // the scope checkbox that narrows both exports to that one board.
+  activeArtboardName?: string | null;
+  artboardCount?: number;
+  // Set when the dialog is opened from an artboard's own toolbar.
+  defaultCurrentArtboardOnly?: boolean;
 }
 
 export function AppPreviewExportDialog({
@@ -52,18 +59,26 @@ export function AppPreviewExportDialog({
   onExportStills,
   videoProgress,
   isVideoExporting,
+  activeArtboardName,
+  artboardCount = 0,
+  defaultCurrentArtboardOnly = false,
 }: AppPreviewExportDialogProps) {
   const [fps, setFps] = useState<'30' | '60'>('30');
   const [duration, setDuration] = useState<number>(15);
   const [sizeMode, setSizeMode] = useState<VideoSizeMode>('appstore-portrait');
   const [rawRecordingOnly, setRawRecordingOnly] = useState(false);
+  const [currentArtboardOnly, setCurrentArtboardOnly] = useState(false);
+
+  const canScopeToArtboard = !!activeArtboardName;
+  const scopedToArtboard = canScopeToArtboard && currentArtboardOnly;
 
   useEffect(() => {
     if (isOpen) {
       setRawRecordingOnly(false);
       setDuration(suggestedVideoDuration);
+      setCurrentArtboardOnly(defaultCurrentArtboardOnly);
     }
-  }, [isOpen, suggestedVideoDuration]);
+  }, [isOpen, suggestedVideoDuration, defaultCurrentArtboardOnly]);
 
   const durationWarning =
     duration < 15
@@ -81,7 +96,7 @@ export function AppPreviewExportDialog({
           <DialogDescription>
             {videoBoardCount === 0
               ? 'Add a recording mockup (Elements > App Preview) and drop your screen recording into it.'
-              : videoBoardCount === 1
+              : scopedToArtboard || videoBoardCount === 1
                 ? 'This artboard renders to one MP4.'
                 : `Each of the ${videoBoardCount} artboards renders to its own MP4. Apple accepts up to 3 previews per device size.`}
           </DialogDescription>
@@ -118,6 +133,33 @@ export function AppPreviewExportDialog({
               </div>
             </div>
           </RadioGroup>
+
+          {/* Applies to both exports below: the MP4 render and the PNG stills. */}
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="apv-current-artboard-only"
+              disabled={!canScopeToArtboard || isVideoExporting}
+              checked={scopedToArtboard}
+              onCheckedChange={(v) => setCurrentArtboardOnly(v === true)}
+            />
+            <div className="grid gap-0.5 leading-none">
+              <Label
+                htmlFor="apv-current-artboard-only"
+                className={!canScopeToArtboard ? 'text-muted-foreground' : undefined}
+              >
+                Selected artboard only
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {!canScopeToArtboard
+                  ? 'Select an artboard on the canvas first'
+                  : scopedToArtboard
+                    ? `Only "${activeArtboardName}" is exported`
+                    : artboardCount > 1
+                      ? `Leave off to export all ${artboardCount} artboards`
+                      : 'This project has one artboard'}
+              </p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="grid gap-1">
@@ -185,6 +227,7 @@ export function AppPreviewExportDialog({
                   durationSeconds: duration,
                   sizeMode,
                   rawRecordingOnly,
+                  currentArtboardOnly: scopedToArtboard,
                 })
               }
             >
@@ -199,14 +242,15 @@ export function AppPreviewExportDialog({
               size="sm"
               className="text-xs h-8 px-2"
               disabled={isVideoExporting}
-              onClick={onExportStills}
+              onClick={() => onExportStills(scopedToArtboard)}
             >
               <ImageIcon className="w-3.5 h-3.5 mr-1.5" />
-              Export PNG stills instead
+              {scopedToArtboard ? 'Export PNG still instead' : 'Export PNG stills instead'}
             </Button>
             <p className="text-[11px] text-muted-foreground mt-1">
-              One PNG per artboard at the canvas size. Handy for a poster frame
-              or a social still.
+              {scopedToArtboard
+                ? 'One PNG of the selected artboard at the canvas size. Handy for a poster frame or a social still.'
+                : 'One PNG per artboard at the canvas size. Handy for a poster frame or a social still.'}
             </p>
           </div>
         </div>
