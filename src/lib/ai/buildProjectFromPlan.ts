@@ -61,6 +61,25 @@ export function buildProjectFromPlan(
     : buildNewDesign(plan, screenshots);
 }
 
+/**
+ * The no-AI "auto-design" plan: name a template, place nothing explicitly.
+ * With an empty placement list every uploaded screenshot is a leftover, so
+ * buildFromTemplate fills the template's free device frames in reading order.
+ * Shared by the start screen's skip-the-agent option and the canvas bulk-drop
+ * proposal, so both produce identical projects for the same pick.
+ */
+export function autoPlaceScreenshotsPlan(template: Project): AgentPlan {
+  return {
+    action: 'use-template',
+    projectName: '',
+    reasoning: `Built from the ${template.name} template, screenshots placed in its device frames.`,
+    templateId: template.id,
+    screenshotPlacements: [],
+    textOverrides: [],
+    newDesign: null,
+  };
+}
+
 // --- use-template ---------------------------------------------------------
 
 function buildFromTemplate(

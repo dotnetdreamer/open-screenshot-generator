@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import type { Project } from '@/types/artboard';
 import { AgentPlanSchema, formatPlanIssues, type AgentPlan } from '@/lib/ai/agentPlanSchema';
-import { AgentBuildError, buildProjectFromPlan, type BuildResult } from '@/lib/ai/buildProjectFromPlan';
+import { AgentBuildError, autoPlaceScreenshotsPlan, buildProjectFromPlan, type BuildResult } from '@/lib/ai/buildProjectFromPlan';
 import { AgentError, generatePlan } from '@/lib/ai/generatePlan';
 import { extractJsonCandidates } from '@/lib/ai/jsonExtract';
 import { buildCatalogArtifacts, resolveAliases, type AliasMap } from '@/lib/ai/aliasCatalog';
@@ -64,6 +64,7 @@ import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
 import { RunHistoryDialog } from './RunHistoryDialog';
 import { ScreenshotUploader } from './ScreenshotUploader';
+import { TemplateProposalPicker } from './TemplateProposalPicker';
 import { WebSessionModePanel } from './WebSessionModePanel';
 
 interface AgentStartScreenProps {
@@ -103,6 +104,9 @@ export function AgentStartScreen({
   const [stage, setStage] = useState<BridgeStage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BuildResult | null>(null);
+  // No-AI path: show the deterministic template proposal instead of the
+  // instruction/run sections.
+  const [proposalMode, setProposalMode] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // The finished operation behind the current error, so the alert's info icon
@@ -537,6 +541,27 @@ export function AgentStartScreen({
     }
   };
 
+  // No-AI proposal: the user picked one of the ranked templates, so build the
+  // auto-place plan and hand the project over exactly like an accepted agent
+  // plan (same onCreateProject path, no confirmation card).
+  const pickProposal = async (template: Project) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const built = buildProjectFromPlan(autoPlaceScreenshotsPlan(template), screenshots, templates);
+      await onCreateProject(built.project, { nameOverride: built.project.name });
+    } catch (err) {
+      setProposalMode(false);
+      setError(
+        err instanceof AgentBuildError
+          ? err.message
+          : 'That template could not be turned into a project.'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (isLoadingTemplates) {
     return (
       <div className="space-y-4 py-4">
@@ -551,9 +576,26 @@ export function AgentStartScreen({
     <div className="space-y-6 pb-2">
       <section className="space-y-2">
         <Label className="text-sm font-bold">1. Add your app screenshots</Label>
-        <ScreenshotUploader screenshots={screenshots} onChange={setScreenshots} disabled={busy} />
+        <ScreenshotUploader
+          screenshots={screenshots}
+          onChange={setScreenshots}
+          disabled={busy}
+          onSkipAi={() => setProposalMode(true)}
+        />
       </section>
 
+      {proposalMode ? (
+        <section>
+          <TemplateProposalPicker
+            templates={templates}
+            screenshots={screenshots}
+            busy={busy}
+            onPick={(template) => void pickProposal(template)}
+            onBack={() => setProposalMode(false)}
+          />
+        </section>
+      ) : (
+        <>
       <section className="space-y-2">
         <Label htmlFor="agent-instruction" className="text-sm font-bold">
           2. Tell the agent what you want
@@ -645,6 +687,8 @@ export function AgentStartScreen({
           </TabsContent>
         </Tabs>
       </section>
+        </>
+      )}
 
       {error && (
         <Alert variant="destructive" className="relative pr-12">

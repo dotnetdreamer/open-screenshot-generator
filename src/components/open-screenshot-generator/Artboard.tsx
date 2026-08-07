@@ -12,6 +12,7 @@ import { VideoDeviceElement } from './elements/VideoDeviceElement';
 import { GestureElement } from './elements/GestureElement';
 import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
+import { readScreenshotFile, type UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
@@ -46,6 +47,26 @@ interface ArtboardProps {
 export interface ArtboardRef {
   addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => string | undefined;
   deleteElementByIdG: (elementId: string) => void;
+  // OS file drop routed from the canvas (a drop on empty canvas chrome has no
+  // element target, so every file becomes an image element). Single commit.
+  addDroppedImageFiles: (files: File[], clientPoint: Point) => void;
+}
+
+// Horizontal/vertical step between images dropped together (artboard px).
+const DROP_CASCADE_OFFSET = 48;
+
+/** Fill a device frame's screenshot, keeping the author's screenshotRect crop. */
+function withDroppedScreenshot(
+  element: DeviceFrameElementProps,
+  shot: UploadedScreenshot
+): DeviceFrameElementProps {
+  return {
+    ...element,
+    screenshotSrc: shot.dataUrl,
+    naturalScreenshotWidth: shot.width,
+    naturalScreenshotHeight: shot.height,
+    screenshotObjectFit: element.screenshotObjectFit ?? 'cover',
+  };
 }
 
 export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({ 
@@ -136,7 +157,102 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     setBackgroundStyle(artboardBackground(artboard));
   }, [artboard.elements, artboard.backgroundType, artboard.backgroundColor, artboard.backgroundGradient]);
 
+  // OS image files dropped on this artboard. The first file fills the device
+  // frame under the cursor when there is one (keeping its screenshotRect
+  // crop); every other file becomes an image element at the drop point, in
+  // natural size, cascaded and clamped into the artboard. All of it commits in
+  // ONE onUpdateArtboardElements call, so a multi-file drop is one history
+  // entry.
+  const handleImageFilesDrop = async (files: File[], clientPoint: Point, targetElementId: string | null) => {
+    if (files.length === 0) return;
+    const artboardRect = artboardDivRef.current?.getBoundingClientRect();
+    if (!artboardRect) return;
+    // Same client -> artboard coordinate conversion as addElement.
+    const renderedScale = artboardRect.width > 0
+      ? artboardRect.width / artboard.size.width
+      : displayScaleFactor;
+    const dropX = (clientPoint.x - artboardRect.left) / renderedScale;
+    const dropY = (clientPoint.y - artboardRect.top) / renderedScale;
+
+    const target = targetElementId ? elements.find((el) => el.id === targetElementId) : undefined;
+    const deviceTarget = target && target.type === 'device' ? target : null;
+
+    let shots: UploadedScreenshot[];
+    try {
+      shots = await Promise.all(files.map(readScreenshotFile));
+    } catch {
+      toast({
+        title: 'Could not read those images',
+        description: 'Use PNG, JPEG, WebP, GIF or SVG files.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const baseElements = deviceTarget
+      ? elements.map((el) =>
+          el.id === deviceTarget.id && el.type === 'device'
+            ? withDroppedScreenshot(el, shots[0])
+            : el
+        )
+      : elements;
+
+    const imageShots = deviceTarget ? shots.slice(1) : shots;
+    const newImages: ImageElementProps[] = imageShots.map((shot, index) => {
+      const width = shot.width || 400;
+      const height = shot.height || 300;
+      return {
+        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${index}`,
+        type: 'image',
+        name: shot.fileName,
+        imageSrc: shot.dataUrl,
+        imageAlt: shot.fileName,
+        objectFit: 'contain',
+        opacity: 1,
+        borderRadius: 0,
+        skewX: 0,
+        skewY: 0,
+        perspectiveX: 0,
+        perspectiveY: 0,
+        matrix3d: '',
+        rotation: 0,
+        scale: 1,
+        size: { width, height },
+        position: {
+          x: Math.max(0, Math.min(dropX - width / 2 + index * DROP_CASCADE_OFFSET, artboard.size.width - width)),
+          y: Math.max(0, Math.min(dropY - height / 2 + index * DROP_CASCADE_OFFSET, artboard.size.height - height)),
+        },
+      };
+    });
+
+    const nextElements = [...baseElements, ...newImages];
+    setElements(nextElements);
+    onUpdateArtboardElements(nextElements);
+
+    const selectId = deviceTarget ? deviceTarget.id : newImages[0]?.id;
+    if (selectId) setSelectedElementId(selectId);
+    if (deviceTarget && newImages.length > 0) {
+      toast({
+        title: 'Images Added',
+        description: `Filled "${deviceTarget.name || 'Device'}" and added ${newImages.length} more image${newImages.length === 1 ? '' : 's'}.`,
+      });
+    } else if (deviceTarget) {
+      toast({
+        title: 'Screenshot Placed',
+        description: `Filled "${deviceTarget.name || 'Device'}" with your screenshot.`,
+      });
+    } else {
+      toast({
+        title: 'Images Added',
+        description: `${newImages.length} image${newImages.length === 1 ? '' : 's'} added to "${artboard.name}".`,
+      });
+    }
+  };
+
   useImperativeHandle(ref, () => ({
+    addDroppedImageFiles: (files: File[], clientPoint: Point) => {
+      void handleImageFilesDrop(files, clientPoint, null);
+    },
     addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => {
       const artboardRect = artboardDivRef.current?.getBoundingClientRect();
       let newElementX = artboard.size.width / 2 - 50; 
@@ -561,6 +677,22 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           onDrop={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            // OS file drop: image files land as image elements (or fill the
+            // device frame under the cursor). Palette drags carry no files,
+            // so they fall through to the custom MIME path below.
+            const imageFiles = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith('image/'));
+            if (imageFiles.length > 0) {
+              const targetId = (e.target as HTMLElement).closest('[data-element-id]')?.getAttribute('data-element-id') ?? null;
+              void handleImageFilesDrop(imageFiles, { x: e.clientX, y: e.clientY }, targetId);
+              return;
+            }
+            if (e.dataTransfer.files.length > 0) {
+              toast({
+                title: 'Unsupported file',
+                description: 'Drop image files (PNG, JPEG, WebP, GIF or SVG). Recordings are added to video elements.',
+              });
+              return;
+            }
             const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
             const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
             const rawStyleProps = e.dataTransfer.getData('application/artboard-element-styleprops');

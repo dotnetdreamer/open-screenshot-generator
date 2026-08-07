@@ -88,6 +88,29 @@ export function countDeviceSlots(entry: CatalogEntry): number {
   return entry.artboards.reduce((sum, ab) => sum + ab.deviceSlots.length, 0);
 }
 
+/**
+ * Deterministic "which template fits N screenshots" ranking for the no-AI
+ * proposal flow: templates that can hold every screenshot first, then by how
+ * close the slot count is to N (an exact fit beats a mostly-empty template),
+ * then by name so the order never wobbles between renders.
+ */
+export function rankTemplatesByDeviceFit(
+  entries: CatalogEntry[],
+  screenshotCount: number
+): CatalogEntry[] {
+  return [...entries].sort((a, b) => {
+    const slotsA = countDeviceSlots(a);
+    const slotsB = countDeviceSlots(b);
+    const fitsAllA = slotsA >= screenshotCount ? 0 : 1;
+    const fitsAllB = slotsB >= screenshotCount ? 0 : 1;
+    if (fitsAllA !== fitsAllB) return fitsAllA - fitsAllB;
+    const diffA = Math.abs(slotsA - screenshotCount);
+    const diffB = Math.abs(slotsB - screenshotCount);
+    if (diffA !== diffB) return diffA - diffB;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function serializeCatalog(entries: CatalogEntry[]): string {
   const lines: string[] = [];
   for (const entry of entries) {

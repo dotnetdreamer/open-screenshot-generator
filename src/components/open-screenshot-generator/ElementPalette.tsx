@@ -1,6 +1,6 @@
 "use client";
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +26,13 @@ import {
   MoveHorizontalIcon,
   MoveVerticalIcon,
   LaptopIcon,
+  UploadCloudIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
 import { IMAGE_CATEGORIES, type LibraryImageDef } from '@/lib/imageLibrary';
+import { listUploadedImages, useMediaUrl, type MediaAsset } from '@/lib/mediaStore';
+import { UploadsPanel } from './UploadsPanel';
 // 3D pose tables and colored flat presets live in lib/ so the MCP asset library
 // lists exactly what these tiles drop (see lib/mcp/assetLibrary.ts).
 import {
@@ -194,6 +197,14 @@ const ImageLibraryTile: React.FC<{
   );
 };
 
+/** Mini thumbnail for the "Your uploads" category card, from the shared object-URL cache. */
+const UploadedAssetPreview: React.FC<{ id: string }> = ({ id }) => {
+  const url = useMediaUrl(id);
+  return url ? (
+    <img src={url} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+  ) : null;
+};
+
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
 }
@@ -292,6 +303,19 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
   const [openDeviceCategoryId, setOpenDeviceCategoryId] = useState<DeviceCategoryId | null>(null);
   const [openImageCategoryId, setOpenImageCategoryId] = useState<string | null>(null);
   const openImageCategory = IMAGE_CATEGORIES.find(c => c.id === openImageCategoryId) || null;
+
+  // User-uploaded image library (pinned first category in the Images tab).
+  // The palette owns the list so the overview card can preview recent uploads;
+  // the drill-in panel mutates and asks for a re-list via refreshUploads.
+  const [uploadedAssets, setUploadedAssets] = useState<MediaAsset[]>([]);
+  const refreshUploads = useCallback(() => {
+    listUploadedImages()
+      .then(setUploadedAssets)
+      .catch(() => setUploadedAssets([]));
+  }, []);
+  useEffect(() => {
+    refreshUploads();
+  }, [refreshUploads]);
 
   // The layout swaps to the template-selector screen (and back) while a
   // project loads, remounting this palette — keep the chosen tab sticky so it
@@ -804,7 +828,24 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
 
         <TabsContent value="images" className="flex-grow p-3 pt-2 mt-0 min-h-0">
           <ScrollArea className="h-full">
-            {openImageCategory ? (
+            {openImageCategoryId === 'uploads' ? (
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mb-2 h-7 px-1.5 text-xs"
+                  onClick={() => setOpenImageCategoryId(null)}
+                >
+                  <ChevronLeftIcon className="w-4 h-4 mr-0.5" />
+                  Back
+                </Button>
+                <UploadsPanel
+                  assets={uploadedAssets}
+                  onChanged={refreshUploads}
+                  onDragStart={handleDragStart}
+                />
+              </div>
+            ) : openImageCategory ? (
               <div>
                 <Button
                   variant="ghost"
@@ -827,6 +868,17 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   <CardTitle className="text-base">Image Library</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
+                  <DeviceCategoryCard
+                    label="Your uploads"
+                    onOpen={() => setOpenImageCategoryId('uploads')}
+                    previews={
+                      uploadedAssets.length > 0
+                        ? uploadedAssets.slice(0, 6).map(asset => (
+                            <UploadedAssetPreview key={asset.id} id={asset.id} />
+                          ))
+                        : [<UploadCloudIcon key="empty" className="w-5 h-5 text-primary" />]
+                    }
+                  />
                   {IMAGE_CATEGORIES.map(category => (
                     <DeviceCategoryCard
                       key={category.id}

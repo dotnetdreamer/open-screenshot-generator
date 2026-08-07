@@ -42,6 +42,8 @@ import {
 } from '@/lib/mcp/desktopMcpServer';
 import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
+import { autoPlaceScreenshotsPlan, buildProjectFromPlan } from '@/lib/ai/buildProjectFromPlan';
+import { readScreenshotFile, type UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
@@ -51,10 +53,11 @@ import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, track
 import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { AgentStartScreen } from './start/AgentStartScreen';
+import { TemplateProposalPicker } from './start/TemplateProposalPicker';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, InfoIcon, Loader2Icon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -477,6 +480,12 @@ export function OpenScreenshotGeneratorLayout() {
   const [videoProgress, setVideoProgress] = useState<VideoExportProgress | null>(null);
   const videoExportAbortRef = useRef<AbortController | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  // Bulk OS drop onto an empty canvas: the dropped images are read into
+  // screenshots, then the template proposal dialog offers to auto-build a
+  // project from them (deterministic, no AI).
+  const [bulkDropDialogOpen, setBulkDropDialogOpen] = useState(false);
+  const [bulkDropScreenshots, setBulkDropScreenshots] = useState<UploadedScreenshot[]>([]);
+  const [bulkDropReading, setBulkDropReading] = useState(false);
   // Cloud account (Bring-Your-Own-Storage). `accountHint` is set when the
   // dialog is opened from a gated action so it can explain why it appeared.
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -1143,10 +1152,65 @@ export function OpenScreenshotGeneratorLayout() {
     } catch (error) {
       console.error("Error creating project from template:", error);
       setIsLoadingTemplate(false); // Reset loading flag on error
-      toast({ 
-        title: "Creation Failed", 
-        description: "Failed to create project from template.", 
-        variant: "destructive" 
+      toast({
+        title: "Creation Failed",
+        description: "Failed to create project from template.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Image files dropped onto a canvas with no artboards: read them, then offer
+  // to auto-build a project from a ranked template pick (no AI involved).
+  const MAX_BULK_DROP_SCREENSHOTS = 12;
+  const handleImagesDroppedOnEmptyCanvas = async (files: File[]) => {
+    const accepted = files.slice(0, MAX_BULK_DROP_SCREENSHOTS);
+    // The start dialog can be up over the empty canvas; take it down directly
+    // (NOT through its onOpenChange, which would auto-create a blank project
+    // under the proposal). If the user dismisses the proposal they can reopen
+    // the start dialog from the toolbar's template button.
+    setIsTemplateSelectorOpen(false);
+    setBulkDropDialogOpen(true);
+    setBulkDropReading(true);
+    setBulkDropScreenshots([]);
+    try {
+      const shots = await Promise.all(accepted.map(readScreenshotFile));
+      setBulkDropScreenshots(shots);
+      if (files.length > accepted.length) {
+        toast({
+          title: "Some images skipped",
+          description: `Only the first ${accepted.length} images were used.`,
+        });
+      }
+    } catch {
+      setBulkDropDialogOpen(false);
+      toast({
+        title: "Could not read those images",
+        description: "Use PNG, JPEG, WebP, GIF or SVG files.",
+        variant: "destructive",
+      });
+    } finally {
+      setBulkDropReading(false);
+    }
+  };
+
+  // The picked template becomes a project through the same handoff the AI
+  // agent uses (auto-place plan -> build -> handleSelectTemplate).
+  const handleBulkDropPick = async (template: Project) => {
+    try {
+      const built = buildProjectFromPlan(
+        autoPlaceScreenshotsPlan(template),
+        bulkDropScreenshots,
+        agentUsableTemplates(availableProjects)
+      );
+      setBulkDropDialogOpen(false);
+      setBulkDropScreenshots([]);
+      await handleSelectTemplate(built.project, { nameOverride: built.project.name });
+    } catch (error) {
+      toast({
+        title: "Could not build the project",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
       });
     }
   };
@@ -3411,6 +3475,7 @@ const generateRandomProjectName = (): string => {
                 onTranslateArtboard={handleTranslateArtboard}
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
+                onImagesDroppedOnEmptyCanvas={(files) => void handleImagesDroppedOnEmptyCanvas(files)}
               />
 
               {/* Floating zoom control (bottom-left of canvas) */}
@@ -3625,6 +3690,37 @@ const generateRandomProjectName = (): string => {
             hint={accountHint}
             onOpenProject={handleOpenFromAccount}
           />
+
+          {/* Bulk drop onto an empty canvas: rank templates by device-slot fit
+              and build the picked one with the screenshots auto-placed. */}
+          <Dialog
+            open={bulkDropDialogOpen}
+            onOpenChange={(open) => {
+              setBulkDropDialogOpen(open);
+              if (!open) setBulkDropScreenshots([]);
+            }}
+          >
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle className="sr-only">Pick a template</DialogTitle>
+                <DialogDescription className="sr-only">
+                  We place your dropped screenshots in the device frames of the template you pick.
+                </DialogDescription>
+              </DialogHeader>
+              {bulkDropReading ? (
+                <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
+                  <Loader2Icon className="h-4 w-4 animate-spin" />
+                  Reading your images...
+                </div>
+              ) : (
+                <TemplateProposalPicker
+                  templates={availableProjects}
+                  screenshots={bulkDropScreenshots}
+                  onPick={(template) => void handleBulkDropPick(template)}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
 
           <TranslateDialog
             isOpen={isTranslateDialogOpen}

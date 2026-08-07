@@ -34,6 +34,9 @@ interface CanvasAreaProps {
   // fake placeholder artboard. Artboard positioning is owned by the parent
   // (calculateArtboardPositions in OpenScreenshotGeneratorLayout), not here.
   isLoading?: boolean;
+  // OS image files dropped on a canvas with no artboards yet: the parent
+  // offers to auto-build a project from them (template proposal flow).
+  onImagesDroppedOnEmptyCanvas?: (files: File[]) => void;
 }
 
 export function CanvasArea({
@@ -55,6 +58,7 @@ export function CanvasArea({
     onTranslateArtboard,
     activeTool,
     isLoading = false,
+    onImagesDroppedOnEmptyCanvas,
 }: CanvasAreaProps) {
   // The parent is the single source of truth for artboards. We render the prop
   // directly (no private mirror copy) so a newly loaded template paints on the
@@ -373,6 +377,36 @@ export function CanvasArea({
 
   const handleDropOnCanvas = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    // OS file drop (no custom palette MIME). A drop straight onto an artboard
+    // is handled by Artboard's own onDrop and never reaches here; this path
+    // covers empty canvas chrome: route to the active artboard, or offer the
+    // bulk template proposal when there is nothing to drop onto yet.
+    const imageFiles = Array.from(e.dataTransfer.files).filter((file) => file.type.startsWith('image/'));
+    if (imageFiles.length > 0) {
+      if (artboards.length === 0) {
+        if (imageFiles.length >= 2 && onImagesDroppedOnEmptyCanvas) {
+          onImagesDroppedOnEmptyCanvas(imageFiles);
+        } else {
+          toast({ title: "No Artboard Yet", description: "Start a project first, then drop your image onto an artboard." });
+        }
+        return;
+      }
+      if (activeArtboardId) {
+        const artboardComponent = artboardRefs.current[activeArtboardId];
+        if (artboardComponent && (artboardComponent as any).addDroppedImageFiles) {
+          (artboardComponent as any).addDroppedImageFiles(imageFiles, { x: e.clientX, y: e.clientY });
+        } else {
+          toast({ title: "Error", description: "Could not add images. Artboard not found or ready.", variant: "destructive"});
+        }
+      } else {
+        toast({ title: "No Artboard Selected", description: "Select an artboard, then drop your images on it.", variant: "destructive"});
+      }
+      return;
+    }
+    if (e.dataTransfer.files.length > 0) {
+      toast({ title: "Unsupported file", description: "Drop image files (PNG, JPEG, WebP, GIF or SVG). Recordings are added to video elements." });
+      return;
+    }
     const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
     const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
     const rawStyleProps = e.dataTransfer.getData('application/artboard-element-styleprops');
