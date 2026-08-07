@@ -54,6 +54,7 @@ import {
 } from '@/lib/device3dPresets';
 import { withBasePath } from '@/lib/basePath';
 import { useT } from '@/i18n';
+import type { MessageKey } from '@/i18n/messages/en';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -114,14 +115,16 @@ const ColoredDeviceGlyph: React.FC<{ def: ColoredDeviceTileDef }> = ({ def }) =>
 
 type DeviceCategoryId = '3d-iphone' | '3d-android' | '3d-watch' | '3d-mac' | 'colored-iphone' | 'colored-android' | 'mockups';
 
-const DEVICE_CATEGORY_LABELS: Record<DeviceCategoryId, string> = {
-  '3d-iphone': '3D iPhone 17 Pro Max',
-  '3d-android': '3D Android',
-  '3d-watch': '3D Apple Watch',
-  '3d-mac': '3D Mac',
-  'colored-iphone': 'Colored iPhone',
-  'colored-android': 'Colored Android',
-  'mockups': 'Device Mockups',
+// Catalog keys for the device category cards; resolved with t() at render so
+// the overview follows the UI locale. The 'mockups' card uses
+// 'palette.deviceMockups' directly at its call site.
+const DEVICE_CATEGORY_LABEL_KEYS: Record<Exclude<DeviceCategoryId, 'mockups'>, MessageKey> = {
+  '3d-iphone': 'palette.devCat3dIphone',
+  '3d-android': 'palette.devCat3dAndroid',
+  '3d-watch': 'palette.devCat3dWatch',
+  '3d-mac': 'palette.devCat3dMac',
+  'colored-iphone': 'palette.devCatColoredIphone',
+  'colored-android': 'palette.devCatColoredAndroid',
 };
 
 // Representative thumbnails shown on the category cards in the overview grid.
@@ -152,8 +155,9 @@ const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[];
 
 /** Tile for a colored flat device preset. */
 const ColoredDeviceTile: React.FC<{ def: ColoredDeviceTileDef; onDragStart: PaletteDragStart }> = ({ def, onDragStart }) => {
+  const t = useT();
   const styleProps = coloredDeviceStyleProps(def);
-  const title = `Add ${def.label}`;
+  const title = t('palette.addItem', { label: def.label });
   return (
     <button
       type="button"
@@ -319,6 +323,10 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
   // The palette owns the list so the overview card can preview recent uploads;
   // the drill-in panel mutates and asks for a re-list via refreshUploads.
   const [uploadedAssets, setUploadedAssets] = useState<MediaAsset[]>([]);
+  // 3D tile labels/tooltips: the color word is localized; pose and side stay
+  // as the device3dPresets data values (lib data, intentionally English).
+  const color3dLabel = (color: (typeof COLORS_3D)[number]) =>
+    color === 'black' ? t('palette.colorBlack') : t('palette.colorWhite');
   const refreshUploads = useCallback(() => {
     listUploadedImages()
       .then(setUploadedAssets)
@@ -637,8 +645,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                           <Device3DThumbTile
                             key={`ip17-${color}-${pose}-${side}`}
                             src={`/elements/device-3d/iphone-${pose}-${side}-${color}.png`}
-                            label={color === 'black' ? 'Black' : 'White'}
-                            title={`Add iPhone 17 Pro Max 3D — ${pose} ${side} (${color})`}
+                            label={color3dLabel(color)}
+                            title={t('palette.add3dDevice', { device: 'iPhone 17 Pro Max', pose, side, color: color3dLabel(color) })}
                             deviceType="iphone-17-pro-max"
                             styleProps={{
                               styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -658,8 +666,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                           <Device3DThumbTile
                             key={`and3d-${color}-${pose}-${side}`}
                             src={`/elements/device-3d/android-${pose}-${side}-${color}.png`}
-                            label={color === 'black' ? 'Black' : 'White'}
-                            title={`Add Android 3D — ${pose} ${side} (${color})`}
+                            label={color3dLabel(color)}
+                            title={t('palette.add3dDevice', { device: 'Android', pose, side, color: color3dLabel(color) })}
                             deviceType="android-punch-hole"
                             styleProps={{
                               styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -679,8 +687,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                           <Device3DThumbTile
                             key={`watch-${color}-${pose}-${side}`}
                             src={`/elements/device-3d/watch-${pose}-${side}-${color}.png`}
-                            label={color === 'black' ? 'Black' : 'White'}
-                            title={`Add Apple Watch 3D — ${pose} ${side} (${color})`}
+                            label={color3dLabel(color)}
+                            title={t('palette.add3dDevice', { device: 'Apple Watch', pose, side, color: color3dLabel(color) })}
                             deviceType="apple-watch"
                             styleProps={{
                               styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -701,8 +709,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                             <Device3DThumbTile
                               key={`mb-${color}-${pose}-${side}`}
                               src={`/elements/device-3d/macbook-${pose}-${side}-${color}.png`}
-                              label={color === 'black' ? 'MacBook Black' : 'MacBook Silver'}
-                              title={`Add MacBook 3D — ${pose} ${side} (${color})`}
+                              label={color === 'black' ? `MacBook ${t('palette.colorBlack')}` : `MacBook ${t('palette.colorSilver')}`}
+                              title={t('palette.add3dDevice', { device: 'MacBook', pose, side, color: color === 'black' ? t('palette.colorBlack') : t('palette.colorSilver') })}
                               deviceType="macbook"
                               styleProps={{
                                 styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -721,8 +729,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                             <Device3DThumbTile
                               key={`im-${color}-${pose}-${side}`}
                               src={`/elements/device-3d/imac-${pose}-${side}-${color}.png`}
-                              label={color === 'black' ? 'iMac Black' : 'iMac Silver'}
-                              title={`Add iMac 3D — ${pose} ${side} (${color})`}
+                              label={color === 'black' ? `iMac ${t('palette.colorBlack')}` : `iMac ${t('palette.colorSilver')}`}
+                              title={t('palette.add3dDevice', { device: 'iMac', pose, side, color: color === 'black' ? t('palette.colorBlack') : t('palette.colorSilver') })}
                               deviceType="imac"
                               styleProps={{
                                 styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -777,42 +785,42 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                 </CardHeader>
                 <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['3d-iphone']}
+                    label={t(DEVICE_CATEGORY_LABEL_KEYS['3d-iphone'])}
                     onOpen={() => setOpenDeviceCategoryId('3d-iphone')}
                     previews={IPHONE_3D_PREVIEWS.map((k) => (
                       <img key={k} src={withBasePath(`/elements/device-3d/iphone-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['3d-android']}
+                    label={t(DEVICE_CATEGORY_LABEL_KEYS['3d-android'])}
                     onOpen={() => setOpenDeviceCategoryId('3d-android')}
                     previews={ANDROID_3D_PREVIEWS.map((k) => (
                       <img key={k} src={withBasePath(`/elements/device-3d/android-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['3d-watch']}
+                    label={t(DEVICE_CATEGORY_LABEL_KEYS['3d-watch'])}
                     onOpen={() => setOpenDeviceCategoryId('3d-watch')}
                     previews={WATCH_3D_PREVIEWS.map((k) => (
                       <img key={k} src={withBasePath(`/elements/device-3d/watch-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['3d-mac']}
+                    label={t(DEVICE_CATEGORY_LABEL_KEYS['3d-mac'])}
                     onOpen={() => setOpenDeviceCategoryId('3d-mac')}
                     previews={MAC_3D_PREVIEWS.map((k) => (
                       <img key={k} src={withBasePath(`/elements/device-3d/${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['colored-iphone']}
+                    label={t(DEVICE_CATEGORY_LABEL_KEYS['colored-iphone'])}
                     onOpen={() => setOpenDeviceCategoryId('colored-iphone')}
                     previews={COLORED_IPHONE_TILES.slice(0, 6).map((def, i) => (
                       <ColoredDeviceGlyph key={i} def={def} />
                     ))}
                   />
                   <DeviceCategoryCard
-                    label={DEVICE_CATEGORY_LABELS['colored-android']}
+                    label={t(DEVICE_CATEGORY_LABEL_KEYS['colored-android'])}
                     onOpen={() => setOpenDeviceCategoryId('colored-android')}
                     previews={COLORED_ANDROID_TILES.slice(0, 6).map((def, i) => (
                       <ColoredDeviceGlyph key={i} def={def} />
