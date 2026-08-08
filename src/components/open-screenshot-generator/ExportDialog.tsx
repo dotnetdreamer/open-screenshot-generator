@@ -27,6 +27,10 @@ export interface ExportSelection {
   // (store-correct canvas + matching device mockups), captured, then the
   // canvas is restored — the project itself is never modified.
   generateFormats: DeviceFormat[];
+  // Narrow every selection above to the artboard the canvas has selected
+  // instead of the whole project. Off unless the dialog was opened from an
+  // artboard's own toolbar.
+  currentArtboardOnly: boolean;
 }
 
 // Shared with AppPreviewExportDialog (the video projects' own dialog), which
@@ -38,6 +42,8 @@ export interface VideoExportRequest {
   durationSeconds: number; // 1..30
   sizeMode: VideoSizeMode;
   rawRecordingOnly: boolean;
+  // Render only the artboard the canvas has selected, not every video board.
+  currentArtboardOnly: boolean;
 }
 
 export interface VideoExportProgress {
@@ -46,6 +52,15 @@ export interface VideoExportProgress {
   boardCount: number;
   frame: number;
   totalFrames: number;
+}
+
+// The artboard the canvas has selected, with its own format and size so the
+// scoped export can describe exactly what it produces (a mixed project's
+// selected board need not match the project-wide format).
+export interface ActiveArtboardSummary {
+  name: string;
+  size: Size;
+  format: DeviceFormat | null;
 }
 
 interface ExportDialogProps {
@@ -60,6 +75,11 @@ interface ExportDialogProps {
   // which App Store sizes are missing.
   currentFormat: DeviceFormat | null;
   currentSize?: Size;
+  activeArtboard?: ActiveArtboardSummary | null;
+  artboardCount?: number;
+  // Set when the dialog is opened from an artboard's own toolbar, where
+  // "export this board" is the whole intent.
+  defaultCurrentArtboardOnly?: boolean;
 }
 
 // Apple's screenshot-specification tiers for the sizes this app can generate
@@ -77,21 +97,33 @@ export function ExportDialog({
   onPublishToStore,
   currentFormat,
   currentSize,
+  activeArtboard,
+  artboardCount = 0,
+  defaultCurrentArtboardOnly = false,
 }: ExportDialogProps) {
   const [asIs, setAsIs] = useState(true);
   const [generateFormats, setGenerateFormats] = useState<DeviceFormat[]>([]);
+  const [currentArtboardOnly, setCurrentArtboardOnly] = useState(false);
+
+  const canScopeToArtboard = !!activeArtboard;
+  // Everything below describes what the export produces, so it has to follow
+  // the scope: a scoped run reports the selected board's own format and size.
+  const scopedToArtboard = canScopeToArtboard && currentArtboardOnly;
+  const effectiveFormat = scopedToArtboard ? activeArtboard!.format : currentFormat;
+  const effectiveSize = scopedToArtboard ? activeArtboard!.size : currentSize;
 
   useEffect(() => {
     // Reset selection whenever the dialog is reopened
     if (isOpen) {
       setAsIs(true);
       setGenerateFormats([]);
+      setCurrentArtboardOnly(defaultCurrentArtboardOnly);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultCurrentArtboardOnly]);
 
   const currentPreset = useMemo(
-    () => DEVICE_FORMAT_PRESETS.find((p) => p.id === currentFormat),
-    [currentFormat]
+    () => DEVICE_FORMAT_PRESETS.find((p) => p.id === effectiveFormat),
+    [effectiveFormat]
   );
 
   // App Store formats the current canvas does NOT already produce. When the
@@ -102,13 +134,13 @@ export function ExportDialog({
     .filter(Boolean);
 
   const coveredByAsIs = (formatId: DeviceFormat) => {
-    if (currentFormat !== formatId) return false;
+    if (effectiveFormat !== formatId) return false;
     const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
     return (
       !!preset &&
-      !!currentSize &&
-      currentSize.width === preset.artboard.width &&
-      currentSize.height === preset.artboard.height
+      !!effectiveSize &&
+      effectiveSize.width === preset.artboard.width &&
+      effectiveSize.height === preset.artboard.height
     );
   };
 
@@ -121,10 +153,18 @@ export function ExportDialog({
   const nothingSelected = !asIs && generateFormats.length === 0;
 
   const asIsDescription = currentPreset
-    ? `${currentPreset.label} layout${currentSize ? ` — ${currentSize.width}×${currentSize.height}` : ''}`
-    : currentSize
-      ? `Current layout — ${currentSize.width}×${currentSize.height}`
+    ? `${currentPreset.label} layout${effectiveSize ? `, ${effectiveSize.width}×${effectiveSize.height}` : ''}`
+    : effectiveSize
+      ? `Current layout, ${effectiveSize.width}×${effectiveSize.height}`
       : 'Current layout';
+
+  const scopeDescription = !canScopeToArtboard
+    ? 'Select an artboard on the canvas first'
+    : currentArtboardOnly
+      ? `Only "${activeArtboard!.name}" is exported`
+      : artboardCount > 1
+        ? `Leave off to export all ${artboardCount} artboards`
+        : 'This project has one artboard';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -148,6 +188,27 @@ export function ExportDialog({
             <div className="grid gap-0.5 leading-none">
               <Label htmlFor="export-as-is">Export current canvas</Label>
               <p className="text-xs text-muted-foreground">{asIsDescription}</p>
+            </div>
+          </div>
+
+          {/* Scope applies to every box above and below: with it on, the
+              as-is capture and each generated format produce one file for the
+              selected board instead of one per artboard. */}
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="export-current-artboard-only"
+              disabled={!canScopeToArtboard}
+              checked={scopedToArtboard}
+              onCheckedChange={(v) => setCurrentArtboardOnly(v === true)}
+            />
+            <div className="grid gap-0.5 leading-none">
+              <Label
+                htmlFor="export-current-artboard-only"
+                className={!canScopeToArtboard ? 'text-muted-foreground' : undefined}
+              >
+                Selected artboard only
+              </Label>
+              <p className="text-xs text-muted-foreground">{scopeDescription}</p>
             </div>
           </div>
 
@@ -205,7 +266,9 @@ export function ExportDialog({
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button
-              onClick={() => onConfirmExport({ asIs, generateFormats })}
+              onClick={() =>
+              onConfirmExport({ asIs, generateFormats, currentArtboardOnly: scopedToArtboard })
+            }
               disabled={nothingSelected}
             >
               Export

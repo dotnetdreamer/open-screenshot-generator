@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon } from 'lucide-react';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages } from 'lucide-react';
 import { saveMedia } from '@/lib/mediaStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
@@ -27,6 +27,7 @@ import {
   SelectLabel
 } from "@/components/ui/select";
 import { getFontOptions, getGroupedFontOptions } from '@/services/fontService';
+import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 
 // Panel headings. Derived names read badly for the compound types
@@ -47,6 +48,11 @@ interface PropertiesPanelProps {
    * the input before blur is delivered).
    */
   onUpdateElementById?: (elementId: string, updates: Partial<ArtboardElement>) => void;
+  /**
+   * Open the translate dialog scoped to a single text element. Omitted when
+   * the host has no translation flow to offer.
+   */
+  onTranslateElement?: (elementId: string) => void;
   activeArtboardDetails?: ArtboardState | null;
   onUpdateArtboardDetails?: (updates: Partial<ArtboardState>) => void;
   className?: string;
@@ -161,9 +167,10 @@ export function PropertiesPanel({
   selectedElement, 
   onUpdateElement, 
   onUpdateElementById,
-  activeArtboardDetails, 
+  onTranslateElement,
+  activeArtboardDetails,
   onUpdateArtboardDetails,
-  className 
+  className
 }: PropertiesPanelProps) {
   // Use a ref to track client-side initialization
   const isClient = useRef(false);
@@ -1344,13 +1351,37 @@ export function PropertiesPanel({
         {/* Content */}
         <div className="space-y-2">
           <Label htmlFor="textContent" className="text-xs font-medium">Content</Label>
-          <Input
-            id="textContent"
-            value={localContent}
-            onChange={(e) => handleTextContentChange(element.id, e.target.value)}
-            onBlur={handleTextContentBlur}
-            className="text-sm"
-          />
+          <div className="flex items-center gap-1.5">
+            <Input
+              id="textContent"
+              value={localContent}
+              onChange={(e) => handleTextContentChange(element.id, e.target.value)}
+              onBlur={handleTextContentBlur}
+              className="text-sm"
+            />
+            {onTranslateElement && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                disabled={!isTranslationEnabled || !localContent.trim()}
+                title={
+                  isTranslationEnabled
+                    ? "Translate this text"
+                    : "Translation is disabled because API URLs are not configured"
+                }
+                aria-label="Translate this text"
+                onClick={() => {
+                  // Flush an edit the blur may not have committed yet, so the
+                  // dialog translates what is in the box, not the stale value.
+                  handleTextContentBlur();
+                  onTranslateElement(element.id);
+                }}
+              >
+                <Languages className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         
         {/* Font Family */}

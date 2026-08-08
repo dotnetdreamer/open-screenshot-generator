@@ -175,9 +175,14 @@ jobs:
           # The desktop Google client is a separate "Desktop app" OAuth client:
           # desktop signs in over a 127.0.0.1 loopback, which Google rejects for
           # web clients, so the web id is not a usable fallback here.
-          # There is no OAuth proxy var: desktop uses GitHub's device flow and
-          # never calls the Worker.
+          # Its secret is required too: Google's token endpoint answers
+          # "client_secret is missing." for an installed-app code exchange
+          # without one, PKCE notwithstanding. It ends up in the shipped bundle
+          # either way, which is what Google's installed-app docs expect; it is
+          # read from either a secret or a var so it works whichever way the
+          # repo has it stored, and kept out of the log by preferring the secret.
           NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID }}
+          NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ secrets.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET || vars.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET }}
           NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
           NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
           NEXT_PUBLIC_TRANSLATION_FALLBACK_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_FALLBACK_URL }}

@@ -28,7 +28,8 @@ import { Logo } from './Logo';
 import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
-import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
+import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
+import { ALL_CANVAS_SIZE_PRESETS, canvasSizeSlug } from '@/lib/sizePresets';
 import { artboardBackground } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
@@ -44,10 +45,7 @@ import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
-import { PublishDialog } from './publish/PublishDialog';
-import { ProjectNameField } from './ProjectNameField';
-import { decodeDataUrl, type PublishImage } from '@/lib/publish';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
@@ -58,16 +56,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
+import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AccountAuthError,
   bundleFromJson,
   bundleToJson,
+  findAccountProject,
   importBundle,
   loadProjectFromAccount,
+  newCloudProjectId,
   saveProjectToAccount,
   serializeProject,
   useAccount,
+  type CloudProjectSummary,
 } from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
 import { LoadStatusBar } from './LoadStatusBar';
@@ -430,9 +432,17 @@ export function OpenScreenshotGeneratorLayout() {
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
-  // see src/lib/publish; the dialog explains itself on the web build.
-  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  // Seeds the export dialog's "Selected artboard only" box. The toolbar's
+  // Download opens the dialog project-wide; an artboard's own Download opens
+  // it already scoped to that board.
+  const [exportScopedToArtboard, setExportScopedToArtboard] = useState(false);
+  // Live PNG export readout. Non-null for exactly as long as a run is in
+  // flight, which is also what keeps the progress dialog on screen. Cancel is
+  // a ref, not state, because the capture loop reads it between files and
+  // must see the latest value without a re-render.
+  const [pngProgress, setPngProgress] = useState<PngExportProgress | null>(null);
+  const [isCancellingPngExport, setIsCancellingPngExport] = useState(false);
+  const pngExportCancelRef = useRef(false);
   // App Preview video export: per-board analysis (which boards carry video
   // content) is recomputed when the export dialog opens; progress/abort state
   // drives the dialog's render section.
@@ -446,6 +456,9 @@ export function OpenScreenshotGeneratorLayout() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountHint, setAccountHint] = useState<string | undefined>(undefined);
   const [isSavingToAccount, setIsSavingToAccount] = useState(false);
+  // Set when a save would land on top of a copy already in the account: holds
+  // that copy while the user picks replace or save-as-new.
+  const [saveConflict, setSaveConflict] = useState<CloudProjectSummary | null>(null);
   const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
   // Desktop only: Help > About in the native menu bar opens the same dialog
   // as the sidebar's About option (settings.rs emits abs-open-about).
@@ -475,9 +488,25 @@ export function OpenScreenshotGeneratorLayout() {
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
+  // Set when the run is scoped to one text element (the properties panel
+  // button); null means the dialog translates artboards as before.
+  const [translateElementId, setTranslateElementId] = useState<string | null>(null);
 
   const handleTranslateArtboard = (artboardId: string) => {
     handleArtboardSelection(artboardId);
+    setTranslateElementId(null);
+    setIsTranslateSingleArtboard(true);
+    setIsTranslateDialogOpen(true);
+  };
+
+  const handleExportArtboard = (artboardId: string) => {
+    handleArtboardSelection(artboardId);
+    setExportScopedToArtboard(true);
+    setIsExportDialogOpen(true);
+  };
+
+  const handleTranslateTextElement = (elementId: string) => {
+    setTranslateElementId(elementId);
     setIsTranslateSingleArtboard(true);
     setIsTranslateDialogOpen(true);
   };
@@ -541,6 +570,31 @@ export function OpenScreenshotGeneratorLayout() {
 
     fetchRecentProjects();
   }, [activeProjectId]); // Add activeProjectId as a dependency
+
+  // Closing the tab, reloading or hitting Back throws away the editor session,
+  // and anything not pushed to the connected account only exists in this
+  // browser's IndexedDB. `beforeunload` is the one hook that can interrupt
+  // that, and browsers only honour it with their own built-in confirm: a
+  // custom dialog cannot block an unload, and any message we set here is
+  // ignored (Chrome/Firefox/Safari all show fixed wording).
+  //
+  // Web only, on purpose. The desktop shell owns its window lifecycle, and a
+  // Tauri close would either ignore this or strand the user in a prompt the
+  // native window did not ask for.
+  //
+  // Only armed once there is something on the canvas, so the template picker
+  // on a fresh visit never blocks a close.
+  useEffect(() => {
+    if (isTauri() || artboards.length === 0) return;
+    const confirmLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Legacy browsers need a truthy returnValue to raise the prompt at all.
+      event.returnValue = '';
+      return '';
+    };
+    window.addEventListener('beforeunload', confirmLeave);
+    return () => window.removeEventListener('beforeunload', confirmLeave);
+  }, [artboards.length]);
 
   // --- 1. On mount, check for projectId in URL and set as activeProjectId ---
   useEffect(() => {
@@ -882,10 +936,35 @@ export function OpenScreenshotGeneratorLayout() {
     return artboards.length > 0 ? artboards[0].size : { width: 1290, height: 2796 }; // Updated default size
   };
 
-  // Artboards are only added from an existing artboard's hover toolbar now
-  // (the top toolbar's "+" is gone), so handleAddNewArtboardAfter is the single
-  // creation path. It always has a board to anchor to, because deleting the
-  // last artboard is refused.
+  // Handle new artboard creation with updated default size
+  const handleNewArtboardFromMainToolbar = () => {
+    if (activeArtboardId && artboards.some(ab => ab.id === activeArtboardId)) {
+      handleAddNewArtboardAfter(activeArtboardId);
+      return;
+    }
+    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
+    const newSize = artboards.length > 0 && artboards[artboards.length - 1]
+                    ? artboards[artboards.length - 1].size
+                    : defaultSize;
+
+    const newArtboard: ArtboardState = {
+      id: `artboard_${Date.now()}`,
+      name: `Artboard ${artboards.length + 1}`,
+      position: { x: 0, y: 0 }, 
+      size: newSize,
+      elements: [], 
+      backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
+      backgroundType: 'solid',
+      zoom: 1,
+    };
+    
+    const newArtboards = [...artboards, newArtboard];
+    handleArtboardsUpdate(newArtboards);
+    setActiveArtboardId(newArtboard.id);
+    setSelectedElementIdOnActiveArtboard(null);
+    toast({ title: "Artboard Created", description: `Artboard "${newArtboard.name}" added.` });
+  };
+
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
     const defaultSize = { width: 1290, height: 2796 }; // Updated default size
@@ -1153,6 +1232,52 @@ export function OpenScreenshotGeneratorLayout() {
     setIsAccountOpen(true);
   };
 
+  /** "Google Drive" / "GitHub gists", for copy that names where a save lands. */
+  const accountStorageLabel = accountSession
+    ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists'
+    : 'storage';
+
+  const handleAccountSaveError = (error: unknown) => {
+    // An expired sign-in already cleared the session, so send the user back
+    // through the dialog rather than showing a dead end.
+    if (error instanceof AccountAuthError) {
+      setSaveConflict(null);
+      openAccountDialog(error.message);
+    } else {
+      toast({
+        title: "Could not save",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  /**
+   * The upload itself. Without `copyName` this overwrites whatever is up there
+   * (providers match on project id); with one it saves a second, independent
+   * file and leaves both the cloud original and the local project alone.
+   */
+  const runAccountSave = async (copyName?: string) => {
+    if (!activeProjectId) return;
+    setIsSavingToAccount(true);
+    try {
+      const saved = await saveProjectToAccount(activeProjectId, {
+        saveAsCopy: copyName ? { id: newCloudProjectId(), name: copyName } : undefined,
+      });
+      setSaveConflict(null);
+      toast({
+        title: copyName ? "Saved as a new project" : "Saved to your account",
+        description: copyName
+          ? `"${saved.name}" is a separate file in your ${accountStorageLabel} now. Your open project is unchanged.`
+          : `"${saved.name}" is in your ${accountStorageLabel}.`,
+      });
+    } catch (error) {
+      handleAccountSaveError(error);
+    } finally {
+      setIsSavingToAccount(false);
+    }
+  };
+
   /**
    * Toolbar "Save to account". Signed out this is how the user finds out they
    * need to connect, so it opens the dialog instead of doing nothing.
@@ -1171,28 +1296,24 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
 
+    // Ask before overwriting, but only when there is something to overwrite:
+    // a first save has no choice to offer and should stay one click.
     setIsSavingToAccount(true);
+    let existing: CloudProjectSummary | null = null;
     try {
-      const saved = await saveProjectToAccount(activeProjectId);
-      toast({
-        title: "Saved to your account",
-        description: `"${saved.name}" is in your ${accountSession ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists' : 'storage'}.`,
-      });
+      existing = await findAccountProject(activeProjectId);
     } catch (error) {
-      // An expired sign-in already cleared the session, so send the user back
-      // through the dialog rather than showing a dead end.
-      if (error instanceof AccountAuthError) {
-        openAccountDialog(error.message);
-      } else {
-        toast({
-          title: "Could not save",
-          description: error instanceof Error ? error.message : "Something went wrong.",
-          variant: "destructive",
-        });
-      }
-    } finally {
+      handleAccountSaveError(error);
       setIsSavingToAccount(false);
+      return;
     }
+    setIsSavingToAccount(false);
+
+    if (existing) {
+      setSaveConflict(existing);
+      return;
+    }
+    await runAccountSave();
   };
 
   /** Pull a project out of the connected account and open it in the editor. */
@@ -1219,79 +1340,96 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  // Rasterize ONE artboard from the live canvas DOM. Shared by the file
-  // export and the store upload so both produce identical PNGs, and so the
-  // filter/background/unscale recipe only exists once. Returns null when the
-  // board is not currently mounted (nothing off-DOM can be captured).
-  //
-  // The style restore is in a finally on purpose: a throwing toPng used to
-  // leave the artboard stuck at scale(1) on the canvas.
-  const captureArtboardDataUrl = async (artboard: ArtboardState): Promise<string | null> => {
-    const artboardElement = document.querySelector(
-      `[data-artboard-dom-id="${artboard.id}"]`
-    ) as HTMLElement | null;
-
-    if (!artboardElement) {
-      console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
-      toast({
-        title: "Export Warning",
-        description: `Could not find artboard '${artboard.name}' to export.`,
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    const originalTransform = artboardElement.style.transform;
-    const originalWidth = artboardElement.style.width;
-    const originalHeight = artboardElement.style.height;
-
-    try {
-      // Remove scale transform for export
-      artboardElement.style.transform = 'scale(1)';
-
-      // Use html-to-image to capture the artboard at exact specified dimensions
-      const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-      return await toPng(artboardElement, {
-        width: artboard.size.width,
-        height: artboard.size.height,
-        backgroundColor,
-        pixelRatio: 1, // Set to 1 to avoid doubling resolution
-        cacheBust: true, // Prevent caching issues
-        // Editor chrome (selection outlines, resize handles, upload buttons)
-        // must never be baked into the exported image
-        filter: (node) => {
-          const el = node as HTMLElement;
-          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-        },
-        style: {
-          width: `${artboard.size.width}px`,
-          height: `${artboard.size.height}px`,
-          backgroundImage,
-        }
-      });
-    } finally {
-      artboardElement.style.transform = originalTransform;
-      artboardElement.style.width = originalWidth;
-      artboardElement.style.height = originalHeight;
-    }
-  };
-
   // Capture a list of artboards to PNG downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
-  const captureArtboards = async (list: ArtboardState[], exportDir?: string | null) => {
+  const captureArtboards = async (
+    list: ArtboardState[],
+    exportDir?: string | null,
+    // Canvas position (1-based) per artboard id, plus how many boards the
+    // project has. A scoped export passes only a subset of the canvas, so
+    // without this the fourth artboard would still be filed as "01_".
+    order?: { indexById: Record<string, number>; total: number },
+    // Progress plumbing. `report` is fed one update per phase change so the
+    // dialog can name what it is on; `formatLabel` tags a generated App Store
+    // pass. Returns the files actually written so the caller can summarise.
+    progress?: {
+      report: (update: Omit<PngExportProgress, 'fileCount'>) => void;
+      formatLabel?: string;
+      // Absolute file number of the first file in this pass, so the counter
+      // keeps climbing across the as-is pass and every generated format.
+      startIndex: number;
+    }
+  ) => {
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
-    const orderPadWidth = Math.max(2, String(list.length).length);
+    const orderPadWidth = Math.max(2, String(order?.total ?? list.length).length);
+    // `path` is set only where the file landed somewhere nameable (Tauri); a
+    // web anchor download has no path to report.
+    const saved: { filename: string; path?: string }[] = [];
 
     for (const [index, artboard] of list.entries()) {
+      // Cancellation lands between files: a half-written PNG helps nobody, and
+      // each capture is short enough that finishing it is barely a wait.
+      if (pngExportCancelRef.current) break;
+      progress?.report({
+        fileIndex: progress.startIndex + index,
+        boardName: artboard.name,
+        formatLabel: progress.formatLabel,
+        phase: 'rendering',
+      });
+      // Find the DOM element for the artboard content
+      const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
+
+      if (!artboardElement) {
+        console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
+        toast({
+          title: "Export Warning",
+          description: `Could not find artboard '${artboard.name}' to export.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
       try {
-        const imageDataUrl = await captureArtboardDataUrl(artboard);
-        if (!imageDataUrl) continue; // board is not mounted, already reported
+        // Store original transform and dimensions
+        const originalTransform = artboardElement.style.transform;
+        const originalWidth = artboardElement.style.width;
+        const originalHeight = artboardElement.style.height;
+        
+        // Remove scale transform for export
+        artboardElement.style.transform = 'scale(1)';
+        
+        // Use html-to-image to capture the artboard at exact specified dimensions
+        const { backgroundColor, backgroundImage } = artboardBackground(artboard);
+        const imageDataUrl = await toPng(artboardElement, {
+          width: artboard.size.width,
+          height: artboard.size.height,
+          backgroundColor,
+          pixelRatio: 1, // Set to 1 to avoid doubling resolution
+          cacheBust: true, // Prevent caching issues
+          // Editor chrome (selection outlines, resize handles, upload buttons)
+          // must never be baked into the exported image
+          filter: (node) => {
+            const el = node as HTMLElement;
+            return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+          },
+          style: {
+            width: `${artboard.size.width}px`,
+            height: `${artboard.size.height}px`,
+            backgroundImage,
+          }
+        });
+        
+        // Restore original styling after export
+        artboardElement.style.transform = originalTransform;
+        artboardElement.style.width = originalWidth;
+        artboardElement.style.height = originalHeight;
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
-        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
+        const canvasIndex = order?.indexById[artboard.id] ?? index + 1;
+        const orderPrefix = String(canvasIndex).padStart(orderPadWidth, '0');
         // Suffix with the artboard's device format (iPhone/Android/tablet) so the
         // same board exported for different stores stays distinguishable on disk.
         // Detected per artboard, not project-wide, so mixed projects tag correctly.
@@ -1300,7 +1438,19 @@ export function OpenScreenshotGeneratorLayout() {
           ? DEVICE_FORMAT_PRESETS.find((p) => p.id === artboardFormat)?.label
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
-        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
+        // Then the canvas size tier the board was exported at. The device
+        // suffix above names the MOCKUP in the board, this names the canvas,
+        // and the two genuinely differ (an iPhone mockup on a Play 1080x1920
+        // board). Generated App Store formats resize the board first, so each
+        // pass tags its own size here rather than the original one.
+        const sizeSuffix = `_${canvasSizeSlug(artboard.size)}`;
+        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}${sizeSuffix}.png`;
+        progress?.report({
+          fileIndex: progress.startIndex + index,
+          boardName: artboard.name,
+          formatLabel: progress.formatLabel,
+          phase: 'saving',
+        });
         // Desktop-safe save: batch exports write into the pre-picked folder,
         // single files get a native save dialog in Tauri or an anchor
         // download on the web
@@ -1309,11 +1459,10 @@ export function OpenScreenshotGeneratorLayout() {
           : await saveDataUrlToDisk(imageDataUrl, filename);
         if (savedPath === null) continue; // user cancelled this board's save dialog
 
-        toast({
-          title: "Artboard Exported",
-          description: savedPath ? `Saved to ${savedPath}` : `"${artboard.name}" has been downloaded.`,
-          variant: "default",
-        });
+        // One toast per file drowns a 12-file App Store run, and the progress
+        // dialog now narrates it live, so the caller summarises at the end
+        // instead. A lone file still gets its own toast there.
+        saved.push({ filename, path: savedPath || undefined });
 
       } catch (error) {
         console.error("Error exporting artboard:", artboard.name, error);
@@ -1324,6 +1473,8 @@ export function OpenScreenshotGeneratorLayout() {
         });
       }
     }
+
+    return saved;
   };
 
   // Two rAFs get past React's commit and the browser's next paint after a
@@ -1342,16 +1493,45 @@ export function OpenScreenshotGeneratorLayout() {
   // engine as the Devices menu, rendered, captured, then the original state
   // is restored — plain setArtboards keeps history and the saved project
   // untouched, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats }: ExportSelection) => {
+  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly }: ExportSelection) => {
     setIsExportDialogOpen(false);
 
     const original = artboards;
+
+    // "Selected artboard only" narrows what gets captured, never what gets
+    // rendered: the format conversions below still run over the whole canvas
+    // so a converted board sits in the same layout it always did, and only
+    // the selected id is grabbed from the DOM.
+    const scopedId =
+      currentArtboardOnly && activeArtboardId && original.some((ab) => ab.id === activeArtboardId)
+        ? activeArtboardId
+        : null;
+    const scope = (list: ArtboardState[]) =>
+      scopedId ? list.filter((ab) => ab.id === scopedId) : list;
+    // Canvas positions captured up front, so scoped filenames keep their real
+    // "04_" prefix instead of restarting at 01.
+    const order = {
+      indexById: Object.fromEntries(original.map((ab, i) => [ab.id, i + 1])),
+      total: original.length,
+    };
+
+    const targets = scope(original);
+    if (targets.length === 0) {
+      toast({
+        title: "Nothing to export",
+        description: currentArtboardOnly
+          ? "Select an artboard on the canvas first."
+          : "Add an artboard first.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Desktop batch exports pick one destination folder up front instead of
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const totalFiles = (asIs ? original.length : 0) + generateFormats.length * original.length;
+    const totalFiles = (asIs ? targets.length : 0) + generateFormats.length * targets.length;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
       if (exportDir === null) return;
@@ -1360,42 +1540,68 @@ export function OpenScreenshotGeneratorLayout() {
     trackExportPng({
       mode: generateFormats.length > 0 ? 'app_store' : 'as_is',
       formats: generateFormats,
-      artboardCount: original.length,
+      artboardCount: targets.length,
       fileCount: totalFiles,
     });
 
-    toast({
-      title: "Export Process Initiated",
-      description: `Generating images... This might take a moment.`,
-      variant: "default",
+    // The progress dialog is on screen for exactly as long as pngProgress is
+    // set, so seed it before the first capture: the App Store passes spend
+    // their first second converting the canvas, with nothing else to show.
+    pngExportCancelRef.current = false;
+    setIsCancellingPngExport(false);
+    setPngProgress({
+      fileIndex: 1,
+      fileCount: totalFiles,
+      boardName: targets[0].name,
+      phase: 'preparing',
     });
+    const report = (update: Omit<PngExportProgress, 'fileCount'>) =>
+      setPngProgress({ ...update, fileCount: totalFiles });
 
     // 3D device canvases re-render supersampled while an export is in flight
     // (see Device3DRenderer); dispatched per capture pass so devices swapped
     // in by a format conversion get the treatment too. The small wait lets
     // that buffer swap present.
-    const captureWithExportEvents = async (list: ArtboardState[]) => {
+    const captureWithExportEvents = async (
+      list: ArtboardState[],
+      startIndex: number,
+      formatLabel?: string
+    ) => {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        await captureArtboards(list, exportDir);
+        return await captureArtboards(list, exportDir, order, { report, formatLabel, startIndex });
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
     };
 
+    const saved: { filename: string; path?: string }[] = [];
+    // Counts files *attempted*, not saved, so a board that fails to capture
+    // does not drag the "image 3 of 12" counter backwards for the rest.
+    let nextFileIndex = 1;
     try {
       if (asIs) {
-        await captureWithExportEvents(original);
+        saved.push(...(await captureWithExportEvents(targets, nextFileIndex)));
+        nextFileIndex += targets.length;
       }
       for (const formatId of generateFormats) {
+        if (pngExportCancelRef.current) break;
         const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
         if (!preset) continue;
+        const startIndex = nextFileIndex;
+        nextFileIndex += targets.length;
+        report({
+          fileIndex: startIndex,
+          boardName: targets[0].name,
+          formatLabel: preset.label,
+          phase: 'preparing',
+        });
         const { artboards: converted } = convertArtboardsToFormat(original, preset);
         const repositioned = calculateArtboardPositions(converted);
         setArtboards(repositioned);
         await waitForCanvasToSettle(400);
-        await captureWithExportEvents(repositioned);
+        saved.push(...(await captureWithExportEvents(scope(repositioned), startIndex, preset.label)));
       }
     } catch (error) {
       console.error("Error during multi-format export:", error);
@@ -1408,69 +1614,41 @@ export function OpenScreenshotGeneratorLayout() {
       if (generateFormats.length > 0) {
         setArtboards(original);
       }
+      setPngProgress(null);
+      setIsCancellingPngExport(false);
+      const cancelled = pngExportCancelRef.current;
+      pngExportCancelRef.current = false;
+
+      // One summary instead of a toast per file. A single-file export names
+      // where it went, which is the useful bit on desktop.
+      if (saved.length === 1 && !cancelled) {
+        toast({
+          title: "Artboard Exported",
+          description: saved[0].path
+            ? `Saved to ${saved[0].path}`
+            : `"${saved[0].filename}" has been downloaded.`,
+        });
+      } else if (saved.length > 0) {
+        toast({
+          title: cancelled ? "Export Stopped" : "Export Complete",
+          description: exportDir
+            ? `${saved.length} of ${totalFiles} images saved to ${exportDir}`
+            : `${saved.length} of ${totalFiles} images downloaded`,
+          variant: cancelled ? "destructive" : "default",
+        });
+      } else if (cancelled) {
+        toast({ title: "Export Cancelled" });
+      }
     }
   };
 
-  // --- direct-to-store upload ----------------------------------------------
-
-  /**
-   * Render the boards the publish dialog picked, as PNG bytes in memory.
-   *
-   * Same capture path as the file export, with the same in-memory format
-   * conversion trick: a raw setArtboards swaps the converted boards onto the
-   * canvas so they can be photographed at the store's exact pixel size, then
-   * the original list goes back in a finally. History and the saved project
-   * are never touched, so an upload can never corrupt the user's work.
-   */
-  const handlePublishCapture = async (
-    artboardIds: string[],
-    formatId: DeviceFormat | null
-  ): Promise<PublishImage[]> => {
-    const original = artboards;
-    const orderPadWidth = Math.max(2, String(original.length).length);
-
-    const buildImages = async (list: ArtboardState[]): Promise<PublishImage[]> => {
-      const images: PublishImage[] = [];
-      for (const [index, artboard] of list.entries()) {
-        if (!artboardIds.includes(artboard.id)) continue;
-        const dataUrl = await captureArtboardDataUrl(artboard);
-        if (!dataUrl) continue;
-        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
-        images.push({
-          artboardId: artboard.id,
-          fileName: sanitizeFileName(`${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}.png`),
-          bytes: decodeDataUrl(dataUrl),
-          width: artboard.size.width,
-          height: artboard.size.height,
-        });
-      }
-      return images;
-    };
-
-    // 3D device canvases supersample while an export is in flight; pair
-    // begin/end in a finally or they stay at 2x forever.
-    const capturePass = async (list: ArtboardState[]) => {
-      window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      try {
-        return await buildImages(list);
-      } finally {
-        window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
-      }
-    };
-
-    const preset = formatId ? DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId) : undefined;
-    if (!preset) return capturePass(original);
-
-    try {
-      const { artboards: converted } = convertArtboardsToFormat(original, preset);
-      const repositioned = calculateArtboardPositions(converted);
-      setArtboards(repositioned);
-      await waitForCanvasToSettle(400);
-      return await capturePass(repositioned);
-    } finally {
-      setArtboards(original);
-    }
+  // Asks the running export to stop. It finishes the image already in flight
+  // (see captureArtboards) rather than leaving a truncated PNG behind, so the
+  // dialog stays up, disabled, until the loop actually unwinds.
+  const handleCancelPngExport = () => {
+    if (!pngProgress) return;
+    pngExportCancelRef.current = true;
+    setIsCancellingPngExport(true);
   };
 
   // Re-analyze which boards carry video content (recordings, gestures,
@@ -1512,6 +1690,7 @@ export function OpenScreenshotGeneratorLayout() {
   // encoder and the sprite captures both want the main thread).
   const handleExportVideo = async (request: VideoExportRequest) => {
     const boards = artboards.filter((ab) => {
+      if (request.currentArtboardOnly && ab.id !== activeArtboardId) return false;
       const info = videoInfos[ab.id];
       if (!info) return false;
       // Safe mode exports raw footage, so it needs an actual recording.
@@ -1520,9 +1699,11 @@ export function OpenScreenshotGeneratorLayout() {
     if (boards.length === 0) {
       toast({
         title: 'Nothing to export',
-        description: request.rawRecordingOnly
-          ? 'App Store safe mode needs a screen recording on an artboard.'
-          : 'Add a screen recording, gesture or animation first.',
+        description: request.currentArtboardOnly
+          ? 'The selected artboard has no recording, gesture or animation to render.'
+          : request.rawRecordingOnly
+            ? 'App Store safe mode needs a screen recording on an artboard.'
+            : 'Add a screen recording, gesture or animation first.',
         variant: 'destructive',
       });
       return;
@@ -1989,6 +2170,104 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // Artboard whose text the element-scoped dialog is about to translate, so
+  // the source picker can seed from that board rather than the whole project.
+  const translateElementArtboard = translateElementId
+    ? artboards.find((ab) => ab.elements.some((el) => el.id === translateElementId))
+    : undefined;
+
+  const handleTranslateElement = async (
+    elementId: string,
+    targetLanguage: string,
+    sourceLanguage: string = AUTO_DETECT,
+    targetFont?: string
+  ) => {
+    const owner = artboards.find((ab) => ab.elements.some((el) => el.id === elementId));
+    const element = owner?.elements.find((el) => el.id === elementId);
+
+    if (!owner || !element || element.type !== 'text' || !element.content?.trim()) {
+      toast({
+        title: "Nothing to translate",
+        description: "This text element is empty or no longer on the canvas."
+      });
+      return;
+    }
+
+    let effectiveSource = sourceLanguage || AUTO_DETECT;
+    if (effectiveSource === AUTO_DETECT) {
+      const detected = await detectLanguage(element.content.slice(0, 1000));
+      if (detected) {
+        effectiveSource = detected.language;
+      }
+    }
+
+    if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
+      toast({
+        title: "Nothing to translate",
+        description: `The text is already in ${getLanguageName(targetLanguage)}.`
+      });
+      return;
+    }
+
+    let translated: string;
+    try {
+      const result = await translateText(element.content, targetLanguage, effectiveSource);
+      translated = result.text;
+    } catch (e: any) {
+      console.error("Failed to translate element", elementId, e);
+      toast({
+        title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
+        description: e?.status === 429
+          ? "Please wait a minute before trying again."
+          : "Failed to translate this text element. Please try again later.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // The artboard's language stamp describes all of its text. It only stays
+    // true if this was the board's one and only text element; otherwise the
+    // board is now mixed and must go back to being detected.
+    const isOnlyTextElement = !owner.elements.some(
+      (el) => el.type === 'text' && el.id !== elementId
+    );
+
+    handleArtboardsUpdate(
+      artboards.map((ab) =>
+        ab.id !== owner.id
+          ? ab
+          : {
+              ...ab,
+              elements: ab.elements.map((el) =>
+                el.id === elementId
+                  ? { ...el, content: translated, ...(targetFont ? { fontFamily: targetFont } : {}) }
+                  : el
+              ),
+              language: isOnlyTextElement ? targetLanguage : undefined,
+            }
+      )
+    );
+
+    toast({
+      title: "Translation complete",
+      description: `Text translated to ${getLanguageName(targetLanguage)}.`
+    });
+  };
+
+  // The dialog is shared, so route its result to whichever scope opened it.
+  const handleTranslateRequest = async (
+    targetLanguage: string,
+    allArtboards: boolean,
+    sourceLanguage: string = AUTO_DETECT,
+    targetFont?: string
+  ) => {
+    if (translateElementId) {
+      await handleTranslateElement(translateElementId, targetLanguage, sourceLanguage, targetFont);
+      return;
+    }
+    await handleTranslateProject(targetLanguage, allArtboards, sourceLanguage, targetFont);
+  };
+
 
   // Preload Google Fonts on component mount
   useEffect(() => {
@@ -1998,6 +2277,19 @@ export function OpenScreenshotGeneratorLayout() {
   const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
+
+  // What a "Selected artboard only" export would produce. Format is detected
+  // from this one board, not from the project, so a mixed project reports the
+  // selected board's own device correctly.
+  const activeArtboardSummary = useMemo(() => {
+    if (!activeArtboard) return null;
+    const format = detectArtboardsFormat([activeArtboard]);
+    return {
+      name: activeArtboard.name,
+      size: activeArtboard.size,
+      format: format === 'mixed' ? null : format,
+    };
+  }, [activeArtboard]);
 
 
   // Define the copy element handler. Explicit ids come from the context menu
@@ -3181,10 +3473,13 @@ const generateRandomProjectName = (): string => {
         <SidebarInset className="relative flex flex-col overflow-hidden">
           <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
           <Toolbar
+            onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
-            onExport={() => setIsExportDialogOpen(true)}
-            onPublishToStore={() => setIsPublishDialogOpen(true)}
+            onExport={() => {
+              setExportScopedToArtboard(false);
+              setIsExportDialogOpen(true);
+            }}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             onSaveToAccount={handleSaveToAccount}
@@ -3194,13 +3489,19 @@ const generateRandomProjectName = (): string => {
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
             onRedo={handleRedo}
+            onDeleteSelected={handleDeleteSelected}
+            isElementSelected={!!selectedElementIdOnActiveArtboard}
+            isArtboardSelected={!!activeArtboardId}
             activeTool={activeTool}
             onSetActiveTool={setActiveTool}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
+            currentProjectName={currentProjectName}
+            onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
             onTranslate={() => {
+              setTranslateElementId(null);
               setIsTranslateSingleArtboard(false);
               setIsTranslateDialogOpen(true);
             }}
@@ -3227,47 +3528,39 @@ const generateRandomProjectName = (): string => {
                 onDeleteArtboardFromToolbar={handleDeleteArtboard}
                 onMoveArtboardFromToolbar={handleMoveArtboard}
                 onTranslateArtboard={handleTranslateArtboard}
+                onExportArtboard={handleExportArtboard}
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
 
-              {/* Floating bar (bottom-left of canvas): the project name, then
-                  the zoom control. The name used to sit in the top toolbar. */}
-              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2">
-                <ProjectNameField
-                  currentProjectName={currentProjectName}
-                  onRenameProject={handleRenameProject}
-                  className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
-                />
-
-                <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-                    title="Zoom Out"
-                  >
-                    <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setCanvasZoom(1)}
-                    className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
-                    title="Reset zoom to 100%"
-                  >
-                    {Math.round(canvasZoom * 100)}%
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-                    title="Zoom In"
-                  >
-                    <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
-                  </Button>
-                </div>
+              {/* Floating zoom control (bottom-left of canvas) */}
+              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+                  title="Zoom Out"
+                >
+                  <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setCanvasZoom(1)}
+                  className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
+                  title="Reset zoom to 100%"
+                >
+                  {Math.round(canvasZoom * 100)}%
+                </button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+                  title="Zoom In"
+                >
+                  <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
               </div>
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
@@ -3310,6 +3603,7 @@ const generateRandomProjectName = (): string => {
                       selectedElement={selectedElementDetails}
                       onUpdateElement={handleUpdateSelectedElement}
                       onUpdateElementById={handleUpdateElementById}
+                      onTranslateElement={handleTranslateTextElement}
                       activeArtboardDetails={
                         activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
                       }
@@ -3425,29 +3719,32 @@ const generateRandomProjectName = (): string => {
               suggestedVideoDuration={suggestedVideoDuration}
               onExportVideo={handleExportVideo}
               onCancelVideoExport={handleCancelVideoExport}
-              onExportStills={() => handleConfirmExport({ asIs: true, generateFormats: [] })}
+              onExportStills={(currentArtboardOnly) =>
+                handleConfirmExport({ asIs: true, generateFormats: [], currentArtboardOnly })
+              }
               videoProgress={videoProgress}
               isVideoExporting={isVideoExporting}
+              activeArtboardName={activeArtboardName ?? null}
+              artboardCount={artboards.length}
+              defaultCurrentArtboardOnly={exportScopedToArtboard}
             />
           ) : (
             <ExportDialog
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
               onConfirmExport={handleConfirmExport}
-              onPublishToStore={() => {
-                setIsExportDialogOpen(false);
-                setIsPublishDialogOpen(true);
-              }}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
+              activeArtboard={activeArtboardSummary}
+              artboardCount={artboards.length}
+              defaultCurrentArtboardOnly={exportScopedToArtboard}
             />
           )}
 
-          <PublishDialog
-            isOpen={isPublishDialogOpen}
-            onOpenChange={setIsPublishDialogOpen}
-            artboards={artboards}
-            onCapture={handlePublishCapture}
+          <ExportProgressDialog
+            progress={pngProgress}
+            onCancel={handleCancelPngExport}
+            isCancelling={isCancellingPngExport}
           />
 
           <AccountDialog
@@ -3460,12 +3757,30 @@ const generateRandomProjectName = (): string => {
             onOpenProject={handleOpenFromAccount}
           />
 
+          <SaveToAccountDialog
+            open={!!saveConflict}
+            onOpenChange={(open) => {
+              if (!open) setSaveConflict(null);
+            }}
+            existingName={saveConflict?.name ?? ''}
+            existingModifiedAt={saveConflict?.modifiedAt}
+            suggestedName={`${currentProjectName} copy`}
+            storageLabel={accountStorageLabel}
+            isSaving={isSavingToAccount}
+            onReplace={() => void runAccountSave()}
+            onSaveCopy={(name) => void runAccountSave(name)}
+          />
+
           <TranslateDialog
             isOpen={isTranslateDialogOpen}
-            onOpenChange={setIsTranslateDialogOpen}
-            currentLanguage={currentProjectLanguage}
+            onOpenChange={(open) => {
+              setIsTranslateDialogOpen(open);
+              if (!open) setTranslateElementId(null);
+            }}
+            currentLanguage={translateElementId ? translateElementArtboard?.language : currentProjectLanguage}
             disableAllArtboardsOption={isTranslateSingleArtboard}
-            onTranslate={handleTranslateProject}
+            scope={translateElementId ? 'element' : 'project'}
+            onTranslate={handleTranslateRequest}
           />
 
           <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
@@ -3485,11 +3800,7 @@ const generateRandomProjectName = (): string => {
                   drop your screenshots into device frames, automatically translate your text into 50+ languages, and export PNGs sized for Google Play
                   and the Apple App Store.
                 </p>
-                <p>
-                  Projects are saved locally in your browser. Nothing leaves your machine unless
-                  you ask for it, such as uploading finished screenshots to your own App Store
-                  Connect or Google Play account.
-                </p>
+                <p>Projects are saved locally in your browser. Nothing is uploaded anywhere.</p>
               </div>
               <DialogFooter className="gap-2 sm:justify-between">
                 <Button variant="outline" asChild>

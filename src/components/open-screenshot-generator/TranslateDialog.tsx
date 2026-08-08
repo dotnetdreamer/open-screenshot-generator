@@ -93,6 +93,12 @@ export interface TranslateDialogProps {
    */
   currentLanguage?: string;
   disableAllArtboardsOption?: boolean;
+  /**
+   * 'element' narrows the run to the one text element the properties panel
+   * opened this from, so the artboard scope controls make no sense and are
+   * dropped rather than shown disabled.
+   */
+  scope?: 'project' | 'element';
   onTranslate: (targetLanguage: string, allArtboards: boolean, sourceLanguage: string, targetFont?: string) => Promise<void>;
 }
 
@@ -101,6 +107,7 @@ export function TranslateDialog({
   onOpenChange,
   currentLanguage,
   disableAllArtboardsOption = false,
+  scope = 'project',
   onTranslate,
 }: TranslateDialogProps) {
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
@@ -166,9 +173,11 @@ export function TranslateDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Translate Text</DialogTitle>
+          <DialogTitle>{scope === 'element' ? 'Translate This Text' : 'Translate Text'}</DialogTitle>
           <DialogDescription>
-            Translate text elements in your artboards. Rate limits apply (20 requests / 5000 characters per minute).
+            {scope === 'element'
+              ? 'Translate only the selected text element. Rate limits apply (20 requests / 5000 characters per minute).'
+              : 'Translate text elements in your artboards. Rate limits apply (20 requests / 5000 characters per minute).'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -266,24 +275,26 @@ export function TranslateDialog({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <div className="col-start-2 col-span-3 flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="allArtboards" 
-                  checked={disableAllArtboardsOption ? false : allArtboards} 
-                  disabled={disableAllArtboardsOption}
-                  onCheckedChange={(checked) => setAllArtboards(!!checked)} 
-                />
-                <Label htmlFor="allArtboards" className={cn("text-sm font-normal", disableAllArtboardsOption && "opacity-50 cursor-not-allowed")}>
-                  Translate all artboards
-                </Label>
+          {scope !== 'element' && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-start-2 col-span-3 flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="allArtboards"
+                    checked={disableAllArtboardsOption ? false : allArtboards}
+                    disabled={disableAllArtboardsOption}
+                    onCheckedChange={(checked) => setAllArtboards(!!checked)}
+                  />
+                  <Label htmlFor="allArtboards" className={cn("text-sm font-normal", disableAllArtboardsOption && "opacity-50 cursor-not-allowed")}>
+                    Translate all artboards
+                  </Label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  To stay within the free translation API limits, we recommend leaving this unchecked and translating your artboards one by one.
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                To stay within the free translation API limits, we recommend leaving this unchecked and translating your artboards one by one.
-              </p>
             </div>
-          </div>
+          )}
           {sameLanguage && (
             <p className="text-center text-sm text-destructive">
               Source and target are both {getLanguageName(targetLanguage)}. Pick a different target.

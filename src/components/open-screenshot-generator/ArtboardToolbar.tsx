@@ -10,6 +10,7 @@ import {
   ArrowRightFromLineIcon,
   ShuffleIcon, // Using Shuffle as a general move icon
   Languages,
+  DownloadIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,9 @@ interface ArtboardToolbarProps {
   onDelete: (artboardId: string) => void;
   onMove: (artboardId: string, direction: 'left' | 'right') => void;
   onTranslate?: (artboardId: string) => void;
+  // Opens the shared export dialog with this board selected and its
+  // "Selected artboard only" box already ticked.
+  onExport?: (artboardId: string) => void;
   canDelete: boolean;
   canMoveLeft: boolean;
   canMoveRight: boolean;
@@ -33,6 +37,7 @@ export function ArtboardToolbar({
   onDelete,
   onMove,
   onTranslate,
+  onExport,
   canDelete,
   canMoveLeft,
   canMoveRight,
@@ -66,6 +71,17 @@ export function ArtboardToolbar({
           </TooltipTrigger>
           <TooltipContent side="bottom"><p>Duplicate Artboard</p></TooltipContent>
         </Tooltip>
+
+        {onExport && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => onExport(artboardId)}>
+                <DownloadIcon className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom"><p>Download This Artboard</p></TooltipContent>
+          </Tooltip>
+        )}
 
         {onTranslate && (
           <Tooltip>

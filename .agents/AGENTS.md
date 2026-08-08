@@ -15,7 +15,6 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Translate and fonts | [translation.ts](../src/services/translation.ts), [fontService.ts](../src/services/fontService.ts), [fontLanguageMatcher.ts](../src/lib/fontLanguageMatcher.ts) |
 | Devices, palette, 3D | [deviceRegistry.ts](../src/lib/deviceRegistry.ts), [elementLibrary.ts](../src/lib/elementLibrary.ts), [device3dPresets.ts](../src/lib/device3dPresets.ts) |
 | Video export | [src/lib/video/](../src/lib/video/) |
-| Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
 | Dexie, 3 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations` |
 
 ## Rules
@@ -78,7 +77,6 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 - **Web AI provider**: `WEB_ADAPTERS`, `PROVIDERS` in `web_session.rs`, extension adapter + manifest + the `build:extension` entry list, `remote.urls` in `capabilities/assistant.json`
 - **MCP tool**: `McpDesignApi`, the `TOOLS` array, `mcpApi` in the layout, both `SLOW_TOOLS` lists if it is slow
 - **Font**: `GOOGLE_FONTS`, plus `AGENT_FONTS` and a `<SelectGroup>` in both pickers if it is a new script
-- **Store slot** (App Store display type, Play image type): `APPLE_DISPLAY_TARGETS` / `PLAY_IMAGE_TARGETS` in [storeTargets.ts](../src/lib/publish/storeTargets.ts), the only registration site. A new outbound host also needs `capabilities/default.json`
 
 ## Deeper detail
 
@@ -86,4 +84,4 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 
 
 ## Testing
-- After you are done testing, kill the server back
+- After you are done with testing, kill all process you have launched

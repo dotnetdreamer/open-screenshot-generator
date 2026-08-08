@@ -19,6 +19,18 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 7 August 2026: exports, cloud saves, translation
+
+- Export progress dialog with a live file count and a cancel button
+- Export a single artboard, from its toolbar or the "Selected artboard only" box
+- Export filenames now include the canvas size, e.g. `01_Store_Hero_iPhone_iPhone-6_9-Portrait_1290x2796.png`
+- Saving to your account asks before overwriting: replace the saved copy, or save a new one under a different name
+- Closing or reloading the browser tab asks for confirmation
+- Translate a single text element or one artboard, not just the whole project
+- Translated text picks a font for the target script automatically
+- Desktop Google Drive sign-in now uses a Desktop app OAuth client ([setup](docs/ACCOUNT-SYNC.md))
+- New template: Plannio Student
+
 ### 6 August 2026: upload screenshots straight to the stores
 
 The desktop app sends your finished artboards to App Store Connect or
