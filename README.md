@@ -19,6 +19,12 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 6 August 2026: upload screenshots straight to the stores
+
+The desktop app sends your finished artboards to App Store Connect or
+Google Play with your own developer credentials, each one matched to the right store slot and
+checked before it goes. [Setup guide](docs/STORE-UPLOAD.md)
+
 ### 30 July 2026: Automatic Text Translation
 
 You can now automatically translate your artboard text directly inside the editor! With a single click, instantly translate all text elements across your selected artboards (or your entire project) into over 50 different languages. Designing localized app store graphics has never been faster.
@@ -47,6 +53,7 @@ Optional cloud saving with no backend of ours. Connect your own Google Drive or 
 - Bundled example projects to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
 - Optional account saving to your own Google Drive or GitHub, so projects follow you between machines without us storing anything (see below)
+- Direct upload to App Store Connect and Google Play from the desktop app, using your own developer credentials (see below)
 
 ## Feature checklist: web vs desktop
 
@@ -61,12 +68,15 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 | AI agent with free built-in providers (Pollinations, or local Ollama / LM Studio), no key and no account | ➖ | ✅ |
 | MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor | ➖ | ✅ |
 | Save projects to your own Google Drive or GitHub account | ✅ ³ | ✅ |
+| Upload screenshots straight to App Store Connect or Google Play | ➖ ⁴ | ✅ |
 
 ¹ Needs a browser with the WebCodecs H.264 encoder (Chrome or Edge). PNG export works everywhere.
 
 ² In the browser this mode works through a manual relay: copy the prompt into your chat, paste the reply back. The desktop app automates the whole run in an embedded window, nothing extra to install.
 
 ³ Google sign-in is identical on both. GitHub sign-in on the web needs a tiny token-exchange Worker (included, free to run) because GitHub's OAuth requires a client secret that a static site cannot hold; without it the web build asks for a personal access token instead. The desktop app uses GitHub's device flow and needs neither.
+
+⁴ Not a product decision: App Store Connect serves no CORS headers, so no browser tab can call it. The desktop app makes these requests outside the webview. See [docs/STORE-UPLOAD.md](docs/STORE-UPLOAD.md).
 
 ## Download the desktop app
 
@@ -118,6 +128,7 @@ The app is a single Next.js page ([src/app/page.tsx](src/app/page.tsx)) that mou
 - [CanvasArea.tsx](src/components/open-screenshot-generator/CanvasArea.tsx) and [Artboard.tsx](src/components/open-screenshot-generator/Artboard.tsx) render the pannable, zoomable canvas and the individual artboards on it
 - [elements/](src/components/open-screenshot-generator/elements/) holds the renderers for the element types: text, shape, image, device frame (a screenshot mockup), recording mockup, plain video, and gesture hint. The device frame and the recording mockup share their bezels and notches through [deviceChrome.tsx](src/components/open-screenshot-generator/elements/deviceChrome.tsx) so the two cannot drift apart
 - [src/lib/video/](src/lib/video/) is the MP4 exporter: sprite capture, per-frame canvas compositing, and the WebCodecs H.264 encode
+- [src/lib/publish/](src/lib/publish/) talks to App Store Connect and Google Play: JWT signing with WebCrypto, Apple's reserve/upload/commit asset dance, and Play's edit transaction
 - The panels and dialogs around the canvas: [ElementPalette.tsx](src/components/open-screenshot-generator/ElementPalette.tsx), [LayersPanel.tsx](src/components/open-screenshot-generator/LayersPanel.tsx), [PropertiesPanel.tsx](src/components/open-screenshot-generator/PropertiesPanel.tsx), toolbars, and the export/preview dialogs
 
 Around that:

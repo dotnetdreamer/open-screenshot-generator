@@ -44,7 +44,10 @@ import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { PublishDialog } from './publish/PublishDialog';
+import { ProjectNameField } from './ProjectNameField';
+import { decodeDataUrl, type PublishImage } from '@/lib/publish';
 import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
@@ -427,6 +430,9 @@ export function OpenScreenshotGeneratorLayout() {
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
+  // see src/lib/publish; the dialog explains itself on the web build.
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   // App Preview video export: per-board analysis (which boards carry video
   // content) is recomputed when the export dialog opens; progress/abort state
   // drives the dialog's render section.
@@ -876,35 +882,10 @@ export function OpenScreenshotGeneratorLayout() {
     return artboards.length > 0 ? artboards[0].size : { width: 1290, height: 2796 }; // Updated default size
   };
 
-  // Handle new artboard creation with updated default size
-  const handleNewArtboardFromMainToolbar = () => {
-    if (activeArtboardId && artboards.some(ab => ab.id === activeArtboardId)) {
-      handleAddNewArtboardAfter(activeArtboardId);
-      return;
-    }
-    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
-    const newSize = artboards.length > 0 && artboards[artboards.length - 1]
-                    ? artboards[artboards.length - 1].size
-                    : defaultSize;
-
-    const newArtboard: ArtboardState = {
-      id: `artboard_${Date.now()}`,
-      name: `Artboard ${artboards.length + 1}`,
-      position: { x: 0, y: 0 }, 
-      size: newSize,
-      elements: [], 
-      backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
-      backgroundType: 'solid',
-      zoom: 1,
-    };
-    
-    const newArtboards = [...artboards, newArtboard];
-    handleArtboardsUpdate(newArtboards);
-    setActiveArtboardId(newArtboard.id);
-    setSelectedElementIdOnActiveArtboard(null);
-    toast({ title: "Artboard Created", description: `Artboard "${newArtboard.name}" added.` });
-  };
-
+  // Artboards are only added from an existing artboard's hover toolbar now
+  // (the top toolbar's "+" is gone), so handleAddNewArtboardAfter is the single
+  // creation path. It always has a board to anchor to, because deleting the
+  // last artboard is refused.
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
     const defaultSize = { width: 1290, height: 2796 }; // Updated default size
@@ -1238,6 +1219,63 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // Rasterize ONE artboard from the live canvas DOM. Shared by the file
+  // export and the store upload so both produce identical PNGs, and so the
+  // filter/background/unscale recipe only exists once. Returns null when the
+  // board is not currently mounted (nothing off-DOM can be captured).
+  //
+  // The style restore is in a finally on purpose: a throwing toPng used to
+  // leave the artboard stuck at scale(1) on the canvas.
+  const captureArtboardDataUrl = async (artboard: ArtboardState): Promise<string | null> => {
+    const artboardElement = document.querySelector(
+      `[data-artboard-dom-id="${artboard.id}"]`
+    ) as HTMLElement | null;
+
+    if (!artboardElement) {
+      console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
+      toast({
+        title: "Export Warning",
+        description: `Could not find artboard '${artboard.name}' to export.`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const originalTransform = artboardElement.style.transform;
+    const originalWidth = artboardElement.style.width;
+    const originalHeight = artboardElement.style.height;
+
+    try {
+      // Remove scale transform for export
+      artboardElement.style.transform = 'scale(1)';
+
+      // Use html-to-image to capture the artboard at exact specified dimensions
+      const { backgroundColor, backgroundImage } = artboardBackground(artboard);
+      return await toPng(artboardElement, {
+        width: artboard.size.width,
+        height: artboard.size.height,
+        backgroundColor,
+        pixelRatio: 1, // Set to 1 to avoid doubling resolution
+        cacheBust: true, // Prevent caching issues
+        // Editor chrome (selection outlines, resize handles, upload buttons)
+        // must never be baked into the exported image
+        filter: (node) => {
+          const el = node as HTMLElement;
+          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+        },
+        style: {
+          width: `${artboard.size.width}px`,
+          height: `${artboard.size.height}px`,
+          backgroundImage,
+        }
+      });
+    } finally {
+      artboardElement.style.transform = originalTransform;
+      artboardElement.style.width = originalWidth;
+      artboardElement.style.height = originalHeight;
+    }
+  };
+
   // Capture a list of artboards to PNG downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
@@ -1248,53 +1286,9 @@ export function OpenScreenshotGeneratorLayout() {
     const orderPadWidth = Math.max(2, String(list.length).length);
 
     for (const [index, artboard] of list.entries()) {
-      // Find the DOM element for the artboard content
-      const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
-
-      if (!artboardElement) {
-        console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
-        toast({
-          title: "Export Warning",
-          description: `Could not find artboard '${artboard.name}' to export.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
       try {
-        // Store original transform and dimensions
-        const originalTransform = artboardElement.style.transform;
-        const originalWidth = artboardElement.style.width;
-        const originalHeight = artboardElement.style.height;
-        
-        // Remove scale transform for export
-        artboardElement.style.transform = 'scale(1)';
-        
-        // Use html-to-image to capture the artboard at exact specified dimensions
-        const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-        const imageDataUrl = await toPng(artboardElement, {
-          width: artboard.size.width,
-          height: artboard.size.height,
-          backgroundColor,
-          pixelRatio: 1, // Set to 1 to avoid doubling resolution
-          cacheBust: true, // Prevent caching issues
-          // Editor chrome (selection outlines, resize handles, upload buttons)
-          // must never be baked into the exported image
-          filter: (node) => {
-            const el = node as HTMLElement;
-            return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-          },
-          style: {
-            width: `${artboard.size.width}px`,
-            height: `${artboard.size.height}px`,
-            backgroundImage,
-          }
-        });
-        
-        // Restore original styling after export
-        artboardElement.style.transform = originalTransform;
-        artboardElement.style.width = originalWidth;
-        artboardElement.style.height = originalHeight;
+        const imageDataUrl = await captureArtboardDataUrl(artboard);
+        if (!imageDataUrl) continue; // board is not mounted, already reported
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
@@ -1414,6 +1408,68 @@ export function OpenScreenshotGeneratorLayout() {
       if (generateFormats.length > 0) {
         setArtboards(original);
       }
+    }
+  };
+
+  // --- direct-to-store upload ----------------------------------------------
+
+  /**
+   * Render the boards the publish dialog picked, as PNG bytes in memory.
+   *
+   * Same capture path as the file export, with the same in-memory format
+   * conversion trick: a raw setArtboards swaps the converted boards onto the
+   * canvas so they can be photographed at the store's exact pixel size, then
+   * the original list goes back in a finally. History and the saved project
+   * are never touched, so an upload can never corrupt the user's work.
+   */
+  const handlePublishCapture = async (
+    artboardIds: string[],
+    formatId: DeviceFormat | null
+  ): Promise<PublishImage[]> => {
+    const original = artboards;
+    const orderPadWidth = Math.max(2, String(original.length).length);
+
+    const buildImages = async (list: ArtboardState[]): Promise<PublishImage[]> => {
+      const images: PublishImage[] = [];
+      for (const [index, artboard] of list.entries()) {
+        if (!artboardIds.includes(artboard.id)) continue;
+        const dataUrl = await captureArtboardDataUrl(artboard);
+        if (!dataUrl) continue;
+        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
+        images.push({
+          artboardId: artboard.id,
+          fileName: sanitizeFileName(`${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}.png`),
+          bytes: decodeDataUrl(dataUrl),
+          width: artboard.size.width,
+          height: artboard.size.height,
+        });
+      }
+      return images;
+    };
+
+    // 3D device canvases supersample while an export is in flight; pair
+    // begin/end in a finally or they stay at 2x forever.
+    const capturePass = async (list: ArtboardState[]) => {
+      window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        return await buildImages(list);
+      } finally {
+        window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
+      }
+    };
+
+    const preset = formatId ? DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId) : undefined;
+    if (!preset) return capturePass(original);
+
+    try {
+      const { artboards: converted } = convertArtboardsToFormat(original, preset);
+      const repositioned = calculateArtboardPositions(converted);
+      setArtboards(repositioned);
+      await waitForCanvasToSettle(400);
+      return await capturePass(repositioned);
+    } finally {
+      setArtboards(original);
     }
   };
 
@@ -3125,10 +3181,10 @@ const generateRandomProjectName = (): string => {
         <SidebarInset className="relative flex flex-col overflow-hidden">
           <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
           <Toolbar
-            onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
             onExport={() => setIsExportDialogOpen(true)}
+            onPublishToStore={() => setIsPublishDialogOpen(true)}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             onSaveToAccount={handleSaveToAccount}
@@ -3138,15 +3194,10 @@ const generateRandomProjectName = (): string => {
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
             onRedo={handleRedo}
-            onDeleteSelected={handleDeleteSelected}
-            isElementSelected={!!selectedElementIdOnActiveArtboard}
-            isArtboardSelected={!!activeArtboardId}
             activeTool={activeTool}
             onSetActiveTool={setActiveTool}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
-            currentProjectName={currentProjectName}
-            onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
             onTranslate={() => {
@@ -3180,34 +3231,43 @@ const generateRandomProjectName = (): string => {
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
 
-              {/* Floating zoom control (bottom-left of canvas) */}
-              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-                  title="Zoom Out"
-                >
-                  <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setCanvasZoom(1)}
-                  className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
-                  title="Reset zoom to 100%"
-                >
-                  {Math.round(canvasZoom * 100)}%
-                </button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-                  title="Zoom In"
-                >
-                  <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
-                </Button>
+              {/* Floating bar (bottom-left of canvas): the project name, then
+                  the zoom control. The name used to sit in the top toolbar. */}
+              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2">
+                <ProjectNameField
+                  currentProjectName={currentProjectName}
+                  onRenameProject={handleRenameProject}
+                  className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
+                />
+
+                <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+                    title="Zoom Out"
+                  >
+                    <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setCanvasZoom(1)}
+                    className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
+                    title="Reset zoom to 100%"
+                  >
+                    {Math.round(canvasZoom * 100)}%
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+                    title="Zoom In"
+                  >
+                    <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                </div>
               </div>
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
@@ -3374,10 +3434,21 @@ const generateRandomProjectName = (): string => {
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
               onConfirmExport={handleConfirmExport}
+              onPublishToStore={() => {
+                setIsExportDialogOpen(false);
+                setIsPublishDialogOpen(true);
+              }}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
             />
           )}
+
+          <PublishDialog
+            isOpen={isPublishDialogOpen}
+            onOpenChange={setIsPublishDialogOpen}
+            artboards={artboards}
+            onCapture={handlePublishCapture}
+          />
 
           <AccountDialog
             open={isAccountOpen}
@@ -3414,7 +3485,11 @@ const generateRandomProjectName = (): string => {
                   drop your screenshots into device frames, automatically translate your text into 50+ languages, and export PNGs sized for Google Play
                   and the Apple App Store.
                 </p>
-                <p>Projects are saved locally in your browser. Nothing is uploaded anywhere.</p>
+                <p>
+                  Projects are saved locally in your browser. Nothing leaves your machine unless
+                  you ask for it, such as uploading finished screenshots to your own App Store
+                  Connect or Google Play account.
+                </p>
               </div>
               <DialogFooter className="gap-2 sm:justify-between">
                 <Button variant="outline" asChild>

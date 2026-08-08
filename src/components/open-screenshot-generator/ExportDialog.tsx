@@ -52,6 +52,9 @@ interface ExportDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onConfirmExport: (selection: ExportSelection) => void;
+  // Hand off to the direct-to-store upload dialog. Optional so the export
+  // dialog still stands alone if publishing is ever unavailable.
+  onPublishToStore?: () => void;
   // The project's detected device format (null when mixed or none) and the
   // first artboard's size — used to tell the user what "as-is" produces and
   // which App Store sizes are missing.
@@ -71,6 +74,7 @@ export function ExportDialog({
   isOpen,
   onOpenChange,
   onConfirmExport,
+  onPublishToStore,
   currentFormat,
   currentSize,
 }: ExportDialogProps) {
@@ -184,16 +188,29 @@ export function ExportDialog({
 
         </div>
 
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button
-            onClick={() => onConfirmExport({ asIs, generateFormats })}
-            disabled={nothingSelected}
-          >
-            Export
-          </Button>
+        <DialogFooter className="gap-2 sm:justify-between">
+          {onPublishToStore ? (
+            <Button
+              variant="link"
+              className="h-auto justify-start p-0 text-xs text-muted-foreground"
+              onClick={onPublishToStore}
+            >
+              Upload to the store instead
+            </Button>
+          ) : (
+            <span />
+          )}
+          <div className="flex gap-2">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => onConfirmExport({ asIs, generateFormats })}
+              disabled={nothingSelected}
+            >
+              Export
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
