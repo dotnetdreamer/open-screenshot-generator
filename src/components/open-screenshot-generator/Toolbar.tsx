@@ -5,8 +5,6 @@ import {
   DownloadIcon, 
   UndoIcon, 
   RedoIcon, 
-  MousePointerIcon,
-  HandIcon,
   LayoutTemplateIcon,
   FileTextIcon,
   FolderOpenIcon,
@@ -52,8 +50,6 @@ interface ToolbarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
-  activeTool: 'select' | 'pan';
-  onSetActiveTool: (tool: 'select' | 'pan') => void;
   onUpdateArtboardSize: (width: number, height: number, scaleContent: boolean) => void;
   initialArtboardSize?: Size; // New prop to get current size
   className?: string;
@@ -79,8 +75,6 @@ export function Toolbar({
   canRedo, 
   onUndo, 
   onRedo,
-  activeTool,
-  onSetActiveTool,
   onUpdateArtboardSize,
   initialArtboardSize,
   className,
@@ -121,27 +115,8 @@ export function Toolbar({
 
       <div className="h-8 w-px bg-muted mx-2" />
 
-      <div className="flex items-center space-x-2">
-        <Button
-          variant={activeTool === 'select' ? 'secondary' : 'outline'}
-          size="icon"
-          onClick={() => onSetActiveTool('select')}
-          title="Selection Tool (V)"
-        >
-          <MousePointerIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-
-        <Button
-          variant={activeTool === 'pan' ? 'secondary' : 'outline'}
-          size="icon"
-          onClick={() => onSetActiveTool('pan')}
-          title="Pan Tool (H)"
-        >
-          <HandIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-      </div>
-
-      <div className="h-8 w-px bg-muted mx-2" />
+      {/* The select and pan tools live in the floating bar centered at the
+          bottom of the canvas now, next to the work they act on. */}
 
       <div className="flex items-center space-x-2">
         <DropdownMenu>

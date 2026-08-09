@@ -57,7 +57,7 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, HandIcon, InfoIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -3625,8 +3625,6 @@ const generateRandomProjectName = (): string => {
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
             onRedo={handleRedo}
-            activeTool={activeTool}
-            onSetActiveTool={setActiveTool}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
             onSelectDeviceFormat={handleSelectDeviceFormat}
@@ -3701,6 +3699,30 @@ const generateRandomProjectName = (): string => {
                     <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
                   </Button>
                 </div>
+              </div>
+
+              {/* Floating bar (bottom center of canvas): the select and pan
+                  tools, moved down from the top toolbar so they sit with the
+                  canvas they act on. */}
+              <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                <Button
+                  variant={activeTool === 'select' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setActiveTool('select')}
+                  title="Selection Tool (V)"
+                >
+                  <MousePointerIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+                <Button
+                  variant={activeTool === 'pan' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setActiveTool('pan')}
+                  title="Pan Tool (H)"
+                >
+                  <HandIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
               </div>
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
