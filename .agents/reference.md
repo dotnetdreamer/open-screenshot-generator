@@ -579,7 +579,7 @@ Toolbar button `title="Export Artboards as Images"` sets `isExportDialogOpen`. W
 
 ### PNG path
 
-`handleConfirmExport` -> `captureArtboards(list, exportDir)`. Per board: find `[data-artboard-dom-id="<id>"]`, force `style.transform = 'scale(1)'`, call `toPng` from `html-to-image` (^1.11.13, run **unpatched**: there is no `patches/` dir and no postinstall patch step, even though `patch-package` sits in dependencies) with `width/height = artboard.size`, `pixelRatio: 1`, `cacheBust: true`, `backgroundColor` + `style.backgroundImage` from `artboardBackground()` in [artboardBackground.ts](../src/lib/artboardBackground.ts), and a `filter` dropping `data-export-exclude` / `data-interaction-handle`. PNG is the only format; `ArtboardState.exportScale` exists in the type but nothing reads it.
+`handleConfirmExport` -> `captureArtboards(list, exportDir)`. Per board it calls `captureArtboardDataUrl(artboard)`, the single rasterizer shared with the store upload (`handlePublishCapture`): find `[data-artboard-dom-id="<id>"]`, force `style.transform = 'scale(1)'`, call `toPng` from `html-to-image` (^1.11.13, run **unpatched**: there is no `patches/` dir and no postinstall patch step, even though `patch-package` sits in dependencies) with `width/height = artboard.size`, `pixelRatio: 1`, `cacheBust: true`, `backgroundColor` + `style.backgroundImage` from `artboardBackground()` in [artboardBackground.ts](../src/lib/artboardBackground.ts), and a `filter` dropping `data-export-exclude` / `data-interaction-handle`. PNG is the only format; `ArtboardState.exportScale` exists in the type but nothing reads it.
 
 Filenames: `<NN>_<Artboard_Name>[_<Device_Label>].png`, `NN` zero-padded to `Math.max(2, String(list.length).length)`, spaces to `_`, suffix from `detectArtboardsFormat([artboard])`.
 
@@ -623,7 +623,7 @@ Media lives in Dexie, not in the project: [mediaStore.ts](../src/lib/mediaStore.
 - **basePath.** Public asset srcs (`posterSrc`, `videoSrc`, `screenshotSrc`) are stored canonical and must be wrapped in `withBasePath()` from [basePath.ts](../src/lib/basePath.ts) **at render time only**. `loadVideoSource` does `withBasePath(el.videoSrc)`. Never store a prefixed path.
 - **Cross-origin taint.** Nothing in `src/` sets `crossOrigin`. `html-to-image` inlines images by fetching them, so a remote image without CORS headers drops out of the capture with no error. Keep assets under `public/`.
 - **Fonts and images are not gated.** There is no `document.fonts.ready` await before capture (only in `signalAppReady`). The only settling is `cacheBust: true`, the 100ms `artboard:export` wait, and `waitForCanvasToSettle(400)` on format swaps. Late-loading web fonts export as fallback type.
-- **`captureArtboards` restores styles inside the `try`, not a `finally`.** If `toPng` throws, the artboard is left stuck at `scale(1)`. `captureArtboardForMcp` and `captureSprite` get this right; copy those, not `captureArtboards`.
+- **The unscale/restore now lives in `captureArtboardDataUrl`, inside a `finally`.** It used to be inlined in `captureArtboards` with the restore inside the `try`, which left a board stuck at `scale(1)` whenever `toPng` threw. Any new single-board capture should call `captureArtboardDataUrl` rather than re-inline the recipe.
 - Any editor-only UI added inside an element renderer needs `data-export-exclude` (see the upload buttons in [VideoDeviceElement.tsx](../src/components/open-screenshot-generator/elements/VideoDeviceElement.tsx)) or it bakes into both the PNG and the video sprites.
 
 ### Adding a new element type so it exports correctly
@@ -692,7 +692,7 @@ Desktop-only: native save/open dialogs, folder-target multi-file export, `tauri-
 Nothing is allowed by default. Two edits are required for most new native work:
 
 1. A new `#[tauri::command]` must be added to the `tauri::generate_handler![...]` list in [lib.rs](../src-tauri/src/lib.rs), or `invoke()` fails at runtime with an unknown-command error. A new Rust file also needs its `mod` line at the top of the same file.
-2. A new outbound host reached through `tauri-plugin-http` must be added to the `http:default` `allow` array in [capabilities/default.json](../src-tauri/capabilities/default.json). The current list is `text.pollinations.ai`, `localhost:*`/`127.0.0.1:*`, `oauth2.googleapis.com`, `openidconnect.googleapis.com`, `www.googleapis.com`, `github.com`, `api.github.com`, `gist.githubusercontent.com`. A host not listed fails with a permission error, not a network error, which reads misleadingly.
+2. A new outbound host reached through `tauri-plugin-http` must be added to the `http:default` `allow` array in [capabilities/default.json](../src-tauri/capabilities/default.json). The current list is `text.pollinations.ai`, `localhost:*`/`127.0.0.1:*`, `oauth2.googleapis.com`, `openidconnect.googleapis.com`, `www.googleapis.com`, `github.com`, `api.github.com`, `gist.githubusercontent.com`, `api.appstoreconnect.apple.com`, `*.apple.com`, `androidpublisher.googleapis.com`. A host not listed fails with a permission error, not a network error, which reads misleadingly. The `*.apple.com` wildcard is load-bearing, not lazy: App Store Connect hands back pre-signed upload URLs on Apple storage hosts that are not the API host.
 
 Adding an AI provider window means four edits, not one: its origin in `remote.urls` in [capabilities/assistant.json](../src-tauri/capabilities/assistant.json), an entry in `PROVIDERS` in `web_session.rs`, an adapter in `WEB_ADAPTERS` plus its member in the `WebProviderId` union in [webAdapters.ts](../src/lib/ai/webAdapters.ts), and a rebuild of the agent bundle (it is compiled into the exe).
 
@@ -732,6 +732,99 @@ The user usually has one running; it holds port 9002 and `target/debug/*.exe`, a
 - **Enumerate processes by PID or `ExecutablePath`, not process name.** Both instances share an exe name, and name matching silently measures the user's window instead. Stopping the `npx tauri dev` wrapper does not kill the exe it spawned, and the survivor then blocks the next build with an access-denied file lock.
 - `settings.json` is **shared** with the user's real install (`app_config_dir`, on Windows `%APPDATA%\com.dotnetdreamer.openscreenshotgenerator\settings.json`, read once at startup), so a scratch instance inherits their `showAssistantWindow` / `mcpServerEnabled`. Back up, flip, test, restore.
 - Headless harness: launch with `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<free high port>`; all webviews appear on one CDP endpoint. Check the port is actually free first, match the main target by URL excluding `splash.html`, and filter `type === 'page'`.
+
+---
+
+## Direct-to-store upload (desktop only)
+
+Hands rendered artboards to App Store Connect and Google Play with the user's own developer
+credentials. No server of ours is involved, matching the account layer's stance. User-facing setup
+guide: [docs/STORE-UPLOAD.md](../docs/STORE-UPLOAD.md).
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [src/lib/publish/types.ts](../src/lib/publish/types.ts) | `StoreId`, credential shapes, `PublishImage`, `PublishProgress`, `StoreAuthError` / `StoreRejectedError` |
+| [jwt.ts](../src/lib/publish/jwt.ts) | ES256 (Apple) and RS256 (Google) JWT signing over WebCrypto, one PKCS#8 PEM parser for both |
+| [md5.ts](../src/lib/publish/md5.ts) | RFC 1321 MD5. Apple's commit needs one and WebCrypto does not implement it |
+| [storeTargets.ts](../src/lib/publish/storeTargets.ts) | `APPLE_DISPLAY_TARGETS` (size -> ScreenshotDisplayType), `PLAY_IMAGE_TARGETS`, `validatePlayImage` |
+| [appStoreConnect.ts](../src/lib/publish/appStoreConnect.ts) | app/version/localization listing, set creation, reserve + chunk PUT + commit, delivery polling |
+| [googlePlay.ts](../src/lib/publish/googlePlay.ts) | service-account token, edit lifecycle, image upload, validate/commit |
+| [credentials.ts](../src/lib/publish/credentials.ts) | localStorage store + `useStoreCredentials()`, key `open-screenshot-generator.store-credentials` |
+| [PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) | the whole UI; [StoreCredentialsForms.tsx](../src/components/open-screenshot-generator/publish/StoreCredentialsForms.tsx) holds the two key forms |
+| `handlePublishCapture` in the layout | renders the chosen boards to bytes, with the same in-memory format conversion as the export |
+
+There is deliberately **no provider abstraction** (unlike `CLOUD_PROVIDERS` in the account layer):
+Apple needs app + version + locale + a per-size set, Play needs package + language + one slot, and
+forcing a common interface over that only hides the difference.
+
+### Apple's asset upload, which is not guessable
+
+1. `POST /v1/appScreenshots` with `fileSize` + `fileName` **reserves** the asset and returns
+   `uploadOperations`: chunk instructions, each with its own `method`, `url`, `offset`, `length`,
+   `requestHeaders`.
+2. Each chunk is PUT to **Apple's URL, not the API host**, with the operation's headers and **no
+   Authorization header** (those URLs are pre-signed). This is why `capabilities/default.json`
+   needs `*.apple.com`, not just `api.appstoreconnect.apple.com`.
+3. `PATCH /v1/appScreenshots/{id}` with `uploaded: true` and `sourceFileChecksum` (MD5 hex of the
+   exact bytes) is what makes the upload count.
+4. Apple then processes the asset **asynchronously**. Every call above returns 2xx for a wrong-sized
+   image; it fails minutes later as `assetDeliveryState.state = FAILED`. `waitForDelivery` polls for
+   this and turns it into warnings, which is the only reason the dialog can be trusted when it says
+   the upload worked.
+
+Screenshots hang off a set scoped to (version localization, display type), so a mixed project is
+grouped by resolved display type and each group gets its own set, created if absent. Order inside a
+set is not implied by upload order, so it is stated with a `PATCH .../relationships/appScreenshots`;
+that failing is cosmetic and downgrades to a warning.
+
+### Play's edit transaction
+
+`POST .../edits` opens a staged transaction, images are uploaded into
+`listings/{language}/{imageType}` at the `/upload/` base with `uploadType=media`, then `:validate`
+and `:commit`. Nothing is public until the commit and a thrown error discards the edit, so a failed
+run cannot leave a half-updated listing. Some accounts refuse automatic review submission and say so
+in the commit error; the client retries with `changesNotSentForReview=true` and reports that it did.
+
+### Traps
+
+- **Desktop only, and not as a product decision.** `api.appstoreconnect.apple.com` sends no CORS
+  headers, so a browser tab cannot call it at all. Everything goes through `bridgeFetch()` from
+  [account/transport.ts](../src/lib/account/transport.ts), whose Tauri branch is `tauri-plugin-http`.
+  `isStorePublishingAvailable()` is `isTauri()`, and the dialog explains itself on the web build.
+- **`fields[]` on appStoreVersions is a trap.** Apple renamed `appStoreState` to `appVersionState`;
+  asking for a field the account's API version does not know is a 400. The client requests no
+  `fields[]` there and reads whichever attribute comes back.
+- **`EDITABLE_VERSION_STATES` is narrower than fastlane's edit-version filter on purpose.** Fastlane
+  includes `WAITING_FOR_REVIEW` because it answers "which version am I working on"; screenshots are
+  frozen the moment a version is submitted, so writing to one comes back 409. Non-editable versions
+  are listed but disabled, nothing is preselected (a `?? list[0]` fallback would arm Upload against a
+  frozen version), and the dialog explains that the version has to leave review first. Play has no
+  equivalent lock: its listing is one live document and the change queues for review.
+- **A 401 and a 403 from Apple are indistinguishable in practice** (bad key vs a key without the App
+  Manager role), so one message covers both. Do not "improve" it into a guess.
+- **Play 403 is almost always setup, not code**: the service account was never invited in Play
+  Console, or the Android Developer API is not enabled. Play 404 means a package typo or an app that
+  has never been published, since Play refuses API edits before the first release.
+- **Play's size rule blocks the iPhone canvas.** Every side 320 to 3840 px, long side at most twice
+  the short side, 8 MB max. 1290x2796 is 2.17:1 and Play rejects it, so the dialog flags the board
+  and the Size dropdown converts to 1080x1920. That rule is Google's, verified in their docs, not a
+  guess to relax.
+- **Credentials are localStorage, unencrypted**, like the AI keys and the account session. The key is
+  new, so unlike the three keys in `legacyStorage.ts` it needs no `readWithLegacyFallback`. The
+  dialog copy says where the keys live without using the word "unencrypted"; that detail stays in
+  [docs/STORE-UPLOAD.md](../docs/STORE-UPLOAD.md).
+- **The key file is read with a plain `<input type="file">`, never the fs plugin.** `readTextFile` is
+  gated by `fs:allow-read-text-file`, which the capability does NOT grant (it has
+  `fs:allow-read-file`, a *different* permission), and the denial surfaces as a file-read error, so
+  it reads like a broken picker. A file input needs no permission, no Rust rebuild to change, and
+  behaves the same in the browser. The screenshot uploader already works this way. Rule 13 in
+  [AGENTS.md](AGENTS.md) in its purest form: this cost a real bug report.
+- **The capture goes through the layout, not the dialog**, because only the layout can reach the
+  live canvas DOM and swap converted boards in. `handlePublishCapture` uses a raw `setArtboards`
+  and restores in a `finally`, exactly like `handleConfirmExport`, so history and the saved project
+  stay clean.
 
 ---
 

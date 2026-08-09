@@ -45,7 +45,10 @@ import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { PublishDialog } from './publish/PublishDialog';
+import { ProjectNameField } from './ProjectNameField';
+import { decodeDataUrl, type PublishImage } from '@/lib/publish';
 import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
@@ -72,6 +75,16 @@ import {
   type CloudProjectSummary,
 } from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
+import { HistoryPanel } from './HistoryPanel';
+import {
+  describeArtboardsChange,
+  getElementDisplayName,
+  namedChange,
+  HISTORY_LIMIT,
+  HISTORY_MERGE_WINDOW_MS,
+  type HistoryChange,
+  type HistoryEntry,
+} from '@/lib/historyLabels';
 import { LoadStatusBar } from './LoadStatusBar';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
@@ -115,8 +128,23 @@ const DISPLAY_SCALE_FACTOR = 0.3;
 // survives an app relaunch, not just a reload.
 const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
 const RIGHT_DOCK_LAYERS_HEIGHT_KEY = 'abs-right-dock-layers-height';
+const RIGHT_DOCK_TAB_KEY = 'abs-right-dock-tab';
 const LAYERS_SECTION_MIN = 120; // px, keeps the layers list usable
 const PROPERTIES_SECTION_MIN = 160; // px, keeps the properties form usable
+
+let historyEntrySeq = 0;
+
+// One history state: the change's name plus the snapshot it restores. The
+// snapshot is deep-copied here so later edits to the live artboards can never
+// reach back into a recorded state.
+function makeHistoryEntry(artboards: ArtboardState[], change: HistoryChange): HistoryEntry {
+  return {
+    ...change,
+    id: `h${++historyEntrySeq}`,
+    timestamp: Date.now(),
+    artboards: JSON.parse(JSON.stringify(artboards)),
+  };
+}
 
 // Update the function with reduced margin
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
@@ -352,7 +380,9 @@ export function OpenScreenshotGeneratorLayout() {
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
   const [activeArtboardId, setActiveArtboardId] = useState<string | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
-  const [history, setHistory] = useState<ArtboardState[][]>([[]]);
+  // Undo stack and the History panel are the same list: every entry is a full
+  // project snapshot plus the name of the change that produced it.
+  const [history, setHistory] = useState<HistoryEntry[]>(() => [makeHistoryEntry([], namedChange('New Document', 'open'))]);
   const [historyIndex, setHistoryIndex] = useState(0);
   // Seed from the URL: closed when refreshing straight into an open project
   // (?projectId present), open on a fresh visit. Prevents the selector flashing
@@ -432,6 +462,9 @@ export function OpenScreenshotGeneratorLayout() {
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
+  // see src/lib/publish; the dialog explains itself on the web build.
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   // Seeds the export dialog's "Selected artboard only" box. The toolbar's
   // Download opens the dialog project-wide; an artboard's own Download opens
   // it already scoped to that board.
@@ -486,6 +519,9 @@ export function OpenScreenshotGeneratorLayout() {
   // subtree, so PNG, video and preview output can never include it.
   const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
+  // Which of the dock's top-section tabs is showing: the properties form or
+  // the project's history states.
+  const [rightDockTab, setRightDockTab] = useState<'properties' | 'history'>('properties');
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
   // Set when the run is scoped to one text element (the properties panel
@@ -513,6 +549,7 @@ export function OpenScreenshotGeneratorLayout() {
   useLayoutEffect(() => {
     try {
       if (window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) === '0') setIsRightDockOpen(false);
+      if (window.localStorage.getItem(RIGHT_DOCK_TAB_KEY) === 'history') setRightDockTab('history');
       const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
       if (Number.isFinite(stored)) {
         setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
@@ -525,6 +562,11 @@ export function OpenScreenshotGeneratorLayout() {
   const setRightDockOpen = (open: boolean) => {
     setIsRightDockOpen(open);
     try { window.localStorage.setItem(RIGHT_DOCK_OPEN_KEY, open ? '1' : '0'); } catch {}
+  };
+
+  const selectRightDockTab = (tab: 'properties' | 'history') => {
+    setRightDockTab(tab);
+    try { window.localStorage.setItem(RIGHT_DOCK_TAB_KEY, tab); } catch {}
   };
   const { clipboardItem, copyToClipboard } = useClipboard();
   const router = useRouter();
@@ -649,7 +691,7 @@ export function OpenScreenshotGeneratorLayout() {
             const projectData = migrateVideoDevices(project.projectData);
             setArtboards(projectData);
             setCurrentProjectName(project.name || 'Untitled Project');
-            setHistory([JSON.parse(JSON.stringify(projectData))]);
+            setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
             setHistoryIndex(0);
             // Auto-select the first artboard so a refreshed project opens ready to
             // edit (matches loadProjectFromData, the click-a-template path). Without
@@ -675,11 +717,39 @@ export function OpenScreenshotGeneratorLayout() {
     };
     loadProject();
  }, [activeProjectId, isLoadingTemplate, toast, setIsTemplateSelectorOpen]); // Added isLoadingTemplate dependency
-  const pushToHistory = (newArtboardsState: ArtboardState[]) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); // Deep copy
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
+  /**
+   * Record a new history state. `change` names the command when the caller
+   * knows it (Paste, Convert to iPhone 15); otherwise the name is recovered by
+   * diffing against the previous snapshot, which is what gives canvas drags and
+   * properties-panel edits their labels without every call site being touched.
+   *
+   * Continuous tweaks (a slider fires an update per pixel) collapse into the
+   * state they started, so one gesture is one entry in the panel and one undo.
+   */
+  const pushToHistory = (newArtboardsState: ArtboardState[], change?: HistoryChange) => {
+    const trimmed = history.slice(0, historyIndex + 1);
+    const previous = trimmed[trimmed.length - 1];
+    const described = change ?? describeArtboardsChange(previous?.artboards ?? [], newArtboardsState);
+    // Nothing actually moved (a re-save, a no-op update): leave the stack alone
+    // so the panel does not fill with states that restore the same thing.
+    if (!described) return;
+
+    const entry = makeHistoryEntry(newArtboardsState, described);
+    const canMerge =
+      !!previous &&
+      !!described.mergeKey &&
+      previous.mergeKey === described.mergeKey &&
+      entry.timestamp - previous.timestamp < HISTORY_MERGE_WINDOW_MS;
+
+    let next = canMerge
+      ? [...trimmed.slice(0, -1), { ...entry, id: previous.id }]
+      : [...trimmed, entry];
+    // Snapshots carry whole projects, screenshots included, so the stack is
+    // capped from the oldest end.
+    if (next.length > HISTORY_LIMIT) next = next.slice(next.length - HISTORY_LIMIT);
+
+    setHistory(next);
+    setHistoryIndex(next.length - 1);
   };
 
   // Define the handleUpdateArtboardDetails function to update artboard background settings
@@ -734,7 +804,7 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[]) => {
+  const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
     console.log("handleArtboardsUpdate called", activeProjectId);
     const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
     setArtboards(repositionedArtboards); // Update React state first
@@ -773,7 +843,7 @@ export function OpenScreenshotGeneratorLayout() {
         }
     }
     saveProject(); // Call the async save function
-    pushToHistory(repositionedArtboards);
+    pushToHistory(repositionedArtboards, change);
   }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId]);
 
   useEffect(() => {
@@ -857,7 +927,7 @@ export function OpenScreenshotGeneratorLayout() {
       });
       return;
     }
-    handleArtboardsUpdate(converted);
+    handleArtboardsUpdate(converted, namedChange(`Convert to ${preset.label}`, 'device'));
     trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
       resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
@@ -948,34 +1018,10 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
   // Handle new artboard creation with updated default size
-  const handleNewArtboardFromMainToolbar = () => {
-    if (activeArtboardId && artboards.some(ab => ab.id === activeArtboardId)) {
-      handleAddNewArtboardAfter(activeArtboardId);
-      return;
-    }
-    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
-    const newSize = artboards.length > 0 && artboards[artboards.length - 1]
-                    ? artboards[artboards.length - 1].size
-                    : defaultSize;
-
-    const newArtboard: ArtboardState = {
-      id: `artboard_${Date.now()}`,
-      name: `Artboard ${artboards.length + 1}`,
-      position: { x: 0, y: 0 }, 
-      size: newSize,
-      elements: [], 
-      backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
-      backgroundType: 'solid',
-      zoom: 1,
-    };
-    
-    const newArtboards = [...artboards, newArtboard];
-    handleArtboardsUpdate(newArtboards);
-    setActiveArtboardId(newArtboard.id);
-    setSelectedElementIdOnActiveArtboard(null);
-    toast({ title: "Artboard Created", description: `Artboard "${newArtboard.name}" added.` });
-  };
-
+  // Artboards are only added from an existing artboard's hover toolbar now
+  // (the top toolbar's "+" is gone), so handleAddNewArtboardAfter is the single
+  // creation path. It always has a board to anchor to, because deleting the
+  // last artboard is refused.
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
     const defaultSize = { width: 1290, height: 2796 }; // Updated default size
@@ -1000,7 +1046,7 @@ export function OpenScreenshotGeneratorLayout() {
       newArtboardsArray.push(newArtboard); 
     }
     
-    handleArtboardsUpdate(newArtboardsArray);
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Add Artboard', 'artboard', newArtboard.name));
     setActiveArtboardId(newArtboard.id);
     setSelectedElementIdOnActiveArtboard(null);
     toast({ title: "Artboard Added", description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".` });
@@ -1022,7 +1068,7 @@ export function OpenScreenshotGeneratorLayout() {
       newArtboardsArray.push(duplicatedArtboard);
     }
   
-    handleArtboardsUpdate(newArtboardsArray);
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Duplicate Artboard', 'copy', artboardToDuplicate.name));
     setActiveArtboardId(duplicatedArtboard.id);
     toast({ title: "Artboard Duplicated", description: `Artboard "${artboardToDuplicate.name}" duplicated.` });
   };
@@ -1036,7 +1082,7 @@ export function OpenScreenshotGeneratorLayout() {
     if (!artboardToDelete) return;
 
     const newArtboardsArray = artboards.filter(ab => ab.id !== artboardId);
-    handleArtboardsUpdate(newArtboardsArray);
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Delete Artboard', 'delete', artboardToDelete.name));
 
     if (activeArtboardId === artboardId) {
       setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
@@ -1062,7 +1108,7 @@ export function OpenScreenshotGeneratorLayout() {
       return; 
     }
   
-    handleArtboardsUpdate(newArtboardsArray); 
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Move Artboard', 'order', targetArtboard.name));
     toast({ title: "Artboard Moved", description: `Artboard "${targetArtboard.name}" moved ${direction}.` });
   };
 
@@ -1355,6 +1401,63 @@ export function OpenScreenshotGeneratorLayout() {
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
+  // Rasterize ONE artboard from the live canvas DOM. Shared by the file export
+  // and the store upload so both produce identical PNGs, and so the
+  // filter/background/unscale recipe only exists once. Returns null when the
+  // board is not currently mounted (nothing off-DOM can be captured).
+  //
+  // The style restore is in a finally on purpose: a throwing toPng used to
+  // leave the artboard stuck at scale(1) on the canvas.
+  const captureArtboardDataUrl = async (artboard: ArtboardState): Promise<string | null> => {
+    const artboardElement = document.querySelector(
+      `[data-artboard-dom-id="${artboard.id}"]`
+    ) as HTMLElement | null;
+
+    if (!artboardElement) {
+      console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
+      toast({
+        title: "Export Warning",
+        description: `Could not find artboard '${artboard.name}' to export.`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const originalTransform = artboardElement.style.transform;
+    const originalWidth = artboardElement.style.width;
+    const originalHeight = artboardElement.style.height;
+
+    try {
+      // Remove scale transform for export
+      artboardElement.style.transform = 'scale(1)';
+
+      // Use html-to-image to capture the artboard at exact specified dimensions
+      const { backgroundColor, backgroundImage } = artboardBackground(artboard);
+      return await toPng(artboardElement, {
+        width: artboard.size.width,
+        height: artboard.size.height,
+        backgroundColor,
+        pixelRatio: 1, // Set to 1 to avoid doubling resolution
+        cacheBust: true, // Prevent caching issues
+        // Editor chrome (selection outlines, resize handles, upload buttons)
+        // must never be baked into the exported image
+        filter: (node) => {
+          const el = node as HTMLElement;
+          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+        },
+        style: {
+          width: `${artboard.size.width}px`,
+          height: `${artboard.size.height}px`,
+          backgroundImage,
+        }
+      });
+    } finally {
+      artboardElement.style.transform = originalTransform;
+      artboardElement.style.width = originalWidth;
+      artboardElement.style.height = originalHeight;
+    }
+  };
+
   const captureArtboards = async (
     list: ArtboardState[],
     exportDir?: string | null,
@@ -1390,53 +1493,9 @@ export function OpenScreenshotGeneratorLayout() {
         formatLabel: progress.formatLabel,
         phase: 'rendering',
       });
-      // Find the DOM element for the artboard content
-      const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
-
-      if (!artboardElement) {
-        console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
-        toast({
-          title: "Export Warning",
-          description: `Could not find artboard '${artboard.name}' to export.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
       try {
-        // Store original transform and dimensions
-        const originalTransform = artboardElement.style.transform;
-        const originalWidth = artboardElement.style.width;
-        const originalHeight = artboardElement.style.height;
-        
-        // Remove scale transform for export
-        artboardElement.style.transform = 'scale(1)';
-        
-        // Use html-to-image to capture the artboard at exact specified dimensions
-        const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-        const imageDataUrl = await toPng(artboardElement, {
-          width: artboard.size.width,
-          height: artboard.size.height,
-          backgroundColor,
-          pixelRatio: 1, // Set to 1 to avoid doubling resolution
-          cacheBust: true, // Prevent caching issues
-          // Editor chrome (selection outlines, resize handles, upload buttons)
-          // must never be baked into the exported image
-          filter: (node) => {
-            const el = node as HTMLElement;
-            return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-          },
-          style: {
-            width: `${artboard.size.width}px`,
-            height: `${artboard.size.height}px`,
-            backgroundImage,
-          }
-        });
-        
-        // Restore original styling after export
-        artboardElement.style.transform = originalTransform;
-        artboardElement.style.width = originalWidth;
-        artboardElement.style.height = originalHeight;
+        const imageDataUrl = await captureArtboardDataUrl(artboard);
+        if (!imageDataUrl) continue; // board is not mounted, already reported
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const canvasIndex = order?.indexById[artboard.id] ?? index + 1;
@@ -1653,6 +1712,68 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // --- direct-to-store upload ----------------------------------------------
+
+  /**
+   * Render the boards the publish dialog picked, as PNG bytes in memory.
+   *
+   * Same capture path as the file export, with the same in-memory format
+   * conversion trick: a raw setArtboards swaps the converted boards onto the
+   * canvas so they can be photographed at the store's exact pixel size, then
+   * the original list goes back in a finally. History and the saved project
+   * are never touched, so an upload can never corrupt the user's work.
+   */
+  const handlePublishCapture = async (
+    artboardIds: string[],
+    formatId: DeviceFormat | null
+  ): Promise<PublishImage[]> => {
+    const original = artboards;
+    const orderPadWidth = Math.max(2, String(original.length).length);
+
+    const buildImages = async (list: ArtboardState[]): Promise<PublishImage[]> => {
+      const images: PublishImage[] = [];
+      for (const [index, artboard] of list.entries()) {
+        if (!artboardIds.includes(artboard.id)) continue;
+        const dataUrl = await captureArtboardDataUrl(artboard);
+        if (!dataUrl) continue;
+        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
+        images.push({
+          artboardId: artboard.id,
+          fileName: sanitizeFileName(`${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}.png`),
+          bytes: decodeDataUrl(dataUrl),
+          width: artboard.size.width,
+          height: artboard.size.height,
+        });
+      }
+      return images;
+    };
+
+    // 3D device canvases supersample while an export is in flight; pair
+    // begin/end in a finally or they stay at 2x forever.
+    const capturePass = async (list: ArtboardState[]) => {
+      window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        return await buildImages(list);
+      } finally {
+        window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
+      }
+    };
+
+    const preset = formatId ? DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId) : undefined;
+    if (!preset) return capturePass(original);
+
+    try {
+      const { artboards: converted } = convertArtboardsToFormat(original, preset);
+      const repositioned = calculateArtboardPositions(converted);
+      setArtboards(repositioned);
+      await waitForCanvasToSettle(400);
+      return await capturePass(repositioned);
+    } finally {
+      setArtboards(original);
+    }
+  };
+
   // Asks the running export to stop. It finishes the image already in flight
   // (see captureArtboards) rather than leaving a truncated PNG behind, so the
   // dialog stays up, disabled, until the loop actually unwinds.
@@ -1802,31 +1923,42 @@ export function OpenScreenshotGeneratorLayout() {
     videoExportAbortRef.current?.abort();
   };
 
-  const handleUndo = useCallback(() => {
-    if (historyIndex > 0) {
-      const newHistoryIndex = historyIndex - 1;
-      setHistoryIndex(newHistoryIndex);
-      const prevState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(prevState); 
-       if (activeArtboardId && !prevState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
-        setActiveArtboardId(prevState.length > 0 ? prevState[0].id : null);
-      }
-      setSelectedElementIdOnActiveArtboard(null);
+  /**
+   * Move the project to a recorded state. Undo, redo and clicking a row in the
+   * History panel are all this one path: the stack itself is left alone (states
+   * ahead of the target stay listed but dimmed until the next edit drops them),
+   * and the restored state is written back to the project row so a reload does
+   * not resurrect the work that was just stepped away from.
+   */
+  const applyHistoryIndex = useCallback((targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex >= history.length || targetIndex === historyIndex) return;
+    const state: ArtboardState[] = JSON.parse(JSON.stringify(history[targetIndex].artboards));
+    setHistoryIndex(targetIndex);
+    setArtboards(state);
+    if (activeArtboardId && !state.find((ab) => ab.id === activeArtboardId)) {
+      setActiveArtboardId(state.length > 0 ? state[0].id : null);
     }
-  }, [historyIndex, history, activeArtboardId]);
+    setSelectedElementIdOnActiveArtboard(null);
+
+    if (activeProjectId) {
+      db.projects.put({
+        id: activeProjectId,
+        name: currentProjectName,
+        timestamp: new Date(),
+        projectData: JSON.parse(JSON.stringify(state)),
+      }).catch(error => {
+        console.error("Error saving restored history state to Dexie:", error);
+      });
+    }
+  }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName]);
+
+  const handleUndo = useCallback(() => {
+    applyHistoryIndex(historyIndex - 1);
+  }, [applyHistoryIndex, historyIndex]);
 
   const handleRedo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const newHistoryIndex = historyIndex + 1;
-      setHistoryIndex(newHistoryIndex);
-      const nextState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(nextState); 
-       if (activeArtboardId && !nextState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
-        setActiveArtboardId(nextState.length > 0 ? nextState[0].id : null);
-      }
-      setSelectedElementIdOnActiveArtboard(null);
-    }
-  }, [historyIndex, history, activeArtboardId, history.length]);
+    applyHistoryIndex(historyIndex + 1);
+  }, [applyHistoryIndex, historyIndex]);
 
   // Fix the handleDeleteSelected function to properly handle deletion
   const handleDeleteSelected = useCallback(() => { 
@@ -2022,10 +2154,10 @@ export function OpenScreenshotGeneratorLayout() {
     
     // Update state
     setArtboards(repositionedArtboards);
-    pushToHistory(repositionedArtboards);
-    
-    toast({ 
-      title: "Artboard Size Updated", 
+    pushToHistory(repositionedArtboards, namedChange(`Canvas Size ${width} x ${height}`, 'resize'));
+
+    toast({
+      title: "Artboard Size Updated",
       description: scaleContent
         ? `All artboards resized to ${width} × ${height} pixels with content scaled to fit.`
         : `All artboards resized to ${width} × ${height} pixels`
@@ -2154,7 +2286,7 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (rateLimitHit) {
       if (successCount > 0) {
-        handleArtboardsUpdate(newArtboards);
+        handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`));
       }
       toast({
         title: "Rate limit exceeded",
@@ -2162,7 +2294,7 @@ export function OpenScreenshotGeneratorLayout() {
         variant: "destructive"
       });
     } else if (successCount > 0) {
-      handleArtboardsUpdate(newArtboards);
+      handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`));
       toast({
         title: "Translation complete",
         description: `Successfully translated ${successCount} text element(s).${failCount > 0 ? ` Failed to translate ${failCount} element(s).` : ''}`
@@ -2256,7 +2388,8 @@ export function OpenScreenshotGeneratorLayout() {
               ),
               language: isOnlyTextElement ? targetLanguage : undefined,
             }
-      )
+      ),
+      namedChange('Translate', 'translate', getElementDisplayName(element))
     );
 
     toast({
@@ -2356,7 +2489,7 @@ export function OpenScreenshotGeneratorLayout() {
         return ab;
       });
 
-      handleArtboardsUpdate(updatedArtboards);
+      handleArtboardsUpdate(updatedArtboards, namedChange('Paste', 'copy', getElementDisplayName(newElement)));
       if (artboardId !== activeArtboardId) {
         setActiveArtboardId(artboardId);
       }
@@ -2512,7 +2645,7 @@ export function OpenScreenshotGeneratorLayout() {
       
       // Set artboards and history without triggering handleArtboardsUpdate
       setArtboards(finalArtboards);
-      setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
+      setHistory([makeHistoryEntry(finalArtboards, namedChange('Open', 'open', projectName))]);
       setHistoryIndex(0);
       
       // Automatically select the first artboard
@@ -3476,9 +3609,9 @@ const generateRandomProjectName = (): string => {
         <SidebarInset className="relative flex flex-col overflow-hidden">
           <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
           <Toolbar
-            onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
+            onPublishToStore={() => setIsPublishDialogOpen(true)}
             onExport={() => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
@@ -3492,15 +3625,10 @@ const generateRandomProjectName = (): string => {
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
             onRedo={handleRedo}
-            onDeleteSelected={handleDeleteSelected}
-            isElementSelected={!!selectedElementIdOnActiveArtboard}
-            isArtboardSelected={!!activeArtboardId}
             activeTool={activeTool}
             onSetActiveTool={setActiveTool}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
-            currentProjectName={currentProjectName}
-            onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
             onTranslate={() => {
@@ -3536,34 +3664,43 @@ const generateRandomProjectName = (): string => {
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
 
-              {/* Floating zoom control (bottom-left of canvas) */}
-              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-                  title="Zoom Out"
-                >
-                  <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setCanvasZoom(1)}
-                  className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
-                  title="Reset zoom to 100%"
-                >
-                  {Math.round(canvasZoom * 100)}%
-                </button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                  onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-                  title="Zoom In"
-                >
-                  <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
-                </Button>
+              {/* Floating bar (bottom-left of canvas): the project name, then
+                  the zoom control. The name used to sit in the top toolbar. */}
+              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2">
+                <ProjectNameField
+                  currentProjectName={currentProjectName}
+                  onRenameProject={handleRenameProject}
+                  className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
+                />
+
+                <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+                    title="Zoom Out"
+                  >
+                    <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setCanvasZoom(1)}
+                    className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
+                    title="Reset zoom to 100%"
+                  >
+                    {Math.round(canvasZoom * 100)}%
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+                    title="Zoom In"
+                  >
+                    <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                </div>
               </div>
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
@@ -3582,17 +3719,39 @@ const generateRandomProjectName = (): string => {
               )}
             </div>
 
-            {/* Right dock: Properties on top, Layers below, resizable split.
-                Collapsed it becomes a slim vertical rail with rotated labels
-                (Android Studio tool-window style). */}
+            {/* Right dock: Properties/History tabs on top, Layers below,
+                resizable split. Collapsed it becomes a slim vertical rail with
+                rotated labels (Android Studio tool-window style). */}
             {isRightDockOpen ? (
               <div className="flex h-full w-80 flex-shrink-0 flex-col border-l bg-card" data-export-exclude>
-                <div className="flex h-9 shrink-0 items-center justify-between border-b pl-3 pr-1.5">
-                  <span className="text-sm font-semibold">Properties</span>
+                <Tabs
+                  value={rightDockTab}
+                  onValueChange={(value) => selectRightDockTab(value as 'properties' | 'history')}
+                  className="flex min-h-0 flex-1 flex-col"
+                >
+                {/* Underline tabs, not the default segmented pill: inside a
+                    320px dock the pill reads as a single button rather than a
+                    pair of tabs. -mb-px drops the active underline onto the
+                    header rule so the two line up. */}
+                <div className="flex h-9 shrink-0 items-stretch justify-between border-b pl-2 pr-1.5">
+                  <TabsList className="-mb-px h-auto items-stretch gap-4 rounded-none bg-transparent p-0">
+                    <TabsTrigger
+                      value="properties"
+                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    >
+                      Properties
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="history"
+                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    >
+                      History
+                    </TabsTrigger>
+                  </TabsList>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-6 w-6 self-center"
                     onClick={() => setRightDockOpen(false)}
                     title="Collapse right panel"
                     aria-label="Collapse right panel"
@@ -3601,7 +3760,13 @@ const generateRandomProjectName = (): string => {
                   </Button>
                 </div>
                 <div ref={dockContentRef} className="flex min-h-0 flex-1 flex-col">
-                  <div className="min-h-[10rem] flex-1 overflow-hidden">
+                  {/* data-[state=active]:flex, never a bare flex: a bare flex
+                      class beats Radix's [hidden] and the inactive tab would
+                      still take up the dock. */}
+                  <TabsContent
+                    value="properties"
+                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
+                  >
                     <PropertiesPanel
                       selectedElement={selectedElementDetails}
                       onUpdateElement={handleUpdateSelectedElement}
@@ -3613,7 +3778,17 @@ const generateRandomProjectName = (): string => {
                       onUpdateArtboardDetails={handleUpdateArtboardDetails}
                       className="h-full border-l-0 shadow-none"
                     />
-                  </div>
+                  </TabsContent>
+                  <TabsContent
+                    value="history"
+                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
+                  >
+                    <HistoryPanel
+                      entries={history}
+                      currentIndex={historyIndex}
+                      onJumpTo={applyHistoryIndex}
+                    />
+                  </TabsContent>
                   <div
                     role="separator"
                     aria-orientation="horizontal"
@@ -3669,6 +3844,7 @@ const generateRandomProjectName = (): string => {
                     />
                   </div>
                 </div>
+                </Tabs>
               </div>
             ) : (
               <div
@@ -3686,13 +3862,20 @@ const generateRandomProjectName = (): string => {
                   <PanelRightOpenIcon className="h-4 w-4" />
                 </Button>
                 <div className="mt-1 h-px w-5 bg-border" />
-                {(['Properties', 'Layers'] as const).map((label) => (
+                {([
+                  { label: 'Properties', tab: 'properties' as const },
+                  { label: 'History', tab: 'history' as const },
+                  { label: 'Layers', tab: null },
+                ]).map(({ label, tab }) => (
                   <button
                     key={label}
                     type="button"
                     className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     style={{ writingMode: 'vertical-rl' }}
-                    onClick={() => setRightDockOpen(true)}
+                    onClick={() => {
+                      if (tab) selectRightDockTab(tab);
+                      setRightDockOpen(true);
+                    }}
                     title={`Open ${label}`}
                   >
                     {label}
@@ -3736,6 +3919,10 @@ const generateRandomProjectName = (): string => {
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
               onConfirmExport={handleConfirmExport}
+              onPublishToStore={() => {
+                setIsExportDialogOpen(false);
+                setIsPublishDialogOpen(true);
+              }}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
               activeArtboard={activeArtboardSummary}
@@ -3748,6 +3935,13 @@ const generateRandomProjectName = (): string => {
             progress={pngProgress}
             onCancel={handleCancelPngExport}
             isCancelling={isCancellingPngExport}
+          />
+
+          <PublishDialog
+            isOpen={isPublishDialogOpen}
+            onOpenChange={setIsPublishDialogOpen}
+            artboards={artboards}
+            onCapture={handlePublishCapture}
           />
 
           <AccountDialog

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import type { ArtboardElement } from '@/types/artboard';
 import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getElementDisplayName } from '@/lib/historyLabels';
 
 // Flat section of the right dock (bottom half, under the resize divider in
 // OpenScreenshotGeneratorLayout): header strip + scrolling list, filling
@@ -50,33 +51,8 @@ const getElementIcon = (element: ArtboardElement) => {
   }
 };
 
-const getElementLabel = (element: ArtboardElement): string => {
-    // Use custom name if provided
-    if (element.name && element.name.trim()) {
-        return element.name;
-    }
-
-    // Fallback to auto-generated labels
-    let label = `${element.type.charAt(0).toUpperCase() + element.type.slice(1)}`;
-    if (element.type === 'text' && element.content) {
-        label = element.content.substring(0, 20) || "Text";
-        if (element.content.length > 20) label += '...';
-    } else if (element.type === 'image') {
-        label = element.imageAlt || 'Image';
-        if (label.length > 20) label = label.substring(0, 20) + '...';
-    } else if (element.type === 'shape') {
-        label = `${element.shapeType.charAt(0).toUpperCase() + element.shapeType.slice(1)} Shape`;
-    } else if (element.type === 'device') {
-        label = `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)} Device`;
-    } else if (element.type === 'video-device') {
-        label = `${element.deviceType.charAt(0).toUpperCase() + element.deviceType.slice(1)} Recording`;
-    } else if (element.type === 'video') {
-        label = 'Recording';
-    } else if (element.type === 'gesture') {
-        label = `${element.gestureType.charAt(0).toUpperCase() + element.gestureType.slice(1)} Hint`;
-    }
-    return label;
-};
+// Shared with the History panel so a layer reads the same in both.
+const getElementLabel = getElementDisplayName;
 
 export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName }: LayersPanelProps) {
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
