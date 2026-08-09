@@ -457,6 +457,7 @@ export function OpenScreenshotGeneratorLayout() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(getInitialProjectIdFromUrl);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Untitled Project');
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [recentProjectSearch, setRecentProjectSearch] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
@@ -2772,6 +2773,13 @@ const generateRandomProjectName = (): string => {
     return counts;
   }, [availableProjects]);
 
+  // Name filter for the recent-projects list in the same dialog.
+  const filteredRecentProjects = useMemo(() => {
+    const query = recentProjectSearch.trim().toLowerCase();
+    if (!query) return recentProjects;
+    return recentProjects.filter((p) => p.name.toLowerCase().includes(query));
+  }, [recentProjects, recentProjectSearch]);
+
   const templateSelectorDialog = (
       <>
         <Dialog
@@ -2883,11 +2891,25 @@ const generateRandomProjectName = (): string => {
             <div className="grid shrink-0 items-stretch gap-4 border-t p-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
               {/* Recent projects, laid out in two columns so they take less height. */}
               <div className="min-w-0">
-                <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
+                <div className="mb-2 flex items-center gap-2">
+                  <h3 className="shrink-0 text-lg font-semibold">Recent projects</h3>
+                  {recentProjects.length > 0 && (
+                    <div className="relative ml-auto min-w-0 flex-1 sm:max-w-[16rem]">
+                      <SearchIcon className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Search projects..."
+                        value={recentProjectSearch}
+                        onChange={(event) => setRecentProjectSearch(event.target.value)}
+                        className="h-8 pl-8 text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
                 {recentProjects.length > 0 ? (
+                  filteredRecentProjects.length > 0 ? (
                   <ScrollArea className="h-[20vh]">
                     <ul className="grid grid-cols-1 gap-1.5 pr-3 sm:grid-cols-2">
-                      {recentProjects.map((project) => (
+                      {filteredRecentProjects.map((project) => (
                         <li key={project.id} className="flex min-w-0 items-center justify-between gap-1 rounded-md border border-border/60 px-2 hover:bg-muted/50">
                           <div
                             className="min-w-0 flex-grow cursor-pointer py-2 hover:text-primary"
@@ -2923,6 +2945,9 @@ const generateRandomProjectName = (): string => {
                       ))}
                     </ul>
                   </ScrollArea>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No projects match &quot;{recentProjectSearch}&quot;.</p>
+                  )
                 ) : (
                   <p className="text-sm text-muted-foreground">No recent projects found.</p>
                 )}
