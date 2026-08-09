@@ -57,7 +57,7 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, HandIcon, InfoIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, HandIcon, InfoIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -3621,10 +3621,6 @@ const generateRandomProjectName = (): string => {
             onSaveToAccount={handleSaveToAccount}
             isAccountConnected={isAccountConnected}
             isSavingToAccount={isSavingToAccount}
-            canUndo={historyIndex > 0}
-            canRedo={historyIndex < history.length - 1}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
             onSelectDeviceFormat={handleSelectDeviceFormat}
@@ -3702,8 +3698,10 @@ const generateRandomProjectName = (): string => {
               </div>
 
               {/* Floating bar (bottom center of canvas): the select and pan
-                  tools, moved down from the top toolbar so they sit with the
-                  canvas they act on. */}
+                  tools, then undo/redo, moved down from the top toolbar so they
+                  sit with the canvas they act on. Undo and redo are two plain
+                  buttons here rather than the dropdown they used to share:
+                  the pill has the room, and one click beats two. */}
               <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
                 <Button
                   variant={activeTool === 'select' ? 'secondary' : 'ghost'}
@@ -3722,6 +3720,29 @@ const generateRandomProjectName = (): string => {
                   title="Pan Tool (H)"
                 >
                   <HandIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+
+                <div className="mx-1 h-5 w-px bg-border" />
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleUndo}
+                  disabled={historyIndex <= 0}
+                  title="Undo (⌘Z)"
+                >
+                  <UndoIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleRedo}
+                  disabled={historyIndex >= history.length - 1}
+                  title="Redo (⇧⌘Z)"
+                >
+                  <RedoIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
               </div>
 

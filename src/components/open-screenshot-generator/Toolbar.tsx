@@ -2,9 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  DownloadIcon, 
-  UndoIcon, 
-  RedoIcon, 
+  DownloadIcon,
   LayoutTemplateIcon,
   FileTextIcon,
   FolderOpenIcon,
@@ -21,10 +19,8 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -46,10 +42,6 @@ interface ToolbarProps {
   onSaveToAccount: () => void;
   isAccountConnected: boolean;
   isSavingToAccount?: boolean;
-  canUndo: boolean;
-  canRedo: boolean;
-  onUndo: () => void;
-  onRedo: () => void;
   onUpdateArtboardSize: (width: number, height: number, scaleContent: boolean) => void;
   initialArtboardSize?: Size; // New prop to get current size
   className?: string;
@@ -71,10 +63,6 @@ export function Toolbar({
   onSaveToAccount,
   isAccountConnected,
   isSavingToAccount = false,
-  canUndo,
-  canRedo, 
-  onUndo, 
-  onRedo,
   onUpdateArtboardSize,
   initialArtboardSize,
   className,
@@ -115,42 +103,16 @@ export function Toolbar({
 
       <div className="h-8 w-px bg-muted mx-2" />
 
-      {/* The select and pan tools live in the floating bar centered at the
-          bottom of the canvas now, next to the work they act on. */}
+      {/* The select and pan tools and the undo/redo pair live in the floating
+          bar centered at the bottom of the canvas now, next to the work they
+          act on.
 
-      <div className="flex items-center space-x-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-10 gap-1 px-2.5"
-              disabled={!canUndo && !canRedo}
-              title="History"
-            >
-              <UndoIcon className="h-[1.2rem] w-[1.2rem]" />
-              <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
-              <UndoIcon className="mr-2 h-4 w-4" />
-              Undo
-              <DropdownMenuShortcut>⌘Z</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
-              <RedoIcon className="mr-2 h-4 w-4" />
-              Redo
-              <DropdownMenuShortcut>⇧⌘Z</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      {/* Delete deliberately has no toolbar button: the Delete/Backspace key,
-          the artboard's own hover toolbar, and the Layers panel all cover it,
-          and a destructive control does not need a fourth home up here. */}
+          Delete deliberately has no button anywhere up here: the
+          Delete/Backspace key, the artboard's own hover toolbar, and the Layers
+          panel all cover it, and a destructive control does not need a fourth
+          home. */}
 
-      <div className="h-8 w-px bg-muted mx-2" />
-      
+
       {/* Canvas Size — opens the preset picker dialog. Scales + re-centers
           content by default; its checkbox can opt out to the raw resize. */}
       <Button
