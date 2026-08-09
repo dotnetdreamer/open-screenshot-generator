@@ -46,6 +46,22 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const DESKTOP_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID ?? '';
 const DESKTOP_CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET ?? '';
 
+/**
+ * Pasting the client id into the secret is the easy mistake to make: the two
+ * sit next to each other in the Cloud Console and only the id is shown in full,
+ * so the secret gets copied from the wrong field. Google then fails the token
+ * exchange with "invalid client secret" — after the user has already picked an
+ * account and granted consent, which reads as a bug in the app rather than a
+ * typo in the build config.
+ *
+ * This tests for the wrong shape rather than requiring the right one: secrets
+ * issued today start with "GOCSPX-", but older ones do not, and demanding that
+ * prefix would reject working credentials.
+ */
+function looksLikeClientId(value: string): boolean {
+  return value.endsWith('.apps.googleusercontent.com') || value === DESKTOP_CLIENT_ID;
+}
+
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const SCOPES = `${DRIVE_SCOPE} openid email profile`;
 
@@ -401,15 +417,21 @@ export const googleDriveProvider: CloudProvider = {
   label: 'Google',
   supportsMedia: true,
   get configHint() {
-    return isTauri()
-      ? 'Google sign-in on desktop needs NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET and NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID (a Desktop-app OAuth client) set at build time. See docs/ACCOUNT-SYNC.md.'
-      : 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';
+    if (!isTauri()) {
+      return 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';
+    }
+    if (DESKTOP_CLIENT_SECRET && looksLikeClientId(DESKTOP_CLIENT_SECRET)) {
+      return 'NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET holds a client id, not a client secret. Open the Desktop-app client in Google Cloud Console and copy its "Client secret" field — the secret does not end in .apps.googleusercontent.com — then rebuild. See docs/ACCOUNT-SYNC.md.';
+    }
+    return 'Google sign-in on desktop needs NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET and NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID (a Desktop-app OAuth client) set at build time. See docs/ACCOUNT-SYNC.md.';
   },
 
-  // Desktop checks the secret too, so a build missing it says so up front
-  // instead of sending the user through consent and failing the exchange.
+  // Desktop checks the secret too, so a build with one missing or miscopied
+  // says so up front instead of sending the user through consent and failing
+  // the exchange.
   isConfigured() {
-    return isTauri() ? !!(DESKTOP_CLIENT_ID && DESKTOP_CLIENT_SECRET) : !!CLIENT_ID;
+    if (!isTauri()) return !!CLIENT_ID;
+    return !!(DESKTOP_CLIENT_ID && DESKTOP_CLIENT_SECRET && !looksLikeClientId(DESKTOP_CLIENT_SECRET));
   },
 
   async signIn(): Promise<AccountSession> {
