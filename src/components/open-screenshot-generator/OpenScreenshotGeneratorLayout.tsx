@@ -689,7 +689,10 @@ export function OpenScreenshotGeneratorLayout() {
           if (project && project.projectData) {
             // Projects saved before recordings became their own element type
             // still carry them on the screenshot device — convert on load.
-            const projectData = migrateVideoDevices(project.projectData);
+            // Positions are derived, so re-lay the boards here too: an imported
+            // or externally written project can carry stale/identical positions
+            // that would stack every board on the same spot.
+            const projectData = calculateArtboardPositions(migrateVideoDevices(project.projectData));
             setArtboards(projectData);
             setCurrentProjectName(project.name || 'Untitled Project');
             setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
