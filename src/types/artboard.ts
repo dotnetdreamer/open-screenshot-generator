@@ -74,6 +74,11 @@ export interface BaseElement {
   // group_elements / transform_elements tools). Purely an id: the elements
   // stay independent layers, nothing nests.
   groupId?: string;
+  // The palette tile this element came from, e.g. 'image:touch-as451105828'
+  // (see lib/libraryIds.ts). Stamped by the palette and by MCP add_element,
+  // shown at the top of the Properties panel so a layer traces back to the
+  // library item that made it. Absent on template and hand-built elements.
+  libraryId?: string;
 }
 
 export interface TextElementProps extends BaseElement {

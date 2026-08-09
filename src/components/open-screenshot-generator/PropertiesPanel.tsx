@@ -9,7 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages } from 'lucide-react';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon } from 'lucide-react';
 import { saveMedia } from '@/lib/mediaStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
@@ -36,6 +36,148 @@ const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
   'video-device': 'Recording Mockup',
   video: 'Recording Properties',
   gesture: 'Gesture Hint',
+};
+
+/**
+ * Scale slider with 1% steppers.
+ *
+ * Committing is expensive: `handleArtboardsUpdate` deep-copies every artboard
+ * twice (undo history, then a whole-project Dexie write), so one commit per
+ * slider tick pegs the main thread for the length of the drag. This keeps the
+ * drag itself local and commits at most every COMMIT_INTERVAL_MS, plus a final
+ * commit on release, so the canvas still follows the drag at a readable rate
+ * while the writes drop by roughly an order of magnitude.
+ *
+ * The steppers move 1% a click for the fine adjustments a drag cannot hit, and
+ * commit immediately: one discrete change is cheap.
+ */
+const COMMIT_INTERVAL_MS = 999999;
+const SCALE_MIN = 10;
+const SCALE_MAX = 500;
+
+const ScaleField: React.FC<{
+  id: string;
+  /** Resets the draft when the selection moves to another layer. */
+  elementId: string;
+  scale: number | undefined;
+  onCommit: (scale: number) => void;
+}> = ({ id, elementId, scale, onCommit }) => {
+  const committed = Math.round((scale ?? 1) * 100);
+  // Non-null only while the user is dragging this slider.
+  const [draft, setDraft] = useState<number | null>(null);
+  const lastCommitRef = useRef(0);
+  const percent = draft ?? committed;
+
+  useEffect(() => { setDraft(null); }, [elementId]);
+
+  const commit = (next: number) => {
+    lastCommitRef.current = Date.now();
+    onCommit(next / 100);
+  };
+
+  const step = (delta: number) => {
+    const next = Math.min(SCALE_MAX, Math.max(SCALE_MIN, percent + delta));
+    if (next === percent) return;
+    setDraft(null);
+    commit(next);
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-1">
+        <Label htmlFor={id} className="text-xs">Scale: {percent}%</Label>
+        <div className="flex items-center gap-0.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-5 w-5"
+            onClick={() => step(-1)}
+            disabled={percent <= SCALE_MIN}
+            title="Scale down 1%"
+            aria-label="Scale down 1 percent"
+          >
+            <Minus className="h-3 w-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-5 w-5"
+            onClick={() => step(1)}
+            disabled={percent >= SCALE_MAX}
+            title="Scale up 1%"
+            aria-label="Scale up 1 percent"
+          >
+            <Plus className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      <Slider
+        id={id}
+        min={SCALE_MIN}
+        max={SCALE_MAX}
+        step={1}
+        value={[percent]}
+        onValueChange={(value) => {
+          setDraft(value[0]);
+          if (Date.now() - lastCommitRef.current >= COMMIT_INTERVAL_MS) commit(value[0]);
+        }}
+        onValueCommit={(value) => {
+          setDraft(null);
+          commit(value[0]);
+        }}
+        className="my-2"
+      />
+    </>
+  );
+};
+
+/**
+ * The selected layer's id, at the top of the panel.
+ *
+ * Prefers the palette tile it came from (`libraryId`, the same id the tile shows
+ * on hover and MCP's add_element accepts), so a designer can tell which library
+ * item is on the board. Hand-built and template layers have no library id, so
+ * those fall back to the element's own id, which is what the MCP tools address.
+ */
+const ElementIdRow: React.FC<{ element: ArtboardElement }> = ({ element }) => {
+  const [copied, setCopied] = useState(false);
+  const value = element.libraryId || element.id;
+  const label = element.libraryId ? 'Library ID' : 'Element ID';
+
+  // Clear the tick when the selection moves to another layer.
+  useEffect(() => { setCopied(false); }, [value]);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard?.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard blocked (insecure context or denied permission): the id is
+      // still on screen and selectable, so there is nothing to report.
+    }
+  };
+
+  return (
+    <div className="mt-1 flex items-center gap-1.5">
+      <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
+      <code className="min-w-0 flex-1 truncate rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-foreground/80" title={value}>
+        {value}
+      </code>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-5 w-5 shrink-0 text-muted-foreground hover:text-foreground"
+        onClick={copy}
+        title={copied ? 'Copied' : `Copy ${label.toLowerCase()}`}
+        aria-label={copied ? 'Copied' : `Copy ${label.toLowerCase()}`}
+      >
+        {copied ? <CheckIcon className="h-3 w-3" /> : <CopyIcon className="h-3 w-3" />}
+      </Button>
+    </div>
+  );
 };
 
 interface PropertiesPanelProps {
@@ -592,17 +734,11 @@ export function PropertiesPanel({
       </Button>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="deviceScale" className="text-xs">
-          Scale: {Math.round((element.scale || 1) * 100)}%
-        </Label>
-        <Slider
+        <ScaleField
           id="deviceScale"
-          min={10}
-          max={500}
-          step={1}
-          value={[(element.scale || 1) * 100]}
-          onValueChange={(value) => onUpdateElement({ scale: value[0] / 100 })}
-          className="my-2"
+          elementId={element.id}
+          scale={element.scale}
+          onCommit={(scale) => onUpdateElement({ scale })}
         />
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
@@ -927,17 +1063,11 @@ export function PropertiesPanel({
       </div>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
-        <Label htmlFor="vdScale" className="text-xs">
-          Scale: {Math.round((element.scale || 1) * 100)}%
-        </Label>
-        <Slider
+        <ScaleField
           id="vdScale"
-          min={10}
-          max={500}
-          step={1}
-          value={[(element.scale || 1) * 100]}
-          onValueChange={(value) => onUpdateElement({ scale: value[0] / 100 })}
-          className="my-2"
+          elementId={element.id}
+          scale={element.scale}
+          onCommit={(scale) => onUpdateElement({ scale })}
         />
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
@@ -1672,18 +1802,29 @@ export function PropertiesPanel({
     <div className="space-y-4">
       {/* Image Upload and Basic Properties */}
       <div className="w-full flex flex-wrap gap-2 items-start">
-        {/* Image Upload Button */}
-        <div className="flex-shrink-0">
+        {/* Image Upload Button, with the size multiplier right under it */}
+        <div className="flex-shrink-0 w-[150px]">
           <Label className="text-xs mb-1 block">Image</Label>
           <Button
             variant="outline"
             size="sm"
             onClick={() => handleImageUploadButtonClick('image')}
-            className="text-xs h-8"
+            className="text-xs h-8 w-full"
           >
             <UploadCloudIcon className="w-3 h-3 mr-1.5" />
             {element.imageSrc ? 'Change Image' : 'Upload Image'}
           </Button>
+
+          {/* Scale. Multiplies the element box, same as the corner handles and
+              the device panel's slider, so it carries into exports too. */}
+          <div className="mt-2">
+            <ScaleField
+              id="imageScale"
+              elementId={element.id}
+              scale={element.scale}
+              onCommit={(scale) => onUpdateElement({ scale })}
+            />
+          </div>
         </div>
 
         {/* Object Fit */}
@@ -2358,6 +2499,7 @@ export function PropertiesPanel({
             {ELEMENT_PANEL_TITLES[selectedElement.type] ??
               `${selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)} Properties`}
           </div>
+          <ElementIdRow element={selectedElement} />
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
           {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}

@@ -5,6 +5,7 @@ import { Artboard } from './Artboard';
 import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
@@ -67,6 +68,10 @@ export function CanvasArea({
 
   const [isPanning, setIsPanning] = useState(false);
   const panStartCoords = useRef<{ x: number, y: number, scrollLeft: number, scrollTop: number } | null>(null);
+  // Set when a pan actually moved the canvas, so the release doesn't fire a
+  // click on whatever happens to sit under the cursor (artboard toolbar
+  // buttons, elements) after the drag.
+  const suppressNextClick = useRef(false);
 
 
   // Safety net: if real artboards exist but none is selected (e.g. after a
@@ -98,60 +103,84 @@ export function CanvasArea({
   };
 
   const handleMouseDownOnContentArea = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (activeTool === 'pan') {
-      // If pan tool is active, initiate panning regardless of the exact target within contentArea,
-      // as long as the scroll viewport exists.
-      if (scrollViewportRef.current) {
-        e.preventDefault(); // Prevent default actions like text selection or artboard interaction
-        setIsPanning(true);
-        panStartCoords.current = {
-            x: e.clientX,
-            y: e.clientY,
-            scrollLeft: scrollViewportRef.current.scrollLeft,
-            scrollTop: scrollViewportRef.current.scrollTop,
-        };
-        if (contentAreaRef.current) contentAreaRef.current.style.cursor = 'grabbing';
-      }
-    } else if (activeTool === 'select') {
+    if (activeTool === 'select') {
       // Only deselect if the click is on the direct background of the content area
-      if (e.target === contentAreaRef.current) { 
+      if (e.target === contentAreaRef.current) {
         setActiveArtboardId(null);
         setSelectedElementIdOnActiveArtboard(null);
       }
     }
   };
 
+  // The hand tool is wired to the scroll viewport, not to the content div.
+  // The content div is `min-w-full` × 2000px *before* its own `scale(zoom)`,
+  // so its box never covers the whole canvas: everything past the first
+  // viewport width (i.e. the gaps between artboards once you scroll right) and
+  // the strip above the boards fall outside it. Artboards still showed `grab`
+  // only because cursor is inherited by descendants, which is why panning
+  // appeared to work over a board and nowhere else. The viewport always spans
+  // the visible canvas, so grabbing anywhere works.
   useEffect(() => {
     const scrollViewport = scrollViewportRef.current;
-    const contentArea = contentAreaRef.current;
+    if (!scrollViewport || activeTool !== 'pan') return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      // Capture phase: consume the press before an artboard or element can
+      // start its own drag/selection with the hand tool active.
+      e.preventDefault();
+      e.stopPropagation();
+      suppressNextClick.current = false;
+      setIsPanning(true);
+      panStartCoords.current = {
+        x: e.clientX,
+        y: e.clientY,
+        scrollLeft: scrollViewport.scrollLeft,
+        scrollTop: scrollViewport.scrollTop,
+      };
+    };
+
+    const handleClickCapture = (e: MouseEvent) => {
+      if (!suppressNextClick.current) return;
+      suppressNextClick.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    scrollViewport.addEventListener('mousedown', handleMouseDown, true);
+    scrollViewport.addEventListener('click', handleClickCapture, true);
+    return () => {
+      scrollViewport.removeEventListener('mousedown', handleMouseDown, true);
+      scrollViewport.removeEventListener('click', handleClickCapture, true);
+    };
+  }, [activeTool]);
+
+  useEffect(() => {
+    const scrollViewport = scrollViewportRef.current;
+    if (!isPanning) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-        if (!isPanning || !panStartCoords.current || !scrollViewport) return;
+        if (!panStartCoords.current || !scrollViewport) return;
         e.preventDefault(); // Prevent other interactions during pan
         const dx = e.clientX - panStartCoords.current.x;
         const dy = e.clientY - panStartCoords.current.y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) suppressNextClick.current = true;
         scrollViewport.scrollLeft = panStartCoords.current.scrollLeft - dx;
         scrollViewport.scrollTop = panStartCoords.current.scrollTop - dy;
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
-        if (!isPanning) return;
+    const handleMouseUp = () => {
         setIsPanning(false);
-        if (contentArea) {
-            contentArea.style.cursor = activeTool === 'pan' ? 'grab' : 'default';
-        }
         panStartCoords.current = null;
     };
 
-    if (isPanning) {
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-        return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-        };
-    }
-  }, [isPanning, activeTool]);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isPanning]);
 
 
   const handleDropOnCanvas = (e: React.DragEvent<HTMLDivElement>) => {
@@ -180,13 +209,6 @@ export function CanvasArea({
   const handleDragOverCanvas = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault(); 
   };
-
-  const getCursorStyle = () => {
-    if (activeTool === 'pan') {
-      return isPanning ? 'grabbing' : 'grab';
-    }
-    return 'default';
-  }
 
   // Handle artboard deletion with confirmation if needed
   const handleDeleteArtboard = (artboardId: string) => {
@@ -218,6 +240,14 @@ export function CanvasArea({
     <ScrollArea
       className="h-full w-full bg-background flex-grow"
       viewportRef={scrollViewportRef}
+      // The grab cursor lives on the viewport so it covers the whole canvas,
+      // and the descendant rule overrides the per-element inline cursors
+      // (pointer/grab/resize) that would otherwise win inside an artboard.
+      viewportClassName={cn(
+        activeTool === 'pan' && (isPanning
+          ? 'cursor-grabbing [&_*]:!cursor-grabbing'
+          : 'cursor-grab [&_*]:!cursor-grab')
+      )}
       style={{ height: "100vh", overflowY: "auto" }}
     >
       <div
@@ -228,7 +258,9 @@ export function CanvasArea({
           minHeight: "2000px",
           transform: `scale(${canvasZoom})`,
           transformOrigin: 'top left',
-          cursor: getCursorStyle(),
+          // Cursor is owned by the scroll viewport (see viewportClassName) so
+          // the hand tool covers the canvas, not just this box.
+          cursor: activeTool === 'select' ? 'default' : undefined,
           padding: '40px 12px 12px 12px',
         }}
         onMouseDown={handleMouseDownOnContentArea}

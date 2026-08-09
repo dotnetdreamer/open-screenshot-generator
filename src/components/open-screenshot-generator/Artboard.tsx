@@ -148,11 +148,17 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       newElementX = Math.max(0, Math.min(newElementX, artboard.size.width - 100));
       newElementY = Math.max(0, Math.min(newElementY, artboard.size.height - 50));
 
+      // Which palette tile this came from (see lib/libraryIds.ts). Rides in with
+      // styleProps and sticks to the element so the Properties panel can name
+      // the library item behind the layer.
+      const libraryId = typeof styleProps?.libraryId === 'string' ? styleProps.libraryId : undefined;
+
       const newElementBase = {
         id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
         position: { x: newElementX, y: newElementY },
         rotation: 0,
         scale: 1,
+        ...(libraryId ? { libraryId } : {}),
       };
 
       let newElementToAdd: ArtboardElement | null = null;
@@ -288,7 +294,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
         // Merge palette-provided props (library elements: customPath, clipPath, specialProps, ...)
         if (styleProps) {
-          const { defaultSize, name, ...restStyleProps } = styleProps;
+          // libraryId is already on newElementBase; keep it out of the shape props.
+          const { defaultSize, name, libraryId: _libraryId, ...restStyleProps } = styleProps;
           if (defaultSize?.width && defaultSize?.height) {
             shapeProps.size = { width: defaultSize.width, height: defaultSize.height };
           }

@@ -925,6 +925,17 @@ export function OpenScreenshotGeneratorLayout() {
     }
   }, [toast]);
 
+  // Stable identity so the memoized ElementPalette does not re-render on every
+  // layout state change. The palette can hold hundreds of tiles, and rebuilding
+  // them per slider tick is what made scale drags stutter.
+  const handlePaletteAddElement = useCallback((type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
+    if (activeArtboardId) {
+      handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
+    } else {
+      toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
+    }
+  }, [activeArtboardId, handleAddElementToArtboard, toast]);
+
   // Get the current size from the first artboard or any active artboard
   const getCurrentArtboardSize = () => {
     if (activeArtboardId) {
@@ -3423,15 +3434,7 @@ const generateRandomProjectName = (): string => {
             </div>
           </SidebarHeader>
           <SidebarContent>
-            <ElementPalette
-              onAddElement={(type, subType, styleProps) => {
-                if (activeArtboardId) {
-                  handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
-                } else {
-                  toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
-                }
-              }}
-            />
+            <ElementPalette onAddElement={handlePaletteAddElement} />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
              <SidebarGroup className="p-0">

@@ -485,7 +485,9 @@ async function buildElementSpec(
     }
     type = type ?? resolved.type;
     subType = subType ?? resolved.subType;
-    libraryProps = { ...resolved.props };
+    // Stamp the source tile on the element, exactly as a palette click does, so
+    // the Properties panel names the library item behind an agent-made layer.
+    libraryProps = { ...resolved.props, libraryId: String(args.libraryId).trim() };
     // The asset's own size unless the caller gave explicit dimensions.
     if (resolved.defaultSize && (args.width === undefined || args.height === undefined)) {
       libraryProps.size = resolved.defaultSize;
