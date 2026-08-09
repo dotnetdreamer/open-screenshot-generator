@@ -18,6 +18,16 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -64,6 +74,8 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
   const [projects, setProjects] = useState<CloudProjectSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [isListing, setIsListing] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<CloudProjectSummary | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const refreshProjects = useCallback(async () => {
     if (!isSignedIn) return;
@@ -84,6 +96,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
       setShowTokenField(false);
       setToken('');
       setDeviceCode(null);
+      setProjectToDelete(null);
     }
   }, [open, isSignedIn, refreshProjects]);
 
@@ -141,12 +154,11 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
   };
 
   const handleDelete = async (project: CloudProjectSummary) => {
-    if (!window.confirm(`Delete "${project.name}" from your ${session ? getProvider(session.provider).label : 'cloud'} storage? Your local copy stays.`)) {
-      return;
-    }
+    setIsDeleting(true);
     try {
       await deleteAccountProject(project.remoteId);
       setProjects((current) => current?.filter((p) => p.remoteId !== project.remoteId) ?? null);
+      setProjectToDelete(null);
       toast({ title: 'Deleted', description: `"${project.name}" was removed from your storage.` });
     } catch (error) {
       toast({
@@ -154,12 +166,15 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
         description: error instanceof Error ? error.message : 'Something went wrong.',
         variant: 'destructive',
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const providerLabel = session ? getProvider(session.provider).label : '';
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -249,7 +264,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                         variant="ghost"
                         size="sm"
                         title="Delete from your storage"
-                        onClick={() => handleDelete(project)}
+                        onClick={() => setProjectToDelete(project)}
                       >
                         <Trash2Icon className="h-4 w-4" />
                       </Button>
@@ -365,6 +380,39 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog
+      open={!!projectToDelete}
+      onOpenChange={(next) => {
+        if (!next && !isDeleting) setProjectToDelete(null);
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete from {providerLabel || 'your storage'}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            &quot;{projectToDelete?.name}&quot; will be removed from your {providerLabel || 'cloud'}{' '}
+            storage. Your local copy stays on this device. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isDeleting}
+            onClick={(event) => {
+              // Keep the dialog up until the request finishes.
+              event.preventDefault();
+              if (projectToDelete) void handleDelete(projectToDelete);
+            }}
+          >
+            {isDeleting && <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" />}
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 

@@ -85,12 +85,14 @@ export function ProjectNameField({
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={commit}
-          className="h-7 w-48 text-sm font-medium"
+          // h-8 matches the icon buttons in the zoom/tool pills, so the bar
+          // keeps one height whether the name is being edited or not.
+          className="h-8 w-48 rounded-full text-sm font-medium"
           placeholder="Project name..."
         />
       ) : (
         <div
-          className="cursor-pointer rounded px-2 py-0.5 hover:bg-accent/50"
+          className="flex h-8 cursor-pointer items-center rounded-full px-2 hover:bg-accent/50"
           onDoubleClick={(event) => {
             event.stopPropagation();
             startEditing();
