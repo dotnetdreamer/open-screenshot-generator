@@ -4652,43 +4652,14 @@ const generateRandomProjectName = (): string => {
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
 
-              {/* Floating bar (bottom-left of canvas): the project name, then
-                  the zoom control. The name used to sit in the top toolbar. */}
+              {/* Floating bar (bottom-left of canvas): the project name, which
+                  used to sit in the top toolbar. */}
               <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2">
                 <ProjectNameField
                   currentProjectName={currentProjectName}
                   onRenameProject={handleRenameProject}
                   className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
                 />
-
-                <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-                    title="Zoom Out"
-                  >
-                    <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setCanvasZoom(1)}
-                    className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
-                    title="Reset zoom to 100%"
-                  >
-                    {Math.round(canvasZoom * 100)}%
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-                    title="Zoom In"
-                  >
-                    <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
-                  </Button>
-                </div>
               </div>
 
               {/* Floating bar (bottom center of canvas): the select and pan
@@ -4741,7 +4712,41 @@ const generateRandomProjectName = (): string => {
               </div>
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
-              <McpServerStatus className="absolute bottom-4 right-4 z-40" />
+              {/* Floating bar (bottom-RIGHT of canvas): the zoom control, with
+                  the MCP status beside it rather than stacked on top of it,
+                  since that corner was already taken. */}
+              <div className="absolute bottom-4 right-4 z-40 flex items-center gap-2">
+                <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+                    title="Zoom Out"
+                  >
+                    <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setCanvasZoom(1)}
+                    className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
+                    title="Reset zoom to 100%"
+                  >
+                    {Math.round(canvasZoom * 100)}%
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+                    title="Zoom In"
+                  >
+                    <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                </div>
+
+                <McpServerStatus />
+              </div>
 
               {contextMenu && (
                 <CanvasContextMenu

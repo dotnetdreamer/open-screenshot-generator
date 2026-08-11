@@ -394,10 +394,14 @@ const BASE_GROUPS_WITH_A_CONTROL: Record<ArtboardElement['type'], BaseDetachGrou
   text: [],
   shape: [],
   gesture: [],
-  device: ['geometry', 'rotation'],
-  'video-device': ['geometry', 'rotation'],
-  image: ['geometry', 'opacity'],
-  video: ['geometry', 'opacity'],
+  // Only `scale` is claimed by the Scale field. Position and size have no field
+  // on any type (they come from dragging on the canvas), so they always come
+  // from the catch-all section, which is what makes "hand back just the
+  // position of this one mockup" reachable.
+  device: ['scale', 'rotation'],
+  'video-device': ['scale', 'rotation'],
+  image: ['scale', 'opacity'],
+  video: ['scale', 'opacity'],
 };
 
 /**
@@ -765,9 +769,12 @@ export function PropertiesPanel({
     if (!localeActive || !activeLocale) return null;
     if (!onToggleLocaleDetach) return <SharedLanguagesNote />;
     const group = Array.isArray(keys) ? keys : [keys];
-    // Half a group reads as shared, so the next click finishes the job rather
-    // than re-attaching a set the user thinks of as one thing.
-    const detached = group.every(isKeyDetached);
+    // ANY key detached reads as detached. Editing in a translated language pulls
+    // apart only the property that actually changed, so a partly detached group
+    // is now the normal case, and `every` would have claimed a group was shared
+    // while one of its keys was not. Clicking hands the whole group back, which
+    // is what "reset this control to base" means.
+    const detached = group.some(isKeyDetached);
     return (
       <LocaleDetachToggle
         locale={activeLocale}
@@ -1354,7 +1361,7 @@ export function PropertiesPanel({
           position={element.position}
           onCommit={onUpdateElement}
         />
-        {detachToggle(GEOMETRY_KEYS, 'Position, size and scale')}
+        {detachToggle(['scale'], 'scale')}
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         {detachLabelRow(
@@ -1746,7 +1753,7 @@ export function PropertiesPanel({
           position={element.position}
           onCommit={onUpdateElement}
         />
-        {detachToggle(GEOMETRY_KEYS, 'Position, size and scale')}
+        {detachToggle(['scale'], 'scale')}
       </div>
       <div className="flex flex-col space-y-1 min-w-[150px]">
         {detachLabelRow(
@@ -1952,8 +1959,8 @@ export function PropertiesPanel({
           <Label htmlFor="videoScale" className="text-xs">
             Scale: {Math.round((element.scale || 1) * 100)}%
           </Label>,
-          GEOMETRY_KEYS,
-          'Position, size and scale'
+          ['scale'],
+          'scale'
         )}
         <Slider
           id="videoScale"
@@ -2567,7 +2574,7 @@ export function PropertiesPanel({
               position={element.position}
               onCommit={onUpdateElement}
             />
-            {detachToggle(GEOMETRY_KEYS, 'Position, size and scale')}
+            {detachToggle(['scale'], 'scale')}
           </div>
         </div>
 
