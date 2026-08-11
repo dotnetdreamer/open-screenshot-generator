@@ -13,6 +13,7 @@ import { GestureElement } from './elements/GestureElement';
 import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { artboardBackground } from '@/lib/artboardBackground';
+import { measureTextHeight } from '@/lib/textFit';
 import { cn } from '@/lib/utils';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { Input } from '@/components/ui/input';
@@ -165,14 +166,34 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
       if (type === 'text') {
         // Increase default font size to account for scaling
+        const textDefaults = {
+          content: 'New Text',
+          fontSize: 48, // Increased from 16 to be more visible at 0.3 scale
+          fontFamily: 'Arial',
+          scale: 1,
+          lineHeight: 1.2,
+        };
+        // 48pt renders at 160px (fontSize / 0.3), so the old 400x100 box clipped
+        // its own placeholder. Measure instead of guessing again: the box is
+        // whatever one line of the default text actually needs.
+        const textWidth = 700;
+        const measured = measureTextHeight(
+          { ...textDefaults, size: { width: textWidth, height: 0 } },
+          textDefaults.content
+        );
+        const textSize = { width: textWidth, height: Math.ceil(measured) || 200 };
         newElementToAdd = {
           ...newElementBase,
+          position: {
+            x: Math.max(0, Math.min(newElementBase.position.x, artboard.size.width - textSize.width)),
+            y: Math.max(0, Math.min(newElementBase.position.y, artboard.size.height - textSize.height)),
+          },
           type: 'text',
-          content: 'New Text',
-          fontSize: 48,  // Increased from 16 to be more visible at 0.3 scale
+          content: textDefaults.content,
+          fontSize: textDefaults.fontSize,
           color: '#333333',
-          fontFamily: 'Arial',
-          size: { width: 400, height: 100 },  // Increased from 150x30
+          fontFamily: textDefaults.fontFamily,
+          size: textSize,
         } as TextElementProps;
       } else if (type === 'image') {
         const imageProps: ImageElementProps = {

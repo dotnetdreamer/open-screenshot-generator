@@ -2,6 +2,7 @@
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import type { TextElementProps as TextElementType } from '@/types/artboard';
+import { fitTextBox } from '@/lib/textFit';
 
 interface TextElementProps {
   element: TextElementType;
@@ -39,18 +40,29 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
   const handleBlur = () => {
     setIsEditing(false);
     if (text !== element.content) {
-      onUpdate({ content: text });
+      // Grow with the edit, not after it, so the added lines are visible and
+      // the whole thing is a single undo.
+      const fit = fitTextBox(element, text);
+      onUpdate(fit ? { content: text, ...fit } : { content: text });
     }
   };
 
+  // Enter inserts a line break rather than ending the edit. Headlines are the
+  // main thing people type here and they are routinely two or three lines, so
+  // the newline is worth more than the keystroke shortcut. Committing is a
+  // click away from the box, Ctrl/Cmd+Enter, or Escape.
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       handleBlur();
     } else if (e.key === 'Escape') {
-      setText(element.content); // Revert changes
+      e.preventDefault();
+      // Keep what was typed. Escape used to throw the edit away, which is a
+      // lot to lose now that an edit can be several lines.
       handleBlur();
     }
+    // Anything else, including a bare Enter, stays with the textarea. The
+    // canvas renders the result with white-space: pre-wrap.
   };
   
   // Calculate dynamic font size based on element's height and zoom

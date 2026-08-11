@@ -87,6 +87,7 @@ const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 const ROOT_FOLDER_NAME = 'Open Screenshot Generator';
 const MEDIA_PREFIX = 'media__';
+const FONT_PREFIX = 'font__';
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
 // --- Google Identity Services (web) -----------------------------------------
@@ -543,7 +544,7 @@ export const googleDriveProvider: CloudProvider = {
     const children = await listChildren(session, folderId);
     const byName = new Map(children.map((child) => [child.name, child.id]));
 
-    const total = bundle.media.length + 1;
+    const total = bundle.media.length + bundle.fonts.length + 1;
     onProgress?.('Uploading project', 1 / total);
     await uploadFile(session, {
       name: 'project.json',
@@ -566,11 +567,30 @@ export const googleDriveProvider: CloudProvider = {
       });
     }
 
+    for (const [index, font] of bundle.fonts.entries()) {
+      const fileName = `${FONT_PREFIX}${font.meta.id}`;
+      if (byName.has(fileName)) continue;
+      onProgress?.(
+        `Uploading font ${index + 1} of ${bundle.fonts.length}`,
+        (bundle.media.length + index + 2) / total
+      );
+      await uploadFile(session, {
+        name: fileName,
+        parentId: folderId,
+        blob: font.blob,
+        mimeType: font.meta.mimeType || 'application/octet-stream',
+      });
+    }
+
     // Drop blobs the project no longer references so Drive does not accumulate
-    // dead recordings across saves.
-    const keep = new Set(bundle.media.map((item) => `${MEDIA_PREFIX}${item.meta.id}`));
+    // dead recordings and fonts across saves.
+    const keep = new Set([
+      ...bundle.media.map((item) => `${MEDIA_PREFIX}${item.meta.id}`),
+      ...bundle.fonts.map((font) => `${FONT_PREFIX}${font.meta.id}`),
+    ]);
     for (const child of children) {
-      if (child.name.startsWith(MEDIA_PREFIX) && !keep.has(child.name)) {
+      const owned = child.name.startsWith(MEDIA_PREFIX) || child.name.startsWith(FONT_PREFIX);
+      if (owned && !keep.has(child.name)) {
         await driveJson(session, `${DRIVE_API}/files/${child.id}`, { method: 'DELETE' }).catch(() => {});
       }
     }
@@ -606,8 +626,18 @@ export const googleDriveProvider: CloudProvider = {
       media.push({ meta, blob: await downloadBlob(session, file.id) });
     }
 
+    // Absent on anything saved before fonts travelled with a project, and on
+    // any project that only uses built-in families.
+    const fonts: ProjectBundle['fonts'] = [];
+    for (const meta of manifest.fonts ?? []) {
+      const file = children.find((child) => child.name === `${FONT_PREFIX}${meta.id}`);
+      if (!file) continue;
+      onProgress?.(`Downloading font ${meta.family}`);
+      fonts.push({ meta, blob: await downloadBlob(session, file.id) });
+    }
+
     onProgress?.('Loaded', 1);
-    return { manifest, media };
+    return { manifest, media, fonts };
   },
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {

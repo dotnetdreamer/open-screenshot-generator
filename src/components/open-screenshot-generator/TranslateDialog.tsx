@@ -20,9 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AUTO_DETECT } from '@/services/translation';
-import { getGroupedFontOptions } from '@/services/fontService';
 import { getRecommendedFontForLanguage } from '@/lib/fontLanguageMatcher';
-import { SelectGroup, SelectLabel } from "@/components/ui/select";
+import { FontFamilySelect } from './FontFamilySelect';
 import { cn } from '@/lib/utils';
 
 export const LANGUAGES = [
@@ -115,8 +114,6 @@ export function TranslateDialog({
   const [targetFont, setTargetFont] = useState<string>('keep_current');
   const [allArtboards, setAllArtboards] = useState<boolean>(false);
   const [isTranslating, setIsTranslating] = useState<boolean>(false);
-
-  const groupedFonts = getGroupedFontOptions();
 
   // Re-seed every time the dialog opens: the project's language changes under
   // us after each run, so a stale source is worse than no source at all.
@@ -225,54 +222,13 @@ export function TranslateDialog({
               Font
             </Label>
             <div className="col-span-3">
-              <Select value={targetFont} onValueChange={setTargetFont}>
-                <SelectTrigger id="targetFont">
-                  <SelectValue placeholder="Keep current fonts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="keep_current">Keep current fonts</SelectItem>
-                  <SelectGroup>
-                    <SelectLabel>System Fonts</SelectLabel>
-                    {groupedFonts.system.map(font => (
-                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Latin Fonts</SelectLabel>
-                    {groupedFonts.latin.map(font => (
-                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Arabic Fonts</SelectLabel>
-                    {groupedFonts.arabic.map(font => (
-                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Urdu Fonts</SelectLabel>
-                    {groupedFonts.urdu.map(font => (
-                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Multilingual Fonts</SelectLabel>
-                    {groupedFonts.multilingual.map(font => (
-                      <SelectItem key={font.value} value={font.value} style={{ fontFamily: `${font.value}, ${font.category}` }}>
-                        {font.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <FontFamilySelect
+                id="targetFont"
+                value={targetFont}
+                onValueChange={setTargetFont}
+                placeholder="Keep current fonts"
+                leadingItems={<SelectItem value="keep_current">Keep current fonts</SelectItem>}
+              />
             </div>
           </div>
           {scope !== 'element' && (

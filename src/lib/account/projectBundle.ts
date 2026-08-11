@@ -1,10 +1,13 @@
 // Turning a stored project into something portable, and back again.
 //
-// A project row in Dexie is only half the document: screen recordings live in
-// the separate `media` table and elements point at them by id (see
-// src/lib/mediaStore.ts). Serializing just the row is what the old JSON export
-// did, which is why moving a project to another machine left video elements
-// blank. Everything here carries the blobs along.
+// A project row in Dexie is only part of the document. Two other tables hold
+// things elements only reference:
+//   - screen recordings in `media`, pointed at by row id (src/lib/mediaStore.ts)
+//   - imported fonts in `fonts`, pointed at by family name
+//     (src/services/customFonts.ts)
+// Serializing just the row is what the old JSON export did, which is why moving
+// a project to another machine left video elements blank. Everything here
+// carries the binaries along.
 //
 // Two shapes come out of the same bundle:
 //   - Drive: manifest as project.json + one file per blob (no size ceiling).
@@ -12,8 +15,15 @@
 //     one file and we avoid pulling in a zip dependency.
 
 import { db } from '@/database';
+import {
+  getCustomFontRows,
+  installCustomFont,
+  type CustomFontFormat,
+} from '@/services/customFonts';
 import type { Project, ArtboardState } from '@/types/artboard';
 import type {
+  BundledFont,
+  BundledFontMeta,
   BundledMedia,
   BundledMediaMeta,
   ProjectBundle,
@@ -41,6 +51,22 @@ export function collectMediaIds(projectData: ArtboardState[]): string[] {
     }
   }
   return [...ids];
+}
+
+/**
+ * Every font family the project's text elements ask for. Built-ins are in here
+ * too; `getCustomFontRows` is what narrows it to the ones that need carrying.
+ */
+export function collectFontFamilies(projectData: ArtboardState[]): string[] {
+  const families = new Set<string>();
+  for (const artboard of projectData ?? []) {
+    for (const element of artboard.elements ?? []) {
+      if (element.type !== 'text') continue;
+      const family = (element as { fontFamily?: unknown }).fontFamily;
+      if (typeof family === 'string' && family.trim()) families.add(family.trim());
+    }
+  }
+  return [...families];
 }
 
 /** Read the project row + its blobs out of Dexie. */
@@ -72,6 +98,22 @@ export async function serializeProject(
     });
   }
 
+  onProgress?.('Reading fonts', 1);
+  const fonts: BundledFont[] = (
+    await getCustomFontRows(collectFontFamilies(project.projectData))
+  ).map((row) => ({
+    meta: {
+      id: row.id,
+      family: row.family,
+      fileName: row.fileName,
+      format: row.format,
+      mimeType: row.mimeType,
+      createdAt: toIso(row.createdAt),
+      size: row.blob.size,
+    },
+    blob: row.blob,
+  }));
+
   const manifest: ProjectManifest = {
     formatVersion: 1,
     id: project.id,
@@ -79,9 +121,12 @@ export async function serializeProject(
     timestamp: toIso(project.timestamp),
     projectData: project.projectData,
     media: media.map((m) => m.meta),
+    // Left off entirely when unused, so a project on built-in fonts writes the
+    // same file it wrote before fonts travelled.
+    ...(fonts.length ? { fonts: fonts.map((f) => f.meta) } : {}),
   };
 
-  return { manifest, media };
+  return { manifest, media, fonts };
 }
 
 /**
@@ -93,6 +138,26 @@ export async function importBundle(
   bundle: ProjectBundle,
   options: { projectId?: string; name?: string } = {}
 ): Promise<Project> {
+  for (const font of bundle.fonts ?? []) {
+    try {
+      await installCustomFont({
+        id: font.meta.id,
+        family: font.meta.family,
+        fileName: font.meta.fileName,
+        format: font.meta.format as CustomFontFormat,
+        mimeType: font.meta.mimeType,
+        size: font.meta.size,
+        createdAt: fromIso(font.meta.createdAt),
+        blob: font.blob,
+      });
+    } catch (error) {
+      // One unreadable face must not cost the user the whole project. The text
+      // falls back to the browser default, which is what would have happened
+      // before fonts travelled at all.
+      console.error(`Could not install the font "${font.meta.family}"`, error);
+    }
+  }
+
   for (const item of bundle.media) {
     // Keep whatever is already there: a same-id row is the same recording, and
     // rewriting it would churn a potentially huge blob for nothing.
@@ -127,6 +192,32 @@ export async function importBundle(
 interface InlineBundleFile extends ProjectManifest {
   /** base64 payloads keyed by media id. Absent when the project has no media. */
   mediaData?: Record<string, string>;
+  /** base64 payloads keyed by font id. Absent when no font was imported. */
+  fontData?: Record<string, string>;
+}
+
+/**
+ * base64 font payloads keyed by id. Shared with the gist provider, which keeps
+ * them in their own file rather than inline in the manifest.
+ */
+export async function encodeFontPayloads(fonts: BundledFont[]): Promise<Record<string, string>> {
+  const payloads: Record<string, string> = {};
+  for (const font of fonts) payloads[font.meta.id] = await blobToBase64(font.blob);
+  return payloads;
+}
+
+/** Metadata plus payloads back into bundled fonts. A meta with no payload is dropped. */
+export function decodeFontPayloads(
+  metas: BundledFontMeta[] | undefined,
+  payloads: Record<string, string> | undefined
+): BundledFont[] {
+  const fonts: BundledFont[] = [];
+  for (const meta of metas ?? []) {
+    const encoded = payloads?.[meta.id];
+    if (!encoded) continue;
+    fonts.push({ meta, blob: base64ToBlob(encoded, meta.mimeType) });
+  }
+  return fonts;
 }
 
 export async function bundleToJson(
@@ -138,17 +229,21 @@ export async function bundleToJson(
     onProgress?.(`Encoding media ${index + 1} of ${bundle.media.length}`, index / bundle.media.length);
     mediaData[item.meta.id] = await blobToBase64(item.blob);
   }
+  if (bundle.fonts.length) onProgress?.('Encoding fonts', 1);
+  const fontData = await encodeFontPayloads(bundle.fonts);
   const file: InlineBundleFile = {
     ...bundle.manifest,
     ...(bundle.media.length ? { mediaData } : {}),
+    ...(bundle.fonts.length ? { fontData } : {}),
   };
   return JSON.stringify(file, null, 2);
 }
 
 /**
  * Parse an exported file back into a bundle.
- * Accepts the pre-bundle export too (`{ id, timestamp, projectData }`, no
- * media), so files people already have on disk keep importing.
+ * Accepts every older shape, so files people already have on disk keep
+ * importing: the pre-bundle export (`{ id, timestamp, projectData }`, no
+ * media), and the pre-font one (media but no `fonts`/`fontData`).
  */
 export function bundleFromJson(parsed: unknown): ProjectBundle {
   if (!parsed || typeof parsed !== 'object') {
@@ -167,6 +262,9 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
     media.push({ meta, blob: base64ToBlob(encoded, meta.mimeType) });
   }
 
+  const fontMetas = Array.isArray(file.fonts) ? file.fonts : [];
+  const fonts = decodeFontPayloads(fontMetas, file.fontData);
+
   return {
     manifest: {
       formatVersion: 1,
@@ -175,14 +273,21 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
       timestamp: typeof file.timestamp === 'string' ? file.timestamp : new Date().toISOString(),
       projectData: file.projectData as ArtboardState[],
       media: metas,
+      ...(fontMetas.length ? { fonts: fontMetas } : {}),
     },
     media,
+    fonts,
   };
 }
 
 /** Total bytes of media, for the "this is big" warnings. */
 export function mediaBytes(bundle: ProjectBundle): number {
   return bundle.media.reduce((sum, item) => sum + item.blob.size, 0);
+}
+
+/** Total bytes of imported fonts. */
+export function fontBytes(bundle: ProjectBundle): number {
+  return bundle.fonts.reduce((sum, font) => sum + font.blob.size, 0);
 }
 
 export function formatBytes(bytes: number): string {

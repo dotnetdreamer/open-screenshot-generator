@@ -56,6 +56,11 @@ export const AGENT_FONTS = [
   'Merriweather Sans',
   'Fira Sans Condensed',
   'Noto Sans',
+  // Display faces, for a headline that has to carry the whole board
+  'Anton',
+  'Bebas Neue',
+  'Playfair Display',
+  'Poppins',
 ] as const;
 
 export type AgentFont = (typeof AGENT_FONTS)[number];

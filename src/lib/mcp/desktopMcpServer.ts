@@ -27,6 +27,7 @@ import {
   type StoredAsset,
 } from '@/lib/mcp/assetStore';
 import { ALL_FONTS } from '@/services/fontService';
+import { customFontFamilies } from '@/services/customFonts';
 import type {
   ArtboardState,
   ElementType,
@@ -365,13 +366,15 @@ function collectElementProps(args: Record<string, any>): Record<string, unknown>
 // with no complaint, so a design would silently render in the wrong typeface.
 // ---------------------------------------------------------------------------
 
-const FONT_FAMILIES = ALL_FONTS.map((f) => f.family);
-const FONT_BY_LOWER = new Map(FONT_FAMILIES.map((f) => [f.toLowerCase(), f]));
+// Recomputed per call, not cached: the user can import a font at any point in
+// a session, and a snapshot taken at module load would reject it forever.
+const fontFamilies = () => [...ALL_FONTS.map((f) => f.family), ...customFontFamilies()];
+const fontByLower = () => new Map(fontFamilies().map((f) => [f.toLowerCase(), f]));
 
 /** Nearest known families to a miss, for the error message. */
 function similarFonts(requested: string, limit = 5): string[] {
   const needle = requested.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const scored = FONT_FAMILIES.map((family) => {
+  const scored = fontFamilies().map((family) => {
     const hay = family.toLowerCase().replace(/[^a-z0-9]/g, '');
     let score = 0;
     if (hay.includes(needle) || needle.includes(hay)) score = 100;
@@ -393,9 +396,10 @@ function similarFonts(requested: string, limit = 5): string[] {
 function resolveFontFamily(requested: unknown): { family?: string; error?: string } {
   if (typeof requested !== 'string' || !requested.trim()) return {};
   const raw = requested.trim();
-  const exact = FONT_BY_LOWER.get(raw.toLowerCase());
+  const known = fontByLower();
+  const exact = known.get(raw.toLowerCase());
   if (exact) return { family: exact };
-  const collapsed = FONT_BY_LOWER.get(raw.toLowerCase().replace(/\s+/g, ' '));
+  const collapsed = known.get(raw.toLowerCase().replace(/\s+/g, ' '));
   if (collapsed) return { family: collapsed };
   const near = similarFonts(raw);
   return {
@@ -1071,17 +1075,27 @@ const TOOLS: ToolDef[] = [
     },
     run: (args) => {
       const q = typeof args.query === 'string' ? args.query.trim().toLowerCase() : '';
-      const fonts = ALL_FONTS.filter(
-        (f) =>
-          (!args.script || (f.script ?? 'latin') === args.script) &&
-          (!q || f.family.toLowerCase().includes(q))
-      ).map((f) => ({
-        family: f.family,
-        category: f.category ?? 'sans-serif',
-        script: f.script ?? 'latin',
-        weights: f.variants ?? ['400'],
+      // Imported files are latin-agnostic: nothing declares their coverage, so
+      // they are reported as their own category rather than guessed at.
+      const imported = customFontFamilies().map((family) => ({
+        family,
+        category: 'imported',
+        script: 'latin' as const,
+        variants: undefined as string[] | undefined,
       }));
-      return textResult({ fonts, count: fonts.length, total: ALL_FONTS.length });
+      const fonts = [...ALL_FONTS, ...imported]
+        .filter(
+          (f) =>
+            (!args.script || (f.script ?? 'latin') === args.script) &&
+            (!q || f.family.toLowerCase().includes(q))
+        )
+        .map((f) => ({
+          family: f.family,
+          category: f.category ?? 'sans-serif',
+          script: f.script ?? 'latin',
+          weights: f.variants ?? ['400'],
+        }));
+      return textResult({ fonts, count: fonts.length, total: ALL_FONTS.length + imported.length });
     },
   },
   {
