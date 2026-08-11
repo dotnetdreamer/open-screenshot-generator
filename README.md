@@ -19,6 +19,10 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 11 August 2026: your own fonts, and line breaks in text
+
+- Import your own `.ttf`, `.otf`, `.woff` or `.woff2` from the Font Family picker, use it like any built-in font, and it travels with the project when you export the JSON or save to your account. Text elements now take manual line breaks, and the box grows to fit them
+
 ### 7 August 2026: exports, cloud saves, translation
 
 - Export progress dialog with a live file count and a cancel button
