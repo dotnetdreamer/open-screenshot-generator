@@ -147,4 +147,13 @@ export async function deleteAccountProject(remoteId: string): Promise<void> {
 
 export * from './types';
 export { getSession, setSession, clearSession, useAccount, subscribe } from './store';
-export { serializeProject, importBundle, bundleToJson, bundleFromJson, formatBytes, mediaBytes } from './projectBundle';
+export {
+  serializeProject,
+  importBundle,
+  bundleToJson,
+  bundleFromJson,
+  collectFontFamilies,
+  formatBytes,
+  mediaBytes,
+  fontBytes,
+} from './projectBundle';

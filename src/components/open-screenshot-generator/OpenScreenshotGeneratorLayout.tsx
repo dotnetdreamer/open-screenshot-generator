@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
-import { loadCustomFonts } from '@/services/customFonts';
+import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
@@ -67,6 +67,7 @@ import {
   AccountAuthError,
   bundleFromJson,
   bundleToJson,
+  collectFontFamilies,
   findAccountProject,
   importBundle,
   loadProjectFromAccount,
@@ -88,6 +89,7 @@ import {
   type HistoryEntry,
 } from '@/lib/historyLabels';
 import { LoadStatusBar } from './LoadStatusBar';
+import { LocalFontNotice } from './LocalFontNotice';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -2429,6 +2431,19 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
 
+  // Imported families the open project actually depends on. Those files live
+  // in IndexedDB rather than in the document, so a project using one is worth
+  // warning about (LocalFontNotice). Built-ins never appear here: they load
+  // from Google on any machine.
+  const importedFonts = useCustomFonts();
+  const importedFontsInProject = useMemo(() => {
+    if (importedFonts.length === 0) return [];
+    const used = new Set(collectFontFamilies(artboards).map((family) => family.toLowerCase()));
+    return importedFonts
+      .filter((font) => used.has(font.family.toLowerCase()))
+      .map((font) => font.family);
+  }, [artboards, importedFonts]);
+
   // Preload Google Fonts on component mount, and re-register the fonts the
   // user imported (which live in Dexie, so they need putting back on the page
   // before any artboard that uses one renders or exports).
@@ -3689,7 +3704,13 @@ const generateRandomProjectName = (): string => {
             isTranslationEnabled={isTranslationEnabled}
             className="sticky top-0 z-50 bg-card border-b"
           />
-          
+
+          <LocalFontNotice
+            families={importedFontsInProject}
+            projectId={activeProjectId}
+            onExportJson={handleExportProjectAsJSON}
+          />
+
           {/* Main content area with flex layout */}
           <div className="flex flex-1 overflow-hidden h-full">
             {/* Canvas area - takes remaining space */}

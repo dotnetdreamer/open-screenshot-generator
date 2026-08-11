@@ -429,11 +429,25 @@ Consumers of `ALL_FONTS`: [FontFamilySelect.tsx](../src/components/open-screensh
 
 ### Imported fonts
 
-[customFonts.ts](../src/services/customFonts.ts) owns fonts the user brings in from their own machine (`.ttf/.otf/.woff/.woff2`, 12MB ceiling). They are per device, not per project: the file is a Blob in the Dexie `fonts` table, and nothing follows a project into an export bundle or account sync, so a shared project renders an imported family as the browser default until the recipient imports the same file.
+[customFonts.ts](../src/services/customFonts.ts) owns fonts the user brings in from their own machine (`.ttf/.otf/.woff/.woff2`, 12MB ceiling). The file is a Blob in the Dexie `fonts` table, so it belongs to the **device**, and every project on it can use it. Text elements reference it by family name, exactly like a built-in.
+
+Because the device owns it, the file has to be carried explicitly wherever a project goes; `serializeProject` does that (see "Carrying a project" below). What is NOT carried: the PNG export needs nothing, since the glyphs are already rasterized. [LocalFontNotice.tsx](../src/components/open-screenshot-generator/LocalFontNotice.tsx) is the sticky bar under the toolbar that tells the user which of the two saves keeps the font, shown while the open project uses an imported family and dismissed per project id in localStorage.
 
 - `importFontFile(file)` derives a CSS family from the file name (`Bricolage_Grotesque-Regular.woff2` to `Bricolage Grotesque`), uniquifies it against `ALL_FONTS` and other imports, then registers before it writes, so a file the engine cannot parse leaves no row behind. `loadCustomFonts()` re-registers everything on layout mount, next to `preloadGoogleFonts()`.
 - Registration writes ONE `@font-face` rule per font into a shared `<style id="custom-font-faces">`, with the bytes inline as a `data:` URL. Both halves matter for **export**: `html-to-image` rebuilds the artboard in an SVG foreignObject and can only carry fonts it finds as `CSSFontFaceRule`s in `document.styleSheets` (so a bare `document.fonts.add(new FontFace(...))` would render on canvas and vanish from the PNG), and a `blob:` URL does not resolve inside that foreignObject. `embedResources` skips `data:` URLs, so the rule reaches the clone untouched.
 - `customFontFamilies()` / `useCustomFonts()` are the read side. `resolveFontFamily` and `list_fonts` recompute from them per call rather than caching, since a font can be imported mid-session.
+
+### Carrying a project
+
+A `ProjectBundle` is the project row plus **both** kinds of binary it only references: `media` (by row id) and `fonts` (by family, via `collectFontFamilies` + `getCustomFontRows`). `importBundle` installs the fonts before it writes the row, and `installCustomFont` drops the incoming copy when that family is already on the device, so re-opening a project never piles up duplicates. One font that fails to parse is logged and skipped, not fatal.
+
+| Target | Fonts land in |
+| --- | --- |
+| local `.json` | `fonts` metadata + base64 under `fontData`, beside the existing `mediaData` |
+| Google Drive | one `font__<id>` file per font, mirroring `media__`, including the unreferenced-file cleanup |
+| GitHub gist | base64 in its own `fonts.json`; over `MAX_GIST_FONT_BYTES` it refuses and points at Drive |
+
+`formatVersion` stays at **1**: the addition is optional in both directions. An older file has no `fonts` key and loads as before; a newer file loads in an older build, which ignores the key and restores the project without the font. An old build saving over a new Drive folder will not delete the `font__` files (its cleanup only matches `media__`), and a gist `PATCH` leaves `fonts.json` alone. A project on built-in families only writes no font keys at all.
 
 ### Font language matching
 
