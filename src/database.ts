@@ -2,6 +2,7 @@ import Dexie, { Table } from 'dexie';
 import type { Project } from './types/artboard';
 import type { Operation } from './lib/ai/operationLog';
 import type { MediaAsset } from './lib/mediaStore';
+import type { CustomFontRow } from './services/customFonts';
 
 export class ProjectDatabase extends Dexie {
   projects!: Table<Project, string>; // <Type, KeyType>
@@ -15,6 +16,11 @@ export class ProjectDatabase extends Dexie {
   // reference rows by id (mediaId / screenVideoMediaId); URLs are minted at
   // runtime via src/lib/mediaStore.ts.
   media!: Table<MediaAsset, string>;
+  // Font files the user imported from their own machine. Kept out of `media`
+  // because every consumer of that table reads whole rows (blobs included) to
+  // filter by id prefix, and a font is loaded on every app start.
+  // See src/services/customFonts.ts.
+  fonts!: Table<CustomFontRow, string>;
 
   constructor() {
     super('ProjectDatabase');
@@ -29,6 +35,12 @@ export class ProjectDatabase extends Dexie {
       projects: 'id, name, timestamp',
       operations: 'id, startedAt, status, provider',
       media: 'id, createdAt',
+    });
+    this.version(4).stores({
+      projects: 'id, name, timestamp',
+      operations: 'id, startedAt, status, provider',
+      media: 'id, createdAt',
+      fonts: 'id, family, createdAt',
     });
   }
 }

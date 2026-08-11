@@ -12,6 +12,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon } from 'lucide-react';
 import { saveMedia } from '@/lib/mediaStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
+import { fitTextBox } from '@/lib/textFit';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,7 +27,7 @@ import {
   SelectGroup,
   SelectLabel
 } from "@/components/ui/select";
-import { getFontOptions, getGroupedFontOptions } from '@/services/fontService';
+import { FontFamilySelect } from './FontFamilySelect';
 import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 
@@ -557,6 +558,40 @@ export function PropertiesPanel({
     });
   };
 
+  // Text lays out from more than its content: the family, the size, the weight
+  // and the line height all change how much room it needs, and the box clips.
+  // Anything that moves one of those goes through here, which folds the box fix
+  // into the SAME update so the change stays one undo.
+  const TEXT_LAYOUT_KEYS: Array<keyof TextElementProps> = [
+    'content',
+    'fontSize',
+    'fontFamily',
+    'fontWeight',
+    'fontStyle',
+    'lineHeight',
+    'letterSpacing',
+  ];
+
+  const applyTextUpdate = async (updates: Partial<TextElementProps>) => {
+    const element = selectedElement?.type === 'text' ? (selectedElement as TextElementProps) : null;
+    if (!element || !TEXT_LAYOUT_KEYS.some((key) => key in updates)) {
+      onUpdateElement(updates);
+      return;
+    }
+    // A family picked a second ago can still be downloading, and measuring
+    // then would size the box for the fallback face.
+    if (typeof updates.fontFamily === 'string') {
+      try {
+        await document.fonts.load(`16px "${updates.fontFamily}"`);
+      } catch {
+        // Unknown family: fall through and measure whatever renders.
+      }
+    }
+    const next = { ...element, ...updates } as TextElementProps;
+    const fit = fitTextBox(next, next.content);
+    onUpdateElement(fit ? { ...updates, ...fit } : updates);
+  };
+
   // Text element handlers
   const handleTextContentChange = (elementId: string, content: string) => {
     setLocalContent(content);
@@ -568,8 +603,9 @@ export function PropertiesPanel({
     if (!pending) return;
     pendingTextEditRef.current = null;
     if (selectedElement?.type === 'text' && selectedElement.id === pending.elementId) {
-      if (pending.content !== (selectedElement as TextElementProps).content) {
-        onUpdateElement({ content: pending.content });
+      const element = selectedElement as TextElementProps;
+      if (pending.content !== element.content) {
+        void applyTextUpdate({ content: pending.content });
       }
     } else {
       // Selection already moved on; commit to the original element.
@@ -1488,7 +1524,7 @@ export function PropertiesPanel({
     // Direct update to the element
     const updates: Partial<TextElementProps> = {};
     updates[property] = newValue;
-    onUpdateElement(updates);
+    void applyTextUpdate(updates);
   };
 
   // Update text alignment - simplified direct update
@@ -1503,25 +1539,27 @@ export function PropertiesPanel({
     if (!selectedElement || selectedElement.type !== 'text') return;
     const value = parseFloat(e.target.value) || 1.2;
     setLineHeight(value);
-    onUpdateElement({ lineHeight: value });
+    void applyTextUpdate({ lineHeight: value });
   };
 
   // Render text properties in a more compact horizontal layout
   const renderTextProperties = (element: TextElementProps) => {
-    const groupedFonts = getGroupedFontOptions();
-    
     return (
       <div className="space-y-4">
         {/* Content */}
         <div className="space-y-2">
           <Label htmlFor="textContent" className="text-xs font-medium">Content</Label>
-          <div className="flex items-center gap-1.5">
-            <Input
+          <div className="flex items-start gap-1.5">
+            {/* A textarea, not an input: text elements keep their newlines
+                (the canvas renders them with white-space: pre-wrap), and a
+                single-line input silently swallowed every one of them. */}
+            <Textarea
               id="textContent"
               value={localContent}
               onChange={(e) => handleTextContentChange(element.id, e.target.value)}
               onBlur={handleTextContentBlur}
-              className="text-sm"
+              rows={Math.min(6, Math.max(2, localContent.split('\n').length))}
+              className="min-h-[60px] resize-y text-sm"
             />
             {onTranslateElement && (
               <Button
@@ -1546,83 +1584,20 @@ export function PropertiesPanel({
               </Button>
             )}
           </div>
+          <p className="text-[11px] text-muted-foreground">Press Enter for a line break</p>
         </div>
-        
+
         {/* Font Family */}
         <div className="space-y-2">
           <Label htmlFor="fontFamily" className="text-xs font-medium">Font Family</Label>
-          <Select
+          <FontFamilySelect
+            id="fontFamily"
             value={element.fontFamily || 'Arial'}
-            onValueChange={(value) => onUpdateElement({ fontFamily: value })}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Font Family" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>System Fonts</SelectLabel>
-                {groupedFonts.system.map(font => (
-                  <SelectItem 
-                    key={font.value} 
-                    value={font.value}
-                    style={{ fontFamily: `${font.value}, ${font.category}` }}
-                  >
-                    {font.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Latin Fonts</SelectLabel>
-                {groupedFonts.latin.map(font => (
-                  <SelectItem 
-                    key={font.value} 
-                    value={font.value}
-                    style={{ fontFamily: `${font.value}, ${font.category}` }}
-                  >
-                    {font.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Arabic Fonts</SelectLabel>
-                {groupedFonts.arabic.map(font => (
-                  <SelectItem 
-                    key={font.value} 
-                    value={font.value}
-                    style={{ fontFamily: `${font.value}, ${font.category}` }}
-                  >
-                    {font.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Urdu Fonts</SelectLabel>
-                {groupedFonts.urdu.map(font => (
-                  <SelectItem 
-                    key={font.value} 
-                    value={font.value}
-                    style={{ fontFamily: `${font.value}, ${font.category}` }}
-                  >
-                    {font.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-              <SelectGroup>
-                <SelectLabel>Multilingual</SelectLabel>
-                {groupedFonts.multilingual.map(font => (
-                  <SelectItem 
-                    key={font.value} 
-                    value={font.value}
-                    style={{ fontFamily: `${font.value}, ${font.category}` }}
-                  >
-                    {font.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+            onValueChange={(value) => void applyTextUpdate({ fontFamily: value })}
+            allowImport
+          />
         </div>
-          
+
         {/* Font Size and Line Height */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
@@ -1631,7 +1606,7 @@ export function PropertiesPanel({
               id="fontSize"
               type="number"
               value={element.fontSize}
-              onChange={(e) => onUpdateElement({ fontSize: parseInt(e.target.value, 10) || 16 })}
+              onChange={(e) => void applyTextUpdate({ fontSize: parseInt(e.target.value, 10) || 16 })}
               className="text-sm"
             />
           </div>

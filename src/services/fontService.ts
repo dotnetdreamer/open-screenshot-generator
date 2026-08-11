@@ -17,7 +17,34 @@ export const GOOGLE_FONTS: GoogleFont[] = [
   { family: 'Caveat', variants: ['400', '500', '600', '700'], category: 'handwriting', fallback: 'cursive', script: 'latin' },
   { family: 'Fira Sans Condensed', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Noto Sans', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'multilingual' },
-  
+
+  // Display and handwriting faces, for headlines that need more personality
+  // than a UI sans. Weight lists have to match what Google Fonts actually
+  // serves: css2 rejects the whole request if one axis value is wrong, which
+  // would take every other family down with it. Single-weight families are
+  // listed without variants on purpose.
+  { family: 'Anton', category: 'display', fallback: 'sans-serif', script: 'latin' },
+  { family: 'Bebas Neue', category: 'display', fallback: 'sans-serif', script: 'latin' },
+  { family: 'Abril Fatface', category: 'display', fallback: 'serif', script: 'latin' },
+  { family: 'Alfa Slab One', category: 'display', fallback: 'serif', script: 'latin' },
+  { family: 'Lobster', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Righteous', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Titan One', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Luckiest Guy', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Bangers', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Monoton', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Fredoka', variants: ['300', '400', '500', '600', '700'], category: 'display', fallback: 'sans-serif', script: 'latin' },
+  { family: 'Unbounded', variants: ['300', '400', '500', '600', '700', '800', '900'], category: 'display', fallback: 'sans-serif', script: 'latin' },
+  { family: 'Dancing Script', variants: ['400', '500', '600', '700'], category: 'handwriting', fallback: 'cursive', script: 'latin' },
+  { family: 'Great Vibes', category: 'handwriting', fallback: 'cursive', script: 'latin' },
+  { family: 'Permanent Marker', category: 'handwriting', fallback: 'cursive', script: 'latin' },
+  { family: 'Satisfy', category: 'handwriting', fallback: 'cursive', script: 'latin' },
+
+  { family: 'Playfair Display', variants: ['400', '500', '600', '700', '800', '900'], category: 'serif', fallback: 'serif', script: 'latin' },
+  { family: 'Poppins', variants: ['300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
+  { family: 'Space Grotesk', variants: ['300', '400', '500', '600', '700'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
+  { family: 'Outfit', variants: ['300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
+
   // Arabic fonts
   { family: 'Noto Sans Arabic', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'arabic' },
   { family: 'Cairo', variants: ['200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'arabic' },
@@ -78,6 +105,10 @@ export function getFontOptions() {
     value: font.family,
     label: font.family,
     category: font.category || 'sans-serif',
+    // What a preview should fall back to before the face has loaded. The
+    // category is not usable for this: 'display' and 'handwriting' are not CSS
+    // generic families.
+    fallback: font.fallback || 'sans-serif',
     script: font.script || 'latin',
   }));
 }
@@ -87,12 +118,18 @@ export function getFontsByScript(script: 'latin' | 'arabic' | 'urdu' | 'multilin
   return ALL_FONTS.filter(font => font.script === script);
 }
 
-// Get grouped font options by script
+// Get grouped font options by script. Latin splits again by category, because
+// the decorative faces are what people scroll for and a flat 30-item list
+// buries them among the UI sans.
 export function getGroupedFontOptions() {
   const fonts = getFontOptions();
+  const isSystem = (family: string) => SYSTEM_FONTS.some(sf => sf.family === family);
+  const isDecorative = (category: string) => category === 'display' || category === 'handwriting';
+  const latin = fonts.filter(font => font.script === 'latin' && !isSystem(font.value));
   return {
-    system: fonts.filter(font => SYSTEM_FONTS.find(sf => sf.family === font.value)),
-    latin: fonts.filter(font => font.script === 'latin' && !SYSTEM_FONTS.find(sf => sf.family === font.value)),
+    system: fonts.filter(font => isSystem(font.value)),
+    display: latin.filter(font => isDecorative(font.category)),
+    latin: latin.filter(font => !isDecorative(font.category)),
     arabic: fonts.filter(font => font.script === 'arabic'),
     urdu: fonts.filter(font => font.script === 'urdu'),
     multilingual: fonts.filter(font => font.script === 'multilingual'),

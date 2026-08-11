@@ -32,7 +32,13 @@ import {
   type SignInOptions,
 } from '../types';
 import { bridgeFetch, formEncode, randomState, requestJson } from '../transport';
-import { formatBytes, mediaBytes } from '../projectBundle';
+import {
+  decodeFontPayloads,
+  encodeFontPayloads,
+  fontBytes,
+  formatBytes,
+  mediaBytes,
+} from '../projectBundle';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ?? '';
 /** Base URL of the sign-in Worker. Empty = fall back to a pasted token. */
@@ -41,6 +47,15 @@ const OAUTH_PROXY = (process.env.NEXT_PUBLIC_GITHUB_OAUTH_PROXY ?? '').replace(/
 const MESSAGE_SOURCE = 'abs-github-oauth';
 const API = 'https://api.github.com';
 const MANIFEST_FILE = 'project.json';
+/**
+ * Imported fonts, base64 in their own gist file. A gist holds text only, which
+ * rules out video, but a font is small enough to survive the encoding, and
+ * keeping it out of project.json means the manifest stays readable in GitHub's
+ * viewer. Absent unless the project uses an imported family.
+ */
+const FONTS_FILE = 'fonts.json';
+/** Past this, a gist is the wrong home for the payload. */
+const MAX_GIST_FONT_BYTES = 10 * 1024 * 1024;
 /** Marks a gist as ours, and carries the project id so re-saves overwrite. */
 const DESCRIPTION_TAG = '[open-screenshot-generator]';
 const API_VERSION_HEADERS = {
@@ -380,14 +395,31 @@ export const githubProvider: CloudProvider = {
       );
     }
 
+    if (fontBytes(bundle) > MAX_GIST_FONT_BYTES) {
+      throw new Error(
+        `This project's imported fonts come to ${formatBytes(fontBytes(bundle))}. ` +
+          'That is too much for a gist. Connect Google Drive to save it with its fonts.'
+      );
+    }
+
     onProgress?.('Looking for an existing gist', 0.1);
     const gists = await githubJson<Gist[]>(session, '/gists?per_page=100');
     const existing = gists.find((gist) => projectIdOf(gist) === bundle.manifest.id);
 
-    const payload = {
-      description: describe(bundle.manifest),
-      files: { [MANIFEST_FILE]: { content: JSON.stringify(bundle.manifest) } },
+    const files: Record<string, { content: string } | null> = {
+      [MANIFEST_FILE]: { content: JSON.stringify(bundle.manifest) },
     };
+    if (bundle.fonts.length) {
+      onProgress?.('Encoding fonts', 0.3);
+      files[FONTS_FILE] = {
+        content: JSON.stringify({ fontData: await encodeFontPayloads(bundle.fonts) }),
+      };
+    } else if (existing?.files?.[FONTS_FILE]) {
+      // The project dropped its last imported font; null deletes the file.
+      files[FONTS_FILE] = null;
+    }
+
+    const payload = { description: describe(bundle.manifest), files };
 
     onProgress?.('Uploading project', 0.5);
     const saved = existing
@@ -422,8 +454,27 @@ export const githubProvider: CloudProvider = {
     if (!file) throw new Error('This gist does not contain a project.');
 
     const manifest = JSON.parse(await readGistFile(file)) as ProjectManifest;
+
+    // Absent on gists written before fonts travelled, and on projects that only
+    // use built-in families.
+    let fonts: ProjectBundle['fonts'] = [];
+    const fontsFile = gist.files?.[FONTS_FILE];
+    if (fontsFile && manifest.fonts?.length) {
+      onProgress?.('Downloading fonts', 0.6);
+      try {
+        const parsed = JSON.parse(await readGistFile(fontsFile)) as {
+          fontData?: Record<string, string>;
+        };
+        fonts = decodeFontPayloads(manifest.fonts, parsed.fontData);
+      } catch (error) {
+        // A project that opens with the wrong typeface beats one that does not
+        // open at all.
+        console.error('Could not read the fonts stored with this gist', error);
+      }
+    }
+
     onProgress?.('Loaded', 1);
-    return { manifest, media: [] };
+    return { manifest, media: [], fonts };
   },
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {

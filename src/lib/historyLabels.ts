@@ -63,14 +63,18 @@ export const HISTORY_LIMIT = 100;
 export function getElementDisplayName(element: ArtboardElement, maxLength = 20): string {
   if (element.name && element.name.trim()) return element.name;
 
-  const truncate = (value: string) =>
-    value.length > maxLength ? `${value.substring(0, maxLength)}...` : value;
+  const truncate = (value: string) => {
+    // A headline can hold real line breaks. They have to collapse here or the
+    // layer row and the history entry grow to the height of the paragraph.
+    const flat = value.replace(/\s+/g, ' ').trim();
+    return flat.length > maxLength ? `${flat.substring(0, maxLength)}...` : flat;
+  };
 
   switch (element.type) {
     case 'text':
-      return element.content ? truncate(element.content) : 'Text';
+      return element.content ? truncate(element.content) || 'Text' : 'Text';
     case 'image':
-      return element.imageAlt ? truncate(element.imageAlt) : 'Image';
+      return element.imageAlt ? truncate(element.imageAlt) || 'Image' : 'Image';
     case 'shape':
       return `${capitalize(element.shapeType)} Shape`;
     case 'device':

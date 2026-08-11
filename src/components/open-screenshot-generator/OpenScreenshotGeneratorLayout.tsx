@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
+import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
@@ -54,10 +55,11 @@ import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, track
 import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { AgentStartScreen } from './start/AgentStartScreen';
+import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, HandIcon, InfoIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, HandIcon, InfoIcon, LightbulbIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -65,6 +67,7 @@ import {
   AccountAuthError,
   bundleFromJson,
   bundleToJson,
+  collectFontFamilies,
   findAccountProject,
   importBundle,
   loadProjectFromAccount,
@@ -86,6 +89,7 @@ import {
   type HistoryEntry,
 } from '@/lib/historyLabels';
 import { LoadStatusBar } from './LoadStatusBar';
+import { LocalFontNotice } from './LocalFontNotice';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -394,6 +398,15 @@ export function OpenScreenshotGeneratorLayout() {
   // dialog, as it always was; the agent is a screen you step into from the
   // banner above it. Reset on open so reopening never lands mid-agent-flow.
   const [dialogView, setDialogView] = useState<'templates' | 'agent'>('templates');
+  // Startup tips. Opens in front of the start dialog (which is suppressed
+  // while it is up, see the Dialog below) until the user unticks its box.
+  // The default has to match what the static export rendered, so the stored
+  // preference is read in a layout effect: it lands before first paint, and
+  // the start dialog never flashes open behind the tips.
+  const [isTipsOpen, setIsTipsOpen] = useState(false);
+  useLayoutEffect(() => {
+    if (shouldShowTipsOnStartup()) setIsTipsOpen(true);
+  }, []);
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -1259,9 +1272,10 @@ export function OpenScreenshotGeneratorLayout() {
         return;
       }
 
-      // Bundle the row together with the media blobs it references. Exporting
-      // the row alone (what this used to do) left video elements dead on any
-      // other machine, because recordings live in a separate Dexie table.
+      // Bundle the row together with the binaries it references: media blobs,
+      // and any imported font its text uses. Exporting the row alone (what this
+      // used to do) left video elements dead and headlines in a fallback face
+      // on any other machine, since both live in separate Dexie tables.
       const bundle = await serializeProject(project);
       const jsonString = await bundleToJson(bundle);
       const blob = new Blob([jsonString], { type: 'application/json' });
@@ -2417,9 +2431,25 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
 
-  // Preload Google Fonts on component mount
+  // Imported families the open project actually depends on. Those files live
+  // in IndexedDB rather than in the document, so a project using one is worth
+  // warning about (LocalFontNotice). Built-ins never appear here: they load
+  // from Google on any machine.
+  const importedFonts = useCustomFonts();
+  const importedFontsInProject = useMemo(() => {
+    if (importedFonts.length === 0) return [];
+    const used = new Set(collectFontFamilies(artboards).map((family) => family.toLowerCase()));
+    return importedFonts
+      .filter((font) => used.has(font.family.toLowerCase()))
+      .map((font) => font.family);
+  }, [artboards, importedFonts]);
+
+  // Preload Google Fonts on component mount, and re-register the fonts the
+  // user imported (which live in Dexie, so they need putting back on the page
+  // before any artboard that uses one renders or exports).
   useEffect(() => {
     preloadGoogleFonts();
+    loadCustomFonts().catch((error) => console.error('Could not load imported fonts', error));
   }, []);
   
   const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
@@ -2691,8 +2721,9 @@ export function OpenScreenshotGeneratorLayout() {
 
       try {
         const fileContent = await file.text();
-        // bundleFromJson validates the shape and restores any bundled media.
-        // It still accepts files written before media travelled with the JSON.
+        // bundleFromJson validates the shape and restores any bundled media and
+        // fonts. It still accepts files written before either travelled with
+        // the JSON, so older exports keep importing.
         const bundle = bundleFromJson(JSON.parse(fileContent));
 
         const importedName = bundle.manifest.name || `Imported ${bundle.manifest.id}`;
@@ -2786,7 +2817,12 @@ const generateRandomProjectName = (): string => {
   const templateSelectorDialog = (
       <>
         <Dialog
-          open={isTemplateSelectorOpen}
+          // Held back while the tips wizard or the account dialog is up, so the
+          // two never stack into a double overlay. Neither can be opened from
+          // in here except by the tips wizard's own Connect storage button, and
+          // this dialog reappears untouched as soon as they close: a controlled
+          // `open` change does not run onOpenChange below.
+          open={isTemplateSelectorOpen && !isTipsOpen && !isAccountOpen}
           onOpenChange={(newOpenState) => {
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
                // Create a blank project when no template is selected
@@ -3624,6 +3660,13 @@ const generateRandomProjectName = (): string => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                  {/* The way back in once the startup checkbox is unticked. */}
+                  <SidebarMenuButton tooltip="Tips" className="w-full" onClick={() => setIsTipsOpen(true)}>
+                    <LightbulbIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">Tips</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
                     <span className="group-data-[collapsible=icon]:hidden">About</span>
@@ -3661,7 +3704,13 @@ const generateRandomProjectName = (): string => {
             isTranslationEnabled={isTranslationEnabled}
             className="sticky top-0 z-50 bg-card border-b"
           />
-          
+
+          <LocalFontNotice
+            families={importedFontsInProject}
+            projectId={activeProjectId}
+            onExportJson={handleExportProjectAsJSON}
+          />
+
           {/* Main content area with flex layout */}
           <div className="flex flex-1 overflow-hidden h-full">
             {/* Canvas area - takes remaining space */}
@@ -4013,6 +4062,15 @@ const generateRandomProjectName = (): string => {
             onOpenChange={setIsPublishDialogOpen}
             artboards={artboards}
             onCapture={handlePublishCapture}
+          />
+
+          <TipsDialog
+            open={isTipsOpen}
+            onOpenChange={setIsTipsOpen}
+            onConnectStorage={() => {
+              setIsTipsOpen(false);
+              openAccountDialog('Connect Google Drive or GitHub to keep a copy of your projects.');
+            }}
           />
 
           <AccountDialog
