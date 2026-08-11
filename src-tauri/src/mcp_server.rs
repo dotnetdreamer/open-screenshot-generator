@@ -410,6 +410,62 @@ pub fn abs_mcp_write_png<R: Runtime>(
     Ok(path.to_string_lossy().into_owned())
 }
 
+/// One folder segment, or `None` when nothing usable is left of it.
+///
+/// Separators and traversal are stripped rather than rejected, so a locale code
+/// can never climb out of the folder the user picked, and the Windows-reserved
+/// characters go the same way `sanitizeFileName` (src/lib/desktop.ts) sends
+/// them. A trailing dot or space matters too: Windows drops it when it creates
+/// the directory, so the path we report back would not be the path on disk.
+fn export_subdir_segment(raw: &str) -> Option<String> {
+    let base = raw.rsplit(['/', '\\']).next().unwrap_or_default().trim();
+    let cleaned = base.replace([':', '*', '?', '"', '<', '>', '|'], "_");
+    let cleaned = cleaned.trim_end_matches(|c| c == '.' || c == ' ').trim();
+    if cleaned.is_empty() {
+        None
+    } else {
+        Some(cleaned.to_string())
+    }
+}
+
+/// Write one exported artboard PNG into a folder the user already picked,
+/// optionally inside a subfolder: `<picked dir>/de-DE/01_Feature.png`.
+///
+/// The JS fs plugin cannot do this. Picking the folder widens its runtime scope
+/// to that folder's contents, but nothing grants `fs:allow-mkdir`, and
+/// `sanitizeFileName` strips both separators so the subfolder cannot ride in on
+/// the file name either. So a per-language export takes the same Rust path the
+/// MCP export already uses, with the subfolder held to a single sanitised
+/// segment.
+#[tauri::command]
+pub fn abs_write_export_png<R: Runtime>(
+    app: AppHandle<R>,
+    directory: String,
+    subdirectory: Option<String>,
+    file_name: String,
+    data_base64: String,
+) -> Result<String, String> {
+    use std::path::PathBuf;
+
+    let mut dir = PathBuf::from(directory.trim());
+    if dir.as_os_str().is_empty() {
+        return Err("no export folder was given".to_string());
+    }
+    if let Some(segment) = subdirectory.as_deref().and_then(export_subdir_segment) {
+        dir.push(segment);
+    }
+
+    // Delegating keeps the name sanitising, the create_dir_all and the base64
+    // decode in one place. A second copy of that rule would drift, and it is
+    // the rule that stops a caller writing outside the folder it was handed.
+    abs_mcp_write_png(
+        app,
+        Some(dir.to_string_lossy().into_owned()),
+        file_name,
+        data_base64,
+    )
+}
+
 // ---------------------------------------------------------------------------
 // Tauri commands + setup hooks
 // ---------------------------------------------------------------------------

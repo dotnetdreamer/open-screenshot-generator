@@ -5,6 +5,7 @@
 
 import { db } from '@/database';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
+import { ensureUniqueElementIds, normalizeLocalization } from '@/lib/i18n/localization';
 import type { Project } from '@/types/artboard';
 import { googleDriveProvider } from './providers/googleDrive';
 import { githubProvider } from './providers/github';
@@ -115,8 +116,13 @@ export async function loadProjectFromAccount(
     const session = await withFreshSession(stored);
     const bundle = await getProvider(session.provider).loadProject(session, remoteId, onProgress);
     // Same normalization the local load path runs, so a project saved by an
-    // older build comes back on the current element shapes.
-    bundle.manifest.projectData = migrateVideoDevices(bundle.manifest.projectData);
+    // older build comes back on the current element shapes. ensureUniqueElementIds
+    // repairs boards an older Duplicate Artboard aliased, and normalizeLocalization
+    // re-stamps the language config and sweeps overrides whose element or
+    // language is gone. Both return their input by reference when clean.
+    bundle.manifest.projectData = normalizeLocalization(
+      ensureUniqueElementIds(migrateVideoDevices(bundle.manifest.projectData))
+    );
     return await importBundle(bundle);
   } catch (error) {
     return handleAuthFailure(error);

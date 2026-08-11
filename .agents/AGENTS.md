@@ -30,7 +30,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 **Verifying**
 
 5. `npm run typecheck` is the gate. `npm run build` ignores type and lint errors, so a green build proves nothing.
-6. Typecheck already fails on 4 files: 3 under `promo/`, plus `src/lib/fontLanguageMatcher.ts`. Diff against that, do not chase them.
+6. Typecheck already fails on 3 files under `promo/` (8 `csstype` duplicate-package errors). Nothing under `src/` fails. Diff against that, do not chase them.
 7. **Never run `npm run lint`.** No ESLint config exists, so it hangs on an interactive prompt.
 8. No test suite. Verify by driving the running app, headlessly via the `app-screenshots` skill.
 

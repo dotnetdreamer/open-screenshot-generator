@@ -26,6 +26,7 @@ import {
   saveImageAsset,
   type StoredAsset,
 } from '@/lib/mcp/assetStore';
+import type { LocalizedTextResult } from '@/lib/mcp/localizedText';
 import { ALL_FONTS } from '@/services/fontService';
 import { customFontFamilies } from '@/services/customFonts';
 import type {
@@ -156,11 +157,45 @@ export interface McpElementSpec {
   props: Record<string, unknown>;
 }
 
+/** One language the project exports, with how much of it is written. */
+export interface McpLocaleSummary {
+  /** Store locale, e.g. "de-DE". The key everything else takes. */
+  code: string;
+  /** English name, e.g. "German". */
+  name: string;
+  /** The language's own name, e.g. "Deutsch". */
+  nativeName: string;
+  /** The language the design is written in. Exactly one is true. */
+  base: boolean;
+  /** The one the editor is showing right now. */
+  active: boolean;
+  /** Text elements with copy of their own in this language, out of the total. */
+  translated: number;
+  total: number;
+}
+
+/** The project's languages and which one the canvas is currently showing. */
+export interface McpLocaleState {
+  baseLocale: string;
+  /** Null when the base language is showing. */
+  activeLocale: string | null;
+  /** The base language first, then each export language in project order. */
+  locales: McpLocaleSummary[];
+}
+
 export interface McpDesignApi {
-  /** Lightweight list of every artboard on the canvas. */
-  listArtboards(): McpArtboardSummary[];
-  /** Full state of one artboard (defaults to the active one), or null. */
-  getArtboard(id?: string): (ArtboardState & { active: boolean }) | null;
+  /**
+   * Lightweight list of every artboard on the canvas. A locale reads that
+   * language's projection, where the only thing that can differ is the element
+   * count, since an element may be hidden in one language.
+   */
+  listArtboards(locale?: string | null): McpArtboardSummary[];
+  /**
+   * Full state of one artboard (defaults to the active one), or null. With a
+   * locale it is that language's projection: translated copy, substituted fonts
+   * and per-language screenshots, read-only.
+   */
+  getArtboard(id?: string, locale?: string | null): (ArtboardState & { active: boolean }) | null;
   /** Create a new artboard from an explicit size or a size-preset id. */
   createArtboard(input: {
     name?: string;
@@ -274,6 +309,30 @@ export interface McpDesignApi {
   listProjects(): Promise<McpProjectSummary[]>;
   /** Open a saved project in the editor. Null when the id is unknown. */
   openProject(projectId: string): Promise<McpProjectResult | null>;
+
+  // -- Languages --------------------------------------------------------------
+
+  /** The project's languages and the one on screen. Never null; no languages
+   *  means a single entry for the base one. */
+  listLocales(): McpLocaleState;
+  /**
+   * Switch the language the editor shows. Null (or the base code) goes back to
+   * the base language. Resolves once the canvas has repainted, so an export
+   * straight after this renders the language that was asked for. Null when the
+   * project does not have that language.
+   */
+  setLocale(locale: string | null): Promise<McpLocaleState | null>;
+  /**
+   * Write one text element's copy for one language, leaving every other
+   * language and the base document's own copy alone. An empty string clears it
+   * again. Null when the artboard or the text element is not there.
+   */
+  setLocalizedText(input: {
+    artboardId?: string;
+    elementId: string;
+    locale: string;
+    text: string;
+  }): LocalizedTextResult | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -409,6 +468,36 @@ function resolveFontFamily(requested: unknown): { family?: string; error?: strin
   };
 }
 
+// ---------------------------------------------------------------------------
+// Languages. The project's own list is the vocabulary: a locale nobody added
+// has no override map to write into, so a miss is reported rather than guessed.
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves a requested language to one of the project's codes. Exact first,
+ * then the language part alone ("de" for "de-DE") when only one code could be
+ * meant, then the English or native name, because a caller rarely quotes a
+ * store locale back exactly.
+ */
+function matchLocale(requested: unknown, state: McpLocaleState): string | null {
+  if (typeof requested !== 'string') return null;
+  const wanted = requested.trim().toLowerCase();
+  if (!wanted) return null;
+  const exact = state.locales.find((l) => l.code.toLowerCase() === wanted);
+  if (exact) return exact.code;
+  const byLanguage = state.locales.filter((l) => l.code.toLowerCase().split('-')[0] === wanted);
+  if (byLanguage.length === 1) return byLanguage[0].code;
+  const byName = state.locales.find(
+    (l) => l.name.toLowerCase() === wanted || l.nativeName.toLowerCase() === wanted
+  );
+  return byName ? byName.code : null;
+}
+
+/** "de-DE (German), ja (Japanese)" for an error message. */
+function localeChoices(state: McpLocaleState): string {
+  return state.locales.map((l) => `${l.code} (${l.name})`).join(', ');
+}
+
 // Shared element-property schema fragment for add/update tools.
 const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   x: { type: 'number', description: 'X position in artboard pixels (top-left origin).' },
@@ -442,7 +531,7 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   strokeWidth: { type: 'number', description: 'Stroke width in px (shapes).' },
   borderRadius: { type: 'number', description: 'Corner radius in px (rectangle shapes / images).' },
   fillOpacity: { type: 'number', description: 'Fill opacity 0..1 (shapes). Fades the fill only, not the stroke.' },
-  innerRadius: { type: 'number', description: 'Hollow centre as a percent of the radius, 0..95 — turns a circle or diamond into a ring (shapes).' },
+  innerRadius: { type: 'number', description: 'Hollow centre as a percent of the radius, 0..95, turns a circle or diamond into a ring (shapes).' },
   imageSrc: { type: 'string', description: 'Image URL, data: URL, or an "asset:<id>" reference from upload_asset (image elements).' },
   objectFit: { type: 'string', description: "'contain' | 'cover' | 'fill' (image/device screenshot)." },
   opacity: { type: 'number', description: 'Opacity 0..1 for the whole element. Works on every element type.' },
@@ -457,7 +546,7 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
     },
     required: ['x', 'y', 'blur', 'color'],
   },
-  blur: { type: 'number', description: 'Gaussian blur radius in artboard px — use it for soft background glows. Works on every element type.' },
+  blur: { type: 'number', description: 'Gaussian blur radius in artboard px. Use it for soft background glows. Works on every element type.' },
   screenshotSrc: { type: 'string', description: 'Screenshot URL, data: URL or "asset:<id>" to place inside a device frame (device elements).' },
   screenshotObjectFit: { type: 'string', description: "How the screenshot fills the screen: 'contain' | 'cover' | 'fill' (device elements)." },
   styleType: { type: 'string', description: "Device style, e.g. 'normal', '3d-left', '3d-right' (device elements)." },
@@ -512,18 +601,48 @@ const TOOLS: ToolDef[] = [
   {
     name: 'list_artboards',
     description: 'List every artboard (screen) on the canvas with its id, name, size, background and element count. Call this first to discover ids.',
-    inputSchema: { type: 'object', properties: {} },
-    run: (_args, api) => textResult(api.listArtboards()),
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locale: {
+          type: 'string',
+          description: 'Read one language instead of the base document (see list_locales). Only the element count can differ, since layout and size are shared by every language.',
+        },
+      },
+    },
+    run: (args, api) => {
+      if (args.locale !== undefined) {
+        const state = api.listLocales();
+        const locale = matchLocale(args.locale, state);
+        if (!locale) {
+          return { ...textResult(`This project has no language "${args.locale}". It has: ${localeChoices(state)}.`), isError: true };
+        }
+        return textResult(api.listArtboards(locale));
+      }
+      return textResult(api.listArtboards());
+    },
   },
   {
     name: 'get_artboard',
-    description: 'Get the full state of one artboard, including every element and its properties. Omit artboardId for the active artboard.',
+    description:
+      'Get the full state of one artboard, including every element and its properties. Omit artboardId for the active artboard. Pass a locale to read that language instead: the translated copy, its fonts and its screenshots. That is a read-only view, because every editing tool writes the base document that all languages share; use set_localized_text to change one language.',
     inputSchema: {
       type: 'object',
-      properties: { artboardId: { type: 'string', description: 'Defaults to the active artboard.' } },
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        locale: { type: 'string', description: 'A language code from list_locales. Defaults to the base language.' },
+      },
     },
     run: (args, api) => {
-      const board = api.getArtboard(args.artboardId);
+      let locale: string | null = null;
+      if (args.locale !== undefined) {
+        const state = api.listLocales();
+        locale = matchLocale(args.locale, state);
+        if (!locale) {
+          return { ...textResult(`This project has no language "${args.locale}". It has: ${localeChoices(state)}.`), isError: true };
+        }
+      }
+      const board = api.getArtboard(args.artboardId, locale);
       if (!board) return { ...textResult('No such artboard.'), isError: true };
       return textResult(board);
     },
@@ -821,7 +940,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'transform_elements',
     description:
-      'Move or scale several elements as one unit, about their shared bounding box — one call instead of a coordinated update per element. Target them by elementIds or by a groupId from group_elements. dx/dy nudge; x/y place the group\'s top-left corner; scale grows or shrinks the whole arrangement around its centre, keeping the elements\' relative layout.',
+      'Move or scale several elements as one unit, about their shared bounding box: one call instead of a coordinated update per element. Target them by elementIds or by a groupId from group_elements. dx/dy nudge; x/y place the group\'s top-left corner; scale grows or shrinks the whole arrangement around its centre, keeping the elements\' relative layout.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -884,6 +1003,89 @@ const TOOLS: ToolDef[] = [
         gradient: args.gradient,
       });
       return ok ? textResult({ ok }) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
+    name: 'list_locales',
+    description:
+      'List the languages this project exports and say which one the canvas is showing. A project holds ONE set of artboards and one layout: only text, fonts and screenshots can differ per language, so a language is a small overlay on top of the design rather than a copy of it. `translated`/`total` counts the text elements that have copy of their own in that language.',
+    inputSchema: { type: 'object', properties: {} },
+    run: (_args, api) => textResult(api.listLocales()),
+  },
+  {
+    name: 'set_locale',
+    description:
+      'Switch the language the editor shows, the same as picking one from the language menu. Everything that reads the canvas follows it, so this is how you export a language: set_locale, then export_png or export_all. Omit locale to go back to the base language. Editing tools are unaffected, they always write the base document.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locale: {
+          type: 'string',
+          description: 'A code from list_locales. Omit it, or pass the base code, to show the base language.',
+        },
+      },
+    },
+    run: async (args, api) => {
+      const state = api.listLocales();
+      if (args.locale === undefined || args.locale === null) {
+        const result = await api.setLocale(null);
+        return textResult(result ?? state);
+      }
+      const locale = matchLocale(args.locale, state);
+      if (!locale) {
+        return {
+          ...textResult(
+            `This project has no language "${args.locale}". It has: ${localeChoices(state)}. Languages are added in the app, from the globe button in the toolbar.`
+          ),
+          isError: true,
+        };
+      }
+      const result = await api.setLocale(locale === state.baseLocale ? null : locale);
+      if (!result) return { ...textResult(`Could not switch to ${locale}.`), isError: true };
+      return textResult(result);
+    },
+  },
+  {
+    name: 'set_localized_text',
+    description:
+      'Write one text element\'s copy for one language. Nothing else moves: the base copy, every other language, and the shared layout are untouched, and an empty string clears the translation so the element falls back to the base copy again. Use update_element instead to change the copy every language starts from. Element ids come from get_artboard.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementId: { type: 'string', description: 'A text element id.' },
+        locale: { type: 'string', description: 'A language code from list_locales, other than the base language.' },
+        text: { type: 'string', description: 'The copy for that language. Empty clears it.' },
+      },
+      required: ['elementId', 'locale', 'text'],
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const locale = matchLocale(args.locale, state);
+      if (!locale) {
+        return {
+          ...textResult(
+            `This project has no language "${args.locale}". It has: ${localeChoices(state)}. Languages are added in the app, from the globe button in the toolbar.`
+          ),
+          isError: true,
+        };
+      }
+      if (locale === state.baseLocale) {
+        return {
+          ...textResult(
+            `${locale} is the language this design is written in, so it has no translations of its own. Use update_element to change the copy every language starts from.`
+          ),
+          isError: true,
+        };
+      }
+      const result = api.setLocalizedText({
+        artboardId: args.artboardId,
+        elementId: args.elementId,
+        locale,
+        text: typeof args.text === 'string' ? args.text : '',
+      });
+      if (!result) return { ...textResult('No such text element on that artboard.'), isError: true };
+      return textResult(result);
     },
   },
   {
@@ -1014,7 +1216,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'export_png',
     description:
-      'Render an artboard to a PNG. By default it comes back inline as an image, which at full size is megabytes of base64 — while you are iterating pass scale (0.25 gives a readable proof for a sixteenth of the payload). Pass save:true to write the file instead and get its path back, which is what you want for the final delivery.',
+      'Render an artboard to a PNG. By default it comes back inline as an image, which at full size is megabytes of base64, so while you are iterating pass scale (0.25 gives a readable proof for a sixteenth of the payload). Pass save:true to write the file instead and get its path back, which is what you want for the final delivery. It renders whatever the canvas is showing, so on a project with languages call set_locale first and give the file a name that says which one it is.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1041,14 +1243,14 @@ const TOOLS: ToolDef[] = [
   {
     name: 'export_all',
     description:
-      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64.',
+      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. It renders the language the canvas is showing, so a multi-language set is one set_locale plus one export_all per language, into a directory per language.',
     inputSchema: {
       type: 'object',
       properties: {
         scale: { type: 'number', description: 'Output scale, 0.1 to 4. Defaults to 1.' },
         save: { type: 'boolean', description: 'Write the files to disk. Defaults to true.' },
         directory: { type: 'string', description: 'Folder to save into. Defaults to "Open Screenshot Generator" in your Downloads.' },
-        includeImage: { type: 'boolean', description: 'Also return every image inline. Defaults to false — it is a lot of data.' },
+        includeImage: { type: 'boolean', description: 'Also return every image inline. Defaults to false, it is a lot of data.' },
       },
     },
     run: async (args, api) => {
@@ -1065,12 +1267,16 @@ const TOOLS: ToolDef[] = [
   {
     name: 'list_fonts',
     description:
-      'The font families this app actually loads, grouped by script. Only these can be used for fontFamily — add_element and update_element reject anything else rather than letting the browser fall back to a default serif, so check here before inventing a family name.',
+      'The font families this app actually loads, grouped by script. Only these can be used for fontFamily. add_element and update_element reject anything else rather than letting the browser fall back to a default serif, so check here before inventing a family name.',
     inputSchema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Free-text filter over family names.' },
-        script: { type: 'string', enum: ['latin', 'arabic', 'urdu', 'multilingual'], description: 'Restrict to one script.' },
+        script: {
+          type: 'string',
+          enum: ['latin', 'arabic', 'urdu', 'hebrew', 'cjk', 'thai', 'devanagari', 'bengali', 'multilingual'],
+          description: 'Restrict to one script.',
+        },
       },
     },
     run: (args) => {
@@ -1194,7 +1400,9 @@ export async function handleMcpMessage(
           'Open Screenshot Generator design tools. Use list_artboards to discover ids, then build a screen with add_elements (one batched call per board, back to front) and refine with update_element. ' +
           'A set of store screenshots normally starts from one finished board plus duplicate_artboard. ' +
           'Send an image through upload_asset once and reuse the asset: reference; check fontFamily against list_fonts; use reorder_element rather than rebuilding a board to fix stacking; ' +
-          'and while iterating call export_png with scale 0.25, keeping full-size or export_all for the final delivery.',
+          'and while iterating call export_png with scale 0.25, keeping full-size or export_all for the final delivery. ' +
+          'A project can export several languages from one design: list_locales says which it has, set_localized_text writes one language\'s copy, and every other tool reads and writes the base document that all of them share. ' +
+          'Rendering follows the canvas, so export a language with set_locale then export_all.',
       });
     case 'ping':
       return rpcResult(id, {});
@@ -1294,7 +1502,7 @@ function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage): Promise<
           rpcError(
             message?.id,
             -32001,
-            `${toolName ?? message?.method ?? 'The request'} did not finish within ${Math.round(budget / 1000)}s and was abandoned. The app is still running — check whether it is waiting on a dialog.`
+            `${toolName ?? message?.method ?? 'The request'} did not finish within ${Math.round(budget / 1000)}s and was abandoned. The app is still running, check whether it is waiting on a dialog.`
           )
         ),
       budget

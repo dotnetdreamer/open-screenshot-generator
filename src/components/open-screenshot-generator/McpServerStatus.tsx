@@ -208,7 +208,7 @@ export function McpServerStatus({ className }: { className?: string }) {
       <DialogTrigger asChild>
         <button
           type="button"
-          title="MCP server — click for connection details and tools"
+          title="MCP server, click for connection details and tools"
           className={cn(
             'flex items-center gap-2 rounded-full border border-border bg-card/95 px-3 py-1.5 text-xs shadow-lg backdrop-blur transition-colors hover:border-primary/50',
             className

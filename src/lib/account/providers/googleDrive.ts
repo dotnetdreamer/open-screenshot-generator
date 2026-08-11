@@ -422,7 +422,7 @@ export const googleDriveProvider: CloudProvider = {
       return 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';
     }
     if (DESKTOP_CLIENT_SECRET && looksLikeClientId(DESKTOP_CLIENT_SECRET)) {
-      return 'NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET holds a client id, not a client secret. Open the Desktop-app client in Google Cloud Console and copy its "Client secret" field — the secret does not end in .apps.googleusercontent.com — then rebuild. See docs/ACCOUNT-SYNC.md.';
+      return 'NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET holds a client id, not a client secret. Open the Desktop-app client in Google Cloud Console and copy its "Client secret" field, which does not end in .apps.googleusercontent.com, then rebuild. See docs/ACCOUNT-SYNC.md.';
     }
     return 'Google sign-in on desktop needs NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET and NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID (a Desktop-app OAuth client) set at build time. See docs/ACCOUNT-SYNC.md.';
   },

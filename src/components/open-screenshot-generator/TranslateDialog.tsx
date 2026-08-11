@@ -19,11 +19,18 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Languages } from 'lucide-react';
 import { AUTO_DETECT } from '@/services/translation';
 import { getRecommendedFontForLanguage } from '@/lib/fontLanguageMatcher';
 import { FontFamilySelect } from './FontFamilySelect';
 import { cn } from '@/lib/utils';
 
+/**
+ * The translation service's own vocabulary, which is not the same thing as the
+ * project's export languages: this list is what LibreTranslate accepts, while
+ * `LOCALES` in src/lib/i18n/locales.ts is what the stores accept and maps into
+ * this one through `translateCode`. Both exist on purpose.
+ */
 export const LANGUAGES = [
   { code: "sq", name: "Albanian" },
   { code: "ar", name: "Arabic" },
@@ -98,6 +105,15 @@ export interface TranslateDialogProps {
    * dropped rather than shown disabled.
    */
   scope?: 'project' | 'element';
+  /**
+   * True once the project exports more than one language. This dialog still
+   * translates in place, which is what single language projects want and is
+   * deliberately unchanged, but in a localized project that rewrites the text
+   * every language falls back to, so it says so.
+   */
+  projectHasLanguages?: boolean;
+  /** Opens the translation table. Omit it and the note is text only. */
+  onOpenTranslations?: () => void;
   onTranslate: (targetLanguage: string, allArtboards: boolean, sourceLanguage: string, targetFont?: string) => Promise<void>;
 }
 
@@ -107,6 +123,8 @@ export function TranslateDialog({
   currentLanguage,
   disableAllArtboardsOption = false,
   scope = 'project',
+  projectHasLanguages = false,
+  onOpenTranslations,
   onTranslate,
 }: TranslateDialogProps) {
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
@@ -178,6 +196,33 @@ export function TranslateDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          {projectHasLanguages && (
+            <div className="rounded-md border bg-muted/50 p-3">
+              <div className="flex gap-2">
+                <Languages className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    This project has more than one language. Translating here replaces the text on the
+                    artboards themselves, which every language falls back to. To fill in one language
+                    without touching the others, use the translations table.
+                  </p>
+                  {onOpenTranslations && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7"
+                      onClick={() => {
+                        onOpenChange(false);
+                        onOpenTranslations();
+                      }}
+                    >
+                      Open translations
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="sourceLanguage" className="text-right">
               Source

@@ -332,6 +332,18 @@ function serializeAtLevel(
 
 // --- reply resolution ---------------------------------------------------------
 
+/**
+ * For the path where the catalog was built without aliases: resolveAliases then
+ * rewrites nothing and only normalises the reply's shape, which still has to
+ * happen or a missing nullable field fails validation.
+ */
+export const EMPTY_ALIAS_MAP: AliasMap = {
+  templates: {},
+  refsByTemplateId: {},
+  devices: {},
+  texts: {},
+};
+
 /** Pulls the last d3-style ref out of "d3", "a0.d3", or "t5.a0.d3". */
 function slotRef(value: string, kind: 'd' | 'x'): string | null {
   const match = new RegExp(`(?:^|[.\\s])(${kind}\\d+)$`).exec(value.trim().toLowerCase());
@@ -380,6 +392,11 @@ export function resolveAliases(raw: unknown, aliasMap: AliasMap): unknown {
     plan.textOverrides = plan.textOverrides.map((item) => {
       if (typeof item !== 'object' || item === null) return item;
       const override = { ...(item as Record<string, unknown>) };
+      // `locale` is nullable, not optional, so a reply that leaves it out fails
+      // validation outright. Models pasting JSON drop keys they had nothing to
+      // say about all the time, and "nothing to say" here means the base
+      // language, so fill it in rather than throwing the whole plan away.
+      if (override.locale === undefined) override.locale = null;
       if (typeof override.elementId === 'string' && templateRef !== null) {
         const ref = slotRef(override.elementId, 'x');
         if (ref) {

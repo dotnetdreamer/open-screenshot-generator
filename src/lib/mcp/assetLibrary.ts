@@ -143,7 +143,7 @@ function device3dItems(groupId?: string): LibraryItem[] {
             kind: 'devices',
             libraryId: device3dLibraryId(group.thumbPrefix, pose, side, color),
             group: group.id,
-            label: `${group.label} — ${pose} ${side} (${color})`,
+            label: `${group.label}, ${pose} ${side} (${color})`,
             type: 'device',
             subType: group.device,
             defaultSize: group.sizes[pose],
@@ -297,7 +297,7 @@ export function resolveLibraryItem(libraryId: string): ResolvedLibraryItem | nul
         type: 'device',
         subType: group.device,
         props,
-        label: `${group.label} — ${pose} ${side} (${color})`,
+        label: `${group.label}, ${pose} ${side} (${color})`,
         defaultSize: defaultSize as { width: number; height: number } | undefined,
       };
     }

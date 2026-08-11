@@ -453,32 +453,17 @@ async function waitForDelivery(
   return warnings;
 }
 
-export interface AppStoreUploadOptions {
-  localizationId: string;
-  images: PublishImage[];
-  /** Delete whatever is already in each set before uploading. */
-  replaceExisting: boolean;
-  /** Only used to build the "open App Store Connect" link in the summary. */
-  appId?: string;
-}
-
 /**
- * Upload a batch of rendered artboards to one version localization.
- *
- * Images are grouped by the display type their pixel size resolves to, so a
- * mixed project (iPhone plus iPad boards) lands in the right sets in one run.
+ * Bucket images by the display type their pixel size resolves to, so a mixed
+ * project (iPhone plus iPad boards) lands in the right sets in one run. Sizes
+ * the App Store takes for nothing become a warning rather than a failure.
  */
-export async function uploadAppStoreScreenshots(
-  credentials: AppStoreCredentials,
-  options: AppStoreUploadOptions,
-  onProgress?: PublishProgressFn
-): Promise<PublishResult> {
-  const warnings: string[] = [];
-
-  onProgress?.({ stage: 'preparing', message: 'Matching screenshots to App Store display sizes' });
-
+function groupByDisplayType(
+  images: PublishImage[],
+  warnings: string[]
+): Map<string, PublishImage[]> {
   const groups = new Map<string, PublishImage[]>();
-  for (const image of options.images) {
+  for (const image of images) {
     const target = appleTargetForSize(image.width, image.height);
     if (!target) {
       warnings.push(
@@ -490,22 +475,39 @@ export async function uploadAppStoreScreenshots(
     if (bucket) bucket.push(image);
     else groups.set(target.displayType, [image]);
   }
+  return groups;
+}
 
-  if (groups.size === 0) {
-    throw new StoreRejectedError(
-      warnings[0] ?? 'None of these artboards are an App Store screenshot size.'
-    );
-  }
+/** Running 1-based image number across a whole run, so a multi-language upload
+ *  counts 1..45 rather than restarting at 1 for every language. */
+interface UploadCounter {
+  done: number;
+  total: number;
+}
 
+/**
+ * Put already-grouped images into one version localization's sets.
+ *
+ * Everything up to (but not including) the delivery poll, because the poll is
+ * the expensive part and a multi-language run pools every reserved id into a
+ * single one instead of paying the 90 second deadline once per language.
+ */
+async function uploadGroupsToLocalization(
+  credentials: AppStoreCredentials,
+  localizationId: string,
+  groups: Map<string, PublishImage[]>,
+  replaceExisting: boolean,
+  counter: UploadCounter,
+  onProgress?: PublishProgressFn
+): Promise<{ uploadedIds: string[]; warnings: string[] }> {
+  const warnings: string[] = [];
   const uploadedIds: string[] = [];
-  let uploadedCount = 0;
-  const totalImages = Array.from(groups.values()).reduce((sum, list) => sum + list.length, 0);
 
   for (const [displayType, images] of groups) {
-    const setId = await findOrCreateScreenshotSet(credentials, options.localizationId, displayType);
+    const setId = await findOrCreateScreenshotSet(credentials, localizationId, displayType);
     let keptIds = await listSetScreenshotIds(credentials, setId);
 
-    if (options.replaceExisting && keptIds.length > 0) {
+    if (replaceExisting && keptIds.length > 0) {
       onProgress?.({
         stage: 'clearing',
         message: `Removing ${keptIds.length} existing screenshot${keptIds.length === 1 ? '' : 's'}`,
@@ -530,12 +532,12 @@ export async function uploadAppStoreScreenshots(
 
     const newIds: string[] = [];
     for (const image of images) {
-      uploadedCount += 1;
+      counter.done += 1;
       onProgress?.({
         stage: 'uploading',
         message: `Uploading ${image.fileName}`,
-        current: uploadedCount,
-        total: totalImages,
+        current: counter.done,
+        total: counter.total,
       });
       newIds.push(await uploadOneScreenshot(credentials, setId, image));
     }
@@ -556,6 +558,169 @@ export async function uploadAppStoreScreenshots(
     }
   }
 
+  return { uploadedIds, warnings };
+}
+
+function reviewUrlFor(appId?: string): string {
+  return appId
+    ? `https://appstoreconnect.apple.com/apps/${appId}/distribution`
+    : 'https://appstoreconnect.apple.com/apps';
+}
+
+export interface AppStoreUploadOptions {
+  localizationId: string;
+  images: PublishImage[];
+  /** Delete whatever is already in each set before uploading. */
+  replaceExisting: boolean;
+  /** Only used to build the "open App Store Connect" link in the summary. */
+  appId?: string;
+}
+
+/**
+ * Upload a batch of rendered artboards to one version localization.
+ *
+ * Images are grouped by the display type their pixel size resolves to, so a
+ * mixed project (iPhone plus iPad boards) lands in the right sets in one run.
+ */
+export async function uploadAppStoreScreenshots(
+  credentials: AppStoreCredentials,
+  options: AppStoreUploadOptions,
+  onProgress?: PublishProgressFn
+): Promise<PublishResult> {
+  const warnings: string[] = [];
+
+  onProgress?.({ stage: 'preparing', message: 'Matching screenshots to App Store display sizes' });
+
+  const groups = groupByDisplayType(options.images, warnings);
+  if (groups.size === 0) {
+    throw new StoreRejectedError(
+      warnings[0] ?? 'None of these artboards are an App Store screenshot size.'
+    );
+  }
+
+  const counter: UploadCounter = {
+    done: 0,
+    total: Array.from(groups.values()).reduce((sum, list) => sum + list.length, 0),
+  };
+  const outcome = await uploadGroupsToLocalization(
+    credentials,
+    options.localizationId,
+    groups,
+    options.replaceExisting,
+    counter,
+    onProgress
+  );
+  warnings.push(...outcome.warnings);
+
+  warnings.push(...(await waitForDelivery(credentials, outcome.uploadedIds, onProgress)));
+
+  onProgress?.({ stage: 'done', message: 'Done' });
+
+  return {
+    uploaded: outcome.uploadedIds.length,
+    warnings,
+    reviewUrl: reviewUrlFor(options.appId),
+  };
+}
+
+/** One language's worth of a multi-language run. */
+export interface AppStoreLocaleUpload {
+  /** The appStoreVersionLocalizations id this language's sets hang off. */
+  localizationId: string;
+  images: PublishImage[];
+  /**
+   * What to call this language in progress lines and warnings. Never sent to
+   * Apple, which only ever sees `localizationId`.
+   */
+  label?: string;
+}
+
+export interface AppStoreBatchUploadOptions {
+  sets: AppStoreLocaleUpload[];
+  /** Delete whatever is already in each set before uploading. */
+  replaceExisting: boolean;
+  /** Only used to build the "open App Store Connect" link in the summary. */
+  appId?: string;
+}
+
+/**
+ * Upload every language in one run.
+ *
+ * The reason this exists rather than a loop over uploadAppStoreScreenshots:
+ * Apple processes assets asynchronously and the only place a wrong-sized or
+ * corrupt screenshot ever surfaces is the delivery poll, which waits up to 90
+ * seconds. Per-language calls pay that deadline once each, so five languages
+ * can sit there for seven and a half minutes doing nothing but waiting. Here
+ * every reserved id from every language goes into ONE poll, because they all
+ * process in parallel on Apple's side anyway.
+ *
+ * A language that fails does not take the run down with it: its error becomes a
+ * warning naming the language and the remaining languages still go up. An auth
+ * failure is the exception, since every remaining call would fail the same way.
+ */
+export async function uploadAppStoreScreenshotsForLocales(
+  credentials: AppStoreCredentials,
+  options: AppStoreBatchUploadOptions,
+  onProgress?: PublishProgressFn
+): Promise<PublishResult> {
+  const warnings: string[] = [];
+
+  onProgress?.({ stage: 'preparing', message: 'Matching screenshots to App Store display sizes' });
+
+  const planned: Array<{ set: AppStoreLocaleUpload; groups: Map<string, PublishImage[]> }> = [];
+  for (const set of options.sets) {
+    const groups = groupByDisplayType(set.images, warnings);
+    if (groups.size === 0) {
+      warnings.push(
+        `${set.label ?? 'One language'} had nothing the App Store accepts at these sizes, so it was skipped.`
+      );
+      continue;
+    }
+    planned.push({ set, groups });
+  }
+
+  if (planned.length === 0) {
+    throw new StoreRejectedError(
+      warnings[0] ?? 'None of these artboards are an App Store screenshot size.'
+    );
+  }
+
+  const counter: UploadCounter = {
+    done: 0,
+    total: planned.reduce(
+      (sum, entry) =>
+        sum + Array.from(entry.groups.values()).reduce((inner, list) => inner + list.length, 0),
+      0
+    ),
+  };
+
+  const uploadedIds: string[] = [];
+  let firstFailure: unknown = null;
+
+  for (const entry of planned) {
+    try {
+      const outcome = await uploadGroupsToLocalization(
+        credentials,
+        entry.set.localizationId,
+        entry.groups,
+        options.replaceExisting,
+        counter,
+        onProgress
+      );
+      uploadedIds.push(...outcome.uploadedIds);
+      warnings.push(...outcome.warnings);
+    } catch (error) {
+      if (error instanceof StoreAuthError) throw error;
+      if (!firstFailure) firstFailure = error;
+      warnings.push(
+        `${entry.set.label ?? 'One language'} failed: ${error instanceof Error ? error.message : 'unknown error'}`
+      );
+    }
+  }
+
+  // Nothing landed anywhere, so the failure is the story, not a footnote.
+  if (uploadedIds.length === 0 && firstFailure) throw firstFailure;
+
   warnings.push(...(await waitForDelivery(credentials, uploadedIds, onProgress)));
 
   onProgress?.({ stage: 'done', message: 'Done' });
@@ -563,8 +728,6 @@ export async function uploadAppStoreScreenshots(
   return {
     uploaded: uploadedIds.length,
     warnings,
-    reviewUrl: options.appId
-      ? `https://appstoreconnect.apple.com/apps/${options.appId}/distribution`
-      : 'https://appstoreconnect.apple.com/apps',
+    reviewUrl: reviewUrlFor(options.appId),
   };
 }

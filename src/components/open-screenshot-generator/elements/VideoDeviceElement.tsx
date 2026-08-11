@@ -122,7 +122,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
                 <ClapperboardIcon className="w-1/4 h-1/4 opacity-50 mb-2" />
                 <p style={{ fontSize: `${Math.max(14, effectiveWidth * 0.055)}px` }}>
-                  {`${chrome.label} — no recording yet`}
+                  {`${chrome.label}, no recording yet`}
                 </p>
               </div>
             )}

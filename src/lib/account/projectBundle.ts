@@ -35,20 +35,41 @@ import type {
 const MEDIA_ID_KEYS = ['mediaId', 'screenVideoMediaId'] as const;
 
 /**
+ * Every locale override row on a board, flattened. The locale overlay stores a
+ * per-language recording under `localized[locale][elementId].mediaId` and a
+ * per-language typeface under `.fontFamily`, so both collectors below have to
+ * walk it as well as the elements themselves. Miss it and a German screen
+ * recording or an imported Arabic font is dropped from the bundle, which is
+ * silent until the copy is reopened with a dead reference.
+ */
+function localeOverridesOf(artboard: ArtboardState): Record<string, unknown>[] {
+  const rows: Record<string, unknown>[] = [];
+  for (const byElement of Object.values(artboard.localized ?? {})) {
+    for (const override of Object.values(byElement ?? {})) {
+      if (override) rows.push(override as unknown as Record<string, unknown>);
+    }
+  }
+  return rows;
+}
+
+/**
  * Every media row the project references. Walks elements generically rather
  * than narrowing by element type so legacy `screenVideoMediaId` devices (see
  * src/lib/video/migrateVideoDevices.ts) are picked up too.
  */
 export function collectMediaIds(projectData: ArtboardState[]): string[] {
   const ids = new Set<string>();
+  const take = (record: Record<string, unknown>) => {
+    for (const key of MEDIA_ID_KEYS) {
+      const value = record[key];
+      if (typeof value === 'string' && value) ids.add(value);
+    }
+  };
   for (const artboard of projectData ?? []) {
     for (const element of artboard.elements ?? []) {
-      const record = element as unknown as Record<string, unknown>;
-      for (const key of MEDIA_ID_KEYS) {
-        const value = record[key];
-        if (typeof value === 'string' && value) ids.add(value);
-      }
+      take(element as unknown as Record<string, unknown>);
     }
+    for (const override of localeOverridesOf(artboard)) take(override);
   }
   return [...ids];
 }
@@ -59,12 +80,17 @@ export function collectMediaIds(projectData: ArtboardState[]): string[] {
  */
 export function collectFontFamilies(projectData: ArtboardState[]): string[] {
   const families = new Set<string>();
+  const take = (family: unknown) => {
+    if (typeof family === 'string' && family.trim()) families.add(family.trim());
+  };
   for (const artboard of projectData ?? []) {
     for (const element of artboard.elements ?? []) {
       if (element.type !== 'text') continue;
-      const family = (element as { fontFamily?: unknown }).fontFamily;
-      if (typeof family === 'string' && family.trim()) families.add(family.trim());
+      take((element as { fontFamily?: unknown }).fontFamily);
     }
+    // Not narrowed to text elements: an override row carries no type, and only
+    // text elements can hold a fontFamily override in the first place.
+    for (const override of localeOverridesOf(artboard)) take(override.fontFamily);
   }
   return [...families];
 }

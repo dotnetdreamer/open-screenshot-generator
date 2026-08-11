@@ -292,6 +292,97 @@ export type ArtboardElement =
   | VideoDeviceElementProps
   | GestureElementProps;
 
+/**
+ * One locale's overrides for one element. Every field is optional and anything
+ * absent falls back to the base element, which is what makes "change the design
+ * once" true: only the keys listed here can ever differ between languages.
+ *
+ * Deliberately NOT here: position, size, rotation, scale, opacity, shadow,
+ * blur, colours, alignment, device model, 3D pose, animation. Once every
+ * property can differ, nothing is shared and the propagation guarantee is gone,
+ * which is the duplicate model with extra steps.
+ *
+ * Also deliberately NOT here: fontSize. Auto-shrink for a long translation is
+ * DERIVED at projection time (see resolveLocaleFontSize), never stored, so a
+ * later change to the base fontSize cannot leave one language behind.
+ */
+export interface ElementLocaleOverride {
+  /** Text elements only. */
+  content?: string;
+  /** Script substitution, or a hand-picked face for this language. */
+  fontFamily?: string;
+  /** Device / image / video: the app UI inside the frame is itself localized. */
+  screenshotSrc?: string;
+  imageSrc?: string;
+  mediaId?: string;
+  /** Illustrator's Visibility variable: drop a badge in this language only. */
+  hidden?: boolean;
+  // --- detachable properties -------------------------------------------------
+  // Shared with every other language UNTIL the user pulls one apart for this
+  // element (see `detached`). Held here so a language that genuinely needs its
+  // own metrics or its own box can have them: Nastaliq Urdu and Arabic need
+  // more leading than Latin at the same size, and a German compound can overrun
+  // a box that English fits. A value present here does nothing while its key is
+  // absent from `detached`.
+  fontSize?: number;
+  lineHeight?: number;
+  letterSpacing?: number;
+  fontWeight?: string;
+  textAlign?: string;
+  color?: string;
+  position?: Point;
+  size?: Size;
+  rotation?: number;
+  scale?: number;
+  /**
+   * The property names this element keeps its own copy of in THIS language.
+   * Anything not listed follows the shared design, which is what keeps "change
+   * it once and every language gets it" true for everything the user has not
+   * deliberately taken manual control of. Re-attaching drops both the name and
+   * the stored value, so the element snaps back to the base design.
+   */
+  detached?: string[];
+  /**
+   * 'auto' means a machine wrote it, so "Update translations" may refresh it.
+   * 'manual' means a person did, so nothing ever overwrites it without an
+   * explicit opt-in. Set to 'manual' the moment the user types in the field.
+   */
+  origin?: 'auto' | 'manual';
+  /**
+   * hash32 of the BASE value this was derived from. When the base text is
+   * edited the hash stops matching and the cell reads "English changed since
+   * this was translated". Never auto-propagates; every reference tool makes
+   * refreshing an explicit action because silent propagation destroys reviewed
+   * human translations.
+   */
+  sourceHash?: string;
+}
+
+/** One language the project exports. `code` is a STORE locale, see LOCALES. */
+export interface LocaleEntry {
+  code: string; // 'de-DE', 'zh-Hans', 'pt-BR'
+  /** Substitute a script-appropriate family at projection time. Default true. */
+  autoFont?: boolean;
+  /** Shrink overflowing text rather than clipping it. Default true. */
+  autoFit?: boolean;
+}
+
+/**
+ * Project-scoped config, MIRRORED onto every artboard. It belongs on Project,
+ * but the four db.projects.put sites write exactly {id, name, timestamp,
+ * projectData} and bundleFromJson drops every top-level key it does not know,
+ * so a Project field is destroyed by the first edit after load. This lives
+ * where projectData goes instead. getLocalization() reads the first board that
+ * has it and normalizeLocalization() re-stamps every board on load, so a board
+ * that arrives from an import or a duplicate cannot cause drift.
+ */
+export interface ProjectLocalization {
+  /** The language the base document is written in. Defaults to 'en-US'. */
+  baseLocale: string;
+  /** Export languages in order. Never contains baseLocale. */
+  locales: LocaleEntry[];
+}
+
 export interface ArtboardState {
   id: string;
   name: string;
@@ -311,7 +402,18 @@ export interface ArtboardState {
   // translate dialog's list). Set only when a whole artboard translated
   // cleanly, so the next run knows what to use as the source instead of
   // assuming English. Unset means "unknown, detect it".
+  //
+  // NOT the multi-language key: it is cleared on any partial run, so keying
+  // overrides off it would silently drop boards out of their language. Its one
+  // job in the locale overlay is seeding a default baseLocale.
   language?: string;
+  /**
+   * Per-locale overrides for this board, keyed locale -> element id.
+   * Absent means every language inherits this board verbatim.
+   */
+  localized?: Record<string, Record<string, ElementLocaleOverride>>;
+  /** Project-level config, mirrored onto every board. See ProjectLocalization. */
+  localization?: ProjectLocalization;
 }
 
 

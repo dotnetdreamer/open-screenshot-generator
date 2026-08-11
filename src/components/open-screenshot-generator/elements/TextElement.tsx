@@ -84,10 +84,36 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
       ? `${element.letterSpacing * fontScale}px`
       : undefined;
 
+  // A translated element carries the same textAlign as the English one it came
+  // from, because alignment is shared across languages by design. So 'left' has
+  // to mean "the side this language starts on", not "the left of the screen":
+  // dir="auto" below reads the first strong character and flips the box, and
+  // these logical keywords follow it. Arabic and Hebrew then read correctly
+  // without a per-locale position, which the locale overlay forbids so that one
+  // layout keeps serving every language.
+  const logicalAlign: React.CSSProperties['textAlign'] =
+    element.textAlign === 'center'
+      ? 'center'
+      : element.textAlign === 'justify'
+        ? 'justify'
+        : element.textAlign === 'right'
+          ? 'end'
+          : 'start';
+
+  // flex-start and flex-end are already direction-aware, so the same mapping
+  // puts an RTL headline against the right edge with no second branch.
+  const logicalJustify =
+    element.textAlign === 'center'
+      ? 'center'
+      : element.textAlign === 'right'
+        ? 'flex-end'
+        : 'flex-start';
+
   if (isEditing) {
     return (
       <textarea
         ref={textareaRef}
+        dir="auto"
         value={text}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -110,7 +136,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
           fontWeight: element.fontWeight || 'normal',
           fontStyle: element.fontStyle || 'normal',
           textDecoration: element.textDecoration || 'none',
-          textAlign: (element.textAlign as any) || 'left',
+          textAlign: logicalAlign,
           boxSizing: 'border-box',
         }}
         className="text-element-editing"
@@ -124,6 +150,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
       // to report the real glyph box (which no caller can predict from
       // fontSize alone, given the /0.3 compensation and the wrapping).
       data-text-body
+      dir="auto"
       className="w-full h-full flex items-center justify-center"
       onDoubleClick={handleDoubleClick}
       style={{
@@ -131,8 +158,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         height: '100%',
         display: 'flex',
         alignItems: 'center', // Adjust as needed, e.g. 'flex-start' for top-align
-        justifyContent: element.textAlign === 'center' ? 'center' : 
-                       element.textAlign === 'right' ? 'flex-end' : 'flex-start', // Map text-align to justify-content
+        justifyContent: logicalJustify, // Map text-align to justify-content
         fontFamily: element.fontFamily,
         fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
@@ -141,7 +167,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         fontWeight: element.fontWeight || 'normal',
         fontStyle: element.fontStyle || 'normal',
         textDecoration: element.textDecoration || 'none',
-        textAlign: (element.textAlign as any) || 'left',
+        textAlign: logicalAlign,
         whiteSpace: 'pre-wrap', // Allows line breaks and preserves spaces
         overflow: 'hidden',
         wordBreak: 'break-word',

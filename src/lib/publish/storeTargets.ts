@@ -13,6 +13,8 @@
 // Sizes are Apple's published screenshot specifications:
 // https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/
 
+import { LOCALES } from '@/lib/i18n/locales';
+
 export interface AppleDisplayTarget {
   /** ScreenshotDisplayType, the value the API stores on the set. */
   displayType: string;
@@ -296,4 +298,78 @@ export function validatePlayImage(
   if (long > 3840) return 'Play needs every side to be at most 3840 px';
   if (long > short * 2) return 'Play needs the long side to be at most twice the short side';
   return null;
+}
+
+// --- Languages --------------------------------------------------------------
+
+// A language is a store slot too: Apple keys a screenshot set by (version,
+// locale, display type) and Play puts the language in the upload path, so a
+// project locale that reaches an upload unmapped lands in whichever listing
+// happened to be selected. That failure is invisible until Apple finishes
+// processing hours later, which is exactly the reason the display type table
+// above refuses to guess, so the language lookups live here beside it: one
+// registration site for every store slot this app knows about.
+//
+// The three vocabularies differ on purpose (see src/lib/i18n/locales.ts): our
+// key is 'zh-Hans', Apple says 'zh-Hans', Play says 'zh-CN'. Nothing here
+// derives one from the other.
+
+export interface LocaleTarget {
+  /** Our editor locale code, the key the rest of the project uses. */
+  code: string;
+  /** What speakers call it, for the row label. */
+  name: string;
+  /** AppStoreLocalization.locale. Absent means Apple has no such localization. */
+  appleLocale?: string;
+  /** Play listing path segment. Absent means Play has no such listing. */
+  playLanguage?: string;
+}
+
+export const LOCALE_TARGETS: LocaleTarget[] = LOCALES.map((locale) => ({
+  code: locale.code,
+  name: locale.nativeName,
+  appleLocale: locale.appleLocale,
+  playLanguage: locale.playLanguage,
+}));
+
+// Both stores return their codes in whatever case they feel like, and 'zh-hans'
+// missing 'zh-Hans' would read to the user as "that language does not exist in
+// App Store Connect". Matching is case-insensitive in both directions; the
+// stored value is always the canonical one from the table.
+const localeByCode = new Map(LOCALE_TARGETS.map((target) => [target.code.toLowerCase(), target]));
+const localeByApple = new Map(
+  LOCALE_TARGETS.filter((target) => target.appleLocale).map((target) => [
+    target.appleLocale!.toLowerCase(),
+    target,
+  ])
+);
+const localeByPlay = new Map(
+  LOCALE_TARGETS.filter((target) => target.playLanguage).map((target) => [
+    target.playLanguage!.toLowerCase(),
+    target,
+  ])
+);
+
+export function localeTargetFor(code: string): LocaleTarget | null {
+  return localeByCode.get(code.trim().toLowerCase()) ?? null;
+}
+
+/** Our code to Apple's. Null means Apple has no localization for it. */
+export function appleLocaleFor(code: string): string | null {
+  return localeTargetFor(code)?.appleLocale ?? null;
+}
+
+/** Our code to Play's. Null means Play has no listing language for it. */
+export function playLanguageFor(code: string): string | null {
+  return localeTargetFor(code)?.playLanguage ?? null;
+}
+
+/** Apple's code back to ours, so picking a localization can retarget the render. */
+export function localeForAppleLocale(appleLocale: string): string | null {
+  return localeByApple.get(appleLocale.trim().toLowerCase())?.code ?? null;
+}
+
+/** Play's code back to ours. 'iw-IL' and 'fil' only resolve through this table. */
+export function localeForPlayLanguage(playLanguage: string): string | null {
+  return localeByPlay.get(playLanguage.trim().toLowerCase())?.code ?? null;
 }

@@ -12,12 +12,19 @@ export * from './types';
 export {
   APPLE_DISPLAY_TARGETS,
   PLAY_IMAGE_TARGETS,
+  LOCALE_TARGETS,
   appleTargetForSize,
   nearestAppleSizes,
   suggestPlayImageType,
   validatePlayImage,
+  appleLocaleFor,
+  playLanguageFor,
+  localeForAppleLocale,
+  localeForPlayLanguage,
+  localeTargetFor,
   type AppleDisplayTarget,
   type PlayImageTarget,
+  type LocaleTarget,
 } from './storeTargets';
 export {
   getStoreCredentials,
@@ -34,10 +41,13 @@ export {
   listAppStoreLocalizations,
   listAppStoreVersions,
   uploadAppStoreScreenshots,
+  uploadAppStoreScreenshotsForLocales,
   type AppStoreApp,
   type AppStoreLocalization,
   type AppStoreVersion,
   type AppStoreUploadOptions,
+  type AppStoreLocaleUpload,
+  type AppStoreBatchUploadOptions,
 } from './appStoreConnect';
 export {
   forgetPlayToken,
@@ -45,9 +55,12 @@ export {
   parseServiceAccount,
   serviceAccountEmail,
   uploadPlayScreenshots,
+  uploadPlayScreenshotsForLanguages,
   verifyPlayAccess,
   type PlayListing,
   type PlayUploadOptions,
+  type PlayUploadEntry,
+  type PlayBatchUploadOptions,
 } from './googlePlay';
 
 /**

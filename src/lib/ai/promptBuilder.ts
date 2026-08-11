@@ -27,7 +27,8 @@ const RULES = `Rules:
 - Rewrite template copy to describe the user's actual app. Read the screenshots: use the real feature names, real numbers, and the real product name you can see in them. Headlines should be short and specific, at most about 6 words per line.
 - Do not rewrite decorative text such as star ratings, press logos, or review counts unless the user asks.
 - Keep every text value under ${AGENT_LIMITS.maxTextLength} characters.
-- Colors are 6 digit hex strings such as "#1A2B3C".`;
+- Colors are 6 digit hex strings such as "#1A2B3C".
+- A project holds ONE design that every language shares, so never duplicate artboards to add a language. Leave "locale" null for the language the design is written in (English), and add one extra textOverrides entry per text slot per language, with "locale" set to that language's code: "de-DE", "fr-FR", "es-ES", "pt-BR", "ja", "ko", "zh-Hans". Only do this when the user asked for other languages, and at most ${AGENT_LIMITS.maxLocales} of them.`;
 
 /**
  * Explains the two-tier catalog: full slot detail for the best-fitting
@@ -61,7 +62,8 @@ const PLAN_SHAPE = `{
     { "screenshotIndex": 0, "artboardIndex": 0, "deviceElementId": "d0" }
   ],
   "textOverrides": [                  // use-template only, otherwise []
-    { "artboardIndex": 0, "elementId": "x1", "text": "new copy" }
+    { "artboardIndex": 0, "elementId": "x1", "text": "new copy", "locale": null },
+    { "artboardIndex": 0, "elementId": "x1", "text": "same slot, in German", "locale": "de-DE" }
   ],
   "newDesign": {                      // required for generate-new, otherwise null
     "themeName": "short theme name",
@@ -140,7 +142,8 @@ export function buildCompactRelayPrompt(
       : `No screenshots attached; use null for every screenshotIndex.`;
 
   const textRule = hasDetail
-    ? `- textOverrides may only target x refs shown in the catalog detail; rewrite copy using what you see in the screenshots.`
+    ? `- textOverrides may only target x refs shown in the catalog detail; rewrite copy using what you see in the screenshots.
+- "locale" is null for the design's own language. For another language, repeat the same slot with its code ("de-DE", "ja"); one design serves every language, so never duplicate artboards for one. Max ${AGENT_LIMITS.maxLocales} languages, and only if asked.`
     : `- Leave textOverrides as [].`;
 
   return `You pick an App Store screenshot template and fit the user's screenshots into it (or spec a new design).
@@ -159,7 +162,7 @@ ${textRule}
 - Text values under ${AGENT_LIMITS.maxTextLength} chars. Colors are 6-digit hex.
 
 Reply with ONE json code block, nothing else:
-{"action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"..."}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF"}]}}`;
+{"action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"...","locale":null|"de-DE"}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF"}]}}`;
 }
 
 /** Sentinel a provider must reply with when it cannot fetch the catalog URL. */
@@ -196,11 +199,12 @@ Rules:
 - Refer to templates/slots ONLY by the refs from the file. Never invent one.
 - Pick the template whose device slot count and category best match the screenshots; place every screenshot (screenshotIndex from 0).
 - textOverrides rewrite template copy using what you see in the screenshots; do not touch decorative text (star ratings, review counts).
+- "locale" is null for the design's own language. For another language, repeat the same slot with its code ("de-DE", "ja"); one design serves every language, so never duplicate artboards for one. Max ${AGENT_LIMITS.maxLocales} languages, and only if asked.
 - "generate-new" only if nothing fits or the user asked for it. canvas: ${AGENT_CANVASES.join('|')}; deviceType: ${NEW_DESIGN_DEVICE_TYPES.join('|')}; layout: ${LAYOUT_VARIANTS.join('|')}; fontFamily: ${AGENT_FONTS.join('|')}; max ${AGENT_LIMITS.maxNewDesignArtboards} artboards.
 - Text values under ${AGENT_LIMITS.maxTextLength} chars. Colors are 6-digit hex.
 
 Reply with ONE json code block, nothing else:
-{"sourceToken":"<the VERIFICATION-TOKEN value from the file>","action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"..."}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF"}]}}`;
+{"sourceToken":"<the VERIFICATION-TOKEN value from the file>","action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"...","locale":null|"de-DE"}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF"}]}}`;
 }
 
 /** The user turn for API mode. The screenshots ride alongside as image parts. */

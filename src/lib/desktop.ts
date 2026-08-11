@@ -120,18 +120,42 @@ export async function saveBlobToPath(
   return path;
 }
 
-/** Write a data: URL into a previously picked folder (Tauri only). */
+/**
+ * Write a data: URL into a previously picked folder (Tauri only).
+ *
+ * `subdir` files it one level down, `<dir>/de-DE/01_Feature.png`, which is how
+ * a multi-language export groups its files. That write goes through Rust
+ * because the fs plugin cannot create the folder: picking a directory widens
+ * its scope to that directory's contents but grants no mkdir, and
+ * sanitizeFileName() strips both separators so the subfolder cannot ride in on
+ * the file name. Without a `subdir` this is the plugin write it has always
+ * been, byte for byte.
+ *
+ * On the web `subdir` is ignored: there is no picked folder to put it under
+ * (pickExportDirectory returns undefined) and every file is its own download.
+ */
 export async function saveDataUrlToPath(
   dataUrl: string,
   dir: string,
-  fileName: string
+  fileName: string,
+  subdir?: string
 ): Promise<string> {
+  const name = sanitizeFileName(fileName);
+  if (subdir && isTauri()) {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return invoke<string>('abs_write_export_png', {
+      directory: dir,
+      subdirectory: subdir,
+      fileName: name,
+      dataBase64: dataUrl.replace(/^data:image\/[^;]+;base64,/, ''),
+    });
+  }
   const blob = await (await fetch(dataUrl)).blob();
   const [{ writeFile }, { join }] = await Promise.all([
     import('@tauri-apps/plugin-fs'),
     import('@tauri-apps/api/path'),
   ]);
-  const path = await join(dir, sanitizeFileName(fileName));
+  const path = await join(dir, name);
   await writeFile(path, new Uint8Array(await blob.arrayBuffer()));
   return path;
 }

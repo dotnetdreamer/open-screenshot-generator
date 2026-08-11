@@ -114,6 +114,30 @@ export function FontFamilySelect({
           <FontOptions fonts={groupedFonts.urdu} />
         </SelectGroup>
         <SelectGroup>
+          <SelectLabel>Hebrew Fonts</SelectLabel>
+          <FontOptions fonts={groupedFonts.hebrew} />
+        </SelectGroup>
+        <SelectGroup>
+          <SelectLabel>Chinese, Japanese and Korean Fonts</SelectLabel>
+          <FontOptions fonts={groupedFonts.cjk} />
+        </SelectGroup>
+        <SelectGroup>
+          <SelectLabel>Thai Fonts</SelectLabel>
+          <FontOptions fonts={groupedFonts.thai} />
+        </SelectGroup>
+        <SelectGroup>
+          <SelectLabel>Devanagari Fonts</SelectLabel>
+          <FontOptions fonts={groupedFonts.devanagari} />
+        </SelectGroup>
+        <SelectGroup>
+          <SelectLabel>Bengali Fonts</SelectLabel>
+          <FontOptions fonts={groupedFonts.bengali} />
+        </SelectGroup>
+        {/* Cyrillic and Greek have no group: the Latin and Multilingual faces
+            above already carry both scripts, so a group here would be the same
+            families listed twice, which a Select cannot do (one value, two
+            items) and nobody would thank us for. */}
+        <SelectGroup>
           <SelectLabel>Multilingual Fonts</SelectLabel>
           <FontOptions fonts={groupedFonts.multilingual} />
         </SelectGroup>
