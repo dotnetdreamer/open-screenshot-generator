@@ -61,6 +61,17 @@ export const AGENT_FONTS = [
   'Bebas Neue',
   'Playfair Display',
   'Poppins',
+  // Non-Latin scripts. Without these a plan asking for a Japanese or Hebrew
+  // board could only pick a Latin face, which renders the copy as tofu.
+  'Noto Sans JP',
+  'Noto Sans SC',
+  'Noto Sans TC',
+  'Noto Sans KR',
+  'Noto Sans Hebrew',
+  'Noto Sans Arabic',
+  'Noto Sans Thai',
+  'Noto Sans Devanagari',
+  'Noto Sans Bengali',
 ] as const;
 
 export type AgentFont = (typeof AGENT_FONTS)[number];
@@ -85,6 +96,17 @@ const textOverrideSchema = z.object({
   // Exact text element id from the template catalog.
   elementId: z.string(),
   text: z.string(),
+  /**
+   * Which language this copy is for: a language code such as "de-DE" or "ja",
+   * or null for the language the design itself is written in.
+   *
+   * A localized entry writes ONE string on top of the shared design, so the
+   * layout, the colours and the screenshots stay identical in every language
+   * and a second language costs a handful of strings rather than a second copy
+   * of the project. The builder resolves loose codes ("de", "German") and
+   * warns about ones it cannot place.
+   */
+  locale: z.string().nullable(),
 });
 
 const newDesignArtboardSchema = z.object({
@@ -168,6 +190,8 @@ export const AGENT_LIMITS = {
   maxScreenshots: 3,
   maxNewDesignArtboards: 6,
   maxTextLength: 200,
+  /** Languages one plan may add. Past this it is a translation job, not a design. */
+  maxLocales: 8,
 } as const;
 
 /**

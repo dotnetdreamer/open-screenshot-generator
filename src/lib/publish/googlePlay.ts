@@ -261,17 +261,34 @@ export interface PlayUploadOptions {
   changesNotSentForReview?: boolean;
 }
 
-export async function uploadPlayScreenshots(
-  credentials: PlayCredentials,
-  options: PlayUploadOptions,
-  onProgress?: PublishProgressFn
-): Promise<PublishResult> {
-  const warnings: string[] = [];
-  const target = PLAY_IMAGE_TARGETS.find((entry) => entry.imageType === options.imageType);
-  const slotLabel = target?.label ?? options.imageType;
+/** One (language, slot) pair of a run. Play scopes both in the upload path. */
+export interface PlayUploadEntry {
+  language: string;
+  imageType: string;
+  images: PublishImage[];
+}
 
-  const usable = options.images.filter((image) => {
-    const problem = validatePlayImage(image.width, image.height, options.imageType);
+export interface PlayBatchUploadOptions {
+  entries: PlayUploadEntry[];
+  /** Clear each slot first. Play appends otherwise, up to the slot's limit. */
+  replaceExisting: boolean;
+  changesNotSentForReview?: boolean;
+}
+
+/**
+ * Drop the images Play would refuse, with a reason per image.
+ *
+ * Done before the edit is opened, deliberately: a size Play rejects is the
+ * user's to fix and there is no point holding a transaction open while they
+ * read about it.
+ */
+function usableImages(
+  images: PublishImage[],
+  imageType: string,
+  warnings: string[]
+): PublishImage[] {
+  return images.filter((image) => {
+    const problem = validatePlayImage(image.width, image.height, imageType);
     if (problem) {
       warnings.push(`${image.fileName} skipped: ${problem}`);
       return false;
@@ -283,17 +300,53 @@ export async function uploadPlayScreenshots(
     }
     return true;
   });
+}
 
-  if (usable.length === 0) {
-    throw new StoreRejectedError(
-      warnings[0] ?? `None of these artboards fit the ${slotLabel} slot.`
-    );
+/**
+ * Send every (language, slot) pair through ONE edit.
+ *
+ * An edit is a staged transaction over the whole listing, and it is not scoped
+ * to a language, so nothing forces one edit per language. Committing per
+ * language would mean five languages times three slots is fifteen commits, and
+ * a failure at number nine leaves the first eight already public with the rest
+ * missing, which is the worst possible state for a store listing. One edit
+ * makes the whole run atomic: it either all goes live or none of it does, and
+ * the discard on failure leaves the listing exactly as it was.
+ */
+export async function uploadPlayScreenshotsForLanguages(
+  credentials: PlayCredentials,
+  options: PlayBatchUploadOptions,
+  onProgress?: PublishProgressFn
+): Promise<PublishResult> {
+  const warnings: string[] = [];
+
+  const planned = options.entries
+    .map((entry) => {
+      const target = PLAY_IMAGE_TARGETS.find((slot) => slot.imageType === entry.imageType);
+      const slotLabel = target?.label ?? entry.imageType;
+      const usable = usableImages(entry.images, entry.imageType, warnings);
+      if (usable.length === 0) return null;
+      if (target && usable.length > target.max) {
+        throw new StoreRejectedError(
+          `Play keeps at most ${target.max} image${target.max === 1 ? '' : 's'} in ${slotLabel}. Select fewer.`
+        );
+      }
+      return { ...entry, usable, slotLabel };
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
+  if (planned.length === 0) {
+    const firstSlot = options.entries[0];
+    const label =
+      PLAY_IMAGE_TARGETS.find((slot) => slot.imageType === firstSlot?.imageType)?.label ??
+      firstSlot?.imageType ??
+      'this';
+    throw new StoreRejectedError(warnings[0] ?? `None of these artboards fit the ${label} slot.`);
   }
-  if (target && usable.length > target.max) {
-    throw new StoreRejectedError(
-      `Play keeps at most ${target.max} image${target.max === 1 ? '' : 's'} in ${slotLabel}. Select fewer.`
-    );
-  }
+
+  // Only worth naming the language once there is more than one in the run.
+  const manyLanguages = new Set(planned.map((entry) => entry.language)).size > 1;
+  const totalImages = planned.reduce((sum, entry) => sum + entry.usable.length, 0);
 
   onProgress?.({ stage: 'authenticating', message: 'Signing in with the service account' });
   const token = await accessToken(credentials);
@@ -301,42 +354,49 @@ export async function uploadPlayScreenshots(
   onProgress?.({ stage: 'preparing', message: 'Opening a Play Console edit' });
   const editId = await openEdit(credentials);
   const packageName = encodePath(credentials.packageName);
-  const language = encodePath(options.language);
-  const imageType = encodePath(options.imageType);
 
   try {
-    if (options.replaceExisting) {
-      onProgress?.({ stage: 'clearing', message: `Clearing the existing ${slotLabel}` });
-      await apiRequest(
-        credentials,
-        `/applications/${packageName}/edits/${editId}/listings/${language}/${imageType}`,
-        { method: 'DELETE' }
-      );
-    }
-
     const doFetch = await bridgeFetch();
-    for (const [index, image] of usable.entries()) {
-      onProgress?.({
-        stage: 'uploading',
-        message: `Uploading ${image.fileName}`,
-        current: index + 1,
-        total: usable.length,
-      });
+    let uploaded = 0;
 
-      const response = await doFetch(
-        `${UPLOAD_BASE}/applications/${packageName}/edits/${editId}/listings/${language}/${imageType}?uploadType=media`,
-        {
+    for (const entry of planned) {
+      const language = encodePath(entry.language);
+      const imageType = encodePath(entry.imageType);
+      const slotPath = `/applications/${packageName}/edits/${editId}/listings/${language}/${imageType}`;
+
+      if (options.replaceExisting) {
+        onProgress?.({
+          stage: 'clearing',
+          message: manyLanguages
+            ? `Clearing the existing ${entry.slotLabel} for ${entry.language}`
+            : `Clearing the existing ${entry.slotLabel}`,
+        });
+        await apiRequest(credentials, slotPath, { method: 'DELETE' });
+      }
+
+      for (const image of entry.usable) {
+        uploaded += 1;
+        onProgress?.({
+          stage: 'uploading',
+          message: `Uploading ${image.fileName}`,
+          current: uploaded,
+          total: totalImages,
+        });
+
+        const response = await doFetch(`${UPLOAD_BASE}${slotPath}?uploadType=media`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'image/png',
           },
           body: image.bytes as unknown as BodyInit,
+        });
+        if (!response.ok) {
+          const text = await response.text().catch(() => '');
+          throw new Error(
+            `Uploading ${image.fileName} failed: ${describeGoogleError(response.status, text)}`
+          );
         }
-      );
-      if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        throw new Error(`Uploading ${image.fileName} failed: ${describeGoogleError(response.status, text)}`);
       }
     }
 
@@ -373,8 +433,27 @@ export async function uploadPlayScreenshots(
   onProgress?.({ stage: 'done', message: 'Done' });
 
   return {
-    uploaded: usable.length,
+    uploaded: totalImages,
     warnings,
     reviewUrl: 'https://play.google.com/console',
   };
+}
+
+/** One language, one slot. The batch path with a single entry behaves the same. */
+export async function uploadPlayScreenshots(
+  credentials: PlayCredentials,
+  options: PlayUploadOptions,
+  onProgress?: PublishProgressFn
+): Promise<PublishResult> {
+  return uploadPlayScreenshotsForLanguages(
+    credentials,
+    {
+      entries: [
+        { language: options.language, imageType: options.imageType, images: options.images },
+      ],
+      replaceExisting: options.replaceExisting,
+      changesNotSentForReview: options.changesNotSentForReview,
+    },
+    onProgress
+  );
 }

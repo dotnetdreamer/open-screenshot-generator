@@ -50,6 +50,12 @@ export interface PublishImage {
   bytes: Uint8Array;
   width: number;
   height: number;
+  /**
+   * The project language this was rendered in. Absent on single-language
+   * projects. Set by whoever captured the image rather than by whoever asked
+   * for it, so a batch upload labels each set by what actually got painted.
+   */
+  locale?: string;
 }
 
 export type PublishStage =

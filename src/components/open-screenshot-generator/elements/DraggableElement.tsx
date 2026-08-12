@@ -17,14 +17,72 @@ interface DraggableElementProps {
   children: React.ReactNode;
 }
 
-const HANDLE_SIZE_BASE = 10; 
-const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2; 
-const MIN_DISPLAY_SIZE = 20; 
+const HANDLE_SIZE_BASE = 10;
+const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2;
+const MIN_DISPLAY_SIZE = 20;
 
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
 // Update the constant for the display scale factor
 const DISPLAY_SCALE_FACTOR = 0.3; // 30% of original size
+
+// A press has to travel this far on screen before it counts as a drag. Below
+// it the press is only a selection, so a twitchy mouse can no longer leave an
+// element rotated by a degree or nudged by a pixel on what was meant as a click.
+const DRAG_THRESHOLD_PX = 3;
+
+// Holding Shift while rotating lands on clean angles (and back on 0) instead of
+// creeping one degree at a time.
+const ROTATION_SNAP_DEGREES = 15;
+
+// The rotate handle used to be `cursor: grab` — the same hand the element body
+// shows for "drag me somewhere else" — sitting flush against the top edge, so
+// it read as the move affordance and aiming at the top of a short text box
+// rotated it instead. A circular arrow says which control this is before the
+// press lands. White halo under a dark stroke so it reads on any artboard.
+const ROTATE_CURSOR_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+  '<g stroke="#ffffff" stroke-width="4"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1.06 6.67 2.82L21 8"/><path d="M21 3v5h-5"/></g>' +
+  '<g stroke="#18181b" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1.06 6.67 2.82L21 8"/><path d="M21 3v5h-5"/></g>' +
+  '</svg>';
+const ROTATE_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(ROTATE_CURSOR_SVG)}") 12 12, crosshair`;
+
+// Hoisted out of the component on purpose: declared inline it was a new
+// component type on every render, so React tore down and rebuilt all ten
+// handles on every mousemove of a drag.
+const HandleComponent: React.FC<{
+  positionStyle: React.CSSProperties;
+  visualScale: number;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
+  title: string;
+  cursor: string;
+  children?: React.ReactNode;
+  className?: string;
+  isCorner?: boolean;
+}> = ({ positionStyle, visualScale, onMouseDown, onClick, title, cursor, children, className, isCorner = false }) => (
+  <div
+    data-interaction-handle
+    data-export-exclude
+    className={cn(
+      "absolute flex items-center justify-center bg-background border border-primary shadow-md opacity-90 hover:opacity-100",
+      isCorner ? "rounded-full" : "rounded-sm",
+      className
+    )}
+    style={{
+      width: `${HANDLE_SIZE_BASE}px`,
+      height: `${HANDLE_SIZE_BASE}px`,
+      transform: `scale(${visualScale})`,
+      cursor: cursor,
+      ...positionStyle,
+    }}
+    onMouseDown={onMouseDown}
+    onClick={onClick}
+    title={title}
+  >
+    {children}
+  </div>
+);
 
 export function DraggableElement({
   element,
@@ -51,29 +109,59 @@ export function DraggableElement({
     initialScale: number; 
     elementCenter: Point;
     handleType?: HandleType;
+    screenX: number;
+    screenY: number;
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
+  // Flipped once the press has travelled DRAG_THRESHOLD_PX. A ref, not state,
+  // so arming does not re-run the listener effect mid-drag.
+  const dragArmedRef = useRef(false);
+  // The live transform, written synchronously by every mousemove. mouseup used
+  // to commit whatever the last *render* held, which loses the final mousemove
+  // whenever React is still flushing when the button comes up — the element
+  // then lands a few pixels short of where it was dropped. Reading the ref
+  // instead makes the commit exact.
+  const latestRef = useRef({
+    position: element.position,
+    size: element.size,
+    rotation: element.rotation,
+    scale: element.scale,
+  });
 
   useEffect(() => {
     setPosition(element.position);
     setCurrentSize(element.size);
     setCurrentRotation(element.rotation);
     setCurrentScale(element.scale);
+    latestRef.current = {
+      position: element.position,
+      size: element.size,
+      rotation: element.rotation,
+      scale: element.scale,
+    };
   }, [element.id, element.position, element.size, element.rotation, element.scale]);
 
   const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
     const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
+      // Measure the scale rather than assuming it. The artboard is not only
+      // drawn at DISPLAY_SCALE_FACTOR: CanvasArea wraps it in the canvas zoom
+      // as well, so the old constant divisor was wrong the moment anyone
+      // touched the zoom control, and the element raced ahead of (or lagged
+      // behind) the cursor by exactly that factor. offsetWidth/Height are the
+      // untransformed layout box, so the ratio is the real composite scale
+      // however many transforms end up stacked above this element.
+      const scaleX = artboardDiv.offsetWidth > 0 ? artboardRect.width / artboardDiv.offsetWidth : 1;
+      const scaleY = artboardDiv.offsetHeight > 0 ? artboardRect.height / artboardDiv.offsetHeight : 1;
       return {
-        // Divide by DISPLAY_SCALE_FACTOR to account for the scaled artboard
-        x: (e.clientX - artboardRect.left) / (artboardZoom * DISPLAY_SCALE_FACTOR),
-        y: (e.clientY - artboardRect.top) / (artboardZoom * DISPLAY_SCALE_FACTOR),
+        x: (e.clientX - artboardRect.left) / (scaleX || 1),
+        y: (e.clientY - artboardRect.top) / (scaleY || 1),
       };
     }
-    return { 
-      x: e.clientX / (artboardZoom * DISPLAY_SCALE_FACTOR), 
-      y: e.clientY / (artboardZoom * DISPLAY_SCALE_FACTOR) 
+    return {
+      x: e.clientX / (artboardZoom * DISPLAY_SCALE_FACTOR),
+      y: e.clientY / (artboardZoom * DISPLAY_SCALE_FACTOR)
     };
   };
 
@@ -102,13 +190,20 @@ export function DraggableElement({
     e.stopPropagation();
     if (!elementRef.current) return;
 
-    if (!isSelected) { 
+    if (!isSelected) {
       onSelect(element.id, e);
     }
     setInteractionMode(mode);
+    dragArmedRef.current = false;
+    latestRef.current = {
+      position: { ...position },
+      size: { ...currentSize },
+      rotation: currentRotation,
+      scale: currentScale,
+    };
 
     const mousePosArtboard = getMousePositionInArtboardSpace(e);
-    
+
     const displayWidth = currentSize.width * currentScale;
     const displayHeight = currentSize.height * currentScale;
 
@@ -116,14 +211,16 @@ export function DraggableElement({
       mouseX: mousePosArtboard.x,
       mouseY: mousePosArtboard.y,
       initialPosition: { ...position },
-      initialSize: { ...currentSize }, 
+      initialSize: { ...currentSize },
       initialRotation: currentRotation,
-      initialScale: currentScale, 
+      initialScale: currentScale,
       elementCenter: {
         x: position.x + displayWidth / 2,
         y: position.y + displayHeight / 2,
       },
       handleType: handleType,
+      screenX: e.clientX,
+      screenY: e.clientY,
     });
   };
 
@@ -132,20 +229,31 @@ export function DraggableElement({
       if (!interactionMode || !interactionStart || !elementRef.current) return;
       e.preventDefault();
 
+      // Swallow the first few pixels. A click that only means "select this" no
+      // longer commits a stray rotation or a one-pixel move on the way up.
+      if (!dragArmedRef.current) {
+        if (
+          Math.abs(e.clientX - interactionStart.screenX) < DRAG_THRESHOLD_PX &&
+          Math.abs(e.clientY - interactionStart.screenY) < DRAG_THRESHOLD_PX
+        ) {
+          return;
+        }
+        dragArmedRef.current = true;
+      }
+
       const mousePosArtboard = getMousePositionInArtboardSpace(e);
       const { initialPosition, initialSize, initialRotation, initialScale, elementCenter, handleType } = interactionStart;
-      
-      const rad = currentRotation * (Math.PI / 180); 
-      const cosR = Math.cos(rad);
-      const sinR = Math.sin(rad);
 
       const dxScreen = mousePosArtboard.x - interactionStart.mouseX;
       const dyScreen = mousePosArtboard.y - interactionStart.mouseY;
 
-      let newPos = { ...position };
-      let newSize = { ...currentSize };
-      let newScale = currentScale;
-      let newRotation = currentRotation;
+      // Base off the ref, not the render closure, for the same reason mouseup
+      // does: a branch that leaves (say) rotation alone must carry forward the
+      // live value, not one React has not re-rendered yet.
+      let newPos = { ...latestRef.current.position };
+      let newSize = { ...latestRef.current.size };
+      let newScale = latestRef.current.scale;
+      let newRotation = latestRef.current.rotation;
 
 
       if (interactionMode === 'move') {
@@ -155,7 +263,9 @@ export function DraggableElement({
         const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
         const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
         newRotation = initialRotation + (angle - startAngle);
-        newRotation = Math.round(newRotation / 1) * 1; 
+        newRotation = e.shiftKey
+          ? Math.round(newRotation / ROTATION_SNAP_DEGREES) * ROTATION_SNAP_DEGREES
+          : Math.round(newRotation);
 
       } else if (interactionMode === 'scale' && handleType && ['tl', 'tr', 'bl', 'br'].includes(handleType)) { 
         const initialDistToCenter = Math.sqrt(Math.pow(interactionStart.mouseX - elementCenter.x, 2) + Math.pow(interactionStart.mouseY - elementCenter.y, 2));
@@ -245,6 +355,7 @@ export function DraggableElement({
         }
       }
       
+      latestRef.current = { position: newPos, size: newSize, rotation: newRotation, scale: newScale };
       setPosition(newPos);
       setCurrentSize(newSize);
       setCurrentScale(newScale);
@@ -253,25 +364,27 @@ export function DraggableElement({
 
     const handleMouseUp = () => {
       if (!interactionMode || !interactionStart) return;
-      
+
+      const live = latestRef.current;
       // Only update if there was actually a change
-      const hasPositionChanged = position.x !== element.position.x || position.y !== element.position.y;
-      const hasSizeChanged = currentSize.width !== element.size.width || currentSize.height !== element.size.height;
-      const hasRotationChanged = currentRotation !== element.rotation;
-      const hasScaleChanged = currentScale !== element.scale;
-      
+      const hasPositionChanged = live.position.x !== element.position.x || live.position.y !== element.position.y;
+      const hasSizeChanged = live.size.width !== element.size.width || live.size.height !== element.size.height;
+      const hasRotationChanged = live.rotation !== element.rotation;
+      const hasScaleChanged = live.scale !== element.scale;
+
       if (hasPositionChanged || hasSizeChanged || hasRotationChanged || hasScaleChanged) {
-        onUpdateElement({ 
-          ...element, 
-          position, 
-          size: currentSize, 
-          rotation: currentRotation, 
-          scale: currentScale 
+        onUpdateElement({
+          ...element,
+          position: live.position,
+          size: live.size,
+          rotation: live.rotation,
+          scale: live.scale,
         });
       }
-      
+
       setInteractionMode(null);
       setInteractionStart(null);
+      dragArmedRef.current = false;
       document.body.style.cursor = 'default';
     };
 
@@ -300,7 +413,10 @@ export function DraggableElement({
         document.body.style.cursor = 'default';
       }
     };
-  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, position, currentSize, currentRotation, currentScale, onSelect]);
+    // Deliberately not depending on position/size/rotation/scale: the handlers
+    // read those from latestRef, so listing them here would only tear down and
+    // re-register the document listeners on every frame of a drag.
+  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, onSelect]);
 
 
   const displaySize = {
@@ -312,38 +428,22 @@ export function DraggableElement({
   const handleVisualScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
   const outlineThickness = Math.max(1, 3 * handleVisualScale);
 
+  // A handle's layout box is HANDLE_SIZE_BASE, but it is drawn — and hit-tested
+  // — at handleVisualScale about its own centre, so this is what it actually
+  // covers on the artboard.
+  const handleFootprint = HANDLE_SIZE_BASE * handleVisualScale;
+  // Rotate and Delete are not edge handles: they sit off the element entirely.
+  // They used to be placed so their scaled boxes ended exactly on the edge,
+  // which left no aiming margin at all — a press meant for the top of a short
+  // text box landed on Rotate, and one meant for its top-right corner landed on
+  // Delete. Park them a visible gap beyond the *edge handles*, not beyond the
+  // edge: an edge handle straddles the border, so clearing only the border
+  // still leaves Rotate all but touching the top resize grip.
+  const satelliteGap = handleFootprint * 0.6;
+  const satelliteClearance = handleFootprint / 2 + satelliteGap;
+  const satelliteOffset = -HANDLE_SIZE_BASE / 2 - satelliteClearance - handleFootprint / 2;
 
-  const HandleComponent: React.FC<{
-    positionStyle: React.CSSProperties;
-    onMouseDown: (e: React.MouseEvent) => void;
-    title: string;
-    cursor: string;
-    children?: React.ReactNode;
-    className?: string;
-    isCorner?: boolean;
-  }> = ({ positionStyle, onMouseDown, title, cursor, children, className, isCorner = false }) => (
-    <div
-      data-interaction-handle 
-      className={cn(
-        "absolute flex items-center justify-center bg-background border border-primary shadow-md opacity-90 hover:opacity-100",
-        isCorner ? "rounded-full" : "rounded-sm", 
-        className
-      )}
-      style={{
-        width: `${HANDLE_SIZE_BASE}px`,
-        height: `${HANDLE_SIZE_BASE}px`,
-        transform: `scale(${handleVisualScale})`, 
-        cursor: cursor,
-        ...positionStyle,
-      }}
-      onMouseDown={onMouseDown}
-      title={title}
-    >
-      {children}
-    </div>
-  );
-  
-  const iconSizeClass = "w-2 h-2"; 
+  const iconSizeClass = "w-2 h-2";
 
   return (
     <div
@@ -441,11 +541,12 @@ export function DraggableElement({
               <HandleComponent
                 key={corner}
                 positionStyle={posStyle}
+                visualScale={handleVisualScale}
                 onMouseDown={(e) => handleInteractionStart(e, 'scale', corner)}
                 title="Scale Proportional"
                 cursor={cursor}
-                className="bg-primary rounded-full" 
-                isCorner 
+                className="bg-primary rounded-full"
+                isCorner
               />
             );
           })}
@@ -462,40 +563,65 @@ export function DraggableElement({
               <HandleComponent
                 key={edge}
                 positionStyle={posStyle}
+                visualScale={handleVisualScale}
                 onMouseDown={(e) => handleInteractionStart(e, 'resize', edge)}
                 title="Resize"
                 cursor={cursor}
                 className="rounded-sm"
-                isCorner={false} 
+                isCorner={false}
               />
             );
           })}
 
+          {/* Stem bridging the top resize grip and the rotate handle, so the
+              handle reads as a control parked outside the element rather than
+              as part of its top edge. */}
+          <div
+            data-export-exclude
+            className="absolute pointer-events-none bg-primary/70"
+            style={{
+              left: '50%',
+              top: `${-satelliteClearance}px`,
+              width: `${Math.max(1, outlineThickness * 0.6)}px`,
+              height: `${satelliteGap}px`,
+              transform: 'translateX(-50%)',
+            }}
+          />
+
           <HandleComponent
             positionStyle={{
-              top: `${HANDLE_OFFSET - (HANDLE_SIZE_BASE * 1.5)}px`, 
+              top: `${satelliteOffset}px`,
               left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`,
             }}
+            visualScale={handleVisualScale}
             onMouseDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
-            title="Rotate"
-            cursor="grab"
+            title="Rotate (hold Shift to snap to 15°)"
+            cursor={ROTATE_CURSOR}
             className="rounded-full"
           >
             <RotateCcwIcon className={cn(iconSizeClass, "text-primary")} />
           </HandleComponent>
-          
+
           <HandleComponent
              positionStyle={{
-                top: `${HANDLE_OFFSET}px`, 
-                right: `${HANDLE_OFFSET - HANDLE_SIZE_BASE - (HANDLE_SIZE_BASE * 0.5)}px`, 
+                top: `${HANDLE_OFFSET}px`,
+                right: `${satelliteOffset}px`,
              }}
+             visualScale={handleVisualScale}
+             // Deleting fired on mousedown, so a press that slipped onto this
+             // handle removed the element before the button came back up.
+             // Swallow the press, act on the completed click.
              onMouseDown={(e) => {
-                e.stopPropagation(); 
+                e.preventDefault();
+                e.stopPropagation();
+             }}
+             onClick={(e) => {
+                e.stopPropagation();
                 onDeleteElement(element.id);
              }}
              title="Delete Element"
              cursor="pointer"
-             className="bg-destructive hover:bg-destructive/80 rounded-full" 
+             className="bg-destructive hover:bg-destructive/80 rounded-full"
            >
             <Trash2Icon className={cn(iconSizeClass, "text-destructive-foreground")} />
           </HandleComponent>

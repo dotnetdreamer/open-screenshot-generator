@@ -19,21 +19,17 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 12 August 2026: one project, every language
+
+- Add the languages you ship in and the whole project switches between them: one shared layout, with text, fonts and screenshots per language, machine translations to start from, and a properties panel that writes each language on its own. [60 second walkthrough](https://youtu.be/mO17AX-PXgc)
+
 ### 11 August 2026: your own fonts, and line breaks in text
 
 - Import your own `.ttf`, `.otf`, `.woff` or `.woff2` from the Font Family picker, use it like any built-in font, and it travels with the project when you export the JSON or save to your account. Text elements now take manual line breaks, and the box grows to fit them
 
 ### 7 August 2026: exports, cloud saves, translation
 
-- Export progress dialog with a live file count and a cancel button
-- Export a single artboard, from its toolbar or the "Selected artboard only" box
-- Export filenames now include the canvas size, e.g. `01_Store_Hero_iPhone_iPhone-6_9-Portrait_1290x2796.png`
-- Saving to your account asks before overwriting: replace the saved copy, or save a new one under a different name
-- Closing or reloading the browser tab asks for confirmation
-- Translate a single text element or one artboard, not just the whole project
-- Translated text picks a font for the target script automatically
-- Desktop Google Drive sign-in now uses a Desktop app OAuth client ([setup](docs/ACCOUNT-SYNC.md))
-- New template: Plannio Student
+- Export a single artboard with a progress dialog you can cancel, save to your account without silently overwriting an earlier copy, and translate just one text element or artboard instead of the whole project
 
 ### 6 August 2026: upload screenshots straight to the stores
 
@@ -135,25 +131,6 @@ Other scripts:
 - `npm run typecheck` runs `tsc --noEmit`
 
 One thing to watch: `npm start` currently re-runs the dev server rather than serving a build. For a production build, run `npm run build` and then `npx next start`.
-
-## How the code is organized
-
-The app is a single Next.js page ([src/app/page.tsx](src/app/page.tsx)) that mounts the editor. The interesting parts live under [src/components/open-screenshot-generator/](src/components/open-screenshot-generator/):
-
-- [OpenScreenshotGeneratorLayout.tsx](src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx) is the top-level component holding most of the state (artboards, selection, undo history, project save/load) and doing the PNG export with `html-to-image`
-- [CanvasArea.tsx](src/components/open-screenshot-generator/CanvasArea.tsx) and [Artboard.tsx](src/components/open-screenshot-generator/Artboard.tsx) render the pannable, zoomable canvas and the individual artboards on it
-- [elements/](src/components/open-screenshot-generator/elements/) holds the renderers for the element types: text, shape, image, device frame (a screenshot mockup), recording mockup, plain video, and gesture hint. The device frame and the recording mockup share their bezels and notches through [deviceChrome.tsx](src/components/open-screenshot-generator/elements/deviceChrome.tsx) so the two cannot drift apart
-- [src/lib/video/](src/lib/video/) is the MP4 exporter: sprite capture, per-frame canvas compositing, and the WebCodecs H.264 encode
-- [src/lib/publish/](src/lib/publish/) talks to App Store Connect and Google Play: JWT signing with WebCrypto, Apple's reserve/upload/commit asset dance, and Play's edit transaction
-- The panels and dialogs around the canvas: [ElementPalette.tsx](src/components/open-screenshot-generator/ElementPalette.tsx), [LayersPanel.tsx](src/components/open-screenshot-generator/LayersPanel.tsx), [PropertiesPanel.tsx](src/components/open-screenshot-generator/PropertiesPanel.tsx), toolbars, and the export/preview dialogs
-
-Around that:
-
-- [src/types/artboard.ts](src/types/artboard.ts) defines the whole data model: artboards, every element type, and projects. If you read one file before touching anything, make it this one; the rest of the codebase is mostly functions that manipulate these types.
-- [src/components/ui/](src/components/ui/) has the shadcn/ui-style primitives built on Radix
-- [src/services/](src/services/) covers template loading and the Google Fonts helpers
-- [src/database.ts](src/database.ts) is the Dexie (IndexedDB) setup: a `projects` table, plus a `media` table holding uploaded recordings as blobs ([mediaStore.ts](src/lib/mediaStore.ts) wraps it)
-- [src/lib/elementLibrary.ts](src/lib/elementLibrary.ts) supplies default props for newly added elements
 
 ## App Store preview videos
 

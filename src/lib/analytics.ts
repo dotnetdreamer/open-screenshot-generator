@@ -76,12 +76,17 @@ export function trackExportPng(params: {
   formats?: string[];
   artboardCount: number;
   fileCount: number;
+  // How many languages the run covered. A count only, never the codes: which
+  // markets someone ships to is their business, and the number is all we need
+  // to see whether multi-language exports are used at all.
+  localeCount?: number;
 }): void {
   track('export_png', {
     mode: params.mode,
     formats: params.formats?.join(',') || 'none',
     artboard_count: params.artboardCount,
     file_count: params.fileCount,
+    locale_count: params.localeCount ?? 1,
   });
 }
 

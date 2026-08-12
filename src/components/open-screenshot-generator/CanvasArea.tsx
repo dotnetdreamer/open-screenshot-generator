@@ -7,11 +7,57 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { dropElementOverrides } from '@/lib/i18n/localization';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
+/**
+ * An element added to or removed from a board on the canvas.
+ *
+ * The canvas renders a PROJECTION (one language) of the base document, and the
+ * projection is only allowed to differ in a handful of text/media keys. So a
+ * change to *which* elements exist cannot be expressed as "here is the new
+ * array": rebuilding the base from a projected array would either bake one
+ * language's strings into every language, or drop an element that is merely
+ * hidden in the language being viewed. It travels as a delta instead, and the
+ * parent applies it to the base document.
+ *
+ * `added` elements are safe to write verbatim: they were just built from
+ * palette defaults, so no locale has anything to say about them yet.
+ */
+export interface CanvasStructuralChange {
+  artboardId: string;
+  added: ArtboardElement[];
+  removedIds: string[];
+}
+
+/**
+ * Applies a canvas structural change to the BASE board it came from, dropping
+ * the removed elements' overrides in every locale in the same pass so a
+ * re-minted id can never inherit a stale translation.
+ */
+export function applyCanvasStructuralChange(board: ArtboardState, change: CanvasStructuralChange): ArtboardState {
+  const removed = new Set(change.removedIds);
+  const kept = removed.size > 0 ? board.elements.filter(el => !removed.has(el.id)) : board.elements;
+  // New elements land on top, which is where the canvas just drew them.
+  const elements = change.added.length > 0 ? [...kept, ...change.added] : kept;
+  if (elements === board.elements) return board;
+  return dropElementOverrides({ ...board, elements }, change.removedIds);
+}
+
 interface CanvasAreaProps {
+  /**
+   * What the active language shows. Board count, board order and board ids are
+   * identical to the base document, so every index and length below still means
+   * what it did before the locale overlay existed.
+   */
   artboards: ArtboardState[];
+  /** Property edits only. The parent folds these back into the base document. */
   onUpdateArtboards: (artboards: ArtboardState[]) => void;
+  /**
+   * Adding and deleting elements. Absent means the canvas falls back to
+   * onUpdateArtboards, which is correct only while there is no locale overlay.
+   */
+  onUpdateBaseArtboards?: (change: CanvasStructuralChange) => void;
   onAddElementToArtboard: (artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => void;
   activeArtboardId: string | null;
   setActiveArtboardId: (id: string | null) => void;
@@ -31,11 +77,17 @@ interface CanvasAreaProps {
   // fake placeholder artboard. Artboard positioning is owned by the parent
   // (calculateArtboardPositions in OpenScreenshotGeneratorLayout), not here.
   isLoading?: boolean;
+  // The language on screen, null for the base language. Nothing here resolves a
+  // locale (the parent hands us an already-resolved array); it only keys the
+  // boards so a switch cannot leave a half-typed string behind, and tags the
+  // canvas for the screenshot harness.
+  activeLocale?: string | null;
 }
 
 export function CanvasArea({
-    artboards: externalArtboards, 
+    artboards: externalArtboards,
     onUpdateArtboards,
+    onUpdateBaseArtboards,
     onAddElementToArtboard,
     activeArtboardId,
     setActiveArtboardId,
@@ -51,6 +103,7 @@ export function CanvasArea({
     onExportArtboard,
     activeTool,
     isLoading = false,
+    activeLocale = null,
 }: CanvasAreaProps) {
   // The parent is the single source of truth for artboards. We render the prop
   // directly (no private mirror copy) so a newly loaded template paints on the
@@ -84,7 +137,24 @@ export function CanvasArea({
     }
   }, [externalArtboards, activeArtboardId, setActiveArtboardId]);
 
+  // Artboard hands back its whole element array for four different gestures:
+  // drag/resize/restyle (a property edit), the palette drop and the imperative
+  // addElement (an add), and the delete handle plus deleteElementByIdG (a
+  // delete). Only the property edit may be folded back through a language
+  // projection, so the two structural cases are diffed out here and travel as a
+  // delta to the base document instead.
   const handleUpdateArtboardElements = (artboardId: string, elements: ArtboardElement[]) => {
+    const board = artboards.find(ab => ab.id === artboardId);
+    if (onUpdateBaseArtboards && board) {
+      const before = new Set(board.elements.map(el => el.id));
+      const after = new Set(elements.map(el => el.id));
+      const added = elements.filter(el => !before.has(el.id));
+      const removedIds = board.elements.filter(el => !after.has(el.id)).map(el => el.id);
+      if (added.length > 0 || removedIds.length > 0) {
+        onUpdateBaseArtboards({ artboardId, added, removedIds });
+        return;
+      }
+    }
     const newArtboards = artboards.map(ab =>
       ab.id === artboardId ? { ...ab, elements } : ab
     );
@@ -216,8 +286,11 @@ export function CanvasArea({
     
     if (!artboard) return;
     
-    // Check if the artboard has any elements
-    if (artboard.elements.length > 0) {
+    // Check if the artboard has any elements. `elements` is what THIS language
+    // shows, so a board whose every element is hidden in the active language
+    // would look empty; its override map is the tell that other languages still
+    // have something on it, and deleting the board takes those with it.
+    if (artboard.elements.length > 0 || !!artboard.localized) {
       // If it has elements, store the ID and show confirmation dialog
       setArtboardToDelete(artboardId);
       setDeleteDialogOpen(true);
@@ -253,6 +326,7 @@ export function CanvasArea({
       <div
         ref={contentAreaRef}
         className="relative w-max min-w-full"
+        data-canvas-locale={activeLocale ?? ''}
         style={{
           // Restore a large minHeight to always allow scrolling
           minHeight: "2000px",
@@ -296,8 +370,14 @@ export function CanvasArea({
           )}
 
           {artboards.map((artboard, index) => (
+            // Keyed by language as well as id: Artboard and TextElement both
+            // mirror their props into local state, and an inline edit left open
+            // across a language switch would blur its old text into the new
+            // language. A switch is a deliberate, rare gesture, so paying a
+            // remount (3D devices dispose and re-create their context, see
+            // Device3DRenderer) buys a guaranteed clean slate.
             <div
-              key={artboard.id}
+              key={`${artboard.id}:${activeLocale ?? ''}`}
               style={{
                 position: 'absolute',
                 left: `${artboard.position.x}px`,

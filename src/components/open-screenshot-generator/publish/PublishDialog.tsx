@@ -18,6 +18,7 @@ import {
   CheckCircle2Icon,
   ExternalLinkIcon,
   KeyRoundIcon,
+  LanguagesIcon,
   Loader2Icon,
   MonitorDownIcon,
   RefreshCwIcon,
@@ -44,7 +45,17 @@ import {
 } from '@/components/ui/select';
 import { openExternal } from '@/lib/desktop';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat } from '@/lib/deviceRegistry';
+import { localeLabel } from '@/lib/i18n/locales';
+import { getBaseLocale, getProjectLocales } from '@/lib/i18n/localization';
 import type { ArtboardState, Size } from '@/types/artboard';
+import { uploadAppStoreScreenshotsForLocales } from '@/lib/publish/appStoreConnect';
+import { uploadPlayScreenshotsForLanguages } from '@/lib/publish/googlePlay';
+import {
+  appleLocaleFor,
+  localeForAppleLocale,
+  localeForPlayLanguage,
+  playLanguageFor,
+} from '@/lib/publish/storeTargets';
 import {
   MAX_SCREENSHOTS_PER_SET,
   PLAY_IMAGE_TARGETS,
@@ -86,18 +97,49 @@ const STORE_LABELS: Record<StoreId, string> = {
   playstore: 'Google Play',
 };
 
+/**
+ * Both stores show the uploaded file name and nothing else, and the editor
+ * names a board "01_Feature_One.png", so five languages arrive looking
+ * identical and a converted size is indistinguishable from the original.
+ * Tokens are appended, never substituted, and only when the name does not
+ * already carry them.
+ */
+function describeImage(image: PublishImage, locale: string | null): PublishImage {
+  const stem = image.fileName.replace(/\.png$/i, '');
+  const size = `${image.width}x${image.height}`;
+  const parts = [stem];
+  if (locale && !stem.includes(locale)) parts.push(locale);
+  if (!stem.includes(size)) parts.push(size);
+  return { ...image, locale: locale ?? undefined, fileName: `${parts.join('_')}.png` };
+}
+
 export interface PublishDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The BASE document, every language. The project's locales are read off it. */
   artboards: ArtboardState[];
+  /** The language the editor is showing, null for the base language. */
+  activeLocale?: string | null;
   /**
    * Render the chosen artboards to PNG bytes. `formatId` null keeps the canvas
    * as it is; a preset converts it in memory first and restores afterwards.
+   * `locale` null renders the base language, anything else renders that
+   * language's projection, which is the whole point of uploading per language.
    */
-  onCapture: (artboardIds: string[], formatId: DeviceFormat | null) => Promise<PublishImage[]>;
+  onCapture: (
+    artboardIds: string[],
+    formatId: DeviceFormat | null,
+    locale?: string | null
+  ) => Promise<PublishImage[]>;
 }
 
-export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: PublishDialogProps) {
+export function PublishDialog({
+  isOpen,
+  onOpenChange,
+  artboards,
+  activeLocale = null,
+  onCapture,
+}: PublishDialogProps) {
   const { credentials, saveAppStore, savePlay } = useStoreCredentials();
   const [mounted, setMounted] = useState(false);
   const [store, setStore] = useState<StoreId>('appstore');
@@ -117,6 +159,13 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
   const [imageType, setImageType] = useState('phoneScreenshots');
   // Until the user picks a slot themselves, the slot follows the board size.
   const [imageTypePicked, setImageTypePicked] = useState(false);
+
+  // Which project language gets rendered, and whether every one of them goes up
+  // in a single run. Both are inert on a project with no languages.
+  const [captureLocale, setCaptureLocale] = useState<string>(
+    () => activeLocale ?? getBaseLocale(artboards)
+  );
+  const [uploadAllLanguages, setUploadAllLanguages] = useState(false);
 
   const [formatId, setFormatId] = useState<DeviceFormat | 'current'>('current');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -143,6 +192,8 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
     setError(null);
     setProgress(null);
     setSelectedIds(artboards.map((artboard) => artboard.id));
+    setCaptureLocale(activeLocale ?? getBaseLocale(artboards));
+    setUploadAllLanguages(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
@@ -270,6 +321,91 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
     [artboards, selectedIds]
   );
 
+  // --- Languages ------------------------------------------------------------
+
+  const baseLocale = useMemo(() => getBaseLocale(artboards), [artboards]);
+  const projectLocales = useMemo(
+    () => [baseLocale, ...getProjectLocales(artboards).map((entry) => entry.code)],
+    [artboards, baseLocale]
+  );
+  const isMultiLanguage = projectLocales.length > 1;
+
+  /**
+   * Every project language, paired with the listing it would go into.
+   *
+   * `destinationId` null is the case worth showing: the language exists in the
+   * editor but not in the store. There is no create-localization call in this
+   * app (and Apple's is a separate resource with its own required fields), so
+   * the only fix is adding it in the store console first.
+   */
+  const localeRows = useMemo(() => {
+    return projectLocales.map((code) => {
+      const storeCode = store === 'appstore' ? appleLocaleFor(code) : playLanguageFor(code);
+      const lower = storeCode?.toLowerCase();
+      const destinationId =
+        !lower
+          ? null
+          : store === 'appstore'
+            ? localizations?.find((entry) => entry.locale.toLowerCase() === lower)?.id ?? null
+            : languages?.find((entry) => entry.language.toLowerCase() === lower)?.language ?? null;
+      return { code, label: localeLabel(code), storeCode, destinationId };
+    });
+  }, [projectLocales, store, localizations, languages]);
+
+  const matchedLocales = localeRows.filter((row) => row.destinationId);
+  /** The listing list has not arrived yet, so "not set up" would be a guess. */
+  const destinationsLoaded = store === 'appstore' ? localizations !== null : languages !== null;
+
+  /** The store code the single-language path is currently pointed at. */
+  const pickedStoreCode =
+    store === 'appstore'
+      ? localizations?.find((entry) => entry.id === localizationId)?.locale ?? null
+      : language || null;
+
+  // Picking a store language re-targets which language gets RENDERED, and
+  // re-defaults the board selection with it. Without this, picking German and
+  // pressing Upload sends the English pixels into the German set, and Apple
+  // only reveals that hours later when asset processing finishes.
+  useEffect(() => {
+    if (!isMultiLanguage || uploadAllLanguages || !pickedStoreCode) return;
+    const mapped =
+      store === 'appstore'
+        ? localeForAppleLocale(pickedStoreCode)
+        : localeForPlayLanguage(pickedStoreCode);
+    if (!mapped || !projectLocales.includes(mapped)) return;
+    setCaptureLocale(mapped);
+    // Every board belongs to every language here: there is one layout and the
+    // language is a projection over it. Re-selecting them all is what "the
+    // boards for this language" means in this model, and it undoes any manual
+    // unticking that was meant for the language the user just moved off.
+    setSelectedIds(artboards.map((artboard) => artboard.id));
+  }, [
+    isMultiLanguage,
+    uploadAllLanguages,
+    pickedStoreCode,
+    store,
+    projectLocales,
+    artboards,
+  ]);
+
+  /**
+   * The store language the user picked has no counterpart in this project, so
+   * whatever is uploaded will be in the wrong language. Not a hard block: a
+   * single-language project pointed at a German listing is a legitimate thing
+   * to do on purpose.
+   */
+  const localeMismatch =
+    isMultiLanguage &&
+    !uploadAllLanguages &&
+    pickedStoreCode &&
+    !projectLocales.includes(
+      (store === 'appstore'
+        ? localeForAppleLocale(pickedStoreCode)
+        : localeForPlayLanguage(pickedStoreCode)) ?? ''
+    )
+      ? pickedStoreCode
+      : null;
+
   // Suggest a Play slot from the first selected board, until the user picks one.
   useEffect(() => {
     if (store !== 'playstore' || imageTypePicked || selected.length === 0) return;
@@ -306,8 +442,17 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
   ).length;
   const readyCount = selected.length - blockedCount;
 
-  const destinationReady =
-    store === 'appstore' ? !!credentials.appstore && !!localizationId : !!credentials.playstore;
+  const destinationReady = (() => {
+    const hasKey = store === 'appstore' ? !!credentials.appstore : !!credentials.playstore;
+    if (!hasKey) return false;
+    // Uploading every language needs at least one of them to exist in the
+    // store, and nothing else: the per-language picker is not in play.
+    if (uploadAllLanguages) return matchedLocales.length > 0;
+    return store === 'appstore' ? !!localizationId : true;
+  })();
+
+  /** Images per language times languages, which is what the button counts. */
+  const localeMultiplier = uploadAllLanguages ? matchedLocales.length : 1;
 
   // Apple freezes screenshots the moment a version is submitted, so "no
   // editable version" is usually "it is sitting in review". Saying that beats
@@ -330,24 +475,83 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
     setIsUploading(true);
     setProgress({ stage: 'preparing', message: 'Rendering the artboards' });
     try {
-      const images = await onCapture(
-        rows.filter((row) => selectedIds.includes(row.artboard.id) && !row.problem).map((row) => row.artboard.id),
-        formatId === 'current' ? null : formatId
-      );
-      if (images.length === 0) throw new Error('Nothing was rendered, so there is nothing to upload.');
+      const boardIds = rows
+        .filter((row) => selectedIds.includes(row.artboard.id) && !row.problem)
+        .map((row) => row.artboard.id);
+      const format = formatId === 'current' ? null : formatId;
 
-      const outcome =
-        store === 'appstore'
-          ? await uploadAppStoreScreenshots(
-              credentials.appstore!,
-              { localizationId, images, replaceExisting, appId },
-              setProgress
-            )
-          : await uploadPlayScreenshots(
-              credentials.playstore!,
-              { language, imageType, images, replaceExisting },
-              setProgress
-            );
+      /** Capture one language and label every image with what it actually is. */
+      const capture = async (locale: string | null): Promise<PublishImage[]> => {
+        const images: PublishImage[] = await onCapture(boardIds, format, locale);
+        return images.map((image) => describeImage(image, image.locale ?? locale));
+      };
+
+      let outcome: PublishResult;
+
+      if (uploadAllLanguages) {
+        // Rendering is serial because there is one canvas: each language is
+        // projected onto it, photographed, and the next one takes its place.
+        const captured: Array<{ row: (typeof matchedLocales)[number]; images: PublishImage[] }> = [];
+        for (const [index, row] of matchedLocales.entries()) {
+          setProgress({
+            stage: 'preparing',
+            message: `Rendering ${row.label}`,
+            current: index + 1,
+            total: matchedLocales.length,
+          });
+          const images = await capture(row.code);
+          if (images.length > 0) captured.push({ row, images });
+        }
+        if (captured.length === 0) {
+          throw new Error('Nothing was rendered, so there is nothing to upload.');
+        }
+
+        outcome =
+          store === 'appstore'
+            ? await uploadAppStoreScreenshotsForLocales(
+                credentials.appstore!,
+                {
+                  sets: captured.map((entry) => ({
+                    localizationId: entry.row.destinationId!,
+                    images: entry.images,
+                    label: entry.row.label,
+                  })),
+                  replaceExisting,
+                  appId,
+                },
+                setProgress
+              )
+            : await uploadPlayScreenshotsForLanguages(
+                credentials.playstore!,
+                {
+                  entries: captured.map((entry) => ({
+                    language: entry.row.destinationId!,
+                    imageType,
+                    images: entry.images,
+                  })),
+                  replaceExisting,
+                },
+                setProgress
+              );
+      } else {
+        const images = await capture(isMultiLanguage ? captureLocale : null);
+        if (images.length === 0) {
+          throw new Error('Nothing was rendered, so there is nothing to upload.');
+        }
+
+        outcome =
+          store === 'appstore'
+            ? await uploadAppStoreScreenshots(
+                credentials.appstore!,
+                { localizationId, images, replaceExisting, appId },
+                setProgress
+              )
+            : await uploadPlayScreenshots(
+                credentials.playstore!,
+                { language, imageType, images, replaceExisting },
+                setProgress
+              );
+      }
       setResult(outcome);
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : 'The upload failed.');
@@ -367,6 +571,9 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
     if (!available) return '';
     if (!hasCredentials || editingCredentials) return 'Fill in the fields below, then Save key';
     if (!destinationReady) {
+      if (uploadAllLanguages) {
+        return `None of this project's languages exist in ${STORE_LABELS[store]} yet`;
+      }
       return store === 'appstore'
         ? 'Pick an app, a version and a language above'
         : 'Pick a language above';
@@ -376,7 +583,8 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
         ? 'Nothing selected that this store accepts at this size'
         : 'Tick at least one artboard';
     }
-    return `${readyCount} of ${artboards.length} ready${blockedCount ? `, ${blockedCount} cannot be uploaded at this size` : ''}`;
+    const ready = `${readyCount} of ${artboards.length} ready${blockedCount ? `, ${blockedCount} cannot be uploaded at this size` : ''}`;
+    return uploadAllLanguages ? `${ready}, in ${matchedLocales.length} languages` : ready;
   })();
   const percent =
     progress?.total && progress.total > 0
@@ -542,7 +750,7 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
                         label="Language"
                         value={localizationId}
                         onValueChange={setLocalizationId}
-                        disabled={isUploading || !localizations?.length}
+                        disabled={isUploading || uploadAllLanguages || !localizations?.length}
                         placeholder={localizations ? 'Pick a language' : 'Loading'}
                         options={(localizations ?? []).map((entry) => ({
                           value: entry.id,
@@ -569,7 +777,7 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
                         label="Language"
                         value={language}
                         onValueChange={setLanguage}
-                        disabled={isUploading || !languages?.length}
+                        disabled={isUploading || uploadAllLanguages || !languages?.length}
                         placeholder={languages ? 'Pick a language' : 'Loading'}
                         options={(languages ?? []).map((entry) => ({
                           value: entry.language,
@@ -591,6 +799,95 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
                       />
                     </div>
                   ) : null}
+
+                  {/* Languages. Absent entirely until the project has some, so
+                      a single-language project sees the dialog it always saw. */}
+                  {isMultiLanguage && (
+                    <div className="space-y-3 rounded-md border p-3">
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="publish-all-languages"
+                          checked={uploadAllLanguages}
+                          disabled={isUploading}
+                          onCheckedChange={(value) => setUploadAllLanguages(value === true)}
+                        />
+                        <div className="grid gap-1 leading-none">
+                          <Label
+                            htmlFor="publish-all-languages"
+                            className="flex items-center gap-1.5"
+                          >
+                            <LanguagesIcon className="h-3.5 w-3.5" />
+                            Upload every language
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            All {projectLocales.length} languages, rendered from this one layout
+                            and sent to their own listings in a single run
+                          </p>
+                        </div>
+                      </div>
+
+                      {uploadAllLanguages ? (
+                        <>
+                          <ul className="space-y-1">
+                            {localeRows.map((row) => {
+                              const unmatched = destinationsLoaded && !row.destinationId;
+                              return (
+                                <li
+                                  key={row.code}
+                                  className={`flex items-center justify-between gap-3 rounded-md border px-3 py-1.5 text-xs ${
+                                    unmatched ? 'border-amber-500/40 bg-amber-500/10' : ''
+                                  }`}
+                                >
+                                  <span className="truncate">{row.label}</span>
+                                  <span className="shrink-0 text-muted-foreground">
+                                    {row.destinationId
+                                      ? row.storeCode
+                                      : !destinationsLoaded
+                                        ? 'Checking'
+                                        : row.storeCode
+                                          ? `Not set up in ${STORE_LABELS[store]}`
+                                          : `${STORE_LABELS[store]} has no such language`}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          {destinationsLoaded && matchedLocales.length < localeRows.length && (
+                            <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                              <AlertTriangleIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                              <span>
+                                A language has to exist in {STORE_LABELS[store]} before anything
+                                can be written to it, and this app cannot create one. Add it
+                                there, then press the reload button above
+                              </span>
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <LabelledSelect
+                          label="Language to render"
+                          value={captureLocale}
+                          onValueChange={setCaptureLocale}
+                          disabled={isUploading}
+                          options={localeRows.map((row) => ({
+                            value: row.code,
+                            label: row.label,
+                          }))}
+                        />
+                      )}
+
+                      {localeMismatch && (
+                        <p className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+                          <AlertTriangleIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span>
+                            This project has no {localeMismatch} version, so{' '}
+                            {localeLabel(captureLocale)} is what would be uploaded there. Add that
+                            language in the editor first, or pick a different listing
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -765,7 +1062,7 @@ export function PublishDialog({ isOpen, onOpenChange, artboards, onCapture }: Pu
               ) : (
                 <UploadCloudIcon className="mr-1.5 h-4 w-4" />
               )}
-              Upload {readyCount > 0 ? readyCount : ''}
+              Upload {readyCount > 0 ? readyCount * localeMultiplier : ''}
             </Button>
           </div>
         </DialogFooter>

@@ -7,6 +7,10 @@ import type { ArtboardElement } from '@/types/artboard';
 import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getElementDisplayName } from '@/lib/historyLabels';
+import { localeName } from '@/lib/i18n/locales';
+
+/** How one element resolves in the active locale. Mirrors overrideStateFor. */
+export type LocaleOverrideState = 'inherited' | 'manual' | 'auto' | 'stale-manual' | 'stale-auto';
 
 // Flat section of the right dock (bottom half, under the resize divider in
 // OpenScreenshotGeneratorLayout): header strip + scrolling list, filling
@@ -19,6 +23,49 @@ interface LayersPanelProps {
   onDeleteElement: (elementId: string) => void;
   onRenameElement: (elementId: string, newName: string) => void;
   activeArtboardName?: string;
+  /** Locale overlay: null means the base language is showing and no dots render. */
+  activeLocale?: string | null;
+  /** elementId -> state in activeLocale. Missing entries read as 'inherited'. */
+  localeStates?: Record<string, LocaleOverrideState>;
+}
+
+/**
+ * The cheapest of the four untranslated affordances, and the only one that is
+ * already on screen while you work. Three looks, not five: whether a string was
+ * typed or machine written is the translation table's job, all this row has to
+ * answer is "does this layer still say the base language".
+ */
+function localeDotFor(
+  element: ArtboardElement,
+  state: LocaleOverrideState,
+  locale: string
+): { className: string; title: string } | null {
+  const name = localeName(locale);
+  switch (state) {
+    case 'manual':
+    case 'auto':
+      return {
+        className: 'border-primary bg-primary',
+        title: `Written for ${name}`,
+      };
+    case 'stale-manual':
+    case 'stale-auto':
+      return {
+        className: 'border-amber-500 bg-amber-500',
+        title: `The base language changed after this was written for ${name}`,
+      };
+    default:
+      // Hollow, and only where a fallback is worth flagging. Text is always
+      // worth flagging; a device frame or an image inherits its base asset
+      // perfectly well and nagging about every one of them would make the
+      // panel unreadable.
+      return element.type === 'text'
+        ? {
+            className: 'border-muted-foreground/50 bg-transparent',
+            title: `Nothing written for ${name} yet, this layer falls back to the base language`,
+          }
+        : null;
+  }
 }
 
 const getElementIcon = (element: ArtboardElement) => {
@@ -54,7 +101,7 @@ const getElementIcon = (element: ArtboardElement) => {
 // Shared with the History panel so a layer reads the same in both.
 const getElementLabel = getElementDisplayName;
 
-export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName }: LayersPanelProps) {
+export function LayersPanel({ elements, selectedElementId, onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, activeArtboardName, activeLocale = null, localeStates }: LayersPanelProps) {
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +150,23 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
   };
 
   const reversedElements = [...elements].reverse(); // Display top-most element at the top of the list
+
+  // Returns null, not an empty span, when the base language is showing: the
+  // panel has to render exactly what it rendered before this feature existed
+  // for every project that has no languages, which is all of them today.
+  const localeDot = (element: ArtboardElement) => {
+    if (!activeLocale) return null;
+    const dot = localeDotFor(element, localeStates?.[element.id] ?? 'inherited', activeLocale);
+    if (!dot) return null;
+    return (
+      <span
+        role="img"
+        aria-label={dot.title}
+        title={dot.title}
+        className={cn('mr-1.5 h-2 w-2 shrink-0 rounded-full border', dot.className)}
+      />
+    );
+  };
 
   return (
     <div className="flex h-full flex-col bg-card">
@@ -156,6 +220,7 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                       <span className="truncate flex-grow ml-1">{getElementLabel(element)}</span>
                     </Button>
                   )}
+                  {localeDot(element)}
                   <div className="flex-shrink-0 ml-auto space-x-0.5">
                     <Button
                       variant="ghost"

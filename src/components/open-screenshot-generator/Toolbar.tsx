@@ -12,7 +12,7 @@ import {
   RulerIcon,
   CloudUploadIcon,
   Loader2Icon,
-  GlobeIcon,
+  LanguagesIcon,
   StoreIcon
 } from 'lucide-react';
 import {
@@ -25,10 +25,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Size } from '@/types/artboard';
+import { ArtboardState, Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { findMatchingPreset } from '@/lib/sizePresets';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface ToolbarProps {
   onSelectTemplate: () => void;
@@ -51,6 +52,21 @@ interface ToolbarProps {
   // Format the project's mockups are currently on (phone platform or Play
   // Store tablet); null when mixed or none.
   activeDeviceFormat?: DeviceFormat | null;
+
+  // Locale overlay. Deliberately NOT gated on isTranslationEnabled: a project
+  // localized by hand, or from a CSV a translator filled in, needs no
+  // LibreTranslate at all, and hiding the switcher would hide the whole
+  // feature from everyone who never configured a translation server.
+  /** The BASE document, every language. The switcher reads its locale list. */
+  artboards?: ArtboardState[];
+  /** null means the base language is showing. */
+  activeLocale?: string | null;
+  onSelectLocale?: (locale: string | null) => void;
+  onManageLanguages?: () => void;
+  onOpenTranslations?: () => void;
+  onUpdateTranslations?: () => void;
+  /** A machine path exists (LibreTranslate configured, or an AI provider). */
+  translationAvailable?: boolean;
 }
 
 export function Toolbar({ 
@@ -70,6 +86,13 @@ export function Toolbar({
   onTranslate,
   isTranslationEnabled = true,
   activeDeviceFormat,
+  artboards,
+  activeLocale = null,
+  onSelectLocale,
+  onManageLanguages,
+  onOpenTranslations,
+  onUpdateTranslations,
+  translationAvailable = false,
 }: ToolbarProps) {
   const deviceFormatLabel =
     DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? 'Devices';
@@ -142,7 +165,47 @@ export function Toolbar({
         onApply={onUpdateArtboardSize}
       />
 
-      <div className="flex-grow" />
+      {/* The only genuinely free horizontal space in the chrome. The language
+          controls sit at its LEFT edge, beside the canvas controls they belong
+          with, rather than joining the action run on the right, which is
+          already several icon buttons plus a labelled one.
+
+          No min-w-0 on purpose: the spacer must not shrink past the switcher
+          and clip it. When the row runs out of room the give comes from the
+          canvas-size button's truncating preset label, since every button to
+          the right of here is shrink-0. */}
+      <div className="flex flex-grow items-center gap-2">
+        {artboards && onSelectLocale && onManageLanguages && onOpenTranslations && onUpdateTranslations && (
+          <LanguageSwitcher
+            artboards={artboards}
+            activeLocale={activeLocale}
+            onSelectLocale={onSelectLocale}
+            onManageLanguages={onManageLanguages}
+            onOpenTranslations={onOpenTranslations}
+            onUpdateTranslations={onUpdateTranslations}
+            translationAvailable={translationAvailable}
+          />
+        )}
+
+        {/* Translating is what you reach for once a language exists, so it
+            belongs beside the language switcher rather than in the
+            export/import/publish run on the right. */}
+        {onTranslate && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onTranslate}
+            disabled={!isTranslationEnabled}
+            className="h-8 w-8 shrink-0"
+            title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
+          >
+            {/* The globe belongs to the language controls (Add language, the
+                locale chip). Translating is a different verb, so it gets the
+                A-and-character glyph instead of a second globe. */}
+            <LanguagesIcon className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
 
       {onSelectDeviceFormat && (
         <DropdownMenu>
@@ -152,7 +215,7 @@ export function Toolbar({
                 title keeps it readable on hover. */}
             <Button
               variant="outline"
-              className="h-8"
+              className="h-8 shrink-0"
               title={
                 activeDeviceFormat
                   ? `Convert the project to another device format (currently ${deviceFormatLabel})`
@@ -199,28 +262,16 @@ export function Toolbar({
       <Button
         variant="outline"
         onClick={onPreview}
-        className="h-8"
+        className="h-8 shrink-0"
         title="Preview final result"
       >
         <EyeIcon className="mr-1.5 h-4 w-4" />
       </Button>
 
-      {onTranslate && (
-        <Button
-          variant="outline"
-          onClick={onTranslate}
-          disabled={!isTranslationEnabled}
-          className="h-8"
-          title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
-        >
-          <GlobeIcon className="mr-1.5 h-4 w-4" />
-        </Button>
-      )}
-
       <Button
         variant="outline"
         onClick={onImportJSON}
-        className="h-8"
+        className="h-8 shrink-0"
         title="Import Project from JSON"
       >
         <FolderOpenIcon className="mr-1.5 h-4 w-4" />
@@ -229,7 +280,7 @@ export function Toolbar({
       <Button 
         variant="outline" 
         onClick={onExportJSON} 
-        className="h-8"
+        className="h-8 shrink-0"
         title="Export Project as JSON"
       >
         <FileTextIcon className="mr-1.5 h-4 w-4" />
@@ -245,7 +296,7 @@ export function Toolbar({
         onClick={onSaveToAccount}
         disabled={isSavingToAccount}
         aria-disabled={!isAccountConnected}
-        className={cn('h-8', !isAccountConnected && 'opacity-50')}
+        className={cn('h-8 shrink-0', !isAccountConnected && 'opacity-50')}
         title={
           isAccountConnected
             ? 'Save to account'
@@ -262,7 +313,7 @@ export function Toolbar({
       <Button
         variant="outline"
         onClick={onExport}
-        className="h-8"
+        className="h-8 shrink-0"
         title="Export Artboards as Images"
       >
         <DownloadIcon className="mr-1.5 h-4 w-4" />
@@ -271,16 +322,21 @@ export function Toolbar({
       {/* Straight to the listing, no round trip through the Downloads folder.
           The only labelled button on this side of the toolbar: a storefront
           icon alone would not distinguish it from the export and account
-          buttons beside it, both of which are also "send my work somewhere". */}
+          buttons beside it, both of which are also "send my work somewhere".
+
+          The label drops below lg, matching the canvas-size preset label above
+          it. The language switcher now shares this row, and at laptop widths
+          that label is the difference between a clean run and a squashed one.
+          The title carries the meaning when the text is gone. */}
       {onPublishToStore && (
         <Button
           variant="outline"
           onClick={onPublishToStore}
-          className="h-8"
+          className="h-8 shrink-0"
           title="Upload screenshots to App Store Connect or Google Play"
         >
-          <StoreIcon className="mr-1.5 h-4 w-4" />
-          Upload to store
+          <StoreIcon className="h-4 w-4 lg:mr-1.5" />
+          <span className="hidden lg:inline">Upload to store</span>
         </Button>
       )}
     </div>
