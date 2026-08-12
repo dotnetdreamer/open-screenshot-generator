@@ -12,7 +12,7 @@ import {
   RulerIcon,
   CloudUploadIcon,
   Loader2Icon,
-  GlobeIcon,
+  LanguagesIcon,
   StoreIcon
 } from 'lucide-react';
 import {
@@ -166,15 +166,15 @@ export function Toolbar({
       />
 
       {/* The only genuinely free horizontal space in the chrome. The language
-          switcher sits at its LEFT edge, beside the canvas controls it belongs
+          controls sit at its LEFT edge, beside the canvas controls they belong
           with, rather than joining the action run on the right, which is
-          already eight icon buttons plus a labelled one.
+          already several icon buttons plus a labelled one.
 
           No min-w-0 on purpose: the spacer must not shrink past the switcher
           and clip it. When the row runs out of room the give comes from the
           canvas-size button's truncating preset label, since every button to
           the right of here is shrink-0. */}
-      <div className="flex flex-grow items-center">
+      <div className="flex flex-grow items-center gap-2">
         {artboards && onSelectLocale && onManageLanguages && onOpenTranslations && onUpdateTranslations && (
           <LanguageSwitcher
             artboards={artboards}
@@ -185,6 +185,25 @@ export function Toolbar({
             onUpdateTranslations={onUpdateTranslations}
             translationAvailable={translationAvailable}
           />
+        )}
+
+        {/* Translating is what you reach for once a language exists, so it
+            belongs beside the language switcher rather than in the
+            export/import/publish run on the right. */}
+        {onTranslate && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onTranslate}
+            disabled={!isTranslationEnabled}
+            className="h-8 w-8 shrink-0"
+            title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
+          >
+            {/* The globe belongs to the language controls (Add language, the
+                locale chip). Translating is a different verb, so it gets the
+                A-and-character glyph instead of a second globe. */}
+            <LanguagesIcon className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
@@ -248,18 +267,6 @@ export function Toolbar({
       >
         <EyeIcon className="mr-1.5 h-4 w-4" />
       </Button>
-
-      {onTranslate && (
-        <Button
-          variant="outline"
-          onClick={onTranslate}
-          disabled={!isTranslationEnabled}
-          className="h-8 shrink-0"
-          title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
-        >
-          <GlobeIcon className="mr-1.5 h-4 w-4" />
-        </Button>
-      )}
 
       <Button
         variant="outline"

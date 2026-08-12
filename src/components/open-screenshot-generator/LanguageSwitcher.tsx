@@ -16,7 +16,6 @@
 import {
   ChevronDownIcon,
   GlobeIcon,
-  LanguagesIcon,
   RefreshCwIcon,
   TableIcon,
 } from 'lucide-react';
@@ -177,8 +176,11 @@ export function LanguageSwitcher({
           <RefreshCwIcon className="opacity-80" />
           Update translations
         </DropdownMenuItem>
+        {/* Globe, matching the collapsed "Add language" button and the locale
+            chip above: the globe is the language set, and the toolbar's
+            LanguagesIcon is the translate action. */}
         <DropdownMenuItem onClick={onManageLanguages}>
-          <LanguagesIcon className="opacity-80" />
+          <GlobeIcon className="opacity-80" />
           Manage languages
         </DropdownMenuItem>
       </DropdownMenuContent>

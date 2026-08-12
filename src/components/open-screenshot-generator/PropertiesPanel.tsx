@@ -3313,8 +3313,11 @@ export function PropertiesPanel({
           {selectedElement.type === 'video' && renderVideoProperties(selectedElement as VideoElementProps)}
           {selectedElement.type === 'video-device' && renderVideoDeviceProperties(selectedElement as VideoDeviceElementProps)}
           {selectedElement.type === 'gesture' && renderGestureProperties(selectedElement as GestureElementProps)}
-          {selectedElement.type !== 'gesture' && renderAnimationProperties(selectedElement)}
+          {/* "Other properties" belongs with the rest of the element's
+              properties, above the video timeline block: it is the per-language
+              detach list for base properties, not part of the animation. */}
           {renderLocaleBaseProperties(selectedElement)}
+          {selectedElement.type !== 'gesture' && renderAnimationProperties(selectedElement)}
           {renderLocaleResetControls(selectedHasLocaleOverrides)}
         </div>
 
