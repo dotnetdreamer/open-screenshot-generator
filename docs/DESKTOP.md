@@ -363,6 +363,27 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   and expands into exactly what clicking that tile would drop:
   `element:shape-octagon`, `image:app-store`, `device:iphone-15-pro`,
   `device3d:iphone-tilted-left-black`, `devicecolor:iphone-outline-sky`.
+- *Languages, the set-up* — `list_supported_locales` is the catalog (the store
+  locale to add a language by, whether a machine engine covers it, what App
+  Store Connect and Google Play call it, and the font its script needs);
+  `add_locales` / `remove_locales` / `set_base_locale` manage the project's own
+  list, `list_locales` reads it, and `set_locale` chooses what the canvas shows.
+  A language is an **overlay**, not a copy: one set of artboards and one layout,
+  with per-language overrides on top, so a design fix reaches every language.
+- *Languages, the copy* — `list_translations` returns the translation table as
+  data, including where each string came from (`inherited` / `manual` / `auto`,
+  and a `stale-` prefix once the base copy has been edited under it), and
+  `set_localized_texts` writes a whole batch back in one commit, one undo step.
+  That pairing is the point: the client is itself a translator, and its copy
+  beats the built-in engine's. `translate_locales` runs that engine anyway for a
+  first draft or a `stale` refresh, and `export_translations_csv` /
+  `import_translations_csv` are the round trip for a human translation agency.
+- *Languages, the design* — `set_locale_override` gives one element its own
+  screenshot, typeface, box, position or colour in ONE language, or hides it
+  there (`hidden: true`); `reset_locale_overrides` hands an element, an artboard
+  or a whole language back to the shared design. `export_png` / `export_all`
+  take a `locale`, so a per-language delivery is one call each and the editor is
+  left on the language the user had it on.
 
 A model should normally *start from a template* — `list_templates` →
 `get_template` → `create_project_from_template` — and only build from bare
@@ -370,6 +391,9 @@ artboards when nothing fits. Building from scratch, the cheap path is
 `add_elements` for the first board, `duplicate_artboard` per screen, then
 `update_element` for the copy that differs; `upload_asset` for anything reused;
 `export_png` at `scale: 0.25` while iterating and `export_all` at the end.
+Localising an existing project is `add_locales` → `list_translations` with
+`filter: "untranslated"` → translate the strings yourself →
+`set_localized_texts` → `export_all` once per language.
 
 **Architecture.** Rust owns only the *transport*; the tools live in the
 frontend, where the design state is.

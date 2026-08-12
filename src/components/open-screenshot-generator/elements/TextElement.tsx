@@ -171,7 +171,14 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         whiteSpace: 'pre-wrap', // Allows line breaks and preserves spaces
         overflow: 'hidden',
         wordBreak: 'break-word',
-        cursor: isSelected ? 'text' : 'default',
+        // Inherit DraggableElement's cursor (grab when selected) rather than
+        // painting the whole box with an I-beam. The body fills the element, so
+        // the I-beam was the only thing anyone saw over a selected text box —
+        // it advertised "click to type" for a single click that actually
+        // selects and drags, and left the nearby rotate handle as the only
+        // hand-shaped thing on screen. Editing is still a double-click; the
+        // title says so.
+        cursor: 'inherit',
         padding: '2px', // Consistent with textarea
         boxSizing: 'border-box',
       }}

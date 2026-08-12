@@ -10,7 +10,7 @@
 // back", which is what a caller with no way to delete an argument needs.
 
 import { hash32 } from '@/lib/i18n/hash';
-import { overrideSourceValue } from '@/lib/i18n/localization';
+import { isOverrideEmpty, overrideSourceValue } from '@/lib/i18n/localization';
 import type {
   ArtboardState,
   ElementLocaleOverride,
@@ -35,18 +35,6 @@ export interface LocalizedTextResult {
   /** What the language now shows. Null when it fell back to the base copy. */
   text: string | null;
   cleared: boolean;
-}
-
-/** True when the override says nothing, so the element falls back to base. */
-function isEmptyOverride(ov: ElementLocaleOverride): boolean {
-  return (
-    ov.content === undefined &&
-    ov.fontFamily === undefined &&
-    ov.screenshotSrc === undefined &&
-    ov.imageSrc === undefined &&
-    ov.mediaId === undefined &&
-    ov.hidden === undefined
-  );
 }
 
 /**
@@ -80,7 +68,7 @@ export function applyLocalizedText(
   if (cleared) delete next.content;
   else next.content = text;
 
-  const empty = isEmptyOverride(next);
+  const empty = isOverrideEmpty(next);
   if (!empty) {
     next.origin = 'manual';
     // Hashed through the same helper unprojectArtboards uses, so the staleness

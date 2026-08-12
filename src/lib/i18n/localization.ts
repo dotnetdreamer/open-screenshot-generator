@@ -16,7 +16,7 @@ import type {
   ProjectLocalization,
   TextElementProps,
 } from '@/types/artboard';
-import { DEFAULT_BASE_LOCALE } from './locales';
+import { DEFAULT_BASE_LOCALE, LOCALES } from './locales';
 import { hash32 } from './hash';
 
 /**
@@ -138,6 +138,53 @@ function sweepBoardOverrides(
 
 export function getBaseLocale(artboards: ArtboardState[]): string {
   return getLocalization(artboards)?.baseLocale || DEFAULT_BASE_LOCALE;
+}
+
+/**
+ * What to offer as the base language for a project that has none yet: the
+ * language every board was last translated into, when they agree on one.
+ * `ArtboardState.language` is a translate code on older projects and a store
+ * locale on newer ones, so both spellings are looked up.
+ *
+ * Only a seed. Once a project has export languages the base is locked, because
+ * reassigning it re-points every override at a different source string.
+ */
+export function seedBaseLocale(artboards: ArtboardState[]): string {
+  if (artboards.length === 0) return DEFAULT_BASE_LOCALE;
+  const first = artboards[0].language;
+  if (!first || artboards.some((board) => board.language !== first)) return DEFAULT_BASE_LOCALE;
+  return (
+    LOCALES.find((def) => def.code === first)?.code ||
+    LOCALES.find((def) => def.translateCode === first)?.code ||
+    DEFAULT_BASE_LOCALE
+  );
+}
+
+/**
+ * True when an override row has nothing left to say, so the writer that just
+ * emptied it should drop it rather than leave a marker behind.
+ *
+ * The `detached` check is the reason this is shared rather than reimplemented
+ * per writer: an element can hold a per-language POSITION and no text at all,
+ * and a copy of this test that only looked at the value keys would delete that
+ * position the moment someone cleared the translation above it.
+ *
+ * Deliberately not the same question as the two private helpers in this file
+ * and in project.ts. `overrideStateFor` asks "does this cell carry copy", which
+ * a detached position must not answer yes to, and projection asks "would this
+ * change what is drawn", which a non-detached fontFamily does not.
+ */
+export function isOverrideEmpty(ov: ElementLocaleOverride | undefined): boolean {
+  return (
+    !ov ||
+    ((!ov.detached || ov.detached.length === 0) &&
+      ov.content === undefined &&
+      ov.fontFamily === undefined &&
+      ov.screenshotSrc === undefined &&
+      ov.imageSrc === undefined &&
+      ov.mediaId === undefined &&
+      ov.hidden === undefined)
+  );
 }
 
 /** The export languages, never including the base one. */

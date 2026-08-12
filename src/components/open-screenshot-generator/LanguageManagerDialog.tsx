@@ -37,7 +37,12 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import type { ArtboardState, LocaleEntry, ProjectLocalization } from '@/types/artboard';
 import { DEFAULT_BASE_LOCALE, LOCALES, localeName, type LocaleDef } from '@/lib/i18n/locales';
-import { getBaseLocale, getProjectLocales, localeCompletion } from '@/lib/i18n/localization';
+import {
+  getBaseLocale,
+  getProjectLocales,
+  localeCompletion,
+  seedBaseLocale,
+} from '@/lib/i18n/localization';
 
 export interface LanguageManagerDialogProps {
   open: boolean;
@@ -51,23 +56,9 @@ export interface LanguageManagerDialogProps {
   ) => void;
 }
 
-/**
- * The one legitimate read of ArtboardState.language: a default for a field the
- * user is about to confirm by hand. It holds a translate code ('de') and is set
- * only when a whole board translated cleanly, so it is a hint and never a key.
- * Boards that disagree, or a project where only some boards carry one, fall
- * back rather than guess.
- */
-function seedBaseLocale(artboards: ArtboardState[]): string {
-  if (artboards.length === 0) return DEFAULT_BASE_LOCALE;
-  const first = artboards[0].language;
-  if (!first || artboards.some((board) => board.language !== first)) return DEFAULT_BASE_LOCALE;
-  return (
-    LOCALES.find((def) => def.code === first)?.code ||
-    LOCALES.find((def) => def.translateCode === first)?.code ||
-    DEFAULT_BASE_LOCALE
-  );
-}
+// seedBaseLocale (the one legitimate read of ArtboardState.language) lives in
+// localization.ts, because the MCP add_locales tool has to seed exactly the
+// same default this dialog offers.
 
 /**
  * What the stores call this language. Shown because the export filenames and

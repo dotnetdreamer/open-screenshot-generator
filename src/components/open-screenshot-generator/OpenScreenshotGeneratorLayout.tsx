@@ -55,7 +55,21 @@ import {
   type DetachableKey,
 } from '@/lib/i18n/project';
 import { availableEngines, translateIntoLocale } from '@/lib/i18n/translate';
+import { applyCsvImport, buildTranslationRows, planCsvImport, toCsv } from '@/lib/i18n/translationCsv';
 import { applyLocalizedText } from '@/lib/mcp/localizedText';
+// The language tools' pure half. Everything they do is a function of the base
+// document, so the layout only resolves ids, commits, and (for the ones that
+// call an engine or the canvas) drives the progress UI.
+import {
+  addProjectLocales,
+  applyLocaleOverride,
+  applyLocaleTexts,
+  buildTranslationView,
+  localeConfigEntries,
+  removeProjectLocales,
+  resetLocaleOverrides,
+  setProjectBaseLocale,
+} from '@/lib/mcp/localeTools';
 import type { LocaleOverrideState } from './LayersPanel';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
@@ -74,6 +88,8 @@ import {
   type McpLocaleState,
   type McpLocaleSummary,
   type McpTemplateSummary,
+  type McpTranslateRun,
+  type McpTranslateRunResult,
 } from '@/lib/mcp/desktopMcpServer';
 import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
@@ -3899,6 +3915,146 @@ const generateRandomProjectName = (): string => {
     };
   };
 
+  /**
+   * The MCP translate path: run the engine over one or more languages against a
+   * single snapshot and hand the boards back UNCOMMITTED, so the caller decides
+   * whether this was the whole tool (translate_locales) or one step of a bigger
+   * one (add_locales drafting the languages it just added).
+   *
+   * Sequential, not Promise.all, because the engines share one rate-limit
+   * budget, and each language is fed the previous one's output so a single
+   * commit at the end carries all of them and one undo takes all of them back.
+   *
+   * The progress dialog and the abort ref are the ones the app's own translate
+   * buttons use: a run started from outside the app still shows the user what
+   * is happening and still gives them the cancel button.
+   */
+  const runMcpTranslation = async (
+    boards: ArtboardState[],
+    locales: string[],
+    options: {
+      only: 'empty' | 'stale' | 'all';
+      includeManual?: boolean;
+      guidance?: string;
+      artboardIds?: string[];
+      elementIds?: string[];
+    }
+  ): Promise<{ artboards: ArtboardState[]; result: McpTranslateRunResult }> => {
+    const engines = availableEngines();
+    // Not an error here. The tool turns "no engine" into the instruction that
+    // actually helps a model: write the strings yourself and send them back.
+    if (engines.length === 0) {
+      return { artboards: boards, result: { engine: null, runs: [], completion: [] } };
+    }
+    const engine = engines[0];
+    const controller = new AbortController();
+    translateAbortRef.current = controller;
+    setIsCancellingTranslate(false);
+    const runs: McpTranslateRun[] = [];
+    let next = boards;
+    try {
+      for (const [index, locale] of locales.entries()) {
+        if (controller.signal.aborted) break;
+        setTranslateProgress({
+          localeLabel: localeLabel(locale),
+          done: 0,
+          total: 0,
+          localeIndex: index + 1,
+          localeCount: locales.length,
+          phase: 'starting',
+        });
+        try {
+          const result = await translateIntoLocale(next, locale, {
+            engine,
+            only: options.only,
+            includeManual: options.includeManual,
+            guidance: options.guidance,
+            artboardIds: options.artboardIds,
+            elementIds: options.elementIds,
+            signal: controller.signal,
+            onProgress: (done, total) =>
+              setTranslateProgress((prev) =>
+                prev ? { ...prev, done, total, phase: 'translating' } : prev
+              ),
+          });
+          next = result.artboards;
+          runs.push({
+            locale,
+            translated: result.translated,
+            failed: result.failed,
+            skipped: result.skipped,
+            rateLimited: result.rateLimited,
+          });
+        } catch (error) {
+          // translateIntoLocale throws only for a setup problem, e.g. a
+          // language the machine engine does not cover. One of those must not
+          // cost the caller the other languages, or the languages themselves
+          // when this is running inside add_locales, so it is reported per
+          // language and the loop keeps going.
+          console.error('Could not machine translate into', locale, error);
+          runs.push({
+            locale,
+            translated: 0,
+            failed: 0,
+            skipped: 0,
+            rateLimited: false,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    } finally {
+      translateAbortRef.current = null;
+      setTranslateProgress(null);
+      setIsCancellingTranslate(false);
+    }
+    return {
+      artboards: next,
+      result: {
+        engine,
+        runs,
+        completion: locales.map((locale) => ({ locale, ...localeCompletion(next, locale) })),
+      },
+    };
+  };
+
+  // Two frames, which is how long the canvas takes to repaint after a state
+  // change. Everything an MCP tool does that the next tool call has to SEE goes
+  // through this: opening a project, switching language, capturing a PNG.
+  const mcpNextPaint = () =>
+    new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
+
+  /**
+   * Run a capture with the canvas showing one language, then put it back.
+   *
+   * `undefined` means the caller said nothing about language, so the canvas is
+   * left exactly where the user had it, which is what every export did before
+   * languages existed. An explicit code (or null for the base language) is a
+   * round trip: the projection is a memo over `artboards`, so switching is a
+   * setState plus a repaint, and the finally is what stops a failed capture
+   * from leaving the editor sitting in a language nobody asked for.
+   */
+  const withLocaleOnCanvas = async <T,>(
+    locale: string | null | undefined,
+    work: () => Promise<T>
+  ): Promise<T> => {
+    if (locale === undefined) return work();
+    const previous = activeLocaleRef.current;
+    const target = !locale || locale === getBaseLocale(artboards) ? null : locale;
+    if (target === previous) return work();
+    if (target && !getProjectLocales(artboards).some((entry) => entry.code === target)) {
+      throw new Error(`This project has no language "${target}".`);
+    }
+    handleSelectLocale(target);
+    await mcpNextPaint();
+    try {
+      return await work();
+    } finally {
+      handleSelectLocale(previous);
+    }
+  };
+
   // Render one artboard for the MCP export tools. Same capture recipe as the
   // Export dialog (unscale the node, drop editor chrome, restore afterwards),
   // plus the two things an external agent needs: an output scale, so a proof
@@ -4365,35 +4521,44 @@ const generateRandomProjectName = (): string => {
       handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)));
       return true;
     },
-    exportPng: async ({ artboardId, scale, save, directory, fileName, includeImage }) => {
+    exportPng: async ({ artboardId, scale, save, directory, fileName, includeImage, locale }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
       if (!board) throw new Error('No such artboard.');
-      return captureArtboardForMcp(board, {
-        scale,
-        save,
-        directory,
-        fileName,
-        includeImage: includeImage ?? !save,
-      });
+      return withLocaleOnCanvas(locale, () =>
+        captureArtboardForMcp(board, {
+          scale,
+          save,
+          directory,
+          fileName,
+          includeImage: includeImage ?? !save,
+        })
+      );
     },
-    exportAll: async ({ scale, save, directory, includeImage }) => {
+    exportAll: async ({ scale, save, directory, includeImage, locale }) => {
       if (artboards.length === 0) return [];
       const shouldSave = save !== false;
-      const results: McpExportResult[] = [];
       const padTo = Math.max(2, String(artboards.length).length);
-      for (const [index, board] of artboards.entries()) {
-        results.push(
-          await captureArtboardForMcp(board, {
-            scale,
-            save: shouldSave,
-            directory,
-            fileName: `${String(index + 1).padStart(padTo, '0')}_${board.name}`,
-            includeImage: includeImage ?? false,
-          })
-        );
-      }
-      return results;
+      // The language goes in the file name rather than a subfolder: the folder
+      // may be the Downloads default, which the caller never named and so
+      // cannot predict a subfolder inside. A caller that wants the fastlane
+      // layout passes a directory of its own per language.
+      const token = locale ? `${locale}_` : '';
+      return withLocaleOnCanvas(locale, async () => {
+        const results: McpExportResult[] = [];
+        for (const [index, board] of artboards.entries()) {
+          results.push(
+            await captureArtboardForMcp(board, {
+              scale,
+              save: shouldSave,
+              directory,
+              fileName: `${token}${String(index + 1).padStart(padTo, '0')}_${board.name}`,
+              includeImage: includeImage ?? false,
+            })
+          );
+        }
+        return results;
+      });
     },
 
     // -- Templates and projects ----------------------------------------------
@@ -4504,6 +4669,142 @@ const generateRandomProjectName = (): string => {
         applied.artboards,
         namedChange('Edit Translations', 'translate', localeLabel(locale))
       );
+      return applied.result;
+    },
+
+    addLocales: async ({ locales, baseLocale, autoFont, autoFit, machineTranslate }) => {
+      const added = addProjectLocales(artboards, locales, { autoFont, autoFit, baseLocale });
+      let boards = added.artboards;
+      let translation: McpTranslateRunResult | undefined;
+      // Only the languages that were actually added get drafted. Re-running the
+      // engine over a language that was already there would spend the whole
+      // rate-limit budget refreshing copy nobody asked about.
+      if (machineTranslate && added.result.added.length > 0) {
+        const run = await runMcpTranslation(boards, added.result.added, { only: 'empty' });
+        boards = run.artboards;
+        translation = run.result;
+      }
+      if (boards !== artboards) {
+        handleArtboardsUpdate(
+          boards,
+          namedChange('Add Languages', 'translate', `${added.result.locales.length} languages`)
+        );
+      }
+      // Recounted against the committed boards, so the completion figures
+      // include whatever the draft just wrote.
+      const result = { ...added.result, locales: localeConfigEntries(boards) };
+      return translation ? { ...result, translation } : result;
+    },
+    removeLocales: ({ locales }) => {
+      const removed = removeProjectLocales(artboards, locales);
+      if (removed.artboards !== artboards) {
+        handleArtboardsUpdate(
+          removed.artboards,
+          namedChange('Remove Languages', 'translate', removed.result.removed.join(', '))
+        );
+      }
+      // Nothing to do about the language on screen: the effect that watches
+      // `artboards` drops the view back to base when the language goes.
+      return removed.result;
+    },
+    setBaseLocale: ({ locale }) => {
+      const applied = setProjectBaseLocale(artboards, locale);
+      if ('error' in applied) throw new Error(applied.error);
+      if (applied.artboards !== artboards) {
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange('Set Base Language', 'translate', localeLabel(locale))
+        );
+      }
+      return applied.result;
+    },
+
+    listTranslations: (input) => buildTranslationView(artboards, input),
+    setLocalizedTexts: ({ writes }) => {
+      const applied = applyLocaleTexts(artboards, writes);
+      if (applied.artboards !== artboards) {
+        const count = applied.result.written + applied.result.cleared;
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange('Edit Translations', 'translate', `${count} ${count === 1 ? 'string' : 'strings'}`)
+        );
+      }
+      return applied.result;
+    },
+    translateLocales: async ({ locales, only, includeManual, guidance, artboardIds, elementIds }) => {
+      const run = await runMcpTranslation(artboards, locales, {
+        only: only ?? 'empty',
+        includeManual,
+        guidance,
+        artboardIds,
+        elementIds,
+      });
+      if (run.artboards !== artboards) {
+        handleArtboardsUpdate(
+          run.artboards,
+          namedChange('Translate', 'translate', locales.map((code) => localeName(code)).join(', '))
+        );
+      }
+      return run.result;
+    },
+
+    exportTranslationsCsv: ({ locales }) => {
+      const codes = locales && locales.length > 0
+        ? locales
+        : getProjectLocales(artboards).map((entry) => entry.code);
+      return {
+        csv: toCsv(artboards, codes),
+        locales: codes,
+        rows: buildTranslationRows(artboards, codes).length,
+      };
+    },
+    importTranslationsCsv: ({ csv, dryRun, locales }) => {
+      const plan = planCsvImport(artboards, csv);
+      const wanted = locales && locales.length > 0 ? new Set(locales) : null;
+      const changes = wanted ? plan.changes.filter((change) => wanted.has(change.locale)) : plan.changes;
+      if (!dryRun && changes.length > 0) {
+        handleArtboardsUpdate(
+          applyCsvImport(artboards, changes),
+          namedChange('Import Translations', 'translate', `${changes.length} strings`)
+        );
+      }
+      return {
+        applied: dryRun ? 0 : changes.length,
+        unmatched: plan.unmatched,
+        dryRun: dryRun === true,
+        changes,
+      };
+    },
+
+    setLocaleOverride: (input) => {
+      const applied = applyLocaleOverride(artboards, {
+        ...input,
+        artboardId: input.artboardId ?? undefined,
+      });
+      if ('error' in applied) throw new Error(applied.error);
+      if (applied.artboards !== artboards) {
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange('Detach For Language', 'translate', localeLabel(input.locale))
+        );
+      }
+      return applied.result;
+    },
+    resetLocaleOverrides: (input) => {
+      const applied = resetLocaleOverrides(artboards, input);
+      if ('error' in applied) throw new Error(applied.error);
+      if (applied.artboards !== artboards) {
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange(
+            input.scope === 'element' ? 'Reset Element To Base'
+              : input.scope === 'artboard' ? 'Reset Artboard To Base'
+              : 'Reset Language To Base',
+            'translate',
+            localeLabel(input.locale)
+          )
+        );
+      }
       return applied.result;
     },
   };

@@ -69,6 +69,9 @@ const SLOW_TOOLS: &[&str] = &[
     "add_elements",
     "duplicate_artboard",
     "update_artboard",
+    // Machine translation: one request per distinct string, per language.
+    "translate_locales",
+    "add_locales",
 ];
 
 /// Max request body we will buffer (generous for base64 image arguments).

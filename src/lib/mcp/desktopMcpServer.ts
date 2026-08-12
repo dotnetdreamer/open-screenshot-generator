@@ -26,6 +26,19 @@ import {
   saveImageAsset,
   type StoredAsset,
 } from '@/lib/mcp/assetStore';
+import {
+  listSupportedLocales,
+  resolveCatalogLocale,
+  type LocaleOverrideInput,
+  type LocaleResetInput,
+  type LocaleTextInput,
+  type McpBulkTextResult,
+  type McpLocaleConfigResult,
+  type McpLocaleOverrideResult,
+  type McpLocaleResetResult,
+  type McpTranslationView,
+  type TranslationViewOptions,
+} from '@/lib/mcp/localeTools';
 import type { LocalizedTextResult } from '@/lib/mcp/localizedText';
 import { ALL_FONTS } from '@/services/fontService';
 import { customFontFamilies } from '@/services/customFonts';
@@ -183,6 +196,59 @@ export interface McpLocaleState {
   locales: McpLocaleSummary[];
 }
 
+/** What one machine translation run did to one language. */
+export interface McpTranslateRun {
+  locale: string;
+  translated: number;
+  /** Asked for and did not come back. */
+  failed: number;
+  /** In scope and deliberately left alone, because a person wrote it. */
+  skipped: number;
+  /** The engine stopped answering, so `failed` includes strings never sent. */
+  rateLimited: boolean;
+  /**
+   * This language could not be run at all, e.g. the engine does not cover it.
+   * The other languages in the same call still ran.
+   */
+  error?: string;
+}
+
+export interface McpTranslateRunResult {
+  /** The engine that ran. Null means none is configured in this app. */
+  engine: 'ai' | 'libre' | null;
+  runs: McpTranslateRun[];
+  /** How complete each language is now. */
+  completion: Array<{ locale: string; translated: number; total: number }>;
+}
+
+/** The translator's spreadsheet. */
+export interface McpCsvExport {
+  /** RFC4180 with CRLF line endings, ready to write to a .csv file. */
+  csv: string;
+  /** The language columns, after the id and base-string ones. */
+  locales: string[];
+  rows: number;
+}
+
+/** What a filled-in spreadsheet would change, and what was written. */
+export interface McpCsvImport {
+  applied: number;
+  /** Rows whose ids and base string matched nothing in the project. */
+  unmatched: number;
+  /** True when nothing was written because the call only asked for the plan. */
+  dryRun: boolean;
+  changes: Array<{
+    artboardId: string;
+    elementId: string;
+    locale: string;
+    label: string;
+    from: string;
+    to: string;
+    /** 'text' means the ids did not line up and the base string was the anchor. */
+    matchedBy: 'id' | 'text';
+  }>;
+}
+
 export interface McpDesignApi {
   /**
    * Lightweight list of every artboard on the canvas. A locale reads that
@@ -272,7 +338,11 @@ export interface McpDesignApi {
     backgroundColor?: string;
     gradient?: { color1: string; color2: string; angle: number };
   }): boolean;
-  /** Render one artboard to a PNG (inline, on disk, or both). */
+  /**
+   * Render one artboard to a PNG (inline, on disk, or both). With a locale the
+   * canvas is switched to it for the capture and switched back afterwards;
+   * undefined captures whatever is on screen.
+   */
   exportPng(input: {
     artboardId?: string;
     scale?: number;
@@ -280,6 +350,7 @@ export interface McpDesignApi {
     directory?: string;
     fileName?: string;
     includeImage?: boolean;
+    locale?: string | null;
   }): Promise<McpExportResult>;
   /** Render every artboard, normally straight to a folder. */
   exportAll(input: {
@@ -287,6 +358,7 @@ export interface McpDesignApi {
     save?: boolean;
     directory?: string;
     includeImage?: boolean;
+    locale?: string | null;
   }): Promise<McpExportResult[]>;
 
   // -- Templates and projects -------------------------------------------------
@@ -333,6 +405,54 @@ export interface McpDesignApi {
     locale: string;
     text: string;
   }): LocalizedTextResult | null;
+  /**
+   * Add export languages, and set autoFont / autoFit on any of the listed codes
+   * that the project already has. With `machineTranslate`, every newly added
+   * language is drafted by the translation engine in the same commit, which is
+   * what ticking the box in the language manager does.
+   */
+  addLocales(input: {
+    locales: string[];
+    baseLocale?: string;
+    autoFont?: boolean;
+    autoFit?: boolean;
+    machineTranslate?: boolean;
+  }): Promise<McpLocaleConfigResult & { translation?: McpTranslateRunResult }>;
+  /** Remove export languages and every translation stored under them. */
+  removeLocales(input: { locales: string[] }): McpLocaleConfigResult;
+  /**
+   * Say which language the design itself is written in. Throws once the project
+   * has export languages, because re-basing would re-point every translation at
+   * a different source string.
+   */
+  setBaseLocale(input: { locale: string }): McpLocaleConfigResult;
+  /** The translation table as data: one row per string, one cell per language. */
+  listTranslations(input: TranslationViewOptions): McpTranslationView;
+  /** Write a batch of translated strings in ONE state update. */
+  setLocalizedTexts(input: { writes: LocaleTextInput[] }): McpBulkTextResult;
+  /**
+   * Run the machine translation engine into one or more languages, optionally
+   * narrowed to some artboards or elements. Commits once, for all of them.
+   */
+  translateLocales(input: {
+    locales: string[];
+    only?: 'empty' | 'stale' | 'all';
+    includeManual?: boolean;
+    guidance?: string;
+    artboardIds?: string[];
+    elementIds?: string[];
+  }): Promise<McpTranslateRunResult>;
+  /** The translator's spreadsheet, as text. */
+  exportTranslationsCsv(input: { locales?: string[] }): McpCsvExport;
+  /** Read a filled-in spreadsheet back. `dryRun` reports without writing. */
+  importTranslationsCsv(input: { csv: string; dryRun?: boolean; locales?: string[] }): McpCsvImport;
+  /**
+   * Give one element its own copy of a property in one language: its own
+   * screenshot, its own typeface, its own position, or hide it there entirely.
+   */
+  setLocaleOverride(input: LocaleOverrideInput): McpLocaleOverrideResult;
+  /** Hand a language's overrides back to the shared design, at any scope. */
+  resetLocaleOverrides(input: LocaleResetInput): McpLocaleResetResult;
 }
 
 // ---------------------------------------------------------------------------
@@ -496,6 +616,28 @@ function matchLocale(requested: unknown, state: McpLocaleState): string | null {
 /** "de-DE (German), ja (Japanese)" for an error message. */
 function localeChoices(state: McpLocaleState): string {
   return state.locales.map((l) => `${l.code} (${l.name})`).join(', ');
+}
+
+/**
+ * The `locale` argument the export tools take. `undefined` means "whatever the
+ * canvas is showing", which is what every export did before languages existed
+ * and what a project with none still does, so it stays distinct from an
+ * explicit request for the base language.
+ */
+function exportLocale(
+  requested: unknown,
+  api: McpDesignApi
+): { locale?: string | null } | { error: string } {
+  if (requested === undefined) return {};
+  const state = api.listLocales();
+  if (requested === null) return { locale: null };
+  const locale = matchLocale(requested, state);
+  if (!locale) {
+    return {
+      error: `This project has no language "${requested}". It has: ${localeChoices(state)}.`,
+    };
+  }
+  return { locale: locale === state.baseLocale ? null : locale };
 }
 
 // Shared element-property schema fragment for add/update tools.
@@ -1089,6 +1231,467 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'list_supported_locales',
+    description:
+      'List every language this app can add to a project, with the code to add it by, whether a machine engine can draft it, what App Store Connect and Google Play call it, and the font that has to be substituted for its script. Call this before add_locales: the code is a STORE locale ("de-DE", "zh-Hans", "pt-BR"), not a two-letter language, because en-GB and en-US, and zh-Hans and zh-Hant, are different listings on both stores.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Filter over the code, the English name and the native name.' },
+      },
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const inProject = new Set(state.locales.map((entry) => entry.code));
+      const catalog = listSupportedLocales(typeof args.query === 'string' ? args.query : undefined).map(
+        (def) => ({ ...def, inProject: inProject.has(def.code), base: def.code === state.baseLocale })
+      );
+      return textResult({ baseLocale: state.baseLocale, total: catalog.length, locales: catalog });
+    },
+  },
+  {
+    name: 'add_locales',
+    description:
+      'Add export languages to the project, the same as ticking them in the language manager. A language is an OVERLAY: the project keeps one set of artboards and one layout, and the new language starts out showing the base design verbatim until strings are written into it. With machineTranslate it is drafted by the translation engine straight away; without it, write the strings yourself with set_localized_texts, which is usually the better copy. baseLocale is accepted only while the project has no languages yet.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locales: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Store locales from list_supported_locales, e.g. ["de-DE", "ja", "pt-BR"].',
+        },
+        baseLocale: {
+          type: 'string',
+          description: 'The language the design is currently written in. Only settable before the first export language is added.',
+        },
+        machineTranslate: {
+          type: 'boolean',
+          description: 'Draft every newly added language with the translation engine right away. Default false. This can take a while on a big project.',
+        },
+        autoFont: {
+          type: 'boolean',
+          description: 'Substitute a script-appropriate family where the design font cannot draw the language (Japanese, Arabic, Thai). Default true. Set false to keep the design font and accept the risk of tofu.',
+        },
+        autoFit: {
+          type: 'boolean',
+          description: 'Shrink a translation that overruns its box instead of clipping it. Default true.',
+        },
+      },
+      required: ['locales'],
+    },
+    run: async (args, api) => {
+      const requested: string[] = Array.isArray(args.locales) ? args.locales.map(String) : [];
+      if (requested.length === 0) {
+        return { ...textResult('Pass at least one locale. Call list_supported_locales for the codes.'), isError: true };
+      }
+      // Resolved against the catalog, not the project: these are the languages
+      // that are not in it yet, so the project's own list cannot name them.
+      const resolved: string[] = [];
+      const unknown: string[] = [];
+      for (const code of requested) {
+        const match = resolveCatalogLocale(code);
+        if (match) resolved.push(match);
+        else unknown.push(code);
+      }
+      if (resolved.length === 0) {
+        return {
+          ...textResult(
+            `None of those are languages this app knows: ${unknown.join(', ')}. Call list_supported_locales, and pass store locales like "de-DE" or "zh-Hans".`
+          ),
+          isError: true,
+        };
+      }
+      const base = args.baseLocale ? resolveCatalogLocale(String(args.baseLocale)) : undefined;
+      const result = await api.addLocales({
+        locales: resolved,
+        baseLocale: base ?? undefined,
+        autoFont: args.autoFont,
+        autoFit: args.autoFit,
+        machineTranslate: args.machineTranslate === true,
+      });
+      return textResult(
+        unknown.length > 0
+          ? { ...result, ignored: [...result.ignored, ...unknown.map((code) => ({ code, reason: 'Not a language this app knows.' }))] }
+          : result
+      );
+    },
+  },
+  {
+    name: 'remove_locales',
+    description:
+      'Remove export languages from the project. Every translation stored under them goes with them, and the count of strings deleted comes back in the result. The base language cannot be removed: it is the design itself.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locales: { type: 'array', items: { type: 'string' }, description: 'Codes from list_locales.' },
+      },
+      required: ['locales'],
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const requested: string[] = Array.isArray(args.locales) ? args.locales.map(String) : [];
+      const resolved = requested.map((code) => matchLocale(code, state) ?? code);
+      if (resolved.length === 0) {
+        return { ...textResult(`Pass at least one locale. This project has: ${localeChoices(state)}.`), isError: true };
+      }
+      return textResult(api.removeLocales({ locales: resolved }));
+    },
+  },
+  {
+    name: 'set_base_locale',
+    description:
+      'Say which language the design itself is written in. This does not translate anything: it labels the source, which is what every translation is tracked against and what the export filenames and both store uploads use for the base set. Locked once the project has export languages, because re-basing would point every existing translation at a different source string.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locale: { type: 'string', description: 'A store locale from list_supported_locales.' },
+      },
+      required: ['locale'],
+    },
+    run: (args, api) => {
+      const locale = resolveCatalogLocale(String(args.locale ?? ''));
+      if (!locale) {
+        return {
+          ...textResult(`"${args.locale}" is not a language this app knows. Call list_supported_locales for the codes.`),
+          isError: true,
+        };
+      }
+      return textResult(api.setBaseLocale({ locale }));
+    },
+  },
+  {
+    name: 'list_translations',
+    description:
+      'The translation table as data: one row per translatable text element, with the base string and what each language has for it. Each cell says where its string came from, which is what tells you what you may overwrite: "inherited" nothing written yet, "manual" a person or an agent wrote it, "auto" a machine engine did, and a "stale-" prefix means the base string has been edited since, so that translation is of copy that no longer exists. This is the read half of translating a project: call it with filter "untranslated", write the strings with set_localized_texts.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locales: { type: 'array', items: { type: 'string' }, description: 'Languages to put in the columns. Default: all of them.' },
+        artboardIds: { type: 'array', items: { type: 'string' }, description: 'Restrict to these artboards.' },
+        elementIds: { type: 'array', items: { type: 'string' }, description: 'Restrict to these text elements.' },
+        filter: {
+          type: 'string',
+          enum: ['all', 'untranslated', 'translated', 'stale', 'machine'],
+          description: 'Keep rows where ANY of the listed languages matches. "untranslated" still needs a string, "stale" was translated before the base copy changed, "machine" was drafted by an engine and is worth a review.',
+        },
+        limit: { type: 'number', description: 'Rows per call, 1 to 500. Default 100.' },
+        offset: { type: 'number', description: 'Skip this many matching rows, for paging through a big project.' },
+      },
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const locales = Array.isArray(args.locales)
+        ? args.locales.map((code: unknown) => matchLocale(code, state)).filter((code: string | null): code is string => !!code)
+        : undefined;
+      if (Array.isArray(args.locales) && (!locales || locales.length === 0)) {
+        return { ...textResult(`This project has none of those languages. It has: ${localeChoices(state)}.`), isError: true };
+      }
+      return textResult(
+        api.listTranslations({
+          locales,
+          artboardIds: args.artboardIds,
+          elementIds: args.elementIds,
+          filter: args.filter,
+          limit: args.limit,
+          offset: args.offset,
+        })
+      );
+    },
+  },
+  {
+    name: 'set_localized_texts',
+    description:
+      'Write translated copy for many elements and many languages in ONE call, which is how a whole project should be translated: one round trip, one undo step, one save. You are a better translator than the built-in engine, so writing the strings here is the preferred path and translate_locales is the fallback. Element ids come from list_translations. An empty string, or a string identical to the base copy, clears the translation so the element falls back to the base. Everything written is marked as human-written, so a later "Update translations" run will not overwrite it.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        writes: {
+          type: 'array',
+          description: 'One entry per (element, language).',
+          items: {
+            type: 'object',
+            properties: {
+              elementId: { type: 'string', description: 'A text element id from list_translations.' },
+              locale: { type: 'string', description: 'A language code from list_locales, other than the base language.' },
+              text: { type: 'string', description: 'The copy for that language.' },
+              artboardId: { type: 'string', description: 'Only needed if the same element id appears on two artboards.' },
+            },
+            required: ['elementId', 'locale', 'text'],
+          },
+        },
+      },
+      required: ['writes'],
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const entries: unknown[] = Array.isArray(args.writes) ? args.writes : [];
+      if (entries.length === 0) return { ...textResult('Pass at least one write.'), isError: true };
+
+      const writes: LocaleTextInput[] = [];
+      const misses: Array<{ elementId: string; locale: string; reason: string }> = [];
+      for (const raw of entries) {
+        const entry = (raw ?? {}) as Record<string, unknown>;
+        const elementId = String(entry.elementId ?? '');
+        const locale = matchLocale(entry.locale, state);
+        if (!locale) {
+          misses.push({
+            elementId,
+            locale: String(entry.locale ?? ''),
+            reason: `This project has no such language. It has: ${localeChoices(state)}.`,
+          });
+          continue;
+        }
+        if (locale === state.baseLocale) {
+          misses.push({
+            elementId,
+            locale,
+            reason: 'That is the base language, which the design is written in. Use update_element to change the copy every language starts from.',
+          });
+          continue;
+        }
+        writes.push({
+          artboardId: entry.artboardId ? String(entry.artboardId) : undefined,
+          elementId,
+          locale,
+          text: typeof entry.text === 'string' ? entry.text : '',
+        });
+      }
+
+      if (writes.length === 0) {
+        return { ...textResult({ written: 0, cleared: 0, unchanged: 0, misses, completion: [] }), isError: true };
+      }
+      const result = api.setLocalizedTexts({ writes });
+      return textResult(misses.length > 0 ? { ...result, misses: [...misses, ...result.misses] } : result);
+    },
+  },
+  {
+    name: 'translate_locales',
+    description:
+      'Run the app\'s own translation engine over one or more languages. Prefer writing the strings yourself with set_localized_texts: this engine is a machine translator and store copy is what it is worst at. Use it for a first draft of a language you do not read, or to refresh the drafts it made earlier after the base copy changed ("only": "stale"). Strings a person wrote are skipped unless includeManual is set, and nothing here ever touches the base document.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locales: { type: 'array', items: { type: 'string' }, description: 'Languages to translate into. Codes from list_locales.' },
+        only: {
+          type: 'string',
+          enum: ['empty', 'stale', 'all'],
+          description: '"empty" strings with no translation yet (the default), "stale" refresh translations whose base copy has since changed, "all" everything in scope.',
+        },
+        includeManual: {
+          type: 'boolean',
+          description: 'Also overwrite strings a person or an agent wrote. Off by default, and leaving it off is what protects reviewed copy.',
+        },
+        guidance: {
+          type: 'string',
+          description: 'A brand brief for the AI engine, e.g. "informal, second person, keep product names in English". Ignored by the plain machine engine.',
+        },
+        artboardIds: { type: 'array', items: { type: 'string' }, description: 'Restrict the run to these artboards.' },
+        elementIds: { type: 'array', items: { type: 'string' }, description: 'Restrict the run to these text elements.' },
+      },
+      required: ['locales'],
+    },
+    run: async (args, api) => {
+      const state = api.listLocales();
+      const requested: unknown[] = Array.isArray(args.locales) ? args.locales : [];
+      const locales: string[] = [];
+      for (const code of requested) {
+        const match = matchLocale(code, state);
+        if (match && match !== state.baseLocale && !locales.includes(match)) locales.push(match);
+      }
+      if (locales.length === 0) {
+        return {
+          ...textResult(
+            `No export language matched. This project has: ${localeChoices(state)}. The base language is written, not translated, so it cannot be a target.`
+          ),
+          isError: true,
+        };
+      }
+      const result = await api.translateLocales({
+        locales,
+        only: args.only,
+        includeManual: args.includeManual === true,
+        guidance: typeof args.guidance === 'string' ? args.guidance : undefined,
+        artboardIds: args.artboardIds,
+        elementIds: args.elementIds,
+      });
+      if (!result.engine) {
+        return {
+          ...textResult(
+            'No translation engine is configured in this app, so nothing was translated. Write the strings yourself with set_localized_texts instead: read them with list_translations, translate them, and send them back in one call.'
+          ),
+          isError: true,
+        };
+      }
+      return textResult(result);
+    },
+  },
+  {
+    name: 'export_translations_csv',
+    description:
+      'The whole project as a translator\'s spreadsheet: one row per string, the ids first, then the base language, then a column per language. This is the format a human translation agency takes, and import_translations_csv reads it back. Returns the CSV text, write it to a file yourself.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locales: { type: 'array', items: { type: 'string' }, description: 'Which languages get a column. Default: all of them.' },
+      },
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const locales = Array.isArray(args.locales)
+        ? args.locales.map((code: unknown) => matchLocale(code, state)).filter((code: string | null): code is string => !!code)
+        : undefined;
+      return textResult(api.exportTranslationsCsv({ locales }));
+    },
+  },
+  {
+    name: 'import_translations_csv',
+    description:
+      'Read a filled-in translation spreadsheet back into the project. Rows are matched on artboardId + elementId, falling back to the base string when the ids do not line up and exactly one element has that string. An EMPTY cell means "I did not translate this one" and never clears an existing translation. Only languages the project already has are written, so add them with add_locales first. Pass dryRun to see the changes without writing them.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        csv: { type: 'string', description: 'The file contents, as text.' },
+        dryRun: { type: 'boolean', description: 'Report what would change and write nothing.' },
+        locales: { type: 'array', items: { type: 'string' }, description: 'Only import these languages, even if the sheet has more columns.' },
+      },
+      required: ['csv'],
+    },
+    run: (args, api) => {
+      if (typeof args.csv !== 'string' || args.csv.trim().length === 0) {
+        return { ...textResult('Pass the CSV file contents as `csv`.'), isError: true };
+      }
+      const state = api.listLocales();
+      const locales = Array.isArray(args.locales)
+        ? args.locales.map((code: unknown) => matchLocale(code, state)).filter((code: string | null): code is string => !!code)
+        : undefined;
+      return textResult(
+        api.importTranslationsCsv({ csv: args.csv, dryRun: args.dryRun === true, locales })
+      );
+    },
+  },
+  {
+    name: 'set_locale_override',
+    description:
+      'Give one element its own version of something in ONE language, leaving every other language on the shared design. Use it for a localized screenshot inside a device frame (screenshotSrc), a typeface that can draw the script (fontFamily), a box or a position that fits a longer translation (position, size, fontSize, lineHeight), or hidden:true to drop a badge from the markets that never earned it. Pass null for a property to hand it back to the shared design. Anything other than content, screenshotSrc, imageSrc and mediaId is SHARED across languages until it is set here, so setting it is what pulls it apart, and update_element remains the way to change something for every language at once.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        elementId: { type: 'string', description: 'From get_artboard or list_translations.' },
+        locale: { type: 'string', description: 'A language code from list_locales, other than the base language.' },
+        artboardId: { type: 'string', description: 'Only needed if the same element id appears on two artboards.' },
+        hidden: { type: 'boolean', description: 'true drops this element from this language only. false or null shows it again.' },
+        content: { type: 'string', description: 'Text copy for this language (text elements). set_localized_texts is the batch version.' },
+        screenshotSrc: { type: 'string', description: 'A localized screenshot for the screen inside a device frame. URL, data: URL, or an "asset:<id>" from upload_asset.' },
+        imageSrc: { type: 'string', description: 'A localized image (image elements).' },
+        mediaId: { type: 'string', description: 'A localized recording (video elements).' },
+        fontFamily: { type: 'string', description: 'A typeface for this language only. Must be one list_fonts returns. Setting it also turns OFF the automatic script substitution for this element.' },
+        fontSize: { type: 'number', description: 'Font size for this language only. Setting it turns off auto-shrink for this element, so the box will clip if the string is too long.' },
+        lineHeight: { type: 'number' },
+        letterSpacing: { type: 'number' },
+        fontWeight: { type: 'string' },
+        textAlign: { type: 'string', description: "'left' | 'center' | 'right'. RTL languages already flip through logical alignment, so this is for real layout differences." },
+        color: { type: 'string' },
+        rotation: { type: 'number' },
+        scale: { type: 'number' },
+        position: {
+          type: 'object',
+          description: 'Position for this language only, e.g. moving a badge to the other edge for Arabic.',
+          properties: { x: { type: 'number' }, y: { type: 'number' } },
+          required: ['x', 'y'],
+        },
+        size: {
+          type: 'object',
+          description: 'Box size for this language only, e.g. a wider headline box for German.',
+          properties: { width: { type: 'number' }, height: { type: 'number' } },
+          required: ['width', 'height'],
+        },
+      },
+      required: ['elementId', 'locale'],
+    },
+    run: async (args, api) => {
+      const state = api.listLocales();
+      const locale = matchLocale(args.locale, state);
+      if (!locale) {
+        return { ...textResult(`This project has no language "${args.locale}". It has: ${localeChoices(state)}.`), isError: true };
+      }
+      if (locale === state.baseLocale) {
+        return {
+          ...textResult(
+            `${locale} is the language this design is written in, so it has nothing to override. Use update_element to change the shared design.`
+          ),
+          isError: true,
+        };
+      }
+      const { elementId, artboardId, locale: _locale, ...rest } = args;
+      const props: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(rest)) {
+        if (value !== undefined) props[key] = value;
+      }
+      if (Object.keys(props).length === 0) {
+        return { ...textResult('Pass at least one property to override, or use reset_locale_overrides to hand this element back to the base design.'), isError: true };
+      }
+      // The same rejection add_element makes: a family the app does not load
+      // falls through to a browser serif, which in a locale view looks exactly
+      // like the script substitution failing.
+      if (typeof props.fontFamily === 'string') {
+        const font = resolveFontFamily(props.fontFamily);
+        if (font.error) return { ...textResult(font.error), isError: true };
+        if (font.family) props.fontFamily = font.family;
+      }
+      // asset:<id> references expand to bytes here, exactly as they do when an
+      // element is built, so a localized screenshot can be uploaded once.
+      const resolved = await resolveAssetProps(props);
+      return textResult(api.setLocaleOverride({ artboardId, elementId: String(elementId), locale, props: resolved }));
+    },
+  },
+  {
+    name: 'reset_locale_overrides',
+    description:
+      'Hand a language back to the shared design. With no fields it drops everything that language holds for the scope, so those elements are projected verbatim from the base design again, translations included. With fields it drops only those properties, which is how you undo one layout tweak and keep the copy. Scope "project" clears a whole language, which is the thing to do before re-translating from scratch.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        locale: { type: 'string', description: 'A language code from list_locales.' },
+        scope: {
+          type: 'string',
+          enum: ['element', 'artboard', 'project'],
+          description: '"element" needs elementId, "artboard" needs artboardId, "project" is every artboard.',
+        },
+        elementId: { type: 'string' },
+        artboardId: { type: 'string' },
+        fields: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Only these properties, e.g. ["position", "size"] or ["fontFamily"]. Unset drops the whole override, translated copy included.',
+        },
+      },
+      required: ['locale', 'scope'],
+    },
+    run: (args, api) => {
+      const state = api.listLocales();
+      const locale = matchLocale(args.locale, state);
+      if (!locale) {
+        return { ...textResult(`This project has no language "${args.locale}". It has: ${localeChoices(state)}.`), isError: true };
+      }
+      if (locale === state.baseLocale) {
+        return {
+          ...textResult(`${locale} is the base language. It has no overrides of its own, it IS the design.`),
+          isError: true,
+        };
+      }
+      return textResult(
+        api.resetLocaleOverrides({
+          locale,
+          scope: args.scope,
+          artboardId: args.artboardId,
+          elementId: args.elementId,
+          fields: Array.isArray(args.fields) ? args.fields.map(String) : undefined,
+        })
+      );
+    },
+  },
+  {
     name: 'list_templates',
     description:
       'List the ready-made store-screenshot templates (the Start a New Project gallery). Each entry reports how many artboards and device frames it has, so you can pick one that fits the number of screenshots you have. Start here rather than building a design from scratch. App Preview video templates are omitted: their mockups play a screen recording, which cannot be supplied over MCP.',
@@ -1216,7 +1819,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'export_png',
     description:
-      'Render an artboard to a PNG. By default it comes back inline as an image, which at full size is megabytes of base64, so while you are iterating pass scale (0.25 gives a readable proof for a sixteenth of the payload). Pass save:true to write the file instead and get its path back, which is what you want for the final delivery. It renders whatever the canvas is showing, so on a project with languages call set_locale first and give the file a name that says which one it is.',
+      'Render an artboard to a PNG. By default it comes back inline as an image, which at full size is megabytes of base64, so while you are iterating pass scale (0.25 gives a readable proof for a sixteenth of the payload). Pass save:true to write the file instead and get its path back, which is what you want for the final delivery. Pass locale to render one language without leaving the editor on it; with no locale it renders whatever the canvas is showing.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1224,11 +1827,14 @@ const TOOLS: ToolDef[] = [
         scale: { type: 'number', description: 'Output scale, 0.1 to 4. 1 = the artboard\'s real pixel size. Use 0.25 for a quick look.' },
         save: { type: 'boolean', description: 'Write the PNG to disk and return its path.' },
         directory: { type: 'string', description: 'Folder to save into. Defaults to "Open Screenshot Generator" in your Downloads.' },
-        fileName: { type: 'string', description: 'File name for the saved PNG. Defaults to the artboard name.' },
+        fileName: { type: 'string', description: 'File name for the saved PNG. Defaults to the artboard name. Name it after the language too when exporting several.' },
         includeImage: { type: 'boolean', description: 'Also return the image inline. Defaults to true, or false when save is set.' },
+        locale: { type: 'string', description: 'Render this language (a code from list_locales). The canvas is switched, captured, and switched back.' },
       },
     },
     run: async (args, api) => {
+      const locale = exportLocale(args.locale, api);
+      if ('error' in locale) return { ...textResult(locale.error), isError: true };
       const result = await api.exportPng({
         artboardId: args.artboardId,
         scale: args.scale,
@@ -1236,6 +1842,7 @@ const TOOLS: ToolDef[] = [
         directory: args.directory,
         fileName: args.fileName,
         includeImage: args.includeImage,
+        locale: locale.locale,
       });
       return exportResultContent([result]);
     },
@@ -1243,7 +1850,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'export_all',
     description:
-      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. It renders the language the canvas is showing, so a multi-language set is one set_locale plus one export_all per language, into a directory per language.',
+      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. Pass locale to render one language, which names the files "<locale>_01_<name>.png"; for the fastlane-style folder per language, call it once per language with a directory of its own. With no locale it renders whatever the canvas is showing.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1251,14 +1858,18 @@ const TOOLS: ToolDef[] = [
         save: { type: 'boolean', description: 'Write the files to disk. Defaults to true.' },
         directory: { type: 'string', description: 'Folder to save into. Defaults to "Open Screenshot Generator" in your Downloads.' },
         includeImage: { type: 'boolean', description: 'Also return every image inline. Defaults to false, it is a lot of data.' },
+        locale: { type: 'string', description: 'Render this language (a code from list_locales). The canvas is switched, captured, and switched back.' },
       },
     },
     run: async (args, api) => {
+      const locale = exportLocale(args.locale, api);
+      if ('error' in locale) return { ...textResult(locale.error), isError: true };
       const results = await api.exportAll({
         scale: args.scale,
         save: args.save,
         directory: args.directory,
         includeImage: args.includeImage,
+        locale: locale.locale,
       });
       if (results.length === 0) return { ...textResult('There are no artboards to export.'), isError: true };
       return exportResultContent(results);
@@ -1489,6 +2100,10 @@ const SLOW_TOOLS = new Set([
   'add_elements',
   'duplicate_artboard',
   'update_artboard',
+  // One HTTP request per distinct string, per language, against a rate limit.
+  'translate_locales',
+  // Same, when it was asked to draft the languages it just added.
+  'add_locales',
 ]);
 
 function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage): Promise<unknown> {

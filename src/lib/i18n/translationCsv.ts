@@ -18,6 +18,7 @@ import type {
 import {
   getBaseLocale,
   getProjectLocales,
+  isOverrideEmpty,
   localizableTextElements,
   overrideSourceValue,
 } from './localization';
@@ -39,7 +40,7 @@ export interface TranslationRow {
 }
 
 /** The layer name, or the string itself when nobody named the layer. */
-function labelFor(el: TextElementProps): string {
+export function labelFor(el: TextElementProps): string {
   const name = el.name?.trim();
   if (name) return name;
   const text = el.content.replace(/\s+/g, ' ').trim();
@@ -322,17 +323,6 @@ export interface LocaleTextWrite {
   value: string;
 }
 
-function isEmptyOverride(ov: ElementLocaleOverride): boolean {
-  return (
-    ov.content === undefined &&
-    ov.fontFamily === undefined &&
-    ov.screenshotSrc === undefined &&
-    ov.imageSrc === undefined &&
-    ov.mediaId === undefined &&
-    ov.hidden === undefined
-  );
-}
-
 /**
  * Writes translated strings into the base document, marked manual: a person
  * typed or reviewed every one of these, so "Update translations" must never
@@ -386,7 +376,7 @@ export function applyLocaleTextWrites(
       const source = overrideSourceValue(el, override);
       if (source === undefined) delete override.sourceHash;
       else override.sourceHash = hash32(source);
-      if (isEmptyOverride(override)) override = undefined;
+      if (isOverrideEmpty(override)) override = undefined;
 
       if (override) map[write.elementId] = override;
       else delete map[write.elementId];

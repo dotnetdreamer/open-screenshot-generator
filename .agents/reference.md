@@ -341,19 +341,25 @@ A webview cannot listen on a port, and all design state lives in React, so each 
 
 Rust never sees a tool schema. `handleMcpMessage` answers `initialize` / `ping` / `tools/list` / `tools/call` only.
 
-### Tools (28, all in the `TOOLS` array)
+### Tools (42, all in the `TOOLS` array)
 
 - Artboards: `list_artboards`, `get_artboard`, `create_artboard`, `set_active_artboard`, `update_artboard` (rename/resize/reorder), `delete_artboard`, `duplicate_artboard`, `set_background`
 - Elements: `add_element`, `add_elements` (atomic batch), `update_element`, `delete_element`, `reorder_element`, `measure_element`, `group_elements`, `transform_elements`
 - Templates and projects: `list_templates`, `get_template`, `create_project_from_template`, `list_projects`, `open_project`
 - Assets and fonts: `list_library`, `list_fonts`, `upload_asset`, `list_assets`, `delete_asset`
-- Export: `export_png`, `export_all`
+- Export: `export_png`, `export_all` (both take an optional `locale`)
+- Languages, the config: `list_supported_locales` (the catalog), `list_locales` (this project's), `add_locales`, `remove_locales`, `set_base_locale`, `set_locale` (what the canvas shows)
+- Languages, the copy: `list_translations` (the table as data), `set_localized_text` (one string), `set_localized_texts` (a batch, one commit), `translate_locales` (the engine), `export_translations_csv`, `import_translations_csv`
+- Languages, the design: `set_locale_override` (per-language screenshot, font, box, position, `hidden`), `reset_locale_overrides` (element / artboard / project, or named fields)
+
+The language half is described for the model as an OVERLAY, because that is the thing a client gets wrong: one set of artboards, one layout, and a language is a set of overrides on top. Every mutating language tool writes the base document; only `set_locale` and the `locale` arguments read a projection.
 
 Every element-shaped tool shares `ELEMENT_PROP_SCHEMA` (flat `x`, `y`, `width`, `height`, `rotation`, `scale`, `content`, `fontSize`, `fontFamily`, `letterSpacing`, `fillColor`, `fillGradient`, `imageSrc`, `screenshotSrc`, `styleType`, `pose3d`, `shadow`, `blur`, `opacity`, ...). `collectElementProps` folds `x/y` into `position` and `width/height` into `size`; an explicit `null` becomes `undefined`, which is the only way to clear a shadow or gradient.
 
 ### Contracts
 
-- `McpDesignApi` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) is the interface the app layout must satisfy; result shapes are `McpArtboardSummary`, `McpTemplateSummary` / `McpTemplateDetail`, `McpProjectSummary` / `McpProjectResult`, `McpElementMeasurement`, `McpExportResult`, `McpBox`, `McpElementSpec`.
+- `McpDesignApi` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) is the interface the app layout must satisfy; result shapes are `McpArtboardSummary`, `McpTemplateSummary` / `McpTemplateDetail`, `McpProjectSummary` / `McpProjectResult`, `McpElementMeasurement`, `McpExportResult`, `McpBox`, `McpElementSpec`, plus the language set `McpLocaleState` / `McpLocaleSummary`, `McpTranslateRunResult`, `McpCsvExport` / `McpCsvImport`.
+- The language tools' logic is pure and lives in [localeTools.ts](../src/lib/mcp/localeTools.ts) (`addProjectLocales`, `removeProjectLocales`, `setProjectBaseLocale`, `buildTranslationView`, `applyLocaleTexts`, `applyLocaleOverride`, `resetLocaleOverrides`, `listSupportedLocales`, `resolveCatalogLocale`) beside the single-string [localizedText.ts](../src/lib/mcp/localizedText.ts). Each takes and returns the base document, so the layout only resolves ids, commits, and drives the progress UI. That is also what makes them testable in node without a browser.
 - The implementation is the `mcpApi` object in [OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx), rebuilt every render and stored via `mcpApiRef.current = mcpApi` so the bridge reads fresh state per request.
 - **All mutations must go through `handleArtboardsUpdate(nextArtboards)`**, the same path `CanvasArea` uses. It repositions boards, writes the Dexie `projects` row, and calls `pushToHistory`. Writing `setArtboards` directly skips undo/redo and persistence.
 - Elements are constructed by the module-level `buildMcpElement(type, subType, props, board)` factory, not by `artboardRefs.addElement` (that imperative ref has a stale `elements` closure, so create-then-patch in one call loses the patch).
@@ -381,6 +387,11 @@ Every element-shaped tool shares `ELEMENT_PROP_SCHEMA` (flat `x`, `y`, `width`, 
 - `delete_artboard` refuses the last board: zero artboards leaves `CanvasArea` stuck in `isLoading` and Dexie already persisted `projectData: []`.
 - `add_element` / `add_elements` / `update_element` **reject** an unknown `fontFamily` (with near matches from `similarFonts`) instead of falling back to a browser serif. Both add paths share `buildElementSpec`, so a batch validates exactly like a single call. Check `list_fonts` first.
 - `list_templates` filters through `agentUsableTemplates` ([templateCatalog.ts](../src/lib/ai/templateCatalog.ts)), which drops the `app-preview` category: those mockups play a recording no MCP client can supply.
+- **Two locale vocabularies, and they resolve against different lists.** `add_locales` / `set_base_locale` go through `resolveCatalogLocale` (every language the app knows, since the one being added is by definition not in the project yet); every other language tool goes through `matchLocale` (the project's own list). Using the wrong one either invents a locale with no override map or refuses a language that does exist. Both accept a name, a bare language, or the store locale, and both refuse an ambiguous bare `pt`.
+- **`set_locale_override` detaches as it writes.** `content` / `screenshotSrc` / `imageSrc` / `mediaId` are always per language, but everything else (`position`, `fontFamily`, `fontSize`, `color`, ...) is SHARED until its name is in the override's `detached` array. Writing a value without adding the flag stores data that projection ignores, which reads as "the tool did nothing".
+- **The base language is locked once a project has export languages**, in the tool exactly as in the manager dialog: every override is hashed against a base string, so re-basing would silently re-point all of them. `add_locales` takes `baseLocale` for the one moment it is still a choice.
+- `translate_locales` with no engine configured is an `isError` result that tells the model to write the strings itself through `set_localized_texts`, not a silent zero. An MCP client IS a translator, and its copy beats the machine engine's; the engine is there for a first draft and for `only: 'stale'` refreshes.
+- Everything `set_localized_texts` writes is marked `origin: 'manual'`, like a string typed into the table, so a later "Update translations" cannot overwrite it.
 - The status pill must stay behind a `mounted` state gate. The static export is built without Tauri, but `isTauri()` is true in WebView2 at hydration, so rendering on the first client pass is a hydration mismatch. Do not import `@tauri-apps/plugin-clipboard-manager` there, it is not installed and breaks the Next build; `navigator.clipboard` works.
 - A white PNG export means a half-filled gradient (`linear-gradient(undefineddeg, ...)`), not a capture bug. Go through `artboardBackground` in [artboardBackground.ts](../src/lib/artboardBackground.ts); `html-to-image`'s `backgroundColor` paints only the colour layer, so the gradient is re-stated through its `style` option. Ignore [DESKTOP.md](../docs/DESKTOP.md)'s reference to an `artboardCaptureBackground` helper, no such symbol exists.
 
@@ -397,7 +408,12 @@ For Rust changes, `cargo check` in a scratch `CARGO_TARGET_DIR` so a running `ta
 
 ## Translation and the font system
 
-Translation rewrites the `content` of existing text elements **in place**. It never creates per-language artboards and never duplicates a project.
+Two different things share the word "translate" here, and mixing them up is the main way to break a project.
+
+1. **The old Translate dialog** rewrites the `content` of existing text elements **in place**, described in the rest of this section. It has no concept of a language: it overwrites the design.
+2. **The locale overlay** ([src/lib/i18n/](../src/lib/i18n/)) keeps one design and stores each language as overrides on top: `ArtboardState.localized[locale][elementId]`, config in `ArtboardState.localization`. `projectArtboards(base, locale)` derives what a language shows and `unprojectArtboards` folds an edit made in a locale view back into the right place. `localizableTextElements`, `localeCompletion` and `overrideStateFor` in [localization.ts](../src/lib/i18n/localization.ts) are the bookkeeping; [translate.ts](../src/lib/i18n/translate.ts) drives an engine into one language, [translationCsv.ts](../src/lib/i18n/translationCsv.ts) is the translator round trip, and the whole surface is exposed over MCP through [localeTools.ts](../src/lib/mcp/localeTools.ts) (see the MCP section).
+
+Neither one creates per-language artboards or duplicates a project.
 
 ### Wiring chain
 

@@ -76,7 +76,9 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
   return (
     <div
       className="w-full h-full flex items-center justify-center bg-transparent group"
-      style={{ cursor: 'default', position: 'relative' }}
+      // Inherit DraggableElement's cursor so a selected device shows the grab
+      // hand it is actually offering, instead of a plain arrow.
+      style={{ cursor: 'inherit', position: 'relative' }}
     >
       <div
         className="device-container"
