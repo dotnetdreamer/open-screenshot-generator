@@ -5,6 +5,7 @@
 
 import { db } from '@/database';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
+import { ensureUniqueElementIds, normalizeLocalization } from '@/lib/i18n/localization';
 import type { Project } from '@/types/artboard';
 import { googleDriveProvider } from './providers/googleDrive';
 import { githubProvider } from './providers/github';
@@ -47,11 +48,24 @@ function handleAuthFailure(error: unknown): never {
   throw error;
 }
 
+export interface SaveToAccountOptions {
+  onProgress?: ProgressFn;
+  /**
+   * Save a second, separate copy instead of updating the one already up there.
+   * Both providers decide "update or create" by looking for the manifest id,
+   * so a copy has to carry its own id (see newCloudProjectId) or it would
+   * overwrite the very file the user chose to keep. The local project row is
+   * untouched: this saves a copy to the cloud, it does not fork the library.
+   */
+  saveAsCopy?: { id: string; name: string };
+}
+
 /** Push the active project (and its media) to the connected account. */
 export async function saveProjectToAccount(
   projectId: string,
-  onProgress?: ProgressFn
+  options: SaveToAccountOptions = {}
 ): Promise<CloudProjectSummary> {
+  const { onProgress, saveAsCopy } = options;
   const stored = getSession();
   if (!stored) throw new AccountAuthError('Connect an account first.');
 
@@ -62,10 +76,32 @@ export async function saveProjectToAccount(
     const session = await withFreshSession(stored);
     onProgress?.('Packaging project', 0);
     const bundle = await serializeProject(project, onProgress);
-    return await getProvider(session.provider).saveProject(session, bundle, onProgress);
+    const outgoing = saveAsCopy
+      ? { ...bundle, manifest: { ...bundle.manifest, id: saveAsCopy.id, name: saveAsCopy.name } }
+      : bundle;
+    return await getProvider(session.provider).saveProject(session, outgoing, onProgress);
   } catch (error) {
     return handleAuthFailure(error);
   }
+}
+
+/**
+ * The copy of a local project already sitting in the connected account, if any.
+ * The save flow asks before it overwrites, and this is the thing it would
+ * overwrite. Null when signed out or when nothing has been saved yet.
+ */
+export async function findAccountProject(projectId: string): Promise<CloudProjectSummary | null> {
+  const projects = await listAccountProjects();
+  return projects.find((project) => project.projectId === projectId) ?? null;
+}
+
+/**
+ * Id for a cloud copy. Same millisecond-timestamp shape the editor uses for
+ * local projects, plus a random tail: opening a copy imports it under this id,
+ * so a collision with an existing local project would silently replace it.
+ */
+export function newCloudProjectId(): string {
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 /** Pull a project down and write it into the local library. */
@@ -80,8 +116,13 @@ export async function loadProjectFromAccount(
     const session = await withFreshSession(stored);
     const bundle = await getProvider(session.provider).loadProject(session, remoteId, onProgress);
     // Same normalization the local load path runs, so a project saved by an
-    // older build comes back on the current element shapes.
-    bundle.manifest.projectData = migrateVideoDevices(bundle.manifest.projectData);
+    // older build comes back on the current element shapes. ensureUniqueElementIds
+    // repairs boards an older Duplicate Artboard aliased, and normalizeLocalization
+    // re-stamps the language config and sweeps overrides whose element or
+    // language is gone. Both return their input by reference when clean.
+    bundle.manifest.projectData = normalizeLocalization(
+      ensureUniqueElementIds(migrateVideoDevices(bundle.manifest.projectData))
+    );
     return await importBundle(bundle);
   } catch (error) {
     return handleAuthFailure(error);
@@ -112,4 +153,13 @@ export async function deleteAccountProject(remoteId: string): Promise<void> {
 
 export * from './types';
 export { getSession, setSession, clearSession, useAccount, subscribe } from './store';
-export { serializeProject, importBundle, bundleToJson, bundleFromJson, formatBytes, mediaBytes } from './projectBundle';
+export {
+  serializeProject,
+  importBundle,
+  bundleToJson,
+  bundleFromJson,
+  collectFontFamilies,
+  formatBytes,
+  mediaBytes,
+  fontBytes,
+} from './projectBundle';

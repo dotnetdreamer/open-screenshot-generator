@@ -56,13 +56,14 @@ Three localStorage keys carry the `open-screenshot-generator.` prefix (`.account
 4. [PreviewDialog.tsx](../src/components/open-screenshot-generator/PreviewDialog.tsx): mirror the same render branch in `StaticArtboard` or the element disappears in the preview. This is a second, independent render site, not the export path.
 5. [PropertiesPanel.tsx](../src/components/open-screenshot-generator/PropertiesPanel.tsx): a `renderXxxProperties()` plus its line in the `selectedElement.type === ...` block near the bottom, plus a `ELEMENT_PANEL_TITLES` entry if the derived name reads badly.
 6. [LayersPanel.tsx](../src/components/open-screenshot-generator/LayersPanel.tsx): a `case` in `getElementIcon` and a branch in `getElementLabel`.
-7. [ElementPalette.tsx](../src/components/open-screenshot-generator/ElementPalette.tsx): a `DraggableItem` with `type`/`subType`/`styleProps` so it can be dragged or clicked in.
+7. [ElementPalette.tsx](../src/components/open-screenshot-generator/ElementPalette.tsx): an entry in `BASIC_TILES` or `PREVIEW_TILES` (or a `DraggableItem` with `type`/`subType`/`styleProps` + a required `libraryId`) so it can be dragged or clicked in.
 8. [src/lib/video/videoExport.ts](../src/lib/video/videoExport.ts): if it animates or holds media, extend `analyzeArtboardForVideo`, `projectHasVideoContent` and the `Layer` union; otherwise it still rasterizes fine through the default `sprite` branch.
 9. `buildMcpElement` in the layout file and `McpDesignApi` in [src/lib/mcp/desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts): only needed for agent-created elements, and the `add_element` / `add_elements` `inputSchema` enums have to be widened too.
 
 ### Traps
 
 - **`ArtboardState.position` is derived, never authored.** `calculateArtboardPositions` overwrites it on every `handleArtboardsUpdate`, laying boards left to right at `ARTBOARD_MARGIN = 15` using `DISPLAY_SCALE_FACTOR = 0.3`. Setting it in a template JSON does nothing.
+- **One `handleArtboardsUpdate` call is expensive**: it deep-copies every artboard twice (`pushToHistory`, then the Dexie `put`) and re-renders the studio. Measured on a 3-image board, a 40-step slider drag that committed per tick blocked the main thread for 5.0s; committing once on release blocked 0.5s. **Never wire a slider's `onValueChange` straight to an update.** Hold the value locally and commit on `onValueCommit` (see `ScaleField` in [PropertiesPanel.tsx](../src/components/open-screenshot-generator/PropertiesPanel.tsx)); per-tick commits also flood undo with one step per pixel.
 - **`Artboard` keeps a local mirror `const [elements, setElements] = useState(artboard.elements)`**, resynced by an effect on `artboard.elements`. Mutating only the local copy without calling `onUpdateArtboardElements` loses the change on the next parent render, and skips history and the Dexie write.
 - **The artboard renders at native px and is CSS-scaled by 0.3.** Sizes, positions, shadows and blur are all in artboard px. Text is the exception: [TextElement.tsx](../src/components/open-screenshot-generator/elements/TextElement.tsx) renders at `fontSize / 0.3` and ignores `element.scale` (scale is only used by the inline editing textarea), while `DraggableElement` still scales the box (`displaySize = size * scale`). Change `fontSize`, keep text `scale` at 1.
 - **Mutating without `handleArtboardsUpdate` silently skips the save.** `handleUpdateArtboardSize` pushes history but never writes Dexie; `handleUpdateArtboardDetails` writes Dexie but skips repositioning. Any new handler should call `handleArtboardsUpdate` unless it deliberately wants one of those holes.
@@ -166,7 +167,7 @@ Canvas-size presets shown in the toolbar's Canvas Size dialog are a separate cat
 
 - **Artboard `position` in the JSON is ignored.** `calculateArtboardPositions` re-lays every board at `x = 15 + sum(width * 0.3 + 15)`, `y = 15`. Do not tune it; do not rely on it.
 - **Top-level `id` / `timestamp` are ignored** (see above). Templates whose JSON `id` disagrees with the filename, e.g. `mac-terra.json` declaring `"mac-terra-template"`, still load as `template_mac-terra`.
-- **Text boxes clip at both top and bottom** because content is a vertically centered flex with `overflow: hidden`. An oversized box also pushes glyphs down into the block below. Size each box to hug its lines: `h ≈ lines * (fontSize/0.3) * lineHeight + 0.32 * (fontSize/0.3)`. A silent horizontal wrap creating one extra clipped line is the single most common template defect; prefer explicit `\n`.
+- **Text boxes clip at both top and bottom** because content is a vertically centered flex with `overflow: hidden`. An oversized box also pushes glyphs down into the block below. Size each box to hug its lines: `h ≈ lines * (fontSize/0.3) * lineHeight + 0.32 * (fontSize/0.3)`. A silent horizontal wrap creating one extra clipped line is the single most common template defect; prefer explicit `\n`. `fitTextBox` ([textFit.ts](../src/lib/textFit.ts)) does this arithmetic by measuring, but it only runs on a live user edit, never over authored JSON, so a template still has to ship boxes that fit.
 - **The text renderer ignores `element.scale`**, so scaling a text element shrinks the box but not the glyphs. Scale text by multiplying `fontSize` and `size` together.
 - **Any `animation` field, `gesture` element, `video-device`, or sourced `video` element flips the whole project to the App Preview video export dialog** (`projectHasVideoContent` in [videoExport.ts](../src/lib/video/videoExport.ts)). Do not sprinkle `animation` onto a screenshot template.
 - **The `app-preview` category is hidden from the AI agent and from MCP `list_templates`** via `AGENT_EXCLUDED_CATEGORIES` in [templateCatalog.ts](../src/lib/ai/templateCatalog.ts), because those mockups need a user-supplied recording. Every catalog path goes through `agentUsableTemplates`, so the filter cannot be bypassed by calling `buildTemplateCatalog` or `buildHostedCatalog` directly.
@@ -340,23 +341,30 @@ A webview cannot listen on a port, and all design state lives in React, so each 
 
 Rust never sees a tool schema. `handleMcpMessage` answers `initialize` / `ping` / `tools/list` / `tools/call` only.
 
-### Tools (28, all in the `TOOLS` array)
+### Tools (42, all in the `TOOLS` array)
 
 - Artboards: `list_artboards`, `get_artboard`, `create_artboard`, `set_active_artboard`, `update_artboard` (rename/resize/reorder), `delete_artboard`, `duplicate_artboard`, `set_background`
 - Elements: `add_element`, `add_elements` (atomic batch), `update_element`, `delete_element`, `reorder_element`, `measure_element`, `group_elements`, `transform_elements`
 - Templates and projects: `list_templates`, `get_template`, `create_project_from_template`, `list_projects`, `open_project`
 - Assets and fonts: `list_library`, `list_fonts`, `upload_asset`, `list_assets`, `delete_asset`
-- Export: `export_png`, `export_all`
+- Export: `export_png`, `export_all` (both take an optional `locale`)
+- Languages, the config: `list_supported_locales` (the catalog), `list_locales` (this project's), `add_locales`, `remove_locales`, `set_base_locale`, `set_locale` (what the canvas shows)
+- Languages, the copy: `list_translations` (the table as data), `set_localized_text` (one string), `set_localized_texts` (a batch, one commit), `translate_locales` (the engine), `export_translations_csv`, `import_translations_csv`
+- Languages, the design: `set_locale_override` (per-language screenshot, font, box, position, `hidden`), `reset_locale_overrides` (element / artboard / project, or named fields)
+
+The language half is described for the model as an OVERLAY, because that is the thing a client gets wrong: one set of artboards, one layout, and a language is a set of overrides on top. Every mutating language tool writes the base document; only `set_locale` and the `locale` arguments read a projection.
 
 Every element-shaped tool shares `ELEMENT_PROP_SCHEMA` (flat `x`, `y`, `width`, `height`, `rotation`, `scale`, `content`, `fontSize`, `fontFamily`, `letterSpacing`, `fillColor`, `fillGradient`, `imageSrc`, `screenshotSrc`, `styleType`, `pose3d`, `shadow`, `blur`, `opacity`, ...). `collectElementProps` folds `x/y` into `position` and `width/height` into `size`; an explicit `null` becomes `undefined`, which is the only way to clear a shadow or gradient.
 
 ### Contracts
 
-- `McpDesignApi` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) is the interface the app layout must satisfy; result shapes are `McpArtboardSummary`, `McpTemplateSummary` / `McpTemplateDetail`, `McpProjectSummary` / `McpProjectResult`, `McpElementMeasurement`, `McpExportResult`, `McpBox`, `McpElementSpec`.
+- `McpDesignApi` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) is the interface the app layout must satisfy; result shapes are `McpArtboardSummary`, `McpTemplateSummary` / `McpTemplateDetail`, `McpProjectSummary` / `McpProjectResult`, `McpElementMeasurement`, `McpExportResult`, `McpBox`, `McpElementSpec`, plus the language set `McpLocaleState` / `McpLocaleSummary`, `McpTranslateRunResult`, `McpCsvExport` / `McpCsvImport`.
+- The language tools' logic is pure and lives in [localeTools.ts](../src/lib/mcp/localeTools.ts) (`addProjectLocales`, `removeProjectLocales`, `setProjectBaseLocale`, `buildTranslationView`, `applyLocaleTexts`, `applyLocaleOverride`, `resetLocaleOverrides`, `listSupportedLocales`, `resolveCatalogLocale`) beside the single-string [localizedText.ts](../src/lib/mcp/localizedText.ts). Each takes and returns the base document, so the layout only resolves ids, commits, and drives the progress UI. That is also what makes them testable in node without a browser.
 - The implementation is the `mcpApi` object in [OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx), rebuilt every render and stored via `mcpApiRef.current = mcpApi` so the bridge reads fresh state per request.
 - **All mutations must go through `handleArtboardsUpdate(nextArtboards)`**, the same path `CanvasArea` uses. It repositions boards, writes the Dexie `projects` row, and calls `pushToHistory`. Writing `setArtboards` directly skips undo/redo and persistence.
 - Elements are constructed by the module-level `buildMcpElement(type, subType, props, board)` factory, not by `artboardRefs.addElement` (that imperative ref has a stale `elements` closure, so create-then-patch in one call loses the patch).
-- `list_library` and `add_element`'s `libraryId` resolve through [assetLibrary.ts](../src/lib/mcp/assetLibrary.ts), a pure index over `elementLibrary.ts`, `imageLibrary.ts`, `deviceRegistry.ts`, `device3dPresets.ts`. Id prefixes: `element:`, `image:`, `device:`, `device3d:`, `devicecolor:`.
+- `list_library` and `add_element`'s `libraryId` resolve through [assetLibrary.ts](../src/lib/mcp/assetLibrary.ts), a pure index over `elementLibrary.ts`, `imageLibrary.ts`, `deviceRegistry.ts`, `device3dPresets.ts`. The ids themselves are built by [libraryIds.ts](../src/lib/libraryIds.ts), shared with the palette so the two can never drift. Prefixes: `element:`, `image:`, `device:`, `device3d:`, `devicecolor:`, plus the palette-only `basic:` and `preview:` (display ids for the hand-written Elements tiles; `resolveLibraryItem` returns null for those, so `add_element` rejects them, use plain `type`/`subType` instead).
+- `add_element` stamps the resolved `libraryId` onto the element, so an agent-made layer shows the same source id in the Properties panel as a palette click would.
 - `upload_asset` stores blobs in the Dexie `media` table ([assetStore.ts](../src/lib/mcp/assetStore.ts)) and hands back `asset:<id>`. `resolveAssetProps` expands the ref to a data URL **when the element is built**, over `IMAGE_SOURCE_PROPS = ['imageSrc','screenshotSrc','customFrameSrc','posterSrc','src']`, so the saved project never contains a ref.
 
 ### Adding a new MCP tool
@@ -379,6 +387,11 @@ Every element-shaped tool shares `ELEMENT_PROP_SCHEMA` (flat `x`, `y`, `width`, 
 - `delete_artboard` refuses the last board: zero artboards leaves `CanvasArea` stuck in `isLoading` and Dexie already persisted `projectData: []`.
 - `add_element` / `add_elements` / `update_element` **reject** an unknown `fontFamily` (with near matches from `similarFonts`) instead of falling back to a browser serif. Both add paths share `buildElementSpec`, so a batch validates exactly like a single call. Check `list_fonts` first.
 - `list_templates` filters through `agentUsableTemplates` ([templateCatalog.ts](../src/lib/ai/templateCatalog.ts)), which drops the `app-preview` category: those mockups play a recording no MCP client can supply.
+- **Two locale vocabularies, and they resolve against different lists.** `add_locales` / `set_base_locale` go through `resolveCatalogLocale` (every language the app knows, since the one being added is by definition not in the project yet); every other language tool goes through `matchLocale` (the project's own list). Using the wrong one either invents a locale with no override map or refuses a language that does exist. Both accept a name, a bare language, or the store locale, and both refuse an ambiguous bare `pt`.
+- **`set_locale_override` detaches as it writes.** `content` / `screenshotSrc` / `imageSrc` / `mediaId` are always per language, but everything else (`position`, `fontFamily`, `fontSize`, `color`, ...) is SHARED until its name is in the override's `detached` array. Writing a value without adding the flag stores data that projection ignores, which reads as "the tool did nothing".
+- **The base language is locked once a project has export languages**, in the tool exactly as in the manager dialog: every override is hashed against a base string, so re-basing would silently re-point all of them. `add_locales` takes `baseLocale` for the one moment it is still a choice.
+- `translate_locales` with no engine configured is an `isError` result that tells the model to write the strings itself through `set_localized_texts`, not a silent zero. An MCP client IS a translator, and its copy beats the machine engine's; the engine is there for a first draft and for `only: 'stale'` refreshes.
+- Everything `set_localized_texts` writes is marked `origin: 'manual'`, like a string typed into the table, so a later "Update translations" cannot overwrite it.
 - The status pill must stay behind a `mounted` state gate. The static export is built without Tauri, but `isTauri()` is true in WebView2 at hydration, so rendering on the first client pass is a hydration mismatch. Do not import `@tauri-apps/plugin-clipboard-manager` there, it is not installed and breaks the Next build; `navigator.clipboard` works.
 - A white PNG export means a half-filled gradient (`linear-gradient(undefineddeg, ...)`), not a capture bug. Go through `artboardBackground` in [artboardBackground.ts](../src/lib/artboardBackground.ts); `html-to-image`'s `backgroundColor` paints only the colour layer, so the gradient is re-stated through its `style` option. Ignore [DESKTOP.md](../docs/DESKTOP.md)'s reference to an `artboardCaptureBackground` helper, no such symbol exists.
 
@@ -395,7 +408,12 @@ For Rust changes, `cargo check` in a scratch `CARGO_TARGET_DIR` so a running `ta
 
 ## Translation and the font system
 
-Translation rewrites the `content` of existing text elements **in place**. It never creates per-language artboards and never duplicates a project.
+Two different things share the word "translate" here, and mixing them up is the main way to break a project.
+
+1. **The old Translate dialog** rewrites the `content` of existing text elements **in place**, described in the rest of this section. It has no concept of a language: it overwrites the design.
+2. **The locale overlay** ([src/lib/i18n/](../src/lib/i18n/)) keeps one design and stores each language as overrides on top: `ArtboardState.localized[locale][elementId]`, config in `ArtboardState.localization`. `projectArtboards(base, locale)` derives what a language shows and `unprojectArtboards` folds an edit made in a locale view back into the right place. `localizableTextElements`, `localeCompletion` and `overrideStateFor` in [localization.ts](../src/lib/i18n/localization.ts) are the bookkeeping; [translate.ts](../src/lib/i18n/translate.ts) drives an engine into one language, [translationCsv.ts](../src/lib/i18n/translationCsv.ts) is the translator round trip, and the whole surface is exposed over MCP through [localeTools.ts](../src/lib/mcp/localeTools.ts) (see the MCP section).
+
+Neither one creates per-language artboards or duplicates a project.
 
 ### Wiring chain
 
@@ -420,10 +438,32 @@ Translation rewrites the `content` of existing text elements **in place**. It ne
 
 ### Font data model
 
-[fonts.ts](../src/types/fonts.ts): `interface GoogleFont { family; variants?: string[]; category?: string; fallback?: string; script?: 'latin' | 'arabic' | 'urdu' | 'multilingual' }`.
+[fonts.ts](../src/types/fonts.ts): `interface GoogleFont { family; variants?: string[]; category?: string; fallback?: string; script?: 'latin' | 'arabic' | 'urdu' | 'multilingual' }`. That union is now the NARROW one. [fontService.ts](../src/services/fontService.ts) widens it locally with `type FontScript = 'latin' | 'arabic' | 'urdu' | 'hebrew' | 'cjk' | 'thai' | 'devanagari' | 'bengali' | 'multilingual'` and `interface AppFont extends Omit<GoogleFont, 'script'>`, and exports `GOOGLE_FONTS` / `SYSTEM_FONTS` / `ALL_FONTS` as `AppFont[]`. `GoogleFont` is still assignable to `AppFont`, so every existing caller compiles. Collapsing the two unions into fonts.ts is a pure cleanup nobody has done.
 [fontService.ts](../src/services/fontService.ts) is the single source of truth: `GOOGLE_FONTS`, `SYSTEM_FONTS`, `ALL_FONTS = [...SYSTEM_FONTS, ...GOOGLE_FONTS]`, `createGoogleFontsUrl()`, `preloadGoogleFonts()`, `getFontOptions()`, `getFontsByScript()`, `getGroupedFontOptions()`.
 Fonts are **not** loaded with `next/font`. `preloadGoogleFonts()` runs in a `useEffect` on layout mount and appends a `<link rel="stylesheet">` built from `createGoogleFontsUrl()` (`css2?family=...:wght@...&display=swap`). Only `Geist`/`Geist_Mono` in [layout.tsx](../src/app/layout.tsx) use `next/font`, and they are app chrome, not artboard fonts.
-Consumers of `ALL_FONTS`: [PropertiesPanel.tsx](../src/components/open-screenshot-generator/PropertiesPanel.tsx) font picker, [TranslateDialog.tsx](../src/components/open-screenshot-generator/TranslateDialog.tsx) font picker, `list_fonts` / `resolveFontFamily` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts), and the separate hardcoded `AGENT_FONTS` allowlist in [agentPlanSchema.ts](../src/lib/ai/agentPlanSchema.ts).
+Consumers of `ALL_FONTS`: [FontFamilySelect.tsx](../src/components/open-screenshot-generator/FontFamilySelect.tsx) (the one picker, rendered by both [PropertiesPanel.tsx](../src/components/open-screenshot-generator/PropertiesPanel.tsx) and [TranslateDialog.tsx](../src/components/open-screenshot-generator/TranslateDialog.tsx)), `list_fonts` / `resolveFontFamily` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts), and the separate hardcoded `AGENT_FONTS` allowlist in [agentPlanSchema.ts](../src/lib/ai/agentPlanSchema.ts).
+
+### Imported fonts
+
+[customFonts.ts](../src/services/customFonts.ts) owns fonts the user brings in from their own machine (`.ttf/.otf/.woff/.woff2`, 12MB ceiling). The file is a Blob in the Dexie `fonts` table, so it belongs to the **device**, and every project on it can use it. Text elements reference it by family name, exactly like a built-in.
+
+Because the device owns it, the file has to be carried explicitly wherever a project goes; `serializeProject` does that (see "Carrying a project" below). What is NOT carried: the PNG export needs nothing, since the glyphs are already rasterized. [LocalFontNotice.tsx](../src/components/open-screenshot-generator/LocalFontNotice.tsx) is the sticky bar under the toolbar that tells the user which of the two saves keeps the font, shown while the open project uses an imported family and dismissed per project id in localStorage.
+
+- `importFontFile(file)` derives a CSS family from the file name (`Bricolage_Grotesque-Regular.woff2` to `Bricolage Grotesque`), uniquifies it against `ALL_FONTS` and other imports, then registers before it writes, so a file the engine cannot parse leaves no row behind. `loadCustomFonts()` re-registers everything on layout mount, next to `preloadGoogleFonts()`.
+- Registration writes ONE `@font-face` rule per font into a shared `<style id="custom-font-faces">`, with the bytes inline as a `data:` URL. Both halves matter for **export**: `html-to-image` rebuilds the artboard in an SVG foreignObject and can only carry fonts it finds as `CSSFontFaceRule`s in `document.styleSheets` (so a bare `document.fonts.add(new FontFace(...))` would render on canvas and vanish from the PNG), and a `blob:` URL does not resolve inside that foreignObject. `embedResources` skips `data:` URLs, so the rule reaches the clone untouched.
+- `customFontFamilies()` / `useCustomFonts()` are the read side. `resolveFontFamily` and `list_fonts` recompute from them per call rather than caching, since a font can be imported mid-session.
+
+### Carrying a project
+
+A `ProjectBundle` is the project row plus **both** kinds of binary it only references: `media` (by row id) and `fonts` (by family, via `collectFontFamilies` + `getCustomFontRows`). `importBundle` installs the fonts before it writes the row, and `installCustomFont` drops the incoming copy when that family is already on the device, so re-opening a project never piles up duplicates. One font that fails to parse is logged and skipped, not fatal.
+
+| Target | Fonts land in |
+| --- | --- |
+| local `.json` | `fonts` metadata + base64 under `fontData`, beside the existing `mediaData` |
+| Google Drive | one `font__<id>` file per font, mirroring `media__`, including the unreferenced-file cleanup |
+| GitHub gist | base64 in its own `fonts.json`; over `MAX_GIST_FONT_BYTES` it refuses and points at Drive |
+
+`formatVersion` stays at **1**: the addition is optional in both directions. An older file has no `fonts` key and loads as before; a newer file loads in an older build, which ignores the key and restores the project without the font. An old build saving over a new Drive folder will not delete the `font__` files (its cleanup only matches `media__`), and a gist `PATCH` leaves `fonts.json` alone. A project on built-in families only writes no font keys at all.
 
 ### Font language matching
 
@@ -434,7 +474,7 @@ Consumers of `ALL_FONTS`: [PropertiesPanel.tsx](../src/components/open-screensho
 1. Append a `GoogleFont` to `GOOGLE_FONTS` in [fontService.ts](../src/services/fontService.ts) with `variants` matching the weights Google actually serves.
 2. Verify the family exists on Google Fonts. Unknown families in a multi-family `css2` request are **silently dropped** (a lone unknown family 400s, but mixed with valid ones the response is 200 minus that `@font-face`).
 3. If the AI agent or MCP should be able to pick it, add it to `AGENT_FONTS` in [agentPlanSchema.ts](../src/lib/ai/agentPlanSchema.ts). `list_fonts` and `resolveFontFamily` pick it up from `ALL_FONTS` automatically.
-4. If it belongs to a new script, four more edits, and missing any one hides the font: widen the `script` union in [fonts.ts](../src/types/fonts.ts), widen the parameter union of `getFontsByScript()` and add a key in `getGroupedFontOptions()` in [fontService.ts](../src/services/fontService.ts), widen the `script` enum on the `list_fonts` tool in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) (line ~1067), **and** add a `<SelectGroup>` in both [TranslateDialog.tsx](../src/components/open-screenshot-generator/TranslateDialog.tsx) and [PropertiesPanel.tsx](../src/components/open-screenshot-generator/PropertiesPanel.tsx). Both render five hardcoded groups; a font in an ungrouped script is invisible in every picker.
+4. If it belongs to a new script, three more edits, and missing any one hides the font: add the member to `FontScript` and a key to `getGroupedFontOptions()` in [fontService.ts](../src/services/fontService.ts), widen the `script` enum on the `list_fonts` tool in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts), **and** add a `<SelectGroup>` in [FontFamilySelect.tsx](../src/components/open-screenshot-generator/FontFamilySelect.tsx). It renders a hardcoded set of groups; a font in an ungrouped script is invisible in every picker. Latin splits again by category, so a `display` or `handwriting` face lands in "Display and Handwriting" rather than "Latin Fonts".
 
 ### Add a language
 
@@ -443,13 +483,13 @@ Consumers of `ALL_FONTS`: [PropertiesPanel.tsx](../src/components/open-screensho
 
 ### Traps
 
-- Translating **to English** silently restyles the design. `'en'` maps to `['Inter', 'Roboto Flex', 'Arial']`, `Inter` is not in `ALL_FONTS`, so `Roboto Flex` wins, the dialog preselects it, and every text element's `fontFamily` is overwritten. Choose "Keep current fonts" to preserve template typography.
-- `Noto Sans Urdu` and `Jameel Noori Nastaleeq` in `GOOGLE_FONTS` are not real Google Fonts families. They appear in the pickers and never load. `Noto Nastaliq Urdu` (first in the `ur` chain) is real, so the auto-match path works, manual selection does not.
-- `Noto Sans` (the only `multilingual` entry) serves latin, latin-ext, cyrillic(-ext), greek(-ext), devanagari, vietnamese. It has **no** Bengali, Thai, Hebrew, or CJK glyphs, so the `bn`/`th`/`ja`/`ko`/`zh-Hans`/`zh-Hant` mappings are cosmetic and those scripts render from an OS fallback.
-- No RTL support anywhere. [TextElement.tsx](../src/components/open-screenshot-generator/elements/TextElement.tsx) sets no `dir` or `direction`, only `textAlign`. Arabic, Urdu, Hebrew, and Persian inherit the artboard LTR context, so mixed content and trailing punctuation reorder incorrectly. Nothing flips the layout.
-- Text overflow after translation is silent. `TextElement` fills the fixed pixel box sized by its [DraggableElement.tsx](../src/components/open-screenshot-generator/elements/DraggableElement.tsx) wrapper (`width`/`height` 100%) with `overflow: 'hidden'`, `wordBreak: 'break-word'` and `fontSize / 0.3`. Longer target strings just clip. There is no autofit or reflow pass.
+- Translating **to English** used to silently restyle the design (`'en'` resolved to `Roboto Flex`). The `en` entry is gone, so `getRecommendedFontForLanguage('en')` returns `undefined` and the dialog preselects "Keep current fonts". Every Latin locale behaves the same way: `undefined` means "the design's own face is fine".
+- `Noto Sans Urdu` and `Jameel Noori Nastaleeq` were removed from `GOOGLE_FONTS`. Both 400 on `css2` and never loaded. `Noto Nastaliq Urdu` is the one real Urdu family. A user project that stored one of the removed names shows the placeholder in its Select trigger; it never rendered in that face anyway.
+- `Noto Sans` (the `multilingual` entry) serves latin, latin-ext, cyrillic(-ext), greek(-ext), devanagari, vietnamese, but **no** Bengali, Thai, Hebrew, or CJK. Those scripts now have real families of their own (`Noto Sans Hebrew` / `Thai` / `Devanagari` / `Bengali`, and `Noto Sans JP` / `SC` / `TC` / `KR` plus `Noto Serif JP`), and `fontLanguageMatcher` points at them. Cost: the preload stylesheet is ~307KB over the wire instead of ~10KB, almost all of it CJK, which Google slices into ~120 unicode-range faces per weight. It is kept eager on purpose, see the export note below.
+- RTL is partial. [TextElement.tsx](../src/components/open-screenshot-generator/elements/TextElement.tsx) sets `dir="auto"` on both the rendered div and the inline textarea and maps `textAlign` through logical `start`/`end`, so Arabic and Hebrew align to the correct edge and LTR output is byte-identical to before. The **composition** is not mirrored: nothing flips element positions across the board.
+- Text overflow after translation is silent. `TextElement` fills the fixed pixel box sized by its [DraggableElement.tsx](../src/components/open-screenshot-generator/elements/DraggableElement.tsx) wrapper (`width`/`height` 100%) with `overflow: 'hidden'`, `wordBreak: 'break-word'` and `fontSize / 0.3`. Longer target strings just clip. `handleTranslateProject` writes `content` straight into the elements and does **not** call `fitTextBox` ([textFit.ts](../src/lib/textFit.ts)) the way the panel and the inline editor do, so a translation run has no autofit or reflow pass.
 - `fontFamily` is applied bare (`fontFamily: element.fontFamily`) with no CSS fallback stack, so an unloaded family drops straight to the browser default serif.
-- Export vs font timing: PNG export uses `toPng` from `html-to-image` with no `fontEmbedCSS` or `skipFonts`, and does not await `document.fonts.ready` (only `signalAppReady()` in [desktop.ts](../src/lib/desktop.ts) does, for the Tauri splash). Translate then immediately export and a still-downloading webfont can rasterize as fallback. Artboard fonts also require network, including in the desktop build, since none of them is bundled locally (only `next/font`'s Geist is self-hosted).
+- Export vs font timing: PNG export uses `toPng` from `html-to-image` with no `fontEmbedCSS` or `skipFonts`. `captureArtboardDataUrl` **does** await `document.fonts.ready` now, which is what makes a non-Latin locale export safe; without it a language in another script rasterized the fallback face with no error at all. Artboard fonts also require network, including in the desktop build, since none of them is bundled locally (only `next/font`'s Geist is self-hosted).
 - Rate limit is real: the dialog advertises 20 requests / 5000 chars per minute, and the loop issues one request per text element. "Translate all artboards" on a normal project exceeds it, which is why the checkbox defaults to off.
 - Only `PRIMARY_URL` is health checked. With only the fallback configured the probe fetches a relative `/health` on the app's own origin. A 404 there falls through to the fallback correctly, but a host that answers `/health` with a 200 catch-all caches `''` as the winner and sends every `/translate` to the app's own origin.
 - The comment in [.env.example](../.env.example) claiming defaults of trybooks.org / ludowala.app is stale. The code defaults both to `''`, which disables the button.
@@ -475,14 +515,18 @@ Consumers of `ALL_FONTS`: [PropertiesPanel.tsx](../src/components/open-screensho
 
 ### Palette data model
 
-Every palette tile calls one `handleDragStart(e, type, subType, styleProps)`. Drag stores three `dataTransfer` keys (`application/artboard-element-type`, `application/artboard-element-subtype`, `application/artboard-element-styleprops`); click calls the same function with `e === null`, which goes straight to `onAddElement`. In the SHAPE branch, `Artboard.addElement` pulls `styleProps.defaultSize` and `styleProps.name` out first and `Object.assign`s the rest onto the element. The image, video, video-device, gesture and device branches instead copy a fixed set of known fields, so any other key in `styleProps` is silently dropped there.
+Every palette tile calls one `handleDragStart(e, type, subType, styleProps, libraryId)`. Drag stores three `dataTransfer` keys (`application/artboard-element-type`, `application/artboard-element-subtype`, `application/artboard-element-styleprops`); click calls the same function with `e === null`, which goes straight to `onAddElement`. In the SHAPE branch, `Artboard.addElement` pulls `styleProps.defaultSize`, `styleProps.name` and `styleProps.libraryId` out first and `Object.assign`s the rest onto the element. The image, video, video-device, gesture and device branches instead copy a fixed set of known fields, so any other key in `styleProps` is silently dropped there.
+
+**Library ids.** Every tile carries one, built by [libraryIds.ts](../src/lib/libraryIds.ts) and shared with the MCP asset index. `handleDragStart` folds it into `styleProps`, `Artboard.addElement` lifts it onto `newElementBase` as `element.libraryId`, and `ElementIdRow` at the top of the Properties panel prints it (falling back to the element's own id for template and hand-built layers). The id is also the tile's hover card (`TileTooltip`, a Radix tooltip) and its accessible name: tiles carry **no `title`** any more, their `aria-label` reads `Add <label> (<libraryId>)`.
 
 - `ELEMENT_CATEGORIES: ElementCategory[]` = `{ id, label, items: LibraryElementDef[] }`. Each item is `{ id, label, styleProps }` where `styleProps: LibraryElementStyleProps` = `{ name, customPath, specialProps?: { viewBox, strokeOnly, baseStrokeWidth, fillRule }, defaultSize? }`. Categories: `shapes, arrows, icons, decor, blobs, stars, waves, laurels, lines, patterns`.
 - Items are built by `el(id, label, path, opts)` (elementLibrary.ts ~line 970) with `ItemOpts { stroke?: number; evenodd?: boolean; size?: {width,height} }`. `stroke` sets `strokeOnly: true` + `baseStrokeWidth`; `evenodd` sets `fillRule: 'evenodd'`.
 - Every path is authored in a `0 0 100 100` viewBox and generated deterministically at module load from helpers (`polygonSub`, `starSub`, `sparkleSub`, `blobSub`, `smoothClosedSub`, `brushStrokeSub`, `laurelBranchSub`, ...). Multi-part artwork is one concatenated path string so it stays one element.
 - Element tiles drop `type: 'shape'`, `subType: 'custom-svg'`; [ShapeElement.tsx](../src/components/open-screenshot-generator/elements/ShapeElement.tsx) renders `customPath` with `preserveAspectRatio="none"` and `vectorEffect="non-scaling-stroke"`.
 - `IMAGE_CATEGORIES: ImageCategory[]` with `LibraryImageDef { id, label, src, defaultSize }`. Tiles drop `type: 'image'` and `Artboard.addElement` forces `objectFit: 'contain'` whenever `imageSrc` is present.
-- Two categories are NOT data driven: `openCategoryId === 'basic'` (text, image, rectangle/circle/triangle/star/hexagon/diamond/message/speech-bubble/pentagon) and `'app-preview'` (`video-device`, `video`, `gesture` tiles). They are hardcoded JSX in ElementPalette.tsx.
+- Two categories live in ElementPalette.tsx rather than in `lib/`: `openCategoryId === 'basic'` (`BASIC_TILES`: text, image, rectangle/circle/triangle/star/hexagon/diamond/message/speech-bubble/pentagon) and `'app-preview'` (`PREVIEW_TILES`: `video-device`, `video`, `gesture`). Both are `IconTileDef[]` (`{ id, label, type, subType?, icon, styleProps?, keywords? }`), because the search box has to index them alongside the generated library.
+- **Elements tab search** filters all three sources at once. `ICON_TILE_INDEX` and `LIBRARY_ITEM_INDEX` are built once at module load, each row pre-lowercasing `label + libraryId + group + keywords` into a `haystack`, so a keystroke is a substring scan over 461 + 20 rows. A non-empty query replaces the category view without clearing `openCategoryId`, so clearing the box returns the user where they were. This tab uses a native `overflow-y-auto` div instead of a Radix `ScrollArea` (the search box makes the scroller a `flex-1` sibling, which stops a `ScrollArea` scrolling) and `data-[state=active]:flex` instead of a bare `flex`.
+- **`ElementPalette` is `memo`ed and its `onAddElement` must stay referentially stable** (`handlePaletteAddElement`, a `useCallback` in the layout). It was an inline arrow, so the palette rebuilt every tile on every layout render, including each tick of a properties slider. Pass a fresh closure and the memo silently does nothing.
 - The active tab is persisted in `sessionStorage['palette-active-tab']`, restored in an effect (not in `useState`) to avoid an SSR hydration mismatch. The restore explicitly rejects a saved `'layers'` value: that tab moved to the floating layers card, and selecting it would blank the palette.
 
 ### Device registry
@@ -534,9 +578,9 @@ Flat rendering: `getFlatDeviceChrome(deviceType, effectiveWidth)` returns `FlatD
 2. Add a `DeviceDescriptor` to `DEVICE_REGISTRY`, including `counterpart` entries in BOTH directions if the device should take part in platform swaps.
 3. Add a `case` to `getFlatDeviceChrome` for outer radius, body color, notch, and (non-slab bodies only) `chassis`.
 4. Add a `DEVICE_METRICS` entry in Device3DRenderer.tsx if it can render in 3D; devices with custom geometry (`macbook`, `imac`, `apple-watch`) also need branches in `buildDevice` / `buildMacDevice` and fit points in `layoutCamera`.
-5. Add a `DraggableItem` to the `mockups` branch of ElementPalette.tsx with a `defaultSize` matching `nativeAspect`. Do not copy the `borderRadius: '28px'` styleProps from the older tiles: the device branch of `addElement` never reads it and the outer radius always comes from `getFlatDeviceChrome`.
+5. Add a `DraggableItem` to the `mockups` branch of ElementPalette.tsx with `libraryId={deviceLibraryId('<id>')}` and a `defaultSize` matching `nativeAspect`. Do not copy the `borderRadius: '28px'` styleProps from the older tiles: the device branch of `addElement` never reads it and the outer radius always comes from `getFlatDeviceChrome`.
 6. Add the id to the `DEVICE_TYPES` list in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) (hand-maintained; it is what tells an MCP caller the device exists in `add_element`).
-7. For a 3D group: add pose order + size map + a `DEVICE_3D_GROUPS` entry in device3dPresets.ts, AND a `DeviceCategoryId` + `DEVICE_CATEGORY_LABELS` entry + previews array + a `DeviceCategoryCard` in the Device Library overview grid + a `Device3DThumbTile` block in the drill-in, all in ElementPalette.tsx, AND a device row in `regen-3d-thumbs.js`. Then regenerate thumbnails.
+7. For a 3D group: add pose order + size map + a `DEVICE_3D_GROUPS` entry in device3dPresets.ts, AND a `DeviceCategoryId` + `DEVICE_CATEGORY_LABELS` entry + previews array + a `DeviceCategoryCard` in the Device Library overview grid + a `Device3DThumbTile` block (with `libraryId={device3dLibraryId('<thumbPrefix>', pose, side, color)}`, matching the group's `thumbPrefix` so palette and MCP ids agree) in the drill-in, all in ElementPalette.tsx, AND a device row in `regen-3d-thumbs.js`. Then regenerate thumbnails.
 
 ### Recipe: add an image asset group
 
@@ -575,7 +619,7 @@ Toolbar button `title="Export Artboards as Images"` sets `isExportDialogOpen`. W
 
 ### PNG path
 
-`handleConfirmExport` -> `captureArtboards(list, exportDir)`. Per board: find `[data-artboard-dom-id="<id>"]`, force `style.transform = 'scale(1)'`, call `toPng` from `html-to-image` (^1.11.13, run **unpatched**: there is no `patches/` dir and no postinstall patch step, even though `patch-package` sits in dependencies) with `width/height = artboard.size`, `pixelRatio: 1`, `cacheBust: true`, `backgroundColor` + `style.backgroundImage` from `artboardBackground()` in [artboardBackground.ts](../src/lib/artboardBackground.ts), and a `filter` dropping `data-export-exclude` / `data-interaction-handle`. PNG is the only format; `ArtboardState.exportScale` exists in the type but nothing reads it.
+`handleConfirmExport` -> `captureArtboards(list, exportDir)`. Per board it calls `captureArtboardDataUrl(artboard)`, the single rasterizer shared with the store upload (`handlePublishCapture`): find `[data-artboard-dom-id="<id>"]`, force `style.transform = 'scale(1)'`, call `toPng` from `html-to-image` (^1.11.13, run **unpatched**: there is no `patches/` dir and no postinstall patch step, even though `patch-package` sits in dependencies) with `width/height = artboard.size`, `pixelRatio: 1`, `cacheBust: true`, `backgroundColor` + `style.backgroundImage` from `artboardBackground()` in [artboardBackground.ts](../src/lib/artboardBackground.ts), and a `filter` dropping `data-export-exclude` / `data-interaction-handle`. PNG is the only format; `ArtboardState.exportScale` exists in the type but nothing reads it.
 
 Filenames: `<NN>_<Artboard_Name>[_<Device_Label>].png`, `NN` zero-padded to `Math.max(2, String(list.length).length)`, spaces to `_`, suffix from `detectArtboardsFormat([artboard])`.
 
@@ -619,7 +663,7 @@ Media lives in Dexie, not in the project: [mediaStore.ts](../src/lib/mediaStore.
 - **basePath.** Public asset srcs (`posterSrc`, `videoSrc`, `screenshotSrc`) are stored canonical and must be wrapped in `withBasePath()` from [basePath.ts](../src/lib/basePath.ts) **at render time only**. `loadVideoSource` does `withBasePath(el.videoSrc)`. Never store a prefixed path.
 - **Cross-origin taint.** Nothing in `src/` sets `crossOrigin`. `html-to-image` inlines images by fetching them, so a remote image without CORS headers drops out of the capture with no error. Keep assets under `public/`.
 - **Fonts and images are not gated.** There is no `document.fonts.ready` await before capture (only in `signalAppReady`). The only settling is `cacheBust: true`, the 100ms `artboard:export` wait, and `waitForCanvasToSettle(400)` on format swaps. Late-loading web fonts export as fallback type.
-- **`captureArtboards` restores styles inside the `try`, not a `finally`.** If `toPng` throws, the artboard is left stuck at `scale(1)`. `captureArtboardForMcp` and `captureSprite` get this right; copy those, not `captureArtboards`.
+- **The unscale/restore now lives in `captureArtboardDataUrl`, inside a `finally`.** It used to be inlined in `captureArtboards` with the restore inside the `try`, which left a board stuck at `scale(1)` whenever `toPng` threw. Any new single-board capture should call `captureArtboardDataUrl` rather than re-inline the recipe.
 - Any editor-only UI added inside an element renderer needs `data-export-exclude` (see the upload buttons in [VideoDeviceElement.tsx](../src/components/open-screenshot-generator/elements/VideoDeviceElement.tsx)) or it bakes into both the PNG and the video sprites.
 
 ### Adding a new element type so it exports correctly
@@ -688,7 +732,7 @@ Desktop-only: native save/open dialogs, folder-target multi-file export, `tauri-
 Nothing is allowed by default. Two edits are required for most new native work:
 
 1. A new `#[tauri::command]` must be added to the `tauri::generate_handler![...]` list in [lib.rs](../src-tauri/src/lib.rs), or `invoke()` fails at runtime with an unknown-command error. A new Rust file also needs its `mod` line at the top of the same file.
-2. A new outbound host reached through `tauri-plugin-http` must be added to the `http:default` `allow` array in [capabilities/default.json](../src-tauri/capabilities/default.json). The current list is `text.pollinations.ai`, `localhost:*`/`127.0.0.1:*`, `oauth2.googleapis.com`, `openidconnect.googleapis.com`, `www.googleapis.com`, `github.com`, `api.github.com`, `gist.githubusercontent.com`. A host not listed fails with a permission error, not a network error, which reads misleadingly.
+2. A new outbound host reached through `tauri-plugin-http` must be added to the `http:default` `allow` array in [capabilities/default.json](../src-tauri/capabilities/default.json). The current list is `text.pollinations.ai`, `localhost:*`/`127.0.0.1:*`, `oauth2.googleapis.com`, `openidconnect.googleapis.com`, `www.googleapis.com`, `github.com`, `api.github.com`, `gist.githubusercontent.com`, `api.appstoreconnect.apple.com`, `*.apple.com`, `androidpublisher.googleapis.com`. A host not listed fails with a permission error, not a network error, which reads misleadingly. The `*.apple.com` wildcard is load-bearing, not lazy: App Store Connect hands back pre-signed upload URLs on Apple storage hosts that are not the API host.
 
 Adding an AI provider window means four edits, not one: its origin in `remote.urls` in [capabilities/assistant.json](../src-tauri/capabilities/assistant.json), an entry in `PROVIDERS` in `web_session.rs`, an adapter in `WEB_ADAPTERS` plus its member in the `WebProviderId` union in [webAdapters.ts](../src/lib/ai/webAdapters.ts), and a rebuild of the agent bundle (it is compiled into the exe).
 
@@ -728,6 +772,99 @@ The user usually has one running; it holds port 9002 and `target/debug/*.exe`, a
 - **Enumerate processes by PID or `ExecutablePath`, not process name.** Both instances share an exe name, and name matching silently measures the user's window instead. Stopping the `npx tauri dev` wrapper does not kill the exe it spawned, and the survivor then blocks the next build with an access-denied file lock.
 - `settings.json` is **shared** with the user's real install (`app_config_dir`, on Windows `%APPDATA%\com.dotnetdreamer.openscreenshotgenerator\settings.json`, read once at startup), so a scratch instance inherits their `showAssistantWindow` / `mcpServerEnabled`. Back up, flip, test, restore.
 - Headless harness: launch with `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<free high port>`; all webviews appear on one CDP endpoint. Check the port is actually free first, match the main target by URL excluding `splash.html`, and filter `type === 'page'`.
+
+---
+
+## Direct-to-store upload (desktop only)
+
+Hands rendered artboards to App Store Connect and Google Play with the user's own developer
+credentials. No server of ours is involved, matching the account layer's stance. User-facing setup
+guide: [docs/STORE-UPLOAD.md](../docs/STORE-UPLOAD.md).
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [src/lib/publish/types.ts](../src/lib/publish/types.ts) | `StoreId`, credential shapes, `PublishImage`, `PublishProgress`, `StoreAuthError` / `StoreRejectedError` |
+| [jwt.ts](../src/lib/publish/jwt.ts) | ES256 (Apple) and RS256 (Google) JWT signing over WebCrypto, one PKCS#8 PEM parser for both |
+| [md5.ts](../src/lib/publish/md5.ts) | RFC 1321 MD5. Apple's commit needs one and WebCrypto does not implement it |
+| [storeTargets.ts](../src/lib/publish/storeTargets.ts) | `APPLE_DISPLAY_TARGETS` (size -> ScreenshotDisplayType), `PLAY_IMAGE_TARGETS`, `validatePlayImage` |
+| [appStoreConnect.ts](../src/lib/publish/appStoreConnect.ts) | app/version/localization listing, set creation, reserve + chunk PUT + commit, delivery polling |
+| [googlePlay.ts](../src/lib/publish/googlePlay.ts) | service-account token, edit lifecycle, image upload, validate/commit |
+| [credentials.ts](../src/lib/publish/credentials.ts) | localStorage store + `useStoreCredentials()`, key `open-screenshot-generator.store-credentials` |
+| [PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) | the whole UI; [StoreCredentialsForms.tsx](../src/components/open-screenshot-generator/publish/StoreCredentialsForms.tsx) holds the two key forms |
+| `handlePublishCapture` in the layout | renders the chosen boards to bytes, with the same in-memory format conversion as the export |
+
+There is deliberately **no provider abstraction** (unlike `CLOUD_PROVIDERS` in the account layer):
+Apple needs app + version + locale + a per-size set, Play needs package + language + one slot, and
+forcing a common interface over that only hides the difference.
+
+### Apple's asset upload, which is not guessable
+
+1. `POST /v1/appScreenshots` with `fileSize` + `fileName` **reserves** the asset and returns
+   `uploadOperations`: chunk instructions, each with its own `method`, `url`, `offset`, `length`,
+   `requestHeaders`.
+2. Each chunk is PUT to **Apple's URL, not the API host**, with the operation's headers and **no
+   Authorization header** (those URLs are pre-signed). This is why `capabilities/default.json`
+   needs `*.apple.com`, not just `api.appstoreconnect.apple.com`.
+3. `PATCH /v1/appScreenshots/{id}` with `uploaded: true` and `sourceFileChecksum` (MD5 hex of the
+   exact bytes) is what makes the upload count.
+4. Apple then processes the asset **asynchronously**. Every call above returns 2xx for a wrong-sized
+   image; it fails minutes later as `assetDeliveryState.state = FAILED`. `waitForDelivery` polls for
+   this and turns it into warnings, which is the only reason the dialog can be trusted when it says
+   the upload worked.
+
+Screenshots hang off a set scoped to (version localization, display type), so a mixed project is
+grouped by resolved display type and each group gets its own set, created if absent. Order inside a
+set is not implied by upload order, so it is stated with a `PATCH .../relationships/appScreenshots`;
+that failing is cosmetic and downgrades to a warning.
+
+### Play's edit transaction
+
+`POST .../edits` opens a staged transaction, images are uploaded into
+`listings/{language}/{imageType}` at the `/upload/` base with `uploadType=media`, then `:validate`
+and `:commit`. Nothing is public until the commit and a thrown error discards the edit, so a failed
+run cannot leave a half-updated listing. Some accounts refuse automatic review submission and say so
+in the commit error; the client retries with `changesNotSentForReview=true` and reports that it did.
+
+### Traps
+
+- **Desktop only, and not as a product decision.** `api.appstoreconnect.apple.com` sends no CORS
+  headers, so a browser tab cannot call it at all. Everything goes through `bridgeFetch()` from
+  [account/transport.ts](../src/lib/account/transport.ts), whose Tauri branch is `tauri-plugin-http`.
+  `isStorePublishingAvailable()` is `isTauri()`, and the dialog explains itself on the web build.
+- **`fields[]` on appStoreVersions is a trap.** Apple renamed `appStoreState` to `appVersionState`;
+  asking for a field the account's API version does not know is a 400. The client requests no
+  `fields[]` there and reads whichever attribute comes back.
+- **`EDITABLE_VERSION_STATES` is narrower than fastlane's edit-version filter on purpose.** Fastlane
+  includes `WAITING_FOR_REVIEW` because it answers "which version am I working on"; screenshots are
+  frozen the moment a version is submitted, so writing to one comes back 409. Non-editable versions
+  are listed but disabled, nothing is preselected (a `?? list[0]` fallback would arm Upload against a
+  frozen version), and the dialog explains that the version has to leave review first. Play has no
+  equivalent lock: its listing is one live document and the change queues for review.
+- **A 401 and a 403 from Apple are indistinguishable in practice** (bad key vs a key without the App
+  Manager role), so one message covers both. Do not "improve" it into a guess.
+- **Play 403 is almost always setup, not code**: the service account was never invited in Play
+  Console, or the Android Developer API is not enabled. Play 404 means a package typo or an app that
+  has never been published, since Play refuses API edits before the first release.
+- **Play's size rule blocks the iPhone canvas.** Every side 320 to 3840 px, long side at most twice
+  the short side, 8 MB max. 1290x2796 is 2.17:1 and Play rejects it, so the dialog flags the board
+  and the Size dropdown converts to 1080x1920. That rule is Google's, verified in their docs, not a
+  guess to relax.
+- **Credentials are localStorage, unencrypted**, like the AI keys and the account session. The key is
+  new, so unlike the three keys in `legacyStorage.ts` it needs no `readWithLegacyFallback`. The
+  dialog copy says where the keys live without using the word "unencrypted"; that detail stays in
+  [docs/STORE-UPLOAD.md](../docs/STORE-UPLOAD.md).
+- **The key file is read with a plain `<input type="file">`, never the fs plugin.** `readTextFile` is
+  gated by `fs:allow-read-text-file`, which the capability does NOT grant (it has
+  `fs:allow-read-file`, a *different* permission), and the denial surfaces as a file-read error, so
+  it reads like a broken picker. A file input needs no permission, no Rust rebuild to change, and
+  behaves the same in the browser. The screenshot uploader already works this way. Rule 13 in
+  [AGENTS.md](AGENTS.md) in its purest form: this cost a real bug report.
+- **The capture goes through the layout, not the dialog**, because only the layout can reach the
+  live canvas DOM and swap converted boards in. `handlePublishCapture` uses a raw `setArtboards`
+  and restores in a `finally`, exactly like `handleConfirmExport`, so history and the saved project
+  stay clean.
 
 ---
 

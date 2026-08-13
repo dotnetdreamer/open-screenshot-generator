@@ -343,7 +343,9 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     return (
       <div
         className="w-full h-full flex items-center justify-center bg-transparent group"
-        style={{ cursor: 'default', position: 'relative' }}
+        // Inherit DraggableElement's cursor so a selected device shows the grab
+        // hand it is actually offering, instead of a plain arrow.
+        style={{ cursor: 'inherit', position: 'relative' }}
       >
         <Device3DRenderer
           deviceType={element.deviceType}
@@ -418,7 +420,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   return (
     <div
       className="w-full h-full flex items-center justify-center bg-transparent group"
-      style={{ cursor: 'default', position: 'relative' }}
+      // See the 3D branch above: inherit the draggable's cursor.
+      style={{ cursor: 'inherit', position: 'relative' }}
     >
       {/* Apply transform to the outer container */}
       <div
@@ -451,7 +454,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   src={withBasePath(screenshot)}
                   alt={`${element.deviceType} screenshot`}
                   style={{
-                    cursor: 'default',
+                    cursor: 'inherit',
                     opacity: 0,
                     width: '100%',
                     height: '100%',

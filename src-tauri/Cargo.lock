@@ -2431,7 +2431,7 @@ dependencies = [
 
 [[package]]
 name = "open-screenshot-generator"
-version = "0.1.10"
+version = "0.1.15"
 dependencies = [
  "base64 0.22.1",
  "serde",

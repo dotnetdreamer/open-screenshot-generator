@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
+import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
@@ -18,18 +19,63 @@ import {
 } from "@/components/ui/sidebar";
 import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
-import { CanvasArea } from './CanvasArea';
+import { CanvasArea, applyCanvasStructuralChange, type CanvasStructuralChange } from './CanvasArea';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { PropertiesPanel } from './PropertiesPanel';
-import { PreviewDialog } from './PreviewDialog';
+import { PreviewDialog, type PreviewLocaleOption } from './PreviewDialog';
 import { TranslateDialog, getLanguageName } from './TranslateDialog';
+import { LanguageManagerDialog } from './LanguageManagerDialog';
+import { LocaleViewNotice } from './LocaleViewNotice';
+import { TranslationTableDialog } from './TranslationTableDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
-import type { ArtboardState, ElementType, Point, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
+import type { ArtboardState, ElementLocaleOverride, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
+// The locale overlay. `artboards` always means the whole base document; one
+// language is a projection of it, derived per render and never stored.
+import { getLocaleDef, localeLabel, localeName } from '@/lib/i18n/locales';
+import {
+  dropElementOverrides,
+  ensureUniqueElementIds,
+  getBaseLocale,
+  getProjectLocales,
+  hasLocales,
+  localeCompletion,
+  normalizeLocalization,
+  overrideStateFor,
+  remapOverrideIds,
+  setLocalization,
+  untranslatedCount,
+} from '@/lib/i18n/localization';
+import {
+  attachProperty,
+  detachProperty,
+  projectArtboards,
+  resolveElementForLocale,
+  unprojectArtboards,
+  type DetachableKey,
+} from '@/lib/i18n/project';
+import { availableEngines, translateIntoLocale } from '@/lib/i18n/translate';
+import { applyCsvImport, buildTranslationRows, planCsvImport, toCsv } from '@/lib/i18n/translationCsv';
+import { applyLocalizedText } from '@/lib/mcp/localizedText';
+// The language tools' pure half. Everything they do is a function of the base
+// document, so the layout only resolves ids, commits, and (for the ones that
+// call an engine or the canvas) drives the progress UI.
+import {
+  addProjectLocales,
+  applyLocaleOverride,
+  applyLocaleTexts,
+  buildTranslationView,
+  localeConfigEntries,
+  removeProjectLocales,
+  resetLocaleOverrides,
+  setProjectBaseLocale,
+} from '@/lib/mcp/localeTools';
+import type { LocaleOverrideState } from './LayersPanel';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
-import { ALL_CANVAS_SIZE_PRESETS } from '@/lib/sizePresets';
+import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
+import { ALL_CANVAS_SIZE_PRESETS, canvasSizeSlug } from '@/lib/sizePresets';
 import { artboardBackground } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
@@ -39,37 +85,61 @@ import {
   type McpArtboardSummary,
   type McpElementMeasurement,
   type McpExportResult,
+  type McpLocaleState,
+  type McpLocaleSummary,
   type McpTemplateSummary,
+  type McpTranslateRun,
+  type McpTranslateRunResult,
 } from '@/lib/mcp/desktopMcpServer';
 import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { alignElementsWithinArtboard, selectionBounds, type ElementAlignment } from '@/lib/elementAlignment';
+import { PublishDialog } from './publish/PublishDialog';
+import { ProjectNameField } from './ProjectNameField';
+import { decodeDataUrl, type PublishImage } from '@/lib/publish';
 import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { AgentStartScreen } from './start/AgentStartScreen';
+import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, InfoIcon, PanelRightCloseIcon, PanelRightOpenIcon, SearchIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronLeftIcon, CopyIcon, HandIcon, InfoIcon, LightbulbIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
+import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   AccountAuthError,
   bundleFromJson,
   bundleToJson,
+  collectFontFamilies,
+  findAccountProject,
   importBundle,
   loadProjectFromAccount,
+  newCloudProjectId,
   saveProjectToAccount,
   serializeProject,
   useAccount,
+  type CloudProjectSummary,
 } from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
+import { HistoryPanel } from './HistoryPanel';
+import {
+  describeArtboardsChange,
+  getElementDisplayName,
+  namedChange,
+  HISTORY_LIMIT,
+  HISTORY_MERGE_WINDOW_MS,
+  type HistoryChange,
+  type HistoryEntry,
+} from '@/lib/historyLabels';
 import { LoadStatusBar } from './LoadStatusBar';
+import { LocalFontNotice } from './LocalFontNotice';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -112,8 +182,27 @@ const DISPLAY_SCALE_FACTOR = 0.3;
 // survives an app relaunch, not just a reload.
 const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
 const RIGHT_DOCK_LAYERS_HEIGHT_KEY = 'abs-right-dock-layers-height';
+const RIGHT_DOCK_TAB_KEY = 'abs-right-dock-tab';
 const LAYERS_SECTION_MIN = 120; // px, keeps the layers list usable
+// How long the "that applied to every language" notice stays quiet after showing.
+// Long enough not to fire on every nudge of a drag, short enough that a user who
+// keeps making shared edits keeps being told.
+const SHARED_EDIT_NOTICE_INTERVAL_MS = 30_000;
 const PROPERTIES_SECTION_MIN = 160; // px, keeps the properties form usable
+
+let historyEntrySeq = 0;
+
+// One history state: the change's name plus the snapshot it restores. The
+// snapshot is deep-copied here so later edits to the live artboards can never
+// reach back into a recorded state.
+function makeHistoryEntry(artboards: ArtboardState[], change: HistoryChange): HistoryEntry {
+  return {
+    ...change,
+    id: `h${++historyEntrySeq}`,
+    timestamp: Date.now(),
+    artboards: JSON.parse(JSON.stringify(artboards)),
+  };
+}
 
 // Update the function with reduced margin
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
@@ -349,7 +438,65 @@ export function OpenScreenshotGeneratorLayout() {
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
   const [activeArtboardId, setActiveArtboardId] = useState<string | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
-  const [history, setHistory] = useState<ArtboardState[][]>([[]]);
+
+  // --- locale overlay -------------------------------------------------------
+  // `artboards` above ALWAYS means the whole base document, every language.
+  // One language is `viewArtboards`, derived below and handed only to the
+  // canvas and the preview. Storing a projection in `artboards` would persist
+  // one language's text as everybody's text, so it never happens.
+  const [activeLocale, setActiveLocale] = useState<string | null>(null);
+  // Read instead of the state inside commitView: DraggableElement commits on a
+  // document-level mouseup, so a drag started before a language switch would
+  // otherwise fold its result into the wrong language.
+  const activeLocaleRef = useRef<string | null>(null);
+  const [isLanguageManagerOpen, setIsLanguageManagerOpen] = useState(false);
+  const [isTranslationTableOpen, setIsTranslationTableOpen] = useState(false);
+  const [translationTableLocale, setTranslationTableLocale] = useState<string | null>(null);
+  const [translationTableFilter, setTranslationTableFilter] = useState<'all' | 'untranslated'>('all');
+  // Live readout for machine translation, which is one network round trip per
+  // distinct string and can run for a minute across several languages.
+  const [translateProgress, setTranslateProgress] = useState<TranslateProgress | null>(null);
+  const [isCancellingTranslate, setIsCancellingTranslate] = useState(false);
+  const translateAbortRef = useRef<AbortController | null>(null);
+  // A machine translation path exists at all. Set in an effect, never during
+  // render: it reads localStorage and isTauri(), both of which are absent on
+  // the server and on the first client render.
+  const [translationAvailable, setTranslationAvailable] = useState(false);
+  useEffect(() => {
+    setTranslationAvailable(availableEngines().length > 0);
+  }, []);
+  // Set for exactly as long as an export or a store upload has a converted or
+  // re-projected list on the canvas. It closes the mutation door, so an MCP
+  // call or a stray drag landing mid-swap cannot write a temporary render into
+  // the project.
+  const isExportingRef = useRef(false);
+  // What the canvas paints while that swap is up. Non-null only during a run,
+  // and already resolved for its language, so it must NOT be projected again.
+  const [exportCanvasArtboards, setExportCanvasArtboards] = useState<ArtboardState[] | null>(null);
+  // Said once per session, the first time a shared property is edited from a
+  // translated language.
+  const sharedEditNoticeShownRef = useRef<{ locale: string | null; at: number }>({ locale: null, at: 0 });
+  /**
+   * What an edit made while viewing a translated language means.
+   *
+   * Defaults to 'local' because that is what people mean: if you are looking at
+   * German and you drag a box taller, it is because the German string overran
+   * it. Making that reach every language is the behaviour that reads as broken.
+   * Design changes belong in the base language, where they still reach
+   * everything. 'shared' is here for the times you want a design change without
+   * switching languages first.
+   */
+  const [localeEditScope, setLocaleEditScope] = useState<'local' | 'shared'>('local');
+  const localeEditScopeRef = useRef<'local' | 'shared'>('local');
+  useEffect(() => { localeEditScopeRef.current = localeEditScope; }, [localeEditScope]);
+  // The base document, readable without waiting for a re-render. Frozen during
+  // an export so the temporary canvas list can never be mistaken for the
+  // project. commitView, the MCP tools and Duplicate project all read this.
+  const artboardsRef = useRef<ArtboardState[]>(artboards);
+  if (!isExportingRef.current) artboardsRef.current = artboards;
+  // Undo stack and the History panel are the same list: every entry is a full
+  // project snapshot plus the name of the change that produced it.
+  const [history, setHistory] = useState<HistoryEntry[]>(() => [makeHistoryEntry([], namedChange('New Document', 'open'))]);
   const [historyIndex, setHistoryIndex] = useState(0);
   // Seed from the URL: closed when refreshing straight into an open project
   // (?projectId present), open on a fresh visit. Prevents the selector flashing
@@ -361,6 +508,15 @@ export function OpenScreenshotGeneratorLayout() {
   // dialog, as it always was; the agent is a screen you step into from the
   // banner above it. Reset on open so reopening never lands mid-agent-flow.
   const [dialogView, setDialogView] = useState<'templates' | 'agent'>('templates');
+  // Startup tips. Opens in front of the start dialog (which is suppressed
+  // while it is up, see the Dialog below) until the user unticks its box.
+  // The default has to match what the static export rendered, so the stored
+  // preference is read in a layout effect: it lands before first paint, and
+  // the start dialog never flashes open behind the tips.
+  const [isTipsOpen, setIsTipsOpen] = useState(false);
+  useLayoutEffect(() => {
+    if (shouldShowTipsOnStartup()) setIsTipsOpen(true);
+  }, []);
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -375,6 +531,13 @@ export function OpenScreenshotGeneratorLayout() {
   // read per request by the bridge (see the block above the render return).
   const mcpApiRef = useRef<McpDesignApi | null>(null);
   const [selectedElementIdsOnActiveArtboard, setSelectedElementIdsOnActiveArtboard] = useState<string[]>([]);
+  // The lone selected element, or null when nothing (or more than one thing) is
+  // selected. The locale overlay and the properties panel are single-element
+  // affordances: an override belongs to one element, so a multi-selection has
+  // no single row to detach, reset or describe.
+  const selectedElementIdOnActiveArtboard = selectedElementIdsOnActiveArtboard.length === 1
+    ? selectedElementIdsOnActiveArtboard[0]
+    : null;
   // Custom right-click menu over the canvas. pastePoint is the click location
   // in artboard coordinates so Paste can drop the element under the cursor.
   const [contextMenu, setContextMenu] = useState<{
@@ -416,14 +579,6 @@ export function OpenScreenshotGeneratorLayout() {
       disposeStatus();
     };
   }, [toast]);
-  // The element the properties panel edits, derived from the selection: only
-  // a single selection exposes per-property editing; a multi-selection shows
-  // the panel's multi-select state instead.
-  const selectedElementDetails = useMemo(() => {
-    if (!activeArtboardId || selectedElementIdsOnActiveArtboard.length !== 1) return null;
-    const activeAb = artboards.find((ab) => ab.id === activeArtboardId);
-    return activeAb?.elements.find((el) => el.id === selectedElementIdsOnActiveArtboard[0]) ?? null;
-  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, artboards]);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   // Seed from the URL so the project-loading and selector effects see the real
   // active id on the first render instead of a transient null (which would force
@@ -431,11 +586,18 @@ export function OpenScreenshotGeneratorLayout() {
   const [activeProjectId, setActiveProjectId] = useState<string | null>(getInitialProjectIdFromUrl);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Untitled Project');
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
+  const [recentProjectSearch, setRecentProjectSearch] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  // Set while a recent-projects row is being copied, so its button can show a
+  // spinner: bundling a project reads every media blob out of Dexie.
+  const [duplicatingProjectId, setDuplicatingProjectId] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
+  // see src/lib/publish; the dialog explains itself on the web build.
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   // Seeds the export dialog's "Selected artboard only" box. The toolbar's
   // Download opens the dialog project-wide; an artboard's own Download opens
   // it already scoped to that board.
@@ -460,6 +622,9 @@ export function OpenScreenshotGeneratorLayout() {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountHint, setAccountHint] = useState<string | undefined>(undefined);
   const [isSavingToAccount, setIsSavingToAccount] = useState(false);
+  // Set when a save would land on top of a copy already in the account: holds
+  // that copy while the user picks replace or save-as-new.
+  const [saveConflict, setSaveConflict] = useState<CloudProjectSummary | null>(null);
   const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
   // Desktop only: Help > About in the native menu bar opens the same dialog
   // as the sidebar's About option (settings.rs emits abs-open-about).
@@ -487,6 +652,9 @@ export function OpenScreenshotGeneratorLayout() {
   // subtree, so PNG, video and preview output can never include it.
   const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
+  // Which of the dock's top-section tabs is showing: the properties form or
+  // the project's history states.
+  const [rightDockTab, setRightDockTab] = useState<'properties' | 'history'>('properties');
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
   // Set when the run is scoped to one text element (the properties panel
@@ -495,6 +663,12 @@ export function OpenScreenshotGeneratorLayout() {
 
   const handleTranslateArtboard = (artboardId: string) => {
     handleArtboardSelection(artboardId);
+    // See translateScopeIntoActiveLocale: with languages in the project, the
+    // in-place dialog would overwrite the source language for all of them.
+    if (hasLocales(artboardsRef.current)) {
+      void translateScopeIntoActiveLocale({ artboardIds: [artboardId] }, 'Translate Artboard');
+      return;
+    }
     setTranslateElementId(null);
     setIsTranslateSingleArtboard(true);
     setIsTranslateDialogOpen(true);
@@ -507,6 +681,10 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
   const handleTranslateTextElement = (elementId: string) => {
+    if (hasLocales(artboardsRef.current)) {
+      void translateScopeIntoActiveLocale({ elementIds: [elementId] }, 'Translate Element');
+      return;
+    }
     setTranslateElementId(elementId);
     setIsTranslateSingleArtboard(true);
     setIsTranslateDialogOpen(true);
@@ -514,6 +692,7 @@ export function OpenScreenshotGeneratorLayout() {
   useLayoutEffect(() => {
     try {
       if (window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) === '0') setIsRightDockOpen(false);
+      if (window.localStorage.getItem(RIGHT_DOCK_TAB_KEY) === 'history') setRightDockTab('history');
       const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
       if (Number.isFinite(stored)) {
         setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
@@ -526,6 +705,11 @@ export function OpenScreenshotGeneratorLayout() {
   const setRightDockOpen = (open: boolean) => {
     setIsRightDockOpen(open);
     try { window.localStorage.setItem(RIGHT_DOCK_OPEN_KEY, open ? '1' : '0'); } catch {}
+  };
+
+  const selectRightDockTab = (tab: 'properties' | 'history') => {
+    setRightDockTab(tab);
+    try { window.localStorage.setItem(RIGHT_DOCK_TAB_KEY, tab); } catch {}
   };
   const { clipboardItems, copyElementsToClipboard } = useClipboard();
   const router = useRouter();
@@ -571,6 +755,31 @@ export function OpenScreenshotGeneratorLayout() {
 
     fetchRecentProjects();
   }, [activeProjectId]); // Add activeProjectId as a dependency
+
+  // Closing the tab, reloading or hitting Back throws away the editor session,
+  // and anything not pushed to the connected account only exists in this
+  // browser's IndexedDB. `beforeunload` is the one hook that can interrupt
+  // that, and browsers only honour it with their own built-in confirm: a
+  // custom dialog cannot block an unload, and any message we set here is
+  // ignored (Chrome/Firefox/Safari all show fixed wording).
+  //
+  // Web only, on purpose. The desktop shell owns its window lifecycle, and a
+  // Tauri close would either ignore this or strand the user in a prompt the
+  // native window did not ask for.
+  //
+  // Only armed once there is something on the canvas, so the template picker
+  // on a fresh visit never blocks a close.
+  useEffect(() => {
+    if (isTauri() || artboards.length === 0) return;
+    const confirmLeave = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Legacy browsers need a truthy returnValue to raise the prompt at all.
+      event.returnValue = '';
+      return '';
+    };
+    window.addEventListener('beforeunload', confirmLeave);
+    return () => window.removeEventListener('beforeunload', confirmLeave);
+  }, [artboards.length]);
 
   // --- 1. On mount, check for projectId in URL and set as activeProjectId ---
   useEffect(() => {
@@ -622,10 +831,19 @@ export function OpenScreenshotGeneratorLayout() {
           if (project && project.projectData) {
             // Projects saved before recordings became their own element type
             // still carry them on the screenshot device — convert on load.
-            const projectData = migrateVideoDevices(project.projectData);
+            // Positions are derived, so re-lay the boards here too: an imported
+            // or externally written project can carry stale/identical positions
+            // that would stack every board on the same spot.
+            // ensureUniqueElementIds repairs boards an older Duplicate Artboard
+            // aliased; normalizeLocalization re-stamps the language config and
+            // sweeps overrides whose element or language is gone. Both return
+            // their input by reference when there is nothing to fix.
+            const projectData = calculateArtboardPositions(
+              normalizeLocalization(ensureUniqueElementIds(migrateVideoDevices(project.projectData)))
+            );
             setArtboards(projectData);
             setCurrentProjectName(project.name || 'Untitled Project');
-            setHistory([JSON.parse(JSON.stringify(projectData))]);
+            setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
             setHistoryIndex(0);
             // Auto-select the first artboard so a refreshed project opens ready to
             // edit (matches loadProjectFromData, the click-a-template path). Without
@@ -651,41 +869,40 @@ export function OpenScreenshotGeneratorLayout() {
     };
     loadProject();
  }, [activeProjectId, isLoadingTemplate, toast, setIsTemplateSelectorOpen]); // Added isLoadingTemplate dependency
-  const pushToHistory = (newArtboardsState: ArtboardState[]) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(newArtboardsState))); // Deep copy
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
+  /**
+   * Record a new history state. `change` names the command when the caller
+   * knows it (Paste, Convert to iPhone 15); otherwise the name is recovered by
+   * diffing against the previous snapshot, which is what gives canvas drags and
+   * properties-panel edits their labels without every call site being touched.
+   *
+   * Continuous tweaks (a slider fires an update per pixel) collapse into the
+   * state they started, so one gesture is one entry in the panel and one undo.
+   */
+  const pushToHistory = (newArtboardsState: ArtboardState[], change?: HistoryChange) => {
+    const trimmed = history.slice(0, historyIndex + 1);
+    const previous = trimmed[trimmed.length - 1];
+    const described = change ?? describeArtboardsChange(previous?.artboards ?? [], newArtboardsState);
+    // Nothing actually moved (a re-save, a no-op update): leave the stack alone
+    // so the panel does not fill with states that restore the same thing.
+    if (!described) return;
+
+    const entry = makeHistoryEntry(newArtboardsState, described);
+    const canMerge =
+      !!previous &&
+      !!described.mergeKey &&
+      previous.mergeKey === described.mergeKey &&
+      entry.timestamp - previous.timestamp < HISTORY_MERGE_WINDOW_MS;
+
+    let next = canMerge
+      ? [...trimmed.slice(0, -1), { ...entry, id: previous.id }]
+      : [...trimmed, entry];
+    // Snapshots carry whole projects, screenshots included, so the stack is
+    // capped from the oldest end.
+    if (next.length > HISTORY_LIMIT) next = next.slice(next.length - HISTORY_LIMIT);
+
+    setHistory(next);
+    setHistoryIndex(next.length - 1);
   };
-
-  // Define the handleUpdateArtboardDetails function to update artboard background settings
-  const handleUpdateArtboardDetails = useCallback(async (updates: Partial<ArtboardState>) => {
-    if (!activeArtboardId) return;
-
-    const updatedArtboards = artboards.map(ab => {
-      if (ab.id === activeArtboardId) {
-        return { ...ab, ...updates };
-      }
-      return ab;
-    });
-    
-    setArtboards(updatedArtboards);
-    pushToHistory(updatedArtboards);
-
-    // Save to database
-    if (activeProjectId) {
-      try {
-        await db.projects.put({
-          id: activeProjectId,
-          name: currentProjectName,
-          timestamp: new Date(),
-          projectData: JSON.parse(JSON.stringify(updatedArtboards)),
-        });
-      } catch (error) {
-        console.error("Error saving artboard updates to database:", error);
-      }
-    }
-  }, [activeArtboardId, artboards, pushToHistory, activeProjectId, currentProjectName]);
 
   // Add the missing handleDeleteProject function
   const handleDeleteProject = async (projectId: string) => {
@@ -710,8 +927,70 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[]) => {
+  /**
+   * Copy a project, media and imported fonts included, and open the copy.
+   *
+   * Enabled for the project that is currently open, unlike Delete next to it:
+   * the open one is exactly the one people want a variant of. That is also why
+   * the bundle is built from the canvas rather than the stored row when the
+   * target IS the open project: handleArtboardsUpdate's db.projects.put is
+   * fire and forget, so the row can lag the editor by a tick and a naive copy
+   * would quietly drop the last edit.
+   *
+   * importBundle restores media under their original ids and skips ids already
+   * present, so the copy shares those blobs by reference and writes no bytes.
+   */
+  const handleDuplicateProject = async (project: Project) => {
+    if (duplicatingProjectId) return;
+    setDuplicatingProjectId(project.id);
+    try {
+      const source: Project =
+        project.id === activeProjectId
+          ? {
+              ...project,
+              name: currentProjectName,
+              projectData: JSON.parse(JSON.stringify(artboardsRef.current)),
+            }
+          : project;
+      const bundle = await serializeProject(source);
+      // Matching the SaveToAccountDialog convention, which names its copy the
+      // same way.
+      const copy = await importBundle(bundle, {
+        projectId: `project_${Date.now()}`,
+        name: `${source.name} copy`,
+      });
+      setRecentProjects(await db.projects.orderBy('timestamp').reverse().toArray());
+      const opened = await loadProjectFromData(copy.projectData, copy.name, copy.id);
+      if (!opened) {
+        toast({
+          title: "Could not open the copy",
+          description: `"${copy.name}" was saved, pick it from Recent projects.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({ title: "Project duplicated", description: `"${copy.name}" is open now.` });
+    } catch (error) {
+      console.error("Error duplicating project:", error);
+      toast({
+        title: "Duplicate failed",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    } finally {
+      setDuplicatingProjectId(null);
+    }
+  };
+
+  const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
     console.log("handleArtboardsUpdate called", activeProjectId);
+    // An export has a converted or re-projected list on the canvas. A commit
+    // arriving now (an MCP tool, a drag settling on mouseup) would be measured
+    // against that temporary render and persist it as the project.
+    if (isExportingRef.current) {
+      console.warn('Ignoring an artboard update while an export is swapping the canvas.');
+      return;
+    }
     const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
     setArtboards(repositionedArtboards); // Update React state first
   
@@ -756,14 +1035,509 @@ export function OpenScreenshotGeneratorLayout() {
         }
     }
     saveProject(); // Call the async save function
-    pushToHistory(repositionedArtboards);
+    pushToHistory(repositionedArtboards, change);
   }, [activeArtboardId, selectedElementIdsOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId]);
+
+  // Board background, name and the rest of the board-level form. It used to run
+  // its own db.projects.put and skip repositioning; folding it into the door
+  // above is what makes "handleArtboardsUpdate is the only door" true, which is
+  // the invariant the locale overlay rests on.
+  const handleUpdateArtboardDetails = useCallback((updates: Partial<ArtboardState>) => {
+    if (!activeArtboardId) return;
+    handleArtboardsUpdate(
+      artboardsRef.current.map((ab) => (ab.id === activeArtboardId ? { ...ab, ...updates } : ab))
+    );
+  }, [activeArtboardId, handleArtboardsUpdate]);
+
+  // What the active language shows. Board count, board order and board ids are
+  // identical to the base document; only the handful of keys in
+  // LOCALIZABLE_KEYS can differ, plus elements hidden in this language.
+  const viewArtboards = useMemo(
+    // An export swap is ALREADY resolved for the language it is capturing.
+    // Projecting it again would lay the language on screen over the language
+    // being exported, which is how you get German text in the Japanese set.
+    () => exportCanvasArtboards ?? projectArtboards(artboards, activeLocale),
+    [exportCanvasArtboards, artboards, activeLocale]
+  );
+
+  /**
+   * PROPERTY edits made on the canvas or in the properties panel. Text and
+   * screenshot/image/media are always an override for the language on screen.
+   * Everything else follows localeEditScope: 'local' pulls the property apart
+   * for this language, 'shared' writes the base element and reaches every
+   * language.
+   *
+   * Structural operations (add, delete, reorder, paste, anything board-level)
+   * never come through here: they run on the base array, because a projection
+   * cannot express "this element does not exist" as distinct from "this element
+   * is hidden in this one language".
+   */
+  const commitView = useCallback((nextView: ArtboardState[], change?: HistoryChange) => {
+    const locale = activeLocaleRef.current;
+    const base = artboardsRef.current;
+    const next = unprojectArtboards(base, locale, nextView, {
+      autoDetach: !!locale && localeEditScopeRef.current === 'local',
+    });
+    if (next === base) return;
+    if (!locale) {
+      handleArtboardsUpdate(next, change);
+      return;
+    }
+    // Anything the commit changed outside the override maps is shared, so say
+    // so in the history label and, once per session, out loud.
+    const touchesEveryLanguage = next.some((board, index) => {
+      const previous = base[index];
+      if (!previous || previous === board) return false;
+      const { localized: _next, ...rest } = board;
+      const { localized: _previous, ...before } = previous as ArtboardState;
+      const keys = new Set([...Object.keys(rest), ...Object.keys(before)]);
+      for (const key of keys) {
+        if ((rest as Record<string, unknown>)[key] !== (before as Record<string, unknown>)[key]) return true;
+      }
+      return false;
+    });
+    if (!touchesEveryLanguage) {
+      handleArtboardsUpdate(next, change);
+      return;
+    }
+    const described = change ?? describeArtboardsChange(base, next);
+    // Throttled, NOT once per session. A single lifetime showing is consumed by
+    // the first shared edit a user ever makes, and every later one then changes
+    // all their languages silently, which reads as the feature being broken.
+    // Re-armed on a language switch too, since the scope question is live again
+    // the moment the user is looking at a different language.
+    const now = Date.now();
+    const seen = sharedEditNoticeShownRef.current;
+    if (seen.locale !== locale || now - seen.at > SHARED_EDIT_NOTICE_INTERVAL_MS) {
+      sharedEditNoticeShownRef.current = { locale, at: now };
+      toast({
+        title: 'That change applied to every language',
+        description: `Text and screenshots are ${localeName(locale)} only. For anything else, use the "This language only" toggle beside that property first.`,
+      });
+    }
+    handleArtboardsUpdate(
+      next,
+      described ? { ...described, label: `${described.label} (all languages)` } : undefined
+    );
+  }, [handleArtboardsUpdate, toast]);
+
+  // Switching language commits nothing: the view is a memo over `artboards`.
+  const handleSelectLocale = useCallback((locale: string | null) => {
+    // The ref first, so a commit already in flight lands in the language it
+    // was started in rather than the one being switched to.
+    activeLocaleRef.current = locale;
+    setActiveLocale(locale);
+    // The selection deliberately survives: element ids are identical in every
+    // projection, and "select the headline, switch to German, type it" is the
+    // flow the properties panel is built around.
+  }, []);
+
+  /**
+   * Fall back to the base language whenever the one being viewed is not in the
+   * project any more.
+   *
+   * `activeLocale` is component state while the project underneath it can be
+   * replaced wholesale: opening another project, importing a JSON, duplicating,
+   * or undoing past the commit that added the language. Every one of those
+   * would otherwise leave the toolbar naming a language this project has never
+   * heard of, and the locale notice offering to translate into it. The
+   * projection itself is safe either way (an unknown locale has no overrides,
+   * so it renders the base text), so this is about the chrome telling the truth.
+   */
+  useEffect(() => {
+    const viewing = activeLocaleRef.current;
+    if (!viewing) return;
+    if (getProjectLocales(artboards).some((entry) => entry.code === viewing)) return;
+    handleSelectLocale(null);
+  }, [artboards, handleSelectLocale]);
+
+  /**
+   * Adding and deleting elements on the canvas. It arrives as a delta rather
+   * than a new array because a projected array cannot say whether a missing
+   * element was deleted or is merely hidden in the language on screen, and
+   * unprojectArtboards refuses a commit whose element count moved.
+   *
+   * applyCanvasStructuralChange drops the removed ids' overrides in every
+   * locale in the same commit, so a re-minted id can never inherit a stale
+   * translation.
+   */
+  const handleCanvasStructuralChange = useCallback((change: CanvasStructuralChange) => {
+    const base = artboardsRef.current;
+    const next = base.map((board) =>
+      board.id === change.artboardId ? applyCanvasStructuralChange(board, change) : board
+    );
+    if (next.every((board, index) => board === base[index])) return;
+    handleArtboardsUpdate(
+      next,
+      namedChange(change.added.length > 0 ? 'Add Element' : 'Delete Element', change.added.length > 0 ? 'add' : 'delete')
+    );
+  }, [handleArtboardsUpdate]);
+
+  /**
+   * One machine translation run, shared by the switcher's "Update translations"
+   * and by the translation table's buttons. It never commits: the caller
+   * decides, because the table holds its result until Save.
+   */
+  const runLocaleTranslation = useCallback(async (
+    locale: string,
+    only: 'empty' | 'stale' | 'all',
+    scope?: { artboardIds?: string[]; elementIds?: string[]; includeManual?: boolean }
+  ): Promise<ArtboardState[] | null> => {
+    const engines = availableEngines();
+    if (engines.length === 0) {
+      toast({
+        title: 'Translation is not set up',
+        description: 'Add an AI provider key, or type the strings into the translations table.',
+      });
+      return null;
+    }
+    const controller = new AbortController();
+    translateAbortRef.current = controller;
+    setIsCancellingTranslate(false);
+    setTranslateProgress({
+      localeLabel: localeLabel(locale),
+      done: 0,
+      total: 0,
+      localeIndex: 1,
+      localeCount: 1,
+      phase: 'starting',
+    });
+    try {
+      const result = await translateIntoLocale(artboardsRef.current, locale, {
+        engine: engines[0],
+        only,
+        ...scope,
+        signal: controller.signal,
+        onProgress: (done, total) =>
+          setTranslateProgress((prev) =>
+            prev ? { ...prev, done, total, phase: 'translating' } : prev
+          ),
+      });
+      toast(
+        result.rateLimited
+          ? {
+              title: 'Translation stopped early',
+              description: `Translated ${result.translated}, ${result.failed} left. Wait a minute and run it again.`,
+              variant: 'destructive',
+            }
+          : {
+              title: `Translated ${result.translated} ${result.translated === 1 ? 'string' : 'strings'}`,
+              description:
+                [
+                  result.failed ? `${result.failed} did not come back` : '',
+                  result.skipped ? `${result.skipped} you edited were left alone` : '',
+                ]
+                  .filter(Boolean)
+                  .join('. ') || undefined,
+            }
+      );
+      return result.artboards;
+    } catch (error) {
+      // Cancelling is a choice, not a failure, so it does not get an error toast.
+      if (controller.signal.aborted) return null;
+      toast({
+        title: 'Translation failed',
+        description: error instanceof Error ? error.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      translateAbortRef.current = null;
+      setTranslateProgress(null);
+      setIsCancellingTranslate(false);
+    }
+  }, [toast]);
+
+  /**
+   * What the artboard toolbar's and the Properties panel's translate buttons do
+   * ONCE THE PROJECT HAS LANGUAGES. Those buttons predate the overlay and
+   * translate in place, which with languages present overwrites the source
+   * language for every language at once and leaves a half-translated base if
+   * the engine stops early. Scoped into the active language's overrides
+   * instead, which is what the button now means, and the source survives.
+   *
+   * includeManual is on: unlike the bulk "Update translations", aiming this at
+   * one board or one element is an explicit ask, and it is one undo away.
+   */
+  const translateScopeIntoActiveLocale = useCallback(async (
+    scope: { artboardIds?: string[]; elementIds?: string[] },
+    label: string
+  ) => {
+    const locale = activeLocaleRef.current;
+    if (!locale) {
+      toast({
+        title: 'Pick a language first',
+        description: 'Switch to the language you want this written in, then translate again.',
+      });
+      return;
+    }
+    const next = await runLocaleTranslation(locale, 'all', { ...scope, includeManual: true });
+    if (next && next !== artboardsRef.current) {
+      handleArtboardsUpdate(next, namedChange(label, 'translate', localeLabel(locale)));
+    }
+  }, [handleArtboardsUpdate, runLocaleTranslation, toast]);
+
+  /** Asks the running translation to stop. The dialog stays up until it has. */
+  const handleCancelTranslation = useCallback(() => {
+    if (!translateAbortRef.current) return;
+    setIsCancellingTranslate(true);
+    translateAbortRef.current.abort();
+  }, []);
+
+  // The manager dialog's confirm. normalizeLocalization AFTER setLocalization is
+  // what actually deletes an unticked language's overrides: setLocalization only
+  // rewrites the config, the sweep drops the maps it no longer covers.
+  const handleApplyLanguages = useCallback(async (
+    next: ProjectLocalization,
+    opts: { machineTranslate: boolean; addedLocales: string[] }
+  ) => {
+    // Passing undefined strips `localization` off every board, which puts a
+    // project whose last language was just removed back to being byte-identical
+    // to one that never had any.
+    let boards = normalizeLocalization(
+      setLocalization(artboardsRef.current, next.locales.length > 0 ? next : undefined)
+    );
+    if (opts.machineTranslate && opts.addedLocales.length > 0 && availableEngines().length > 0) {
+      const controller = new AbortController();
+      translateAbortRef.current = controller;
+      setIsCancellingTranslate(false);
+      try {
+        // Sequential, not Promise.all: the engines share one rate-limit budget.
+        for (const [index, code] of opts.addedLocales.entries()) {
+          if (controller.signal.aborted) break;
+          setTranslateProgress({
+            localeLabel: localeLabel(code),
+            done: 0,
+            total: 0,
+            localeIndex: index + 1,
+            localeCount: opts.addedLocales.length,
+            phase: 'starting',
+          });
+          try {
+            const done = await translateIntoLocale(boards, code, {
+              engine: availableEngines()[0],
+              only: 'empty',
+              signal: controller.signal,
+              onProgress: (doneCount, total) =>
+                setTranslateProgress((prev) =>
+                  prev ? { ...prev, done: doneCount, total, phase: 'translating' } : prev
+                ),
+            });
+            boards = done.artboards;
+          } catch (error) {
+            // One language failing must not cost the user the languages
+            // themselves, so the loop keeps going and the config still commits.
+            console.error('Could not machine translate into', code, error);
+          }
+        }
+      } finally {
+        translateAbortRef.current = null;
+        setTranslateProgress(null);
+        setIsCancellingTranslate(false);
+      }
+    }
+    handleArtboardsUpdate(
+      boards,
+      namedChange('Add Languages', 'translate', `${next.locales.length} languages`)
+    );
+    // Viewing a language that was just removed would show a projection of a
+    // locale the project no longer has.
+    const viewing = activeLocaleRef.current;
+    if (viewing && !next.locales.some((entry) => entry.code === viewing)) {
+      handleSelectLocale(null);
+    }
+  }, [handleArtboardsUpdate, handleSelectLocale]);
+
+  const handleOpenTranslations = useCallback((filter: 'all' | 'untranslated' = 'all') => {
+    setTranslationTableLocale(activeLocaleRef.current);
+    setTranslationTableFilter(filter);
+    setIsTranslationTableOpen(true);
+  }, []);
+
+  // The switcher's "Update translations": refresh what a machine wrote and the
+  // base language has since changed under, for the language on screen.
+  const handleUpdateTranslations = useCallback(async () => {
+    const locale = activeLocaleRef.current;
+    if (!locale) {
+      toast({
+        title: 'Pick a language first',
+        description: 'Switch to the language you want to refresh, then run this again.',
+      });
+      return;
+    }
+    const next = await runLocaleTranslation(locale, 'stale');
+    if (next && next !== artboardsRef.current) {
+      handleArtboardsUpdate(next, namedChange('Update Translations', 'translate', localeLabel(locale)));
+    }
+  }, [handleArtboardsUpdate, runLocaleTranslation, toast]);
+
+  // One commit for a whole bulk-entry session, so undo restores all of it.
+  const handleSaveTranslations = useCallback((next: ArtboardState[], editedCount: number) => {
+    handleArtboardsUpdate(next, namedChange('Edit Translations', 'translate', `${editedCount} strings`));
+  }, [handleArtboardsUpdate]);
+
+  /** Drops one override key, handing that row back to the base language. */
+  const handleResetLocaleField = useCallback((
+    field: 'content' | 'fontFamily' | 'screenshotSrc' | 'imageSrc' | 'mediaId'
+  ) => {
+    const locale = activeLocaleRef.current;
+    const elementId = selectedElementIdOnActiveArtboard;
+    if (!locale || !elementId || !activeArtboardId) return;
+    let changed = false;
+    // Straight to the base array, NOT through commitView: a reset edits the
+    // override map itself, and a projection cannot express "no value" as
+    // distinct from "the same value the base has".
+    const next = artboardsRef.current.map((board) => {
+      if (board.id !== activeArtboardId) return board;
+      const forLocale = board.localized?.[locale];
+      const override = forLocale?.[elementId];
+      if (!forLocale || !override || override[field] === undefined) return board;
+      changed = true;
+      const { [field]: _dropped, origin, sourceHash, ...rest } = override;
+      const nextForLocale = { ...forLocale };
+      // Nothing localizable left means the element is fully inherited again, so
+      // the row goes rather than lingering as an empty marker.
+      if (Object.keys(rest).length === 0) delete nextForLocale[elementId];
+      else nextForLocale[elementId] = { ...rest, origin, sourceHash };
+      const localized = { ...board.localized };
+      if (Object.keys(nextForLocale).length > 0) localized[locale] = nextForLocale;
+      else delete localized[locale];
+      const nextBoard: ArtboardState = { ...board, localized };
+      if (Object.keys(localized).length === 0) delete nextBoard.localized;
+      return nextBoard;
+    });
+    if (!changed) return;
+    handleArtboardsUpdate(next, namedChange('Reset Translation', 'translate', localeLabel(locale)));
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, handleArtboardsUpdate]);
+
+  /**
+   * Pulls one property apart for the language on screen, or hands it back.
+   *
+   * Detaching seeds the override from the element AS IT CURRENTLY RENDERS, so
+   * the picture does not move at the moment of detaching: the user gets their
+   * own copy of the value they were already looking at, and edits from there.
+   * Re-attaching drops the value with the flag, so the element snaps back to
+   * the shared design rather than keeping a stale copy that does nothing.
+   *
+   * Goes straight to the base array, not through commitView, for the same
+   * reason as handleResetLocaleField: this edits the override map itself, and a
+   * projection cannot express "detached" at all.
+   */
+  const handleToggleLocaleDetach = useCallback((keys: DetachableKey[], detach: boolean) => {
+    const locale = activeLocaleRef.current;
+    const elementId = selectedElementIdOnActiveArtboard;
+    if (!locale || !elementId || !activeArtboardId || keys.length === 0) return;
+    let changed = false;
+    const next = artboardsRef.current.map((board) => {
+      if (board.id !== activeArtboardId) return board;
+      const baseEl = board.elements.find((el) => el.id === elementId);
+      if (!baseEl) return board;
+      const forLocale = board.localized?.[locale];
+      const current = forLocale?.[elementId];
+      const entry = getProjectLocales(artboardsRef.current).find((e) => e.code === locale);
+      // Folded in one pass. A geometry toggle covers position, size and scale,
+      // and three separate commits in one click would each start from the same
+      // artboardsRef snapshot (it only refreshes on render) so only the last
+      // would survive. One pass is also one undo entry, which is what the user
+      // means by one click.
+      const nextOverride = keys.reduce<ElementLocaleOverride | undefined>(
+        (acc, key) =>
+          detach
+            ? detachProperty(acc, resolveElementForLocale(baseEl, acc, entry), key)
+            : attachProperty(acc, key),
+        current
+      );
+      if (nextOverride === current) return board;
+      changed = true;
+
+      const nextForLocale = { ...(forLocale || {}) };
+      if (nextOverride) nextForLocale[elementId] = nextOverride;
+      else delete nextForLocale[elementId];
+      const localized = { ...board.localized };
+      if (Object.keys(nextForLocale).length > 0) localized[locale] = nextForLocale;
+      else delete localized[locale];
+      const nextBoard: ArtboardState = { ...board, localized };
+      if (Object.keys(localized).length === 0) delete nextBoard.localized;
+      return nextBoard;
+    });
+    if (!changed) return;
+    handleArtboardsUpdate(
+      next,
+      namedChange(detach ? 'Detach For Language' : 'Share Across Languages', 'translate', localeLabel(locale))
+    );
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, handleArtboardsUpdate]);
+
+  /**
+   * "Reset to base", at whichever scope the user asked for. Dropping the whole
+   * override row is the reset: with nothing of its own left, the element is
+   * projected verbatim from the base design again.
+   *
+   * Straight to the base array rather than through commitView, for the same
+   * reason as the other override edits: a projection cannot express "no value"
+   * as distinct from "the same value the base happens to have".
+   */
+  const handleResetLocaleOverrides = useCallback((scope: 'element' | 'artboard' | 'project') => {
+    const locale = activeLocaleRef.current;
+    if (!locale) return;
+    const elementId = selectedElementIdOnActiveArtboard;
+    if (scope === 'element' && (!elementId || !activeArtboardId)) return;
+
+    let changed = false;
+    const next = artboardsRef.current.map((board) => {
+      if (scope !== 'project' && board.id !== activeArtboardId) return board;
+      const forLocale = board.localized?.[locale];
+      if (!forLocale) return board;
+
+      const nextForLocale = { ...forLocale };
+      if (scope === 'element') {
+        if (!elementId || nextForLocale[elementId] === undefined) return board;
+        delete nextForLocale[elementId];
+      }
+      changed = true;
+
+      const localized = { ...board.localized };
+      if (scope !== 'element' || Object.keys(nextForLocale).length === 0) delete localized[locale];
+      else localized[locale] = nextForLocale;
+      const nextBoard: ArtboardState = { ...board, localized };
+      if (Object.keys(localized).length === 0) delete nextBoard.localized;
+      return nextBoard;
+    });
+    if (!changed) return;
+    handleArtboardsUpdate(
+      next,
+      namedChange(
+        scope === 'element' ? 'Reset Element To Base'
+          : scope === 'artboard' ? 'Reset Artboard To Base'
+          : 'Reset Language To Base',
+        'translate',
+        localeLabel(locale)
+      )
+    );
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, handleArtboardsUpdate]);
+
+  /** Which properties the selected element has pulled apart in this language. */
+  const selectedLocaleDetached = useMemo(() => {
+    const locale = activeLocale;
+    if (!locale || !activeArtboardId || !selectedElementIdOnActiveArtboard) return undefined;
+    const board = artboards.find((ab) => ab.id === activeArtboardId);
+    return board?.localized?.[locale]?.[selectedElementIdOnActiveArtboard]?.detached;
+  }, [activeLocale, activeArtboardId, selectedElementIdOnActiveArtboard, artboards]);
+
+  // The element the properties panel edits, derived from the selection: only a
+  // single selection exposes per-property editing, and a multi-selection shows
+  // the panel's multi-select state instead. Read off viewArtboards, not the
+  // base, so the panel shows what the active language actually renders.
+  const selectedElementDetails = useMemo(() => {
+    if (!activeArtboardId || !selectedElementIdOnActiveArtboard) return null;
+    const activeAb = viewArtboards.find(ab => ab.id === activeArtboardId);
+    return activeAb?.elements.find(el => el.id === selectedElementIdOnActiveArtboard) ?? null;
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, viewArtboards]);
 
   const handleUpdateSelectedElement = (updates: Partial<ArtboardElement>) => {
     if (!activeArtboardId || selectedElementIdsOnActiveArtboard.length !== 1) return;
     const targetElementId = selectedElementIdsOnActiveArtboard[0];
 
-    const updatedArtboards = artboards.map(ab => {
+    const updatedArtboards = viewArtboards.map(ab => {
       if (ab.id === activeArtboardId) {
         // Device model changes go through the screen-aware swap so overlays
         // authored on the screen area (screen fills, pre-baked screenshots)
@@ -784,7 +1558,10 @@ export function OpenScreenshotGeneratorLayout() {
       }
       return ab;
     });
-    handleArtboardsUpdate(updatedArtboards);
+    // A property edit, so it goes through the view: content, font family and
+    // an uploaded screenshot land in the active language's override map, and
+    // every other key is written to the base element.
+    commitView(updatedArtboards);
   };
 
   // Update an element by id regardless of the current selection. Used by the
@@ -792,7 +1569,7 @@ export function OpenScreenshotGeneratorLayout() {
   // already been deselected (e.g. the user clicked the artboard background).
   const handleUpdateElementById = (elementId: string, updates: Partial<ArtboardElement>) => {
     let found = false;
-    const updatedArtboards = artboards.map(ab => {
+    const updatedArtboards = viewArtboards.map(ab => {
       if (!ab.elements.some(el => el.id === elementId)) return ab;
       found = true;
       return {
@@ -802,7 +1579,7 @@ export function OpenScreenshotGeneratorLayout() {
         ),
       };
     });
-    if (found) handleArtboardsUpdate(updatedArtboards);
+    if (found) commitView(updatedArtboards);
   };
 
   // The project's current device format (phone platform or Play Store
@@ -827,7 +1604,7 @@ export function OpenScreenshotGeneratorLayout() {
       });
       return;
     }
-    handleArtboardsUpdate(converted);
+    handleArtboardsUpdate(converted, namedChange(`Convert to ${preset.label}`, 'device'));
     trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
       resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
@@ -840,7 +1617,8 @@ export function OpenScreenshotGeneratorLayout() {
     });
   };
 
-  // Add handler for renaming element from layers panel
+  // Add handler for renaming element from layers panel. A layer name is not
+  // localizable, so this runs on the base array rather than through the view.
   const handleRenameElementFromLayerPanel = (elementId: string, newName: string) => {
     if (activeArtboardId) {
       const updatedArtboards = artboards.map(ab => {
@@ -895,6 +1673,17 @@ export function OpenScreenshotGeneratorLayout() {
     }
   }, [toast]);
 
+  // Stable identity so the memoized ElementPalette does not re-render on every
+  // layout state change. The palette can hold hundreds of tiles, and rebuilding
+  // them per slider tick is what made scale drags stutter.
+  const handlePaletteAddElement = useCallback((type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
+    if (activeArtboardId) {
+      handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
+    } else {
+      toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
+    }
+  }, [activeArtboardId, handleAddElementToArtboard, toast]);
+
   // Get the current size from the first artboard or any active artboard
   const getCurrentArtboardSize = () => {
     if (activeArtboardId) {
@@ -907,34 +1696,10 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
   // Handle new artboard creation with updated default size
-  const handleNewArtboardFromMainToolbar = () => {
-    if (activeArtboardId && artboards.some(ab => ab.id === activeArtboardId)) {
-      handleAddNewArtboardAfter(activeArtboardId);
-      return;
-    }
-    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
-    const newSize = artboards.length > 0 && artboards[artboards.length - 1]
-                    ? artboards[artboards.length - 1].size
-                    : defaultSize;
-
-    const newArtboard: ArtboardState = {
-      id: `artboard_${Date.now()}`,
-      name: `Artboard ${artboards.length + 1}`,
-      position: { x: 0, y: 0 }, 
-      size: newSize,
-      elements: [], 
-      backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
-      backgroundType: 'solid',
-      zoom: 1,
-    };
-    
-    const newArtboards = [...artboards, newArtboard];
-    handleArtboardsUpdate(newArtboards);
-    setActiveArtboardId(newArtboard.id);
-    setSelectedElementIdsOnActiveArtboard([]);
-    toast({ title: "Artboard Created", description: `Artboard "${newArtboard.name}" added.` });
-  };
-
+  // Artboards are only added from an existing artboard's hover toolbar now
+  // (the top toolbar's "+" is gone), so handleAddNewArtboardAfter is the single
+  // creation path. It always has a board to anchor to, because deleting the
+  // last artboard is refused.
   const handleAddNewArtboardAfter = (currentArtboardId: string) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
     const defaultSize = { width: 1290, height: 2796 }; // Updated default size
@@ -959,7 +1724,7 @@ export function OpenScreenshotGeneratorLayout() {
       newArtboardsArray.push(newArtboard); 
     }
     
-    handleArtboardsUpdate(newArtboardsArray);
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Add Artboard', 'artboard', newArtboard.name));
     setActiveArtboardId(newArtboard.id);
     setSelectedElementIdsOnActiveArtboard([]);
     toast({ title: "Artboard Added", description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".` });
@@ -968,11 +1733,25 @@ export function OpenScreenshotGeneratorLayout() {
   const handleDuplicateArtboard = (artboardId: string) => {
     const artboardToDuplicate = artboards.find(ab => ab.id === artboardId);
     if (!artboardToDuplicate) return;
-  
-    const duplicatedArtboard: ArtboardState = JSON.parse(JSON.stringify(artboardToDuplicate)); 
-    duplicatedArtboard.id = `artboard_${Date.now()}`;
-    duplicatedArtboard.name = `${artboardToDuplicate.name} Copy`;
-  
+
+    const stamp = Date.now();
+    const cloned: ArtboardState = JSON.parse(JSON.stringify(artboardToDuplicate));
+    cloned.id = `artboard_${stamp}`;
+    cloned.name = `${artboardToDuplicate.name} Copy`;
+    // Fresh element ids, index appended the way add_elements does so two minted
+    // in the same millisecond cannot collide. Keeping the source's ids made
+    // handleUpdateElementById patch both boards at once, and every findElement
+    // in the file resolves first-match; with overrides keyed by element id it
+    // would also point one language's translation at two elements.
+    const idMap: Record<string, string> = {};
+    cloned.elements = cloned.elements.map((el, index) => {
+      const id = `el_${stamp}_${index}_${Math.random().toString(36).slice(2, 7)}`;
+      idMap[el.id] = id;
+      return { ...el, id } as ArtboardElement;
+    });
+    // The copy keeps its translations, now filed under the new ids.
+    const duplicatedArtboard = remapOverrideIds(cloned, idMap);
+
     const currentIndex = artboards.findIndex(ab => ab.id === artboardId);
     let newArtboardsArray = [...artboards];
     if (currentIndex !== -1) {
@@ -980,8 +1759,8 @@ export function OpenScreenshotGeneratorLayout() {
     } else {
       newArtboardsArray.push(duplicatedArtboard);
     }
-  
-    handleArtboardsUpdate(newArtboardsArray);
+
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Duplicate Artboard', 'copy', artboardToDuplicate.name));
     setActiveArtboardId(duplicatedArtboard.id);
     toast({ title: "Artboard Duplicated", description: `Artboard "${artboardToDuplicate.name}" duplicated.` });
   };
@@ -995,7 +1774,7 @@ export function OpenScreenshotGeneratorLayout() {
     if (!artboardToDelete) return;
 
     const newArtboardsArray = artboards.filter(ab => ab.id !== artboardId);
-    handleArtboardsUpdate(newArtboardsArray);
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Delete Artboard', 'delete', artboardToDelete.name));
 
     if (activeArtboardId === artboardId) {
       setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
@@ -1021,7 +1800,7 @@ export function OpenScreenshotGeneratorLayout() {
       return; 
     }
   
-    handleArtboardsUpdate(newArtboardsArray); 
+    handleArtboardsUpdate(newArtboardsArray, namedChange('Move Artboard', 'order', targetArtboard.name));
     toast({ title: "Artboard Moved", description: `Artboard "${targetArtboard.name}" moved ${direction}.` });
   };
 
@@ -1168,9 +1947,10 @@ export function OpenScreenshotGeneratorLayout() {
         return;
       }
 
-      // Bundle the row together with the media blobs it references. Exporting
-      // the row alone (what this used to do) left video elements dead on any
-      // other machine, because recordings live in a separate Dexie table.
+      // Bundle the row together with the binaries it references: media blobs,
+      // and any imported font its text uses. Exporting the row alone (what this
+      // used to do) left video elements dead and headlines in a fallback face
+      // on any other machine, since both live in separate Dexie tables.
       const bundle = await serializeProject(project);
       const jsonString = await bundleToJson(bundle);
       const blob = new Blob([jsonString], { type: 'application/json' });
@@ -1202,6 +1982,52 @@ export function OpenScreenshotGeneratorLayout() {
     setIsAccountOpen(true);
   };
 
+  /** "Google Drive" / "GitHub gists", for copy that names where a save lands. */
+  const accountStorageLabel = accountSession
+    ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists'
+    : 'storage';
+
+  const handleAccountSaveError = (error: unknown) => {
+    // An expired sign-in already cleared the session, so send the user back
+    // through the dialog rather than showing a dead end.
+    if (error instanceof AccountAuthError) {
+      setSaveConflict(null);
+      openAccountDialog(error.message);
+    } else {
+      toast({
+        title: "Could not save",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  /**
+   * The upload itself. Without `copyName` this overwrites whatever is up there
+   * (providers match on project id); with one it saves a second, independent
+   * file and leaves both the cloud original and the local project alone.
+   */
+  const runAccountSave = async (copyName?: string) => {
+    if (!activeProjectId) return;
+    setIsSavingToAccount(true);
+    try {
+      const saved = await saveProjectToAccount(activeProjectId, {
+        saveAsCopy: copyName ? { id: newCloudProjectId(), name: copyName } : undefined,
+      });
+      setSaveConflict(null);
+      toast({
+        title: copyName ? "Saved as a new project" : "Saved to your account",
+        description: copyName
+          ? `"${saved.name}" is a separate file in your ${accountStorageLabel} now. Your open project is unchanged.`
+          : `"${saved.name}" is in your ${accountStorageLabel}.`,
+      });
+    } catch (error) {
+      handleAccountSaveError(error);
+    } finally {
+      setIsSavingToAccount(false);
+    }
+  };
+
   /**
    * Toolbar "Save to account". Signed out this is how the user finds out they
    * need to connect, so it opens the dialog instead of doing nothing.
@@ -1220,28 +2046,24 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
 
+    // Ask before overwriting, but only when there is something to overwrite:
+    // a first save has no choice to offer and should stay one click.
     setIsSavingToAccount(true);
+    let existing: CloudProjectSummary | null = null;
     try {
-      const saved = await saveProjectToAccount(activeProjectId);
-      toast({
-        title: "Saved to your account",
-        description: `"${saved.name}" is in your ${accountSession ? accountSession.provider === 'google' ? 'Google Drive' : 'GitHub gists' : 'storage'}.`,
-      });
+      existing = await findAccountProject(activeProjectId);
     } catch (error) {
-      // An expired sign-in already cleared the session, so send the user back
-      // through the dialog rather than showing a dead end.
-      if (error instanceof AccountAuthError) {
-        openAccountDialog(error.message);
-      } else {
-        toast({
-          title: "Could not save",
-          description: error instanceof Error ? error.message : "Something went wrong.",
-          variant: "destructive",
-        });
-      }
-    } finally {
+      handleAccountSaveError(error);
       setIsSavingToAccount(false);
+      return;
     }
+    setIsSavingToAccount(false);
+
+    if (existing) {
+      setSaveConflict(existing);
+      return;
+    }
+    await runAccountSave();
   };
 
   /** Pull a project out of the connected account and open it in the editor. */
@@ -1272,6 +2094,74 @@ export function OpenScreenshotGeneratorLayout() {
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
   // swaps the converted list in first and restores afterwards.
+  // Rasterize ONE artboard from the live canvas DOM. Shared by the file export
+  // and the store upload so both produce identical PNGs, and so the
+  // filter/background/unscale recipe only exists once. Returns null when the
+  // board is not currently mounted (nothing off-DOM can be captured).
+  //
+  // The style restore is in a finally on purpose: a throwing toPng used to
+  // leave the artboard stuck at scale(1) on the canvas.
+  const captureArtboardDataUrl = async (artboard: ArtboardState): Promise<string | null> => {
+    const artboardElement = document.querySelector(
+      `[data-artboard-dom-id="${artboard.id}"]`
+    ) as HTMLElement | null;
+
+    if (!artboardElement) {
+      console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
+      toast({
+        title: "Export Warning",
+        description: `Could not find artboard '${artboard.name}' to export.`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const originalTransform = artboardElement.style.transform;
+    const originalWidth = artboardElement.style.width;
+    const originalHeight = artboardElement.style.height;
+
+    try {
+      // Remove scale transform for export
+      artboardElement.style.transform = 'scale(1)';
+
+      // toPng does not wait for webfonts. Exporting straight after switching to
+      // a language in another script used to rasterize the fallback face with
+      // no error at all, which is invisible until the store rejects it.
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // A browser that cannot report font loading just captures what it has.
+        }
+      }
+
+      // Use html-to-image to capture the artboard at exact specified dimensions
+      const { backgroundColor, backgroundImage } = artboardBackground(artboard);
+      return await toPng(artboardElement, {
+        width: artboard.size.width,
+        height: artboard.size.height,
+        backgroundColor,
+        pixelRatio: 1, // Set to 1 to avoid doubling resolution
+        cacheBust: true, // Prevent caching issues
+        // Editor chrome (selection outlines, resize handles, upload buttons)
+        // must never be baked into the exported image
+        filter: (node) => {
+          const el = node as HTMLElement;
+          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+        },
+        style: {
+          width: `${artboard.size.width}px`,
+          height: `${artboard.size.height}px`,
+          backgroundImage,
+        }
+      });
+    } finally {
+      artboardElement.style.transform = originalTransform;
+      artboardElement.style.width = originalWidth;
+      artboardElement.style.height = originalHeight;
+    }
+  };
+
   const captureArtboards = async (
     list: ArtboardState[],
     exportDir?: string | null,
@@ -1285,10 +2175,18 @@ export function OpenScreenshotGeneratorLayout() {
     progress?: {
       report: (update: Omit<PngExportProgress, 'fileCount'>) => void;
       formatLabel?: string;
+      // Names the language on screen while a multi-language run is in flight.
+      localeLabel?: string;
       // Absolute file number of the first file in this pass, so the counter
       // keeps climbing across the as-is pass and every generated format.
       startIndex: number;
-    }
+    },
+    // Where this language's files go. `subdir` is one folder segment on
+    // desktop (screenshots/de-DE/...); `filenameToken` is the flat prefix the
+    // web build gets instead, because a browser download has no folder to put
+    // it in. Both are unset on a project with one language, so its filenames
+    // are byte-identical to what they always were.
+    locale?: { subdir?: string; filenameToken?: string }
   ) => {
     // Array order matches canvas order (calculateArtboardPositions lays boards
     // out left-to-right by index), so the loop index is the on-canvas position.
@@ -1305,55 +2203,12 @@ export function OpenScreenshotGeneratorLayout() {
         fileIndex: progress.startIndex + index,
         boardName: artboard.name,
         formatLabel: progress.formatLabel,
+        localeLabel: progress.localeLabel,
         phase: 'rendering',
       });
-      // Find the DOM element for the artboard content
-      const artboardElement = document.querySelector(`[data-artboard-dom-id="${artboard.id}"]`) as HTMLElement | null;
-
-      if (!artboardElement) {
-        console.warn(`Could not find DOM element for artboard: ${artboard.name}`);
-        toast({
-          title: "Export Warning",
-          description: `Could not find artboard '${artboard.name}' to export.`,
-          variant: "destructive",
-        });
-        continue;
-      }
-
       try {
-        // Store original transform and dimensions
-        const originalTransform = artboardElement.style.transform;
-        const originalWidth = artboardElement.style.width;
-        const originalHeight = artboardElement.style.height;
-        
-        // Remove scale transform for export
-        artboardElement.style.transform = 'scale(1)';
-        
-        // Use html-to-image to capture the artboard at exact specified dimensions
-        const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-        const imageDataUrl = await toPng(artboardElement, {
-          width: artboard.size.width,
-          height: artboard.size.height,
-          backgroundColor,
-          pixelRatio: 1, // Set to 1 to avoid doubling resolution
-          cacheBust: true, // Prevent caching issues
-          // Editor chrome (selection outlines, resize handles, upload buttons)
-          // must never be baked into the exported image
-          filter: (node) => {
-            const el = node as HTMLElement;
-            return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-          },
-          style: {
-            width: `${artboard.size.width}px`,
-            height: `${artboard.size.height}px`,
-            backgroundImage,
-          }
-        });
-        
-        // Restore original styling after export
-        artboardElement.style.transform = originalTransform;
-        artboardElement.style.width = originalWidth;
-        artboardElement.style.height = originalHeight;
+        const imageDataUrl = await captureArtboardDataUrl(artboard);
+        if (!imageDataUrl) continue; // board is not mounted, already reported
 
         // Prefix with the canvas position (zero-padded so 10+ boards sort correctly)
         const canvasIndex = order?.indexById[artboard.id] ?? index + 1;
@@ -1366,18 +2221,28 @@ export function OpenScreenshotGeneratorLayout() {
           ? DEVICE_FORMAT_PRESETS.find((p) => p.id === artboardFormat)?.label
           : undefined;
         const deviceSuffix = deviceLabel ? `_${deviceLabel.replace(/\s+/g, '_')}` : '';
-        const filename = `${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}.png`;
+        // Then the canvas size tier the board was exported at. The device
+        // suffix above names the MOCKUP in the board, this names the canvas,
+        // and the two genuinely differ (an iPhone mockup on a Play 1080x1920
+        // board). Generated App Store formats resize the board first, so each
+        // pass tags its own size here rather than the original one.
+        const sizeSuffix = `_${canvasSizeSlug(artboard.size)}`;
+        // Language first, so a sorted listing groups by language. Only on the
+        // flat path: with a folder per language the token would repeat.
+        const localePrefix = locale?.filenameToken ? `${locale.filenameToken}_` : '';
+        const filename = `${localePrefix}${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}${sizeSuffix}.png`;
         progress?.report({
           fileIndex: progress.startIndex + index,
           boardName: artboard.name,
           formatLabel: progress.formatLabel,
+          localeLabel: progress.localeLabel,
           phase: 'saving',
         });
         // Desktop-safe save: batch exports write into the pre-picked folder,
         // single files get a native save dialog in Tauri or an anchor
         // download on the web
         const savedPath = exportDir
-          ? await saveDataUrlToPath(imageDataUrl, exportDir, filename)
+          ? await saveDataUrlToPath(imageDataUrl, exportDir, filename, locale?.subdir)
           : await saveDataUrlToDisk(imageDataUrl, filename);
         if (savedPath === null) continue; // user cancelled this board's save dialog
 
@@ -1411,14 +2276,13 @@ export function OpenScreenshotGeneratorLayout() {
 
   // Export flow behind the ExportDialog: capture the canvas as-is and/or
   // generate App Store formats (iPhone 6.9-inch, iPad 13/11-inch) the project
-  // is missing. Generated formats are converted in-memory with the same
-  // engine as the Devices menu, rendered, captured, then the original state
-  // is restored — plain setArtboards keeps history and the saved project
-  // untouched, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly }: ExportSelection) => {
+  // is missing, once per language the dialog asked for. Every pass renders
+  // through exportCanvasArtboards, a temporary canvas list that never touches
+  // history or Dexie, so this can never corrupt the user's work.
+  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly, locales }: ExportSelection) => {
     setIsExportDialogOpen(false);
 
-    const original = artboards;
+    const original = artboardsRef.current;
 
     // "Selected artboard only" narrows what gets captured, never what gets
     // rendered: the format conversions below still run over the whole canvas
@@ -1430,12 +2294,6 @@ export function OpenScreenshotGeneratorLayout() {
         : null;
     const scope = (list: ArtboardState[]) =>
       scopedId ? list.filter((ab) => ab.id === scopedId) : list;
-    // Canvas positions captured up front, so scoped filenames keep their real
-    // "04_" prefix instead of restarting at 01.
-    const order = {
-      indexById: Object.fromEntries(original.map((ab, i) => [ab.id, i + 1])),
-      total: original.length,
-    };
 
     const targets = scope(original);
     if (targets.length === 0) {
@@ -1449,21 +2307,42 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
 
+    // null means "leave the canvas on whatever language it is showing", which
+    // is every project with no languages and every run started from the App
+    // Preview dialog. The dialog hands back store codes with the base language
+    // first, and projectArtboards returns the base array by reference for it.
+    const localesToExport: (string | null)[] = locales && locales.length > 0 ? locales : [null];
+    const multiLocale = localesToExport.length > 1;
+
     // Desktop batch exports pick one destination folder up front instead of
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const totalFiles = (asIs ? targets.length : 0) + generateFormats.length * targets.length;
+    const filesPerLocale = (asIs ? targets.length : 0) + generateFormats.length * targets.length;
+    const totalFiles = filesPerLocale * localesToExport.length;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
       if (exportDir === null) return;
     }
+
+    // A picked folder gets a subfolder per language (the screenshots/<locale>/
+    // convention); a browser download has nowhere to put one, so it gets the
+    // token in the name instead. Neither is set on a single-language run.
+    const localeFilingFor = (locale: string | null) =>
+      multiLocale && locale
+        ? exportDir
+          ? { subdir: locale }
+          : { filenameToken: locale }
+        : undefined;
+    const localeLabelFor = (locale: string | null) =>
+      multiLocale && locale ? localeName(locale) : undefined;
 
     trackExportPng({
       mode: generateFormats.length > 0 ? 'app_store' : 'as_is',
       formats: generateFormats,
       artboardCount: targets.length,
       fileCount: totalFiles,
+      localeCount: localesToExport.length,
     });
 
     // The progress dialog is on screen for exactly as long as pngProgress is
@@ -1475,6 +2354,7 @@ export function OpenScreenshotGeneratorLayout() {
       fileIndex: 1,
       fileCount: totalFiles,
       boardName: targets[0].name,
+      localeLabel: localeLabelFor(localesToExport[0]),
       phase: 'preparing',
     });
     const report = (update: Omit<PngExportProgress, 'fileCount'>) =>
@@ -1487,12 +2367,20 @@ export function OpenScreenshotGeneratorLayout() {
     const captureWithExportEvents = async (
       list: ArtboardState[],
       startIndex: number,
+      order: { indexById: Record<string, number>; total: number },
+      locale: string | null,
       formatLabel?: string
     ) => {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       try {
-        return await captureArtboards(list, exportDir, order, { report, formatLabel, startIndex });
+        return await captureArtboards(
+          list,
+          exportDir,
+          order,
+          { report, formatLabel, localeLabel: localeLabelFor(locale), startIndex },
+          localeFilingFor(locale)
+        );
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
       }
@@ -1502,28 +2390,58 @@ export function OpenScreenshotGeneratorLayout() {
     // Counts files *attempted*, not saved, so a board that fails to capture
     // does not drag the "image 3 of 12" counter backwards for the rest.
     let nextFileIndex = 1;
+    // Closes the mutation door for the whole run. Nothing may write the project
+    // while the canvas is showing a converted or re-projected list.
+    isExportingRef.current = true;
     try {
-      if (asIs) {
-        saved.push(...(await captureWithExportEvents(targets, nextFileIndex)));
-        nextFileIndex += targets.length;
-      }
-      for (const formatId of generateFormats) {
+      for (const locale of localesToExport) {
         if (pngExportCancelRef.current) break;
-        const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
-        if (!preset) continue;
-        const startIndex = nextFileIndex;
-        nextFileIndex += targets.length;
+        const projected = projectArtboards(original, locale);
+        // Rebuilt per language, or the German set would be numbered 13..18
+        // instead of 01..06 and every fastlane-style convention expects 1..N.
+        const order = {
+          indexById: Object.fromEntries(projected.map((ab, i) => [ab.id, i + 1])),
+          total: projected.length,
+        };
         report({
-          fileIndex: startIndex,
+          fileIndex: nextFileIndex,
           boardName: targets[0].name,
-          formatLabel: preset.label,
+          localeLabel: localeLabelFor(locale),
           phase: 'preparing',
         });
-        const { artboards: converted } = convertArtboardsToFormat(original, preset);
-        const repositioned = calculateArtboardPositions(converted);
-        setArtboards(repositioned);
+        // Swapped even when the projection is the base array by reference: the
+        // canvas may be sitting on another language, and the export must show
+        // the one it is capturing.
+        setExportCanvasArtboards(calculateArtboardPositions(projected));
         await waitForCanvasToSettle(400);
-        saved.push(...(await captureWithExportEvents(scope(repositioned), startIndex, preset.label)));
+
+        const localeTargets = scope(projected);
+        if (asIs) {
+          const startIndex = nextFileIndex;
+          nextFileIndex += targets.length;
+          saved.push(...(await captureWithExportEvents(localeTargets, startIndex, order, locale)));
+        }
+        for (const formatId of generateFormats) {
+          if (pngExportCancelRef.current) break;
+          const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
+          if (!preset) continue;
+          const startIndex = nextFileIndex;
+          nextFileIndex += targets.length;
+          report({
+            fileIndex: startIndex,
+            boardName: targets[0].name,
+            formatLabel: preset.label,
+            localeLabel: localeLabelFor(locale),
+            phase: 'preparing',
+          });
+          const { artboards: converted } = convertArtboardsToFormat(projected, preset);
+          const repositioned = calculateArtboardPositions(converted);
+          setExportCanvasArtboards(repositioned);
+          await waitForCanvasToSettle(400);
+          saved.push(
+            ...(await captureWithExportEvents(scope(repositioned), startIndex, order, locale, preset.label))
+          );
+        }
       }
     } catch (error) {
       console.error("Error during multi-format export:", error);
@@ -1533,9 +2451,11 @@ export function OpenScreenshotGeneratorLayout() {
         variant: "destructive",
       });
     } finally {
-      if (generateFormats.length > 0) {
-        setArtboards(original);
-      }
+      // Unconditional, unlike the old `if (generateFormats.length)`: a
+      // cancelled language run would otherwise leave the canvas on a language
+      // the user never selected.
+      setExportCanvasArtboards(null);
+      isExportingRef.current = false;
       setPngProgress(null);
       setIsCancellingPngExport(false);
       const cancelled = pngExportCancelRef.current;
@@ -1564,6 +2484,86 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // --- direct-to-store upload ----------------------------------------------
+
+  /**
+   * Render the boards the publish dialog picked, as PNG bytes in memory.
+   *
+   * Same capture path as the file export, including the temporary canvas list:
+   * the chosen language's projection, optionally converted to a store format,
+   * is painted so it can be photographed at the store's exact pixel size, then
+   * cleared in a finally. History and the saved project are never touched, so
+   * an upload can never corrupt the user's work.
+   *
+   * The dialog calls this once per language, serially, so it has to be safe to
+   * re-enter back to back. The unconditional finally is what makes it so.
+   */
+  const handlePublishCapture = async (
+    artboardIds: string[],
+    formatId: DeviceFormat | null,
+    locale?: string | null
+  ): Promise<PublishImage[]> => {
+    const original = artboardsRef.current;
+    const orderPadWidth = Math.max(2, String(original.length).length);
+    const stamp = locale ?? null;
+
+    const buildImages = async (list: ArtboardState[]): Promise<PublishImage[]> => {
+      const images: PublishImage[] = [];
+      for (const [index, artboard] of list.entries()) {
+        if (!artboardIds.includes(artboard.id)) continue;
+        const dataUrl = await captureArtboardDataUrl(artboard);
+        if (!dataUrl) continue;
+        const orderPrefix = String(index + 1).padStart(orderPadWidth, '0');
+        // Stamped with what was actually painted, not with what the caller
+        // asked for. Both stores show the file name and nothing else, so five
+        // languages arriving unlabelled are indistinguishable in their console.
+        images.push({
+          artboardId: artboard.id,
+          fileName: sanitizeFileName(`${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}.png`),
+          bytes: decodeDataUrl(dataUrl),
+          width: artboard.size.width,
+          height: artboard.size.height,
+          locale: stamp ?? undefined,
+        });
+      }
+      return images;
+    };
+
+    // 3D device canvases supersample while an export is in flight; pair
+    // begin/end in a finally or they stay at 2x forever.
+    const capturePass = async (list: ArtboardState[]) => {
+      window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        return await buildImages(list);
+      } finally {
+        window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
+      }
+    };
+
+    const preset = formatId ? DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId) : undefined;
+    // Returns `original` by reference for null and for the base language.
+    const projected = projectArtboards(original, stamp);
+    // Nothing to swap: no store format, and the canvas is already showing what
+    // is being uploaded.
+    if (!preset && projected === original && !activeLocaleRef.current) {
+      return capturePass(original);
+    }
+
+    isExportingRef.current = true;
+    try {
+      const list = preset
+        ? calculateArtboardPositions(convertArtboardsToFormat(projected, preset).artboards)
+        : calculateArtboardPositions(projected);
+      setExportCanvasArtboards(list);
+      await waitForCanvasToSettle(400);
+      return await capturePass(list);
+    } finally {
+      setExportCanvasArtboards(null);
+      isExportingRef.current = false;
+    }
+  };
+
   // Asks the running export to stop. It finishes the image already in flight
   // (see captureArtboards) rather than leaving a truncated PNG behind, so the
   // dialog stays up, disabled, until the loop actually unwinds.
@@ -1581,7 +2581,9 @@ export function OpenScreenshotGeneratorLayout() {
     let cancelled = false;
     (async () => {
       const infos: Record<string, ArtboardVideoInfo> = {};
-      for (const ab of artboards) {
+      // The language on screen: a recording can itself be localized, so which
+      // boards carry video is answered for the language being exported.
+      for (const ab of viewArtboards) {
         try {
           infos[ab.id] = await analyzeArtboardForVideo(ab);
         } catch (error) {
@@ -1593,7 +2595,7 @@ export function OpenScreenshotGeneratorLayout() {
     return () => {
       cancelled = true;
     };
-  }, [isExportDialogOpen, artboards]);
+  }, [isExportDialogOpen, viewArtboards]);
 
   // An App Preview project is one that carries recording mockups, recordings,
   // gesture hints or animations — it gets the video export dialog.
@@ -1610,8 +2612,13 @@ export function OpenScreenshotGeneratorLayout() {
 
   // Render each video-bearing artboard to its own MP4 (sequentially — the
   // encoder and the sprite captures both want the main thread).
+  //
+  // Scoped to the language on screen, deliberately: a locale loop here is
+  // fully linear in frames (duration x fps, each frame re-seeking every source),
+  // shares nothing between languages, and Apple caps previews per language
+  // anyway. Switch language and run it again to get the next one.
   const handleExportVideo = async (request: VideoExportRequest) => {
-    const boards = artboards.filter((ab) => {
+    const boards = viewArtboards.filter((ab) => {
       if (request.currentArtboardOnly && ab.id !== activeArtboardId) return false;
       const info = videoInfos[ab.id];
       if (!info) return false;
@@ -1680,7 +2687,9 @@ export function OpenScreenshotGeneratorLayout() {
               totalFrames: total,
             }),
         });
-        const orderPrefix = String(artboards.indexOf(board) + 1).padStart(orderPadWidth, '0');
+        // Indexed in the same list the boards came from: board order is
+        // identical in every language, so the numbering is too.
+        const orderPrefix = String(viewArtboards.indexOf(board) + 1).padStart(orderPadWidth, '0');
         const filename = `${orderPrefix}_${board.name.replace(/\s+/g, '_')}_AppPreview.mp4`;
         const savedPath = exportDir
           ? await saveBlobToPath(blob, exportDir, filename)
@@ -1713,31 +2722,42 @@ export function OpenScreenshotGeneratorLayout() {
     videoExportAbortRef.current?.abort();
   };
 
-  const handleUndo = useCallback(() => {
-    if (historyIndex > 0) {
-      const newHistoryIndex = historyIndex - 1;
-      setHistoryIndex(newHistoryIndex);
-      const prevState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(prevState); 
-       if (activeArtboardId && !prevState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
-        setActiveArtboardId(prevState.length > 0 ? prevState[0].id : null);
-      }
-      setSelectedElementIdsOnActiveArtboard([]);
+  /**
+   * Move the project to a recorded state. Undo, redo and clicking a row in the
+   * History panel are all this one path: the stack itself is left alone (states
+   * ahead of the target stay listed but dimmed until the next edit drops them),
+   * and the restored state is written back to the project row so a reload does
+   * not resurrect the work that was just stepped away from.
+   */
+  const applyHistoryIndex = useCallback((targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex >= history.length || targetIndex === historyIndex) return;
+    const state: ArtboardState[] = JSON.parse(JSON.stringify(history[targetIndex].artboards));
+    setHistoryIndex(targetIndex);
+    setArtboards(state);
+    if (activeArtboardId && !state.find((ab) => ab.id === activeArtboardId)) {
+      setActiveArtboardId(state.length > 0 ? state[0].id : null);
     }
-  }, [historyIndex, history, activeArtboardId]);
+    setSelectedElementIdsOnActiveArtboard([]);
+
+    if (activeProjectId) {
+      db.projects.put({
+        id: activeProjectId,
+        name: currentProjectName,
+        timestamp: new Date(),
+        projectData: JSON.parse(JSON.stringify(state)),
+      }).catch(error => {
+        console.error("Error saving restored history state to Dexie:", error);
+      });
+    }
+  }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName]);
+
+  const handleUndo = useCallback(() => {
+    applyHistoryIndex(historyIndex - 1);
+  }, [applyHistoryIndex, historyIndex]);
 
   const handleRedo = useCallback(() => {
-    if (historyIndex < history.length - 1) {
-      const newHistoryIndex = historyIndex + 1;
-      setHistoryIndex(newHistoryIndex);
-      const nextState = JSON.parse(JSON.stringify(history[newHistoryIndex]));
-      setArtboards(nextState); 
-       if (activeArtboardId && !nextState.find((ab: ArtboardState) => ab.id === activeArtboardId)) {
-        setActiveArtboardId(nextState.length > 0 ? nextState[0].id : null);
-      }
-      setSelectedElementIdsOnActiveArtboard([]);
-    }
-  }, [historyIndex, history, activeArtboardId, history.length]);
+    applyHistoryIndex(historyIndex + 1);
+  }, [applyHistoryIndex, historyIndex]);
 
   // Delete the whole selection on the active artboard in a single commit, or
   // the active artboard itself when no element is selected.
@@ -2007,15 +3027,12 @@ export function OpenScreenshotGeneratorLayout() {
         : artboard.elements,
     }));
     
-    // Recalculate positions to avoid overlap
-    const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
-    
-    // Update state
-    setArtboards(repositionedArtboards);
-    pushToHistory(repositionedArtboards);
-    
-    toast({ 
-      title: "Artboard Size Updated", 
+    // Through the one door: this used to push history and set state without
+    // ever writing Dexie, so a canvas size change did not survive a reload.
+    handleArtboardsUpdate(updatedArtboards, namedChange(`Canvas Size ${width} x ${height}`, 'resize'));
+
+    toast({
+      title: "Artboard Size Updated",
       description: scaleContent
         ? `All artboards resized to ${width} × ${height} pixels with content scaled to fit.`
         : `All artboards resized to ${width} × ${height} pixels`
@@ -2144,7 +3161,7 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (rateLimitHit) {
       if (successCount > 0) {
-        handleArtboardsUpdate(newArtboards);
+        handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`));
       }
       toast({
         title: "Rate limit exceeded",
@@ -2152,7 +3169,7 @@ export function OpenScreenshotGeneratorLayout() {
         variant: "destructive"
       });
     } else if (successCount > 0) {
-      handleArtboardsUpdate(newArtboards);
+      handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`));
       toast({
         title: "Translation complete",
         description: `Successfully translated ${successCount} text element(s).${failCount > 0 ? ` Failed to translate ${failCount} element(s).` : ''}`
@@ -2246,7 +3263,8 @@ export function OpenScreenshotGeneratorLayout() {
               ),
               language: isOnlyTextElement ? targetLanguage : undefined,
             }
-      )
+      ),
+      namedChange('Translate', 'translate', getElementDisplayName(element))
     );
 
     toast({
@@ -2270,14 +3288,77 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
 
-  // Preload Google Fonts on component mount
+  // Imported families the open project actually depends on. Those files live
+  // in IndexedDB rather than in the document, so a project using one is worth
+  // warning about (LocalFontNotice). Built-ins never appear here: they load
+  // from Google on any machine.
+  const importedFonts = useCustomFonts();
+  const importedFontsInProject = useMemo(() => {
+    if (importedFonts.length === 0) return [];
+    const used = new Set(collectFontFamilies(artboards).map((family) => family.toLowerCase()));
+    return importedFonts
+      .filter((font) => used.has(font.family.toLowerCase()))
+      .map((font) => font.family);
+  }, [artboards, importedFonts]);
+
+  // Preload Google Fonts on component mount, and re-register the fonts the
+  // user imported (which live in Dexie, so they need putting back on the page
+  // before any artboard that uses one renders or exports).
   useEffect(() => {
     preloadGoogleFonts();
+    loadCustomFonts().catch((error) => console.error('Could not load imported fonts', error));
   }, []);
   
-  const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
+  // The layers list and the board-level properties form both show what the
+  // active language shows, so they read the projection.
+  const activeArtboard = viewArtboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
+
+  // --- locale-derived props for the panels and dialogs ----------------------
+
+  /** The language the design is written in. Named in every reset control. */
+  const baseLocaleCode = useMemo(() => getBaseLocale(artboards), [artboards]);
+
+  /** The selected element as the BASE language has it, before projection. */
+  const selectedBaseElement = useMemo<ArtboardElement | undefined>(() => {
+    if (!selectedElementIdOnActiveArtboard) return undefined;
+    for (const board of artboards) {
+      const el = board.elements.find((candidate) => candidate.id === selectedElementIdOnActiveArtboard);
+      if (el) return el;
+    }
+    return undefined;
+  }, [artboards, selectedElementIdOnActiveArtboard]);
+
+  /** Its overrides in the active language, when it has any. */
+  const selectedLocaleOverride = useMemo<ElementLocaleOverride | undefined>(() => {
+    if (!activeLocale || !selectedElementIdOnActiveArtboard || !activeArtboardId) return undefined;
+    return artboards.find((board) => board.id === activeArtboardId)
+      ?.localized?.[activeLocale]?.[selectedElementIdOnActiveArtboard];
+  }, [artboards, activeLocale, activeArtboardId, selectedElementIdOnActiveArtboard]);
+
+  // Layer dots come from the BASE board, not the projection: the projection has
+  // already written the override onto the element, so overrideStateFor would
+  // compare the translated string against itself and never report a fallback.
+  const layerLocaleStates = useMemo<Record<string, LocaleOverrideState> | undefined>(() => {
+    if (!activeLocale) return undefined;
+    const board = artboards.find((ab) => ab.id === activeArtboardId);
+    if (!board) return undefined;
+    const overrides = board.localized?.[activeLocale] ?? {};
+    const states: Record<string, LocaleOverrideState> = {};
+    for (const el of board.elements) states[el.id] = overrideStateFor(el, overrides[el.id]);
+    return states;
+  }, [artboards, activeArtboardId, activeLocale]);
+
+  // Base first, then the export languages in project order. The base entry's
+  // code must be null, because the pill row compares it to activeLocale.
+  const previewLocaleOptions = useMemo<PreviewLocaleOption[]>(() => {
+    if (!hasLocales(artboards)) return [];
+    return [
+      { code: null, label: localeName(getBaseLocale(artboards)) },
+      ...getProjectLocales(artboards).map((entry) => ({ code: entry.code, label: localeName(entry.code) })),
+    ];
+  }, [artboards]);
 
   // What a "Selected artboard only" export would produce. Format is detected
   // from this one board, not from the project, so a mixed project reports the
@@ -2361,7 +3442,12 @@ export function OpenScreenshotGeneratorLayout() {
         return ab;
       });
 
-      handleArtboardsUpdate(updatedArtboards);
+      handleArtboardsUpdate(
+        updatedArtboards,
+        namedChange('Paste', 'copy', newElements.length === 1
+          ? getElementDisplayName(newElements[0])
+          : `${newElements.length} elements`)
+      );
       if (artboardId !== activeArtboardId) {
         setActiveArtboardId(artboardId);
       }
@@ -2455,7 +3541,9 @@ export function OpenScreenshotGeneratorLayout() {
       
       // Apply proper positioning to the artboards
       console.log("Loading project data with positioning for:", projectName);
-      const finalArtboards = calculateArtboardPositions(migrateVideoDevices(projectData));
+      const finalArtboards = calculateArtboardPositions(
+        normalizeLocalization(ensureUniqueElementIds(migrateVideoDevices(projectData)))
+      );
       console.log("Final artboards with positions:", finalArtboards.map((ab: ArtboardState) => ({ id: ab.id, position: ab.position })));
       
       // Set project details first to avoid triggering effects
@@ -2464,7 +3552,7 @@ export function OpenScreenshotGeneratorLayout() {
       
       // Set artboards and history without triggering handleArtboardsUpdate
       setArtboards(finalArtboards);
-      setHistory([JSON.parse(JSON.stringify(finalArtboards))]); 
+      setHistory([makeHistoryEntry(finalArtboards, namedChange('Open', 'open', projectName))]);
       setHistoryIndex(0);
       
       // Automatically select the first artboard
@@ -2506,8 +3594,9 @@ export function OpenScreenshotGeneratorLayout() {
 
       try {
         const fileContent = await file.text();
-        // bundleFromJson validates the shape and restores any bundled media.
-        // It still accepts files written before media travelled with the JSON.
+        // bundleFromJson validates the shape and restores any bundled media and
+        // fonts. It still accepts files written before either travelled with
+        // the JSON, so older exports keep importing.
         const bundle = bundleFromJson(JSON.parse(fileContent));
 
         const importedName = bundle.manifest.name || `Imported ${bundle.manifest.id}`;
@@ -2591,10 +3680,22 @@ const generateRandomProjectName = (): string => {
     return counts;
   }, [availableProjects]);
 
+  // Name filter for the recent-projects list in the same dialog.
+  const filteredRecentProjects = useMemo(() => {
+    const query = recentProjectSearch.trim().toLowerCase();
+    if (!query) return recentProjects;
+    return recentProjects.filter((p) => p.name.toLowerCase().includes(query));
+  }, [recentProjects, recentProjectSearch]);
+
   const templateSelectorDialog = (
       <>
         <Dialog
-          open={isTemplateSelectorOpen}
+          // Held back while the tips wizard or the account dialog is up, so the
+          // two never stack into a double overlay. Neither can be opened from
+          // in here except by the tips wizard's own Connect storage button, and
+          // this dialog reappears untouched as soon as they close: a controlled
+          // `open` change does not run onOpenChange below.
+          open={isTemplateSelectorOpen && !isTipsOpen && !isAccountOpen}
           onOpenChange={(newOpenState) => {
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
                // Create a blank project when no template is selected
@@ -2702,11 +3803,25 @@ const generateRandomProjectName = (): string => {
             <div className="grid shrink-0 items-stretch gap-4 border-t p-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
               {/* Recent projects, laid out in two columns so they take less height. */}
               <div className="min-w-0">
-                <h3 className="text-lg font-semibold mb-2">Recent projects</h3>
+                <div className="mb-2 flex items-center gap-2">
+                  <h3 className="shrink-0 text-lg font-semibold">Recent projects</h3>
+                  {recentProjects.length > 0 && (
+                    <div className="relative ml-auto min-w-0 flex-1 sm:max-w-[16rem]">
+                      <SearchIcon className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="Search projects..."
+                        value={recentProjectSearch}
+                        onChange={(event) => setRecentProjectSearch(event.target.value)}
+                        className="h-8 pl-8 text-sm"
+                      />
+                    </div>
+                  )}
+                </div>
                 {recentProjects.length > 0 ? (
+                  filteredRecentProjects.length > 0 ? (
                   <ScrollArea className="h-[20vh]">
                     <ul className="grid grid-cols-1 gap-1.5 pr-3 sm:grid-cols-2">
-                      {recentProjects.map((project) => (
+                      {filteredRecentProjects.map((project) => (
                         <li key={project.id} className="flex min-w-0 items-center justify-between gap-1 rounded-md border border-border/60 px-2 hover:bg-muted/50">
                           <div
                             className="min-w-0 flex-grow cursor-pointer py-2 hover:text-primary"
@@ -2724,6 +3839,26 @@ const generateRandomProjectName = (): string => {
                             <div className="truncate font-medium">{project.name}</div>
                             <div className="truncate text-xs text-muted-foreground">Saved on: {project.timestamp.toLocaleString()}</div>
                           </div>
+                          {/* Enabled for the open project too, unlike Delete
+                              beside it: the open one is exactly the project
+                              people want a second language pass of. */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void handleDuplicateProject(project);
+                            }}
+                            disabled={!!duplicatingProjectId}
+                            title={`Duplicate "${project.name}"`}
+                          >
+                            {duplicatingProjectId === project.id ? (
+                              <Loader2Icon className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <CopyIcon className="h-4 w-4" />
+                            )}
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -2742,6 +3877,9 @@ const generateRandomProjectName = (): string => {
                       ))}
                     </ul>
                   </ScrollArea>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No projects match &quot;{recentProjectSearch}&quot;.</p>
+                  )
                 ) : (
                   <p className="text-sm text-muted-foreground">No recent projects found.</p>
                 )}
@@ -2804,6 +3942,175 @@ const generateRandomProjectName = (): string => {
       elementCount: ab.elements.length,
       active: activeId === undefined ? i === 0 : ab.id === activeId,
     }));
+
+  // The project's languages as the MCP tools see them. `active` is a parameter
+  // because set_locale answers with the state it just moved to, before React
+  // has re-rendered this closure.
+  const mcpLocaleState = (active: string | null = activeLocale): McpLocaleState => {
+    const baseLocale = getBaseLocale(artboards);
+    const toSummary = (code: string, base: boolean): McpLocaleSummary => {
+      const def = getLocaleDef(code);
+      const { translated, total } = localeCompletion(artboards, code);
+      return {
+        code,
+        name: def?.name ?? code,
+        nativeName: def?.nativeName ?? code,
+        base,
+        active: base ? active === null || active === code : active === code,
+        // The base language is written, not translated, so it is always complete.
+        translated: base ? total : translated,
+        total,
+      };
+    };
+    return {
+      baseLocale,
+      activeLocale: active,
+      locales: [
+        toSummary(baseLocale, true),
+        ...getProjectLocales(artboards).map((entry) => toSummary(entry.code, false)),
+      ],
+    };
+  };
+
+  /**
+   * The MCP translate path: run the engine over one or more languages against a
+   * single snapshot and hand the boards back UNCOMMITTED, so the caller decides
+   * whether this was the whole tool (translate_locales) or one step of a bigger
+   * one (add_locales drafting the languages it just added).
+   *
+   * Sequential, not Promise.all, because the engines share one rate-limit
+   * budget, and each language is fed the previous one's output so a single
+   * commit at the end carries all of them and one undo takes all of them back.
+   *
+   * The progress dialog and the abort ref are the ones the app's own translate
+   * buttons use: a run started from outside the app still shows the user what
+   * is happening and still gives them the cancel button.
+   */
+  const runMcpTranslation = async (
+    boards: ArtboardState[],
+    locales: string[],
+    options: {
+      only: 'empty' | 'stale' | 'all';
+      includeManual?: boolean;
+      guidance?: string;
+      artboardIds?: string[];
+      elementIds?: string[];
+    }
+  ): Promise<{ artboards: ArtboardState[]; result: McpTranslateRunResult }> => {
+    const engines = availableEngines();
+    // Not an error here. The tool turns "no engine" into the instruction that
+    // actually helps a model: write the strings yourself and send them back.
+    if (engines.length === 0) {
+      return { artboards: boards, result: { engine: null, runs: [], completion: [] } };
+    }
+    const engine = engines[0];
+    const controller = new AbortController();
+    translateAbortRef.current = controller;
+    setIsCancellingTranslate(false);
+    const runs: McpTranslateRun[] = [];
+    let next = boards;
+    try {
+      for (const [index, locale] of locales.entries()) {
+        if (controller.signal.aborted) break;
+        setTranslateProgress({
+          localeLabel: localeLabel(locale),
+          done: 0,
+          total: 0,
+          localeIndex: index + 1,
+          localeCount: locales.length,
+          phase: 'starting',
+        });
+        try {
+          const result = await translateIntoLocale(next, locale, {
+            engine,
+            only: options.only,
+            includeManual: options.includeManual,
+            guidance: options.guidance,
+            artboardIds: options.artboardIds,
+            elementIds: options.elementIds,
+            signal: controller.signal,
+            onProgress: (done, total) =>
+              setTranslateProgress((prev) =>
+                prev ? { ...prev, done, total, phase: 'translating' } : prev
+              ),
+          });
+          next = result.artboards;
+          runs.push({
+            locale,
+            translated: result.translated,
+            failed: result.failed,
+            skipped: result.skipped,
+            rateLimited: result.rateLimited,
+          });
+        } catch (error) {
+          // translateIntoLocale throws only for a setup problem, e.g. a
+          // language the machine engine does not cover. One of those must not
+          // cost the caller the other languages, or the languages themselves
+          // when this is running inside add_locales, so it is reported per
+          // language and the loop keeps going.
+          console.error('Could not machine translate into', locale, error);
+          runs.push({
+            locale,
+            translated: 0,
+            failed: 0,
+            skipped: 0,
+            rateLimited: false,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    } finally {
+      translateAbortRef.current = null;
+      setTranslateProgress(null);
+      setIsCancellingTranslate(false);
+    }
+    return {
+      artboards: next,
+      result: {
+        engine,
+        runs,
+        completion: locales.map((locale) => ({ locale, ...localeCompletion(next, locale) })),
+      },
+    };
+  };
+
+  // Two frames, which is how long the canvas takes to repaint after a state
+  // change. Everything an MCP tool does that the next tool call has to SEE goes
+  // through this: opening a project, switching language, capturing a PNG.
+  const mcpNextPaint = () =>
+    new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    );
+
+  /**
+   * Run a capture with the canvas showing one language, then put it back.
+   *
+   * `undefined` means the caller said nothing about language, so the canvas is
+   * left exactly where the user had it, which is what every export did before
+   * languages existed. An explicit code (or null for the base language) is a
+   * round trip: the projection is a memo over `artboards`, so switching is a
+   * setState plus a repaint, and the finally is what stops a failed capture
+   * from leaving the editor sitting in a language nobody asked for.
+   */
+  const withLocaleOnCanvas = async <T,>(
+    locale: string | null | undefined,
+    work: () => Promise<T>
+  ): Promise<T> => {
+    if (locale === undefined) return work();
+    const previous = activeLocaleRef.current;
+    const target = !locale || locale === getBaseLocale(artboards) ? null : locale;
+    if (target === previous) return work();
+    if (target && !getProjectLocales(artboards).some((entry) => entry.code === target)) {
+      throw new Error(`This project has no language "${target}".`);
+    }
+    handleSelectLocale(target);
+    await mcpNextPaint();
+    try {
+      return await work();
+    } finally {
+      handleSelectLocale(previous);
+    }
+  };
 
   // Render one artboard for the MCP export tools. Same capture recipe as the
   // Export dialog (unscale the node, drop editor chrome, restore afterwards),
@@ -2884,9 +4191,17 @@ const generateRandomProjectName = (): string => {
     };
   };
 
+  // Every mutating tool below writes the BASE document and commits through
+  // handleArtboardsUpdate. None of them may ever be switched to viewArtboards:
+  // update_element through a projection would turn a colour change into a
+  // per-language override, and delete_element would trip the unproject
+  // assertion and silently drop the commit. Only the two read tools project,
+  // and only when the caller asks for a language.
   const mcpApi: McpDesignApi = {
-    listArtboards: () =>
-      artboards.map((ab) => ({
+    listArtboards: (locale) =>
+      // projectArtboards returns `artboards` BY REFERENCE for null, so the
+      // no-locale path is byte-for-byte what it always did.
+      projectArtboards(artboards, locale ?? null).map((ab) => ({
         id: ab.id,
         name: ab.name,
         width: ab.size.width,
@@ -2895,9 +4210,9 @@ const generateRandomProjectName = (): string => {
         elementCount: ab.elements.length,
         active: ab.id === activeArtboardId,
       })),
-    getArtboard: (id) => {
+    getArtboard: (id, locale) => {
       const boardId = resolveBoardId(id);
-      const ab = artboards.find((b) => b.id === boardId);
+      const ab = projectArtboards(artboards, locale ?? null).find((b) => b.id === boardId);
       return ab ? { ...ab, active: ab.id === activeArtboardId } : null;
     },
     createArtboard: ({ name, width, height, preset, backgroundColor }) => {
@@ -2982,7 +4297,7 @@ const generateRandomProjectName = (): string => {
       // artboards is a state the UI never produces, so don't create one here.
       if (artboards.length <= 1) {
         throw new Error(
-          'That is the only artboard — a project needs at least one. Create another first, or clear this one with delete_element.'
+          'That is the only artboard, a project needs at least one. Create another first, or clear this one with delete_element.'
         );
       }
       const remaining = artboards.filter((ab) => ab.id !== boardId);
@@ -2999,17 +4314,21 @@ const generateRandomProjectName = (): string => {
       const source = artboards.find((ab) => ab.id === boardId);
       if (!source) return null;
       const stamp = Date.now();
-      const copy: ArtboardState = {
+      const idMap: Record<string, string> = {};
+      const cloned: ArtboardState = {
         ...JSON.parse(JSON.stringify(source)),
         id: `artboard_${stamp}`,
         name: name?.trim() || `${source.name} copy`,
         // Fresh element ids: the copy has to be independently addressable, or
         // update_element would hit whichever board came first.
-        elements: source.elements.map((el, i) => ({
-          ...JSON.parse(JSON.stringify(el)),
-          id: `el_${stamp}_${i}_${Math.random().toString(36).slice(2, 7)}`,
-        })),
+        elements: source.elements.map((el, i) => {
+          const id = `el_${stamp}_${i}_${Math.random().toString(36).slice(2, 7)}`;
+          idMap[el.id] = id;
+          return { ...JSON.parse(JSON.stringify(el)), id };
+        }),
       };
+      // The copy keeps its translations, filed under the new ids.
+      const copy = remapOverrideIds(cloned, idMap);
       const sourceIndex = artboards.findIndex((ab) => ab.id === boardId);
       const at = typeof index === 'number'
         ? Math.max(0, Math.min(artboards.length, Math.round(index)))
@@ -3076,7 +4395,13 @@ const generateRandomProjectName = (): string => {
       const board = artboards.find((ab) => ab.id === boardId);
       if (!board || !board.elements.some((el) => el.id === elementId)) return false;
       handleArtboardsUpdate(
-        artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: ab.elements.filter((el) => el.id !== elementId) } : ab))
+        artboards.map((ab) =>
+          ab.id === boardId
+            // The element's translations go in the same commit, or a re-minted
+            // id could come back to a stale one.
+            ? dropElementOverrides({ ...ab, elements: ab.elements.filter((el) => el.id !== elementId) }, [elementId])
+            : ab
+        )
       );
       if (selectedElementIdsOnActiveArtboard.includes(elementId)) {
         setSelectedElementIdsOnActiveArtboard((prev) => prev.filter((id) => id !== elementId));
@@ -3255,35 +4580,44 @@ const generateRandomProjectName = (): string => {
       handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)));
       return true;
     },
-    exportPng: async ({ artboardId, scale, save, directory, fileName, includeImage }) => {
+    exportPng: async ({ artboardId, scale, save, directory, fileName, includeImage, locale }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
       if (!board) throw new Error('No such artboard.');
-      return captureArtboardForMcp(board, {
-        scale,
-        save,
-        directory,
-        fileName,
-        includeImage: includeImage ?? !save,
-      });
+      return withLocaleOnCanvas(locale, () =>
+        captureArtboardForMcp(board, {
+          scale,
+          save,
+          directory,
+          fileName,
+          includeImage: includeImage ?? !save,
+        })
+      );
     },
-    exportAll: async ({ scale, save, directory, includeImage }) => {
+    exportAll: async ({ scale, save, directory, includeImage, locale }) => {
       if (artboards.length === 0) return [];
       const shouldSave = save !== false;
-      const results: McpExportResult[] = [];
       const padTo = Math.max(2, String(artboards.length).length);
-      for (const [index, board] of artboards.entries()) {
-        results.push(
-          await captureArtboardForMcp(board, {
-            scale,
-            save: shouldSave,
-            directory,
-            fileName: `${String(index + 1).padStart(padTo, '0')}_${board.name}`,
-            includeImage: includeImage ?? false,
-          })
-        );
-      }
-      return results;
+      // The language goes in the file name rather than a subfolder: the folder
+      // may be the Downloads default, which the caller never named and so
+      // cannot predict a subfolder inside. A caller that wants the fastlane
+      // layout passes a directory of its own per language.
+      const token = locale ? `${locale}_` : '';
+      return withLocaleOnCanvas(locale, async () => {
+        const results: McpExportResult[] = [];
+        for (const [index, board] of artboards.entries()) {
+          results.push(
+            await captureArtboardForMcp(board, {
+              scale,
+              save: shouldSave,
+              directory,
+              fileName: `${token}${String(index + 1).padStart(padTo, '0')}_${board.name}`,
+              includeImage: includeImage ?? false,
+            })
+          );
+        }
+        return results;
+      });
     },
 
     // -- Templates and projects ----------------------------------------------
@@ -3369,6 +4703,169 @@ const generateRandomProjectName = (): string => {
         warnings: [],
       };
     },
+
+    // -- Languages ------------------------------------------------------------
+
+    listLocales: () => mcpLocaleState(),
+    setLocale: async (locale) => {
+      const baseLocale = getBaseLocale(artboards);
+      const next = !locale || locale === baseLocale ? null : locale;
+      if (next && !getProjectLocales(artboards).some((entry) => entry.code === next)) return null;
+      handleSelectLocale(next);
+      // Let the canvas repaint, so an export_png straight after this renders
+      // the language that was asked for. Same pattern openProject uses.
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      );
+      return mcpLocaleState(next);
+    },
+    setLocalizedText: ({ artboardId, elementId, locale, text }) => {
+      const boardId = resolveBoardId(artboardId);
+      if (!boardId) return null;
+      const applied = applyLocalizedText(artboards, { artboardId: boardId, elementId, locale, text });
+      if (!applied) return null;
+      handleArtboardsUpdate(
+        applied.artboards,
+        namedChange('Edit Translations', 'translate', localeLabel(locale))
+      );
+      return applied.result;
+    },
+
+    addLocales: async ({ locales, baseLocale, autoFont, autoFit, machineTranslate }) => {
+      const added = addProjectLocales(artboards, locales, { autoFont, autoFit, baseLocale });
+      let boards = added.artboards;
+      let translation: McpTranslateRunResult | undefined;
+      // Only the languages that were actually added get drafted. Re-running the
+      // engine over a language that was already there would spend the whole
+      // rate-limit budget refreshing copy nobody asked about.
+      if (machineTranslate && added.result.added.length > 0) {
+        const run = await runMcpTranslation(boards, added.result.added, { only: 'empty' });
+        boards = run.artboards;
+        translation = run.result;
+      }
+      if (boards !== artboards) {
+        handleArtboardsUpdate(
+          boards,
+          namedChange('Add Languages', 'translate', `${added.result.locales.length} languages`)
+        );
+      }
+      // Recounted against the committed boards, so the completion figures
+      // include whatever the draft just wrote.
+      const result = { ...added.result, locales: localeConfigEntries(boards) };
+      return translation ? { ...result, translation } : result;
+    },
+    removeLocales: ({ locales }) => {
+      const removed = removeProjectLocales(artboards, locales);
+      if (removed.artboards !== artboards) {
+        handleArtboardsUpdate(
+          removed.artboards,
+          namedChange('Remove Languages', 'translate', removed.result.removed.join(', '))
+        );
+      }
+      // Nothing to do about the language on screen: the effect that watches
+      // `artboards` drops the view back to base when the language goes.
+      return removed.result;
+    },
+    setBaseLocale: ({ locale }) => {
+      const applied = setProjectBaseLocale(artboards, locale);
+      if ('error' in applied) throw new Error(applied.error);
+      if (applied.artboards !== artboards) {
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange('Set Base Language', 'translate', localeLabel(locale))
+        );
+      }
+      return applied.result;
+    },
+
+    listTranslations: (input) => buildTranslationView(artboards, input),
+    setLocalizedTexts: ({ writes }) => {
+      const applied = applyLocaleTexts(artboards, writes);
+      if (applied.artboards !== artboards) {
+        const count = applied.result.written + applied.result.cleared;
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange('Edit Translations', 'translate', `${count} ${count === 1 ? 'string' : 'strings'}`)
+        );
+      }
+      return applied.result;
+    },
+    translateLocales: async ({ locales, only, includeManual, guidance, artboardIds, elementIds }) => {
+      const run = await runMcpTranslation(artboards, locales, {
+        only: only ?? 'empty',
+        includeManual,
+        guidance,
+        artboardIds,
+        elementIds,
+      });
+      if (run.artboards !== artboards) {
+        handleArtboardsUpdate(
+          run.artboards,
+          namedChange('Translate', 'translate', locales.map((code) => localeName(code)).join(', '))
+        );
+      }
+      return run.result;
+    },
+
+    exportTranslationsCsv: ({ locales }) => {
+      const codes = locales && locales.length > 0
+        ? locales
+        : getProjectLocales(artboards).map((entry) => entry.code);
+      return {
+        csv: toCsv(artboards, codes),
+        locales: codes,
+        rows: buildTranslationRows(artboards, codes).length,
+      };
+    },
+    importTranslationsCsv: ({ csv, dryRun, locales }) => {
+      const plan = planCsvImport(artboards, csv);
+      const wanted = locales && locales.length > 0 ? new Set(locales) : null;
+      const changes = wanted ? plan.changes.filter((change) => wanted.has(change.locale)) : plan.changes;
+      if (!dryRun && changes.length > 0) {
+        handleArtboardsUpdate(
+          applyCsvImport(artboards, changes),
+          namedChange('Import Translations', 'translate', `${changes.length} strings`)
+        );
+      }
+      return {
+        applied: dryRun ? 0 : changes.length,
+        unmatched: plan.unmatched,
+        dryRun: dryRun === true,
+        changes,
+      };
+    },
+
+    setLocaleOverride: (input) => {
+      const applied = applyLocaleOverride(artboards, {
+        ...input,
+        artboardId: input.artboardId ?? undefined,
+      });
+      if ('error' in applied) throw new Error(applied.error);
+      if (applied.artboards !== artboards) {
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange('Detach For Language', 'translate', localeLabel(input.locale))
+        );
+      }
+      return applied.result;
+    },
+    resetLocaleOverrides: (input) => {
+      const applied = resetLocaleOverrides(artboards, input);
+      if ('error' in applied) throw new Error(applied.error);
+      if (applied.artboards !== artboards) {
+        handleArtboardsUpdate(
+          applied.artboards,
+          namedChange(
+            input.scope === 'element' ? 'Reset Element To Base'
+              : input.scope === 'artboard' ? 'Reset Artboard To Base'
+              : 'Reset Language To Base',
+            'translate',
+            localeLabel(input.locale)
+          )
+        );
+      }
+      return applied.result;
+    },
   };
   mcpApiRef.current = mcpApi;
 
@@ -3388,15 +4885,7 @@ const generateRandomProjectName = (): string => {
             </div>
           </SidebarHeader>
           <SidebarContent>
-            <ElementPalette
-              onAddElement={(type, subType, styleProps) => {
-                if (activeArtboardId) {
-                  handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
-                } else {
-                  toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
-                }
-              }}
-            />
+            <ElementPalette onAddElement={handlePaletteAddElement} />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
              <SidebarGroup className="p-0">
@@ -3425,6 +4914,13 @@ const generateRandomProjectName = (): string => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                  {/* The way back in once the startup checkbox is unticked. */}
+                  <SidebarMenuButton tooltip="Tips" className="w-full" onClick={() => setIsTipsOpen(true)}>
+                    <LightbulbIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">Tips</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                   <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
                     <span className="group-data-[collapsible=icon]:hidden">About</span>
@@ -3438,9 +4934,9 @@ const generateRandomProjectName = (): string => {
         <SidebarInset className="relative flex flex-col overflow-hidden">
           <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
           <Toolbar
-            onNewArtboard={handleNewArtboardFromMainToolbar}
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
+            onPublishToStore={() => setIsPublishDialogOpen(true)}
             onExport={() => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
@@ -3450,19 +4946,8 @@ const generateRandomProjectName = (): string => {
             onSaveToAccount={handleSaveToAccount}
             isAccountConnected={isAccountConnected}
             isSavingToAccount={isSavingToAccount}
-            canUndo={historyIndex > 0}
-            canRedo={historyIndex < history.length - 1}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            onDeleteSelected={handleDeleteSelected}
-            isElementSelected={selectedElementIdsOnActiveArtboard.length > 0}
-            isArtboardSelected={!!activeArtboardId}
-            activeTool={activeTool}
-            onSetActiveTool={setActiveTool}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
-            currentProjectName={currentProjectName}
-            onRenameProject={handleRenameProject}
             onSelectDeviceFormat={handleSelectDeviceFormat}
             activeDeviceFormat={activeDeviceFormat}
             onTranslate={() => {
@@ -3471,16 +4956,45 @@ const generateRandomProjectName = (): string => {
               setIsTranslateDialogOpen(true);
             }}
             isTranslationEnabled={isTranslationEnabled}
+            // The BASE document, never viewArtboards: the switcher counts
+            // overrides, and a projection has already folded them away.
+            artboards={artboards}
+            activeLocale={activeLocale}
+            onSelectLocale={handleSelectLocale}
+            onManageLanguages={() => setIsLanguageManagerOpen(true)}
+            onOpenTranslations={() => handleOpenTranslations('all')}
+            onUpdateTranslations={handleUpdateTranslations}
+            translationAvailable={translationAvailable}
             className="sticky top-0 z-50 bg-card border-b"
           />
-          
+
+          <LocalFontNotice
+            families={importedFontsInProject}
+            projectId={activeProjectId}
+            onExportJson={handleExportProjectAsJSON}
+          />
+
+          {activeLocale && (
+            <LocaleViewNotice
+              locale={activeLocale}
+              baseLocale={baseLocaleCode}
+              untranslatedCount={untranslatedCount(artboards, activeLocale)}
+              onBackToBase={() => handleSelectLocale(null)}
+              onOpenTranslations={() => handleOpenTranslations('untranslated')}
+              editScope={localeEditScope}
+              onEditScopeChange={setLocaleEditScope}
+            />
+          )}
+
           {/* Main content area with flex layout */}
           <div className="flex flex-1 overflow-hidden h-full">
             {/* Canvas area - takes remaining space */}
             <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden">
               <CanvasArea
-                artboards={artboards}
-                onUpdateArtboards={handleArtboardsUpdate}
+                artboards={viewArtboards}
+                onUpdateArtboards={commitView}
+                onUpdateBaseArtboards={handleCanvasStructuralChange}
+                activeLocale={activeLocale}
                 onAddElementToArtboard={handleAddElementToArtboard}
                 activeArtboardId={activeArtboardId}
                 setActiveArtboardId={handleArtboardSelection}
@@ -3500,38 +5014,101 @@ const generateRandomProjectName = (): string => {
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
 
-              {/* Floating zoom control (bottom-left of canvas) */}
-              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+              {/* Floating bar (bottom-left of canvas): the project name, which
+                  used to sit in the top toolbar. */}
+              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2">
+                <ProjectNameField
+                  currentProjectName={currentProjectName}
+                  onRenameProject={handleRenameProject}
+                  className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
+                />
+              </div>
+
+              {/* Floating bar (bottom center of canvas): the select and pan
+                  tools, then undo/redo, moved down from the top toolbar so they
+                  sit with the canvas they act on. Undo and redo are two plain
+                  buttons here rather than the dropdown they used to share:
+                  the pill has the room, and one click beats two. */}
+              <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
                 <Button
-                  variant="ghost"
+                  variant={activeTool === 'select' ? 'secondary' : 'ghost'}
                   size="icon"
                   className="h-8 w-8 rounded-full"
-                  onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
-                  title="Zoom Out"
+                  onClick={() => setActiveTool('select')}
+                  title="Selection Tool (V)"
                 >
-                  <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                  <MousePointerIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
-                <button
-                  type="button"
-                  onClick={() => setCanvasZoom(1)}
-                  className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
-                  title="Reset zoom to 100%"
+                <Button
+                  variant={activeTool === 'pan' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => setActiveTool('pan')}
+                  title="Pan Tool (H)"
                 >
-                  {Math.round(canvasZoom * 100)}%
-                </button>
+                  <HandIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+
+                <div className="mx-1 h-5 w-px bg-border" />
+
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full"
-                  onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
-                  title="Zoom In"
+                  onClick={handleUndo}
+                  disabled={historyIndex <= 0}
+                  title="Undo (⌘Z)"
                 >
-                  <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                  <UndoIcon className="h-[1.1rem] w-[1.1rem]" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={handleRedo}
+                  disabled={historyIndex >= history.length - 1}
+                  title="Redo (⇧⌘Z)"
+                >
+                  <RedoIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
               </div>
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
-              <McpServerStatus className="absolute bottom-4 right-4 z-40" />
+              {/* Floating bar (bottom-RIGHT of canvas): the zoom control, with
+                  the MCP status beside it rather than stacked on top of it,
+                  since that corner was already taken. */}
+              <div className="absolute bottom-4 right-4 z-40 flex items-center gap-2">
+                <div className="flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.max(prev / 1.2, 0.1))}
+                    title="Zoom Out"
+                  >
+                    <ZoomOutIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setCanvasZoom(1)}
+                    className="min-w-[48px] text-center text-xs font-semibold tabular-nums hover:text-primary"
+                    title="Reset zoom to 100%"
+                  >
+                    {Math.round(canvasZoom * 100)}%
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setCanvasZoom(prev => Math.min(prev * 1.2, 4))}
+                    title="Zoom In"
+                  >
+                    <ZoomInIcon className="h-[1.1rem] w-[1.1rem]" />
+                  </Button>
+                </div>
+
+                <McpServerStatus />
+              </div>
 
               {contextMenu && (
                 <CanvasContextMenu
@@ -3546,17 +5123,39 @@ const generateRandomProjectName = (): string => {
               )}
             </div>
 
-            {/* Right dock: Properties on top, Layers below, resizable split.
-                Collapsed it becomes a slim vertical rail with rotated labels
-                (Android Studio tool-window style). */}
+            {/* Right dock: Properties/History tabs on top, Layers below,
+                resizable split. Collapsed it becomes a slim vertical rail with
+                rotated labels (Android Studio tool-window style). */}
             {isRightDockOpen ? (
               <div className="flex h-full w-80 flex-shrink-0 flex-col border-l bg-card" data-export-exclude>
-                <div className="flex h-9 shrink-0 items-center justify-between border-b pl-3 pr-1.5">
-                  <span className="text-sm font-semibold">Properties</span>
+                <Tabs
+                  value={rightDockTab}
+                  onValueChange={(value) => selectRightDockTab(value as 'properties' | 'history')}
+                  className="flex min-h-0 flex-1 flex-col"
+                >
+                {/* Underline tabs, not the default segmented pill: inside a
+                    320px dock the pill reads as a single button rather than a
+                    pair of tabs. -mb-px drops the active underline onto the
+                    header rule so the two line up. */}
+                <div className="flex h-9 shrink-0 items-stretch justify-between border-b pl-2 pr-1.5">
+                  <TabsList className="-mb-px h-auto items-stretch gap-4 rounded-none bg-transparent p-0">
+                    <TabsTrigger
+                      value="properties"
+                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    >
+                      Properties
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="history"
+                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    >
+                      History
+                    </TabsTrigger>
+                  </TabsList>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-6 w-6 self-center"
                     onClick={() => setRightDockOpen(false)}
                     title="Collapse right panel"
                     aria-label="Collapse right panel"
@@ -3565,7 +5164,13 @@ const generateRandomProjectName = (): string => {
                   </Button>
                 </div>
                 <div ref={dockContentRef} className="flex min-h-0 flex-1 flex-col">
-                  <div className="min-h-[10rem] flex-1 overflow-hidden">
+                  {/* data-[state=active]:flex, never a bare flex: a bare flex
+                      class beats Radix's [hidden] and the inactive tab would
+                      still take up the dock. */}
+                  <TabsContent
+                    value="properties"
+                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
+                  >
                     <PropertiesPanel
                       selectedElement={selectedElementDetails}
                       selectionCount={selectedElementIdsOnActiveArtboard.length}
@@ -3577,9 +5182,27 @@ const generateRandomProjectName = (): string => {
                         activeArtboardId && selectedElementIdsOnActiveArtboard.length === 0 ? activeArtboard : null
                       }
                       onUpdateArtboardDetails={handleUpdateArtboardDetails}
+                      activeLocale={activeLocale}
+                      baseLocale={baseLocaleCode}
+                      localeOverride={selectedLocaleOverride}
+                      baseElement={selectedBaseElement}
+                      onResetLocaleField={handleResetLocaleField}
+                      localeDetached={selectedLocaleDetached}
+                      onToggleLocaleDetach={handleToggleLocaleDetach}
+                      onResetLocaleOverrides={handleResetLocaleOverrides}
                       className="h-full border-l-0 shadow-none"
                     />
-                  </div>
+                  </TabsContent>
+                  <TabsContent
+                    value="history"
+                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
+                  >
+                    <HistoryPanel
+                      entries={history}
+                      currentIndex={historyIndex}
+                      onJumpTo={applyHistoryIndex}
+                    />
+                  </TabsContent>
                   <div
                     role="separator"
                     aria-orientation="horizontal"
@@ -3632,9 +5255,12 @@ const generateRandomProjectName = (): string => {
                       onDeleteElement={handleDeleteElementFromLayerPanel}
                       onRenameElement={handleRenameElementFromLayerPanel}
                       activeArtboardName={activeArtboardName}
+                      activeLocale={activeLocale}
+                      localeStates={layerLocaleStates}
                     />
                   </div>
                 </div>
+                </Tabs>
               </div>
             ) : (
               <div
@@ -3652,13 +5278,20 @@ const generateRandomProjectName = (): string => {
                   <PanelRightOpenIcon className="h-4 w-4" />
                 </Button>
                 <div className="mt-1 h-px w-5 bg-border" />
-                {(['Properties', 'Layers'] as const).map((label) => (
+                {([
+                  { label: 'Properties', tab: 'properties' as const },
+                  { label: 'History', tab: 'history' as const },
+                  { label: 'Layers', tab: null },
+                ]).map(({ label, tab }) => (
                   <button
                     key={label}
                     type="button"
                     className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                     style={{ writingMode: 'vertical-rl' }}
-                    onClick={() => setRightDockOpen(true)}
+                    onClick={() => {
+                      if (tab) selectRightDockTab(tab);
+                      setRightDockOpen(true);
+                    }}
                     title={`Open ${label}`}
                   >
                     {label}
@@ -3670,7 +5303,11 @@ const generateRandomProjectName = (): string => {
 
           {isPreviewOpen && (
             <PreviewDialog
-              artboards={artboards}
+              artboards={viewArtboards}
+              baseArtboards={artboards}
+              localeOptions={previewLocaleOptions}
+              activeLocale={activeLocale}
+              onSelectLocale={handleSelectLocale}
               initialArtboardId={activeArtboardId}
               onClose={() => setIsPreviewOpen(false)}
             />
@@ -3702,11 +5339,17 @@ const generateRandomProjectName = (): string => {
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
               onConfirmExport={handleConfirmExport}
+              onPublishToStore={() => {
+                setIsExportDialogOpen(false);
+                setIsPublishDialogOpen(true);
+              }}
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
               activeArtboard={activeArtboardSummary}
               artboardCount={artboards.length}
               defaultCurrentArtboardOnly={exportScopedToArtboard}
+              artboards={artboards}
+              activeLocale={activeLocale}
             />
           )}
 
@@ -3714,6 +5357,50 @@ const generateRandomProjectName = (): string => {
             progress={pngProgress}
             onCancel={handleCancelPngExport}
             isCancelling={isCancellingPngExport}
+          />
+
+          <TranslateProgressDialog
+            progress={translateProgress}
+            onCancel={handleCancelTranslation}
+            isCancelling={isCancellingTranslate}
+          />
+
+          <PublishDialog
+            isOpen={isPublishDialogOpen}
+            onOpenChange={setIsPublishDialogOpen}
+            artboards={artboards}
+            activeLocale={activeLocale}
+            onCapture={handlePublishCapture}
+          />
+
+          <LanguageManagerDialog
+            open={isLanguageManagerOpen}
+            onOpenChange={setIsLanguageManagerOpen}
+            artboards={artboards}
+            translationAvailable={translationAvailable}
+            onApply={(next, opts) => void handleApplyLanguages(next, opts)}
+          />
+
+          <TranslationTableDialog
+            open={isTranslationTableOpen}
+            onOpenChange={setIsTranslationTableOpen}
+            artboards={artboards}
+            translationAvailable={translationAvailable}
+            initialLocale={translationTableLocale}
+            initialFilter={translationTableFilter}
+            onSave={handleSaveTranslations}
+            // Deliberately does NOT commit: the dialog adopts the result as its
+            // new snapshot and it lands with everything else on Save.
+            onMachineTranslate={(locale, only) => runLocaleTranslation(locale, only)}
+          />
+
+          <TipsDialog
+            open={isTipsOpen}
+            onOpenChange={setIsTipsOpen}
+            onConnectStorage={() => {
+              setIsTipsOpen(false);
+              openAccountDialog('Connect Google Drive or GitHub to keep a copy of your projects.');
+            }}
           />
 
           <AccountDialog
@@ -3726,6 +5413,20 @@ const generateRandomProjectName = (): string => {
             onOpenProject={handleOpenFromAccount}
           />
 
+          <SaveToAccountDialog
+            open={!!saveConflict}
+            onOpenChange={(open) => {
+              if (!open) setSaveConflict(null);
+            }}
+            existingName={saveConflict?.name ?? ''}
+            existingModifiedAt={saveConflict?.modifiedAt}
+            suggestedName={`${currentProjectName} copy`}
+            storageLabel={accountStorageLabel}
+            isSaving={isSavingToAccount}
+            onReplace={() => void runAccountSave()}
+            onSaveCopy={(name) => void runAccountSave(name)}
+          />
+
           <TranslateDialog
             isOpen={isTranslateDialogOpen}
             onOpenChange={(open) => {
@@ -3735,6 +5436,11 @@ const generateRandomProjectName = (): string => {
             currentLanguage={translateElementId ? translateElementArtboard?.language : currentProjectLanguage}
             disableAllArtboardsOption={isTranslateSingleArtboard}
             scope={translateElementId ? 'element' : 'project'}
+            projectHasLanguages={hasLocales(artboards)}
+            onOpenTranslations={() => {
+              setIsTranslateDialogOpen(false);
+              handleOpenTranslations('all');
+            }}
             onTranslate={handleTranslateRequest}
           />
 

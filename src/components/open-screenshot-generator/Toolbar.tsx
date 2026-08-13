@@ -1,14 +1,8 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  PlusIcon, 
-  DownloadIcon, 
-  UndoIcon, 
-  RedoIcon, 
-  Trash2Icon, 
-  MousePointerIcon,
-  HandIcon,
+  DownloadIcon,
   LayoutTemplateIcon,
   FileTextIcon,
   FolderOpenIcon,
@@ -18,86 +12,87 @@ import {
   RulerIcon,
   CloudUploadIcon,
   Loader2Icon,
-  GlobeIcon
+  LanguagesIcon,
+  StoreIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Size } from '@/types/artboard';
+import { ArtboardState, Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { findMatchingPreset } from '@/lib/sizePresets';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface ToolbarProps {
-  onNewArtboard: () => void;
   onSelectTemplate: () => void;
   onPreview: () => void;
   onExport: () => void;
+  /** Open the direct-to-store upload dialog (App Store Connect, Google Play). */
+  onPublishToStore?: () => void;
   onExportJSON: () => void;
   onImportJSON: () => void;
   /** Push the project to the user's connected storage, or prompt to connect. */
   onSaveToAccount: () => void;
   isAccountConnected: boolean;
   isSavingToAccount?: boolean;
-  canUndo: boolean;
-  canRedo: boolean;
-  onUndo: () => void;
-  onRedo: () => void;
-  onDeleteSelected: () => void;
-  isElementSelected: boolean;
-  isArtboardSelected: boolean;
-  activeTool: 'select' | 'pan';
-  onSetActiveTool: (tool: 'select' | 'pan') => void;
   onUpdateArtboardSize: (width: number, height: number, scaleContent: boolean) => void;
   initialArtboardSize?: Size; // New prop to get current size
   className?: string;
-  currentProjectName?: string;
-  onRenameProject?: (newName: string) => void;
   onSelectDeviceFormat?: (preset: DeviceFormatPreset) => void;
   onTranslate?: () => void;
   isTranslationEnabled?: boolean;
   // Format the project's mockups are currently on (phone platform or Play
   // Store tablet); null when mixed or none.
   activeDeviceFormat?: DeviceFormat | null;
+
+  // Locale overlay. Deliberately NOT gated on isTranslationEnabled: a project
+  // localized by hand, or from a CSV a translator filled in, needs no
+  // LibreTranslate at all, and hiding the switcher would hide the whole
+  // feature from everyone who never configured a translation server.
+  /** The BASE document, every language. The switcher reads its locale list. */
+  artboards?: ArtboardState[];
+  /** null means the base language is showing. */
+  activeLocale?: string | null;
+  onSelectLocale?: (locale: string | null) => void;
+  onManageLanguages?: () => void;
+  onOpenTranslations?: () => void;
+  onUpdateTranslations?: () => void;
+  /** A machine path exists (LibreTranslate configured, or an AI provider). */
+  translationAvailable?: boolean;
 }
 
 export function Toolbar({ 
-  onNewArtboard,
   onSelectTemplate,
   onPreview,
   onExport,
+  onPublishToStore,
   onExportJSON,
   onImportJSON,
   onSaveToAccount,
   isAccountConnected,
   isSavingToAccount = false,
-  canUndo,
-  canRedo, 
-  onUndo, 
-  onRedo,
-  onDeleteSelected,
-  isElementSelected,
-  isArtboardSelected,
-  activeTool,
-  onSetActiveTool,
   onUpdateArtboardSize,
   initialArtboardSize,
   className,
-  currentProjectName,
-  onRenameProject,
   onSelectDeviceFormat,
   onTranslate,
   isTranslationEnabled = true,
   activeDeviceFormat,
+  artboards,
+  activeLocale = null,
+  onSelectLocale,
+  onManageLanguages,
+  onOpenTranslations,
+  onUpdateTranslations,
+  translationAvailable = false,
 }: ToolbarProps) {
   const deviceFormatLabel =
     DEVICE_FORMAT_PRESETS.find((p) => p.id === activeDeviceFormat)?.label ?? 'Devices';
@@ -108,90 +103,17 @@ export function Toolbar({
     ? `${initialArtboardSize.width} × ${initialArtboardSize.height}`
     : 'Canvas Size';
 
-  // State for project name editing
-  const [isEditingProjectName, setIsEditingProjectName] = useState(false);
-  const [editingProjectName, setEditingProjectName] = useState(currentProjectName || 'Untitled Project');
-  const projectNameInputRef = useRef<HTMLInputElement>(null);
-
-  // Update project name when it changes
-  useEffect(() => {
-    setEditingProjectName(currentProjectName || 'Untitled Project');
-  }, [currentProjectName]);
-
-  // Focus input when editing starts
-  useEffect(() => {
-    if (isEditingProjectName && projectNameInputRef.current) {
-      projectNameInputRef.current.focus();
-      projectNameInputRef.current.select();
-    }
-  }, [isEditingProjectName]);
-
-  const handleProjectNameDoubleClick = () => {
-    setIsEditingProjectName(true);
-    setEditingProjectName(currentProjectName || 'Untitled Project');
-  };
-
-  const handleProjectNameSubmit = () => {
-    if (editingProjectName.trim() && onRenameProject) {
-      onRenameProject(editingProjectName.trim());
-    }
-    setIsEditingProjectName(false);
-  };
-
-  const handleProjectNameCancel = () => {
-    setEditingProjectName(currentProjectName || 'Untitled Project');
-    setIsEditingProjectName(false);
-  };
-
-  const handleProjectNameKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleProjectNameSubmit();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      handleProjectNameCancel();
-    }
-  };
+  // The project name and its rename affordance live in the floating bar at the
+  // bottom left of the canvas now, next to the zoom controls: see
+  // ProjectNameField.tsx, rendered from OpenScreenshotGeneratorLayout.
 
   return (
     <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2", className)}>
-      {/* Project Name Section */}
-      <div className="flex items-center space-x-2 mr-4">
-        {isEditingProjectName ? (
-          <Input
-            ref={projectNameInputRef}
-            value={editingProjectName}
-            onChange={(e) => setEditingProjectName(e.target.value)}
-            onKeyDown={handleProjectNameKeyDown}
-            onBlur={handleProjectNameSubmit}
-            className="h-8 w-48 text-sm font-medium"
-            placeholder="Project name..."
-          />
-        ) : (
-          <div 
-            className="flex items-center space-x-1 cursor-pointer hover:bg-accent/50 rounded px-2 py-1"
-            onDoubleClick={handleProjectNameDoubleClick}
-            title="Double-click to rename project"
-          >
-            <span className="text-sm font-medium text-foreground">
-              {currentProjectName || 'Untitled Project'}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="h-8 w-px bg-muted mx-2" />
-
+      {/* Adding an artboard lives on the artboard itself ("Add New Artboard
+          After" in its hover toolbar), which is also where the new board ends
+          up. A project can never reach zero artboards, since deleting the last
+          one is refused, so that affordance is always reachable. */}
       <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onNewArtboard}
-          title="New Artboard"
-        >
-          <PlusIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-
         <Button
           variant="outline"
           size="icon"
@@ -204,72 +126,16 @@ export function Toolbar({
 
       <div className="h-8 w-px bg-muted mx-2" />
 
-      <div className="flex items-center space-x-2">
-        <Button
-          variant={activeTool === 'select' ? 'secondary' : 'outline'}
-          size="icon"
-          onClick={() => onSetActiveTool('select')}
-          title="Selection Tool (V)"
-        >
-          <MousePointerIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
+      {/* The select and pan tools and the undo/redo pair live in the floating
+          bar centered at the bottom of the canvas now, next to the work they
+          act on.
 
-        <Button
-          variant={activeTool === 'pan' ? 'secondary' : 'outline'}
-          size="icon"
-          onClick={() => onSetActiveTool('pan')}
-          title="Pan Tool (H)"
-        >
-          <HandIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-      </div>
+          Delete deliberately has no button anywhere up here: the
+          Delete/Backspace key, the artboard's own hover toolbar, and the Layers
+          panel all cover it, and a destructive control does not need a fourth
+          home. */}
 
-      <div className="h-8 w-px bg-muted mx-2" />
 
-      <div className="flex items-center space-x-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-10 gap-1 px-2.5"
-              disabled={!canUndo && !canRedo}
-              title="History"
-            >
-              <UndoIcon className="h-[1.2rem] w-[1.2rem]" />
-              <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={onUndo} disabled={!canUndo}>
-              <UndoIcon className="mr-2 h-4 w-4" />
-              Undo
-              <DropdownMenuShortcut>⌘Z</DropdownMenuShortcut>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onRedo} disabled={!canRedo}>
-              <RedoIcon className="mr-2 h-4 w-4" />
-              Redo
-              <DropdownMenuShortcut>⇧⌘Z</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onDeleteSelected}
-          className={cn(
-            "text-destructive hover:text-destructive hover:bg-destructive/10 hover:border-destructive/40",
-            (!isElementSelected && !isArtboardSelected) && "cursor-not-allowed"
-          )}
-          disabled={!isElementSelected && !isArtboardSelected}
-          title={isElementSelected ? "Delete Element (Delete)" : isArtboardSelected ? "Delete Artboard (Delete)" : "Select something to delete"}
-        >
-          <Trash2Icon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-      </div>
-
-      <div className="h-8 w-px bg-muted mx-2" />
-      
       {/* Canvas Size — opens the preset picker dialog. Scales + re-centers
           content by default; its checkbox can opt out to the raw resize. */}
       <Button
@@ -299,18 +165,64 @@ export function Toolbar({
         onApply={onUpdateArtboardSize}
       />
 
-      <div className="flex-grow" />
+      {/* The only genuinely free horizontal space in the chrome. The language
+          controls sit at its LEFT edge, beside the canvas controls they belong
+          with, rather than joining the action run on the right, which is
+          already several icon buttons plus a labelled one.
+
+          No min-w-0 on purpose: the spacer must not shrink past the switcher
+          and clip it. When the row runs out of room the give comes from the
+          canvas-size button's truncating preset label, since every button to
+          the right of here is shrink-0. */}
+      <div className="flex flex-grow items-center gap-2">
+        {artboards && onSelectLocale && onManageLanguages && onOpenTranslations && onUpdateTranslations && (
+          <LanguageSwitcher
+            artboards={artboards}
+            activeLocale={activeLocale}
+            onSelectLocale={onSelectLocale}
+            onManageLanguages={onManageLanguages}
+            onOpenTranslations={onOpenTranslations}
+            onUpdateTranslations={onUpdateTranslations}
+            translationAvailable={translationAvailable}
+          />
+        )}
+
+        {/* Translating is what you reach for once a language exists, so it
+            belongs beside the language switcher rather than in the
+            export/import/publish run on the right. */}
+        {onTranslate && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onTranslate}
+            disabled={!isTranslationEnabled}
+            className="h-8 w-8 shrink-0"
+            title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
+          >
+            {/* The globe belongs to the language controls (Add language, the
+                locale chip). Translating is a different verb, so it gets the
+                A-and-character glyph instead of a second globe. */}
+            <LanguagesIcon className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
 
       {onSelectDeviceFormat && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
+            {/* Icon only: the current format is already shown by the checkmark
+                inside the menu, and by the canvas size button next to it. The
+                title keeps it readable on hover. */}
             <Button
               variant="outline"
-              className="h-8"
-              title="Convert the project to another device format (canvas + mockups)"
+              className="h-8 shrink-0"
+              title={
+                activeDeviceFormat
+                  ? `Convert the project to another device format (currently ${deviceFormatLabel})`
+                  : 'Convert the project to another device format (canvas + mockups)'
+              }
             >
               <SmartphoneIcon className="mr-1.5 h-4 w-4" />
-              {deviceFormatLabel}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -350,30 +262,16 @@ export function Toolbar({
       <Button
         variant="outline"
         onClick={onPreview}
-        className="h-8"
+        className="h-8 shrink-0"
         title="Preview final result"
       >
         <EyeIcon className="mr-1.5 h-4 w-4" />
-        Preview
       </Button>
-
-      {onTranslate && (
-        <Button
-          variant="outline"
-          onClick={onTranslate}
-          disabled={!isTranslationEnabled}
-          className="h-8"
-          title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
-        >
-          <GlobeIcon className="mr-1.5 h-4 w-4" />
-          Translate
-        </Button>
-      )}
 
       <Button
         variant="outline"
         onClick={onImportJSON}
-        className="h-8"
+        className="h-8 shrink-0"
         title="Import Project from JSON"
       >
         <FolderOpenIcon className="mr-1.5 h-4 w-4" />
@@ -382,7 +280,7 @@ export function Toolbar({
       <Button 
         variant="outline" 
         onClick={onExportJSON} 
-        className="h-8"
+        className="h-8 shrink-0"
         title="Export Project as JSON"
       >
         <FileTextIcon className="mr-1.5 h-4 w-4" />
@@ -398,7 +296,7 @@ export function Toolbar({
         onClick={onSaveToAccount}
         disabled={isSavingToAccount}
         aria-disabled={!isAccountConnected}
-        className={cn('h-8', !isAccountConnected && 'opacity-50')}
+        className={cn('h-8 shrink-0', !isAccountConnected && 'opacity-50')}
         title={
           isAccountConnected
             ? 'Save to account'
@@ -415,11 +313,32 @@ export function Toolbar({
       <Button
         variant="outline"
         onClick={onExport}
-        className="h-8"
+        className="h-8 shrink-0"
         title="Export Artboards as Images"
       >
         <DownloadIcon className="mr-1.5 h-4 w-4" />
       </Button>
+
+      {/* Straight to the listing, no round trip through the Downloads folder.
+          The only labelled button on this side of the toolbar: a storefront
+          icon alone would not distinguish it from the export and account
+          buttons beside it, both of which are also "send my work somewhere".
+
+          The label drops below lg, matching the canvas-size preset label above
+          it. The language switcher now shares this row, and at laptop widths
+          that label is the difference between a clean run and a squashed one.
+          The title carries the meaning when the text is gone. */}
+      {onPublishToStore && (
+        <Button
+          variant="outline"
+          onClick={onPublishToStore}
+          className="h-8 shrink-0"
+          title="Upload screenshots to App Store Connect or Google Play"
+        >
+          <StoreIcon className="h-4 w-4 lg:mr-1.5" />
+          <span className="hidden lg:inline">Upload to store</span>
+        </Button>
+      )}
     </div>
   );
 }

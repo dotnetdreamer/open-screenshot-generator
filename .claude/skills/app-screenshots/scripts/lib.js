@@ -80,10 +80,19 @@ async function clickByText(page, text) {
   if (!ok) throw new Error('button not found: ' + text);
 }
 
-/** Click the Nth button with an exact title attribute (palette tiles, toolbar). */
+/**
+ * Click the Nth button by its title (category cards, toolbar) or accessible name
+ * (palette tiles). Tiles dropped `title` when they gained the hover card that
+ * shows their library id, so their name now reads `Add <label> (<libraryId>)` —
+ * pass just `Add <label>` and the id suffix is matched for you.
+ */
 async function clickByTitle(page, title, index = 0) {
   const ok = await page.evaluate((title, index) => {
-    const els = [...document.querySelectorAll(`button[title="${title}"]`)];
+    const els = [...document.querySelectorAll('button')].filter((b) => {
+      if (b.getAttribute('title') === title) return true;
+      const aria = b.getAttribute('aria-label');
+      return aria === title || (aria || '').startsWith(`${title} (`);
+    });
     if (!els[index]) return false;
     els[index].click();
     return true;

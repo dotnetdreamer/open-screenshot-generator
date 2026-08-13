@@ -38,7 +38,7 @@ const FFMPEG = 'C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/ffmpeg.
     await lib.sleep(800);
     await lib.shot(page, path.join(OUT, '02-3d-category-open.png'));
 
-    await lib.addTileAndCount(page, 'Add iPhone 17 Pro Max 3D — tilted right (black)', { settleMs: 2000 });
+    await lib.addTileAndCount(page, 'Add iPhone 17 Pro Max 3D, tilted right (black)', { settleMs: 2000 });
     await lib.uploadScreenshotToSelected(page, screenTest);
     await lib.shot(page, path.join(OUT, '03-element-on-canvas.png'));
 

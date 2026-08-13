@@ -46,6 +46,22 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const DESKTOP_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID ?? '';
 const DESKTOP_CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET ?? '';
 
+/**
+ * Pasting the client id into the secret is the easy mistake to make: the two
+ * sit next to each other in the Cloud Console and only the id is shown in full,
+ * so the secret gets copied from the wrong field. Google then fails the token
+ * exchange with "invalid client secret" — after the user has already picked an
+ * account and granted consent, which reads as a bug in the app rather than a
+ * typo in the build config.
+ *
+ * This tests for the wrong shape rather than requiring the right one: secrets
+ * issued today start with "GOCSPX-", but older ones do not, and demanding that
+ * prefix would reject working credentials.
+ */
+function looksLikeClientId(value: string): boolean {
+  return value.endsWith('.apps.googleusercontent.com') || value === DESKTOP_CLIENT_ID;
+}
+
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const SCOPES = `${DRIVE_SCOPE} openid email profile`;
 
@@ -71,6 +87,7 @@ const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 const DRIVE_UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 const ROOT_FOLDER_NAME = 'Open Screenshot Generator';
 const MEDIA_PREFIX = 'media__';
+const FONT_PREFIX = 'font__';
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 
 // --- Google Identity Services (web) -----------------------------------------
@@ -401,15 +418,21 @@ export const googleDriveProvider: CloudProvider = {
   label: 'Google',
   supportsMedia: true,
   get configHint() {
-    return isTauri()
-      ? 'Google sign-in on desktop needs NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET and NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID (a Desktop-app OAuth client) set at build time. See docs/ACCOUNT-SYNC.md.'
-      : 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';
+    if (!isTauri()) {
+      return 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';
+    }
+    if (DESKTOP_CLIENT_SECRET && looksLikeClientId(DESKTOP_CLIENT_SECRET)) {
+      return 'NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET holds a client id, not a client secret. Open the Desktop-app client in Google Cloud Console and copy its "Client secret" field, which does not end in .apps.googleusercontent.com, then rebuild. See docs/ACCOUNT-SYNC.md.';
+    }
+    return 'Google sign-in on desktop needs NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET and NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID (a Desktop-app OAuth client) set at build time. See docs/ACCOUNT-SYNC.md.';
   },
 
-  // Desktop checks the secret too, so a build missing it says so up front
-  // instead of sending the user through consent and failing the exchange.
+  // Desktop checks the secret too, so a build with one missing or miscopied
+  // says so up front instead of sending the user through consent and failing
+  // the exchange.
   isConfigured() {
-    return isTauri() ? !!(DESKTOP_CLIENT_ID && DESKTOP_CLIENT_SECRET) : !!CLIENT_ID;
+    if (!isTauri()) return !!CLIENT_ID;
+    return !!(DESKTOP_CLIENT_ID && DESKTOP_CLIENT_SECRET && !looksLikeClientId(DESKTOP_CLIENT_SECRET));
   },
 
   async signIn(): Promise<AccountSession> {
@@ -521,7 +544,7 @@ export const googleDriveProvider: CloudProvider = {
     const children = await listChildren(session, folderId);
     const byName = new Map(children.map((child) => [child.name, child.id]));
 
-    const total = bundle.media.length + 1;
+    const total = bundle.media.length + bundle.fonts.length + 1;
     onProgress?.('Uploading project', 1 / total);
     await uploadFile(session, {
       name: 'project.json',
@@ -544,11 +567,30 @@ export const googleDriveProvider: CloudProvider = {
       });
     }
 
+    for (const [index, font] of bundle.fonts.entries()) {
+      const fileName = `${FONT_PREFIX}${font.meta.id}`;
+      if (byName.has(fileName)) continue;
+      onProgress?.(
+        `Uploading font ${index + 1} of ${bundle.fonts.length}`,
+        (bundle.media.length + index + 2) / total
+      );
+      await uploadFile(session, {
+        name: fileName,
+        parentId: folderId,
+        blob: font.blob,
+        mimeType: font.meta.mimeType || 'application/octet-stream',
+      });
+    }
+
     // Drop blobs the project no longer references so Drive does not accumulate
-    // dead recordings across saves.
-    const keep = new Set(bundle.media.map((item) => `${MEDIA_PREFIX}${item.meta.id}`));
+    // dead recordings and fonts across saves.
+    const keep = new Set([
+      ...bundle.media.map((item) => `${MEDIA_PREFIX}${item.meta.id}`),
+      ...bundle.fonts.map((font) => `${FONT_PREFIX}${font.meta.id}`),
+    ]);
     for (const child of children) {
-      if (child.name.startsWith(MEDIA_PREFIX) && !keep.has(child.name)) {
+      const owned = child.name.startsWith(MEDIA_PREFIX) || child.name.startsWith(FONT_PREFIX);
+      if (owned && !keep.has(child.name)) {
         await driveJson(session, `${DRIVE_API}/files/${child.id}`, { method: 'DELETE' }).catch(() => {});
       }
     }
@@ -584,8 +626,18 @@ export const googleDriveProvider: CloudProvider = {
       media.push({ meta, blob: await downloadBlob(session, file.id) });
     }
 
+    // Absent on anything saved before fonts travelled with a project, and on
+    // any project that only uses built-in families.
+    const fonts: ProjectBundle['fonts'] = [];
+    for (const meta of manifest.fonts ?? []) {
+      const file = children.find((child) => child.name === `${FONT_PREFIX}${meta.id}`);
+      if (!file) continue;
+      onProgress?.(`Downloading font ${meta.family}`);
+      fonts.push({ meta, blob: await downloadBlob(session, file.id) });
+    }
+
     onProgress?.('Loaded', 1);
-    return { manifest, media };
+    return { manifest, media, fonts };
   },
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {

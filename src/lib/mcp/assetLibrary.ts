@@ -26,6 +26,20 @@ import {
   type Side3D,
 } from '@/lib/device3dPresets';
 import type { Device3DPose, ElementType } from '@/types/artboard';
+// One id scheme shared with the palette, so a libraryId the Properties panel
+// shows is exactly one add_element accepts (see lib/libraryIds.ts).
+import {
+  ELEMENT_PREFIX,
+  IMAGE_PREFIX,
+  DEVICE_PREFIX,
+  DEVICE_3D_PREFIX,
+  DEVICE_COLOR_PREFIX,
+  elementLibraryId,
+  imageLibraryId,
+  deviceLibraryId,
+  device3dLibraryId,
+  coloredDeviceLibraryId,
+} from '@/lib/libraryIds';
 
 export type LibraryKind = 'elements' | 'devices' | 'images';
 export const LIBRARY_KINDS: LibraryKind[] = ['elements', 'devices', 'images'];
@@ -61,14 +75,6 @@ export interface ResolvedLibraryItem {
   defaultSize?: { width: number; height: number };
 }
 
-// Id prefixes. Namespaced so ids stay unique across the three libraries and a
-// model can tell at a glance what it is holding.
-const ELEMENT_PREFIX = 'element:';
-const IMAGE_PREFIX = 'image:';
-const DEVICE_PREFIX = 'device:';
-const DEVICE_3D_PREFIX = 'device3d:';
-const DEVICE_COLOR_PREFIX = 'devicecolor:';
-
 const COLORED_TILE_GROUPS = [
   { id: 'colored-iphone', label: 'Colored iPhone', tiles: COLORED_IPHONE_TILES },
   { id: 'colored-android', label: 'Colored Android', tiles: COLORED_ANDROID_TILES },
@@ -89,7 +95,7 @@ function elementItems(): LibraryItem[] {
   return ELEMENT_CATEGORIES.flatMap((cat) =>
     cat.items.map((item) => ({
       kind: 'elements' as const,
-      libraryId: `${ELEMENT_PREFIX}${item.id}`,
+      libraryId: elementLibraryId(item.id),
       group: cat.id,
       label: item.label,
       type: 'shape' as ElementType,
@@ -103,7 +109,7 @@ function imageItems(): LibraryItem[] {
   return IMAGE_CATEGORIES.flatMap((cat) =>
     cat.items.map((item) => ({
       kind: 'images' as const,
-      libraryId: `${IMAGE_PREFIX}${item.id}`,
+      libraryId: imageLibraryId(item.id),
       group: cat.id,
       label: item.label,
       type: 'image' as ElementType,
@@ -117,7 +123,7 @@ function deviceMockupItems(): LibraryItem[] {
   return DEVICE_PICKER_GROUPS.flatMap((group) =>
     group.devices.map((device) => ({
       kind: 'devices' as const,
-      libraryId: `${DEVICE_PREFIX}${device.id}`,
+      libraryId: deviceLibraryId(device.id),
       group: 'mockups',
       label: device.label,
       type: 'device' as ElementType,
@@ -135,9 +141,9 @@ function device3dItems(groupId?: string): LibraryItem[] {
         for (const side of SIDES_3D) {
           items.push({
             kind: 'devices',
-            libraryId: `${DEVICE_3D_PREFIX}${group.thumbPrefix}-${pose}-${side}-${color}`,
+            libraryId: device3dLibraryId(group.thumbPrefix, pose, side, color),
             group: group.id,
-            label: `${group.label} — ${pose} ${side} (${color})`,
+            label: `${group.label}, ${pose} ${side} (${color})`,
             type: 'device',
             subType: group.device,
             defaultSize: group.sizes[pose],
@@ -153,7 +159,7 @@ function coloredDeviceItems(): LibraryItem[] {
   return COLORED_TILE_GROUPS.flatMap((group) =>
     group.tiles.map((tile) => ({
       kind: 'devices' as const,
-      libraryId: `${DEVICE_COLOR_PREFIX}${tile.id}`,
+      libraryId: coloredDeviceLibraryId(tile.id),
       group: group.id,
       label: `${tile.label} (${DEVICE_REGISTRY[tile.device]?.label ?? tile.device})`,
       type: 'device' as ElementType,
@@ -291,7 +297,7 @@ export function resolveLibraryItem(libraryId: string): ResolvedLibraryItem | nul
         type: 'device',
         subType: group.device,
         props,
-        label: `${group.label} — ${pose} ${side} (${color})`,
+        label: `${group.label}, ${pose} ${side} (${color})`,
         defaultSize: defaultSize as { width: number; height: number } | undefined,
       };
     }

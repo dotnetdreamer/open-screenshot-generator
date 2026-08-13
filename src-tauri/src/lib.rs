@@ -35,6 +35,7 @@ pub fn run() {
             mcp_server::abs_mcp_status,
             mcp_server::abs_mcp_respond,
             mcp_server::abs_mcp_write_png,
+            mcp_server::abs_write_export_png,
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,

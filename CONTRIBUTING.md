@@ -23,7 +23,7 @@ The dev server runs at http://localhost:9002. The desktop (Tauri) shell has its 
 
 ## Where things live
 
-The README's "How the code is organized" section is the map. The short version: the editor lives in [src/components/open-screenshot-generator/](src/components/open-screenshot-generator/), and the whole data model is in [src/types/artboard.ts](src/types/artboard.ts). Read that file first.
+The editor lives in [src/components/open-screenshot-generator/](src/components/open-screenshot-generator/), and the whole data model is in [src/types/artboard.ts](src/types/artboard.ts). Read that file first: the rest of the codebase is mostly functions that manipulate those types.
 
 ## Adding a template
 

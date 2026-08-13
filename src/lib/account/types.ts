@@ -50,18 +50,28 @@ export interface CloudProjectSummary {
 }
 
 /**
- * The serialized form of a project: the JSON document plus the binary media it
- * references. Media (screen recordings) lives in its own Dexie table and is
- * referenced by id, so it has to travel alongside the JSON or the restored
- * project comes back with dead video elements.
+ * The serialized form of a project: the JSON document plus every binary it
+ * references. Both kinds live in their own Dexie tables and are referenced
+ * indirectly, so both have to travel alongside the JSON:
+ *   - media (screen recordings), referenced by row id
+ *   - imported fonts, referenced by family name on text elements
+ * Without them the restored project comes back with dead video elements and
+ * headlines in the browser's default serif.
  */
 export interface ProjectBundle {
   manifest: ProjectManifest;
   media: BundledMedia[];
+  fonts: BundledFont[];
 }
 
 export interface ProjectManifest {
-  /** Bumped when the on-disk shape changes, so old files stay readable. */
+  /**
+   * Bumped when the on-disk shape changes, so old files stay readable.
+   * Fonts did NOT bump it: `fonts` is additive and optional, so a file with
+   * them still loads in a build that predates them (it ignores the key and
+   * restores the project without the font, exactly as before), and a file
+   * without them still loads here.
+   */
   formatVersion: 1;
   id: string;
   name: string;
@@ -69,6 +79,8 @@ export interface ProjectManifest {
   projectData: Project['projectData'];
   /** Metadata for each blob in `media`, so a restore can rebuild the row. */
   media: BundledMediaMeta[];
+  /** Metadata for each font in `fonts`. Absent in files written before them. */
+  fonts?: BundledFontMeta[];
   savedBy?: string; // app version, for debugging old files
 }
 
@@ -85,6 +97,22 @@ export interface BundledMediaMeta {
 
 export interface BundledMedia {
   meta: BundledMediaMeta;
+  blob: Blob;
+}
+
+export interface BundledFontMeta {
+  id: string;
+  /** The CSS family, which is what text elements actually reference. */
+  family: string;
+  fileName: string;
+  format: string;
+  mimeType: string;
+  createdAt: string; // ISO
+  size: number;
+}
+
+export interface BundledFont {
+  meta: BundledFontMeta;
   blob: Blob;
 }
 

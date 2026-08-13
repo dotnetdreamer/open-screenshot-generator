@@ -76,7 +76,9 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
   return (
     <div
       className="w-full h-full flex items-center justify-center bg-transparent group"
-      style={{ cursor: 'default', position: 'relative' }}
+      // Inherit DraggableElement's cursor so a selected device shows the grab
+      // hand it is actually offering, instead of a plain arrow.
+      style={{ cursor: 'inherit', position: 'relative' }}
     >
       <div
         className="device-container"
@@ -122,7 +124,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
               <div className="w-full h-full flex flex-col items-center justify-center bg-muted/20 text-muted-foreground text-center p-2">
                 <ClapperboardIcon className="w-1/4 h-1/4 opacity-50 mb-2" />
                 <p style={{ fontSize: `${Math.max(14, effectiveWidth * 0.055)}px` }}>
-                  {`${chrome.label} — no recording yet`}
+                  {`${chrome.label}, no recording yet`}
                 </p>
               </div>
             )}

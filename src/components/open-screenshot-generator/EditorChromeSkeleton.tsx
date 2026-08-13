@@ -11,6 +11,16 @@ import { Skeleton } from "@/components/ui/skeleton";
  *
  * Widths mirror the real chrome (sidebar 18rem, right dock w-80/20rem) so the
  * swap to the live UI doesn't shift layout.
+ *
+ * No strip is reserved under the toolbar for LocaleViewNotice, for the same
+ * reason none is reserved for LocalFontNotice above it: this shell renders
+ * before the project has been read out of Dexie, so it cannot know whether
+ * either one applies, and a strip reserved unconditionally would shift the
+ * canvas down on every load that does not need it, which is most of them. The
+ * locale strip has the stronger guarantee of the two: activeLocale is plain
+ * component state that starts at null (the base language) on every load, so
+ * the notice provably cannot be showing at the moment of the swap. If it ever
+ * becomes persisted and restored before first paint, reserve its height here.
  */
 export function EditorChromeSkeleton() {
   return (

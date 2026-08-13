@@ -6,7 +6,12 @@ import {
   formatPlanIssues,
   type AgentPlan,
 } from './agentPlanSchema';
-import { buildCatalogArtifacts, resolveAliases, type AliasMap } from './aliasCatalog';
+import {
+  EMPTY_ALIAS_MAP,
+  buildCatalogArtifacts,
+  resolveAliases,
+  type AliasMap,
+} from './aliasCatalog';
 import type { UploadedScreenshot } from './imageUtils';
 import { buildSystemPrompt, buildUserPrompt } from './promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from './templateCatalog';
@@ -79,7 +84,10 @@ export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
     throw toAgentError(error);
   }
 
-  const parsed = AgentPlanSchema.safeParse(aliasMap ? resolveAliases(raw, aliasMap) : raw);
+  // Always resolved, even on the no-alias fallback above: resolveAliases also
+  // fills in the nullable fields a provider left out, and losing a whole plan
+  // over a key the model had nothing to say about is not worth the strictness.
+  const parsed = AgentPlanSchema.safeParse(resolveAliases(raw, aliasMap ?? EMPTY_ALIAS_MAP));
   if (!parsed.success) {
     throw new AgentError(
       'invalid-output',

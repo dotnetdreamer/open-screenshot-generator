@@ -1,10 +1,12 @@
 "use client";
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   TypeIcon,
   SquareIcon,
@@ -26,6 +28,8 @@ import {
   MoveHorizontalIcon,
   MoveVerticalIcon,
   LaptopIcon,
+  SearchIcon,
+  XIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
@@ -50,37 +54,68 @@ import {
   type ColoredDeviceTileDef,
 } from '@/lib/device3dPresets';
 import { withBasePath } from '@/lib/basePath';
+import {
+  basicLibraryId,
+  coloredDeviceLibraryId,
+  device3dLibraryId,
+  deviceLibraryId,
+  elementLibraryId,
+  imageLibraryId,
+  previewLibraryId,
+} from '@/lib/libraryIds';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
   type: ElementType,
   subType?: ShapeType | DeviceType,
-  styleProps?: Record<string, any>
+  styleProps?: Record<string, any>,
+  libraryId?: string
 ) => void;
+
+/**
+ * Hover card for a palette tile: what it is, plus the library id the element
+ * will carry once it is on the canvas (the Properties panel prints the same id).
+ * Tiles are far too small to show a full id inline, so it lives here.
+ */
+const TileTooltip: React.FC<{ label: string; libraryId: string; children: React.ReactNode }> = ({
+  label,
+  libraryId,
+  children,
+}) => (
+  <Tooltip>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipContent side="right" className="max-w-[16rem] px-2.5 py-1.5">
+      <div className="text-xs font-medium">{label}</div>
+      <div className="mt-0.5 font-mono text-[10px] text-muted-foreground break-all">{libraryId}</div>
+    </TooltipContent>
+  </Tooltip>
+);
 
 /** Tile showing a pre-rendered 3D pose thumbnail, draggable like other palette items. */
 const Device3DThumbTile: React.FC<{
   src: string;
   label: string;
   title: string;
+  libraryId: string;
   deviceType: DeviceType;
   styleProps: Record<string, any>;
   onDragStart: PaletteDragStart;
-}> = ({ src, label, title, deviceType, styleProps, onDragStart }) => (
-  <button
-    type="button"
-    className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
-    draggable
-    onDragStart={(e) => onDragStart(e, 'device', deviceType, styleProps)}
-    onClick={() => (onDragStart as any)(null, 'device', deviceType, styleProps)}
-    title={title}
-    aria-label={title}
-  >
-    <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-1.5 overflow-hidden">
-      <img src={withBasePath(src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
-    </span>
-    <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
-  </button>
+}> = ({ src, label, title, libraryId, deviceType, styleProps, onDragStart }) => (
+  <TileTooltip label={title} libraryId={libraryId}>
+    <button
+      type="button"
+      className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
+      draggable
+      onDragStart={(e) => onDragStart(e, 'device', deviceType, styleProps, libraryId)}
+      onClick={() => (onDragStart as any)(null, 'device', deviceType, styleProps, libraryId)}
+      aria-label={`${title} (${libraryId})`}
+    >
+      <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-1.5 overflow-hidden">
+        <img src={withBasePath(src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
+      </span>
+      <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
+    </button>
+  </TileTooltip>
 );
 
 /** Small SVG preview of a colored flat device frame. */
@@ -146,22 +181,24 @@ const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[];
 /** Tile for a colored flat device preset. */
 const ColoredDeviceTile: React.FC<{ def: ColoredDeviceTileDef; onDragStart: PaletteDragStart }> = ({ def, onDragStart }) => {
   const styleProps = coloredDeviceStyleProps(def);
+  const libraryId = coloredDeviceLibraryId(def.id);
   const title = `Add ${def.label}`;
   return (
-    <button
-      type="button"
-      className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
-      draggable
-      onDragStart={(e) => onDragStart(e, 'device', def.device, styleProps)}
-      onClick={() => (onDragStart as any)(null, 'device', def.device, styleProps)}
-      title={title}
-      aria-label={title}
-    >
-      <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
-        <ColoredDeviceGlyph def={def} />
-      </span>
-      <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{def.label}</span>
-    </button>
+    <TileTooltip label={title} libraryId={libraryId}>
+      <button
+        type="button"
+        className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
+        draggable
+        onDragStart={(e) => onDragStart(e, 'device', def.device, styleProps, libraryId)}
+        onClick={() => (onDragStart as any)(null, 'device', def.device, styleProps, libraryId)}
+        aria-label={`${title} (${libraryId})`}
+      >
+        <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
+          <ColoredDeviceGlyph def={def} />
+        </span>
+        <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{def.label}</span>
+      </button>
+    </TileTooltip>
   );
 };
 
@@ -176,21 +213,23 @@ const ImageLibraryTile: React.FC<{
     name: item.label,
     defaultSize: item.defaultSize,
   };
+  const libraryId = imageLibraryId(item.id);
   return (
-    <button
-      type="button"
-      className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
-      draggable
-      onDragStart={(e) => onDragStart(e, 'image', undefined, styleProps)}
-      onClick={() => (onDragStart as any)(null, 'image', undefined, styleProps)}
-      title={`Add ${item.label}`}
-      aria-label={`Add ${item.label}`}
-    >
-      <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
-        <img src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
-      </span>
-      <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{item.label}</span>
-    </button>
+    <TileTooltip label={`Add ${item.label}`} libraryId={libraryId}>
+      <button
+        type="button"
+        className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
+        draggable
+        onDragStart={(e) => onDragStart(e, 'image', undefined, styleProps, libraryId)}
+        onClick={() => (onDragStart as any)(null, 'image', undefined, styleProps, libraryId)}
+        aria-label={`Add ${item.label} (${libraryId})`}
+      >
+        <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
+          <img src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
+        </span>
+        <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{item.label}</span>
+      </button>
+    </TileTooltip>
   );
 };
 
@@ -198,30 +237,110 @@ interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
 }
 
+/**
+ * An icon tile in the Elements tab's hand-written groups (Basic, App Preview).
+ * Kept as data, not JSX, so the search box can match these the same way it
+ * matches the generated vector library.
+ */
+interface IconTileDef {
+  /** Library id suffix; the full id is `basic:<id>` or `preview:<id>`. */
+  id: string;
+  label: string;
+  type: ElementType;
+  subType?: ShapeType | DeviceType;
+  icon: React.ReactNode;
+  styleProps?: Record<string, any>;
+  /** Extra words search should match, e.g. 'square' finding the rectangle. */
+  keywords?: string;
+}
+
+const BASIC_TILES: IconTileDef[] = [
+  { id: 'text', label: 'Text', type: 'text', icon: <TypeIcon className="w-6 h-6 text-primary" />, keywords: 'label heading title caption type' },
+  { id: 'image', label: 'Image', type: 'image', icon: <ImageIcon className="w-6 h-6 text-primary" />, keywords: 'photo picture upload' },
+  { id: 'rectangle', label: 'Rectangle', type: 'shape', subType: 'rectangle', icon: <SquareIcon className="w-6 h-6 text-primary" />, keywords: 'square box rect block' },
+  { id: 'circle', label: 'Circle', type: 'shape', subType: 'circle', icon: <CircleIcon className="w-6 h-6 text-primary" />, keywords: 'round ellipse dot ring' },
+  { id: 'triangle', label: 'Triangle', type: 'shape', subType: 'triangle', icon: <TriangleIcon className="w-6 h-6 text-primary" />, keywords: 'arrow point' },
+  { id: 'star', label: 'Star', type: 'shape', subType: 'star', icon: <StarIcon className="w-6 h-6 text-primary" />, styleProps: { customPoints: 5 }, keywords: 'rating favourite favorite' },
+  { id: 'hexagon', label: 'Hexagon', type: 'shape', subType: 'hexagon', icon: <HexagonIcon className="w-6 h-6 text-primary" />, keywords: 'polygon six' },
+  { id: 'diamond', label: 'Diamond', type: 'shape', subType: 'diamond', icon: <DiamondIcon className="w-6 h-6 text-primary" />, keywords: 'rhombus kite' },
+  {
+    id: 'message', label: 'Message', type: 'shape', subType: 'message',
+    icon: <MessageSquareIcon className="w-6 h-6 text-primary" />,
+    styleProps: { clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)' },
+    keywords: 'chat bubble comment callout',
+  },
+  {
+    id: 'speech-bubble', label: 'Speech', type: 'shape', subType: 'speech-bubble',
+    icon: <MessageCircleIcon className="w-6 h-6 text-primary" />,
+    styleProps: { clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)' },
+    keywords: 'chat bubble comment callout talk',
+  },
+  { id: 'pentagon', label: 'Pentagon', type: 'shape', subType: 'pentagon', icon: <div className="w-6 h-6 flex items-center justify-center text-primary">5⬠</div>, keywords: 'polygon five' },
+];
+
+const PREVIEW_TILES: IconTileDef[] = [
+  { id: 'iphone-recording', label: 'iPhone + Recording', type: 'video-device', subType: 'iphone-15-pro', icon: <SmartphoneIcon className="w-6 h-6 text-primary" />, styleProps: { name: 'iPhone Recording' }, keywords: 'video mockup screen capture apple' },
+  { id: 'android-recording', label: 'Android + Recording', type: 'video-device', subType: 'android-punch-hole', icon: <SmartphoneIcon className="w-6 h-6 text-primary" />, styleProps: { name: 'Android Recording', defaultSize: { width: 520, height: 1073 } }, keywords: 'video mockup screen capture google' },
+  { id: 'recording', label: 'Recording (no frame)', type: 'video', icon: <ClapperboardIcon className="w-6 h-6 text-primary" />, keywords: 'video clip movie mp4 frameless' },
+  { id: 'tap', label: 'Tap', type: 'gesture', icon: <PointerIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'tap', name: 'Tap hint' }, keywords: 'gesture touch press click hint' },
+  { id: 'double-tap', label: 'Double Tap', type: 'gesture', icon: <PointerIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'double-tap', name: 'Double tap hint' }, keywords: 'gesture touch press click hint' },
+  { id: 'swipe-left', label: 'Swipe Left', type: 'gesture', icon: <MoveHorizontalIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'swipe-left', name: 'Swipe left hint', defaultSize: { width: 320, height: 160 } }, keywords: 'gesture drag scroll hint' },
+  { id: 'swipe-right', label: 'Swipe Right', type: 'gesture', icon: <MoveHorizontalIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'swipe-right', name: 'Swipe right hint', defaultSize: { width: 320, height: 160 } }, keywords: 'gesture drag scroll hint' },
+  { id: 'swipe-up', label: 'Swipe Up', type: 'gesture', icon: <MoveVerticalIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'swipe-up', name: 'Swipe up hint', defaultSize: { width: 160, height: 320 } }, keywords: 'gesture drag scroll hint' },
+  { id: 'swipe-down', label: 'Swipe Down', type: 'gesture', icon: <MoveVerticalIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'swipe-down', name: 'Swipe down hint', defaultSize: { width: 160, height: 320 } }, keywords: 'gesture drag scroll hint' },
+];
+
+// The two hand-written groups, flattened once with their full library ids and a
+// pre-lowercased haystack, so typing in the search box is a plain substring scan.
+const ICON_TILE_INDEX = [
+  ...BASIC_TILES.map((tile) => ({ tile, libraryId: basicLibraryId(tile.id), group: 'Basic' })),
+  ...PREVIEW_TILES.map((tile) => ({ tile, libraryId: previewLibraryId(tile.id), group: 'App Preview' })),
+].map((entry) => ({
+  ...entry,
+  haystack: `${entry.tile.label} ${entry.libraryId} ${entry.group} ${entry.tile.keywords ?? ''}`.toLowerCase(),
+}));
+
+// Same for the generated vector library. Built once at module load (461 items),
+// so keystrokes only filter, never rebuild.
+const LIBRARY_ITEM_INDEX = ELEMENT_CATEGORIES.flatMap((category) =>
+  category.items.map((item) => {
+    const libraryId = elementLibraryId(item.id);
+    return {
+      item,
+      libraryId,
+      group: category.label,
+      haystack: `${item.label} ${libraryId} ${category.label}`.toLowerCase(),
+    };
+  })
+);
+
 const DraggableItem: React.FC<{
-  onDragStart: (e: React.DragEvent<HTMLElement>, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void,
+  onDragStart: PaletteDragStart,
   type: ElementType,
   subType?: ShapeType | DeviceType,
   label: string,
+  libraryId: string,
   icon: React.ReactNode,
   className?: string,
   styleProps?: Record<string, any>
 }> =
-  ({ onDragStart, type, subType, label, icon, className, styleProps }) => {
+  ({ onDragStart, type, subType, label, libraryId, icon, className, styleProps }) => {
   return (
-    <Button
-      variant="ghost"
-      className={`w-full justify-start p-2 h-auto text-left ${className}`}
-      draggable
-      onDragStart={(e) => onDragStart(e, type, subType, styleProps)}
-      onClick={() => (onDragStart as any)(null, type, subType, styleProps)} // Fallback for click
-      title={`Add ${label}`}
-    >
-      <div className="flex flex-col items-center text-center w-full">
-        <div className="p-2 rounded-md bg-accent/10 mb-1">{icon}</div>
-        <span className="text-xs">{label}</span>
-      </div>
-    </Button>
+    <TileTooltip label={`Add ${label}`} libraryId={libraryId}>
+      <Button
+        variant="ghost"
+        className={`w-full justify-start p-2 h-auto text-left ${className}`}
+        draggable
+        onDragStart={(e) => onDragStart(e, type, subType, styleProps, libraryId)}
+        onClick={() => (onDragStart as any)(null, type, subType, styleProps, libraryId)} // Fallback for click
+        aria-label={`Add ${label} (${libraryId})`}
+      >
+        <div className="flex flex-col items-center text-center w-full">
+          <div className="p-2 rounded-md bg-accent/10 mb-1">{icon}</div>
+          <span className="text-xs">{label}</span>
+        </div>
+      </Button>
+    </TileTooltip>
   );
 }
 
@@ -250,20 +369,22 @@ const ElementPreview: React.FC<{ item: LibraryElementDef; className?: string }> 
 /** Single draggable/clickable tile inside an open library category. */
 const LibraryItemTile: React.FC<{
   item: LibraryElementDef;
-  onDragStart: (e: React.DragEvent<HTMLElement>, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
+  onDragStart: PaletteDragStart;
 }> = ({ item, onDragStart }) => {
+  const libraryId = elementLibraryId(item.id);
   return (
-    <button
-      type="button"
-      className="aspect-square w-full rounded-lg bg-accent/10 hover:bg-accent/25 transition-colors flex items-center justify-center p-2.5 text-foreground/90 cursor-grab active:cursor-grabbing"
-      draggable
-      onDragStart={(e) => onDragStart(e, 'shape', 'custom-svg', item.styleProps)}
-      onClick={() => (onDragStart as any)(null, 'shape', 'custom-svg', item.styleProps)}
-      title={`Add ${item.label}`}
-      aria-label={`Add ${item.label}`}
-    >
-      <ElementPreview item={item} className="w-full h-full" />
-    </button>
+    <TileTooltip label={`Add ${item.label}`} libraryId={libraryId}>
+      <button
+        type="button"
+        className="aspect-square w-full rounded-lg bg-accent/10 hover:bg-accent/25 transition-colors flex items-center justify-center p-2.5 text-foreground/90 cursor-grab active:cursor-grabbing"
+        draggable
+        onDragStart={(e) => onDragStart(e, 'shape', 'custom-svg', item.styleProps, libraryId)}
+        onClick={() => (onDragStart as any)(null, 'shape', 'custom-svg', item.styleProps, libraryId)}
+        aria-label={`Add ${item.label} (${libraryId})`}
+      >
+        <ElementPreview item={item} className="w-full h-full" />
+      </button>
+    </TileTooltip>
   );
 };
 
@@ -286,9 +407,30 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
   );
 };
 
-export function ElementPalette({ onAddElement }: ElementPaletteProps) {
+/**
+ * Memoized: the palette holds hundreds of tiles (up to 481 in a search) and
+ * nothing in it depends on canvas state, so it must not rebuild every time the
+ * layout re-renders. Pass a stable `onAddElement` or the memo does nothing.
+ */
+export const ElementPalette = memo(function ElementPalette({ onAddElement }: ElementPaletteProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
+
+  // Elements search. Matches an item's name, its library id and its group, so
+  // "arrow", "element:arrow-curve" and "arrows" all land on the same tiles.
+  // Results replace the category view while the box has text; the open category
+  // is kept, so clearing the box returns to where the user was.
+  const [elementQuery, setElementQuery] = useState('');
+  const deferredElementQuery = useDeferredValue(elementQuery);
+  const searchTerm = deferredElementQuery.trim().toLowerCase();
+  const elementResults = useMemo(() => {
+    if (!searchTerm) return null;
+    return {
+      icons: ICON_TILE_INDEX.filter(entry => entry.haystack.includes(searchTerm)),
+      library: LIBRARY_ITEM_INDEX.filter(entry => entry.haystack.includes(searchTerm)),
+    };
+  }, [searchTerm]);
+  const resultCount = elementResults ? elementResults.icons.length + elementResults.library.length : 0;
   const [openDeviceCategoryId, setOpenDeviceCategoryId] = useState<DeviceCategoryId | null>(null);
   const [openImageCategoryId, setOpenImageCategoryId] = useState<string | null>(null);
   const openImageCategory = IMAGE_CATEGORIES.find(c => c.id === openImageCategoryId) || null;
@@ -311,21 +453,26 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
     try { window.sessionStorage.setItem('palette-active-tab', value); } catch {}
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLElement> | null, type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
+  // The tile's library id rides along in styleProps (both for a drag and a
+  // click), so addElement can stamp it on the new element and the Properties
+  // panel can show where the layer came from.
+  const handleDragStart: PaletteDragStart = (e, type, subType, styleProps, libraryId) => {
+    const props = libraryId ? { ...styleProps, libraryId } : styleProps;
     if (e) { // Drag event
       e.dataTransfer.setData('application/artboard-element-type', type);
       if (subType) {
         e.dataTransfer.setData('application/artboard-element-subtype', subType);
       }
-      if (styleProps) {
-        e.dataTransfer.setData('application/artboard-element-styleprops', JSON.stringify(styleProps));
+      if (props) {
+        e.dataTransfer.setData('application/artboard-element-styleprops', JSON.stringify(props));
       }
     } else { // Click event (simulated drag)
-      onAddElement(type, subType, styleProps);
+      onAddElement(type, subType, props);
     }
   };
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="h-full flex flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
         <TabsList className="grid w-[95%] grid-cols-3 mx-auto mt-2 h-auto p-0.5">
@@ -343,9 +490,64 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="elements" className="flex-grow p-3 pt-2 mt-0 min-h-0">
-          <ScrollArea className="h-full">
-            {openCategoryId === 'app-preview' ? (
+        {/* Rule: no bare `flex` on TabsContent (it defeats [hidden]), and no
+            Radix ScrollArea under flex-1 — the search box needs a sibling
+            scroll region, so this tab uses a native overflow-y-auto div. */}
+        <TabsContent value="elements" className="flex-grow p-3 pt-2 mt-0 min-h-0 flex-col gap-2 data-[state=active]:flex">
+          <div className="relative shrink-0">
+            <SearchIcon className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={elementQuery}
+              onChange={(event) => setElementQuery(event.target.value)}
+              placeholder="Search by name or id"
+              aria-label="Search elements by name or id"
+              className="h-8 pl-8 pr-7 text-xs"
+            />
+            {elementQuery && (
+              <button
+                type="button"
+                onClick={() => setElementQuery('')}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {elementResults ? (
+              <div>
+                <p className="mb-2 px-1 text-[11px] text-muted-foreground">
+                  {resultCount === 0
+                    ? `Nothing matches "${searchTerm}". Try a name like "arrow", or an id like "element:star".`
+                    : `${resultCount} ${resultCount === 1 ? 'match' : 'matches'} for "${searchTerm}"`}
+                </p>
+                {elementResults.icons.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 pr-1">
+                    {elementResults.icons.map(({ tile, libraryId }) => (
+                      <DraggableItem
+                        key={libraryId}
+                        onDragStart={handleDragStart}
+                        type={tile.type}
+                        subType={tile.subType}
+                        label={tile.label}
+                        libraryId={libraryId}
+                        icon={tile.icon}
+                        styleProps={tile.styleProps}
+                      />
+                    ))}
+                  </div>
+                )}
+                {elementResults.library.length > 0 && (
+                  <div className={`grid grid-cols-3 gap-2 pr-1 ${elementResults.icons.length > 0 ? 'mt-2' : ''}`}>
+                    {elementResults.library.map(({ item }) => (
+                      <LibraryItemTile key={item.id} item={item} onDragStart={handleDragStart} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : openCategoryId === 'app-preview' ? (
               <div>
                 <Button
                   variant="ghost"
@@ -361,70 +563,18 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   phone, add gesture hints, then export the MP4.
                 </p>
                 <div className="grid grid-cols-3 gap-2 pr-1">
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="video-device"
-                    subType="iphone-15-pro"
-                    label="iPhone + Recording"
-                    icon={<SmartphoneIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ name: 'iPhone Recording' }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="video-device"
-                    subType="android-punch-hole"
-                    label="Android + Recording"
-                    icon={<SmartphoneIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ name: 'Android Recording', defaultSize: { width: 520, height: 1073 } }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="video"
-                    label="Recording (no frame)"
-                    icon={<ClapperboardIcon className="w-6 h-6 text-primary" />}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="gesture"
-                    label="Tap"
-                    icon={<PointerIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ gestureType: 'tap', name: 'Tap hint' }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="gesture"
-                    label="Double Tap"
-                    icon={<PointerIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ gestureType: 'double-tap', name: 'Double tap hint' }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="gesture"
-                    label="Swipe Left"
-                    icon={<MoveHorizontalIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ gestureType: 'swipe-left', name: 'Swipe left hint', defaultSize: { width: 320, height: 160 } }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="gesture"
-                    label="Swipe Right"
-                    icon={<MoveHorizontalIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ gestureType: 'swipe-right', name: 'Swipe right hint', defaultSize: { width: 320, height: 160 } }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="gesture"
-                    label="Swipe Up"
-                    icon={<MoveVerticalIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ gestureType: 'swipe-up', name: 'Swipe up hint', defaultSize: { width: 160, height: 320 } }}
-                  />
-                  <DraggableItem
-                    onDragStart={handleDragStart}
-                    type="gesture"
-                    label="Swipe Down"
-                    icon={<MoveVerticalIcon className="w-6 h-6 text-primary" />}
-                    styleProps={{ gestureType: 'swipe-down', name: 'Swipe down hint', defaultSize: { width: 160, height: 320 } }}
-                  />
+                  {PREVIEW_TILES.map(tile => (
+                    <DraggableItem
+                      key={tile.id}
+                      onDragStart={handleDragStart}
+                      type={tile.type}
+                      subType={tile.subType}
+                      label={tile.label}
+                      libraryId={previewLibraryId(tile.id)}
+                      icon={tile.icon}
+                      styleProps={tile.styleProps}
+                    />
+                  ))}
                 </div>
               </div>
             ) : openCategoryId === 'basic' ? (
@@ -439,91 +589,18 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                   Back
                 </Button>
                 <div className="grid grid-cols-3 gap-2 pr-1">
-                    {/* Text Element */}
+                  {BASIC_TILES.map(tile => (
                     <DraggableItem
+                      key={tile.id}
                       onDragStart={handleDragStart}
-                      type="text"
-                      label="Text"
-                      icon={<TypeIcon className="w-6 h-6 text-primary" />}
+                      type={tile.type}
+                      subType={tile.subType}
+                      label={tile.label}
+                      libraryId={basicLibraryId(tile.id)}
+                      icon={tile.icon}
+                      styleProps={tile.styleProps}
                     />
-
-                    {/* Image Element */}
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="image"
-                      label="Image"
-                      icon={<ImageIcon className="w-6 h-6 text-primary" />}
-                    />
-
-                    {/* Basic Shapes */}
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="rectangle"
-                      label="Rectangle"
-                      icon={<SquareIcon className="w-6 h-6 text-primary" />}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="circle"
-                      label="Circle"
-                      icon={<CircleIcon className="w-6 h-6 text-primary" />}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="triangle"
-                      label="Triangle"
-                      icon={<TriangleIcon className="w-6 h-6 text-primary" />}
-                    />
-
-                    {/* Advanced Shapes */}
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="star"
-                      label="Star"
-                      icon={<StarIcon className="w-6 h-6 text-primary" />}
-                      styleProps={{ customPoints: 5 }}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="hexagon"
-                      label="Hexagon"
-                      icon={<HexagonIcon className="w-6 h-6 text-primary" />}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="diamond"
-                      label="Diamond"
-                      icon={<DiamondIcon className="w-6 h-6 text-primary" />}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="message"
-                      label="Message"
-                      icon={<MessageSquareIcon className="w-6 h-6 text-primary" />}
-                      styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)' }}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="speech-bubble"
-                      label="Speech"
-                      icon={<MessageCircleIcon className="w-6 h-6 text-primary" />}
-                      styleProps={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 85% 75%, 70% 100%, 70% 75%, 0% 75%)' }}
-                    />
-                    <DraggableItem
-                      onDragStart={handleDragStart}
-                      type="shape"
-                      subType="pentagon"
-                      label="Pentagon"
-                      icon={<div className="w-6 h-6 flex items-center justify-center text-primary">5⬠</div>}
-                    />
+                  ))}
                 </div>
               </div>
             ) : openCategory ? (
@@ -579,7 +656,7 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                 </CardContent>
               </Card>
             )}
-          </ScrollArea>
+          </div>
         </TabsContent>
 
         <TabsContent value="devices" className="flex-grow p-3 pt-2 mt-0 min-h-0">
@@ -604,7 +681,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                             key={`ip17-${color}-${pose}-${side}`}
                             src={`/elements/device-3d/iphone-${pose}-${side}-${color}.png`}
                             label={color === 'black' ? 'Black' : 'White'}
-                            title={`Add iPhone 17 Pro Max 3D — ${pose} ${side} (${color})`}
+                            title={`Add iPhone 17 Pro Max 3D, ${pose} ${side} (${color})`}
+                            libraryId={device3dLibraryId('iphone', pose, side, color)}
                             deviceType="iphone-17-pro-max"
                             styleProps={{
                               styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -625,7 +703,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                             key={`and3d-${color}-${pose}-${side}`}
                             src={`/elements/device-3d/android-${pose}-${side}-${color}.png`}
                             label={color === 'black' ? 'Black' : 'White'}
-                            title={`Add Android 3D — ${pose} ${side} (${color})`}
+                            title={`Add Android 3D, ${pose} ${side} (${color})`}
+                            libraryId={device3dLibraryId('android', pose, side, color)}
                             deviceType="android-punch-hole"
                             styleProps={{
                               styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -646,7 +725,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                             key={`watch-${color}-${pose}-${side}`}
                             src={`/elements/device-3d/watch-${pose}-${side}-${color}.png`}
                             label={color === 'black' ? 'Black' : 'White'}
-                            title={`Add Apple Watch 3D — ${pose} ${side} (${color})`}
+                            title={`Add Apple Watch 3D, ${pose} ${side} (${color})`}
+                            libraryId={device3dLibraryId('watch', pose, side, color)}
                             deviceType="apple-watch"
                             styleProps={{
                               styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -668,7 +748,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                               key={`mb-${color}-${pose}-${side}`}
                               src={`/elements/device-3d/macbook-${pose}-${side}-${color}.png`}
                               label={color === 'black' ? 'MacBook Black' : 'MacBook Silver'}
-                              title={`Add MacBook 3D — ${pose} ${side} (${color})`}
+                              title={`Add MacBook 3D, ${pose} ${side} (${color})`}
+                              libraryId={device3dLibraryId('macbook', pose, side, color)}
                               deviceType="macbook"
                               styleProps={{
                                 styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -688,7 +769,8 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                               key={`im-${color}-${pose}-${side}`}
                               src={`/elements/device-3d/imac-${pose}-${side}-${color}.png`}
                               label={color === 'black' ? 'iMac Black' : 'iMac Silver'}
-                              title={`Add iMac 3D — ${pose} ${side} (${color})`}
+                              title={`Add iMac 3D, ${pose} ${side} (${color})`}
+                              libraryId={device3dLibraryId('imac', pose, side, color)}
                               deviceType="imac"
                               styleProps={{
                                 styleType: side === 'left' ? '3d-left' : '3d-right',
@@ -713,25 +795,25 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
                     ))}
                   {openDeviceCategoryId === 'mockups' && (
                     <>
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-17-pro-max" label="iPhone 17 Pro Max" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 600, height: 1304 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone" label="iPhone" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15-pro" label="iPhone 15 Pro" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15" label="iPhone 15" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-14" label="iPhone 14" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '26px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-13" label="iPhone 13" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '24px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-x" label="iPhone X" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '24px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="android-punch-hole" label="Android (Punch Hole)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="android-notch" label="Android (Notch)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="android-bar" label="Android (Bar)" icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="ipad-pro-13" label="iPad Pro 13-inch" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px', defaultSize: { width: 780, height: 1040 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="ipad-11" label="iPad 11-inch" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px', defaultSize: { width: 740, height: 1074 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-7" label="7-inch Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 600, height: 960 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-10" label="10-inch Tablet" icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 700, height: 1120 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="macbook" label="MacBook" icon={<LaptopIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 1000, height: 579 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="imac" label="iMac" icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 900, height: 668 } }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="desktop" label="Desktop" icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '8px' }} />
-                      <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-17-pro-max" label="iPhone 17 Pro Max" libraryId={deviceLibraryId('iphone-17-pro-max')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 600, height: 1304 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone" label="iPhone" libraryId={deviceLibraryId('iphone')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15-pro" label="iPhone 15 Pro" libraryId={deviceLibraryId('iphone-15-pro')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-15" label="iPhone 15" libraryId={deviceLibraryId('iphone-15')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '28px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-14" label="iPhone 14" libraryId={deviceLibraryId('iphone-14')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '26px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-13" label="iPhone 13" libraryId={deviceLibraryId('iphone-13')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '24px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="iphone-x" label="iPhone X" libraryId={deviceLibraryId('iphone-x')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '24px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="android-punch-hole" label="Android (Punch Hole)" libraryId={deviceLibraryId('android-punch-hole')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="android-notch" label="Android (Notch)" libraryId={deviceLibraryId('android-notch')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="android-bar" label="Android (Bar)" libraryId={deviceLibraryId('android-bar')} icon={<SmartphoneIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="ipad-pro-13" label="iPad Pro 13-inch" libraryId={deviceLibraryId('ipad-pro-13')} icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px', defaultSize: { width: 780, height: 1040 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="ipad-11" label="iPad 11-inch" libraryId={deviceLibraryId('ipad-11')} icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '16px', defaultSize: { width: 740, height: 1074 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet" label="Tablet" libraryId={deviceLibraryId('tablet')} icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-7" label="7-inch Tablet" libraryId={deviceLibraryId('tablet-7')} icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 600, height: 960 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="tablet-10" label="10-inch Tablet" libraryId={deviceLibraryId('tablet-10')} icon={<TabletIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '12px', defaultSize: { width: 700, height: 1120 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="macbook" label="MacBook" libraryId={deviceLibraryId('macbook')} icon={<LaptopIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 1000, height: 579 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="imac" label="iMac" libraryId={deviceLibraryId('imac')} icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ defaultSize: { width: 900, height: 668 } }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="desktop" label="Desktop" libraryId={deviceLibraryId('desktop')} icon={<MonitorIcon className="w-6 h-6 text-primary" />} styleProps={{ borderRadius: '8px' }} />
+                      <DraggableItem onDragStart={handleDragStart} type="device" subType="custom" label="Custom" libraryId={deviceLibraryId('custom')} icon={<ImagePlusIcon className="w-6 h-6 text-primary" />} />
                     </>
                   )}
                 </div>
@@ -845,5 +927,6 @@ export function ElementPalette({ onAddElement }: ElementPaletteProps) {
 
       </Tabs>
     </div>
+    </TooltipProvider>
   );
-}
+});

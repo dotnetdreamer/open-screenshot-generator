@@ -24,6 +24,11 @@ export interface PngExportProgress {
   // Set only while a generated App Store format is being captured, so the
   // user can tell why more files are appearing than they have artboards.
   formatLabel?: string;
+  // Set only while a multi-language run is in flight, for the same reason: a
+  // 36-file export otherwise reads as "Image 22 of 36" with no way to tell
+  // which language is on screen. A single-language export leaves it unset and
+  // reads exactly as it always did.
+  localeLabel?: string;
   // 'preparing' covers the canvas swap and settle before a format's first
   // capture, where there is no single board to name yet.
   phase: 'preparing' | 'rendering' | 'saving';
@@ -83,7 +88,9 @@ export function ExportProgressDialog({
           </DialogTitle>
           <DialogDescription>
             {progress && progress.fileCount > 1
-              ? `Image ${progress.fileIndex} of ${progress.fileCount}. Keep this window open until it finishes.`
+              ? `Image ${progress.fileIndex} of ${progress.fileCount}${
+                  progress.localeLabel ? ` in ${progress.localeLabel}` : ''
+                }. Keep this window open until it finishes.`
               : 'Keep this window open until it finishes.'}
           </DialogDescription>
         </DialogHeader>
@@ -95,6 +102,10 @@ export function ExportProgressDialog({
             {progress?.formatLabel && progress.phase !== 'preparing' && !isCancelling
               ? ` for ${progress.formatLabel}`
               : ''}
+            {/* Kept in the 'preparing' phase too, unlike the format: swapping
+                the canvas to another language is exactly what is being
+                prepared, so naming it there is the point. */}
+            {progress?.localeLabel && !isCancelling ? ` in ${progress.localeLabel}` : ''}
           </p>
         </div>
 

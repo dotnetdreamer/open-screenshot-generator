@@ -3,11 +3,16 @@ import type {
   ArtboardState,
   DeviceFrameElementProps,
   DeviceType,
+  ElementLocaleOverride,
+  LocaleEntry,
   Project,
   TextElementProps,
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
+import { hash32 } from '@/lib/i18n/hash';
+import { DEFAULT_BASE_LOCALE, LOCALES } from '@/lib/i18n/locales';
+import { setLocalization } from '@/lib/i18n/localization';
 import {
   AGENT_FONTS,
   AGENT_LIMITS,
@@ -48,6 +53,8 @@ export interface BuildResult {
     artboardCount: number;
     screenshotsPlaced: number;
     textsUpdated: number;
+    /** Languages the plan added on top of the base one, in plan order. */
+    localesAdded?: string[];
   };
 }
 
@@ -70,7 +77,7 @@ function buildFromTemplate(
 ): BuildResult {
   const warnings: string[] = [];
   const template = resolveTemplate(plan.templateId, templates);
-  const artboards: ArtboardState[] = deepCopy(template.projectData);
+  let artboards: ArtboardState[] = deepCopy(template.projectData);
 
   const claimed = new Set<string>();
   const usedScreenshots = new Set<number>();
@@ -125,15 +132,77 @@ function buildFromTemplate(
     }
   }
 
-  let textsUpdated = 0;
+  // Resolved up front so the base copy can be written before any translation of
+  // it. A translation's sourceHash tracks the copy that ends up underneath it,
+  // and a plan is free to list the German line first, which would otherwise
+  // hash the template's original wording and be born reading "the English
+  // changed since this was translated".
+  interface PlannedText {
+    board: ArtboardState;
+    element: TextElementProps;
+    text: string;
+    /** Null is the language the design is written in. */
+    locale: string | null;
+  }
+  const planned: PlannedText[] = [];
+  // Insertion-ordered, so the language chips end up in the order the plan asked
+  // for them rather than in whatever order the text slots happen to be in.
+  const localesAdded: string[] = [];
+
   for (const override of plan.textOverrides) {
-    const element = findTextElement(artboards, override.artboardIndex, override.elementId);
-    if (!element) {
+    const slot = findTextSlot(artboards, override.artboardIndex, override.elementId);
+    if (!slot) {
       warnings.push(`Text element "${override.elementId}" was not found and was skipped.`);
       continue;
     }
-    element.content = clampText(override.text);
+    const text = clampText(override.text);
+    const asked = override.locale?.trim();
+    if (!asked) {
+      planned.push({ ...slot, text, locale: null });
+      continue;
+    }
+
+    const locale = resolvePlanLocale(asked);
+    if (!locale) {
+      warnings.push(`"${asked}" is not a language this app knows, so that copy was skipped.`);
+      continue;
+    }
+    // The design is already written in the base language; a translation of it
+    // into itself would only shadow the copy sitting underneath.
+    if (locale === DEFAULT_BASE_LOCALE) {
+      planned.push({ ...slot, text, locale: null });
+      continue;
+    }
+    if (!localesAdded.includes(locale)) {
+      if (localesAdded.length >= AGENT_LIMITS.maxLocales) {
+        warnings.push(
+          `The plan asked for more than ${AGENT_LIMITS.maxLocales} languages; ${locale} and anything after it were skipped. Add the rest in the app.`
+        );
+        continue;
+      }
+      if (locale !== asked) warnings.push(`Language "${asked}" was read as ${locale}.`);
+      localesAdded.push(locale);
+    }
+    planned.push({ ...slot, text, locale });
+  }
+
+  let textsUpdated = 0;
+  for (const item of planned) {
+    if (item.locale) continue;
+    item.element.content = item.text;
     textsUpdated++;
+  }
+  for (const item of planned) {
+    if (!item.locale) continue;
+    writeLocaleText(item.board, item.element, item.locale, item.text);
+    textsUpdated++;
+  }
+
+  if (localesAdded.length > 0) {
+    artboards = setLocalization(artboards, {
+      baseLocale: DEFAULT_BASE_LOCALE,
+      locales: localesAdded.map((code): LocaleEntry => ({ code })),
+    });
   }
 
   return {
@@ -152,6 +221,7 @@ function buildFromTemplate(
       artboardCount: artboards.length,
       screenshotsPlaced,
       textsUpdated,
+      ...(localesAdded.length > 0 ? { localesAdded } : {}),
     },
   };
 }
@@ -206,23 +276,89 @@ function applyScreenshot(device: DeviceFrameElementProps, shot: UploadedScreensh
   device.naturalScreenshotHeight = shot.height;
 }
 
-/** Looks in the named artboard first, then anywhere, since models miscount indices. */
-function findTextElement(
+/**
+ * Looks in the named artboard first, then anywhere, since models miscount
+ * indices. The board comes back with the element because a translation is
+ * stored on the board that holds it, not on the element.
+ */
+function findTextSlot(
   artboards: ArtboardState[],
   artboardIndex: number,
   elementId: string
-): TextElementProps | null {
-  const inNamed = artboards[artboardIndex]?.elements.find(
+): { board: ArtboardState; element: TextElementProps } | null {
+  const named = artboards[artboardIndex];
+  const inNamed = named?.elements.find(
     (el): el is TextElementProps => el.type === 'text' && el.id === elementId
   );
-  if (inNamed) return inNamed;
+  if (inNamed) return { board: named, element: inNamed };
   for (const artboard of artboards) {
     const found = artboard.elements.find(
       (el): el is TextElementProps => el.type === 'text' && el.id === elementId
     );
-    if (found) return found;
+    if (found) return { board: artboard, element: found };
   }
   return null;
+}
+
+// --- languages ------------------------------------------------------------
+
+/**
+ * Resolves whatever the model called a language to one of ours. Models quote
+ * "de", "German" and "de-DE" interchangeably, and a plan that came back with a
+ * near-miss is worth resolving rather than dropping, so the ladder goes: the
+ * exact store code, the translate code when only one language uses it, the
+ * language part alone, then the English or native name. Null means we could not
+ * place it, which the caller reports instead of guessing.
+ */
+function resolvePlanLocale(requested: string): string | null {
+  const wanted = requested.trim().toLowerCase();
+  if (!wanted) return null;
+
+  const exact = LOCALES.find((locale) => locale.code.toLowerCase() === wanted);
+  if (exact) return exact.code;
+
+  const byTranslateCode = LOCALES.filter(
+    (locale) => (locale.translateCode ?? '').toLowerCase() === wanted
+  );
+  if (byTranslateCode.length === 1) return byTranslateCode[0].code;
+
+  const byLanguage = LOCALES.filter(
+    (locale) => locale.code.toLowerCase().split('-')[0] === wanted
+  );
+  if (byLanguage.length > 0) {
+    // "de" means de-DE and "fr" means fr-FR, so the regional twin of the
+    // language itself is the least surprising read. "en" has no en-EN, and the
+    // base locale is the right answer there.
+    const twin = byLanguage.find((locale) => locale.code.toLowerCase() === `${wanted}-${wanted}`);
+    const base = byLanguage.find((locale) => locale.code === DEFAULT_BASE_LOCALE);
+    return (twin ?? base ?? byLanguage[0]).code;
+  }
+
+  const byName = LOCALES.find(
+    (locale) =>
+      locale.name.toLowerCase() === wanted || locale.nativeName.toLowerCase() === wanted
+  );
+  return byName?.code ?? null;
+}
+
+/**
+ * Stores one language's copy for one element. Marked `auto` with the base
+ * string's hash: a machine wrote it, so "Update translations" may refresh it,
+ * and it goes amber the moment somebody rewrites the English underneath.
+ */
+function writeLocaleText(
+  board: ArtboardState,
+  element: TextElementProps,
+  locale: string,
+  text: string
+): void {
+  const override: ElementLocaleOverride = {
+    content: text,
+    origin: 'auto',
+    sourceHash: hash32(element.content),
+  };
+  if (!board.localized) board.localized = {};
+  board.localized[locale] = { ...(board.localized[locale] ?? {}), [element.id]: override };
 }
 
 // --- generate-new ---------------------------------------------------------

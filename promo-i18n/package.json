@@ -1,0 +1,24 @@
+{
+  "name": "open-screenshot-generator-promo-i18n",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion promo video for the multi-language feature",
+  "scripts": {
+    "studio": "remotion studio",
+    "capture": "node scripts/capture-i18n.js",
+    "render": "remotion render Languages out/open-screenshot-generator-languages.mp4 --crf 21",
+    "gen:music": "node scripts/gen-music.js"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.489",
+    "@remotion/google-fonts": "4.0.489",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.489"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3"
+  }
+}

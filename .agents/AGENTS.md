@@ -12,10 +12,11 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Templates (96 JSON files) | [public/data/projects/](../public/data/projects/), registered in [templateCategories.ts](../src/lib/templateCategories.ts) |
 | AI agent | [src/lib/ai/](../src/lib/ai/) |
 | MCP server | [src/lib/mcp/](../src/lib/mcp/) + [src-tauri/src/mcp_server.rs](../src-tauri/src/mcp_server.rs) |
-| Translate and fonts | [translation.ts](../src/services/translation.ts), [fontService.ts](../src/services/fontService.ts), [fontLanguageMatcher.ts](../src/lib/fontLanguageMatcher.ts) |
+| Translate and fonts | [translation.ts](../src/services/translation.ts), [fontService.ts](../src/services/fontService.ts), [customFonts.ts](../src/services/customFonts.ts), [fontLanguageMatcher.ts](../src/lib/fontLanguageMatcher.ts) |
 | Devices, palette, 3D | [deviceRegistry.ts](../src/lib/deviceRegistry.ts), [elementLibrary.ts](../src/lib/elementLibrary.ts), [device3dPresets.ts](../src/lib/device3dPresets.ts) |
 | Video export | [src/lib/video/](../src/lib/video/) |
-| Dexie, 3 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations` |
+| Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
+| Dexie, 4 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts` |
 
 ## Rules
 
@@ -23,13 +24,13 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 
 1. `handleArtboardsUpdate(next)` is the only door. It repositions boards, writes Dexie, pushes undo. A raw `setArtboards` skips persistence and history.
 2. Elements render in **two** places: [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx) and `StaticArtboard` in [PreviewDialog.tsx](../src/components/open-screenshot-generator/PreviewDialog.tsx). Miss one and the element vanishes there.
-3. Text renders at `fontSize / 0.3` px and ignores `element.scale`. Resize text via `fontSize`.
+3. Text renders at `fontSize / 0.3` px and ignores `element.scale`. Resize text via `fontSize`. The box clips, so every place a **user** edits text content, family, size, weight or line height folds `fitTextBox` ([textFit.ts](../src/lib/textFit.ts)) into the same update. Template data is never re-fitted.
 4. `ArtboardState.position` is derived and overwritten every update. Authoring it does nothing.
 
 **Verifying**
 
 5. `npm run typecheck` is the gate. `npm run build` ignores type and lint errors, so a green build proves nothing.
-6. Typecheck already fails on 4 files: 3 under `promo/`, plus `src/lib/fontLanguageMatcher.ts`. Diff against that, do not chase them.
+6. Typecheck already fails on 3 files under `promo/` (8 `csstype` duplicate-package errors). Nothing under `src/` fails. Diff against that, do not chase them.
 7. **Never run `npm run lint`.** No ESLint config exists, so it hangs on an interactive prompt.
 8. No test suite. Verify by driving the running app, headlessly via the `app-screenshots` skill.
 
@@ -76,7 +77,8 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 - **Device**: `DeviceType`, `DEVICE_REGISTRY`, `getFlatDeviceChrome`, `DEVICE_METRICS`, palette tile, MCP `DEVICE_TYPES`
 - **Web AI provider**: `WEB_ADAPTERS`, `PROVIDERS` in `web_session.rs`, extension adapter + manifest + the `build:extension` entry list, `remote.urls` in `capabilities/assistant.json`
 - **MCP tool**: `McpDesignApi`, the `TOOLS` array, `mcpApi` in the layout, both `SLOW_TOOLS` lists if it is slow
-- **Font**: `GOOGLE_FONTS`, plus `AGENT_FONTS` and a `<SelectGroup>` in both pickers if it is a new script
+- **Font**: `GOOGLE_FONTS`, plus `AGENT_FONTS` and a `<SelectGroup>` in [FontFamilySelect.tsx](../src/components/open-screenshot-generator/FontFamilySelect.tsx) if it is a new script. That one component is every picker. Fonts the **user** imports are separate: Dexie `fonts` table, see [customFonts.ts](../src/services/customFonts.ts)
+- **Store slot** (App Store display type, Play image type): `APPLE_DISPLAY_TARGETS` / `PLAY_IMAGE_TARGETS` in [storeTargets.ts](../src/lib/publish/storeTargets.ts), the only registration site. A new outbound host also needs `capabilities/default.json`
 
 ## Deeper detail
 
