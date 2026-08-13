@@ -9,10 +9,22 @@ import type { ArtboardElement, Point, Size } from '@/types/artboard';
 interface DraggableElementProps {
   element: ArtboardElement;
   isSelected: boolean;
-  onSelect: (elementId: string, e: React.MouseEvent) => void;
+  // modifiers.additive (Shift/Ctrl/Cmd click) toggles the element in/out of
+  // the current selection; a plain click selects it alone.
+  onSelect: (elementId: string, modifiers?: { additive?: boolean }) => void;
   onUpdateElement: (element: ArtboardElement) => void;
   onDeleteElement: (elementId: string) => void;
   artboardZoom: number;
+  // Canvas-level zoom, only used to keep the selection handles a constant
+  // on-screen size. Mouse conversion reads the rendered DOM instead.
+  canvasZoom?: number;
+  // Group-drag hooks, provided when this element may be part of a
+  // multi-selection. onGroupDragStart returns true when a multi-selection is
+  // active, in which case the parent translates the whole set and commits
+  // once on onGroupDragEnd.
+  onGroupDragStart?: (elementId: string) => boolean;
+  onGroupDragMove?: (dx: number, dy: number) => void;
+  onGroupDragEnd?: (dx: number, dy: number) => void;
   boundary: { width: number; height: number };
   children: React.ReactNode;
 }
@@ -91,6 +103,10 @@ export function DraggableElement({
   onUpdateElement,
   onDeleteElement,
   artboardZoom,
+  canvasZoom = 1,
+  onGroupDragStart,
+  onGroupDragMove,
+  onGroupDragEnd,
   boundary,
   children
 }: DraggableElementProps) {
@@ -103,16 +119,25 @@ export function DraggableElement({
   const [interactionStart, setInteractionStart] = useState<{
     mouseX: number;
     mouseY: number;
+    clientX: number;
+    clientY: number;
     initialPosition: Point;
     initialSize: Size; 
     initialRotation: number;
     initialScale: number; 
     elementCenter: Point;
     handleType?: HandleType;
-    screenX: number;
-    screenY: number;
+    // Move-mode extras: whether the whole selection is being translated by
+    // the parent, and what a no-movement click means for the selection when
+    // the gesture ends (modifier-click toggles off, plain click on a member
+    // of a multi-selection collapses to it alone).
+    groupDrag?: boolean;
+    clickAction?: 'toggle-off' | 'collapse' | 'none';
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
+  // Latest move delta during a group drag, so mouseup can hand the parent the
+  // final translation for its single history commit.
+  const groupDragDeltaRef = useRef<Point>({ x: 0, y: 0 });
   // Flipped once the press has travelled DRAG_THRESHOLD_PX. A ref, not state,
   // so arming does not re-run the listener effect mid-drag.
   const dragArmedRef = useRef(false);
@@ -141,8 +166,14 @@ export function DraggableElement({
     };
   }, [element.id, element.position, element.size, element.rotation, element.scale]);
 
+  // Convert a mouse event to artboard coordinates via the artboard's rendered
+  // size, which already includes the display scale, the canvas zoom and every
+  // ancestor transform. Deriving the factor from the DOM (instead of dividing
+  // by constants) keeps the cursor 1:1 with the dragged element at ANY zoom,
+  // with sub-pixel precision.
   const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
-    const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
+    const artboardDiv = (elementRef.current?.closest('[data-artboard-dom-id]') ??
+      elementRef.current?.offsetParent) as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
       // Measure the scale rather than assuming it. The artboard is not only
@@ -169,7 +200,8 @@ export function DraggableElement({
   const handleInteractionStart = (
     e: React.MouseEvent,
     mode: 'move' | 'rotate' | 'scale' | 'resize',
-    handleType?: HandleType
+    handleType?: HandleType,
+    options?: { clickAction?: 'toggle-off' | 'collapse' | 'none' }
   ) => {
     // Only the left button drags; right-click opens the context menu instead
     if (e.button !== 0) return;
@@ -190,8 +222,10 @@ export function DraggableElement({
     e.stopPropagation();
     if (!elementRef.current) return;
 
-    if (!isSelected) {
-      onSelect(element.id, e);
+    // Handles (scale/rotate/resize) on an unselected element select it first;
+    // move gestures manage their own selection before calling this.
+    if (!isSelected && options?.clickAction === undefined) {
+      onSelect(element.id, { additive: false });
     }
     setInteractionMode(mode);
     dragArmedRef.current = false;
@@ -202,6 +236,11 @@ export function DraggableElement({
       scale: currentScale,
     };
 
+    // Moving an element that belongs to a multi-selection translates the
+    // whole set; the parent drives the positions from here on.
+    const groupDrag = mode === 'move' ? (onGroupDragStart?.(element.id) ?? false) : false;
+    groupDragDeltaRef.current = { x: 0, y: 0 };
+
     const mousePosArtboard = getMousePositionInArtboardSpace(e);
 
     const displayWidth = currentSize.width * currentScale;
@@ -210,6 +249,8 @@ export function DraggableElement({
     setInteractionStart({
       mouseX: mousePosArtboard.x,
       mouseY: mousePosArtboard.y,
+      clientX: e.clientX,
+      clientY: e.clientY,
       initialPosition: { ...position },
       initialSize: { ...currentSize },
       initialRotation: currentRotation,
@@ -219,8 +260,8 @@ export function DraggableElement({
         y: position.y + displayHeight / 2,
       },
       handleType: handleType,
-      screenX: e.clientX,
-      screenY: e.clientY,
+      groupDrag,
+      clickAction: options?.clickAction,
     });
   };
 
@@ -233,8 +274,8 @@ export function DraggableElement({
       // longer commits a stray rotation or a one-pixel move on the way up.
       if (!dragArmedRef.current) {
         if (
-          Math.abs(e.clientX - interactionStart.screenX) < DRAG_THRESHOLD_PX &&
-          Math.abs(e.clientY - interactionStart.screenY) < DRAG_THRESHOLD_PX
+          Math.abs(e.clientX - interactionStart.clientX) < DRAG_THRESHOLD_PX &&
+          Math.abs(e.clientY - interactionStart.clientY) < DRAG_THRESHOLD_PX
         ) {
           return;
         }
@@ -243,6 +284,9 @@ export function DraggableElement({
 
       const mousePosArtboard = getMousePositionInArtboardSpace(e);
       const { initialPosition, initialSize, initialRotation, initialScale, elementCenter, handleType } = interactionStart;
+      // Ctrl/Cmd held = free precise movement: bypass any snapping or
+      // rounding and keep full sub-pixel precision.
+      const freeMovement = e.ctrlKey || e.metaKey;
 
       const dxScreen = mousePosArtboard.x - interactionStart.mouseX;
       const dyScreen = mousePosArtboard.y - interactionStart.mouseY;
@@ -257,15 +301,28 @@ export function DraggableElement({
 
 
       if (interactionMode === 'move') {
+        if (interactionStart.groupDrag) {
+          // The parent translates every selected element by the same delta
+          // and commits once on mouseup. Update this element's own position
+          // too so the dragged one tracks the cursor in the same frame.
+          groupDragDeltaRef.current = { x: dxScreen, y: dyScreen };
+          onGroupDragMove?.(dxScreen, dyScreen);
+          setPosition({ x: initialPosition.x + dxScreen, y: initialPosition.y + dyScreen });
+          return;
+        }
         newPos = { x: initialPosition.x + dxScreen, y: initialPosition.y + dyScreen };
         // No clamping on position, artboard's overflow:hidden will clip.
       } else if (interactionMode === 'rotate') {
         const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
         const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
         newRotation = initialRotation + (angle - startAngle);
-        newRotation = e.shiftKey
-          ? Math.round(newRotation / ROTATION_SNAP_DEGREES) * ROTATION_SNAP_DEGREES
-          : Math.round(newRotation);
+        // Shift snaps to clean angles, Ctrl/Cmd keeps full sub-degree
+        // precision, and a plain drag rounds to whole degrees.
+        if (e.shiftKey) {
+          newRotation = Math.round(newRotation / ROTATION_SNAP_DEGREES) * ROTATION_SNAP_DEGREES;
+        } else if (!freeMovement) {
+          newRotation = Math.round(newRotation);
+        }
 
       } else if (interactionMode === 'scale' && handleType && ['tl', 'tr', 'bl', 'br'].includes(handleType)) { 
         const initialDistToCenter = Math.sqrt(Math.pow(interactionStart.mouseX - elementCenter.x, 2) + Math.pow(interactionStart.mouseY - elementCenter.y, 2));
@@ -365,6 +422,38 @@ export function DraggableElement({
     const handleMouseUp = () => {
       if (!interactionMode || !interactionStart) return;
 
+      // A click (no real movement) on a move interaction never commits; it
+      // only adjusts the selection: modifier-click toggles the element off,
+      // a plain click on a member of a multi-selection collapses to it alone.
+      // Whether the press ever became a drag is exactly what dragArmedRef
+      // records, so the two share one threshold instead of testing the
+      // distance twice with two slightly different rules.
+      const wasClick = interactionMode === 'move' && !dragArmedRef.current;
+
+      if (wasClick) {
+        if (interactionStart.clickAction === 'toggle-off') {
+          onSelect(element.id, { additive: true });
+        } else if (interactionStart.clickAction === 'collapse') {
+          onSelect(element.id, { additive: false });
+        }
+        setInteractionMode(null);
+        setInteractionStart(null);
+        dragArmedRef.current = false;
+        document.body.style.cursor = 'default';
+        return;
+      }
+
+      if (interactionStart.groupDrag) {
+        const delta = groupDragDeltaRef.current;
+        onGroupDragEnd?.(delta.x, delta.y);
+        groupDragDeltaRef.current = { x: 0, y: 0 };
+        setInteractionMode(null);
+        setInteractionStart(null);
+        dragArmedRef.current = false;
+        document.body.style.cursor = 'default';
+        return;
+      }
+
       const live = latestRef.current;
       // Only update if there was actually a change
       const hasPositionChanged = live.position.x !== element.position.x || live.position.y !== element.position.y;
@@ -416,7 +505,7 @@ export function DraggableElement({
     // Deliberately not depending on position/size/rotation/scale: the handlers
     // read those from latestRef, so listing them here would only tear down and
     // re-register the document listeners on every frame of a drag.
-  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, onSelect]);
+  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, onSelect, onGroupDragMove, onGroupDragEnd]);
 
 
   const displaySize = {
@@ -424,8 +513,9 @@ export function DraggableElement({
     height: currentSize.height * currentScale,
   };
 
-  // Adjust handle sizes to be visible at small scale
-  const handleVisualScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
+  // Adjust handle sizes to be visible at small scale, and divide out the
+  // canvas zoom so they stay a constant on-screen size at any zoom level.
+  const handleVisualScale = 3 / (artboardZoom * canvasZoom); // Increase from 1 to 3 to make handles more visible
   const outlineThickness = Math.max(1, 3 * handleVisualScale);
 
   // A handle's layout box is HANDLE_SIZE_BASE, but it is drawn — and hit-tested
@@ -460,13 +550,26 @@ export function DraggableElement({
         boxSizing: 'border-box',
       }}
       onMouseDown={(e) => {
-        if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
-          e.stopPropagation(); // Prevent event from bubbling to artboard
+        if ((e.target as HTMLElement).closest('[data-interaction-handle]')) return;
+        if (e.button !== 0) return;
+        e.stopPropagation(); // Prevent event from bubbling to artboard
+        const additiveClick = e.shiftKey || e.ctrlKey || e.metaKey;
+        if (additiveClick) {
           if (isSelected) {
-            handleInteractionStart(e, 'move');
+            // Modifier+click on a selected element toggles it off, unless the
+            // gesture turns into a drag (Ctrl+drag = free movement).
+            handleInteractionStart(e, 'move', undefined, { clickAction: 'toggle-off' });
           } else {
-            onSelect(element.id, e); 
+            // Modifier+click on an unselected element adds it to the selection.
+            onSelect(element.id, { additive: true });
+            handleInteractionStart(e, 'move', undefined, { clickAction: 'none' });
           }
+          return;
+        }
+        if (isSelected) {
+          handleInteractionStart(e, 'move', undefined, { clickAction: 'collapse' });
+        } else {
+          onSelect(element.id, { additive: false }); 
         }
       }}
       data-element-id={element.id}

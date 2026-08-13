@@ -96,6 +96,7 @@ import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { alignElementsWithinArtboard, selectionBounds, type ElementAlignment } from '@/lib/elementAlignment';
 import { PublishDialog } from './publish/PublishDialog';
 import { ProjectNameField } from './ProjectNameField';
 import { decodeDataUrl, type PublishImage } from '@/lib/publish';
@@ -529,7 +530,14 @@ export function OpenScreenshotGeneratorLayout() {
   // Latest design-tool API for the desktop MCP server; assigned each render and
   // read per request by the bridge (see the block above the render return).
   const mcpApiRef = useRef<McpDesignApi | null>(null);
-  const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
+  const [selectedElementIdsOnActiveArtboard, setSelectedElementIdsOnActiveArtboard] = useState<string[]>([]);
+  // The lone selected element, or null when nothing (or more than one thing) is
+  // selected. The locale overlay and the properties panel are single-element
+  // affordances: an override belongs to one element, so a multi-selection has
+  // no single row to detach, reset or describe.
+  const selectedElementIdOnActiveArtboard = selectedElementIdsOnActiveArtboard.length === 1
+    ? selectedElementIdsOnActiveArtboard[0]
+    : null;
   // Custom right-click menu over the canvas. pastePoint is the click location
   // in artboard coordinates so Paste can drop the element under the cursor.
   const [contextMenu, setContextMenu] = useState<{
@@ -571,7 +579,6 @@ export function OpenScreenshotGeneratorLayout() {
       disposeStatus();
     };
   }, [toast]);
-  const [selectedElementDetails, setSelectedElementDetails] = useState<ArtboardElement | null>(null);
   const [activeTool, setActiveTool] = useState<'select' | 'pan'>('select');
   // Seed from the URL so the project-loading and selector effects see the real
   // active id on the first render instead of a transient null (which would force
@@ -704,7 +711,7 @@ export function OpenScreenshotGeneratorLayout() {
     setRightDockTab(tab);
     try { window.localStorage.setItem(RIGHT_DOCK_TAB_KEY, tab); } catch {}
   };
-  const { clipboardItem, copyToClipboard } = useClipboard();
+  const { clipboardItems, copyElementsToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -842,7 +849,7 @@ export function OpenScreenshotGeneratorLayout() {
             // edit (matches loadProjectFromData, the click-a-template path). Without
             // this, refreshing into ?projectId left nothing selected.
             setActiveArtboardId(projectData.length > 0 ? projectData[0].id : null);
-            setSelectedElementIdOnActiveArtboard(null);
+            setSelectedElementIdsOnActiveArtboard([]);
             setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
           } else {
             console.warn(`Project with ID ${activeProjectId} not found.`);
@@ -1012,17 +1019,24 @@ export function OpenScreenshotGeneratorLayout() {
     };
     if (activeArtboardId && !repositionedArtboards.find(ab => ab.id === activeArtboardId)) {
         setActiveArtboardId(null);
-        setSelectedElementIdOnActiveArtboard(null);
+        setSelectedElementIdsOnActiveArtboard([]);
     }
-    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+    if (activeArtboardId && selectedElementIdsOnActiveArtboard.length > 0) {
         const currentAb = repositionedArtboards.find(ab => ab.id === activeArtboardId);
-        if (currentAb && !currentAb.elements.find(el => el.id === selectedElementIdOnActiveArtboard)) {
-            setSelectedElementIdOnActiveArtboard(null);
+        if (currentAb) {
+            // Prune ids the update removed (deletions, device swaps) so the
+            // selection never points at elements that no longer exist.
+            const surviving = selectedElementIdsOnActiveArtboard.filter(id =>
+                currentAb.elements.some(el => el.id === id)
+            );
+            if (surviving.length !== selectedElementIdsOnActiveArtboard.length) {
+                setSelectedElementIdsOnActiveArtboard(surviving);
+            }
         }
     }
     saveProject(); // Call the async save function
     pushToHistory(repositionedArtboards, change);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId]);
+  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId]);
 
   // Board background, name and the rest of the board-level form. It used to run
   // its own db.projects.put and skip repositioning; folding it into the door
@@ -1509,22 +1523,19 @@ export function OpenScreenshotGeneratorLayout() {
     return board?.localized?.[locale]?.[selectedElementIdOnActiveArtboard]?.detached;
   }, [activeLocale, activeArtboardId, selectedElementIdOnActiveArtboard, artboards]);
 
-  useEffect(() => {
-    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-      const activeAb = viewArtboards.find(ab => ab.id === activeArtboardId);
-      if (activeAb) {
-        const element = activeAb.elements.find(el => el.id === selectedElementIdOnActiveArtboard);
-        setSelectedElementDetails(element || null);
-      } else {
-        setSelectedElementDetails(null);
-      }
-    } else {
-      setSelectedElementDetails(null);
-    }
+  // The element the properties panel edits, derived from the selection: only a
+  // single selection exposes per-property editing, and a multi-selection shows
+  // the panel's multi-select state instead. Read off viewArtboards, not the
+  // base, so the panel shows what the active language actually renders.
+  const selectedElementDetails = useMemo(() => {
+    if (!activeArtboardId || !selectedElementIdOnActiveArtboard) return null;
+    const activeAb = viewArtboards.find(ab => ab.id === activeArtboardId);
+    return activeAb?.elements.find(el => el.id === selectedElementIdOnActiveArtboard) ?? null;
   }, [activeArtboardId, selectedElementIdOnActiveArtboard, viewArtboards]);
 
   const handleUpdateSelectedElement = (updates: Partial<ArtboardElement>) => {
-    if (!activeArtboardId || !selectedElementIdOnActiveArtboard) return;
+    if (!activeArtboardId || selectedElementIdsOnActiveArtboard.length !== 1) return;
+    const targetElementId = selectedElementIdsOnActiveArtboard[0];
 
     const updatedArtboards = viewArtboards.map(ab => {
       if (ab.id === activeArtboardId) {
@@ -1533,7 +1544,7 @@ export function OpenScreenshotGeneratorLayout() {
         // re-fit to the new device's screen rect and corner radius.
         const deviceTarget = (updates as Partial<DeviceFrameElementProps>).deviceType;
         if (deviceTarget) {
-          const swappedElements = swapDeviceInElements(ab.elements, selectedElementIdOnActiveArtboard, deviceTarget);
+          const swappedElements = swapDeviceInElements(ab.elements, targetElementId, deviceTarget);
           if (swappedElements) {
             return { ...ab, elements: swappedElements };
           }
@@ -1541,7 +1552,7 @@ export function OpenScreenshotGeneratorLayout() {
         return {
           ...ab,
           elements: ab.elements.map(el =>
-            el.id === selectedElementIdOnActiveArtboard ? { ...el, ...updates } as ArtboardElement : el
+            el.id === targetElementId ? { ...el, ...updates } as ArtboardElement : el
           ),
         };
       }
@@ -1654,7 +1665,7 @@ export function OpenScreenshotGeneratorLayout() {
     if (artboardComponent && typeof artboardComponent.addElement === 'function') {
       const newElementId = artboardComponent.addElement(type, subType, dropPosition, styleProps);
       if (newElementId) {
-        setSelectedElementIdOnActiveArtboard(newElementId);
+        setSelectedElementIdsOnActiveArtboard([newElementId]);
         setActiveArtboardId(artboardId);
       }
     } else {
@@ -1715,7 +1726,7 @@ export function OpenScreenshotGeneratorLayout() {
     
     handleArtboardsUpdate(newArtboardsArray, namedChange('Add Artboard', 'artboard', newArtboard.name));
     setActiveArtboardId(newArtboard.id);
-    setSelectedElementIdOnActiveArtboard(null);
+    setSelectedElementIdsOnActiveArtboard([]);
     toast({ title: "Artboard Added", description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".` });
   };
   
@@ -1767,7 +1778,7 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (activeArtboardId === artboardId) {
       setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
-      setSelectedElementIdOnActiveArtboard(null);
+      setSelectedElementIdsOnActiveArtboard([]);
     }
     toast({ title: "Artboard Deleted", description: `Artboard "${artboardToDelete.name}" deleted.` });
   };
@@ -2726,7 +2737,7 @@ export function OpenScreenshotGeneratorLayout() {
     if (activeArtboardId && !state.find((ab) => ab.id === activeArtboardId)) {
       setActiveArtboardId(state.length > 0 ? state[0].id : null);
     }
-    setSelectedElementIdOnActiveArtboard(null);
+    setSelectedElementIdsOnActiveArtboard([]);
 
     if (activeProjectId) {
       db.projects.put({
@@ -2748,27 +2759,27 @@ export function OpenScreenshotGeneratorLayout() {
     applyHistoryIndex(historyIndex + 1);
   }, [applyHistoryIndex, historyIndex]);
 
-  // Fix the handleDeleteSelected function to properly handle deletion
+  // Delete the whole selection on the active artboard in a single commit, or
+  // the active artboard itself when no element is selected.
   const handleDeleteSelected = useCallback(() => { 
-    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-      // Find the active artboard
+    if (activeArtboardId && selectedElementIdsOnActiveArtboard.length > 0) {
       const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
       if (activeArtboard) {
-        // Find the element to delete
-        const elementExists = activeArtboard.elements.some(
-          el => el.id === selectedElementIdOnActiveArtboard
-        );
+        const wanted = new Set(selectedElementIdsOnActiveArtboard);
+        const remaining = activeArtboard.elements.filter(el => !wanted.has(el.id));
+        const removedCount = activeArtboard.elements.length - remaining.length;
 
-        // If element exists, delete it
-        if (elementExists) {
-          const artboardComponent = artboardRefs.current[activeArtboardId];
-          if(artboardComponent && artboardComponent.deleteElementByIdG) {
-            artboardComponent.deleteElementByIdG(selectedElementIdOnActiveArtboard);
-            setSelectedElementIdOnActiveArtboard(null);
-            toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
-          } else {
-            toast({title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive"});
-          }
+        if (removedCount > 0) {
+          handleArtboardsUpdate(artboards.map(ab =>
+            ab.id === activeArtboardId ? { ...ab, elements: remaining } : ab
+          ));
+          setSelectedElementIdsOnActiveArtboard([]);
+          toast({
+            title: removedCount === 1 ? "Element Deleted" : "Elements Deleted",
+            description: removedCount === 1
+              ? "Element was removed from the artboard."
+              : `${removedCount} elements were removed from the artboard.`,
+          });
         } else {
           toast({title: "Cannot Delete Element", description: "Selected element not found in artboard.", variant: "destructive"});
         }
@@ -2778,9 +2789,32 @@ export function OpenScreenshotGeneratorLayout() {
     } else {
       toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
     }
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, artboards, toast]);
+  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, artboards, toast, handleArtboardsUpdate]);
 
-  // Add keyboard event handlers for delete, undo, and redo
+  // Arrow-key nudging: arrows move the selection 1 artboard px, Shift+arrows
+  // 10 px. One history commit per press via handleArtboardsUpdate.
+  const handleNudgeSelected = useCallback((dx: number, dy: number) => {
+    if (!activeArtboardId || selectedElementIdsOnActiveArtboard.length === 0) return;
+    const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
+    if (!activeArtboard) return;
+    const wanted = new Set(selectedElementIdsOnActiveArtboard);
+    if (!activeArtboard.elements.some(el => wanted.has(el.id))) return;
+    handleArtboardsUpdate(artboards.map(ab =>
+      ab.id !== activeArtboardId
+        ? ab
+        : {
+            ...ab,
+            elements: ab.elements.map(el =>
+              wanted.has(el.id)
+                ? ({ ...el, position: { x: el.position.x + dx, y: el.position.y + dy } } as ArtboardElement)
+                : el
+            ),
+          }
+    ));
+  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, artboards, handleArtboardsUpdate]);
+
+  // Add keyboard event handlers for delete, undo, redo, clipboard, selection
+  // and nudging. This is the ONLY keydown effect; keep every shortcut here.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Preview mode has its own keyboard handling
@@ -2794,10 +2828,12 @@ export function OpenScreenshotGeneratorLayout() {
         return;
       }
 
+      const hasElementSelection = selectedElementIdsOnActiveArtboard.length > 0;
+
       // Copy: Ctrl+C or Cmd+C
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
         e.preventDefault();
-        if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+        if (activeArtboardId && hasElementSelection) {
           handleCopyElement();
         }
       }
@@ -2805,9 +2841,34 @@ export function OpenScreenshotGeneratorLayout() {
       // Paste: Ctrl+V or Cmd+V
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
         e.preventDefault();
-        if (clipboardItem) {
+        if (clipboardItems.length > 0) {
           handlePasteElement();
         }
+      }
+
+      // Select all on the active artboard: Ctrl+A or Cmd+A
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        if (activeArtboardId) {
+          e.preventDefault();
+          const activeAb = artboards.find(ab => ab.id === activeArtboardId);
+          if (activeAb) {
+            setSelectedElementIdsOnActiveArtboard(activeAb.elements.map(el => el.id));
+          }
+        }
+      }
+
+      // Escape clears the element selection
+      if (e.key === 'Escape' && hasElementSelection) {
+        setSelectedElementIdsOnActiveArtboard([]);
+      }
+
+      // Nudge: arrows move the selection 1 artboard px, Shift+arrows 10 px
+      if (e.key.startsWith('Arrow') && activeArtboardId && hasElementSelection) {
+        e.preventDefault();
+        const step = e.shiftKey ? 10 : 1;
+        const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+        const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
+        handleNudgeSelected(dx, dy);
       }
 
       // Delete key for element or artboard deletion
@@ -2850,21 +2911,35 @@ export function OpenScreenshotGeneratorLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, setActiveTool, isPreviewOpen]);
+  }, [handleDeleteSelected, handleNudgeSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdsOnActiveArtboard, clipboardItems, artboards, setActiveTool, isPreviewOpen]);
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
-    if (artboardId !== activeProjectId) {
-        setSelectedElementIdOnActiveArtboard(null);
+    if (artboardId !== activeArtboardId) {
+        setSelectedElementIdsOnActiveArtboard([]);
     }
   }
 
-  const handleElementSelectionOnArtboard = (elementId: string | null) => {
-    setSelectedElementIdOnActiveArtboard(elementId);
+  // Single-id selection entry point (canvas click, layers panel). A plain
+  // call selects just that element (or clears when null); { additive: true }
+  // toggles it in/out of the current selection (Shift/Ctrl/Cmd click).
+  const handleElementSelectionOnArtboard = (elementId: string | null, modifiers?: { additive?: boolean }) => {
+    setSelectedElementIdsOnActiveArtboard((prev) => {
+      if (elementId === null) return [];
+      if (modifiers?.additive) {
+        return prev.includes(elementId) ? prev.filter((id) => id !== elementId) : [...prev, elementId];
+      }
+      return [elementId];
+    });
   }
 
-  const handleSelectElementFromLayerPanel = (elementId: string) => {
-    setSelectedElementIdOnActiveArtboard(elementId);
+  // Bulk selection entry point (marquee, select-all, paste).
+  const handleElementsSelectionOnArtboard = (elementIds: string[]) => {
+    setSelectedElementIdsOnActiveArtboard(elementIds);
+  }
+
+  const handleSelectElementFromLayerPanel = (elementId: string, modifiers?: { additive?: boolean }) => {
+    handleElementSelectionOnArtboard(elementId, modifiers);
   };
 
   // Add handler for deleting element from layers panel
@@ -2873,7 +2948,7 @@ export function OpenScreenshotGeneratorLayout() {
       const artboardComponent = artboardRefs.current[activeArtboardId];
       if (artboardComponent && artboardComponent.deleteElementByIdG) {
         artboardComponent.deleteElementByIdG(elementId);
-        setSelectedElementIdOnActiveArtboard(null);
+        setSelectedElementIdsOnActiveArtboard((prev) => prev.filter((id) => id !== elementId));
         toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
       } else {
         toast({ title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive" });
@@ -2910,6 +2985,21 @@ export function OpenScreenshotGeneratorLayout() {
     });
     handleArtboardsUpdate(updatedArtboards); // Use handleArtboardsUpdate to ensure history and positioning
   };
+
+  // Alignment controls in the properties panel. A single element aligns
+  // inside the artboard bounds; a multi-selection aligns inside its own
+  // bounding box, with distribute available at 3+ elements. One commit per
+  // click via handleArtboardsUpdate, so undo restores the previous layout.
+  const handleAlignElements = useCallback((mode: ElementAlignment) => {
+    if (!activeArtboardId || selectedElementIdsOnActiveArtboard.length === 0) return;
+    const activeAb = artboards.find(ab => ab.id === activeArtboardId);
+    if (!activeAb) return;
+    const alignedElements = alignElementsWithinArtboard(activeAb, selectedElementIdsOnActiveArtboard, mode);
+    if (!alignedElements) return; // nothing would move; skip the history entry
+    handleArtboardsUpdate(artboards.map(ab =>
+      ab.id === activeArtboardId ? { ...ab, elements: alignedElements } : ab
+    ));
+  }, [activeArtboardId, selectedElementIdsOnActiveArtboard, artboards, handleArtboardsUpdate]);
 
   // Applies a new canvas size to every artboard. With `scaleContent` (the
   // Canvas Size dialog's default) each artboard's elements are uniformly
@@ -3284,65 +3374,90 @@ export function OpenScreenshotGeneratorLayout() {
   }, [activeArtboard]);
 
 
-  // Define the copy element handler. Explicit ids come from the context menu
-  // (copy exactly what was right-clicked); the keyboard shortcut passes none
-  // and falls back to the current selection.
+  // Define the copy element handler. Explicit ids come from the context menu:
+  // copying a right-clicked element that is part of the current selection
+  // copies the whole set, otherwise just that element. The keyboard shortcut
+  // passes no ids and copies the current selection.
   const handleCopyElement = (targetArtboardId?: string | null, targetElementId?: string | null) => {
     const artboardId = targetArtboardId ?? activeArtboardId;
-    const elementId = targetElementId ?? selectedElementIdOnActiveArtboard;
-    if (artboardId && elementId) {
-      const activeAb = artboards.find(ab => ab.id === artboardId);
-      if (activeAb) {
-        const elementToCopy = activeAb.elements.find(el => el.id === elementId);
+    if (!artboardId) return;
+    const activeAb = artboards.find(ab => ab.id === artboardId);
+    if (!activeAb) return;
 
-        if (elementToCopy) {
-          copyToClipboard(elementToCopy);
-          toast({ title: "Copied", description: `${elementToCopy.type} element copied to clipboard.` });
-        }
-      }
+    let elementsToCopy: ArtboardElement[] = [];
+    if (targetElementId) {
+      const selectionOnTarget = artboardId === activeArtboardId ? selectedElementIdsOnActiveArtboard : [];
+      const wanted = selectionOnTarget.includes(targetElementId) ? new Set(selectionOnTarget) : new Set([targetElementId]);
+      elementsToCopy = activeAb.elements.filter(el => wanted.has(el.id));
+    } else if (artboardId === activeArtboardId) {
+      const wanted = new Set(selectedElementIdsOnActiveArtboard);
+      elementsToCopy = activeAb.elements.filter(el => wanted.has(el.id));
+    }
+
+    if (elementsToCopy.length > 0) {
+      copyElementsToClipboard(elementsToCopy);
+      toast({
+        title: "Copied",
+        description: elementsToCopy.length === 1
+          ? `${elementsToCopy[0].type} element copied to clipboard.`
+          : `${elementsToCopy.length} elements copied to clipboard.`,
+      });
     }
   };
 
   // Define the paste element handler. The context menu passes the right-clicked
-  // artboard and a paste point (artboard coordinates) so the element lands
+  // artboard and a paste point (artboard coordinates) so the set lands centered
   // under the cursor; the keyboard shortcut offsets from the original instead.
+  // A multi-element paste preserves the relative arrangement.
   const handlePasteElement = (targetArtboardId?: string | null, pastePoint?: Point | null) => {
     const artboardId = targetArtboardId ?? activeArtboardId;
-    if (artboardId && clipboardItem) {
+    if (artboardId && clipboardItems.length > 0) {
       const targetArtboard = artboards.find(ab => ab.id === artboardId);
-      const elementWidth = clipboardItem.size?.width ?? 0;
-      const elementHeight = clipboardItem.size?.height ?? 0;
-      const position = pastePoint && targetArtboard
-        ? {
-            x: Math.max(0, Math.min(pastePoint.x - elementWidth / 2, targetArtboard.size.width - elementWidth)),
-            y: Math.max(0, Math.min(pastePoint.y - elementHeight / 2, targetArtboard.size.height - elementHeight)),
-          }
-        : {
-            x: clipboardItem.position.x + 20, // Offset position slightly
-            y: clipboardItem.position.y + 20
-          };
-      const newElement = {
-        ...JSON.parse(JSON.stringify(clipboardItem)),
-        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, // New unique ID
-        position
-      };
+      const bounds = selectionBounds(clipboardItems);
+      const stamp = Date.now();
+
+      let offsetX = 20; // Offset position slightly when no paste point is given
+      let offsetY = 20;
+      if (pastePoint && targetArtboard && bounds) {
+        offsetX = pastePoint.x - bounds.width / 2 - bounds.left;
+        offsetY = pastePoint.y - bounds.height / 2 - bounds.top;
+        // Clamp so the pasted set stays inside the artboard
+        offsetX = Math.max(-bounds.left, Math.min(offsetX, targetArtboard.size.width - bounds.right));
+        offsetY = Math.max(-bounds.top, Math.min(offsetY, targetArtboard.size.height - bounds.bottom));
+      }
+
+      const newElements = clipboardItems.map((item, index) => ({
+        ...JSON.parse(JSON.stringify(item)),
+        id: `el_${stamp}_${index}_${Math.random().toString(36).substr(2, 5)}`, // New unique IDs
+        position: { x: item.position.x + offsetX, y: item.position.y + offsetY },
+      })) as ArtboardElement[];
 
       const updatedArtboards = artboards.map(ab => {
         if (ab.id === artboardId) {
           return {
             ...ab,
-            elements: [...ab.elements, newElement]
+            elements: [...ab.elements, ...newElements]
           };
         }
         return ab;
       });
 
-      handleArtboardsUpdate(updatedArtboards, namedChange('Paste', 'copy', getElementDisplayName(newElement)));
+      handleArtboardsUpdate(
+        updatedArtboards,
+        namedChange('Paste', 'copy', newElements.length === 1
+          ? getElementDisplayName(newElements[0])
+          : `${newElements.length} elements`)
+      );
       if (artboardId !== activeArtboardId) {
         setActiveArtboardId(artboardId);
       }
-      setSelectedElementIdOnActiveArtboard(newElement.id);
-      toast({ title: "Pasted", description: `${newElement.type} element pasted to artboard.` });
+      setSelectedElementIdsOnActiveArtboard(newElements.map(el => el.id));
+      toast({
+        title: "Pasted",
+        description: newElements.length === 1
+          ? `${newElements[0].type} element pasted to artboard.`
+          : `${newElements.length} elements pasted to artboard.`,
+      });
     } else if (!artboardId) {
       toast({
         title: "Cannot Paste",
@@ -3396,86 +3511,28 @@ export function OpenScreenshotGeneratorLayout() {
 
       if (artboardId) {
         setActiveArtboardId(artboardId);
-        setSelectedElementIdOnActiveArtboard(elementId);
+        if (elementId) {
+          // Right-clicking an element that is already in the selection keeps
+          // the set (so Copy acts on all of it); otherwise it selects alone.
+          setSelectedElementIdsOnActiveArtboard(
+            artboardId === activeArtboardId && selectedElementIdsOnActiveArtboard.includes(elementId)
+              ? selectedElementIdsOnActiveArtboard
+              : [elementId]
+          );
+        } else {
+          setSelectedElementIdsOnActiveArtboard([]);
+        }
       }
       setContextMenu({ x: e.clientX, y: e.clientY, elementId, artboardId, pastePoint });
     };
 
     document.addEventListener('contextmenu', handleContextMenu);
     return () => document.removeEventListener('contextmenu', handleContextMenu);
-  }, [isPreviewOpen]);
+  }, [isPreviewOpen, activeArtboardId, selectedElementIdsOnActiveArtboard]);
   
-  // Add keyboard shortcuts for copy and paste
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Preview mode has its own keyboard handling
-      if (isPreviewOpen) return;
-      // Skip if we're typing in an input, textarea, etc.
-      if (
-        e.target instanceof HTMLInputElement || 
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) {
-        return;
-      }
-
-      // Copy: Ctrl+C or Cmd+C
-      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-        e.preventDefault();
-        if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-          handleCopyElement();
-        }
-      }
-
-      // Paste: Ctrl+V or Cmd+V
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        e.preventDefault();
-        if (clipboardItem) {
-          handlePasteElement();
-        }
-      }
-
-      // Delete key for element or artboard deletion
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault(); // Prevent browser navigation
-        handleDeleteSelected();
-      }
-
-      // Undo: Ctrl+Z or Cmd+Z
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        if (historyIndex > 0) {
-          handleUndo();
-        }
-      }
-
-      // Redo: Ctrl+Shift+Z or Cmd+Shift+Z or Ctrl+Y or Cmd+Y
-      if (((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) || 
-          ((e.ctrlKey || e.metaKey) && e.key === 'y')) {
-        e.preventDefault();
-        if (historyIndex < history.length - 1) {
-          handleRedo();
-        }
-      }
-
-      // Tool shortcuts: H for hand/pan tool, V for selection tool
-      if (e.key === 'h' || e.key === 'H') {
-        e.preventDefault();
-        setActiveTool('pan');
-      }
-
-      if (e.key === 'v' || e.key === 'V') {
-        e.preventDefault();
-        setActiveTool('select');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, isPreviewOpen]);
+  // NOTE: keyboard shortcuts live in a single consolidated keydown effect
+  // further up (delete/undo/redo/clipboard/select-all/nudge). A second,
+  // identical keydown effect used to be registered here; do not re-add one.
 
   // Common function to load project data and apply positioning
   const loadProjectFromData = async (projectData: ArtboardState[], projectName: string, projectId: string) => {
@@ -3500,7 +3557,7 @@ export function OpenScreenshotGeneratorLayout() {
       
       // Automatically select the first artboard
       setActiveArtboardId(finalArtboards.length > 0 ? finalArtboards[0].id : null);
-      setSelectedElementIdOnActiveArtboard(null);
+      setSelectedElementIdsOnActiveArtboard([]);
       setIsTemplateSelectorOpen(false);
 
       // Update recent projects list
@@ -4346,7 +4403,9 @@ const generateRandomProjectName = (): string => {
             : ab
         )
       );
-      if (selectedElementIdOnActiveArtboard === elementId) setSelectedElementIdOnActiveArtboard(null);
+      if (selectedElementIdsOnActiveArtboard.includes(elementId)) {
+        setSelectedElementIdsOnActiveArtboard((prev) => prev.filter((id) => id !== elementId));
+      }
       return true;
     },
     reorderElement: ({ artboardId, elementId, action, index }) => {
@@ -4939,9 +4998,11 @@ const generateRandomProjectName = (): string => {
                 onAddElementToArtboard={handleAddElementToArtboard}
                 activeArtboardId={activeArtboardId}
                 setActiveArtboardId={handleArtboardSelection}
-                selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
+                selectedElementIdsOnActiveArtboard={selectedElementIdsOnActiveArtboard}
                 setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
+                setSelectedElementIdsOnActiveArtboard={handleElementsSelectionOnArtboard}
                 canvasZoom={canvasZoom}
+                onCanvasZoomChange={setCanvasZoom}
                 artboardRefs={artboardRefs}
                 onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
                 onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
@@ -5054,7 +5115,7 @@ const generateRandomProjectName = (): string => {
                   x={contextMenu.x}
                   y={contextMenu.y}
                   canCopy={!!contextMenu.elementId && !!contextMenu.artboardId}
-                  canPaste={!!clipboardItem && !!(contextMenu.artboardId || activeArtboardId)}
+                  canPaste={clipboardItems.length > 0 && !!(contextMenu.artboardId || activeArtboardId)}
                   onCopy={() => handleCopyElement(contextMenu.artboardId, contextMenu.elementId)}
                   onPaste={() => handlePasteElement(contextMenu.artboardId, contextMenu.pastePoint)}
                   onClose={() => setContextMenu(null)}
@@ -5112,11 +5173,13 @@ const generateRandomProjectName = (): string => {
                   >
                     <PropertiesPanel
                       selectedElement={selectedElementDetails}
+                      selectionCount={selectedElementIdsOnActiveArtboard.length}
+                      onAlignElements={handleAlignElements}
                       onUpdateElement={handleUpdateSelectedElement}
                       onUpdateElementById={handleUpdateElementById}
                       onTranslateElement={handleTranslateTextElement}
                       activeArtboardDetails={
-                        activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
+                        activeArtboardId && selectedElementIdsOnActiveArtboard.length === 0 ? activeArtboard : null
                       }
                       onUpdateArtboardDetails={handleUpdateArtboardDetails}
                       activeLocale={activeLocale}
@@ -5186,7 +5249,7 @@ const generateRandomProjectName = (): string => {
                   >
                     <LayersPanel
                       elements={activeArtboardElements}
-                      selectedElementId={selectedElementIdOnActiveArtboard}
+                      selectedElementIds={selectedElementIdsOnActiveArtboard}
                       onSelectElement={handleSelectElementFromLayerPanel}
                       onMoveElementLayer={handleMoveElementLayer}
                       onDeleteElement={handleDeleteElementFromLayerPanel}

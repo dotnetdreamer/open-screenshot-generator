@@ -26,8 +26,13 @@ interface ArtboardProps {
   onUpdateArtboardDetails: (updatedDetails: Partial<ArtboardType>) => void;
   onSelectArtboard: () => void;
   globalZoom: number;
-  selectedElementId: string | null;
-  setSelectedElementId: (id: string | null) => void;
+  // Ids of the selected elements (empty when nothing is selected). Selection
+  // is scoped to this artboard by the parent, which passes [] for inactive
+  // artboards.
+  selectedElementIds: string[];
+  // Plain selection passes the id alone (or null to clear); { additive: true }
+  // toggles the id in/out of the current selection (Shift/Ctrl/Cmd click).
+  setSelectedElementId: (id: string | null, modifiers?: { additive?: boolean }) => void;
   // Props for the ArtboardToolbar
   onAddNewArtboard: () => void;
   onDuplicateArtboard: (artboardId: string) => void;
@@ -52,7 +57,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   onUpdateArtboardDetails,
   onSelectArtboard, 
   globalZoom,
-  selectedElementId,
+  selectedElementIds,
   setSelectedElementId,
   onAddNewArtboard,
   onDuplicateArtboard,
@@ -141,9 +146,14 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       let newElementY = artboard.size.height / 2 - 25;
       
       if (dropPosition && artboardRect) {
-        // Adjust drop position to account for scaling
-        newElementX = (dropPosition.x - artboardRect.left) / displayScaleFactor - 50;
-        newElementY = (dropPosition.y - artboardRect.top) / displayScaleFactor - 25;
+        // Adjust drop position for every ancestor zoom via the rendered size
+        // (display scale * canvas zoom), so the element lands under the cursor
+        // at any zoom level.
+        const renderedScale = artboardRect.width > 0
+          ? artboardRect.width / artboard.size.width
+          : displayScaleFactor;
+        newElementX = (dropPosition.x - artboardRect.left) / renderedScale - 50;
+        newElementY = (dropPosition.y - artboardRect.top) / renderedScale - 25;
       }
       
       newElementX = Math.max(0, Math.min(newElementX, artboard.size.width - 100));
@@ -403,7 +413,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         const newElements = elements.filter(el => el.id !== elementId);
         setElements(newElements);
         onUpdateArtboardElements(newElements);
-        setSelectedElementId(null);
+        // No selection cleanup here: handleArtboardsUpdate prunes ids that no
+        // longer exist from the parent's selection state.
         console.log(`Element deleted: ${elementId}`);
         return true;
       }
@@ -431,14 +442,75 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     const newElements = elements.filter(el => el.id !== elementId);
     setElements(newElements);
     onUpdateArtboardElements(newElements);
-    if (selectedElementId === elementId) {
-      setSelectedElementId(null);
-    }
+    // Selection cleanup happens centrally in handleArtboardsUpdate.
   };
 
-  const handleSelectElement = (elementId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    setSelectedElementId(elementId);
+  // Mirror of the selection prop that stays synchronous across mousedown ->
+  // drag-start, before the parent's state update has re-rendered us. The
+  // group-drag hooks read this so a Shift+click-then-drag in one gesture
+  // still engages the multi-drag.
+  const selectionIdsRef = useRef<string[]>(selectedElementIds);
+  useEffect(() => {
+    selectionIdsRef.current = selectedElementIds;
+  }, [selectedElementIds]);
+
+  // Snapshot taken when a group drag starts; the dragged element's
+  // DraggableElement reports deltas and every selected element is translated
+  // locally (no parent update) until mouseup commits once.
+  const multiDragRef = useRef<{
+    startElements: ArtboardElement[];
+    selectedIds: string[];
+    lastDelta: Point;
+  } | null>(null);
+
+  const handleSelectElement = (elementId: string, modifiers?: { additive?: boolean }) => {
+    const current = selectionIdsRef.current;
+    const next = modifiers?.additive
+      ? (current.includes(elementId) ? current.filter((id) => id !== elementId) : [...current, elementId])
+      : [elementId];
+    selectionIdsRef.current = next;
+    setSelectedElementId(elementId, modifiers);
+  };
+
+  const handleGroupDragStart = (elementId: string): boolean => {
+    const ids = selectionIdsRef.current;
+    if (ids.length <= 1 || !ids.includes(elementId)) return false;
+    multiDragRef.current = {
+      startElements: elements,
+      selectedIds: [...ids],
+      lastDelta: { x: 0, y: 0 },
+    };
+    return true;
+  };
+
+  const translateMultiDrag = (drag: NonNullable<typeof multiDragRef.current>): ArtboardElement[] => {
+    const ids = new Set(drag.selectedIds);
+    return drag.startElements.map((el) =>
+      ids.has(el.id)
+        ? ({ ...el, position: { x: el.position.x + drag.lastDelta.x, y: el.position.y + drag.lastDelta.y } } as ArtboardElement)
+        : el
+    );
+  };
+
+  const handleGroupDragMove = (dx: number, dy: number) => {
+    const drag = multiDragRef.current;
+    if (!drag) return;
+    drag.lastDelta = { x: dx, y: dy };
+    // Transient local update only: the parent (and history) see one commit on
+    // mouseup, not one per mousemove per element.
+    setElements(translateMultiDrag(drag));
+  };
+
+  const handleGroupDragEnd = (dx: number, dy: number) => {
+    const drag = multiDragRef.current;
+    if (!drag) return;
+    multiDragRef.current = null;
+    drag.lastDelta = { x: dx, y: dy };
+    const finalElements = translateMultiDrag(drag);
+    setElements(finalElements);
+    if (dx !== 0 || dy !== 0) {
+      onUpdateArtboardElements(finalElements);
+    }
   };
 
   const handleArtboardClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -543,18 +615,22 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             <DraggableElement
               key={element.id}
               element={element}
-              isSelected={selectedElementId === element.id}
+              isSelected={selectedElementIds.includes(element.id)}
               onSelect={handleSelectElement}
               onUpdateElement={handleUpdateElement}
               onDeleteElement={handleDeleteElement}
               artboardZoom={artboard.zoom}
+              canvasZoom={globalZoom}
+              onGroupDragStart={handleGroupDragStart}
+              onGroupDragMove={handleGroupDragMove}
+              onGroupDragEnd={handleGroupDragEnd}
               boundary={{width: artboard.size.width, height: artboard.size.height}}
             >
               {element.type === 'text' && (
                 <TextElement 
                   element={element} 
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementIds.includes(element.id)}
                   artboardZoom={artboard.zoom * element.scale}
                 />
               )}
@@ -562,7 +638,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
                 <ImageElement 
                   element={element as ImageElementProps} 
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementIds.includes(element.id)}
                 />
               )}
               {element.type === 'shape' && <ShapeElement element={element} />}
@@ -570,27 +646,27 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
                 <DeviceFrameElement
                   element={element}
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementIds.includes(element.id)}
                 />
               )}
               {element.type === 'video' && (
                 <VideoElement
                   element={element as VideoElementProps}
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementIds.includes(element.id)}
                 />
               )}
               {element.type === 'video-device' && (
                 <VideoDeviceElement
                   element={element as VideoDeviceElementProps}
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementIds.includes(element.id)}
                 />
               )}
               {element.type === 'gesture' && (
                 <GestureElement
                   element={element as GestureElementProps}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementIds.includes(element.id)}
                 />
               )}
             </DraggableElement>
