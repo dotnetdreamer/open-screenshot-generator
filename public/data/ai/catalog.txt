@@ -1,5 +1,5 @@
-VERIFICATION-TOKEN: abs-ad8b787f
-Open Screenshot Generator template catalog (https://github.com/dotnetdreamer/open-screenshot-generator). Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.
+VERIFICATION-TOKEN: abs-8adf8500
+Open Screenshot Generator template catalog. Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.
 
 t0 | Plannio Student | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a student daily planner app. Bright orange boards, chunky rounded whit...
   artboard 0 "Hero" devices[d0:iphone-17-pro-max] texts[x0:"Your last Daily Planner", x1:"31", x2:"17", x3:"✓", x4:"Built for", x5:"Students"]
