@@ -14,8 +14,10 @@ interface CanvasContextMenuProps {
   onClose: () => void;
 }
 
+// py-2.5 on a coarse pointer: the mouse row is 30px tall, which is a fine
+// target for a cursor and a poor one for a fingertip.
 const itemClass =
-  "relative flex w-full select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
+  "relative flex w-full select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [@media(pointer:coarse)]:py-2.5";
 
 // Custom right-click menu for the canvas. Rendered in a portal at the body
 // (position: fixed breaks inside transformed ancestors like the zoomed canvas).
@@ -42,20 +44,22 @@ export function CanvasContextMenu({
   }, [x, y]);
 
   useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
+    // pointerdown, not mousedown: a tap outside has to dismiss the menu too,
+    // and on touch the compatibility mousedown may never arrive.
+    const handlePointerDown = (e: PointerEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) onClose();
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
     // Close when the canvas scrolls or the window changes under the menu
     document.addEventListener('scroll', onClose, true);
     window.addEventListener('resize', onClose);
     window.addEventListener('blur', onClose);
     return () => {
-      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('scroll', onClose, true);
       window.removeEventListener('resize', onClose);

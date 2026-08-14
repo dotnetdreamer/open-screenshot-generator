@@ -52,7 +52,7 @@ export function ArtboardToolbar({
           className
         )}
         onClick={(e) => e.stopPropagation()} // Prevent artboard deselection
-        onMouseDown={(e) => e.stopPropagation()} // Prevent drag initiation
+        onPointerDown={(e) => e.stopPropagation()} // Prevent drag initiation
       >
         <Tooltip>
           <TooltipTrigger asChild>

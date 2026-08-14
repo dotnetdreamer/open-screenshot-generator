@@ -436,8 +436,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     }
   };
 
-  const handleSelectElement = (elementId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); 
+  const handleSelectElement = (elementId: string, e: React.PointerEvent) => {
+    e.stopPropagation();
     setSelectedElementId(elementId);
   };
 
@@ -461,10 +461,30 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
   // Define display scale factor
   const displayScaleFactor = 0.3;
-  
+
   // Calculate container dimensions
   const containerWidth = artboard.size.width * displayScaleFactor;
   const containerHeight = artboard.size.height * displayScaleFactor;
+
+  // How much of a screen pixel one artboard pixel is worth right now: the 0.3
+  // display scale times every canvas zoom transform stacked above this board.
+  // Measured rather than derived, because the canvas applies its zoom in more
+  // than one place and a drag handle sized off a stale guess is a handle a
+  // finger cannot hit. Re-measured whenever the zoom or the window changes;
+  // ResizeObserver is no use here, since a CSS transform leaves the layout box
+  // exactly as it was.
+  const [screenScale, setScreenScale] = useState(displayScaleFactor);
+  useEffect(() => {
+    const measure = () => {
+      const node = artboardDivRef.current;
+      if (!node || artboard.size.width <= 0) return;
+      const width = node.getBoundingClientRect().width;
+      if (width > 0) setScreenScale(width / artboard.size.width);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [globalZoom, artboard.size.width, artboard.zoom]);
 
   return (
     <div className="relative mt-4" suppressHydrationWarning>
@@ -548,6 +568,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
               onUpdateElement={handleUpdateElement}
               onDeleteElement={handleDeleteElement}
               artboardZoom={artboard.zoom}
+              screenScale={screenScale}
               boundary={{width: artboard.size.width, height: artboard.size.height}}
             >
               {element.type === 'text' && (

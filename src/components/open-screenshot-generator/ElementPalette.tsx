@@ -1,6 +1,6 @@
 "use client";
 import type React from 'react';
-import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { createContext, memo, useCallback, useContext, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -54,6 +54,7 @@ import {
   type ColoredDeviceTileDef,
 } from '@/lib/device3dPresets';
 import { withBasePath } from '@/lib/basePath';
+import { useTouchDrag, type TouchDragBinding } from '@/hooks/use-touch-drag';
 import {
   basicLibraryId,
   coloredDeviceLibraryId,
@@ -71,6 +72,28 @@ type PaletteDragStart = (
   styleProps?: Record<string, any>,
   libraryId?: string
 ) => void;
+
+/** What a tile carries onto a board, whether by mouse drag, tap or finger drag. */
+export interface PaletteTilePayload {
+  label: string;
+  type: ElementType;
+  subType?: ShapeType | DeviceType;
+  styleProps?: Record<string, any>;
+  libraryId?: string;
+}
+
+/**
+ * Touch-drag handlers for a tile, supplied through context so all six kinds of
+ * tile pick them up without another prop threaded through forty call sites.
+ * Null on a mouse-only render path (nothing breaks; tiles just keep the native
+ * HTML5 drag and the tap fallback).
+ */
+const TileTouchDragContext = createContext<((payload: PaletteTilePayload) => TouchDragBinding) | null>(null);
+
+function useTileTouchDrag(payload: PaletteTilePayload) {
+  const bind = useContext(TileTouchDragContext);
+  return bind ? bind(payload) : {};
+}
 
 /**
  * Hover card for a palette tile: what it is, plus the library id the element
@@ -108,6 +131,7 @@ const Device3DThumbTile: React.FC<{
       draggable
       onDragStart={(e) => onDragStart(e, 'device', deviceType, styleProps, libraryId)}
       onClick={() => (onDragStart as any)(null, 'device', deviceType, styleProps, libraryId)}
+      {...useTileTouchDrag({ label, type: 'device', subType: deviceType, styleProps, libraryId })}
       aria-label={`${title} (${libraryId})`}
     >
       <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-1.5 overflow-hidden">
@@ -191,6 +215,7 @@ const ColoredDeviceTile: React.FC<{ def: ColoredDeviceTileDef; onDragStart: Pale
         draggable
         onDragStart={(e) => onDragStart(e, 'device', def.device, styleProps, libraryId)}
         onClick={() => (onDragStart as any)(null, 'device', def.device, styleProps, libraryId)}
+        {...useTileTouchDrag({ label: def.label, type: 'device', subType: def.device, styleProps, libraryId })}
         aria-label={`${title} (${libraryId})`}
       >
         <span className="w-full aspect-square rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
@@ -222,6 +247,7 @@ const ImageLibraryTile: React.FC<{
         draggable
         onDragStart={(e) => onDragStart(e, 'image', undefined, styleProps, libraryId)}
         onClick={() => (onDragStart as any)(null, 'image', undefined, styleProps, libraryId)}
+        {...useTileTouchDrag({ label: item.label, type: 'image', styleProps, libraryId })}
         aria-label={`Add ${item.label} (${libraryId})`}
       >
         <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
@@ -235,6 +261,17 @@ const ImageLibraryTile: React.FC<{
 
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
+  /**
+   * A tile dragged with a finger and let go over the canvas. The point is in
+   * client coordinates; the layout works out which board is under it. Absent on
+   * a mouse-only host, where the HTML5 drop path covers this.
+   */
+  onDropElement?: (
+    type: ElementType,
+    subType: ShapeType | DeviceType | undefined,
+    styleProps: Record<string, any> | undefined,
+    point: { x: number; y: number }
+  ) => void;
 }
 
 /**
@@ -333,6 +370,7 @@ const DraggableItem: React.FC<{
         draggable
         onDragStart={(e) => onDragStart(e, type, subType, styleProps, libraryId)}
         onClick={() => (onDragStart as any)(null, type, subType, styleProps, libraryId)} // Fallback for click
+        {...useTileTouchDrag({ label, type, subType, styleProps, libraryId })}
         aria-label={`Add ${label} (${libraryId})`}
       >
         <div className="flex flex-col items-center text-center w-full">
@@ -380,6 +418,7 @@ const LibraryItemTile: React.FC<{
         draggable
         onDragStart={(e) => onDragStart(e, 'shape', 'custom-svg', item.styleProps, libraryId)}
         onClick={() => (onDragStart as any)(null, 'shape', 'custom-svg', item.styleProps, libraryId)}
+        {...useTileTouchDrag({ label: item.label, type: 'shape', subType: 'custom-svg', styleProps: item.styleProps, libraryId })}
         aria-label={`Add ${item.label} (${libraryId})`}
       >
         <ElementPreview item={item} className="w-full h-full" />
@@ -412,7 +451,7 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
  * nothing in it depends on canvas state, so it must not rebuild every time the
  * layout re-renders. Pass a stable `onAddElement` or the memo does nothing.
  */
-export const ElementPalette = memo(function ElementPalette({ onAddElement }: ElementPaletteProps) {
+export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement }: ElementPaletteProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
 
@@ -471,8 +510,26 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement }: Ele
     }
   };
 
+  // Finger drags. A tile held for a moment lifts out of the palette and follows
+  // the finger; letting go over a board drops the element there, exactly where
+  // a mouse drag would have put it.
+  const handleTouchDrop = useCallback(
+    (payload: PaletteTilePayload, point: { x: number; y: number }) => {
+      const props = payload.libraryId ? { ...payload.styleProps, libraryId: payload.libraryId } : payload.styleProps;
+      if (onDropElement) {
+        onDropElement(payload.type, payload.subType, props, point);
+      } else {
+        onAddElement(payload.type, payload.subType, props);
+      }
+    },
+    [onAddElement, onDropElement]
+  );
+  const { bind: bindTileTouchDrag, ghostNode } = useTouchDrag<PaletteTilePayload>({ onDrop: handleTouchDrop });
+
   return (
+    <TileTouchDragContext.Provider value={bindTileTouchDrag}>
     <TooltipProvider delayDuration={200}>
+    {ghostNode}
     <div className="h-full flex flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
         <TabsList className="grid w-[95%] grid-cols-3 mx-auto mt-2 h-auto p-0.5">
@@ -928,5 +985,6 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement }: Ele
       </Tabs>
     </div>
     </TooltipProvider>
+    </TileTouchDragContext.Provider>
   );
 });

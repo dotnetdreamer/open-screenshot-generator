@@ -30,6 +30,7 @@ import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } fro
 import { findMatchingPreset } from '@/lib/sizePresets';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface ToolbarProps {
   onSelectTemplate: () => void;
@@ -108,12 +109,28 @@ export function Toolbar({
   // ProjectNameField.tsx, rendered from OpenScreenshotGeneratorLayout.
 
   return (
-    <div className={cn("h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2", className)}>
+    // Below md the row scrolls sideways instead of squashing: every control
+    // stays reachable with a swipe, which beats hiding half of them behind a
+    // "more" menu on the one screen size where the toolbar is the only chrome
+    // that is always visible. `shrink-0` on each item is what makes it scroll
+    // rather than compress.
+    <div
+      className={cn(
+        "h-14 bg-card border-b shadow-sm flex items-center px-4 space-x-2",
+        "overflow-x-auto overflow-y-hidden lg:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        className
+      )}
+    >
+      {/* The palette is off-canvas on a phone (the sidebar turns into a sheet
+          below md), so it needs a way back in. On desktop the sidebar has its
+          own rail and this would be a second control for the same thing. */}
+      <SidebarTrigger className="h-9 w-9 shrink-0 lg:hidden" title="Open elements palette" />
+
       {/* Adding an artboard lives on the artboard itself ("Add New Artboard
           After" in its hover toolbar), which is also where the new board ends
           up. A project can never reach zero artboards, since deleting the last
           one is refused, so that affordance is always reachable. */}
-      <div className="flex items-center space-x-2">
+      <div className="flex shrink-0 items-center space-x-2">
         <Button
           variant="outline"
           size="icon"
@@ -124,7 +141,7 @@ export function Toolbar({
         </Button>
       </div>
 
-      <div className="h-8 w-px bg-muted mx-2" />
+      <div className="h-8 w-px shrink-0 bg-muted mx-2" />
 
       {/* The select and pan tools and the undo/redo pair live in the floating
           bar centered at the bottom of the canvas now, next to the work they
@@ -140,7 +157,7 @@ export function Toolbar({
           content by default; its checkbox can opt out to the raw resize. */}
       <Button
         variant="outline"
-        className="h-9 gap-1.5 px-3"
+        className="h-9 shrink-0 gap-1.5 px-3"
         onClick={() => setIsSizeDialogOpen(true)}
         title={
           matchedSizePreset
@@ -174,7 +191,7 @@ export function Toolbar({
           and clip it. When the row runs out of room the give comes from the
           canvas-size button's truncating preset label, since every button to
           the right of here is shrink-0. */}
-      <div className="flex flex-grow items-center gap-2">
+      <div className="flex shrink-0 flex-grow items-center gap-2">
         {artboards && onSelectLocale && onManageLanguages && onOpenTranslations && onUpdateTranslations && (
           <LanguageSwitcher
             artboards={artboards}

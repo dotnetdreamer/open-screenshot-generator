@@ -14,8 +14,8 @@ export function Logo({ className, withBackground = false }: LogoProps) {
   const detail = withBackground ? "fill-white" : "fill-primary";
   // The gradient id must be unique per instance: url(#...) resolves to the
   // first matching id in the document, and if that copy sits in a
-  // display:none subtree (the MobileNotice overlay on desktop) the gradient
-  // paints nothing and the background disappears.
+  // display:none subtree the gradient paints nothing and the background
+  // disappears.
   const gradientId = `as-logo-bg-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
 
   return (

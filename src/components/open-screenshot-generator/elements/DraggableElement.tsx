@@ -4,15 +4,22 @@ import { useState, useEffect, useRef } from 'react';
 import { RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { elementVisualStyle } from '@/lib/elementStyle';
+import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import type { ArtboardElement, Point, Size } from '@/types/artboard';
 
 interface DraggableElementProps {
   element: ArtboardElement;
   isSelected: boolean;
-  onSelect: (elementId: string, e: React.MouseEvent) => void;
+  onSelect: (elementId: string, e: React.PointerEvent) => void;
   onUpdateElement: (element: ArtboardElement) => void;
   onDeleteElement: (elementId: string) => void;
   artboardZoom: number;
+  /**
+   * How many screen pixels one artboard pixel currently occupies (the 0.3
+   * display scale times every canvas zoom above it). Only used to keep the drag
+   * handles a finger-sized target on touch; 0 while it is still unmeasured.
+   */
+  screenScale?: number;
   boundary: { width: number; height: number };
   children: React.ReactNode;
 }
@@ -20,6 +27,19 @@ interface DraggableElementProps {
 const HANDLE_SIZE_BASE = 10;
 const HANDLE_OFFSET = -HANDLE_SIZE_BASE / 2;
 const MIN_DISPLAY_SIZE = 20;
+
+// What a handle should measure on screen for a finger. A mouse aims at a 9px
+// dot happily; a fingertip covers about 8mm, so anything under ~34px is a
+// coin toss between "resize" and "rotate".
+const TOUCH_HANDLE_PX = 34;
+
+// Two taps closer together than this, and landing within a fingertip of each
+// other, are one double-tap. Touch browsers do not reliably synthesise dblclick
+// once a canvas takes over the pointer, so the gesture is detected here and
+// replayed as a real dblclick on the node the finger landed on, which is how
+// double-tapping a text box still opens its editor.
+const DOUBLE_TAP_MS = 320;
+const DOUBLE_TAP_SLOP_PX = 24;
 
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
@@ -29,7 +49,10 @@ const DISPLAY_SCALE_FACTOR = 0.3; // 30% of original size
 // A press has to travel this far on screen before it counts as a drag. Below
 // it the press is only a selection, so a twitchy mouse can no longer leave an
 // element rotated by a degree or nudged by a pixel on what was meant as a click.
+// A fingertip rolls further than a mouse sits still, so touch gets more room
+// before a tap is read as a drag.
 const DRAG_THRESHOLD_PX = 3;
+const TOUCH_DRAG_THRESHOLD_PX = 8;
 
 // Holding Shift while rotating lands on clean angles (and back on 0) instead of
 // creeping one degree at a time.
@@ -53,14 +76,14 @@ const ROTATE_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(ROTATE_CURSO
 const HandleComponent: React.FC<{
   positionStyle: React.CSSProperties;
   visualScale: number;
-  onMouseDown: (e: React.MouseEvent) => void;
-  onClick?: (e: React.MouseEvent) => void;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerUp?: (e: React.PointerEvent) => void;
   title: string;
   cursor: string;
   children?: React.ReactNode;
   className?: string;
   isCorner?: boolean;
-}> = ({ positionStyle, visualScale, onMouseDown, onClick, title, cursor, children, className, isCorner = false }) => (
+}> = ({ positionStyle, visualScale, onPointerDown, onPointerUp, title, cursor, children, className, isCorner = false }) => (
   <div
     data-interaction-handle
     data-export-exclude
@@ -74,10 +97,13 @@ const HandleComponent: React.FC<{
       height: `${HANDLE_SIZE_BASE}px`,
       transform: `scale(${visualScale})`,
       cursor: cursor,
+      // A handle is never a scroll surface. Without this the browser claims the
+      // gesture the moment the finger moves and cancels the resize mid-drag.
+      touchAction: 'none',
       ...positionStyle,
     }}
-    onMouseDown={onMouseDown}
-    onClick={onClick}
+    onPointerDown={onPointerDown}
+    onPointerUp={onPointerUp}
     title={title}
   >
     {children}
@@ -91,9 +117,11 @@ export function DraggableElement({
   onUpdateElement,
   onDeleteElement,
   artboardZoom,
+  screenScale = 0,
   boundary,
   children
 }: DraggableElementProps) {
+  const coarsePointer = useCoarsePointer();
   const [position, setPosition] = useState<Point>(element.position);
   const [currentSize, setCurrentSize] = useState<Size>(element.size); 
   const [currentRotation, setCurrentRotation] = useState<number>(element.rotation);
@@ -111,6 +139,7 @@ export function DraggableElement({
     handleType?: HandleType;
     screenX: number;
     screenY: number;
+    pointerId: number;
   } | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
   // Flipped once the press has travelled DRAG_THRESHOLD_PX. A ref, not state,
@@ -127,6 +156,11 @@ export function DraggableElement({
     rotation: element.rotation,
     scale: element.scale,
   });
+  // When and where the previous tap landed, for the double-tap replay below.
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  // Set when a press started on the delete handle, so releasing over it deletes
+  // but a press that began elsewhere and drifted onto it does not.
+  const deletePressRef = useRef<number | null>(null);
 
   useEffect(() => {
     setPosition(element.position);
@@ -141,7 +175,7 @@ export function DraggableElement({
     };
   }, [element.id, element.position, element.size, element.rotation, element.scale]);
 
-  const getMousePositionInArtboardSpace = (e: MouseEvent | React.MouseEvent): Point => {
+  const getMousePositionInArtboardSpace = (e: { clientX: number; clientY: number }): Point => {
     const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
@@ -167,12 +201,16 @@ export function DraggableElement({
 
 
   const handleInteractionStart = (
-    e: React.MouseEvent,
+    e: React.PointerEvent,
     mode: 'move' | 'rotate' | 'scale' | 'resize',
     handleType?: HandleType
   ) => {
-    // Only the left button drags; right-click opens the context menu instead
+    // Only the left button drags; right-click opens the context menu instead.
+    // A finger and a pen both report button 0, so this reads the same for them.
     if (e.button !== 0) return;
+    // A second finger landing mid-drag is a pinch on its way to the canvas, not
+    // a second element drag. Leave the first one running and ignore this press.
+    if (interactionMode) return;
     // preventDefault below suppresses the browser's native focus transfer,
     // which would otherwise blur (and thereby commit) an in-progress edit in
     // a side-panel input — e.g. the text Content field. Blur it explicitly
@@ -221,20 +259,67 @@ export function DraggableElement({
       handleType: handleType,
       screenX: e.clientX,
       screenY: e.clientY,
+      pointerId: e.pointerId,
     });
   };
 
+  /**
+   * Replays a double-tap as a real dblclick on whatever is under the finger.
+   * Touch browsers stop synthesising one once pointerdown is prevented (which
+   * dragging requires), and everything that opens on a double-click — the text
+   * editor above all — listens for dblclick and nothing else.
+   */
+  const handleTapForDoubleTap = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse') return; // desktop still gets the native event
+    if (dragArmedRef.current) return; // that was a drag, not a tap
+    if ((e.target as HTMLElement).closest('[data-interaction-handle]')) return;
+
+    const previous = lastTapRef.current;
+    const isDoubleTap =
+      !!previous &&
+      e.timeStamp - previous.time < DOUBLE_TAP_MS &&
+      Math.abs(e.clientX - previous.x) < DOUBLE_TAP_SLOP_PX &&
+      Math.abs(e.clientY - previous.y) < DOUBLE_TAP_SLOP_PX;
+
+    if (!isDoubleTap) {
+      lastTapRef.current = { time: e.timeStamp, x: e.clientX, y: e.clientY };
+      return;
+    }
+
+    lastTapRef.current = null;
+    // The node the finger actually landed on, not whatever elementFromPoint
+    // answers now: the press put this element into a move interaction, which
+    // turns off pointer events on the artwork inside it, so a fresh hit test
+    // would return this wrapper and the replayed event would never reach the
+    // text box that listens for it. A touch pointer keeps its original target
+    // for the whole gesture (implicit capture), which is exactly what is wanted.
+    const target = e.target as HTMLElement;
+    target?.dispatchEvent(
+      new MouseEvent('dblclick', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: e.clientX,
+        clientY: e.clientY,
+      })
+    );
+  };
+
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       if (!interactionMode || !interactionStart || !elementRef.current) return;
+      // One pointer owns the drag. A second finger arriving on the canvas (to
+      // pinch or to scroll) must not also steer the element.
+      if (e.pointerId !== interactionStart.pointerId) return;
       e.preventDefault();
 
       // Swallow the first few pixels. A click that only means "select this" no
       // longer commits a stray rotation or a one-pixel move on the way up.
       if (!dragArmedRef.current) {
+        const threshold = e.pointerType === 'mouse' ? DRAG_THRESHOLD_PX : TOUCH_DRAG_THRESHOLD_PX;
         if (
-          Math.abs(e.clientX - interactionStart.screenX) < DRAG_THRESHOLD_PX &&
-          Math.abs(e.clientY - interactionStart.screenY) < DRAG_THRESHOLD_PX
+          Math.abs(e.clientX - interactionStart.screenX) < threshold &&
+          Math.abs(e.clientY - interactionStart.screenY) < threshold
         ) {
           return;
         }
@@ -362,8 +447,9 @@ export function DraggableElement({
       setCurrentRotation(newRotation);
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = (e: PointerEvent) => {
       if (!interactionMode || !interactionStart) return;
+      if (e.pointerId !== interactionStart.pointerId) return;
 
       const live = latestRef.current;
       // Only update if there was actually a change
@@ -384,13 +470,25 @@ export function DraggableElement({
 
       setInteractionMode(null);
       setInteractionStart(null);
+      // Cleared after the element's own onPointerUp has run: that handler reads
+      // this flag to tell a tap from the end of a drag (React dispatches from
+      // its root container, i.e. before this document listener).
       dragArmedRef.current = false;
       document.body.style.cursor = 'default';
     };
 
+    // The OS took the gesture away (a system edge swipe, a phone call, the
+    // browser deciding the touch was a scroll after all). Keep whatever the
+    // drag had reached rather than dropping the element mid-air.
+    const handlePointerCancel = (e: PointerEvent) => {
+      if (!interactionStart || e.pointerId !== interactionStart.pointerId) return;
+      handlePointerUp(e);
+    };
+
     if (interactionMode) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('pointermove', handlePointerMove);
+      document.addEventListener('pointerup', handlePointerUp);
+      document.addEventListener('pointercancel', handlePointerCancel);
       let cursor = 'default';
       if (interactionMode === 'move') cursor = 'grabbing';
       else if (interactionMode === 'rotate') cursor = 'grabbing'; 
@@ -407,8 +505,9 @@ export function DraggableElement({
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointercancel', handlePointerCancel);
       if (document.body.style.cursor !== 'default' && !interactionMode) {
         document.body.style.cursor = 'default';
       }
@@ -425,8 +524,17 @@ export function DraggableElement({
   };
 
   // Adjust handle sizes to be visible at small scale
-  const handleVisualScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
-  const outlineThickness = Math.max(1, 3 * handleVisualScale);
+  const mouseHandleScale = 3 / artboardZoom; // Increase from 1 to 3 to make handles more visible
+  // On a touch screen the same handle has to be aimed at with a fingertip, so
+  // it is grown to a fixed size *on screen*: the artboard is drawn at 0.3 times
+  // its own pixels and then again at the canvas zoom, so the multiplier has to
+  // undo whatever that composite scale currently is. Never smaller than the
+  // mouse size, so zooming right in does not shrink the grips.
+  const handleVisualScale =
+    coarsePointer && screenScale > 0
+      ? Math.max(mouseHandleScale, TOUCH_HANDLE_PX / (HANDLE_SIZE_BASE * screenScale))
+      : mouseHandleScale;
+  const outlineThickness = Math.max(1, 3 * mouseHandleScale);
 
   // A handle's layout box is HANDLE_SIZE_BASE, but it is drawn — and hit-tested
   // — at handleVisualScale about its own centre, so this is what it actually
@@ -458,16 +566,25 @@ export function DraggableElement({
         transformOrigin: 'center center',
         cursor: isSelected && interactionMode === null ? 'grab' : (interactionMode ? document.body.style.cursor : 'pointer'),
         boxSizing: 'border-box',
+        // A selected element is a drag surface, so the browser must not claim
+        // the touch for scrolling. An unselected one is not: a finger dragged
+        // across it scrolls the canvas as it would over any other artwork, and
+        // the first tap is what makes it draggable.
+        touchAction: isSelected ? 'none' : 'auto',
       }}
-      onMouseDown={(e) => {
+      onPointerDown={(e) => {
         if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
           e.stopPropagation(); // Prevent event from bubbling to artboard
           if (isSelected) {
             handleInteractionStart(e, 'move');
           } else {
-            onSelect(element.id, e); 
+            onSelect(element.id, e);
           }
         }
+      }}
+      onPointerUp={(e) => {
+        handleTapForDoubleTap(e);
+        dragArmedRef.current = false;
       }}
       data-element-id={element.id}
       className="group" 
@@ -542,7 +659,7 @@ export function DraggableElement({
                 key={corner}
                 positionStyle={posStyle}
                 visualScale={handleVisualScale}
-                onMouseDown={(e) => handleInteractionStart(e, 'scale', corner)}
+                onPointerDown={(e) => handleInteractionStart(e, 'scale', corner)}
                 title="Scale Proportional"
                 cursor={cursor}
                 className="bg-primary rounded-full"
@@ -564,7 +681,7 @@ export function DraggableElement({
                 key={edge}
                 positionStyle={posStyle}
                 visualScale={handleVisualScale}
-                onMouseDown={(e) => handleInteractionStart(e, 'resize', edge)}
+                onPointerDown={(e) => handleInteractionStart(e, 'resize', edge)}
                 title="Resize"
                 cursor={cursor}
                 className="rounded-sm"
@@ -594,7 +711,7 @@ export function DraggableElement({
               left: `calc(50% - ${HANDLE_SIZE_BASE/2}px)`,
             }}
             visualScale={handleVisualScale}
-            onMouseDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
+            onPointerDown={(e) => handleInteractionStart(e, 'rotate', 'rotate')}
             title="Rotate (hold Shift to snap to 15°)"
             cursor={ROTATE_CURSOR}
             className="rounded-full"
@@ -608,15 +725,21 @@ export function DraggableElement({
                 right: `${satelliteOffset}px`,
              }}
              visualScale={handleVisualScale}
-             // Deleting fired on mousedown, so a press that slipped onto this
+             // Deleting fired on the press, so a press that slipped onto this
              // handle removed the element before the button came back up.
-             // Swallow the press, act on the completed click.
-             onMouseDown={(e) => {
+             // Swallow the press, act on the release. Not onClick: preventing
+             // the pointerdown (which every other handle here needs) is exactly
+             // what stops a touch browser synthesising the click afterwards, so
+             // the release is the only event both a mouse and a finger send.
+             onPointerDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                deletePressRef.current = e.pointerId;
              }}
-             onClick={(e) => {
+             onPointerUp={(e) => {
                 e.stopPropagation();
+                if (deletePressRef.current !== e.pointerId) return;
+                deletePressRef.current = null;
                 onDeleteElement(element.id);
              }}
              title="Delete Element"

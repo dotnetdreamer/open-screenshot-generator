@@ -145,7 +145,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
                     borderRadius: `${effectiveWidth * 0.025}px`,
                   }}
                   onClick={() => videoInputRef.current?.click()}
-                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
                 >
                   <UploadCloudIcon className="mr-1.5" style={{ width: '1em', height: '1em' }} />
                   Upload Recording
@@ -155,6 +155,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
             {isSelected && element.mediaId && (
               <div
                 data-export-exclude
+                data-touch-reveal
                 className="absolute inset-0 flex items-center justify-center bg-black/25 opacity-0 hover:opacity-100 transition-opacity"
                 style={{ zIndex: 5 }}
               >
@@ -167,7 +168,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
                     borderRadius: `${effectiveWidth * 0.025}px`,
                   }}
                   onClick={() => videoInputRef.current?.click()}
-                  onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
                 >
                   Change Recording
                 </Button>

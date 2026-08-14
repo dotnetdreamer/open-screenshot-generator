@@ -437,18 +437,44 @@ html {
 }
 
 
-/* MobileNotice overlay gate: phone-sized viewport AND a coarse pointer, so a
-   desktop browser window snapped narrow never sees it. Dismissal is honored
-   before hydration via the data attribute the inline script in layout.tsx
-   stamps on <html> from sessionStorage. */
-.mobile-notice-overlay {
-  display: none;
+/* ---- Touch input (phones, tablets) ----
+   The canvas is a direct-manipulation surface: a finger on a selected element
+   drags it, a finger on the background scrolls the canvas. The rules below keep
+   the browser's own touch behaviours (tap highlight, text selection, the
+   callout menu) out of the way of that. Gated on a coarse pointer so a
+   touchscreen laptop driven with a mouse keeps the desktop behaviour. */
+@media (pointer: coarse) {
+  /* A drag that starts on an element must not also select the text under it or
+     flash a grey box over it. Inputs keep their native selection so the inline
+     text editor still works. */
+  .artboard,
+  .artboard * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  .artboard :not(input):not(textarea) {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Overlay controls that only appear on hover are unreachable with a finger:
+     no hover ever arrives. Their wrappers only render while the element is
+     selected, which is the touch equivalent, so show them outright. Each site
+     opts in with data-touch-reveal. */
+  [data-touch-reveal] {
+    opacity: 1;
+  }
 }
-@media (max-width: 767px) and (pointer: coarse) {
-  .mobile-notice-overlay {
-    display: flex;
-  }
-  html[data-mobile-notice-dismissed] .mobile-notice-overlay {
-    display: none;
-  }
+
+/* A palette tile being dragged with a finger (see hooks/use-touch-drag.tsx).
+   On a phone the palette is a sheet covering the canvas, and the board has to
+   be both visible and hit-testable for the drop to mean anything. Closing the
+   sheet is not an option: Radix unmounts its content, which would take the
+   drag's own listeners with it. So the sheet stays mounted and gets out of the
+   way instead, and comes back the moment the finger lifts. */
+html.palette-dragging [data-sheet-overlay],
+html.palette-dragging [data-sidebar="sidebar"][data-mobile="true"] {
+  opacity: 0.1;
+  pointer-events: none;
+  transition: opacity 120ms ease;
 }

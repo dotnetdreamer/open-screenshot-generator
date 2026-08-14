@@ -53,6 +53,13 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 17. shadcn/Radix + Tailwind, `lucide-react` icons, semantic tokens from [globals.css](../src/app/globals.css), not raw colors. Dark mode is configured but never activated.
 18. **No em dashes and no en dashes** in anything a user reads. Use a comma, a period, a colon, or "to". No trailing period on short UI copy.
 
+**Input**
+
+19. Canvas interactions are **pointer** events, never mouse events: phones and iPads are supported and a finger fires no `mousedown`. That includes the guards, `onPointerDown={e => e.stopPropagation()}` on a control inside an element, never `onMouseDown`. Anything that must survive a drag needs `touch-action: none` on the thing being dragged, or the browser cancels the gesture to scroll.
+20. A finger never hovers and never right-clicks. Hover-only affordances get `data-touch-reveal` (shown outright on a coarse pointer, see globals.css); the context menu also opens on a long press ([OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx)); double-click is replayed from a double-tap by [DraggableElement.tsx](../src/components/open-screenshot-generator/elements/DraggableElement.tsx).
+21. HTML5 drag and drop (`draggable`, `dataTransfer`) does not fire for touch at all. Palette tiles carry both: the native drag for a mouse, and a long-press drag ([use-touch-drag.tsx](../src/hooks/use-touch-drag.tsx)) for a finger. A new draggable source needs both.
+22. The canvas scroll extents are stated in pixels in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx), because the board layer is sized by a CSS transform and a transform contributes nothing to a scroll extent. Change how boards are laid out and `contentExtent` has to follow, or the canvas silently stops scrolling to the last board.
+
 ## Commands
 
 | Command | Note |

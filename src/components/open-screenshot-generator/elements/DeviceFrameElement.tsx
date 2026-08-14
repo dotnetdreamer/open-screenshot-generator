@@ -380,7 +380,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   borderRadius: `${effectiveWidth * 0.025}px`,
                 }}
                 onClick={() => triggerFileUpload('screenshot')}
-                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
               >
                 Upload Screenshot
               </Button>
@@ -487,7 +487,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                       borderRadius: `${effectiveWidth * 0.025}px`,
                     }}
                     onClick={() => triggerFileUpload('screenshot')}
-                    onMouseDown={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
                   >
                     Upload Screenshot
                   </Button>

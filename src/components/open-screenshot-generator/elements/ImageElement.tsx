@@ -126,13 +126,18 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
             onLoadingComplete={() => setIsLoading(false)}
             draggable={false}
           />
+          {/* data-touch-reveal: there is no hover on a touch screen, so this
+              overlay shows outright once the element is selected (globals.css). */}
           {isSelected && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+            <div
+              data-touch-reveal
+              className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity"
+            >
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={triggerFileUpload}
-                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="text-xs bg-background/90 hover:bg-background"
               >
                 <UploadCloudIcon className="w-3 h-3 mr-1" />
@@ -151,7 +156,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
               size="sm"
               className="mt-2 text-xs bg-background/80 hover:bg-background"
               onClick={triggerFileUpload}
-              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
             >
               <UploadCloudIcon className="w-3 h-3 mr-1" />
               Upload Image

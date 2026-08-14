@@ -81,13 +81,19 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
             }}
             draggable={false}
           />
+          {/* data-touch-reveal: a finger never hovers, so this overlay shows as
+              soon as the element is selected (globals.css). */}
           {isSelected && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity" data-export-exclude>
+            <div
+              data-touch-reveal
+              className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity"
+              data-export-exclude
+            >
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={triggerFileUpload}
-                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
                 className="text-xs bg-background/90 hover:bg-background"
               >
                 <UploadCloudIcon className="w-3 h-3 mr-1" />
@@ -108,7 +114,7 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
               size="sm"
               className="mt-2 text-xs bg-background/80 hover:bg-background"
               onClick={triggerFileUpload}
-              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
             >
               <UploadCloudIcon className="w-3 h-3 mr-1" />
               Upload Recording

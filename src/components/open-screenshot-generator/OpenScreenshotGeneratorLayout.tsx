@@ -108,7 +108,7 @@ import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronLeftIcon, CopyIcon, HandIcon, InfoIcon, LightbulbIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronLeftIcon, CopyIcon, HandIcon, InfoIcon, LightbulbIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -141,6 +141,7 @@ import { LoadStatusBar } from './LoadStatusBar';
 import { LocalFontNotice } from './LocalFontNotice';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
   DialogContent,
@@ -176,6 +177,10 @@ import { cn } from '@/lib/utils';
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
 const DISPLAY_SCALE_FACTOR = 0.3;
+// A finger held this still, this long, opens the canvas context menu (the
+// gesture that stands in for a right-click on a touch screen).
+const LONG_PRESS_MS = 550;
+const LONG_PRESS_SLOP_PX = 10;
 
 // Right dock (Properties + Layers) persistence. localStorage so the layout
 // survives an app relaunch, not just a reload.
@@ -183,6 +188,11 @@ const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
 const RIGHT_DOCK_LAYERS_HEIGHT_KEY = 'abs-right-dock-layers-height';
 const RIGHT_DOCK_TAB_KEY = 'abs-right-dock-tab';
 const LAYERS_SECTION_MIN = 120; // px, keeps the layers list usable
+// The dock is a bottom sheet on a phone and only 70% of a short screen tall, so
+// the layers list starts shorter there than the desktop split. A starting
+// height, not a cap: capping it is what made the divider look broken on touch,
+// since dragging changed the number and nothing moved.
+const MOBILE_LAYERS_SECTION_DEFAULT = 170; // px
 // How long the "that applied to every language" notice stays quiet after showing.
 // Long enough not to fire on every nudge of a drag, short enough that a user who
 // keeps making shared edits keeps being told.
@@ -698,6 +708,28 @@ export function OpenScreenshotGeneratorLayout() {
   const setRightDockOpen = (open: boolean) => {
     setIsRightDockOpen(open);
     try { window.localStorage.setItem(RIGHT_DOCK_OPEN_KEY, open ? '1' : '0'); } catch {}
+  };
+
+  // Phones get the same dock as a bottom sheet, and it starts closed: opening
+  // the editor onto a panel that covers most of the canvas would hide the work.
+  // Kept in its own state, and deliberately not persisted, so a phone visit
+  // never rewrites the docked-panel preference of the same person's desktop.
+  const isMobileViewport = useIsMobile();
+  const [isMobileDockOpen, setIsMobileDockOpen] = useState(false);
+  const dockOpen = isMobileViewport ? isMobileDockOpen : isRightDockOpen;
+  const setDockOpen = (open: boolean) => {
+    if (isMobileViewport) setIsMobileDockOpen(open);
+    else setRightDockOpen(open);
+  };
+
+  // Same split for the properties/layers divider: the sheet is much shorter
+  // than a desktop dock, so it keeps its own height, dragged the same way but
+  // never written back over the desktop preference.
+  const [mobileLayersHeight, setMobileLayersHeight] = useState(MOBILE_LAYERS_SECTION_DEFAULT);
+  const layersHeight = isMobileViewport ? mobileLayersHeight : layersSectionHeight;
+  const setLayersHeight = (height: number) => {
+    if (isMobileViewport) setMobileLayersHeight(height);
+    else setLayersSectionHeight(height);
   };
 
   const selectRightDockTab = (tab: 'properties' | 'history') => {
@@ -1671,6 +1703,35 @@ export function OpenScreenshotGeneratorLayout() {
     } else {
       toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
     }
+  }, [activeArtboardId, handleAddElementToArtboard, toast]);
+
+  /**
+   * A palette tile dragged with a finger and released over the canvas. The
+   * mouse path goes through the canvas's own drop handler; a finger drag has no
+   * drop event to listen for, so the board under the release point is looked up
+   * here. Released clear of every board, it still lands (centred on the active
+   * one) rather than silently doing nothing.
+   */
+  const handlePaletteDropElement = useCallback((
+    type: ElementType,
+    subType: ShapeType | DeviceType | undefined,
+    styleProps: Record<string, any> | undefined,
+    point: Point
+  ) => {
+    // elementsFromPoint, not elementFromPoint: on a phone the palette sheet is
+    // still mounted over the canvas (faded and click-through, but present), so
+    // the board can be the second or third thing under the finger.
+    const node = document
+      .elementsFromPoint(point.x, point.y)
+      .map((el) => el.closest('[data-artboard-dom-id]'))
+      .find((el): el is Element => !!el) ?? null;
+    const droppedOn = node?.getAttribute('data-artboard-dom-id') ?? null;
+    const artboardId = droppedOn ?? activeArtboardId;
+    if (!artboardId) {
+      toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
+      return;
+    }
+    handleAddElementToArtboard(artboardId, type, subType, droppedOn ? point : undefined, styleProps);
   }, [activeArtboardId, handleAddElementToArtboard, toast]);
 
   // Get the current size from the first artboard or any active artboard
@@ -3356,6 +3417,40 @@ export function OpenScreenshotGeneratorLayout() {
   // fields keep the native menu so text copy/paste still works) and open our
   // menu when the click lands in the canvas area. Right-clicking an element
   // selects it first, like every design tool.
+  const openCanvasContextMenu = useCallback((clientX: number, clientY: number, target: HTMLElement | null) => {
+    if (isPreviewOpen) return;
+    if (!target || !canvasContainerRef.current?.contains(target)) {
+      setContextMenu(null);
+      return;
+    }
+
+    const elementNode = target.closest('[data-element-id]');
+    const artboardNode = target.closest('[data-artboard-dom-id]');
+    const elementId = elementNode?.getAttribute('data-element-id') ?? null;
+    const artboardId = artboardNode?.getAttribute('data-artboard-dom-id') ?? null;
+
+    // Convert the click to artboard coordinates via the rendered size, which
+    // already includes the display scale and every ancestor zoom transform.
+    let pastePoint: Point | null = null;
+    if (artboardNode) {
+      const rect = artboardNode.getBoundingClientRect();
+      const originalWidth = Number(artboardNode.getAttribute('data-original-width'));
+      if (rect.width > 0 && originalWidth > 0) {
+        const renderedScale = rect.width / originalWidth;
+        pastePoint = {
+          x: (clientX - rect.left) / renderedScale,
+          y: (clientY - rect.top) / renderedScale,
+        };
+      }
+    }
+
+    if (artboardId) {
+      setActiveArtboardId(artboardId);
+      setSelectedElementIdOnActiveArtboard(elementId);
+    }
+    setContextMenu({ x: clientX, y: clientY, elementId, artboardId, pastePoint });
+  }, [isPreviewOpen]);
+
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -3367,43 +3462,71 @@ export function OpenScreenshotGeneratorLayout() {
         return;
       }
       e.preventDefault();
-
-      if (isPreviewOpen) return;
-      if (!canvasContainerRef.current?.contains(target)) {
-        setContextMenu(null);
-        return;
-      }
-
-      const elementNode = target.closest('[data-element-id]');
-      const artboardNode = target.closest('[data-artboard-dom-id]');
-      const elementId = elementNode?.getAttribute('data-element-id') ?? null;
-      const artboardId = artboardNode?.getAttribute('data-artboard-dom-id') ?? null;
-
-      // Convert the click to artboard coordinates via the rendered size, which
-      // already includes the display scale and every ancestor zoom transform.
-      let pastePoint: Point | null = null;
-      if (artboardNode) {
-        const rect = artboardNode.getBoundingClientRect();
-        const originalWidth = Number(artboardNode.getAttribute('data-original-width'));
-        if (rect.width > 0 && originalWidth > 0) {
-          const renderedScale = rect.width / originalWidth;
-          pastePoint = {
-            x: (e.clientX - rect.left) / renderedScale,
-            y: (e.clientY - rect.top) / renderedScale,
-          };
-        }
-      }
-
-      if (artboardId) {
-        setActiveArtboardId(artboardId);
-        setSelectedElementIdOnActiveArtboard(elementId);
-      }
-      setContextMenu({ x: e.clientX, y: e.clientY, elementId, artboardId, pastePoint });
+      openCanvasContextMenu(e.clientX, e.clientY, target);
     };
 
     document.addEventListener('contextmenu', handleContextMenu);
     return () => document.removeEventListener('contextmenu', handleContextMenu);
-  }, [isPreviewOpen]);
+  }, [openCanvasContextMenu]);
+
+  /**
+   * The touch way into that same menu. A finger has no right button, and iOS
+   * Safari does not fire `contextmenu` on a long press, so the press is timed
+   * here. Any movement (a scroll, a drag of the element under the finger) or a
+   * second finger (a pinch) calls it off, so this only fires on a press that
+   * really was a press and stayed put.
+   */
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
+
+    let timer: number | null = null;
+    let origin: { x: number; y: number; pointerId: number } | null = null;
+
+    const clear = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = null;
+      origin = null;
+    };
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse') return; // right-click already covers this
+      if (!e.isPrimary) { clear(); return; } // a second finger is a pinch
+      const target = e.target as HTMLElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      origin = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
+      timer = window.setTimeout(() => {
+        const held = origin;
+        clear();
+        if (held) openCanvasContextMenu(held.x, held.y, document.elementFromPoint(held.x, held.y) as HTMLElement | null);
+      }, LONG_PRESS_MS);
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!origin || e.pointerId !== origin.pointerId) return;
+      if (Math.abs(e.clientX - origin.x) > LONG_PRESS_SLOP_PX || Math.abs(e.clientY - origin.y) > LONG_PRESS_SLOP_PX) {
+        clear();
+      }
+    };
+
+    container.addEventListener('pointerdown', handlePointerDown);
+    container.addEventListener('pointermove', handlePointerMove);
+    container.addEventListener('pointerup', clear);
+    container.addEventListener('pointercancel', clear);
+    return () => {
+      clear();
+      container.removeEventListener('pointerdown', handlePointerDown);
+      container.removeEventListener('pointermove', handlePointerMove);
+      container.removeEventListener('pointerup', clear);
+      container.removeEventListener('pointercancel', clear);
+    };
+  }, [openCanvasContextMenu]);
   
   // Add keyboard shortcuts for copy and paste
   useEffect(() => {
@@ -4826,7 +4949,7 @@ const generateRandomProjectName = (): string => {
             </div>
           </SidebarHeader>
           <SidebarContent>
-            <ElementPalette onAddElement={handlePaletteAddElement} />
+            <ElementPalette onAddElement={handlePaletteAddElement} onDropElement={handlePaletteDropElement} />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
              <SidebarGroup className="p-0">
@@ -4942,6 +5065,7 @@ const generateRandomProjectName = (): string => {
                 selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
                 setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
                 canvasZoom={canvasZoom}
+                onZoomChange={setCanvasZoom}
                 artboardRefs={artboardRefs}
                 onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
                 onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
@@ -4954,8 +5078,10 @@ const generateRandomProjectName = (): string => {
               />
 
               {/* Floating bar (bottom-left of canvas): the project name, which
-                  used to sit in the top toolbar. */}
-              <div className="absolute bottom-4 left-4 z-40 flex items-center gap-2">
+                  used to sit in the top toolbar. Dropped on phones, where the
+                  bottom row has only enough width for the tools and the zoom
+                  pill; renaming stays available from the project list. */}
+              <div className="absolute bottom-4 left-4 z-40 hidden items-center gap-2 md:flex">
                 <ProjectNameField
                   currentProjectName={currentProjectName}
                   onRenameProject={handleRenameProject}
@@ -4968,7 +5094,10 @@ const generateRandomProjectName = (): string => {
                   sit with the canvas they act on. Undo and redo are two plain
                   buttons here rather than the dropdown they used to share:
                   the pill has the room, and one click beats two. */}
-              <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur">
+              {/* Centred on a desktop canvas; pushed to the left edge on a
+                  phone so it and the zoom pill share the bottom row instead of
+                  sitting on top of each other. */}
+              <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur max-md:left-3 max-md:translate-x-0">
                 <Button
                   variant={activeTool === 'select' ? 'secondary' : 'ghost'}
                   size="icon"
@@ -5046,7 +5175,12 @@ const generateRandomProjectName = (): string => {
                   </Button>
                 </div>
 
-                <McpServerStatus />
+                {/* Desktop app only, and it renders nothing on the web, but
+                    hide it below md anyway: that corner has to hold the zoom
+                    pill and the properties button on a phone. */}
+                <div className="hidden md:block">
+                  <McpServerStatus />
+                </div>
               </div>
 
               {contextMenu && (
@@ -5064,9 +5198,22 @@ const generateRandomProjectName = (): string => {
 
             {/* Right dock: Properties/History tabs on top, Layers below,
                 resizable split. Collapsed it becomes a slim vertical rail with
-                rotated labels (Android Studio tool-window style). */}
-            {isRightDockOpen ? (
-              <div className="flex h-full w-80 flex-shrink-0 flex-col border-l bg-card" data-export-exclude>
+                rotated labels (Android Studio tool-window style).
+
+                On a phone it is the same panel, moved: a 320px column beside a
+                390px screen would leave the canvas 70px wide, so below `md` it
+                lifts out of the row and covers the bottom of the canvas like a
+                sheet. No backdrop on purpose, so the element being edited stays
+                visible while its properties are changed. */}
+            {dockOpen ? (
+              <div
+                className={cn(
+                  "flex flex-col border-l bg-card",
+                  "h-full w-80 flex-shrink-0",
+                  "max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-50 max-lg:h-[70svh] max-lg:w-full max-lg:rounded-t-2xl max-lg:border max-lg:shadow-2xl"
+                )}
+                data-export-exclude
+              >
                 <Tabs
                   value={rightDockTab}
                   onValueChange={(value) => selectRightDockTab(value as 'properties' | 'history')}
@@ -5094,12 +5241,13 @@ const generateRandomProjectName = (): string => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 self-center"
-                    onClick={() => setRightDockOpen(false)}
+                    className="h-6 w-6 self-center max-lg:h-8 max-lg:w-8"
+                    onClick={() => setDockOpen(false)}
                     title="Collapse right panel"
                     aria-label="Collapse right panel"
                   >
-                    <PanelRightCloseIcon className="h-4 w-4" />
+                    <PanelRightCloseIcon className="h-4 w-4 max-lg:hidden" />
+                    <ChevronDownIcon className="hidden h-5 w-5 max-lg:block" />
                   </Button>
                 </div>
                 <div ref={dockContentRef} className="flex min-h-0 flex-1 flex-col">
@@ -5144,15 +5292,25 @@ const generateRandomProjectName = (): string => {
                     role="separator"
                     aria-orientation="horizontal"
                     title="Drag to resize"
-                    className="group relative h-2 shrink-0 cursor-row-resize touch-none border-y bg-muted/50 hover:bg-primary/15"
+                    // The bar stays 8px, which is all a cursor needs, but a
+                    // fingertip cannot aim at 8px. On a coarse pointer the
+                    // ::before spreads the hit area 12px above and below without
+                    // moving anything on screen; it is positioned, so it
+                    // hit-tests above the static panels either side. Gated on
+                    // the pointer, because those same 12px would be dead space
+                    // stolen from both panels for someone holding a mouse.
+                    className={cn(
+                      "group relative z-10 h-2 shrink-0 cursor-row-resize touch-none border-y bg-muted/50 hover:bg-primary/15",
+                      "[@media(pointer:coarse)]:before:absolute [@media(pointer:coarse)]:before:-inset-y-3 [@media(pointer:coarse)]:before:inset-x-0 [@media(pointer:coarse)]:before:content-['']"
+                    )}
                     onPointerDown={(e) => {
                       e.preventDefault();
                       e.currentTarget.setPointerCapture(e.pointerId);
                       dividerDragRef.current = {
                         pointerId: e.pointerId,
                         startY: e.clientY,
-                        startHeight: layersSectionHeight,
-                        lastHeight: layersSectionHeight,
+                        startHeight: layersHeight,
+                        lastHeight: layersHeight,
                       };
                     }}
                     onPointerMove={(e) => {
@@ -5164,12 +5322,15 @@ const generateRandomProjectName = (): string => {
                         Math.min(max, Math.max(LAYERS_SECTION_MIN, drag.startHeight + (drag.startY - e.clientY)))
                       );
                       drag.lastHeight = next;
-                      setLayersSectionHeight(next);
+                      setLayersHeight(next);
                     }}
                     onPointerUp={(e) => {
                       const drag = dividerDragRef.current;
                       if (!drag || drag.pointerId !== e.pointerId) return;
                       dividerDragRef.current = null;
+                      // The phone sheet's split is its own, so it is not saved
+                      // over the docked-panel height a desktop session set.
+                      if (isMobileViewport) return;
                       try { window.localStorage.setItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY, String(drag.lastHeight)); } catch {}
                     }}
                     onPointerCancel={() => {
@@ -5179,9 +5340,9 @@ const generateRandomProjectName = (): string => {
                     <div className="absolute left-1/2 top-1/2 h-0.5 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground/40 group-hover:bg-primary/60" />
                   </div>
                   {/* max-h keeps the properties form usable when a persisted
-                      height is taller than the current window allows */}
+                      height is taller than the current window allows. */}
                   <div
-                    style={{ height: layersSectionHeight }}
+                    style={{ height: layersHeight }}
                     className="max-h-[calc(100%-10rem)] shrink-0 overflow-hidden"
                   >
                     <LayersPanel
@@ -5200,41 +5361,56 @@ const generateRandomProjectName = (): string => {
                 </Tabs>
               </div>
             ) : (
-              <div
-                className="flex h-full w-9 flex-shrink-0 flex-col items-center gap-1 border-l bg-card py-1.5"
-                data-export-exclude
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => setRightDockOpen(true)}
-                  title="Expand right panel"
-                  aria-label="Expand right panel"
+              <>
+                <div
+                  className="hidden h-full w-9 flex-shrink-0 flex-col items-center gap-1 border-l bg-card py-1.5 lg:flex"
+                  data-export-exclude
                 >
-                  <PanelRightOpenIcon className="h-4 w-4" />
-                </Button>
-                <div className="mt-1 h-px w-5 bg-border" />
-                {([
-                  { label: 'Properties', tab: 'properties' as const },
-                  { label: 'History', tab: 'history' as const },
-                  { label: 'Layers', tab: null },
-                ]).map(({ label, tab }) => (
-                  <button
-                    key={label}
-                    type="button"
-                    className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                    style={{ writingMode: 'vertical-rl' }}
-                    onClick={() => {
-                      if (tab) selectRightDockTab(tab);
-                      setRightDockOpen(true);
-                    }}
-                    title={`Open ${label}`}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => setDockOpen(true)}
+                    title="Expand right panel"
+                    aria-label="Expand right panel"
                   >
-                    {label}
-                  </button>
-                ))}
-              </div>
+                    <PanelRightOpenIcon className="h-4 w-4" />
+                  </Button>
+                  <div className="mt-1 h-px w-5 bg-border" />
+                  {([
+                    { label: 'Properties', tab: 'properties' as const },
+                    { label: 'History', tab: 'history' as const },
+                    { label: 'Layers', tab: null },
+                  ]).map(({ label, tab }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      style={{ writingMode: 'vertical-rl' }}
+                      onClick={() => {
+                        if (tab) selectRightDockTab(tab);
+                        setDockOpen(true);
+                      }}
+                      title={`Open ${label}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* The phone stand-in for that rail: 36px of vertical labels is
+                    both wasted width on a 390px screen and a poor target. */}
+                <Button
+                  size="icon"
+                  className="fixed bottom-[4.5rem] right-3 z-40 h-12 w-12 rounded-full shadow-lg lg:hidden"
+                  onClick={() => setDockOpen(true)}
+                  title="Open properties"
+                  aria-label="Open properties"
+                  data-export-exclude
+                >
+                  <SlidersHorizontalIcon className="h-5 w-5" />
+                </Button>
+              </>
             )}
           </div>
 

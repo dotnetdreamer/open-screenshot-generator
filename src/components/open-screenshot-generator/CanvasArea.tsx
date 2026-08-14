@@ -1,6 +1,6 @@
 "use client";
 import type React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Artboard } from './Artboard';
 import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,6 +29,18 @@ export interface CanvasStructuralChange {
   added: ArtboardElement[];
   removedIds: string[];
 }
+
+/** Artboards are laid out, and drawn, at this fraction of their real pixels. */
+const DISPLAY_SCALE_FACTOR = 0.3;
+/** Matches ARTBOARD_MARGIN in the layout, which is where board positions start. */
+const BOARD_LAYER_MARGIN = 15;
+/** The hover toolbar above a board and its name label below it. */
+const BOARD_LABEL_ROOM = 90;
+/** Zoom range shared with the zoom pill in the layout. */
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 4;
+/** A pan has to travel this far before it swallows the click that ends it. */
+const PAN_CLICK_SLOP_PX = 3;
 
 /**
  * Applies a canvas structural change to the BASE board it came from, dropping
@@ -72,6 +84,11 @@ interface CanvasAreaProps {
   onTranslateArtboard?: (artboardId: string) => void;
   onExportArtboard?: (artboardId: string) => void;
   activeTool: 'select' | 'pan';
+  /**
+   * Set the canvas zoom. The parent owns it (the zoom pill reads the same
+   * value); this is what pinching two fingers on the canvas drives.
+   */
+  onZoomChange?: (zoom: number) => void;
   // While a project/template is still loading (Dexie read + artboard build),
   // the parent sets this so the canvas shows a stable skeleton instead of a
   // fake placeholder artboard. Artboard positioning is owned by the parent
@@ -102,6 +119,7 @@ export function CanvasArea({
     onTranslateArtboard,
     onExportArtboard,
     activeTool,
+    onZoomChange,
     isLoading = false,
     activeLocale = null,
 }: CanvasAreaProps) {
@@ -113,6 +131,8 @@ export function CanvasArea({
   const artboards = externalArtboards;
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   const contentAreaRef = useRef<HTMLDivElement>(null);
+  // The zoomed layer the boards actually sit in, measured by the pinch handler.
+  const boardLayerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // State for artboard deletion confirmation
@@ -120,11 +140,51 @@ export function CanvasArea({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [isPanning, setIsPanning] = useState(false);
-  const panStartCoords = useRef<{ x: number, y: number, scrollLeft: number, scrollTop: number } | null>(null);
+  const panStartCoords = useRef<{ pointerId: number, x: number, y: number, scrollLeft: number, scrollTop: number } | null>(null);
   // Set when a pan actually moved the canvas, so the release doesn't fire a
   // click on whatever happens to sit under the cursor (artboard toolbar
   // buttons, elements) after the drag.
   const suppressNextClick = useRef(false);
+  // The live pinch: two fingers on the canvas, zooming and panning together.
+  const pinchRef = useRef<{
+    startDistance: number;
+    startZoom: number;
+    /** The canvas point under the midpoint of the two fingers, kept pinned. */
+    anchor: Point;
+    /** Padding between the scroll origin and the board layer, unzoomed. */
+    padding: Point;
+  } | null>(null);
+  // Written by pinch, read once the zoom has repainted: setting scroll in the
+  // same tick would use the old, pre-zoom scroll extents and get clamped.
+  const pendingScrollRef = useRef<Point | null>(null);
+  const zoomRef = useRef(canvasZoom);
+  zoomRef.current = canvasZoom;
+
+  /**
+   * How much room the boards need, in board-layer pixels (the same units
+   * `artboard.position` uses, i.e. already at the 0.3 display scale).
+   *
+   * This is what makes the canvas scrollable at all. The layer is scaled with a
+   * CSS transform, and a transform does not change a layout box, so the scroll
+   * extents have to be stated outright; without them the viewport's scrollWidth
+   * equalled its clientWidth and nothing to the right of the first screen could
+   * be reached by scrolling, panning or a swipe.
+   */
+  const contentExtent = useMemo(() => {
+    let width = 0;
+    let height = 0;
+    for (const board of artboards) {
+      width = Math.max(width, board.position.x + board.size.width * DISPLAY_SCALE_FACTOR);
+      height = Math.max(height, board.position.y + board.size.height * DISPLAY_SCALE_FACTOR);
+    }
+    return {
+      // Room on the right/bottom to match the margin the boards start at, plus
+      // the board's own furniture: the hover toolbar above it and the name
+      // label below it, neither of which is part of its box.
+      width: width + BOARD_LAYER_MARGIN,
+      height: height + BOARD_LAYER_MARGIN + BOARD_LABEL_ROOM,
+    };
+  }, [artboards]);
 
 
   // Safety net: if real artboards exist but none is selected (e.g. after a
@@ -172,10 +232,11 @@ export function CanvasArea({
     setActiveArtboardId(artboardId);
   };
 
-  const handleMouseDownOnContentArea = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handlePointerDownOnContentArea = (e: React.PointerEvent<HTMLDivElement>) => {
     if (activeTool === 'select') {
-      // Only deselect if the click is on the direct background of the content area
-      if (e.target === contentAreaRef.current) {
+      // Only deselect if the press is on the direct background of the content
+      // area, or on the empty part of the board layer around the boards.
+      if (e.target === contentAreaRef.current || e.target === boardLayerRef.current) {
         setActiveArtboardId(null);
         setSelectedElementIdOnActiveArtboard(null);
       }
@@ -194,8 +255,11 @@ export function CanvasArea({
     const scrollViewport = scrollViewportRef.current;
     if (!scrollViewport || activeTool !== 'pan') return;
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const handlePointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      // A second finger is a pinch, not a second pan. Let the touch handlers
+      // below take it.
+      if (pinchRef.current) return;
       // Capture phase: consume the press before an artboard or element can
       // start its own drag/selection with the hand tool active.
       e.preventDefault();
@@ -203,6 +267,7 @@ export function CanvasArea({
       suppressNextClick.current = false;
       setIsPanning(true);
       panStartCoords.current = {
+        pointerId: e.pointerId,
         x: e.clientX,
         y: e.clientY,
         scrollLeft: scrollViewport.scrollLeft,
@@ -217,10 +282,10 @@ export function CanvasArea({
       e.stopPropagation();
     };
 
-    scrollViewport.addEventListener('mousedown', handleMouseDown, true);
+    scrollViewport.addEventListener('pointerdown', handlePointerDown, true);
     scrollViewport.addEventListener('click', handleClickCapture, true);
     return () => {
-      scrollViewport.removeEventListener('mousedown', handleMouseDown, true);
+      scrollViewport.removeEventListener('pointerdown', handlePointerDown, true);
       scrollViewport.removeEventListener('click', handleClickCapture, true);
     };
   }, [activeTool]);
@@ -229,28 +294,135 @@ export function CanvasArea({
     const scrollViewport = scrollViewportRef.current;
     if (!isPanning) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-        if (!panStartCoords.current || !scrollViewport) return;
+    const handlePointerMove = (e: PointerEvent) => {
+        const start = panStartCoords.current;
+        if (!start || !scrollViewport) return;
+        if (e.pointerId !== start.pointerId) return;
         e.preventDefault(); // Prevent other interactions during pan
-        const dx = e.clientX - panStartCoords.current.x;
-        const dy = e.clientY - panStartCoords.current.y;
-        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) suppressNextClick.current = true;
-        scrollViewport.scrollLeft = panStartCoords.current.scrollLeft - dx;
-        scrollViewport.scrollTop = panStartCoords.current.scrollTop - dy;
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        if (Math.abs(dx) > PAN_CLICK_SLOP_PX || Math.abs(dy) > PAN_CLICK_SLOP_PX) suppressNextClick.current = true;
+        scrollViewport.scrollLeft = start.scrollLeft - dx;
+        scrollViewport.scrollTop = start.scrollTop - dy;
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = (e: PointerEvent) => {
+        if (panStartCoords.current && e.pointerId !== panStartCoords.current.pointerId) return;
         setIsPanning(false);
         panStartCoords.current = null;
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener('pointercancel', handlePointerUp);
     return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('pointermove', handlePointerMove);
+        document.removeEventListener('pointerup', handlePointerUp);
+        document.removeEventListener('pointercancel', handlePointerUp);
     };
   }, [isPanning]);
+
+  /**
+   * Two fingers on the canvas: pinch to zoom, and drag the pair to pan, both at
+   * once and with whatever is under the midpoint staying under it. One finger
+   * is left alone so it still scrolls the canvas the way it scrolls any page.
+   *
+   * Deliberately touch events and not pointer events: cancelling the browser's
+   * own pan/zoom needs preventDefault on a non-passive touchmove. Doing it with
+   * `touch-action: none` instead would cost the one-finger scroll everywhere on
+   * the canvas, which is the gesture people reach for most.
+   */
+  useEffect(() => {
+    const scrollViewport = scrollViewportRef.current;
+    if (!scrollViewport || !onZoomChange) return;
+
+    const midpoint = (touches: TouchList): Point => ({
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2,
+    });
+    const spread = (touches: TouchList) =>
+      Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      const layer = boardLayerRef.current;
+      if (!layer) return;
+      const zoom = zoomRef.current;
+      const layerRect = layer.getBoundingClientRect();
+      const viewportRect = scrollViewport.getBoundingClientRect();
+      const renderedScale = layerRect.width / (layer.offsetWidth || 1);
+      if (!(renderedScale > 0)) return;
+      const mid = midpoint(e.touches);
+      pinchRef.current = {
+        startDistance: Math.max(1, spread(e.touches)),
+        startZoom: zoom,
+        anchor: {
+          x: (mid.x - layerRect.left) / renderedScale,
+          y: (mid.y - layerRect.top) / renderedScale,
+        },
+        // Whatever sits between the scroll origin and the board layer, measured
+        // once and re-applied at the new zoom.
+        padding: {
+          x: (layerRect.left - viewportRect.left + scrollViewport.scrollLeft) / zoom,
+          y: (layerRect.top - viewportRect.top + scrollViewport.scrollTop) / zoom,
+        },
+      };
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const pinch = pinchRef.current;
+      if (!pinch || e.touches.length !== 2) return;
+      e.preventDefault();
+      const mid = midpoint(e.touches);
+      const nextZoom = Math.min(
+        MAX_ZOOM,
+        Math.max(MIN_ZOOM, (pinch.startZoom * spread(e.touches)) / pinch.startDistance)
+      );
+      // Where the anchored canvas point lands at the new zoom, minus where the
+      // fingers are now: dragging the pair sideways pans, pinching zooms, and
+      // the two compose without fighting each other.
+      const viewportRect = scrollViewport.getBoundingClientRect();
+      const target = {
+        x: (pinch.padding.x + pinch.anchor.x) * nextZoom - (mid.x - viewportRect.left),
+        y: (pinch.padding.y + pinch.anchor.y) * nextZoom - (mid.y - viewportRect.top),
+      };
+      if (nextZoom === zoomRef.current) {
+        // Already at a zoom limit, so no re-render is coming to carry the
+        // scroll: two fingers still pan, they just cannot zoom any further.
+        scrollViewport.scrollLeft = Math.max(0, target.x);
+        scrollViewport.scrollTop = Math.max(0, target.y);
+        return;
+      }
+      pendingScrollRef.current = target;
+      onZoomChange(nextZoom);
+    };
+
+    const endPinch = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinchRef.current = null;
+    };
+
+    scrollViewport.addEventListener('touchstart', handleTouchStart, { passive: true });
+    scrollViewport.addEventListener('touchmove', handleTouchMove, { passive: false });
+    scrollViewport.addEventListener('touchend', endPinch);
+    scrollViewport.addEventListener('touchcancel', endPinch);
+    return () => {
+      scrollViewport.removeEventListener('touchstart', handleTouchStart);
+      scrollViewport.removeEventListener('touchmove', handleTouchMove);
+      scrollViewport.removeEventListener('touchend', endPinch);
+      scrollViewport.removeEventListener('touchcancel', endPinch);
+    };
+  }, [onZoomChange]);
+
+  // The scroll the pinch asked for, applied after the zoom has been laid out.
+  // Setting it inside the touchmove would clamp it against the old extents.
+  useEffect(() => {
+    const target = pendingScrollRef.current;
+    const scrollViewport = scrollViewportRef.current;
+    if (!target || !scrollViewport) return;
+    pendingScrollRef.current = null;
+    scrollViewport.scrollLeft = Math.max(0, target.x);
+    scrollViewport.scrollTop = Math.max(0, target.y);
+  }, [canvasZoom]);
 
 
   const handleDropOnCanvas = (e: React.DragEvent<HTMLDivElement>) => {
@@ -319,34 +491,48 @@ export function CanvasArea({
       viewportClassName={cn(
         activeTool === 'pan' && (isPanning
           ? 'cursor-grabbing [&_*]:!cursor-grabbing'
-          : 'cursor-grab [&_*]:!cursor-grab')
+          : 'cursor-grab [&_*]:!cursor-grab'),
+        // With the hand tool the pan handler owns the gesture, so the browser
+        // must not also scroll the viewport: one finger would move the canvas
+        // twice as far as it travelled. In select mode the browser keeps it,
+        // which is what makes a one-finger swipe scroll the canvas.
+        activeTool === 'pan' && 'touch-none'
       )}
-      style={{ height: "100vh", overflowY: "auto" }}
+      // 100% of the canvas column, not 100vh: on a phone the viewport unit
+      // counts the browser chrome, so a vh-sized canvas hangs its last inch
+      // under the address bar and the floating tool pills go with it.
+      style={{ height: "100%", overflowY: "auto" }}
     >
       <div
         ref={contentAreaRef}
-        className="relative w-max min-w-full"
+        className="relative"
         data-canvas-locale={activeLocale ?? ''}
         style={{
-          // Restore a large minHeight to always allow scrolling
-          minHeight: "2000px",
-          transform: `scale(${canvasZoom})`,
-          transformOrigin: 'top left',
+          // The scrollable box. Stated in pixels rather than left to the
+          // content, because the layer below is sized by a CSS transform and a
+          // transform contributes nothing to a scroll extent: without this the
+          // canvas could not scroll sideways at all, so boards past the first
+          // screen were unreachable at any zoom.
+          width: `${contentExtent.width * canvasZoom}px`,
+          height: `${contentExtent.height * canvasZoom}px`,
+          minWidth: '100%',
+          minHeight: '100%',
           // Cursor is owned by the scroll viewport (see viewportClassName) so
           // the hand tool covers the canvas, not just this box.
           cursor: activeTool === 'select' ? 'default' : undefined,
-          padding: '40px 12px 12px 12px',
         }}
-        onMouseDown={handleMouseDownOnContentArea}
+        onPointerDown={handlePointerDownOnContentArea}
         onDrop={handleDropOnCanvas}
         onDragOver={handleDragOverCanvas}
       >
         <div
+          ref={boardLayerRef}
           style={{
             transform: `scale(${canvasZoom})`,
             transformOrigin: 'top left',
-            width: "100%",
-            height: "100%",
+            position: 'relative',
+            width: `${contentExtent.width}px`,
+            height: `${contentExtent.height}px`,
           }}
         >
           {/* While the project is still loading, show artboard-shaped skeletons
