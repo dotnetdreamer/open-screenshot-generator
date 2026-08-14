@@ -106,10 +106,13 @@ import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
+import { DiscoverDialog } from './discover/DiscoverDialog';
+import { CommunityStartPanel } from './discover/CommunityStartPanel';
+import type { DiscoverPost } from '@/types/discover';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDownIcon, ChevronLeftIcon, CopyIcon, HandIcon, InfoIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronLeftIcon, CompassIcon, CopyIcon, HandIcon, InfoIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -142,6 +145,7 @@ import { LoadStatusBar } from './LoadStatusBar';
 import { LocalFontNotice } from './LocalFontNotice';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
@@ -301,6 +305,29 @@ function buildMcpElement(
 function getInitialProjectIdFromUrl(): string | null {
   if (typeof window === 'undefined') return null;
   return new URLSearchParams(window.location.search).get('projectId');
+}
+
+// The start dialog's first tab. It holds community posts rather than
+// templates, so it is not a TEMPLATE_CATEGORIES entry and carries its own id.
+const COMMUNITY_TAB_ID = 'community';
+
+// ?post=<id> opens Discover on that post. This is the link "Copy link" hands
+// out, so a shared post has to survive a cold load, not just a click inside an
+// already open feed.
+function getInitialPostIdFromUrl(): string | null {
+  if (typeof window === 'undefined') return null;
+  return new URLSearchParams(window.location.search).get('post');
+}
+
+// Drop ?post= once the feed is closed, so a reload does not reopen it and the
+// projectId handling next to it keeps owning the rest of the query string.
+function clearPostParamFromUrl(): void {
+  if (typeof window === 'undefined') return;
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has('post')) return;
+  params.delete('post');
+  const query = params.toString();
+  window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
 }
 
 // A one-artboard "Blank Canvas" project at the given size. `size` follows the
@@ -530,7 +557,20 @@ export function OpenScreenshotGeneratorLayout() {
   // Settings. Same footer slot the Tips button held, and the way back to the
   // tips wizard now that it is a section in here rather than its own button.
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
+  // Discover, the community feed. Reachable from the palette rail, from the
+  // start dialog's first tab, from the toolbar, and by a ?post= link, which is
+  // what Copy link on a post hands out.
+  const [isDiscoverOpen, setIsDiscoverOpen] = useState(() => getInitialPostIdFromUrl() !== null);
+  const [discoverPostId, setDiscoverPostId] = useState<string | null>(() =>
+    getInitialPostIdFromUrl()
+  );
+  // Which screen the feed opens on. 'share' is how the toolbar button and the
+  // "share these" action on the export toast skip straight to the share form.
+  const [discoverIntent, setDiscoverIntent] = useState<'feed' | 'share'>('feed');
+  // The start dialog opens on the community tab: a finished listing somebody
+  // shipped is a better answer to "what should mine look like" than a grid of
+  // empty templates, and the templates are one tab away.
+  const [templateTab, setTemplateTab] = useState<string>(COMMUNITY_TAB_ID);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   // Load-progress feedback for the top status bar. 'templates' = fetching the
@@ -1968,6 +2008,31 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // "Use as template" on a Discover post. Every post carries the id of the
+  // project behind it, so this is the same path as picking that template out of
+  // the start dialog, named after the post so the new project is recognisable
+  // in the recent list.
+  const handleUseDiscoverPost = async (post: DiscoverPost) => {
+    const template = availableProjects.find((project) => project.id === post.templateProjectId);
+    if (!template) {
+      toast({
+        title: "That design is not available",
+        description: "The project behind this post could not be found in this build.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsDiscoverOpen(false);
+    setIsTemplateSelectorOpen(false);
+    await handleSelectTemplate(template, { nameOverride: post.appName || template.name });
+  };
+
+  /** Open the feed, either on the grid or straight on the share form. */
+  const openDiscover = (intent: 'feed' | 'share' = 'feed') => {
+    setDiscoverIntent(intent);
+    setIsDiscoverOpen(true);
+  };
+
   // Add this utility function to get proper dimensions for export
   const getArtboardExportDimensions = (artboard: ArtboardState) => {
     // Return the original dimensions regardless of zoom level
@@ -2531,6 +2596,14 @@ export function OpenScreenshotGeneratorLayout() {
             ? `${saved.length} of ${totalFiles} images saved to ${exportDir}`
             : `${saved.length} of ${totalFiles} images downloaded`,
           variant: cancelled ? "destructive" : "default",
+          // Finishing an export is the moment people want to show the work, so
+          // the offer to post it rides on the toast that says it is done. Only
+          // on a clean run: nobody wants to share a half-finished export.
+          action: cancelled ? undefined : (
+            <ToastAction altText="Share these to Discover" onClick={() => openDiscover('share')}>
+              Share
+            </ToastAction>
+          ),
         });
       } else if (cancelled) {
         toast({ title: "Export Cancelled" });
@@ -3785,12 +3858,13 @@ const generateRandomProjectName = (): string => {
   const templateSelectorDialog = (
       <>
         <Dialog
-          // Held back while the tips wizard or the account dialog is up, so the
-          // two never stack into a double overlay. Neither can be opened from
-          // in here except by the tips wizard's own Connect storage button, and
-          // this dialog reappears untouched as soon as they close: a controlled
-          // `open` change does not run onOpenChange below.
-          open={isTemplateSelectorOpen && !isTipsOpen && !isAccountOpen}
+          // Held back while the tips wizard, the account dialog or Discover is
+          // up, so they never stack into a double overlay. Each of those is
+          // opened from in here (the tips wizard's Connect storage button, the
+          // community tab's own buttons), and this dialog reappears untouched
+          // as soon as they close: a controlled `open` change does not run
+          // onOpenChange below.
+          open={isTemplateSelectorOpen && !isTipsOpen && !isAccountOpen && !isDiscoverOpen}
           onOpenChange={(newOpenState) => {
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
                // Create a blank project when no template is selected
@@ -3854,6 +3928,13 @@ const generateRandomProjectName = (): string => {
             {dialogView === 'templates' && (
             <Tabs value={templateTab} onValueChange={setTemplateTab} className="flex min-h-0 flex-1 flex-col">
               <TabsList className="mx-1 self-start">
+                {/* Community leads the row, and the dialog opens on it: what
+                    somebody else shipped answers "what should mine look like"
+                    better than a grid of empty templates does. */}
+                <TabsTrigger value={COMMUNITY_TAB_ID} className="gap-1.5">
+                  <CompassIcon className="h-4 w-4 text-primary" />
+                  Community
+                </TabsTrigger>
                 {TEMPLATE_CATEGORIES.map((cat) => (
                   <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5">
                     {cat.label}
@@ -3863,6 +3944,24 @@ const generateRandomProjectName = (): string => {
                   </TabsTrigger>
                 ))}
               </TabsList>
+
+              <TabsContent
+                value={COMMUNITY_TAB_ID}
+                className="mt-2 min-h-0 flex-1 flex-col data-[state=active]:flex"
+              >
+                <CommunityStartPanel
+                  templates={availableProjects}
+                  isLoadingTemplates={isLoadingProjects}
+                  onUseTemplate={(post) => void handleUseDiscoverPost(post)}
+                  onOpenPost={(post) => {
+                    setDiscoverPostId(post.id);
+                    openDiscover('feed');
+                  }}
+                  onOpenFeed={() => openDiscover('feed')}
+                  onShare={() => openDiscover('share')}
+                  canShare={artboards.length > 0}
+                />
+              </TabsContent>
               {/* data-[state=active]:flex, not a bare flex: inactive panels stay
                   mounted with the hidden attribute, and a bare `flex` overrides
                   [hidden]{display:none}, so each ghost panel's mt-2 leaked ~8px of
@@ -4978,6 +5077,24 @@ const generateRandomProjectName = (): string => {
             </div>
           </SidebarHeader>
           <SidebarContent>
+            {/* Discover sits above the palette, not down in the footer with
+                Account and Settings: it is a place you go, like the canvas and
+                the palette, rather than a preference you set. The rail keeps
+                only the compass when the sidebar is collapsed to icons. */}
+            <SidebarGroup className="px-2 pb-0 pt-2 group-data-[collapsible=icon]:px-1">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Discover, designs the community shared"
+                    className="w-full border border-primary/25 bg-primary/10 font-medium text-primary hover:bg-primary/15 hover:text-primary"
+                    onClick={() => openDiscover('feed')}
+                  >
+                    <CompassIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">Discover</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
             <ElementPalette onAddElement={handlePaletteAddElement} onDropElement={handlePaletteDropElement} />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
@@ -5031,6 +5148,7 @@ const generateRandomProjectName = (): string => {
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => setIsPreviewOpen(true)}
             onPublishToStore={() => setIsPublishDialogOpen(true)}
+            onShareToDiscover={() => openDiscover('share')}
             onExport={() => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
@@ -5557,6 +5675,32 @@ const generateRandomProjectName = (): string => {
               setIsTipsOpen(false);
               openAccountDialog('Connect Google Drive or GitHub to keep a copy of your projects.');
             }}
+          />
+
+          {/* The community feed. It shares the template catalog the start
+              dialog already loaded (that is what the mock feed is built from),
+              and it shares the canvas: the boards it posts are captured from
+              the live DOM by the same routine the PNG export uses, so it is
+              handed viewArtboards, the list actually on screen, not the base
+              document. */}
+          <DiscoverDialog
+            open={isDiscoverOpen}
+            onOpenChange={(open) => {
+              setIsDiscoverOpen(open);
+              if (!open) {
+                clearPostParamFromUrl();
+                setDiscoverIntent('feed');
+              }
+            }}
+            initialView={discoverIntent}
+            templates={availableProjects}
+            isLoadingTemplates={isLoadingProjects}
+            initialPostId={discoverPostId}
+            onInitialPostConsumed={() => setDiscoverPostId(null)}
+            onUseTemplate={(post) => void handleUseDiscoverPost(post)}
+            projectName={currentProjectName}
+            artboards={viewArtboards}
+            captureArtboard={captureArtboardDataUrl}
           />
 
           <AccountDialog
