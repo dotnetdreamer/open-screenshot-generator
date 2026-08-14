@@ -59,6 +59,7 @@ Optional cloud saving with no backend of ours. Connect your own Google Drive or 
 - Text, shapes (rectangles, circles, stars, speech bubbles, custom SVG paths, and more), and plain images as freely placed elements
 - A curated set of Google Fonts, including Arabic and Urdu families like Cairo, Amiri, and Noto Nastaliq Urdu, alongside the usual system fonts
 - Layers panel for ordering and a properties panel for fine-tuning whatever is selected
+- A dark theme for the editor (Settings > Appearance: follow your system, or force light or dark) that deliberately stops at the artboard edge, so your designs look on screen exactly as they export
 - Copy and paste elements within and across artboards
 - An export flow that asks which store (Google Play or App Store) and which device classes you're targeting, then renders each artboard to PNG at the store's required dimensions
 - App Store preview videos: drop a screen recording into a phone frame, dress it with headlines and tap hints, and export an MP4 (see below)
@@ -89,20 +90,6 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 ³ Google sign-in is identical on both. GitHub sign-in on the web needs a tiny token-exchange Worker (included, free to run) because GitHub's OAuth requires a client secret that a static site cannot hold; without it the web build asks for a personal access token instead. The desktop app uses GitHub's device flow and needs neither.
 
 ⁴ Not a product decision: App Store Connect serves no CORS headers, so no browser tab can call it. The desktop app makes these requests outside the webview. See [docs/STORE-UPLOAD.md](docs/STORE-UPLOAD.md).
-
-## Download the desktop app
-
-Grab the latest installer from the [Releases page](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest):
-
-| Platform | File |
-| --- | --- |
-| Windows 10/11 | `Open.Screenshot.Generator_<version>_x64-setup.exe` (or the `.msi`) |
-| macOS 10.15+, Intel and Apple silicon | `Open.Screenshot.Generator_<version>_universal.dmg` |
-| Linux | `.AppImage` (portable) or `.deb` |
-
-The builds are not code-signed yet, so the first launch takes one extra click: on Windows, SmartScreen shows "Windows protected your PC", so choose More info, then Run anyway. On macOS, right-click the app and choose Open to get past Gatekeeper. On Linux, `chmod +x` the AppImage first.
-
-Prefer the browser? The project now lives at [openscrgen.app](https://openscrgen.app), with the editor at [editor.openscrgen.app](https://editor.openscrgen.app). The same app also runs at [dotnetdreamer.github.io/open-screenshot-generator](https://dotnetdreamer.github.io/open-screenshot-generator/). See [docs/DESKTOP.md](docs/DESKTOP.md) for how the desktop build differs.
 
 ## Running it locally
 

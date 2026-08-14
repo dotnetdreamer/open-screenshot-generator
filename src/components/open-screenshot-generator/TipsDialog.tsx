@@ -50,7 +50,11 @@ export function shouldShowTipsOnStartup(): boolean {
   }
 }
 
-function persistShowOnStartup(show: boolean): void {
+/**
+ * The same preference the wizard's own checkbox writes. Exported because the
+ * settings dialog offers it too, and both have to agree on the storage key.
+ */
+export function setShowTipsOnStartup(show: boolean): void {
   try {
     window.localStorage.setItem(SHOW_ON_STARTUP_KEY, show ? '1' : '0');
   } catch {
@@ -182,7 +186,7 @@ export function TipsDialog({ open, onOpenChange, onConnectStorage }: TipsDialogP
   // has to honour an unticked box.
   const handleShowOnStartupChange = (next: boolean) => {
     setShowOnStartup(next);
-    persistShowOnStartup(next);
+    setShowTipsOnStartup(next);
   };
 
   return (

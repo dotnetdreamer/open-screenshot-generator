@@ -57,6 +57,10 @@ function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: n
       }}
     >
       <div
+        // The canvas marks its own board with `.artboard`; this is the other
+        // render site and needs the same marker, so the dark editor palette
+        // stops at the artboard edge here too (see globals.css).
+        data-artboard-surface=""
         style={{
           width: `${artboard.size.width}px`,
           height: `${artboard.size.height}px`,

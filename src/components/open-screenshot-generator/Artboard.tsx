@@ -134,7 +134,15 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     setBackgroundStyle(artboardBackground(artboard));
   }, [artboard.elements, artboard.backgroundType, artboard.backgroundColor, artboard.backgroundGradient]);
 
-  useImperativeHandle(ref, () => ({
+  // Our own handle on the API below. The drop handler needs it, and it cannot
+  // read `ref`: CanvasArea passes a CALLBACK ref (it files each board into a
+  // map by id), so `ref` here is a function and `ref.current` is forever
+  // undefined. A drop used to test exactly that and silently do nothing, which
+  // is why a tile could only be added by clicking it.
+  const selfRef = useRef<ArtboardRef | null>(null);
+
+  useImperativeHandle(ref, () => {
+    const api: ArtboardRef = {
     addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => {
       const artboardRect = artboardDivRef.current?.getBoundingClientRect();
       let newElementX = artboard.size.width / 2 - 50; 
@@ -409,7 +417,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       }
       return false;
     }
-  }));
+    };
+    selfRef.current = api;
+    return api;
+  });
 
   const handleUpdateElement = (updatedElementData: ArtboardElement) => {
     const newElements = elements.map(el =>
@@ -547,10 +558,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             if (rawStyleProps) {
               try { styleProps = JSON.parse(rawStyleProps); } catch { styleProps = undefined; }
             }
-            if (type && typeof (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement === 'function') {
-              const dropX = e.clientX;
-              const dropY = e.clientY;
-              (ref as React.MutableRefObject<ArtboardRef | null>)?.current?.addElement(type, subType || undefined, {x: dropX, y: dropY}, styleProps);
+            if (type) {
+              // Client coords: addElement converts them against the board's own
+              // rect and display scale.
+              selfRef.current?.addElement(type, subType || undefined, { x: e.clientX, y: e.clientY }, styleProps);
             }
           }}
           onDragOver={(e) => {

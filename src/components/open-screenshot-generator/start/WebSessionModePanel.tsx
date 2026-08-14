@@ -55,7 +55,7 @@ export function WebSessionModePanel({
   return (
     <div className="space-y-3">
       <Alert className="border-emerald-500/40 bg-emerald-500/5">
-        <PlugZap className="h-4 w-4 text-emerald-600" />
+        <PlugZap className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
         <AlertTitle>Runs on this machine</AlertTitle>
         <AlertDescription>
           Pick an assistant. The first time, a sign-in window opens. Log in once and Open

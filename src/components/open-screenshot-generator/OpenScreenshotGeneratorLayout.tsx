@@ -105,10 +105,11 @@ import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
+import { SettingsDialog } from './SettingsDialog';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDownIcon, ChevronLeftIcon, CopyIcon, HandIcon, InfoIcon, LightbulbIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronLeftIcon, CopyIcon, HandIcon, InfoIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -526,6 +527,9 @@ export function OpenScreenshotGeneratorLayout() {
   useLayoutEffect(() => {
     if (shouldShowTipsOnStartup()) setIsTipsOpen(true);
   }, []);
+  // Settings. Same footer slot the Tips button held, and the way back to the
+  // tips wizard now that it is a section in here rather than its own button.
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [templateTab, setTemplateTab] = useState<string>(TEMPLATE_CATEGORIES[0].id);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -4978,10 +4982,11 @@ const generateRandomProjectName = (): string => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  {/* The way back in once the startup checkbox is unticked. */}
-                  <SidebarMenuButton tooltip="Tips" className="w-full" onClick={() => setIsTipsOpen(true)}>
-                    <LightbulbIcon />
-                    <span className="group-data-[collapsible=icon]:hidden">Tips</span>
+                  {/* Theme, and the way back into the tips once the startup
+                      checkbox is unticked. */}
+                  <SidebarMenuButton tooltip="Settings" className="w-full" onClick={() => setIsSettingsOpen(true)}>
+                    <SettingsIcon />
+                    <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
@@ -5505,6 +5510,17 @@ const generateRandomProjectName = (): string => {
             // Deliberately does NOT commit: the dialog adopts the result as its
             // new snapshot and it lands with everything else on Save.
             onMachineTranslate={(locale, only) => runLocaleTranslation(locale, only)}
+          />
+
+          <SettingsDialog
+            open={isSettingsOpen}
+            onOpenChange={setIsSettingsOpen}
+            // Handed over rather than stacked: two modal dialogs at once fight
+            // over the focus trap, and the wizard is a full screen of its own.
+            onOpenTips={() => {
+              setIsSettingsOpen(false);
+              setIsTipsOpen(true);
+            }}
           />
 
           <TipsDialog

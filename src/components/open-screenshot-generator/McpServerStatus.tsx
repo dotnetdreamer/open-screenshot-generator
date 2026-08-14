@@ -60,7 +60,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
       }}
       className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
     >
-      {copied ? <CheckIcon className="h-3.5 w-3.5 text-green-600" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      {copied ? <CheckIcon className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /> : <CopyIcon className="h-3.5 w-3.5" />}
     </button>
   );
 }
@@ -236,7 +236,7 @@ export function McpServerStatus({ className }: { className?: string }) {
             <span
               className={cn(
                 'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                running ? 'bg-green-500/15 text-green-600' : 'bg-muted text-muted-foreground'
+                running ? 'bg-green-500/15 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'
               )}
             >
               {running ? 'Running' : 'Off'}

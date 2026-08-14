@@ -120,7 +120,7 @@ export function FreeProviderModePanel({
                   <span className="flex items-center gap-2">
                     <span className="truncate">{m.label}</span>
                     {m.vision === true && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600">
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
                         <Eye className="h-3 w-3" />
                         sees images
                       </span>
@@ -141,9 +141,9 @@ export function FreeProviderModePanel({
       ) : running ? (
         <Alert className="border-emerald-500/40 bg-emerald-500/5">
           {info.kind === 'cloud' ? (
-            <Zap className="h-4 w-4 text-emerald-600" />
+            <Zap className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           ) : (
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           )}
           <AlertTitle>
             {info.kind === 'cloud'

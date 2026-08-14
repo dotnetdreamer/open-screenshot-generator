@@ -7,7 +7,15 @@ body {
 }
 
 @layer base {
-  :root {
+  /* The light palette, and the only palette an artboard ever sees.
+     `.dark .artboard` / `[data-artboard-surface]` re-declare it on the artboard
+     root so nothing drawn inside one, in either of the two render sites or in
+     the export clone, picks up a dark token. An artboard is the user's artwork:
+     it has to look on screen exactly like the PNG it exports, whatever theme
+     the editor chrome is wearing. */
+  :root,
+  .dark .artboard,
+  .dark [data-artboard-surface] {
     --background: 0 0% 87.8%; /* Light Gray E0E0E0 */
     --foreground: 0 0% 15%; /* Dark Gray for text on light gray */
 
@@ -55,54 +63,71 @@ body {
     --chart-5: 27 87% 67%;
   }
 
+  /* Dark editor chrome. Same roles as the light palette above, same slate blue
+     and warm gold, lifted enough to stay legible on a dark ground.
+
+     The canvas backdrop is the darkest surface and panels sit above it, which
+     is the inverse of the light theme (where panels are white on grey) but the
+     same relationship: the artboard is the brightest thing on screen and the
+     chrome recedes behind it.
+
+     Both brand colours carry dark text here. Their light-mode pairing is white
+     on mid teal, which is already thin at 2.9:1; lifting the teal for a dark
+     ground would take it below 2.5:1, so the foregrounds flip instead. */
   .dark {
-    /* For dark mode, we'll invert and adjust.
-       This is a basic dark theme, can be refined further.
-       Using user's primary/accent, and inverting background logic.
-    */
-    --background: 0 0% 10%; /* Dark Gray */
-    --foreground: 0 0% 95%; /* Light Gray text */
+    --background: 220 13% 9%; /* Canvas backdrop, the darkest surface */
+    --foreground: 210 16% 93%;
 
-    --card: 0 0% 15%; /* Darker card */
-    --card-foreground: 0 0% 95%;
+    --card: 220 13% 13%; /* Panels and toolbars sit above the backdrop */
+    --card-foreground: 210 16% 93%;
 
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 220 13% 15%; /* Menus and dialogs, one step above panels */
+    --popover-foreground: 210 16% 93%;
 
-    --primary: 182 25% 55%; /* Slightly lighter Slate Blue for dark mode */
-    --primary-foreground: 0 0% 100%;
+    --primary: 182 30% 56%; /* Slate Blue, lifted for a dark ground */
+    --primary-foreground: 200 25% 10%;
 
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 220 12% 19%;
+    --secondary-foreground: 210 16% 93%;
 
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 220 12% 17%;
+    --muted-foreground: 215 12% 66%; /* 5.4:1 on --background */
 
-    --accent: 45 62% 58%; /* Slightly lighter Warm Gold */
-    --accent-foreground: 0 0% 10%;
+    --accent: 45 60% 60%; /* Warm Gold, lifted to match */
+    --accent-foreground: 40 30% 10%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 25%;
-    --input: 0 0% 22%;
-    --ring: 182 25% 55%;
+    --border: 220 10% 23%;
+    --input: 220 10% 20%;
+    --ring: 182 30% 56%;
 
     /* Dark Sidebar specific colors */
-    --sidebar-background: 0 0% 12%; /* Darker gray for sidebar */
-    --sidebar-foreground: 0 0% 85%; /* Lighter text */
-    --sidebar-primary: 182 25% 55%; /* Lighter Slate Blue */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 20%; /* Darker accent */
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 182 25% 55%;
-    
+    --sidebar-background: 220 13% 11%;
+    --sidebar-foreground: 210 14% 86%;
+    --sidebar-primary: 182 30% 56%;
+    --sidebar-primary-foreground: 200 25% 10%;
+    --sidebar-accent: 220 12% 19%;
+    --sidebar-accent-foreground: 210 16% 95%;
+    --sidebar-border: 220 10% 21%;
+    --sidebar-ring: 182 30% 56%;
+
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+  }
+
+  /* The tokens alone are not enough: an artboard also has to opt out of the
+     dark `color-scheme` set on <html>, or the browser paints its own dark
+     defaults into anything native inside one (the inline text editor's caret
+     and selection, a scrollbar, a form control). */
+  .dark .artboard,
+  .dark [data-artboard-surface] {
+    color-scheme: light;
+    color: hsl(var(--foreground));
   }
 }
 

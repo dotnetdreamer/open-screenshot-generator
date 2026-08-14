@@ -4,6 +4,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from "@/components/Analytics";
 import { AdSense } from "@/components/AdSense";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -39,10 +41,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning because the boot script below adds `dark` and a
+    // colorScheme style to this element before React sees it, which is a
+    // mismatch against the statically exported HTML by definition.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Blocking on purpose, and first: it decides the theme before the body
+            is parsed, so a dark-mode load never flashes the light palette. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
-        {children}
-        <Toaster />
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
         <Analytics />
         <AdSense />
       </body>
