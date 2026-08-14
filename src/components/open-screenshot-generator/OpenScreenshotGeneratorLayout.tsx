@@ -3368,6 +3368,31 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // Delete for the context menu. Takes its target the same way Copy does,
+  // because the right-clicked element is not necessarily the selected one and
+  // it can live on a board other than the active one. handleDeleteSelected
+  // (the Delete key) deliberately stays as it is: with nothing selected it
+  // falls through to deleting the whole artboard, which is not something a
+  // menu item labelled Delete should ever do.
+  const handleDeleteElement = (targetArtboardId?: string | null, targetElementId?: string | null) => {
+    const artboardId = targetArtboardId ?? activeArtboardId;
+    const elementId = targetElementId ?? selectedElementIdOnActiveArtboard;
+    if (!artboardId || !elementId) return;
+
+    const element = artboards.find(ab => ab.id === artboardId)?.elements.find(el => el.id === elementId);
+    if (!element) return;
+
+    const artboardComponent = artboardRefs.current[artboardId];
+    if (!artboardComponent?.deleteElementByIdG) {
+      toast({ title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive" });
+      return;
+    }
+    const name = getElementDisplayName(element);
+    artboardComponent.deleteElementByIdG(elementId);
+    if (artboardId === activeArtboardId) setSelectedElementIdOnActiveArtboard(null);
+    toast({ title: "Element Deleted", description: `${name} was removed from the artboard.` });
+  };
+
   // Define the paste element handler. The context menu passes the right-clicked
   // artboard and a paste point (artboard coordinates) so the element lands
   // under the cursor; the keyboard shortcut offsets from the original instead.
@@ -5194,8 +5219,10 @@ const generateRandomProjectName = (): string => {
                   y={contextMenu.y}
                   canCopy={!!contextMenu.elementId && !!contextMenu.artboardId}
                   canPaste={!!clipboardItem && !!(contextMenu.artboardId || activeArtboardId)}
+                  canDelete={!!contextMenu.elementId && !!contextMenu.artboardId}
                   onCopy={() => handleCopyElement(contextMenu.artboardId, contextMenu.elementId)}
                   onPaste={() => handlePasteElement(contextMenu.artboardId, contextMenu.pastePoint)}
+                  onDelete={() => handleDeleteElement(contextMenu.artboardId, contextMenu.elementId)}
                   onClose={() => setContextMenu(null)}
                 />
               )}

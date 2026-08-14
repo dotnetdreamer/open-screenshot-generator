@@ -1,7 +1,7 @@
 "use client";
 import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CopyIcon, ClipboardPasteIcon } from 'lucide-react';
+import { CopyIcon, ClipboardPasteIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CanvasContextMenuProps {
@@ -9,8 +9,10 @@ interface CanvasContextMenuProps {
   y: number;
   canCopy: boolean;
   canPaste: boolean;
+  canDelete: boolean;
   onCopy: () => void;
   onPaste: () => void;
+  onDelete: () => void;
   onClose: () => void;
 }
 
@@ -26,8 +28,10 @@ export function CanvasContextMenu({
   y,
   canCopy,
   canPaste,
+  canDelete,
   onCopy,
   onPaste,
+  onDelete,
   onClose,
 }: CanvasContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -102,6 +106,23 @@ export function CanvasContextMenu({
         <ClipboardPasteIcon />
         Paste
         <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+V</span>
+      </button>
+      {/* Separated and tinted: the destructive item sits directly under Paste,
+          and these rows are one fingertip apart on a touch screen. */}
+      <div className="-mx-1 my-1 h-px bg-border" />
+      <button
+        type="button"
+        // Same destructive affordance the artboard toolbar's delete uses.
+        className={cn(itemClass, "text-destructive hover:bg-destructive/90 hover:text-destructive-foreground focus:bg-destructive/90 focus:text-destructive-foreground")}
+        disabled={!canDelete}
+        onClick={() => {
+          onDelete();
+          onClose();
+        }}
+      >
+        <Trash2Icon />
+        Delete
+        <span className="ml-auto pl-4 text-xs opacity-70">Del</span>
       </button>
     </div>,
     document.body
