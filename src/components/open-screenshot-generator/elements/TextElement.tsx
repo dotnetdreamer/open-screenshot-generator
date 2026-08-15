@@ -3,6 +3,7 @@ import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import type { TextElementProps as TextElementType } from '@/types/artboard';
 import { fitTextBox } from '@/lib/textFit';
+import { cssFontFamily } from '@/services/fontService';
 
 interface TextElementProps {
   element: TextElementType;
@@ -128,7 +129,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
           overflow: 'hidden',
           resize: 'none',
           background: 'rgba(255, 255, 255, 0.8)',
-          fontFamily: element.fontFamily,
+          fontFamily: cssFontFamily(element.fontFamily),
           fontSize: `${dynamicFontSize}px`,
           color: element.color,
           lineHeight: lineHeightValue,
@@ -159,7 +160,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         display: 'flex',
         alignItems: 'center', // Adjust as needed, e.g. 'flex-start' for top-align
         justifyContent: logicalJustify, // Map text-align to justify-content
-        fontFamily: element.fontFamily,
+        fontFamily: cssFontFamily(element.fontFamily),
         fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
         lineHeight: lineHeightValue,

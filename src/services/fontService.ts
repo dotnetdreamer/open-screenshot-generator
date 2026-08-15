@@ -200,3 +200,51 @@ export function getGroupedFontOptions() {
     multilingual: fonts.filter(font => font.script === 'multilingual'),
   };
 }
+
+// Generic CSS families are keywords, not names: quoting one would ask for a
+// face literally called "sans-serif" and lose the fallback.
+const CSS_GENERIC_FAMILIES = new Set([
+  'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
+  'system-ui', 'ui-sans-serif', 'ui-serif', 'ui-monospace', 'ui-rounded',
+  'math', 'emoji', 'fangsong',
+  'inherit', 'initial', 'revert', 'unset',
+]);
+
+// The generic to stand in while a face is still arriving. A display or
+// handwriting family maps to sans-serif rather than its own category, because
+// `cursive` and `fantasy` resolve to Comic Sans and Impact on Windows, which is
+// a far bigger break from the intended face than the platform sans.
+function genericFor(family: string): string | null {
+  const font = ALL_FONTS.find(f => f.family === family);
+  if (!font) return null;
+  switch (font.category) {
+    case 'serif': return 'serif';
+    case 'monospace': return 'monospace';
+    default: return 'sans-serif';
+  }
+}
+
+/**
+ * A stored family name turned into a legal CSS `font-family` value.
+ *
+ * An unquoted family is parsed as a list of CSS identifiers, and an identifier
+ * may not start with a digit, so `font-family: Baloo 2` is invalid and the
+ * browser drops the whole declaration: the text silently renders in the
+ * artboard's default face instead, on canvas and in every export. Quoting keeps
+ * names with digits, spaces or punctuation intact, user-imported fonts included.
+ *
+ * A registered family also gets its generic appended. Google serves these with
+ * `display=swap` and the export path does not wait for a face to arrive, so the
+ * gap between "the family is legal" and "the family is loaded" is real, and
+ * without a fallback it renders in the document default (a serif) instead of
+ * something in the same key as the design.
+ */
+export function cssFontFamily(family: string): string {
+  const name = (family || '').trim();
+  if (!name) return '';
+  if (CSS_GENERIC_FAMILIES.has(name.toLowerCase())) return name;
+  if (/^["'].*["']$/.test(name)) return name;
+  const quoted = `"${name.replace(/["\\]/g, '\\$&')}"`;
+  const generic = genericFor(name);
+  return generic ? `${quoted}, ${generic}` : quoted;
+}
