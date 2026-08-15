@@ -426,4 +426,14 @@ export interface Project {
   description?: string; // For template projects
   previewImage?: string; // For template projects
   category?: string; // Template category id (see TEMPLATE_CATEGORIES); groups templates into dialog tabs
+  /**
+   * The id written inside the template JSON, which is NOT `id` above.
+   *
+   * `id` is derived from the filename (`template_fg-alertlab`), the field in
+   * the file is its own thing (`template_alertlab`), and for 89 of the 96
+   * bundled templates the two disagree. Anything that recorded a template by
+   * the file's own id has to be able to find it again, which is what this is
+   * for: see handleUseDiscoverPost.
+   */
+  sourceId?: string;
 }

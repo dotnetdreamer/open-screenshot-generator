@@ -248,7 +248,21 @@ async function loadTemplates() {
       file,
       surface,
       previewPath,
-      id: project.id,
+      /*
+       * The id the EDITOR knows this template by, which it builds from the
+       * filename and not from the `id` field inside the file:
+       *
+       *   id: `template_${baseName}`   // src/services/projectService.ts
+       *
+       * Those two strings disagree for 89 of the 96 bundled templates —
+       * `fg-alertlab.json` declares `template_alertlab` and the editor calls it
+       * `template_fg-alertlab` — and posting the file's own id is what made
+       * "Use as template" answer "that design is not available" on every
+       * seeded post. The file's id is kept as `legacyId` only so a re-run can
+       * find the posts that already went out carrying it.
+       */
+      id: `template_${file.replace(/\.json$/, '')}`,
+      legacyId: project.id,
       name: project.name,
       screens: Array.isArray(project.projectData) ? project.projectData.length : 1,
       title: project.name,
@@ -312,16 +326,27 @@ async function ensureOfficialAccount() {
   });
 }
 
-async function findExistingPost(authorId, templateId) {
-  const filter = `author="${authorId}" && template_project_id="${templateId}"`;
-  const found = await pb(
-    `/api/collections/posts/records?perPage=1&filter=${encodeURIComponent(filter)}`
-  );
-  return found.items?.[0] ?? null;
+/**
+ * The post for this template, under either id it may have been filed under.
+ *
+ * `legacyId` is checked second and is what makes the id correction a repair
+ * rather than a duplication: a re-run finds the post that went out with the
+ * file's own id and PATCHes it to the one the editor uses, instead of leaving
+ * the broken one in the feed and adding a working twin beside it.
+ */
+async function findExistingPost(authorId, templateId, legacyId) {
+  for (const id of legacyId && legacyId !== templateId ? [templateId, legacyId] : [templateId]) {
+    const filter = `author="${authorId}" && template_project_id="${id}"`;
+    const found = await pb(
+      `/api/collections/posts/records?perPage=1&filter=${encodeURIComponent(filter)}`
+    );
+    if (found.items?.[0]) return found.items[0];
+  }
+  return null;
 }
 
 async function seedPost(author, template) {
-  const existing = await findExistingPost(author.id, template.id);
+  const existing = await findExistingPost(author.id, template.id, template.legacyId);
 
   const tagsText = template.tags.length ? `|${template.tags.join('|')}|` : '';
   const searchText = [

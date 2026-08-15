@@ -2027,7 +2027,14 @@ export function OpenScreenshotGeneratorLayout() {
   // the start dialog, named after the post so the new project is recognisable
   // in the recent list.
   const handleUseDiscoverPost = async (post: DiscoverPost) => {
-    const template = availableProjects.find((project) => project.id === post.templateProjectId);
+    // Two ids, because a template has two: the one this app derives from the
+    // filename and the one written inside the file. The showcase seeder
+    // recorded the second, so posts already in the feed (and every link to
+    // them somebody has copied) carry ids that the first lookup cannot match.
+    // Both are checked, and the filename one wins where they collide.
+    const template =
+      availableProjects.find((project) => project.id === post.templateProjectId) ??
+      availableProjects.find((project) => project.sourceId === post.templateProjectId);
     if (!template) {
       toast({
         title: "That design is not available",

@@ -44,6 +44,10 @@ export async function loadProjectTemplates(
         const templateName = (!Array.isArray(projectData) && projectData.name) || displayName;
         return {
           id: `template_${baseName}`, // Keep template prefix to differentiate
+          // The file's own id, kept beside the filename-derived one because
+          // they are not the same string for most templates and outside
+          // records (Discover posts) may hold either. See Project.sourceId.
+          sourceId: (!Array.isArray(projectData) && projectData.id) || undefined,
           name: templateName,
           description: (!Array.isArray(projectData) && projectData.description) || `${templateName} project template`,
           previewImage: (!Array.isArray(projectData) && projectData.previewImage) || `https://placehold.co/300x200/6366f1/FFFFFF?text=${encodeURIComponent(templateName)}`,
