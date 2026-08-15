@@ -2911,11 +2911,120 @@ export function OpenScreenshotGeneratorLayout() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, setActiveTool, isPreviewOpen]);
+
+  // The live tool, readable from a listener that must not re-subscribe on every
+  // tool change (the Space-to-pan effect below).
+  const activeToolRef = useRef(activeTool);
+  useEffect(() => { activeToolRef.current = activeTool; }, [activeTool]);
+  // What to put back when Space comes up. Null whenever Space is not the thing
+  // holding the hand tool on, which is also what makes the restore idempotent.
+  const toolBeforeSpacePanRef = useRef<'select' | 'pan' | null>(null);
+  const spaceHeldRef = useRef(false);
+  // A drag that began under Space, so the release can wait for the pointer.
+  const spacePanPointerDownRef = useRef(false);
+
+  /**
+   * Hold Space to pan, release to go back to the tool you were on, the way
+   * every design tool does it. It flips `activeTool` rather than duplicating
+   * CanvasArea's pan handling, so the grab cursor, the touch-action guard and
+   * the toolbar pill all follow for free.
+   *
+   * Space is taken globally (preventDefault), which does cost activating a
+   * focused button with Space: the toolbar keeps focus after a click, so
+   * leaving it alone would undo something instead of panning. Enter still
+   * activates, and the controls Space is the *only* key for (fields, checkable
+   * things, anything inside a focus-trapping overlay) are skipped below.
+   */
+  useEffect(() => {
+    const restoreTool = () => {
+      const previous = toolBeforeSpacePanRef.current;
+      if (previous === null) return;
+      // Released mid-drag: the gesture still owns the pointer, so hold the hand
+      // until the button comes up rather than changing tools under the drag.
+      if (spaceHeldRef.current || spacePanPointerDownRef.current) return;
+      toolBeforeSpacePanRef.current = null;
+      setActiveTool(previous);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // e.code, not e.key, so a non-Latin layout still reports Space here.
+      if (e.code !== 'Space') return;
+      // Preview mode has its own keyboard handling
+      if (isPreviewOpen) return;
+      const target = e.target;
+      // Skip if we're typing in an input, textarea, etc.
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+      // A dialog or menu traps focus and owns Space for the control inside it,
+      // and a canvas behind a modal is not what anyone is trying to pan.
+      if (
+        target instanceof HTMLElement &&
+        target.closest('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="switch"], [role="checkbox"], [role="radio"]')
+      ) {
+        return;
+      }
+      // Space scrolls the canvas down and re-fires a focused button, and it has
+      // to be blocked on the auto-repeats too: holding the key streams keydowns
+      // and every one of them that gets through pages the canvas to the bottom.
+      e.preventDefault();
+      if (e.repeat) return;
+      spaceHeldRef.current = true;
+      if (toolBeforeSpacePanRef.current === null) {
+        toolBeforeSpacePanRef.current = activeToolRef.current;
+      }
+      setActiveTool('pan');
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      spaceHeldRef.current = false;
+      restoreTool();
+    };
+
+    const handlePointerDown = () => {
+      if (toolBeforeSpacePanRef.current === null) return;
+      spacePanPointerDownRef.current = true;
+    };
+
+    const handlePointerUp = () => {
+      spacePanPointerDownRef.current = false;
+      restoreTool();
+    };
+
+    // Leaving the window swallows the keyup (Cmd+Tab, a devtools focus, the
+    // OS taking the key), which would strand the canvas on the hand tool with
+    // nothing held down.
+    const handleWindowBlur = () => {
+      spaceHeldRef.current = false;
+      spacePanPointerDownRef.current = false;
+      restoreTool();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('pointerdown', handlePointerDown, true);
+    window.addEventListener('pointerup', handlePointerUp, true);
+    window.addEventListener('pointercancel', handlePointerUp, true);
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('pointerdown', handlePointerDown, true);
+      window.removeEventListener('pointerup', handlePointerUp, true);
+      window.removeEventListener('pointercancel', handlePointerUp, true);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [isPreviewOpen]);
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
@@ -5142,7 +5251,7 @@ const generateRandomProjectName = (): string => {
                   size="icon"
                   className="h-8 w-8 rounded-full"
                   onClick={() => setActiveTool('pan')}
-                  title="Pan Tool (H)"
+                  title="Pan Tool (H, or hold Space to pan and release to go back)"
                 >
                   <HandIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
