@@ -1,31 +1,32 @@
-// The one door between the Discover UI and wherever the feed actually lives.
+// The one door between the Discover UI and the community backend.
 //
-// Every component imports `discoverApi` and nothing else. Today that is
-// MockDiscoverApi: the feed is seeded from the bundled template catalog, the
-// viewer's likes/saves/follows/comments come from localStorage, and posts the
-// viewer publishes come from IndexedDB. None of that leaks past this file.
+// Every component imports `discoverApi` and nothing else. Behind it is
+// PocketBase on the VPS (infra/vps), reached over plain fetch: the routes are
+// custom hooks rather than PocketBase's record API, so there is no SDK to pull
+// in and no collection rules to reason about from here. Each method below names
+// the request it makes:
 //
-// Wiring a backend later means writing a second class against DiscoverApi and
-// changing the last line of this file. Each method below names the request it
-// is standing in for, so the endpoints and this interface stay in step:
+//   listFeed        GET    /api/openscreengen/discover/feed?sort&scope&surface&tag&q&cursor
+//   getPost         GET    /api/openscreengen/discover/posts/:id
+//   listTags        GET    /api/openscreengen/discover/tags
+//   listComments    GET    /api/openscreengen/discover/posts/:id/comments
+//   addComment      POST   /api/openscreengen/discover/posts/:id/comments
+//   deleteComment   DELETE /api/openscreengen/discover/comments/:id
+//   setLike         PUT    /api/openscreengen/discover/posts/:id/like
+//   setSaved        PUT    /api/openscreengen/discover/posts/:id/save
+//   setCommentLike  PUT    /api/openscreengen/discover/comments/:id/like
+//   setFollow       PUT    /api/openscreengen/discover/authors/:id/follow
+//   publishPost     POST   /api/openscreengen/discover/posts            (multipart)
+//   deletePost      DELETE /api/openscreengen/discover/posts/:id
+//   recordRemix     POST   /api/openscreengen/discover/posts/:id/remix
 //
-//   listFeed        GET    /v1/discover/feed?sort&scope&surface&tag&q&cursor
-//   getPost         GET    /v1/discover/posts/:id
-//   listTags        GET    /v1/discover/tags
-//   listComments    GET    /v1/discover/posts/:id/comments
-//   addComment      POST   /v1/discover/posts/:id/comments
-//   deleteComment   DELETE /v1/discover/comments/:id
-//   setLike         PUT    /v1/discover/posts/:id/like
-//   setSaved        PUT    /v1/discover/posts/:id/save
-//   setCommentLike  PUT    /v1/discover/comments/:id/like
-//   setFollow       PUT    /v1/discover/authors/:id/follow
-//   publishPost     POST   /v1/discover/posts            (multipart, images)
-//   deletePost      DELETE /v1/discover/posts/:id
-//   recordRemix     POST   /v1/discover/posts/:id/remix
+// The four reads work signed out and are what a guest sees. The rest need the
+// community token from session.ts, and the server refuses them without one —
+// the UI hiding those buttons is courtesy, not the permission.
 //
-// The viewer is whoever is connected in the account dialog (Drive or GitHub),
-// falling back to a local identity they can rename in the share form. A real
-// backend would replace that with its own session.
+// With NEXT_PUBLIC_DISCOVER_URL unset the whole feature is off: every read
+// answers empty and every write throws DiscoverDisabledError, so a fork of this
+// repo with no backend still builds, runs and exports exactly as before.
 
 import type { Project } from '@/types/artboard';
 import type {
@@ -37,27 +38,26 @@ import type {
   DiscoverTagCount,
   PublishPostInput,
 } from '@/types/discover';
-import { getSession } from '@/lib/account/store';
-import { buildSeedComments, buildSeedPosts } from './mockData';
 import {
-  addLocalComment,
-  getLocalState,
-  removeLocalComment,
-  setAuthorFollowed,
-  setCommentLiked,
-  setPostLiked,
-  setPostSaved,
-} from './localState';
-import { deleteLocalPost, listLocalPosts, saveLocalPost } from './localPosts';
+  DISCOVER_URL,
+  authHeaders,
+  discoverUrl,
+  getDiscoverSession,
+  isDiscoverConfigured,
+  clearDiscoverSession,
+} from './session';
 
 export interface DiscoverApi {
   /**
-   * Hand the feed the templates the app already loaded. Mock only: a backend
-   * implementation ignores it, which is why it returns void and never throws.
+   * Kept for the call sites that hand the feed the app's template catalog.
+   *
+   * The feed used to be built from it. It is served now, so this does nothing
+   * and returns void — the signature stays so the two panels that call it need
+   * no edit, and so the next backend can ignore it just as cheaply.
    */
   seed(templates: Project[]): void;
-  /** Who the viewer posts and comments as. */
-  getViewer(): DiscoverAuthor;
+  /** Who the viewer posts and comments as, or null when signed out. */
+  getViewer(): DiscoverAuthor | null;
   listFeed(query: DiscoverFeedQuery): Promise<DiscoverFeedPage>;
   getPost(postId: string): Promise<DiscoverPost | null>;
   listTags(): Promise<DiscoverTagCount[]>;
@@ -73,282 +73,322 @@ export interface DiscoverApi {
   recordRemix(postId: string): Promise<void>;
 }
 
-const PAGE_SIZE = 12;
-
-/** Stand-in for network time, so loading states are real and get exercised. */
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/** This build has no community backend. Thrown only from the write paths. */
+export class DiscoverDisabledError extends Error {
+  constructor() {
+    super('The community feed is not available in this build.');
+    this.name = 'DiscoverDisabledError';
+  }
 }
 
-function matchesSearch(post: DiscoverPost, query: string): boolean {
-  const haystack = [
-    post.title,
-    post.caption,
-    post.appName ?? '',
-    post.author.name,
-    post.author.handle,
-    post.tags.join(' '),
-  ]
-    .join(' ')
-    .toLowerCase();
-  // Space-insensitive second pass, so "appstore" still finds "App Store".
-  return (
-    haystack.includes(query) ||
-    haystack.replace(/\s+/g, '').includes(query.replace(/\s+/g, ''))
-  );
+/** The server refused, with a message worth putting in front of somebody. */
+export class DiscoverRequestError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'DiscoverRequestError';
+    this.status = status;
+  }
 }
 
-class MockDiscoverApi implements DiscoverApi {
-  /** Posts built from the template catalog. Rebuilt only when it changes. */
-  private seeded: DiscoverPost[] = [];
-  private seedKey = '';
-  /** Posts the viewer published, read back from IndexedDB once per session. */
-  private localPosts: DiscoverPost[] | null = null;
-  /** Remix counts this session, so "Use as template" visibly does something. */
-  private remixBumps = new Map<string, number>();
-  /** One clock for the whole feed: see buildSeedPosts. */
-  private readonly clock = Date.now();
+/** A write attempted while signed out. The UI turns this into a sign-in prompt. */
+export class DiscoverSignInRequiredError extends Error {
+  constructor(message = 'Sign in to do that.') {
+    super(message);
+    this.name = 'DiscoverSignInRequiredError';
+  }
+}
 
-  seed(templates: Project[]): void {
-    if (templates.length === 0) return;
-    const key = `${templates.length}:${templates[0]?.id ?? ''}:${templates[templates.length - 1]?.id ?? ''}`;
-    if (key === this.seedKey) return;
-    this.seedKey = key;
-    this.seeded = buildSeedPosts(templates, this.clock);
+const EMPTY_PAGE: DiscoverFeedPage = { posts: [], nextCursor: null, total: 0 };
+
+/**
+ * One request, with the two failures that mean something teased apart.
+ *
+ * A 401 drops the stored token as it goes past. A community session outlives the
+ * storage sign-in it came from, so the ordinary way one dies is quietly, in a
+ * tab left open — and a client that keeps sending a dead token turns every
+ * button into the same silent failure. Dropping it here means the next render
+ * sees a guest and offers the sign-in.
+ */
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (!isDiscoverConfigured()) throw new DiscoverDisabledError();
+
+  let response: Response;
+  try {
+    response = await fetch(`${DISCOVER_URL}${path}`, {
+      ...init,
+      headers: { ...authHeaders(), ...((init.headers as Record<string, string>) ?? {}) },
+    });
+  } catch {
+    throw new DiscoverRequestError('The community feed could not be reached.', 0);
   }
 
-  getViewer(): DiscoverAuthor {
-    const local = getLocalState().viewer;
-    const account = getSession()?.account;
-    const name = local?.name || account?.name || 'You';
-    const handle =
-      local?.handle ||
-      // A GitHub login or a Google display name makes a better handle than a
-      // placeholder, and it is what the rest of the app already shows.
-      (account?.name ? account.name.toLowerCase().replace(/[^a-z0-9]+/g, '') : '') ||
-      'you';
-    return {
-      id: 'author_viewer',
-      handle,
-      name,
-      bio: 'Your designs',
-      avatarUrl: account?.avatarUrl,
-      followers: 0,
-      isViewer: true,
-    };
+  if (response.status === 401) {
+    clearDiscoverSession();
+    throw new DiscoverSignInRequiredError();
   }
 
-  private async allPosts(): Promise<DiscoverPost[]> {
-    if (this.localPosts === null) {
-      try {
-        this.localPosts = await listLocalPosts();
-      } catch {
-        // A blocked or upgrading IndexedDB must not take the feed down with it.
-        this.localPosts = [];
-      }
-    }
-    return [...this.localPosts, ...this.seeded];
+  const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!response.ok) {
+    throw new DiscoverRequestError(
+      typeof payload.error === 'string' ? payload.error : 'That did not work.',
+      response.status
+    );
+  }
+  return payload as T;
+}
+
+/** A write, refused early when there is nobody to attribute it to. */
+function requireSession(): void {
+  if (!isDiscoverConfigured()) throw new DiscoverDisabledError();
+  if (!getDiscoverSession()) throw new DiscoverSignInRequiredError();
+}
+
+/**
+ * Absolute image URLs, applied on the way in.
+ *
+ * The server hands back paths so the same record works against any box. The UI
+ * puts `image.src` straight into an `<img>`, so the join happens once, here,
+ * rather than in five components that would each have to remember.
+ */
+function absolutize(post: DiscoverPost): DiscoverPost {
+  return {
+    ...post,
+    author: {
+      ...post.author,
+      avatarUrl: post.author.avatarUrl ? discoverUrl(post.author.avatarUrl) : undefined,
+    },
+    images: post.images.map((image) => ({ ...image, src: discoverUrl(image.src) })),
+  };
+}
+
+function absolutizeComment(comment: DiscoverComment): DiscoverComment {
+  return {
+    ...comment,
+    author: {
+      ...comment.author,
+      avatarUrl: comment.author.avatarUrl ? discoverUrl(comment.author.avatarUrl) : undefined,
+    },
+  };
+}
+
+class PocketBaseDiscoverApi implements DiscoverApi {
+  seed(): void {
+    // The feed is served. Nothing to do, and deliberately not an error: the two
+    // panels that call this should not have to know that changed.
   }
 
-  /**
-   * Attach the viewer's relationship to a post: the flags the buttons render
-   * from, plus this session's remix bumps.
-   *
-   * Counts stay at their raw "server" value on purpose. The viewer's own like
-   * and comments are added at render time from the local store
-   * (viewerStats in format.ts), so a toggle updates the number instantly
-   * without a refetch, and cannot be counted twice when one does happen.
-   */
-  private decorate(post: DiscoverPost): DiscoverPost {
-    const state = getLocalState();
-    return {
-      ...post,
-      likedByViewer: state.likedPostIds.includes(post.id),
-      savedByViewer: state.savedPostIds.includes(post.id),
-      stats: {
-        ...post.stats,
-        remixes: post.stats.remixes + (this.remixBumps.get(post.id) ?? 0),
-      },
-    };
-  }
-
-  /**
-   * "For you" is a light personalization pass, not a recommender: posts by
-   * people the viewer follows come first, then posts sharing a tag with
-   * something they liked, then the trending order. It exists so the tab means
-   * something the moment somebody follows one account.
-   */
-  private forYouScore(post: DiscoverPost, affinityTags: Set<string>, followed: Set<string>): number {
-    let score = this.trendingScore(post);
-    if (followed.has(post.author.id)) score *= 3;
-    if (post.tags.some((tag) => affinityTags.has(tag))) score *= 1.6;
-    if (post.isMine) score *= 1.2;
-    return score;
-  }
-
-  /** Engagement decayed by age, so a week-old hit does not pin the top forever. */
-  private trendingScore(post: DiscoverPost): number {
-    const ageHours = Math.max(1, (this.clock - Date.parse(post.createdAt)) / 3_600_000);
-    const engagement = post.stats.likes + post.stats.comments * 3 + post.stats.remixes * 2;
-    return engagement / Math.pow(ageHours + 12, 0.6);
+  getViewer(): DiscoverAuthor | null {
+    return getDiscoverSession()?.viewer ?? null;
   }
 
   async listFeed(query: DiscoverFeedQuery): Promise<DiscoverFeedPage> {
-    await delay(180);
-    const state = getLocalState();
-    const posts = (await this.allPosts()).map((post) => this.decorate(post));
+    if (!isDiscoverConfigured()) return EMPTY_PAGE;
 
-    const scope = query.scope ?? 'all';
-    const followed = new Set(state.followedAuthorIds);
-    const search = query.search?.trim().toLowerCase() ?? '';
+    /*
+     * The three viewer-scoped tabs are answered locally when there is nobody to
+     * answer them about.
+     *
+     * The server refuses them with a 401 either way, and the client turns that
+     * into the same empty page — but making the request first has two costs
+     * worth avoiding. It puts a red 401 in the console of every signed-out
+     * visitor who clicks Following, which is not an error and reads like one to
+     * whoever opens devtools next; and `request` drops the stored token on any
+     * 401, which is right for a token the server rejected and pointless work for
+     * a tab that was never going to be allowed.
+     */
+    if (
+      (query.scope === 'following' || query.scope === 'saved' || query.scope === 'mine') &&
+      !getDiscoverSession()
+    ) {
+      return EMPTY_PAGE;
+    }
 
-    let filtered = posts.filter((post) => {
-      if (scope === 'saved' && !post.savedByViewer) return false;
-      if (scope === 'following' && !followed.has(post.author.id)) return false;
-      if (scope === 'mine' && !post.isMine) return false;
-      if (query.surface && query.surface !== 'all' && post.surface !== query.surface) return false;
-      if (query.tag && !post.tags.includes(query.tag)) return false;
-      if (search && !matchesSearch(post, search)) return false;
-      return true;
-    });
+    const params = new URLSearchParams();
+    if (query.sort) params.set('sort', query.sort);
+    if (query.scope) params.set('scope', query.scope);
+    if (query.surface && query.surface !== 'all') params.set('surface', query.surface);
+    if (query.tag) params.set('tag', query.tag);
+    if (query.search) params.set('q', query.search);
+    if (query.cursor) params.set('cursor', query.cursor);
+    if (query.limit) params.set('limit', String(query.limit));
 
-    const affinityTags = new Set(
-      posts.filter((post) => post.likedByViewer).flatMap((post) => post.tags)
-    );
-
-    const sort = query.sort ?? 'for-you';
-    filtered = [...filtered].sort((a, b) => {
-      // The viewer's own posts always lead their own tab, whatever the sort.
-      if (scope === 'mine' || sort === 'newest') {
-        return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-      }
-      if (sort === 'top') return b.stats.likes - a.stats.likes;
-      if (sort === 'trending') return this.trendingScore(b) - this.trendingScore(a);
-      return (
-        this.forYouScore(b, affinityTags, followed) - this.forYouScore(a, affinityTags, followed)
-      );
-    });
-
-    const limit = query.limit ?? PAGE_SIZE;
-    const start = query.cursor ? Number.parseInt(query.cursor, 10) || 0 : 0;
-    const page = filtered.slice(start, start + limit);
-    const next = start + limit;
-
-    return {
-      posts: page,
-      nextCursor: next < filtered.length ? String(next) : null,
-      total: filtered.length,
-    };
+    try {
+      const page = await request<{
+        posts: DiscoverPost[];
+        nextCursor: string | null;
+        total: number;
+      }>(`/api/openscreengen/discover/feed?${params.toString()}`);
+      return {
+        posts: (page.posts ?? []).map(absolutize),
+        nextCursor: page.nextCursor ?? null,
+        total: page.total ?? 0,
+      };
+    } catch (error) {
+      // The three scopes that need a session answer 401 when it has lapsed.
+      // An empty tab is the honest render of "you are not signed in", and the
+      // sign-in prompt beside it is what the UI shows instead of an error.
+      if (error instanceof DiscoverSignInRequiredError) return EMPTY_PAGE;
+      throw error;
+    }
   }
 
   async getPost(postId: string): Promise<DiscoverPost | null> {
-    const posts = await this.allPosts();
-    const post = posts.find((entry) => entry.id === postId);
-    return post ? this.decorate(post) : null;
+    if (!isDiscoverConfigured()) return null;
+    try {
+      const payload = await request<{ post: DiscoverPost }>(
+        `/api/openscreengen/discover/posts/${encodeURIComponent(postId)}`
+      );
+      return payload.post ? absolutize(payload.post) : null;
+    } catch (error) {
+      // A ?post= link to something deleted is a normal thing to arrive with.
+      if (error instanceof DiscoverRequestError && error.status === 404) return null;
+      throw error;
+    }
   }
 
   async listTags(): Promise<DiscoverTagCount[]> {
-    const counts = new Map<string, number>();
-    for (const post of await this.allPosts()) {
-      for (const tag of post.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    if (!isDiscoverConfigured()) return [];
+    const payload = await request<{ tags: DiscoverTagCount[] }>('/api/openscreengen/discover/tags');
+    return payload.tags ?? [];
   }
 
   async listComments(postId: string): Promise<DiscoverComment[]> {
-    await delay(140);
-    const post = (await this.allPosts()).find((entry) => entry.id === postId);
-    // A post the viewer published has no seeded thread, only whatever they and
-    // (later) other people wrote on it.
-    const seeded = post && !post.isMine ? buildSeedComments(post, this.clock) : [];
-    const mine = getLocalState().comments[postId] ?? [];
-    return [...seeded, ...mine].sort(
-      (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
+    if (!isDiscoverConfigured()) return [];
+    const payload = await request<{ comments: DiscoverComment[] }>(
+      `/api/openscreengen/discover/posts/${encodeURIComponent(postId)}/comments`
     );
+    return (payload.comments ?? []).map(absolutizeComment);
   }
 
   async addComment(postId: string, body: string): Promise<DiscoverComment> {
-    await delay(160);
-    const comment: DiscoverComment = {
-      id: `comment_local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      postId,
-      author: this.getViewer(),
-      body: body.trim(),
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      isMine: true,
-    };
-    addLocalComment(comment);
-    return comment;
+    requireSession();
+    const payload = await request<{ comment: DiscoverComment }>(
+      `/api/openscreengen/discover/posts/${encodeURIComponent(postId)}/comments`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body }),
+      }
+    );
+    return absolutizeComment(payload.comment);
   }
 
-  async deleteComment(postId: string, commentId: string): Promise<void> {
-    removeLocalComment(postId, commentId);
+  async deleteComment(_postId: string, commentId: string): Promise<void> {
+    requireSession();
+    await request(`/api/openscreengen/discover/comments/${encodeURIComponent(commentId)}`, {
+      method: 'DELETE',
+    });
   }
 
   async setLike(postId: string, liked: boolean): Promise<void> {
-    setPostLiked(postId, liked);
+    requireSession();
+    await request(`/api/openscreengen/discover/posts/${encodeURIComponent(postId)}/like`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ on: liked }),
+    });
   }
 
   async setSaved(postId: string, saved: boolean): Promise<void> {
-    setPostSaved(postId, saved);
+    requireSession();
+    await request(`/api/openscreengen/discover/posts/${encodeURIComponent(postId)}/save`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ on: saved }),
+    });
   }
 
   async setCommentLike(commentId: string, liked: boolean): Promise<void> {
-    setCommentLiked(commentId, liked);
+    requireSession();
+    await request(`/api/openscreengen/discover/comments/${encodeURIComponent(commentId)}/like`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ on: liked }),
+    });
   }
 
   async setFollow(authorId: string, following: boolean): Promise<void> {
-    setAuthorFollowed(authorId, following);
+    requireSession();
+    await request(`/api/openscreengen/discover/authors/${encodeURIComponent(authorId)}/follow`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ on: following }),
+    });
   }
 
+  /**
+   * Publish, as multipart.
+   *
+   * The screens are blobs straight off the canvas capture, so this is a real
+   * file upload rather than base64 in a JSON body: PocketBase stores them as
+   * files, generates the thumbnails the grid loads, and serves them from
+   * /api/files without any of it passing through a string twice.
+   *
+   * `image_meta` travels beside them as one JSON field, one entry per file in
+   * the same order. The server refuses the post if those two lengths disagree,
+   * because a mismatch would render somebody's screen at the wrong aspect ratio
+   * in a public feed with nothing to point at.
+   */
   async publishPost(input: PublishPostInput): Promise<DiscoverPost> {
-    // Long enough to look like an upload, short enough not to feel broken.
-    await delay(700);
-    const id = `post_local_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-    const post: DiscoverPost = {
-      id,
-      author: this.getViewer(),
-      title: input.title.trim(),
-      caption: input.caption.trim(),
-      tags: input.tags,
-      surface: input.surface,
-      screens: input.screens,
-      createdAt: new Date().toISOString(),
-      stats: { likes: 0, comments: 0, views: 0, remixes: 0 },
-      templateProjectId: input.templateProjectId,
-      appName: input.appName,
-      isMine: true,
-      images: input.images.map((image, index) => ({
-        id: `${id}_img_${index}`,
-        src: '',
-        aspect: image.aspect,
-        fit: image.fit,
-        label: image.label,
-      })),
-    };
+    requireSession();
 
-    await saveLocalPost(
-      post,
-      input.images.map((image) => image.blob)
+    const form = new FormData();
+    form.set('title', input.title.trim());
+    form.set('caption', input.caption.trim());
+    form.set('tags', input.tags.join(','));
+    form.set('surface', input.surface);
+    form.set('screens', String(input.screens));
+    if (input.appName) form.set('app_name', input.appName);
+    if (input.templateProjectId) form.set('template_project_id', input.templateProjectId);
+    form.set(
+      'image_meta',
+      JSON.stringify(
+        input.images.map((image) => ({
+          aspect: image.aspect,
+          fit: image.fit,
+          label: image.label,
+        }))
+      )
     );
-    // Read back through the store so the returned post carries blob: URLs that
-    // are minted and cached exactly once, like every other post in the feed.
-    this.localPosts = await listLocalPosts();
-    return this.localPosts.find((entry) => entry.id === id) ?? post;
+    input.images.forEach((image, index) => {
+      // A filename is required by the multipart encoding and is never shown:
+      // PocketBase renames every upload to its own hashed form on save.
+      form.append('images', image.blob, `screen-${index + 1}.png`);
+    });
+
+    const payload = await request<{ post: DiscoverPost }>('/api/openscreengen/discover/posts', {
+      method: 'POST',
+      // No Content-Type: the browser sets it, with the multipart boundary that
+      // it alone knows. Setting it by hand produces a body the server cannot
+      // parse, and the error names neither the header nor the boundary.
+      body: form,
+    });
+    return absolutize(payload.post);
   }
 
   async deletePost(postId: string): Promise<void> {
-    await deleteLocalPost(postId);
-    this.localPosts = await listLocalPosts();
+    requireSession();
+    await request(`/api/openscreengen/discover/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
   }
 
+  /**
+   * Somebody opened this design as a starting point.
+   *
+   * The one write a guest may make, so it does not call requireSession, and it
+   * swallows its own failures: "Use as template" has to open the project
+   * whatever the backend says about a counter.
+   */
   async recordRemix(postId: string): Promise<void> {
-    this.remixBumps.set(postId, (this.remixBumps.get(postId) ?? 0) + 1);
+    if (!isDiscoverConfigured()) return;
+    try {
+      await request(`/api/openscreengen/discover/posts/${encodeURIComponent(postId)}/remix`, {
+        method: 'POST',
+      });
+    } catch {
+      // A remix count is not worth a failed open.
+    }
   }
 }
 
-/** Swap this line for the HTTP implementation when the backend is ready. */
-export const discoverApi: DiscoverApi = new MockDiscoverApi();
+export const discoverApi: DiscoverApi = new PocketBaseDiscoverApi();

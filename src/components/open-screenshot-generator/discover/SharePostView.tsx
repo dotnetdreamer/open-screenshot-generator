@@ -26,7 +26,6 @@ import { artboardBackground } from '@/lib/artboardBackground';
 import { discoverApi } from '@/lib/discover/api';
 import { composeStrip, downscaleBoard, guessSurface, type CapturedBoard } from '@/lib/discover/capture';
 import { parseTags, SURFACE_LABELS } from '@/lib/discover/format';
-import { setViewerIdentity } from '@/lib/discover/localState';
 import type { ArtboardState } from '@/types/artboard';
 import type { DiscoverPost, DiscoverSurface, PublishImageInput } from '@/types/discover';
 
@@ -90,6 +89,9 @@ export function SharePostView({
   onPublished,
   onCancel,
 }: SharePostViewProps) {
+  // Null only if the session lapsed between opening this form and submitting
+  // it. DiscoverDialog does not offer this view to a guest at all, and publish()
+  // below fails closed anyway.
   const viewer = discoverApi.getViewer();
   // Memoized so runCapture keeps one identity: the capture effect must fire
   // once, not on every keystroke in the form below it.
@@ -101,8 +103,6 @@ export function SharePostView({
   const [caption, setCaption] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [appName, setAppName] = useState(projectName);
-  const [handle, setHandle] = useState(viewer.handle);
-  const [displayName, setDisplayName] = useState(viewer.name);
   const [surface, setSurface] = useState<DiscoverSurface>(() => guessSurface(artboards[0]?.size));
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -187,13 +187,6 @@ export function SharePostView({
     setIsPublishing(true);
     setError(null);
     try {
-      // Remember who the post is from, so the next share and every comment use
-      // the same identity.
-      setViewerIdentity({
-        handle: handle.trim().replace(/^@/, '') || 'you',
-        name: displayName.trim() || 'You',
-      });
-
       const background = artboardBackground(artboards[0] ?? { backgroundColor: '#ffffff' })
         .backgroundColor;
       const images: PublishImageInput[] = [];
@@ -404,24 +397,16 @@ export function SharePostView({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="discover-name">Posting as</Label>
-            <Input
-              id="discover-name"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              maxLength={40}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="discover-handle">Handle</Label>
-            <Input
-              id="discover-handle"
-              value={handle}
-              onChange={(event) => setHandle(event.target.value)}
-              maxLength={30}
-            />
+        {/* Not editable here, and that is the point of signing in: the post
+            carries the account it was published from, so a name on a card means
+            the same thing every time it appears. */}
+        <div className="space-y-1.5">
+          <Label>Posting as</Label>
+          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+            <span className="font-medium">{viewer?.name ?? 'your account'}</span>
+            {viewer?.handle && (
+              <span className="text-muted-foreground">@{viewer.handle}</span>
+            )}
           </div>
         </div>
 
@@ -433,8 +418,8 @@ export function SharePostView({
         )}
 
         <p className="text-xs text-muted-foreground">
-          The feed is running on sample data for now, so your post stays in this browser until the
-          community backend is connected
+          Anyone can see this post and open it as a starting point for their own. You can delete it
+          from the feed at any time
         </p>
 
         <div className="mt-auto flex items-center gap-2 border-t pt-3">

@@ -1,0 +1,93 @@
+# NOT MOUNTED, NOT DEPLOYED. A reference copy of the one site block this stack
+# needs when it shares a box with another project's Caddy.
+#
+# ## Where the real copy lives, and why it is not here
+#
+# On the shared box, `<neighbour>/Caddyfile` is a bind mount from **the neighbour's** deploy
+# tree, so anyone who deploys the neighbour — a person, or an agent told "push the server
+# changes" — writes that whole file from the neighbour's git. A block that existed only on
+# the box would be deleted by the next neighbour deploy. Caddy would reload
+# **cleanly**, this backend would stop resolving, and the neighbour's deploy would report
+# success with nothing in either repo to explain it.
+#
+# That is not a hypothetical either: this project already had exactly that
+# happen once. `<translate host>` was hand-added
+# to the box on 30 Jul 2026 and existed in no repository for two weeks.
+#
+# So the block below has to be committed to **the neighbour's** repo, in its
+# `infra/vps/Caddyfile`, and deployed from there. This copy exists so that this
+# repo documents its own hostname rather than pointing at a private one.
+#
+#     # in the NEIGHBOUR's repo, not this one
+#     ssh ... 'cat <neighbour>/Caddyfile' > /tmp/caddyfile.box
+#     diff /tmp/caddyfile.box infra/vps/Caddyfile     # merge anything the box has
+#     # ...append the block below, commit, then:
+#     tar -czf - -C infra/vps Caddyfile | ssh ... 'tar -xzf - -C <neighbour deploy dir>'
+#     ssh ... 'cd <neighbour deploy dir> && docker compose exec caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile'
+#     ssh ... 'cd <neighbour deploy dir> && docker compose restart caddy'
+#
+# **Validate then restart — `caddy reload` does not work on that box.** Reload is
+# the admin API: it POSTs the new config to :2019, and the neighbour's Caddyfile sets
+# `admin off`, so nothing is listening and it fails with `connection refused`.
+# Validate needs no admin API, and it is what makes the restart safe: a malformed
+# Caddyfile makes Caddy refuse to **start**, which takes TLS for every hostname
+# on the box with it.
+#
+# ## Before it is deployed
+#
+#   1. An EXPLICIT A record for pb.openscrgen.app -> <BOX_IP>. The zone carries a
+#      wildcard, so without one the challenge is answered by whatever the
+#      wildcard points at, this Caddy never sees it, and no certificate is ever
+#      issued. On a proxying provider it must also be unproxied; the zone this
+#      uses is on Vercel's nameservers, which do not proxy. See README.md.
+#   2. /opt/openscreengen up, so `openscreengen-pocketbase` is resolvable on that network.
+#
+# Deploying ahead of either is not fatal — Caddy serves every other site
+# normally and retries in the background — but enough failed ACME attempts in an
+# hour reaches a Let's Encrypt rate limit for that one name.
+#
+# ---------------------------------------------------------------------------
+
+# Open Screenshot Generator's community feed (repo: open-screenshot-generator).
+#
+# `openscreengen-pocketbase`, never `pocketbase`. Compose registers a service's own name as
+# a DNS alias on every network it joins, so a second service called `pocketbase`
+# visible to this Caddy would give two claimants for that name — Docker hands
+# back both records and round-robins them, and roughly half of <neighbour PocketBase host>'s
+# requests would be answered by this database instead.
+pb.openscrgen.app {
+	# Realtime subscriptions are Server-Sent Events on this one path, and a
+	# buffered proxy turns a live feed into nothing until the buffer fills. Caddy
+	# does detect text/event-stream on its own; this is explicit because the
+	# failure mode is silence rather than an error.
+	#
+	# The app does not subscribe today. The route is here so that turning it on
+	# is a client change rather than a server deploy.
+	handle /api/realtime {
+		reverse_proxy openscreengen-pocketbase:8090 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy openscreengen-pocketbase:8090
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# NO Access-Control-Allow-Origin here. PocketBase sends its own (`*` by
+	# default, and the app sends no cookies, only a bearer token), and two copies
+	# of that header is an error rather than a hint: the browser rejects the
+	# response outright and every request in the feed fails CORS.
+
+	log {
+		output file /data/access-openscreengen.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

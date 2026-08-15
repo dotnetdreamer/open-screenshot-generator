@@ -6,9 +6,13 @@
 // template) stops the click from reaching the card, so a tap on a heart never
 // also opens the detail view.
 //
-// Counters are the API's numbers plus this browser's own activity, computed at
-// render from the local store (viewerStats) rather than refetched, so a like
-// lands instantly.
+// Counters are the server's numbers adjusted by whatever this browser has just
+// tapped (viewerStats) rather than refetched, so a like lands instantly and is
+// corrected by the next page load rather than by a round trip.
+//
+// A signed-out visitor sees every one of these numbers and none of the buttons
+// that change them: like and save render disabled with a title that says why.
+// The server refuses those writes regardless — this is the courtesy half.
 
 import React from 'react';
 import {
@@ -22,9 +26,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { withBasePath } from '@/lib/basePath';
 import { compactCount, coverBox, shortTimeAgo, surfaceLabel, viewerStats } from '@/lib/discover/format';
-import { useDiscoverLocalState } from '@/lib/discover/localState';
+import { isLiked, isSaved, useDiscoverLocalState } from '@/lib/discover/localState';
 import type { DiscoverPost } from '@/types/discover';
 import { AuthorAvatar } from './AuthorAvatar';
 
@@ -36,6 +39,8 @@ interface PostCardProps {
   /** Absent when the post has no project behind it (nothing to open). */
   onUseAsTemplate?: (post: DiscoverPost) => void;
   onSelectTag?: (tag: string) => void;
+  /** False for a guest: the two buttons that write become disabled. */
+  canInteract?: boolean;
 }
 
 export function PostCard({
@@ -45,10 +50,11 @@ export function PostCard({
   onToggleSave,
   onUseAsTemplate,
   onSelectTag,
+  canInteract = false,
 }: PostCardProps) {
   const local = useDiscoverLocalState();
-  const liked = local.likedPostIds.includes(post.id);
-  const saved = local.savedPostIds.includes(post.id);
+  const liked = isLiked(local, post.id, post.likedByViewer);
+  const saved = isSaved(local, post.id, post.savedByViewer);
   const stats = viewerStats(post, local);
   const cover = post.images[0];
   const box = coverBox(cover);
@@ -67,12 +73,12 @@ export function PostCard({
         style={{ aspectRatio: box.aspect }}
       >
         {cover?.src ? (
-          // Plain img, not next/image: a post published in this browser renders
-          // from a blob: URL minted out of IndexedDB, which next/image cannot
-          // size or optimize, and the static export serves everything unchanged
-          // anyway.
+          // Plain img, not next/image: the static export ships no optimizer, and
+          // every one of these is an absolute URL on the community backend
+          // rather than an asset in public/ — so withBasePath would be wrong
+          // here as well as useless.
           <img
-            src={withBasePath(cover.src)}
+            src={cover.src}
             alt={post.title}
             loading="lazy"
             className={cn(
@@ -165,11 +171,18 @@ export function PostCard({
             variant="ghost"
             size="sm"
             className={cn('h-8 gap-1.5 px-2', liked && 'text-primary')}
+            disabled={!canInteract}
             onClick={(event) => {
               event.stopPropagation();
               onToggleLike(post, !liked);
             }}
-            title={liked ? 'Remove like' : 'Like this post'}
+            title={
+              canInteract
+                ? liked
+                  ? 'Remove like'
+                  : 'Like this post'
+                : 'Sign in to like posts'
+            }
             aria-pressed={liked}
           >
             <HeartIcon className={cn('h-4 w-4', liked && 'fill-current')} />
@@ -205,11 +218,18 @@ export function PostCard({
             variant="ghost"
             size="icon"
             className={cn('ml-auto h-8 w-8', saved && 'text-primary')}
+            disabled={!canInteract}
             onClick={(event) => {
               event.stopPropagation();
               onToggleSave(post, !saved);
             }}
-            title={saved ? 'Remove from saved' : 'Save for later'}
+            title={
+              canInteract
+                ? saved
+                  ? 'Remove from saved'
+                  : 'Save for later'
+                : 'Sign in to save posts'
+            }
             aria-pressed={saved}
           >
             <BookmarkIcon className={cn('h-4 w-4', saved && 'fill-current')} />

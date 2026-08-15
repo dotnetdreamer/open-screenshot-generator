@@ -1,0 +1,127 @@
+# The whole backend for Open Screenshot Generator, on one VPS. Deploys to /opt/openscreengen.
+#
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.shared-caddy.yml up -d   # sharing a box
+#   docker compose --profile own-caddy up -d                  # its own box
+#
+# The editor itself is entirely offline. Templates, elements, fonts and every
+# export are computed in the browser, projects live in IndexedDB or in storage
+# the user owns, and the app works identically with all of this switched off.
+# This box exists for exactly one feature: **Discover**, the community feed.
+# Nothing here is on the editing path.
+#
+#   caddy           TLS terminator. Holds 80/443, gets Let's Encrypt certificates
+#                   over HTTP-01, and reverse proxies to PocketBase. PocketBase
+#                   can terminate TLS itself but not on a shared box: a box has
+#                   one address and the neighbour's Caddy already holds both
+#                   ports. **Not started when sharing another stack's Caddy** —
+#                   see docker-compose.shared-caddy.yml.
+#   openscreengen-pocketbase  The database, auth server and REST API. The only stateful
+#                   service here: everything else can be recreated from this
+#                   file, pb-data cannot. NOT published to the host, so the only
+#                   way in is through a Caddy on 443.
+#
+# There is no sidecar. Both sign-in doors are verified by calling the provider
+# over plain HTTPS, which the PocketBase JS VM can do on its own — see
+# pb-hooks/040_auth.pb.js. Nothing here signs anything, so nothing here needs a
+# private key, which is why this stack has one container and one secret-free
+# .env.
+#
+# See README.md in this directory for DNS, the first run and the deploy loop.
+
+name: openscreengen
+
+services:
+  # Behind a profile, so it does NOT start unless it is asked for by name.
+  #
+  # This stack is meant to share a box with stacks that already hold 80 and 443,
+  # and the two ways of getting that wrong are not equally bad. Forget to attach
+  # to the shared network and this database is simply unreachable: a 502,
+  # obvious, and nothing else on the box notices. Start a second Caddy and it
+  # fights for :443 — which does not fail cleanly, it takes down TLS for
+  # everything already serving there, including two other projects.
+  #
+  # So the dangerous half is the one that needs the extra word. `docker compose
+  # up -d` cannot bind a port, ever; `--profile own-caddy` is a deliberate act.
+  caddy:
+    profiles: ["own-caddy"]
+    image: caddy:2.8-alpine
+    container_name: openscreengen-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Bind mounts rather than named volumes so the issued certificate is a
+      # file on the host you can see, rather than a dig through
+      # /var/lib/docker/volumes.
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+    depends_on:
+      - openscreengen-pocketbase
+
+  # `openscreengen-pocketbase`, not `pocketbase`, and the prefix is load bearing rather
+  # than tidy.
+  #
+  # Compose registers a service's own name as a DNS alias on every network it
+  # joins, and there is no way to suppress it. So the moment this container is
+  # attached to a network belonging to another stack — which is exactly what
+  # docker-compose.shared-caddy.yml does — a service called `pocketbase` here
+  # would collide with a service called `pocketbase` there.
+  #
+  # That is not hypothetical. The box this shares with runs a stack whose
+  # Caddy reverse-proxies its own database as `reverse_proxy pocketbase:8090`,
+  # by service name. With two claimants for that name, Docker's embedded DNS
+  # hands back both records and round-robins them: roughly half of that site's
+  # requests would be answered by THIS database. Tokens minted by one server and
+  # rejected by the other, and nothing wrong in either service's log — both
+  # processes are behaving perfectly, they are just not the ones being asked.
+  # Measured in that repo, not assumed. A prefix costs nothing and makes the
+  # whole class of problem unreachable.
+  openscreengen-pocketbase:
+    # Built here, not pulled: PocketBase ships release binaries and no official
+    # image. See pocketbase/Dockerfile for the version and its checksum.
+    build:
+      context: ./pocketbase
+    image: openscreengen-pocketbase:0.39.9
+    container_name: openscreengen-pocketbase
+    # always, not unless-stopped: it comes back whenever the Docker daemon
+    # starts, including after a manual `docker stop` and after a host reboot.
+    # unless-stopped remembers a hand stop forever, which is how a database ends
+    # up silently missing on the next boot.
+    restart: always
+    # Not published to the host: Caddy reaches it by service name over the
+    # compose network, so there is no port on the public interface to find. The
+    # admin dashboard at /_/ is a login form on the open internet either way,
+    # but this keeps the unencrypted origin off 0.0.0.0.
+    expose:
+      - "8090"
+    volumes:
+      # THE database, and the uploaded images with it: pb_data/storage is where
+      # every posted screenshot lands. Bind mount rather than a named volume so
+      # a backup is a plain `tar` of a directory you can see.
+      - ./pb-data:/pb/pb_data
+      # Schema changes made in the dashboard write a migration file here. As a
+      # bind mount those land on the host, where they can be copied back into
+      # git; inside the image they would vanish on the next rebuild.
+      - ./pb-migrations:/pb/pb_migrations
+      # The routes. `lib/openscreengen.js` is in here too and is deliberately NOT named
+      # *.pb.js, because that suffix is what PocketBase globs for and a library
+      # loaded as a hook is a library that runs twice.
+      - ./pb-hooks:/pb/pb_hooks
+    healthcheck:
+      # PocketBase answers /api/health unauthenticated. wget is busybox's, so
+      # this needs nothing added to the image.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # "Too many open files" is the documented production failure for PocketBase,
+    # and SQLite plus a few hundred clients reaches the default 1024 fast.
+    # https://pocketbase.io/docs/going-to-production/
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536

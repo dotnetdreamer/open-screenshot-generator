@@ -1,0 +1,85 @@
+# ONLY for a box of its own: `docker compose --profile own-caddy up -d`.
+#
+# On the shared box this file is never mounted and never read — the neighbour's
+# Caddy is the single TLS terminator, and the block it needs is in
+# shared-caddy.Caddyfile. Starting the `caddy` service here on a box that
+# already has one is how TLS goes down for every hostname on it, which is why
+# that service sits behind a profile in docker-compose.yml.
+#
+# Certificates are Let's Encrypt over HTTP-01, which is why port 80 must stay
+# open, why the A record has to be explicit rather than left to a wildcard, and
+# why it must not be behind a proxying CDN: a proxied record answers the
+# challenge with the CDN's own edge and Caddy never sees it. The zone must also
+# carry a CAA that authorizes letsencrypt.org. See README.md.
+
+{
+	# Expiry warnings from Let's Encrypt. Caddy renews on its own at 30 days
+	# left, so this is a backstop for the case where renewal fails silently.
+	# Uncomment with a real mailbox that is actually read.
+	# email you@example.com
+
+	# Caddy's default is to serve its own admin API on 2019. Nothing here uses
+	# it, and `caddy reload` stops working once this is off — validate and
+	# restart the container instead.
+	admin off
+}
+
+pb.openscrgen.app {
+	# The admin door.
+	#
+	# /_/ is PocketBase's own dashboard, and no user token covers it, so the only
+	# defences are PocketBase's own auth rate limit and a good password. A basic
+	# auth layer in front removes the public login form entirely and costs
+	# nothing: it is used by one person.
+	#
+	# Deliberately NOT extended to /api/*. The dashboard's own XHR cannot carry a
+	# basic auth credential the browser has only bound to a different path
+	# prefix, and a superuser token is already what stands between /api/* and the
+	# world.
+	#
+	# Left commented because the hash belongs on the box and not in this repo:
+	# **this repository is public**, and a bcrypt hash in a public repository is
+	# an offline cracking target with the username and the URL sitting next to
+	# it. On the VPS, run
+	#
+	#     docker compose exec caddy caddy hash-password --plaintext 'the-password'
+	#
+	# paste the result below, uncomment, then validate and restart:
+	#
+	#     docker compose exec caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+	#     docker compose restart caddy
+	#
+	# @admin path /_/*
+	# handle @admin {
+	# 	basic_auth {
+	# 		openscreengen $2a$14$REPLACE_WITH_A_REAL_HASH
+	# 	}
+	# 	reverse_proxy openscreengen-pocketbase:8090
+	# }
+
+	handle /api/realtime {
+		reverse_proxy openscreengen-pocketbase:8090 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy openscreengen-pocketbase:8090
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# No Access-Control-Allow-Origin here: PocketBase sends its own, and two
+	# copies of that header make the browser reject the response.
+
+	log {
+		output file /data/access-openscreengen.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

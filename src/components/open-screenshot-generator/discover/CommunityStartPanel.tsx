@@ -17,6 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { discoverApi } from '@/lib/discover/api';
+import { forgetPostIntent, setPostLiked, setPostSaved } from '@/lib/discover/localState';
+import { useDiscoverSession } from '@/lib/discover/session';
 import { useDiscoverFeed } from '@/lib/discover/useFeed';
 import type { Project } from '@/types/artboard';
 import type { DiscoverPost } from '@/types/discover';
@@ -45,8 +47,8 @@ export function CommunityStartPanel({
   onShare,
   canShare,
 }: CommunityStartPanelProps) {
-  // Seeded during render, like the Discover dialog does, so the first request
-  // already has posts to answer with. Idempotent once the catalog settles.
+  // A no-op now that the feed is served rather than built from the catalog. The
+  // call stays because the signature does: see DiscoverApi.seed.
   const seedSignature = `${templates.length}`;
   useMemo(() => discoverApi.seed(templates), [seedSignature]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -83,10 +85,10 @@ export function CommunityStartPanel({
         </Button>
       </div>
 
-      {/* Remounted when the template catalog finishes loading, which is what
-          re-runs the query now that the feed has something to return. */}
+      {/* Not keyed on the catalog any more: the feed is served, so it has
+          nothing to wait for and remounting on a template load would only throw
+          away a page it had already fetched. */}
       <CommunityGrid
-        key={seedSignature}
         isSeeding={isLoadingTemplates && templates.length === 0}
         onUseTemplate={onUseTemplate}
         onOpenPost={onOpenPost}
@@ -107,6 +109,9 @@ function CommunityGrid({
   onOpenPost: (post: DiscoverPost) => void;
   onOpenFeed: () => void;
 }) {
+  const { isSignedIn, capabilities } = useDiscoverSession();
+  const canInteract = isSignedIn && capabilities?.writes !== false;
+
   const { posts, isLoading, error, total } = useDiscoverFeed({
     sort: 'trending',
     scope: 'all',
@@ -145,10 +150,16 @@ function CommunityGrid({
   }
 
   if (posts.length === 0) {
+    // A real feed can be genuinely empty, where the seeded one never was. A
+    // spinner here would sit forever and read as broken.
     return (
-      <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
-        <Loader2Icon className="h-4 w-4 animate-spin" />
-        Loading the feed
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <p className="text-sm text-muted-foreground">
+          Nothing in the community feed yet. Be the first to share a design
+        </p>
+        <Button variant="outline" onClick={onOpenFeed}>
+          Open Discover
+        </Button>
       </div>
     );
   }
@@ -161,10 +172,17 @@ function CommunityGrid({
             key={post.id}
             post={post}
             onOpen={onOpenPost}
-            onToggleLike={(target, liked) => void discoverApi.setLike(target.id, liked)}
-            onToggleSave={(target, saved) => void discoverApi.setSaved(target.id, saved)}
+            onToggleLike={(target, liked) => {
+              setPostLiked(target.id, liked);
+              void discoverApi.setLike(target.id, liked).catch(() => forgetPostIntent(target.id));
+            }}
+            onToggleSave={(target, saved) => {
+              setPostSaved(target.id, saved);
+              void discoverApi.setSaved(target.id, saved).catch(() => forgetPostIntent(target.id));
+            }}
             onUseAsTemplate={post.templateProjectId ? onUseTemplate : undefined}
             onSelectTag={onOpenFeed}
+            canInteract={canInteract}
           />
         ))}
       </div>

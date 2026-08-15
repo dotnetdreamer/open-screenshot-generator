@@ -107,6 +107,7 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
 import { DiscoverDialog } from './discover/DiscoverDialog';
+import { isDiscoverConfigured } from '@/lib/discover/session';
 import { CommunityStartPanel } from './discover/CommunityStartPanel';
 import type { DiscoverPost } from '@/types/discover';
 
@@ -310,6 +311,17 @@ function getInitialProjectIdFromUrl(): string | null {
 // The start dialog's first tab. It holds community posts rather than
 // templates, so it is not a TEMPLATE_CATEGORIES entry and carries its own id.
 const COMMUNITY_TAB_ID = 'community';
+
+/**
+ * Whether this build has a community backend behind it at all.
+ *
+ * A build-time constant, so a fork of this repo with no VPS gets an editor with
+ * no Discover in it rather than one whose compass button opens a dialog that
+ * can only say "unavailable". Every entry point below reads this: the rail
+ * button, the start dialog's first tab, the toolbar's Share, and the action on
+ * the export toast.
+ */
+const HAS_DISCOVER = isDiscoverConfigured();
 
 // ?post=<id> opens Discover on that post. This is the link "Copy link" hands
 // out, so a shared post has to survive a cold load, not just a click inside an
@@ -570,7 +582,9 @@ export function OpenScreenshotGeneratorLayout() {
   // The start dialog opens on the community tab: a finished listing somebody
   // shipped is a better answer to "what should mine look like" than a grid of
   // empty templates, and the templates are one tab away.
-  const [templateTab, setTemplateTab] = useState<string>(COMMUNITY_TAB_ID);
+  const [templateTab, setTemplateTab] = useState<string>(
+    HAS_DISCOVER ? COMMUNITY_TAB_ID : (TEMPLATE_CATEGORIES[0]?.id ?? COMMUNITY_TAB_ID)
+  );
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   // Load-progress feedback for the top status bar. 'templates' = fetching the
@@ -3931,10 +3945,12 @@ const generateRandomProjectName = (): string => {
                 {/* Community leads the row, and the dialog opens on it: what
                     somebody else shipped answers "what should mine look like"
                     better than a grid of empty templates does. */}
-                <TabsTrigger value={COMMUNITY_TAB_ID} className="gap-1.5">
-                  <CompassIcon className="h-4 w-4 text-primary" />
-                  Community
-                </TabsTrigger>
+                {HAS_DISCOVER && (
+                  <TabsTrigger value={COMMUNITY_TAB_ID} className="gap-1.5">
+                    <CompassIcon className="h-4 w-4 text-primary" />
+                    Community
+                  </TabsTrigger>
+                )}
                 {TEMPLATE_CATEGORIES.map((cat) => (
                   <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5">
                     {cat.label}
@@ -3945,6 +3961,7 @@ const generateRandomProjectName = (): string => {
                 ))}
               </TabsList>
 
+              {HAS_DISCOVER && (
               <TabsContent
                 value={COMMUNITY_TAB_ID}
                 className="mt-2 min-h-0 flex-1 flex-col data-[state=active]:flex"
@@ -3962,6 +3979,7 @@ const generateRandomProjectName = (): string => {
                   canShare={artboards.length > 0}
                 />
               </TabsContent>
+              )}
               {/* data-[state=active]:flex, not a bare flex: inactive panels stay
                   mounted with the hidden attribute, and a bare `flex` overrides
                   [hidden]{display:none}, so each ghost panel's mt-2 leaked ~8px of
@@ -5081,6 +5099,7 @@ const generateRandomProjectName = (): string => {
                 Account and Settings: it is a place you go, like the canvas and
                 the palette, rather than a preference you set. The rail keeps
                 only the compass when the sidebar is collapsed to icons. */}
+            {HAS_DISCOVER && (
             <SidebarGroup className="px-2 pb-0 pt-2 group-data-[collapsible=icon]:px-1">
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -5095,6 +5114,7 @@ const generateRandomProjectName = (): string => {
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroup>
+            )}
             <ElementPalette onAddElement={handlePaletteAddElement} onDropElement={handlePaletteDropElement} />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
@@ -5677,12 +5697,17 @@ const generateRandomProjectName = (): string => {
             }}
           />
 
-          {/* The community feed. It shares the template catalog the start
-              dialog already loaded (that is what the mock feed is built from),
-              and it shares the canvas: the boards it posts are captured from
-              the live DOM by the same routine the PNG export uses, so it is
-              handed viewArtboards, the list actually on screen, not the base
-              document. */}
+          {/* The community feed, served from the PocketBase backend in
+              infra/vps. It shares the canvas: the boards it posts are captured
+              from the live DOM by the same routine the PNG export uses, so it
+              is handed viewArtboards, the list actually on screen, not the base
+              document.
+
+              Reading it needs no account. Posting, commenting, liking and
+              saving do, and the session for that is minted from whichever
+              storage account is connected — which is why a sign-in prompt in
+              there opens this same account dialog rather than a second one. */}
+          {HAS_DISCOVER && (
           <DiscoverDialog
             open={isDiscoverOpen}
             onOpenChange={(open) => {
@@ -5701,7 +5726,9 @@ const generateRandomProjectName = (): string => {
             projectName={currentProjectName}
             artboards={viewArtboards}
             captureArtboard={captureArtboardDataUrl}
+            onRequestSignIn={openAccountDialog}
           />
+          )}
 
           <AccountDialog
             open={isAccountOpen}

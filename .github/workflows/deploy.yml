@@ -43,6 +43,12 @@ jobs:
           NEXT_PUBLIC_GITHUB_OAUTH_PROXY: ${{ vars.NEXT_PUBLIC_GITHUB_OAUTH_PROXY }}
           NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
           NEXT_PUBLIC_TRANSLATION_FALLBACK_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_FALLBACK_URL }}
+          # The community feed (Discover). A repo variable rather than a literal,
+          # like every other one here: a fork that has not set it builds an
+          # editor with no Discover in it, which is the right default for
+          # somebody who has not stood up a backend. Set it to the PocketBase
+          # host from infra/vps — for this deployment, https://pb.openscrgen.app.
+          NEXT_PUBLIC_DISCOVER_URL: ${{ vars.NEXT_PUBLIC_DISCOVER_URL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -25,7 +25,6 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { withBasePath } from '@/lib/basePath';
 import { discoverApi } from '@/lib/discover/api';
 import {
   compactCount,
@@ -34,7 +33,14 @@ import {
   surfaceLabel,
   viewerStats,
 } from '@/lib/discover/format';
-import { useDiscoverLocalState } from '@/lib/discover/localState';
+import {
+  isCommentLiked,
+  isFollowed,
+  isLiked,
+  isSaved,
+  setCommentLiked,
+  useDiscoverLocalState,
+} from '@/lib/discover/localState';
 import type { DiscoverComment, DiscoverPost } from '@/types/discover';
 import { AuthorAvatar } from './AuthorAvatar';
 
@@ -47,6 +53,10 @@ interface PostDetailViewProps {
   onDelete?: (post: DiscoverPost) => void;
   onSelectTag: (tag: string) => void;
   onCopyLink: (post: DiscoverPost) => void;
+  /** False for a guest: every button that writes is disabled or hidden. */
+  canInteract?: boolean;
+  /** Shown under the comment box for a guest, in place of the box. */
+  onSignIn?: () => void;
 }
 
 export function PostDetailView({
@@ -58,11 +68,13 @@ export function PostDetailView({
   onDelete,
   onSelectTag,
   onCopyLink,
+  canInteract = false,
+  onSignIn,
 }: PostDetailViewProps) {
   const local = useDiscoverLocalState();
-  const liked = local.likedPostIds.includes(post.id);
-  const saved = local.savedPostIds.includes(post.id);
-  const following = local.followedAuthorIds.includes(post.author.id);
+  const liked = isLiked(local, post.id, post.likedByViewer);
+  const saved = isSaved(local, post.id, post.savedByViewer);
+  const following = isFollowed(local, post.author.id);
   const stats = viewerStats(post, local);
 
   const [imageIndex, setImageIndex] = useState(0);
@@ -134,7 +146,7 @@ export function PostDetailView({
         >
           {image?.src ? (
             <img
-              src={withBasePath(image.src)}
+              src={image.src}
               alt={image.label ?? post.title}
               className={cn(
                 'h-full w-full',
@@ -175,7 +187,10 @@ export function PostDetailView({
         </div>
 
         {hasMultiple && (
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          // shrink-0 for the same reason as the tag strip in DiscoverDialog: an
+          // overflow-x scroller squeezed by its flex parent clips its own
+          // thumbnails rather than getting shorter.
+          <div className="flex shrink-0 gap-2 overflow-x-auto pb-1">
             {post.images.map((entry, index) => (
               <button
                 key={entry.id}
@@ -190,7 +205,7 @@ export function PostDetailView({
                 title={entry.label ?? `Image ${index + 1}`}
               >
                 <img
-                  src={withBasePath(entry.src)}
+                  src={entry.src}
                   alt=""
                   className={cn(
                     'h-full w-full',
@@ -202,7 +217,7 @@ export function PostDetailView({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span>{surfaceLabel(post.surface)}</span>
           <span>·</span>
           <span>{post.screens === 1 ? '1 screen' : `${post.screens} screens`}</span>
@@ -219,9 +234,15 @@ export function PostDetailView({
         </div>
       </div>
 
-      {/* Right: author, copy, actions, thread. */}
+      {/* Right: author, copy, actions, thread.
+          Everything except the thread is shrink-0. This column is a flex child
+          of a height-capped dialog, so without that the browser squeezes every
+          block a little and the comment list ends up slicing a comment in half
+          lengthwise instead of scrolling. Fixed head, scrolling thread, fixed
+          composer is the shape every message panel has, and it is the shape
+          that keeps the comment box on screen. */}
       <div className="flex min-h-0 min-w-0 flex-col lg:overflow-hidden">
-        <div className="flex items-start gap-3">
+        <div className="flex shrink-0 items-start gap-3">
           <AuthorAvatar author={post.author} className="h-11 w-11" />
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-1.5">
@@ -245,6 +266,8 @@ export function PostDetailView({
               variant={following ? 'secondary' : 'outline'}
               size="sm"
               className="h-8 shrink-0"
+              disabled={!canInteract}
+              title={canInteract ? undefined : 'Sign in to follow people'}
               onClick={() => onToggleFollow(post.author.id, !following)}
             >
               {following ? 'Following' : 'Follow'}
@@ -252,11 +275,13 @@ export function PostDetailView({
           )}
         </div>
 
-        <h2 className="mt-4 text-lg font-semibold leading-tight">{post.title}</h2>
-        <p className="mt-1.5 whitespace-pre-line text-sm text-muted-foreground">{post.caption}</p>
+        <h2 className="mt-4 shrink-0 text-lg font-semibold leading-tight">{post.title}</h2>
+        <p className="mt-1.5 shrink-0 whitespace-pre-line text-sm text-muted-foreground">
+          {post.caption}
+        </p>
 
         {post.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
+          <div className="mt-3 flex shrink-0 flex-wrap gap-1.5">
             {post.tags.map((tag) => (
               <Badge
                 key={tag}
@@ -270,11 +295,13 @@ export function PostDetailView({
           </div>
         )}
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex shrink-0 flex-wrap items-center gap-2">
           <Button
             variant={liked ? 'default' : 'outline'}
             size="sm"
             className="h-9 gap-1.5"
+            disabled={!canInteract}
+            title={canInteract ? undefined : 'Sign in to like posts'}
             onClick={() => onToggleLike(post, !liked)}
             aria-pressed={liked}
           >
@@ -285,6 +312,8 @@ export function PostDetailView({
             variant={saved ? 'secondary' : 'outline'}
             size="sm"
             className="h-9 gap-1.5"
+            disabled={!canInteract}
+            title={canInteract ? undefined : 'Sign in to save posts'}
             onClick={() => onToggleSave(post, !saved)}
             aria-pressed={saved}
           >
@@ -326,7 +355,7 @@ export function PostDetailView({
 
         <Separator className="my-4" />
 
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex shrink-0 items-center justify-between">
           <h3 className="text-sm font-semibold">
             {comments === null
               ? 'Comments'
@@ -338,8 +367,14 @@ export function PostDetailView({
 
         {/* Native overflow, never a Radix ScrollArea: this column is a flex
             child of a max-h capped dialog, where a ScrollArea viewport cannot
-            resolve its height and silently stops scrolling. */}
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+            resolve its height and silently stops scrolling.
+
+            The scrolling is lg-only. Below that the view is one column and the
+            root scrolls as a whole, so a second scroller in here would collapse
+            to its flex minimum and show a comment and a half, sliced through
+            the middle, with the rest reachable only by dragging inside a 50px
+            window nobody can see the edges of. */}
+        <div className="space-y-4 pr-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
           {comments === null && (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -364,12 +399,23 @@ export function PostDetailView({
             <CommentRow
               key={comment.id}
               comment={comment}
+              canInteract={canInteract}
               onDelete={comment.isMine ? () => removeComment(comment) : undefined}
             />
           ))}
         </div>
 
-        <div className="mt-3 flex items-end gap-2 border-t pt-3">
+        {!canInteract ? (
+          <div className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t pt-3 text-sm text-muted-foreground">
+            <span>Sign in to join the conversation</span>
+            {onSignIn && (
+              <Button size="sm" variant="outline" className="h-8" onClick={onSignIn}>
+                Sign in
+              </Button>
+            )}
+          </div>
+        ) : (
+        <div className="mt-3 flex shrink-0 items-end gap-2 border-t pt-3">
           <Textarea
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -399,6 +445,7 @@ export function PostDetailView({
             )}
           </Button>
         </div>
+        )}
       </div>
     </div>
   );
@@ -407,12 +454,18 @@ export function PostDetailView({
 function CommentRow({
   comment,
   onDelete,
+  canInteract = false,
 }: {
   comment: DiscoverComment;
   onDelete?: () => void;
+  canInteract?: boolean;
 }) {
   const local = useDiscoverLocalState();
-  const liked = local.likedCommentIds.includes(comment.id);
+  // Comment likes have no per-viewer flag on the wire: a thread is a handful of
+  // rows and a second query per comment to fill in one heart is not worth the
+  // request. So the overlay is the whole truth here, and it lasts as long as the
+  // dialog is open — which is as long as anybody is looking at it.
+  const liked = isCommentLiked(local, comment.id);
   const likes = comment.likes + (liked ? 1 : 0);
 
   return (
@@ -431,7 +484,12 @@ function CommentRow({
             variant="ghost"
             size="sm"
             className={cn('h-7 gap-1 px-1.5 text-xs', liked && 'text-primary')}
-            onClick={() => void discoverApi.setCommentLike(comment.id, !liked)}
+            disabled={!canInteract}
+            title={canInteract ? undefined : 'Sign in to like comments'}
+            onClick={() => {
+              setCommentLiked(comment.id, !liked);
+              void discoverApi.setCommentLike(comment.id, !liked);
+            }}
             aria-pressed={liked}
           >
             <HeartIcon className={cn('h-3.5 w-3.5', liked && 'fill-current')} />

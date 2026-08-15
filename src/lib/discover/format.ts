@@ -4,20 +4,24 @@ import type { DiscoverImage, DiscoverPost, DiscoverStats } from '@/types/discove
 import type { DiscoverLocalState } from './localState';
 
 /**
- * The counts a card actually shows: the server numbers plus whatever the viewer
- * has done in this browser.
+ * The counts a card actually shows: the server's numbers, adjusted by whatever
+ * the viewer has just tapped and the server has not answered about yet.
  *
- * The API deliberately does not fold these in (see MockDiscoverApi.decorate),
- * so a like updates the number the instant it is tapped, with no refetch and no
- * chance of counting the same like twice.
+ * A **delta**, not a sum, and that distinction is the whole of it. `post.stats.
+ * likes` already includes this viewer's like if they have one, because the feed
+ * knows who is asking. So the only correction is when the overlay disagrees with
+ * the post: they just liked something the server still lists as unliked (+1), or
+ * just un-liked something it lists as liked (-1). Adding a flat +1 for "liked",
+ * the way this worked against the mock, would double-count every like the
+ * moment the feed refreshed.
  */
 export function viewerStats(post: DiscoverPost, state: DiscoverLocalState): DiscoverStats {
-  const liked = state.likedPostIds.includes(post.id);
-  const ownComments = (state.comments[post.id] ?? []).length;
+  const intent = state.liked[post.id];
+  const server = !!post.likedByViewer;
+  const delta = intent === undefined || intent === server ? 0 : intent ? 1 : -1;
   return {
     ...post.stats,
-    likes: post.stats.likes + (liked ? 1 : 0),
-    comments: post.stats.comments + ownComments,
+    likes: Math.max(0, post.stats.likes + delta),
   };
 }
 
