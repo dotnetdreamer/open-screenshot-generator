@@ -36,6 +36,8 @@ interface CommunityStartPanelProps {
   onShare: () => void;
   /** False with nothing on the canvas: there would be no screens to post. */
   canShare: boolean;
+  /** Open the account dialog, which is where a community session comes from. */
+  onRequestSignIn?: (hint?: string) => void;
 }
 
 export function CommunityStartPanel({
@@ -46,6 +48,7 @@ export function CommunityStartPanel({
   onOpenFeed,
   onShare,
   canShare,
+  onRequestSignIn,
 }: CommunityStartPanelProps) {
   // A no-op now that the feed is served rather than built from the catalog. The
   // call stays because the signature does: see DiscoverApi.seed.
@@ -93,6 +96,7 @@ export function CommunityStartPanel({
         onUseTemplate={onUseTemplate}
         onOpenPost={onOpenPost}
         onOpenFeed={onOpenFeed}
+        onRequestSignIn={onRequestSignIn}
       />
     </div>
   );
@@ -103,14 +107,23 @@ function CommunityGrid({
   onUseTemplate,
   onOpenPost,
   onOpenFeed,
+  onRequestSignIn,
 }: {
   isSeeding: boolean;
   onUseTemplate: (post: DiscoverPost) => void;
   onOpenPost: (post: DiscoverPost) => void;
   onOpenFeed: () => void;
+  onRequestSignIn?: (hint?: string) => void;
 }) {
   const { isSignedIn, capabilities } = useDiscoverSession();
   const canInteract = isSignedIn && capabilities?.writes !== false;
+
+  /** Same bargain as the feed: a guest's press opens the sign-in dialog. */
+  const requireSession = (what: string): boolean => {
+    if (canInteract) return true;
+    onRequestSignIn?.(`Connect Google Drive or GitHub to ${what} in Discover.`);
+    return false;
+  };
 
   const { posts, isLoading, error, total } = useDiscoverFeed({
     sort: 'trending',
@@ -173,10 +186,12 @@ function CommunityGrid({
             post={post}
             onOpen={onOpenPost}
             onToggleLike={(target, liked) => {
+              if (!requireSession('like posts')) return;
               setPostLiked(target.id, liked);
               void discoverApi.setLike(target.id, liked).catch(() => forgetPostIntent(target.id));
             }}
             onToggleSave={(target, saved) => {
+              if (!requireSession('save posts')) return;
               setPostSaved(target.id, saved);
               void discoverApi.setSaved(target.id, saved).catch(() => forgetPostIntent(target.id));
             }}

@@ -53,10 +53,14 @@ interface PostDetailViewProps {
   onDelete?: (post: DiscoverPost) => void;
   onSelectTag: (tag: string) => void;
   onCopyLink: (post: DiscoverPost) => void;
-  /** False for a guest: every button that writes is disabled or hidden. */
+  /**
+   * False for a guest. Nothing here is disabled because of it: a guest can
+   * press every one of these and gets the sign-in dialog, which is the thing
+   * they need. It picks the tooltips, and swaps the comment box for a prompt.
+   */
   canInteract?: boolean;
-  /** Shown under the comment box for a guest, in place of the box. */
-  onSignIn?: () => void;
+  /** Open the sign-in dialog, naming what the guest was reaching for. */
+  onSignIn?: (what: string) => void;
 }
 
 export function PostDetailView({
@@ -266,7 +270,6 @@ export function PostDetailView({
               variant={following ? 'secondary' : 'outline'}
               size="sm"
               className="h-8 shrink-0"
-              disabled={!canInteract}
               title={canInteract ? undefined : 'Sign in to follow people'}
               onClick={() => onToggleFollow(post.author.id, !following)}
             >
@@ -300,7 +303,6 @@ export function PostDetailView({
             variant={liked ? 'default' : 'outline'}
             size="sm"
             className="h-9 gap-1.5"
-            disabled={!canInteract}
             title={canInteract ? undefined : 'Sign in to like posts'}
             onClick={() => onToggleLike(post, !liked)}
             aria-pressed={liked}
@@ -312,7 +314,6 @@ export function PostDetailView({
             variant={saved ? 'secondary' : 'outline'}
             size="sm"
             className="h-9 gap-1.5"
-            disabled={!canInteract}
             title={canInteract ? undefined : 'Sign in to save posts'}
             onClick={() => onToggleSave(post, !saved)}
             aria-pressed={saved}
@@ -400,6 +401,7 @@ export function PostDetailView({
               key={comment.id}
               comment={comment}
               canInteract={canInteract}
+              onRequireSignIn={() => onSignIn?.('like comments')}
               onDelete={comment.isMine ? () => removeComment(comment) : undefined}
             />
           ))}
@@ -409,7 +411,12 @@ export function PostDetailView({
           <div className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t pt-3 text-sm text-muted-foreground">
             <span>Sign in to join the conversation</span>
             {onSignIn && (
-              <Button size="sm" variant="outline" className="h-8" onClick={onSignIn}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8"
+                onClick={() => onSignIn('join the conversation')}
+              >
                 Sign in
               </Button>
             )}
@@ -454,10 +461,12 @@ export function PostDetailView({
 function CommentRow({
   comment,
   onDelete,
+  onRequireSignIn,
   canInteract = false,
 }: {
   comment: DiscoverComment;
   onDelete?: () => void;
+  onRequireSignIn?: () => void;
   canInteract?: boolean;
 }) {
   const local = useDiscoverLocalState();
@@ -484,9 +493,12 @@ function CommentRow({
             variant="ghost"
             size="sm"
             className={cn('h-7 gap-1 px-1.5 text-xs', liked && 'text-primary')}
-            disabled={!canInteract}
             title={canInteract ? undefined : 'Sign in to like comments'}
             onClick={() => {
+              if (!canInteract) {
+                onRequireSignIn?.();
+                return;
+              }
               setCommentLiked(comment.id, !liked);
               void discoverApi.setCommentLike(comment.id, !liked);
             }}

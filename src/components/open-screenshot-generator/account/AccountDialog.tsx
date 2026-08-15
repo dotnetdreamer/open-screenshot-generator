@@ -128,6 +128,11 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
       setShowTokenField(false);
       setDeviceCode(null);
       toast({ title: `Connected to ${provider.label}`, description: `Signed in as ${next.account.name}.` });
+      // A hint means this dialog was opened by something the person was
+      // already trying to do (share a design, like a post, save a project).
+      // Hand them straight back to it: leaving them parked in a project list
+      // they never asked for makes signing in feel like a detour.
+      if (hint) onOpenChange(false);
     } catch (error) {
       if (!(error instanceof AccountCancelledError)) {
         toast({

@@ -4086,6 +4086,7 @@ const generateRandomProjectName = (): string => {
                   onOpenFeed={() => openDiscover('feed')}
                   onShare={() => openDiscover('share')}
                   canShare={artboards.length > 0}
+                  onRequestSignIn={openAccountDialog}
                 />
               </TabsContent>
               )}

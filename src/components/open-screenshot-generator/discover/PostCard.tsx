@@ -39,7 +39,12 @@ interface PostCardProps {
   /** Absent when the post has no project behind it (nothing to open). */
   onUseAsTemplate?: (post: DiscoverPost) => void;
   onSelectTag?: (tag: string) => void;
-  /** False for a guest: the two buttons that write become disabled. */
+  /**
+   * False for a guest. The two buttons that write stay live either way: the
+   * owner of onToggleLike/onToggleSave turns the click into a sign-in prompt,
+   * because a disabled button cannot tell anybody what it wants from them.
+   * This only picks the tooltip.
+   */
   canInteract?: boolean;
 }
 
@@ -171,7 +176,6 @@ export function PostCard({
             variant="ghost"
             size="sm"
             className={cn('h-8 gap-1.5 px-2', liked && 'text-primary')}
-            disabled={!canInteract}
             onClick={(event) => {
               event.stopPropagation();
               onToggleLike(post, !liked);
@@ -218,7 +222,6 @@ export function PostCard({
             variant="ghost"
             size="icon"
             className={cn('ml-auto h-8 w-8', saved && 'text-primary')}
-            disabled={!canInteract}
             onClick={(event) => {
               event.stopPropagation();
               onToggleSave(post, !saved);

@@ -142,7 +142,7 @@ export function DiscoverDialog({
   onRequestSignIn,
 }: DiscoverDialogProps) {
   const { toast } = useToast();
-  const { isSignedIn, viewer, capabilities } = useDiscoverSession();
+  const { isSignedIn, viewer, capabilities, isReady } = useDiscoverSession();
   // Writing needs both halves: somebody signed in, and a box that is accepting
   // writes. `writes_enabled` is the operator's read-only switch, and honouring
   // it here is what stops every button answering 503 during a migration.
@@ -177,18 +177,27 @@ export function DiscoverDialog({
   // inside a session is never overridden.
   useEffect(() => {
     if (!open) return;
-    // A guest who arrived from the toolbar's Share button or the export toast
-    // lands on the feed instead, with the sign-in prompt the button would have
-    // given them. Landing on a share form they cannot submit is worse.
+    // A guest who arrived from the toolbar's Share button, the start screen or
+    // the export toast gets the sign-in dialog, immediately and on top of the
+    // feed. Landing on a share form they cannot submit is worse, and so is
+    // landing on the feed with no word about why the thing they pressed did
+    // not happen.
     if (initialView === 'share' && !canInteract) {
+      // Not until the first reconcile has settled, or somebody whose session
+      // is still being minted is asked to sign in half a second before it
+      // arrives.
+      if (!isReady) return;
       setView('feed');
       setActivePost(null);
+      promptSignIn('share your designs');
       return;
     }
+    // Signing in from that prompt flips canInteract and re-runs this, which
+    // lands them on the share form they originally asked for.
     setView(initialView);
     if (initialView === 'share') setActivePost(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, canInteract]);
+  }, [open, canInteract, isReady]);
 
   // A ?post= link opens straight into that post.
   useEffect(() => {
@@ -301,7 +310,21 @@ export function DiscoverDialog({
     }
   };
 
+  /*
+   * The guest branch on every write, and the reason none of these buttons are
+   * disabled.
+   *
+   * A disabled heart tells somebody they cannot do the thing without telling
+   * them what would let them, and it cannot be pressed to find out. So the
+   * buttons stay live and a guest's press opens the sign-in dialog, which is
+   * what they were going to have to reach anyway. The check runs before the
+   * optimistic paint, so nothing fills in and snaps back on the way there.
+   */
   const toggleLike = (post: DiscoverPost, liked: boolean) => {
+    if (!canInteract) {
+      promptSignIn('like posts');
+      return;
+    }
     void write(
       () => discoverApi.setLike(post.id, liked),
       () => setPostLiked(post.id, liked),
@@ -311,6 +334,10 @@ export function DiscoverDialog({
   };
 
   const toggleSave = (post: DiscoverPost, saved: boolean) => {
+    if (!canInteract) {
+      promptSignIn('save posts');
+      return;
+    }
     void write(
       () => discoverApi.setSaved(post.id, saved),
       () => setPostSaved(post.id, saved),
@@ -324,6 +351,10 @@ export function DiscoverDialog({
   };
 
   const toggleFollow = (authorId: string, following: boolean) => {
+    if (!canInteract) {
+      promptSignIn('follow people');
+      return;
+    }
     void write(
       () => discoverApi.setFollow(authorId, following),
       () => setAuthorFollowed(authorId, following),
@@ -605,7 +636,7 @@ export function DiscoverDialog({
               }}
               onCopyLink={(post) => void copyLink(post)}
               canInteract={canInteract}
-              onSignIn={() => promptSignIn('join the conversation')}
+              onSignIn={promptSignIn}
             />
           </>
         )}
