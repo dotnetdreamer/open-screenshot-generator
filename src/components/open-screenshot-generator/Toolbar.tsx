@@ -13,6 +13,7 @@ import {
   CloudUploadIcon,
   Loader2Icon,
   LanguagesIcon,
+  Share2Icon,
   StoreIcon
 } from 'lucide-react';
 import {
@@ -38,6 +39,8 @@ interface ToolbarProps {
   onExport: () => void;
   /** Open the direct-to-store upload dialog (App Store Connect, Google Play). */
   onPublishToStore?: () => void;
+  /** Post the open project to the community feed (Discover). */
+  onShareToDiscover?: () => void;
   onExportJSON: () => void;
   onImportJSON: () => void;
   /** Push the project to the user's connected storage, or prompt to connect. */
@@ -75,6 +78,7 @@ export function Toolbar({
   onPreview,
   onExport,
   onPublishToStore,
+  onShareToDiscover,
   onExportJSON,
   onImportJSON,
   onSaveToAccount,
@@ -345,6 +349,21 @@ export function Toolbar({
           it. The language switcher now shares this row, and at laptop widths
           that label is the difference between a clean run and a squashed one.
           The title carries the meaning when the text is gone. */}
+      {/* Sharing sits with the other "send my work somewhere" buttons rather
+          than in a menu: posting the set is the last thing people do after an
+          export, and it should cost one click from there. */}
+      {onShareToDiscover && (
+        <Button
+          variant="outline"
+          onClick={onShareToDiscover}
+          className="h-8 shrink-0"
+          title="Share this design to the community feed"
+        >
+          <Share2Icon className="h-4 w-4 lg:mr-1.5" />
+          <span className="hidden lg:inline">Share</span>
+        </Button>
+      )}
+
       {onPublishToStore && (
         <Button
           variant="outline"

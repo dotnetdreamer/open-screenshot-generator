@@ -3,6 +3,7 @@ import type { Project } from './types/artboard';
 import type { Operation } from './lib/ai/operationLog';
 import type { MediaAsset } from './lib/mediaStore';
 import type { CustomFontRow } from './services/customFonts';
+import type { DiscoverPostRow } from './lib/discover/localPosts';
 
 export class ProjectDatabase extends Dexie {
   projects!: Table<Project, string>; // <Type, KeyType>
@@ -21,6 +22,11 @@ export class ProjectDatabase extends Dexie {
   // filter by id prefix, and a font is loaded on every app start.
   // See src/services/customFonts.ts.
   fonts!: Table<CustomFontRow, string>;
+  // Posts the viewer published to the Discover feed from their own project.
+  // The captured artboard PNGs are blobs, so they live here rather than in the
+  // localStorage blob that holds the rest of the feed activity.
+  // See src/lib/discover/localPosts.ts.
+  discoverPosts!: Table<DiscoverPostRow, string>;
 
   constructor() {
     super('ProjectDatabase');
@@ -41,6 +47,13 @@ export class ProjectDatabase extends Dexie {
       operations: 'id, startedAt, status, provider',
       media: 'id, createdAt',
       fonts: 'id, family, createdAt',
+    });
+    this.version(5).stores({
+      projects: 'id, name, timestamp',
+      operations: 'id, startedAt, status, provider',
+      media: 'id, createdAt',
+      fonts: 'id, family, createdAt',
+      discoverPosts: 'id, createdAt',
     });
   }
 }

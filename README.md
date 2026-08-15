@@ -19,6 +19,10 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 14 August 2026: Discover, the community feed
+
+- Browse store graphics other people shipped and open any of them as a starting point for your own. Reading it needs no account at all; posting, commenting, liking and saving use the Google or GitHub sign-in the editor already has. Runs on a small self-hosted PocketBase — [set it up](infra/vps/README.md), or leave `NEXT_PUBLIC_DISCOVER_URL` unset and the feature simply is not there.
+
 ### 12 August 2026: one project, every language
 
 - Add the languages you ship in and the whole project switches between them: one shared layout, with text, fonts and screenshots per language, machine translations to start from, and a properties panel that writes each language on its own. [60 second walkthrough](https://youtu.be/mO17AX-PXgc)
@@ -53,6 +57,7 @@ Optional cloud saving with no backend of ours. Connect your own Google Drive or 
 
 ## What it does
 
+- **Discover**: a community feed of store graphics people shared, searchable by tag, surface and text, with every post openable as a new project. Read-only for visitors, open to anyone signed in. See [infra/vps/README.md](infra/vps/README.md) for the backend, which is optional and self-hosted
 - Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
 - Device frames for iPhone (X through 17 Pro Max), iPad (11-inch and Pro 13-inch), Android (bar, notch, punch-hole), tablet, MacBook, iMac, Apple Watch, and desktop, plus custom frames from your own mockup images
 - Screenshots dropped into a frame stay clipped to the device screen; frames can be rotated, scaled, and tilted using perspective presets or a raw CSS `matrix3d` if you need full control
@@ -103,6 +108,15 @@ npm run dev
 ```
 
 The dev server runs on http://localhost:9002 with Turbopack. When the app opens, pick one of the bundled templates or start blank, and you're in the editor.
+
+Everything works without any further setup. The Discover feed is the one part that needs a backend, and it is off unless you point it at one — with `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Share, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
+
+```bash
+cd infra/vps
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+```
+
+then set `NEXT_PUBLIC_DISCOVER_URL=http://127.0.0.1:8090` in `.env.local`. [Full instructions, including seeding it with the bundled templates](infra/vps/README.md#running-it-locally).
 
 <p align="center">
   <img src="docs/screenshot-home.png" alt="The start screen: a grid of bundled template cards and a Start Blank button" width="700">

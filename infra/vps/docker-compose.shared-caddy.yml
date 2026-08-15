@@ -1,0 +1,46 @@
+# Sharing a box: use the neighbour's Caddy instead of starting one here.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.shared-caddy.yml up -d
+#
+# Both -f flags, on EVERY command, not just the first. A command without them
+# talks to a different, partly-defined stack: `down` leaves the shared network
+# attachment behind, and `up -d` recreates the database with no route to Caddy —
+# a 502 with a perfectly healthy container behind it. Put the wrapper script
+# from README.md on the box rather than trusting anyone to remember.
+#
+# What this override does, and nothing else:
+#   - joins the neighbour's compose network, so their Caddy can resolve
+#     `openscreengen-pocketbase` by name
+#   - leaves `caddy` behind its profile, so no second process fights for :443
+#
+# The network is EXTERNAL: this file never creates it. If the neighbour's stack
+# is down, `up -d` fails with "network not found", which is the correct and
+# obvious failure. It is emphatically better than silently creating an empty
+# network of the same name, which would leave this database running, healthy,
+# and unreachable from the only Caddy that can serve it.
+
+services:
+  openscreengen-pocketbase:
+    networks:
+      - default
+      - edge
+
+networks:
+  edge:
+    external: true
+    # The neighbour's default compose network. Compose names it
+    # `<their project name>_default`, so confirm it before the first run rather
+    # than guessing:
+    #
+    #     docker network ls | grep default
+    #
+    # and override in /opt/openscreengen/.env if it is called something else:
+    #
+    #     OPENSCREENGEN_EDGE_NETWORK=some_other_default
+    #
+    # There is no useful default: the real network belongs to a project this
+    # public repo does not name, so the fallback is a sentinel that makes the
+    # failure say what to do. Compose reports
+    #   `network set-OPENSCREENGEN_EDGE_NETWORK-in-opt-openscreengen-dotenv not found`
+    # which is a better error than an empty name or a guess that is wrong.
+    name: "${OPENSCREENGEN_EDGE_NETWORK:-set-OPENSCREENGEN_EDGE_NETWORK-in-opt-openscreengen-dotenv}"

@@ -1,0 +1,44 @@
+# Running the community backend on your own machine.
+#
+#   cd infra/vps
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+#
+# Then point the editor at it, in .env.local at the repo root:
+#
+#   NEXT_PUBLIC_DISCOVER_URL=http://127.0.0.1:8090
+#
+# ## Why this file has to exist
+#
+# `docker-compose.yml` publishes **no port at all**, on purpose: on the VPS the
+# only way in is Caddy on 443, reaching PocketBase by service name over the
+# compose network, so there is nothing on the public interface to find. That is
+# the right production posture and it makes the stack useless on a laptop, where
+# there is no Caddy and the browser has to reach it directly.
+#
+# So this override adds the port, and only the port.
+#
+# ## 127.0.0.1, not 0.0.0.0
+#
+# The bind address is the whole of the care in this file. `8090:8090` binds every
+# interface, which puts a PocketBase with a fresh superuser form on it in front of
+# every other device on whatever café or hotel network the laptop is on.
+# `127.0.0.1:8090:8090` is reachable from this machine and nowhere else.
+#
+# The cost is that it is also unreachable from another container, which matters
+# for exactly one thing: `WSL`/Docker Desktop port forwarding still works, so the
+# browser and `curl` on the host are fine, but a second container that wants to
+# talk to this one should join `openscreengen_default` and use `openscreengen-pocketbase:8090` rather
+# than having this loosened.
+#
+# ## This is not how it runs on the box
+#
+# Do not copy this file to the VPS and do not add it to a command there. The
+# shared Caddy is the TLS terminator; publishing 8090 on the box would put the
+# unencrypted origin on 0.0.0.0 beside it, which is precisely what the base file
+# is written to avoid. On the box the override is
+# `docker-compose.shared-caddy.yml` and nothing else.
+
+services:
+  openscreengen-pocketbase:
+    ports:
+      - "127.0.0.1:8090:8090"
