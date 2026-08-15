@@ -2,12 +2,16 @@
 
 // The project's language control, living in the toolbar's flex-grow spacer.
 //
-// Two shapes on purpose. A project with no languages gets a single ghost
-// button, so the feature costs a project that will never use it exactly one
-// word of chrome. Once languages exist it collapses to globe + code + chevron,
-// because the toolbar's right-hand run is already eight icon buttons plus a
-// labelled one, and a full language name here squeezes that run at laptop
-// widths.
+// Everything to do with language is behind this one button, translating
+// included. A globe and a translate glyph sitting side by side were two
+// controls that a glance could not tell apart, and the second one was reached
+// for far less often than its width suggested.
+//
+// Two shapes on purpose. A project with no languages gets a ghost button, so
+// the feature costs a project that will never use it exactly one word of
+// chrome. Once languages exist the trigger collapses to globe + code + chevron,
+// because the toolbar's right-hand run is already several icon buttons, and a
+// full language name here squeezes that run at laptop widths.
 //
 // It reads the base document, never a projection: the counts have to describe
 // every language at once, and a projected array has already lost the overrides
@@ -16,6 +20,7 @@
 import {
   ChevronDownIcon,
   GlobeIcon,
+  LanguagesIcon,
   RefreshCwIcon,
   TableIcon,
 } from 'lucide-react';
@@ -43,9 +48,49 @@ export interface LanguageSwitcherProps {
   onManageLanguages: () => void;
   onOpenTranslations: () => void;
   onUpdateTranslations: () => void;
+  /** Open the translate dialog for the whole project. */
+  onTranslate?: () => void;
+  /**
+   * False when the translate dialog has no engine to call. Separate from
+   * `translationAvailable`, which gates the bulk refresh: the two answer to
+   * different configuration and collapsing them would disable the wrong item.
+   */
+  translateEnabled?: boolean;
   /** False when no machine translation engine is configured. */
   translationAvailable: boolean;
   className?: string;
+}
+
+/**
+ * "Translate text", which both shapes of this control carry.
+ *
+ * A component rather than a copied block so the two menus cannot drift on the
+ * label or on which flag disables it.
+ */
+function TranslateItem({
+  onTranslate,
+  enabled,
+}: {
+  onTranslate?: () => void;
+  enabled: boolean;
+}) {
+  if (!onTranslate) return null;
+  return (
+    <DropdownMenuItem
+      onClick={onTranslate}
+      disabled={!enabled}
+      title={
+        enabled
+          ? 'Translate the text on these artboards'
+          : 'Translation is disabled because API URLs are not configured'
+      }
+    >
+      {/* The globe is the language set. Translating is a different verb, so it
+          keeps the A-and-character glyph it carried as its own button. */}
+      <LanguagesIcon className="opacity-80" />
+      Translate text
+    </DropdownMenuItem>
+  );
 }
 
 /**
@@ -86,6 +131,8 @@ export function LanguageSwitcher({
   onManageLanguages,
   onOpenTranslations,
   onUpdateTranslations,
+  onTranslate,
+  translateEnabled = true,
   translationAvailable,
   className,
 }: LanguageSwitcherProps) {
@@ -93,16 +140,32 @@ export function LanguageSwitcher({
   const locales = getProjectLocales(artboards);
 
   if (locales.length === 0) {
+    // No languages yet, so there is nothing to switch between and the trigger
+    // is a noun rather than the action it used to be. The menu exists at all
+    // because translating lives here too, and it is worth reaching without
+    // first adding a language: the translate dialog handles a project that has
+    // none, which is how most people meet the feature.
     return (
-      <Button
-        variant="ghost"
-        className={cn('h-8 gap-1.5 px-2 text-muted-foreground hover:text-foreground', className)}
-        onClick={onManageLanguages}
-        title="Export this project in more than one language"
-      >
-        <GlobeIcon className="h-4 w-4" />
-        <span className="text-sm">Add language</span>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className={cn('h-8 gap-1.5 px-2 text-muted-foreground hover:text-foreground', className)}
+            title="Add a language, or translate this project"
+          >
+            <GlobeIcon className="h-4 w-4" />
+            <span className="text-sm">Language</span>
+            <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-64">
+          <DropdownMenuItem onClick={onManageLanguages}>
+            <GlobeIcon className="opacity-80" />
+            Add language
+          </DropdownMenuItem>
+          <TranslateItem onTranslate={onTranslate} enabled={translateEnabled} />
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
@@ -160,6 +223,7 @@ export function LanguageSwitcher({
 
         <DropdownMenuSeparator />
 
+        <TranslateItem onTranslate={onTranslate} enabled={translateEnabled} />
         <DropdownMenuItem onClick={onOpenTranslations}>
           <TableIcon className="opacity-80" />
           Translations table

@@ -1,18 +1,19 @@
 "use client";
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   DownloadIcon,
   LayoutTemplateIcon,
-  FileTextIcon,
+  FileJsonIcon,
   FolderOpenIcon,
   EyeIcon,
+  ImagesIcon,
   SmartphoneIcon,
   ChevronDownIcon,
   RulerIcon,
   CloudUploadIcon,
+  CloudDownloadIcon,
   Loader2Icon,
-  LanguagesIcon,
   Share2Icon,
   StoreIcon
 } from 'lucide-react';
@@ -20,6 +21,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -43,6 +45,8 @@ interface ToolbarProps {
   onShareToDiscover?: () => void;
   onExportJSON: () => void;
   onImportJSON: () => void;
+  /** Open the account dialog, where the projects in storage can be opened. */
+  onOpenFromAccount?: () => void;
   /** Push the project to the user's connected storage, or prompt to connect. */
   onSaveToAccount: () => void;
   isAccountConnected: boolean;
@@ -81,6 +85,7 @@ export function Toolbar({
   onShareToDiscover,
   onExportJSON,
   onImportJSON,
+  onOpenFromAccount,
   onSaveToAccount,
   isAccountConnected,
   isSavingToAccount = false,
@@ -195,6 +200,9 @@ export function Toolbar({
           and clip it. When the row runs out of room the give comes from the
           canvas-size button's truncating preset label, since every button to
           the right of here is shrink-0. */}
+      {/* Translating used to be its own button here. It is inside the switcher
+          now: "add a language" and "translate the text" are the same errand to
+          anyone who has not yet learned that this app treats them separately. */}
       <div className="flex shrink-0 flex-grow items-center gap-2">
         {artboards && onSelectLocale && onManageLanguages && onOpenTranslations && onUpdateTranslations && (
           <LanguageSwitcher
@@ -204,27 +212,10 @@ export function Toolbar({
             onManageLanguages={onManageLanguages}
             onOpenTranslations={onOpenTranslations}
             onUpdateTranslations={onUpdateTranslations}
+            onTranslate={onTranslate}
+            translateEnabled={isTranslationEnabled}
             translationAvailable={translationAvailable}
           />
-        )}
-
-        {/* Translating is what you reach for once a language exists, so it
-            belongs beside the language switcher rather than in the
-            export/import/publish run on the right. */}
-        {onTranslate && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onTranslate}
-            disabled={!isTranslationEnabled}
-            className="h-8 w-8 shrink-0"
-            title={isTranslationEnabled ? "Translate Text" : "Translation is disabled because API URLs are not configured"}
-          >
-            {/* The globe belongs to the language controls (Add language, the
-                locale chip). Translating is a different verb, so it gets the
-                A-and-character glyph instead of a second globe. */}
-            <LanguagesIcon className="h-4 w-4" />
-          </Button>
         )}
       </div>
 
@@ -289,69 +280,116 @@ export function Toolbar({
         <EyeIcon className="mr-1.5 h-4 w-4" />
       </Button>
 
-      <Button
-        variant="outline"
-        onClick={onImportJSON}
-        className="h-8 shrink-0"
-        title="Import Project from JSON"
-      >
-        <FolderOpenIcon className="mr-1.5 h-4 w-4" />
-      </Button>
+      {/* Import and Export are one button each, with their sources and their
+          destinations behind them. Two menus beat the three unlabelled icon
+          buttons this replaced (open file, save JSON, save images): a folder, a
+          page and a down arrow all read as "a file moves somewhere" and gave no
+          hint which one carried the project rather than the artwork. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="h-8 shrink-0 gap-1" title="Open a project">
+            <FolderOpenIcon className="h-4 w-4" />
+            <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel className="text-xs">Open a project</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onImportJSON}>
+            <FileJsonIcon className="mr-2 h-4 w-4 opacity-80" />
+            From a project file
+            <span className="ml-auto pl-4 text-xs text-muted-foreground">.json</span>
+          </DropdownMenuItem>
+          {onOpenFromAccount && (
+            <DropdownMenuItem onClick={onOpenFromAccount}>
+              <CloudDownloadIcon className="mr-2 h-4 w-4 opacity-80" />
+              From your account
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Button 
-        variant="outline" 
-        onClick={onExportJSON} 
-        className="h-8 shrink-0"
-        title="Export Project as JSON"
-      >
-        <FileTextIcon className="mr-1.5 h-4 w-4" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="h-8 shrink-0 gap-1" title="Export">
+            <DownloadIcon className="h-4 w-4" />
+            <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel className="text-xs">Export</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {/* Images first: it is what most sessions end with, and the JSON is
+              the "keep working on this later" path rather than the output. */}
+          <DropdownMenuItem onClick={onExport}>
+            <ImagesIcon className="mr-2 h-4 w-4 opacity-80" />
+            Artboards as images
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onExportJSON}>
+            <FileJsonIcon className="mr-2 h-4 w-4 opacity-80" />
+            Project file
+            <span className="ml-auto pl-4 text-xs text-muted-foreground">.json</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      {/*
-        Signed out this looks disabled but stays clickable on purpose: a real
-        `disabled` button swallows the click, and the click is how we tell the
-        user they need to connect an account first.
-      */}
-      <Button
-        variant="outline"
-        onClick={onSaveToAccount}
-        disabled={isSavingToAccount}
-        aria-disabled={!isAccountConnected}
-        className={cn('h-8 shrink-0', !isAccountConnected && 'opacity-50')}
-        title={
-          isAccountConnected
-            ? 'Save to account'
-            : 'Save to account, sign in to use this'
-        }
-      >
-        {isSavingToAccount ? (
-          <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" />
-        ) : (
-          <CloudUploadIcon className="mr-1.5 h-4 w-4" />
-        )}
-      </Button>
+      {/* Upload lives with Save to account for the same reason Open and Export
+          are each one button: both send the project somewhere that is not a
+          file, and side by side a cloud and a storefront were two icons for
+          what reads as the same errand. */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="h-8 shrink-0 gap-1"
+            title="Save to your account, or upload to a store"
+          >
+            {/* The spinner belongs on the trigger, not the item: the menu has
+                closed by the time the save is running. */}
+            {isSavingToAccount ? (
+              <Loader2Icon className="h-4 w-4 animate-spin" />
+            ) : (
+              <CloudUploadIcon className="h-4 w-4" />
+            )}
+            <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel className="text-xs">Send this project</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {/*
+            Signed out this looks disabled but stays selectable on purpose: a
+            real `disabled` swallows the click, and the click is how we tell the
+            user they need to connect an account first.
+          */}
+          <DropdownMenuItem
+            onClick={onSaveToAccount}
+            disabled={isSavingToAccount}
+            className={cn(!isAccountConnected && 'opacity-60')}
+          >
+            <CloudUploadIcon className="mr-2 h-4 w-4 opacity-80" />
+            To your account
+            {!isAccountConnected && (
+              <span className="ml-auto pl-4 text-xs text-muted-foreground">sign in</span>
+            )}
+          </DropdownMenuItem>
+          {onPublishToStore && (
+            <DropdownMenuItem onClick={onPublishToStore}>
+              <StoreIcon className="mr-2 h-4 w-4 opacity-80" />
+              To App Store Connect or Google Play
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      <Button
-        variant="outline"
-        onClick={onExport}
-        className="h-8 shrink-0"
-        title="Export Artboards as Images"
-      >
-        <DownloadIcon className="mr-1.5 h-4 w-4" />
-      </Button>
+      {/* Sharing stays a button of its own rather than joining that menu:
+          posting the set is the last thing people do after an export, and it
+          should cost one click from there.
 
-      {/* Straight to the listing, no round trip through the Downloads folder.
-          The only labelled button on this side of the toolbar: a storefront
-          icon alone would not distinguish it from the export and account
-          buttons beside it, both of which are also "send my work somewhere".
-
-          The label drops below lg, matching the canvas-size preset label above
-          it. The language switcher now shares this row, and at laptop widths
-          that label is the difference between a clean run and a squashed one.
-          The title carries the meaning when the text is gone. */}
-      {/* Sharing sits with the other "send my work somewhere" buttons rather
-          than in a menu: posting the set is the last thing people do after an
-          export, and it should cost one click from there. */}
+          Icon only, like everything else on this row. The title carries the
+          meaning, and the language switcher shares this space at laptop widths
+          where one stray label is the difference between a clean run and a
+          squashed one. */}
       {onShareToDiscover && (
         <Button
           variant="outline"
@@ -359,20 +397,7 @@ export function Toolbar({
           className="h-8 shrink-0"
           title="Share this design to the community feed"
         >
-          <Share2Icon className="h-4 w-4 lg:mr-1.5" />
-          <span className="hidden lg:inline">Share</span>
-        </Button>
-      )}
-
-      {onPublishToStore && (
-        <Button
-          variant="outline"
-          onClick={onPublishToStore}
-          className="h-8 shrink-0"
-          title="Upload screenshots to App Store Connect or Google Play"
-        >
-          <StoreIcon className="h-4 w-4 lg:mr-1.5" />
-          <span className="hidden lg:inline">Upload to store</span>
+          <Share2Icon className="h-4 w-4" />
         </Button>
       )}
     </div>

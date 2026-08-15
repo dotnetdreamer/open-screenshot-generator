@@ -138,6 +138,38 @@ async function startBlankProject(page) {
   await sleep(1500);
 }
 
+/**
+ * Open a Radix dropdown by its trigger's title (or aria-label) and click the
+ * menu item whose text contains `itemText`. Both clicks go through the real
+ * mouse: the trigger opens on pointerdown, which a DOM `.click()` never fires,
+ * and the item lives in a portal that only exists once the menu is open.
+ */
+async function clickMenuItem(page, triggerTitle, itemText) {
+  const trigger = await page.evaluate((title) => {
+    const el = [...document.querySelectorAll('button')].find(
+      (b) => b.getAttribute('title') === title || b.getAttribute('aria-label') === title
+    );
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  }, triggerTitle);
+  if (!trigger) throw new Error('menu trigger not found: ' + triggerTitle);
+  await page.mouse.click(trigger.x, trigger.y);
+  await page.waitForFunction(
+    `[...document.querySelectorAll('[role="menuitem"]')].some((i) => (i.textContent || '').includes(${JSON.stringify(itemText)}))`,
+    { timeout: 15000, polling: 500 }
+  );
+  const item = await page.evaluate((text) => {
+    const el = [...document.querySelectorAll('[role="menuitem"]')].find((i) =>
+      (i.textContent || '').includes(text)
+    );
+    const r = el.getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  }, itemText);
+  await page.mouse.click(item.x, item.y);
+  await sleep(400);
+}
+
 /** Radix tabs need a real mouse click at the trigger's center. */
 async function clickTab(page, name) {
   const box = await page.evaluate((name) => {
@@ -190,7 +222,9 @@ async function uploadScreenshotToSelected(page, filePath) {
  *   does not apply there (a video board has no App Store screenshot tiers).
  */
 async function exportArtboards(page, downloadDir, expectedCount, timeoutMs = 180000, extraFormats = []) {
-  await clickByTitle(page, 'Export Artboards as Images');
+  // The toolbar's export button is a menu now: the images path is the
+  // "Artboards as images" item inside it, next to the project-file export.
+  await clickMenuItem(page, 'Export', 'Artboards as images');
   await page.waitForFunction(
     "!!document.querySelector('#export-as-is') || !!document.querySelector('#apv-styled')",
     { timeout: 15000, polling: 500 }
@@ -241,6 +275,7 @@ module.exports = {
   clickByText,
   clickByTextContains,
   clickByTitle,
+  clickMenuItem,
   openAgentScreen,
   startBlankProject,
   clickTab,

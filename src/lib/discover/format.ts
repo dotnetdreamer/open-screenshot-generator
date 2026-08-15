@@ -107,19 +107,29 @@ export function avatarGradient(seed: string): string {
 }
 
 /**
- * How a post's cover should be framed in the feed grid.
+ * How a post's cover is framed in the feed grid.
  *
- * A single portrait board (what a one screen post carries) would otherwise
- * render as a card two and a half times taller than it is wide and shove the
- * rest of the grid off screen, so anything close to portrait is letterboxed
- * into the same 3:1 strip the multi screen covers already use.
+ * One box, 3:1, for every card regardless of what the image is. Letting a cover
+ * keep its own ratio does not make its card taller — the grid stretches a row
+ * to its tallest card anyway — it makes that card's title, caption and tags
+ * start lower than its neighbours' while the action row stays pinned to the
+ * bottom, so a row reads as three designs that failed to line up. A Play
+ * feature graphic (1024x500, so 2.05) sitting beside the composed 3:1 strips is
+ * the case that shows it.
+ *
+ * `contain` is the default because these are finished pieces of artwork: a
+ * feature graphic cropped to 3:1 loses a sixth off the top and the bottom,
+ * which on a store graphic is the title and the last line of copy. A muted band
+ * at the sides costs less than that. Only a cover already about this shape is
+ * allowed to fill the box.
  */
 export function coverBox(image: DiscoverImage | undefined): { aspect: string; fit: 'cover' | 'contain' } {
-  if (!image) return { aspect: '3 / 1', fit: 'contain' };
+  const box = { aspect: '3 / 1', fit: 'contain' } as const;
+  if (!image) return box;
   const [width, height] = image.aspect.split('/').map((part) => Number.parseFloat(part.trim()));
   const ratio = width && height ? width / height : 3;
-  if (ratio < 1.2) return { aspect: '3 / 1', fit: 'contain' };
-  return { aspect: image.aspect, fit: image.fit };
+  if (image.fit === 'cover' && ratio >= 2.6) return { aspect: '3 / 1', fit: 'cover' };
+  return box;
 }
 
 /** Human label for a surface id, used on the filter row and post details. */

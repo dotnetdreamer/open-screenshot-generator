@@ -142,8 +142,8 @@ const TIPS: Tip[] = [
           <div className="mt-2 flex items-start gap-2">
             <FileTextIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Rather not sign in? Export project as JSON writes a single file you can keep beside
-              your app&apos;s assets or commit to your own repo.
+              Rather not sign in? The toolbar&apos;s Export menu has Project file, which writes a
+              single .json you can keep beside your app&apos;s assets or commit to your own repo.
             </p>
           </div>
         </div>

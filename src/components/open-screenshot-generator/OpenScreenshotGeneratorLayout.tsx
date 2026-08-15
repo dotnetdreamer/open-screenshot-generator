@@ -5292,6 +5292,15 @@ const generateRandomProjectName = (): string => {
             }}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
+            // The account dialog is where the projects in storage are listed,
+            // and where a signed-out user gets the sign-in first.
+            onOpenFromAccount={() =>
+              openAccountDialog(
+                isAccountConnected
+                  ? undefined
+                  : 'Sign in to open a project from your own storage.'
+              )
+            }
             onSaveToAccount={handleSaveToAccount}
             isAccountConnected={isAccountConnected}
             isSavingToAccount={isSavingToAccount}

@@ -610,7 +610,7 @@ Both export paths live in [OpenScreenshotGeneratorLayout.tsx](../src/components/
 
 ### Entry point and dialog routing
 
-Toolbar button `title="Export Artboards as Images"` sets `isExportDialogOpen`. Which dialog opens is decided by `projectHasVideoContent(artboards)` from [videoExport.ts](../src/lib/video/videoExport.ts): true when any element is `video-device`, a `video` with `mediaId`/`videoSrc`, a `gesture`, or carries `animation`.
+The toolbar's export menu (`button[title="Export"]`, in [Toolbar.tsx](../src/components/open-screenshot-generator/Toolbar.tsx)) holds two items: "Artboards as images" sets `isExportDialogOpen`, "Project file" runs the JSON export. Its mirror image is the "Open a project" menu, holding the JSON import and the account dialog. Which dialog opens is decided by `projectHasVideoContent(artboards)` from [videoExport.ts](../src/lib/video/videoExport.ts): true when any element is `video-device`, a `video` with `mediaId`/`videoSrc`, a `gesture`, or carries `animation`.
 
 - false: [ExportDialog.tsx](../src/components/open-screenshot-generator/ExportDialog.tsx), returns `ExportSelection { asIs: boolean; generateFormats: DeviceFormat[] }`
 - true: [AppPreviewExportDialog.tsx](../src/components/open-screenshot-generator/AppPreviewExportDialog.tsx), returns `VideoExportRequest { fps; durationSeconds; sizeMode; rawRecordingOnly }` where `VideoSizeMode = 'appstore-portrait' | 'appstore-landscape' | 'artboard'` (886x1920 / 1920x886 / board size). Its "Export PNG stills instead" button just calls `handleConfirmExport({ asIs: true, generateFormats: [] })`.
