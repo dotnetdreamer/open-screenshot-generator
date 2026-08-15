@@ -80,6 +80,11 @@ const DEFAULTS = {
   feed_max_page_size: 48,
   feed_rank_window: 400,
   feed_max_following: 200,
+  // The freshness pass. See scoreOf, and the migration that seeds these three
+  // rows with the long version of why they exist.
+  feed_fresh_boost: 6,
+  feed_fresh_hours: 12,
+  feed_featured_boost: 2,
   max_posts_per_day: 10,
   max_comments_per_hour: 30,
   max_images_per_post: 6,
@@ -410,6 +415,9 @@ function postOf(app, post, viewer, extras) {
     },
     templateProjectId: post.getString('template_project_id') || undefined,
     appName: post.getString('app_name') || undefined,
+    // Undefined rather than false when it is off, so it costs nothing on the
+    // wire for the overwhelming majority of posts that are not featured.
+    featured: post.getBool('featured') || undefined,
     isMine: viewer && post.getString('author') === viewer.id ? true : undefined,
     likedByViewer: info.liked || false,
     savedByViewer: info.saved || false,
@@ -457,8 +465,34 @@ const VISIBLE = '(hidden = false || hidden = null)';
  * The same curve the feed used while it ran on sample data, so the tabs behave
  * as they did. "For you" is this plus a light personalization pass: it is not a
  * recommender and is not meant to be one.
+ *
+ * ## The freshness term, and why zero was the bug
+ *
+ * `engagement` is likes + comments + remixes. A post nobody has touched yet has
+ * an engagement of zero, and zero over any decay is zero — so before this term
+ * existed, every brand new post scored exactly 0.0 and sorted below every older
+ * post in the window that had ever collected a single like. In the tab that is
+ * the feed's DEFAULT sort. Somebody shares their first design, it is placed
+ * beneath a month-old showcase post, and they conclude nobody liked it when in
+ * fact nobody was shown it.
+ *
+ * So a new post is credited with `feed_fresh_boost` worth of engagement that
+ * decays exponentially over `feed_fresh_hours`. Three things about that shape
+ * matter:
+ *
+ *   - It is added to engagement rather than multiplied over it, because a
+ *     multiplier applied to zero is still zero. That is the entire bug.
+ *   - The sum then goes through the SAME age decay, so the boost is squeezed
+ *     from both ends and a post cannot ride it for long.
+ *   - Real engagement always passes it. At the defaults a fresh post enters
+ *     around where a six-like post sits, and one genuine like an hour later
+ *     outranks a boost that has already lost a tenth of itself.
+ *
+ * Nothing here changes a number anybody sees. The counters on the card stay
+ * exactly what people did; this only decides what order the cards come in.
  */
-function scoreOf(post, now, sort, affinity, followed, viewer) {
+function scoreOf(post, now, sort, affinity, followed, viewer, config) {
+  const tuning = config || DEFAULTS;
   let created = now;
   try {
     created = Date.parse(post.getDateTime('created').string()) || now;
@@ -470,7 +504,19 @@ function scoreOf(post, now, sort, affinity, followed, viewer) {
     (post.getInt('likes') || 0) +
     (post.getInt('comments') || 0) * 3 +
     (post.getInt('remixes') || 0) * 2;
-  let score = engagement / Math.pow(ageHours + 12, 0.6);
+
+  // Guarded against a settings row of 0, which would otherwise be a division by
+  // zero here and NaN for every post in the window — an empty-looking feed with
+  // nothing in the log. Zero hours means no boost, which is what somebody typing
+  // it meant.
+  const freshHours = tuning.feed_fresh_hours > 0 ? tuning.feed_fresh_hours : 0;
+  const freshness = freshHours ? (tuning.feed_fresh_boost || 0) * Math.exp(-ageHours / freshHours) : 0;
+
+  let score = (engagement + freshness) / Math.pow(ageHours + 12, 0.6);
+
+  // Editorial, set by hand in the dashboard. Applied to both ranked tabs,
+  // because a post worth featuring is worth featuring in Trending too.
+  if (post.getBool('featured')) score *= tuning.feed_featured_boost || 1;
 
   if (sort === 'trending') return score;
 

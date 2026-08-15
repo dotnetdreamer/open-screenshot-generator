@@ -85,6 +85,14 @@ export interface DiscoverPost {
   templateProjectId?: string;
   /** The app the design is for, when the author named one. */
   appName?: string;
+  /**
+   * Picked by the maintainers, set by hand in the PocketBase dashboard.
+   *
+   * The one editorial signal in the feed, and the only badge that is a claim
+   * about anybody's taste. It also multiplies the post's rank, so the badge
+   * lands where it will be seen — see feed_featured_boost.
+   */
+  featured?: boolean;
   /** True for posts this viewer published from their own project. */
   isMine?: boolean;
   /** Viewer-relative flags, merged in by the API from local state. */

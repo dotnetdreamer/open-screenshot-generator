@@ -244,7 +244,10 @@ routerAdd('GET', '/api/openscreengen/discover/feed', (e) => {
       const now = Date.now();
       const scored = [];
       for (const post of windowRows) {
-        scored.push({ post: post, score: openscreengen.scoreOf(post, now, sort, affinity, followed, viewer) });
+        scored.push({
+          post: post,
+          score: openscreengen.scoreOf(post, now, sort, affinity, followed, viewer, config),
+        });
       }
       scored.sort((a, b) => b.score - a.score);
 

@@ -25,6 +25,36 @@ export function viewerStats(post: DiscoverPost, state: DiscoverLocalState): Disc
   };
 }
 
+/**
+ * The smallest count worth printing next to an icon.
+ *
+ * One, which is to say: print every real number and print nothing at all for a
+ * zero.
+ *
+ * A card whose action row reads "0 0 0" tells the person who just shared their
+ * work that three separate things about it are zero, and it says it on every
+ * card in a young feed including the ones they are scrolling past for
+ * inspiration. A bare heart says nothing, which is the truth: nobody has voted
+ * yet. This is the entire reason the helper below exists, and it is worth being
+ * clear that it hides a zero rather than inventing anything to put in its place.
+ *
+ * Deliberately not 3. Hiding a 1 and a 2 would suppress real people — the first
+ * like a post ever gets is the one most worth showing, to the author above all —
+ * and it would make the heart look broken to whoever had just tapped it. Raising
+ * this is a one-line change if a busier feed ever wants it.
+ */
+export const MIN_VISIBLE_COUNT = 1;
+
+/**
+ * `compactCount` for a number sitting beside an icon, blank when there is
+ * nothing to report. Callers render the surrounding element only when this
+ * comes back non-empty.
+ */
+export function countLabel(value: number): string {
+  if (!Number.isFinite(value) || value < MIN_VISIBLE_COUNT) return '';
+  return compactCount(value);
+}
+
 /** 1240 -> "1.2k", 18300 -> "18k". Counts in the feed get wide fast. */
 export function compactCount(value: number): string {
   if (!Number.isFinite(value) || value < 0) return '0';

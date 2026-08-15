@@ -13,20 +13,34 @@
 // A signed-out visitor sees every one of these numbers and none of the buttons
 // that change them: like and save render disabled with a title that says why.
 // The server refuses those writes regardless — this is the courtesy half.
+//
+// A counter of zero renders as no counter at all (countLabel), and views and
+// remixes appear only once there are some. On a young feed that is the
+// difference between a card that says nothing about its reception and one that
+// says "0" three times to the person who just posted it.
 
 import React from 'react';
 import {
   BookmarkIcon,
+  EyeIcon,
   HeartIcon,
   MessageCircleIcon,
   RepeatIcon,
   SparklesIcon,
+  StarIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { compactCount, coverBox, shortTimeAgo, surfaceLabel, viewerStats } from '@/lib/discover/format';
+import {
+  compactCount,
+  countLabel,
+  coverBox,
+  shortTimeAgo,
+  surfaceLabel,
+  viewerStats,
+} from '@/lib/discover/format';
 import { isLiked, isSaved, useDiscoverLocalState } from '@/lib/discover/localState';
 import type { DiscoverPost } from '@/types/discover';
 import { AuthorAvatar } from './AuthorAvatar';
@@ -101,6 +115,12 @@ export function PostCard({
           <Badge variant="secondary" className="bg-background/85 shadow-sm backdrop-blur">
             {surfaceLabel(post.surface)}
           </Badge>
+          {post.featured && (
+            <Badge className="bg-amber-500 text-white shadow-sm hover:bg-amber-500">
+              <StarIcon className="mr-1 h-3 w-3 fill-current" />
+              Featured
+            </Badge>
+          )}
           {post.isMine && (
             <Badge className="shadow-sm">
               <SparklesIcon className="mr-1 h-3 w-3" />
@@ -190,7 +210,9 @@ export function PostCard({
             aria-pressed={liked}
           >
             <HeartIcon className={cn('h-4 w-4', liked && 'fill-current')} />
-            <span className="text-xs tabular-nums">{compactCount(stats.likes)}</span>
+            {countLabel(stats.likes) && (
+              <span className="text-xs tabular-nums">{countLabel(stats.likes)}</span>
+            )}
           </Button>
 
           <Button
@@ -201,22 +223,48 @@ export function PostCard({
               event.stopPropagation();
               onOpen(post);
             }}
-            title="Read the comments"
+            title={stats.comments > 0 ? 'Read the comments' : 'Be the first to comment'}
           >
             <MessageCircleIcon className="h-4 w-4" />
-            <span className="text-xs tabular-nums">{compactCount(stats.comments)}</span>
+            {countLabel(stats.comments) && (
+              <span className="text-xs tabular-nums">{countLabel(stats.comments)}</span>
+            )}
           </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5 px-2 text-muted-foreground"
-            title={`Opened as a starting point ${stats.remixes} times`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <RepeatIcon className="h-4 w-4" />
-            <span className="text-xs tabular-nums">{compactCount(stats.remixes)}</span>
-          </Button>
+          {/* Reach, rather than approval, and the two numbers that are actually
+              moving on a young feed: a view is counted for every reader
+              including signed-out ones, and a remix for everybody who opened
+              the design as their own starting point. Neither needs an account,
+              so both say something true long before the first like arrives.
+              Read only — the whole group is absent until there is something in
+              it. */}
+          {(stats.views > 0 || stats.remixes > 0) && (
+            <div
+              className="flex items-center gap-2.5 pl-1.5 text-[11px] text-muted-foreground"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {stats.views > 0 && (
+                <span
+                  className="flex items-center gap-1"
+                  title={`Seen ${stats.views === 1 ? 'once' : `${stats.views} times`}`}
+                >
+                  <EyeIcon className="h-3.5 w-3.5" />
+                  <span className="tabular-nums">{compactCount(stats.views)}</span>
+                </span>
+              )}
+              {stats.remixes > 0 && (
+                <span
+                  className="flex items-center gap-1"
+                  title={`Opened as a starting point ${
+                    stats.remixes === 1 ? 'once' : `${stats.remixes} times`
+                  }`}
+                >
+                  <RepeatIcon className="h-3.5 w-3.5" />
+                  <span className="tabular-nums">{compactCount(stats.remixes)}</span>
+                </span>
+              )}
+            </div>
+          )}
 
           <Button
             variant="ghost"

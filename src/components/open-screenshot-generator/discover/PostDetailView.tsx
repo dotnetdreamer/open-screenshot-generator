@@ -17,6 +17,7 @@ import {
   Loader2Icon,
   RepeatIcon,
   SendIcon,
+  StarIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { discoverApi } from '@/lib/discover/api';
 import {
   compactCount,
+  countLabel,
   fullDate,
   shortTimeAgo,
   surfaceLabel,
@@ -225,8 +227,24 @@ export function PostDetailView({
           <span>{surfaceLabel(post.surface)}</span>
           <span>·</span>
           <span>{post.screens === 1 ? '1 screen' : `${post.screens} screens`}</span>
-          <span>·</span>
-          <span>{compactCount(stats.views)} views</span>
+          {/* Both counted for signed-out readers too, so both are usually the
+              first numbers a post has. Each shown only once it exists: "0
+              views" on a post somebody just opened is not only bleak, it is
+              wrong by one. */}
+          {stats.views > 0 && (
+            <>
+              <span>·</span>
+              <span>{compactCount(stats.views)} views</span>
+            </>
+          )}
+          {stats.remixes > 0 && (
+            <>
+              <span>·</span>
+              <span>
+                {compactCount(stats.remixes)} {stats.remixes === 1 ? 'remix' : 'remixes'}
+              </span>
+            </>
+          )}
           <span>·</span>
           <span>{fullDate(post.createdAt)}</span>
           {image?.label && (
@@ -278,7 +296,17 @@ export function PostDetailView({
           )}
         </div>
 
-        <h2 className="mt-4 shrink-0 text-lg font-semibold leading-tight">{post.title}</h2>
+        {post.featured && (
+          <Badge className="mt-4 w-fit shrink-0 bg-amber-500 text-white hover:bg-amber-500">
+            <StarIcon className="mr-1 h-3 w-3 fill-current" />
+            Featured pick
+          </Badge>
+        )}
+        <h2
+          className={cn('shrink-0 text-lg font-semibold leading-tight', post.featured ? 'mt-2' : 'mt-4')}
+        >
+          {post.title}
+        </h2>
         <p className="mt-1.5 shrink-0 whitespace-pre-line text-sm text-muted-foreground">
           {post.caption}
         </p>
@@ -308,7 +336,7 @@ export function PostDetailView({
             aria-pressed={liked}
           >
             <HeartIcon className={cn('h-4 w-4', liked && 'fill-current')} />
-            <span className="tabular-nums">{compactCount(stats.likes)}</span>
+            <span className="tabular-nums">{countLabel(stats.likes) || 'Like'}</span>
           </Button>
           <Button
             variant={saved ? 'secondary' : 'outline'}
