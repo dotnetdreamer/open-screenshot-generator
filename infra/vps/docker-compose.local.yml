@@ -42,3 +42,10 @@ services:
   openscreengen-pocketbase:
     ports:
       - "127.0.0.1:8090:8090"
+
+  # Same reasoning, same bind address. With this published you can put
+  # NEXT_PUBLIC_MCP_RELAY_URL=http://127.0.0.1:8722 in .env.local and drive the
+  # dev editor from a real MCP client.
+  openscreengen-mcp-relay:
+    ports:
+      - "127.0.0.1:8722:8722"

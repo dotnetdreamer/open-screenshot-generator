@@ -1,4 +1,4 @@
-# NOT MOUNTED, NOT DEPLOYED. A reference copy of the one site block this stack
+# NOT MOUNTED, NOT DEPLOYED. A reference copy of the two site blocks this stack
 # needs when it shares a box with another project's Caddy.
 #
 # ## Where the real copy lives, and why it is not here
@@ -35,12 +35,14 @@
 #
 # ## Before it is deployed
 #
-#   1. An EXPLICIT A record for pb.openscrgen.app -> <BOX_IP>. The zone carries a
-#      wildcard, so without one the challenge is answered by whatever the
+#   1. An EXPLICIT A record for pb.openscrgen.app -> <BOX_IP>, and another for
+#      mcp.openscrgen.app if the relay block below is deployed. The zone carries
+#      a wildcard, so without one the challenge is answered by whatever the
 #      wildcard points at, this Caddy never sees it, and no certificate is ever
 #      issued. On a proxying provider it must also be unproxied; the zone this
 #      uses is on Vercel's nameservers, which do not proxy. See README.md.
-#   2. /opt/openscreengen up, so `openscreengen-pocketbase` is resolvable on that network.
+#   2. /opt/openscreengen up, so `openscreengen-pocketbase` and
+#      `openscreengen-mcp-relay` are resolvable on that network.
 #
 # Deploying ahead of either is not fatal — Caddy serves every other site
 # normally and retries in the background — but enough failed ACME attempts in an
@@ -86,6 +88,39 @@ pb.openscrgen.app {
 
 	log {
 		output file /data/access-openscreengen.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+# Open Screenshot Generator's MCP relay, which lets Claude Code, Claude Desktop,
+# Cursor or VS Code drive the web editor. Optional and independent of the block
+# above: deploy it only when NEXT_PUBLIC_MCP_RELAY_URL is set in the editor
+# build. See mcp-relay/README.md.
+mcp.openscrgen.app {
+	# The editor tab's event stream. A buffering proxy turns it into silence
+	# rather than an error, and that silence reads as a hung AI client.
+	handle /tab/* {
+		reverse_proxy openscreengen-mcp-relay:8722 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy openscreengen-mcp-relay:8722
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# NO Access-Control-Allow-Origin here either: the relay sends its own.
+
+	log {
+		output file /data/access-openscreengen-mcp.log {
 			roll_size 10MiB
 			roll_keep 5
 		}

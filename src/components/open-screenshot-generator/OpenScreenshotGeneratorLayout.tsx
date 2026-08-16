@@ -5479,11 +5479,14 @@ const generateRandomProjectName = (): string => {
                   </Button>
                 </div>
 
-                {/* Desktop app only, and it renders nothing on the web, but
-                    hide it below md anyway: that corner has to hold the zoom
-                    pill and the properties button on a phone. */}
+                {/* Renders nothing unless there is an MCP server to talk about
+                    (always on desktop, on the web only when a relay is
+                    configured). Hidden below md regardless: that corner has to
+                    hold the zoom pill and the properties button on a phone. */}
                 <div className="hidden md:block">
-                  <McpServerStatus />
+                  {/* Desktop reads the API through the bridge above; on the web
+                      this component owns the connection, so it needs it too. */}
+                  <McpServerStatus getApi={() => mcpApiRef.current} />
                 </div>
               </div>
 

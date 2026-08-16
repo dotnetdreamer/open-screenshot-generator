@@ -1,0 +1,14 @@
+{
+  "name": "openscreengen-mcp-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Passes MCP requests between an AI client and an open editor tab. No dependencies by design.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

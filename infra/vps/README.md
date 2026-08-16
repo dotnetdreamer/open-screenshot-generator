@@ -3,11 +3,18 @@
 One PocketBase, one job: hold the **Discover** feed — the posts people share,
 their comments, and the likes, saves and follows on them.
 
+Alongside it, one much smaller thing that shares the box and nothing else: the
+[MCP relay](mcp-relay/README.md), which lets an AI client drive the editor in a
+browser. It has no database, no disk and no credential, and the two services
+never talk to each other. Everything below is about PocketBase unless it says
+otherwise.
+
 **The editor does not need this box.** Templates, elements, fonts, the AI agent,
 translation and every export run in the browser; projects live in IndexedDB or in
 storage the user owns. With `NEXT_PUBLIC_DISCOVER_URL` unset the app builds and
 runs exactly as before, minus one dialog — no rail button, no Community tab, no
-toolbar Share. That is the design, not a fallback.
+toolbar Share. That is the design, not a fallback. `NEXT_PUBLIC_MCP_RELAY_URL` is
+the same kind of switch for the relay.
 
 This stack is designed to **share a VPS with another project's**, using that
 stack's Caddy rather than starting a second one:
@@ -308,8 +315,45 @@ Then `NEXT_PUBLIC_DISCOVER_URL=http://127.0.0.1:8090` in `.env.local` and
 does not, because neither door is configured — which is exactly what a
 contributor with no OAuth app should see.
 
-`docker-compose.local.yml` exists only to publish the port, bound to `127.0.0.1`.
-Never use it on the box.
+`docker-compose.local.yml` exists only to publish the ports, bound to
+`127.0.0.1`. Never use it on the box.
+
+The relay comes up with it. Add `NEXT_PUBLIC_MCP_RELAY_URL=http://127.0.0.1:8722`
+to `.env.local` and the dev editor grows an MCP pill you can connect from.
+
+---
+
+## The MCP relay
+
+A second container, ~250 lines, one job: pass MCP requests between an AI client
+and an open editor tab.
+
+```
+  Claude Code ──POST /mcp/<code>──►   relay   ──SSE /tab/<code>──►  editor tab
+              ◄─────── JSON ────────         ◄── POST .../reply ───
+```
+
+The desktop app needs none of it — it opens a socket on `127.0.0.1` and hands
+requests to its own webview — but a browser tab can open no socket, so the two
+halves need somewhere public to meet. Every design tool still runs in the tab, in
+the same code the desktop app runs. Full detail in
+[mcp-relay/README.md](mcp-relay/README.md).
+
+What it means for this box:
+
+- **Nothing stateful.** No volume, no `.env`, no secret, no database. A restart
+  costs a reconnect the tab does by itself, so it can be redeployed at any time
+  and it cannot lose anything.
+- **Its own hostname**, `mcp.openscrgen.app`, which needs its own explicit
+  unproxied A record exactly like `pb` does, and its own site block in the
+  neighbour's Caddyfile (both are in `shared-caddy.Caddyfile`).
+- **One proxy requirement**: `/tab/*` must not be buffered, which is what
+  `flush_interval -1` in that block is for. Get it wrong and the stream is
+  silent rather than broken, which reads as a hung AI client.
+- **Turn it off** by not deploying it: with `NEXT_PUBLIC_MCP_RELAY_URL` unset the
+  web build has no MCP feature at all. Stopping the container is also safe on its
+  own; the editor shows the connection as offline and everything else is
+  untouched.
 
 ---
 
@@ -331,6 +375,9 @@ curl -s https://pb.openscrgen.app/api/openscreengen/auth/methods
 
 # every write is refused without a token
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://pb.openscrgen.app/api/openscreengen/discover/posts   # 401
+
+# the MCP relay is up, and how many editor tabs are connected right now
+curl -s https://mcp.openscrgen.app/healthz        # {"ok":true,"tabs":0}
 ```
 
 **Every route still registered.** A hook file with a syntax error does not stop
@@ -424,6 +471,25 @@ ssh -i "$KEY" "$BOX" 'cd /opt/openscreengen && docker compose -f docker-compose.
 
 `No new migrations to apply.` is the answer you want. It is idempotent, so it is
 safe against the live box.
+
+### The relay is a different loop
+
+Its code is baked into an image rather than bind mounted, so uploading the
+directory is not enough — it has to be rebuilt:
+
+```bash
+tar -czf - -C infra/vps mcp-relay | ssh -i "$KEY" "$BOX" 'tar -xzf - -C /opt/openscreengen'
+ssh -i "$KEY" "$BOX" 'cd /opt/openscreengen && docker compose -f docker-compose.yml -f docker-compose.shared-caddy.yml up -d --build openscreengen-mcp-relay'
+curl -s https://mcp.openscrgen.app/healthz
+```
+
+Naming the service on that `up` line matters: without it the command rebuilds
+PocketBase too, which is a restart of the database nobody asked for.
+
+There is nothing to back up first and nothing to roll back to — the relay holds
+no state, so a bad deploy is fixed by deploying again. Connected tabs reconnect
+on their own within a few seconds; a call in flight during the restart fails with
+a timeout its client can retry.
 
 ### Rollback
 
@@ -553,10 +619,12 @@ not.
 | --- | --- |
 | `docker-compose.yml` | the stack. Caddy is behind a profile and normally never starts |
 | `docker-compose.shared-caddy.yml` | joins the neighbour's network. **The one used on the box** |
-| `docker-compose.local.yml` | publishes the port on 127.0.0.1. **Local only** |
+| `docker-compose.local.yml` | publishes the ports on 127.0.0.1. **Local only** |
 | `shared-caddy.Caddyfile` | the site block to merge into the neighbour's repo. Never mounted |
 | `Caddyfile` | only for a box of its own (`--profile own-caddy`) |
 | `pocketbase/Dockerfile` | pinned version **and its checksum** — bump them together |
+| `mcp-relay/src/server.js` | the whole relay. No dependencies, no state, no secret |
+| `mcp-relay/Dockerfile` | node + one file. Nothing is installed at build time |
 | `pb-hooks/lib/openscreengen.js` | everything shared. **Not** `*.pb.js`, deliberately |
 | `pb-hooks/040_auth.pb.js` | the two sign-in doors, the profile, account deletion |
 | `pb-hooks/050_discover.pb.js` | the feed, posts, comments and the buttons |

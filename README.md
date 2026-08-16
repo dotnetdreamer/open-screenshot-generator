@@ -75,7 +75,7 @@ Optional cloud saving with no backend of ours. Connect your own Google Drive or 
 
 ## Feature checklist: web vs desktop
 
-The editor itself is identical in the browser and in the desktop app (it is the same build). The desktop shell adds the integrations that need a native process: embedded sign-in windows for the free AI mode, keyless local AI providers, and the MCP server.
+The editor itself is identical in the browser and in the desktop app (it is the same build). The desktop shell adds the integrations that need a native process: embedded sign-in windows for the free AI mode, keyless local AI providers, and an MCP server it can host on its own.
 
 | Feature | Web | Desktop |
 | --- | :---: | :---: |
@@ -84,7 +84,7 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 | AI agent with your own API key (Anthropic, OpenAI, Google) | ✅ | ✅ |
 | AI agent on the Claude, ChatGPT or Gemini account you already have (beta: Copilot, DeepSeek, Qwen, Perplexity) | ✅ ² | ✅ |
 | AI agent with free built-in providers (Pollinations, or local Ollama / LM Studio), no key and no account | ➖ | ✅ |
-| MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor | ➖ | ✅ |
+| MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor | ✅ ⁵ | ✅ |
 | Save projects to your own Google Drive or GitHub account | ✅ ³ | ✅ |
 | Upload screenshots straight to App Store Connect or Google Play | ➖ ⁴ | ✅ |
 
@@ -95,6 +95,8 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 ³ Google sign-in is identical on both. GitHub sign-in on the web needs a tiny token-exchange Worker (included, free to run) because GitHub's OAuth requires a client secret that a static site cannot hold; without it the web build asks for a personal access token instead. The desktop app uses GitHub's device flow and needs neither.
 
 ⁴ Not a product decision: App Store Connect serves no CORS headers, so no browser tab can call it. The desktop app makes these requests outside the webview. See [docs/STORE-UPLOAD.md](docs/STORE-UPLOAD.md).
+
+⁵ Same 42 tools either way, and they run in the app either way. The desktop app hosts the server itself on `127.0.0.1`, because a native process can open a socket; a browser tab cannot, so the web build connects out to a small relay that passes messages between your AI client and your tab ([infra/vps/mcp-relay](infra/vps/mcp-relay/README.md), free to run, no database and no account). Set `NEXT_PUBLIC_MCP_RELAY_URL` to switch it on. The one thing only the desktop app can do is write exported PNGs straight into a folder you name.
 
 ## Running it locally
 

@@ -9,6 +9,11 @@
 //
 // This module is import-safe on the web (it only touches Tauri behind the
 // isTauri() guard); startDesktopMcpBridge() is a no-op outside the desktop app.
+//
+// The web build reaches the same tools through a second transport: a hosted
+// relay the tab connects out to, because a browser tab cannot listen on a port
+// either. That lives in relayBridge.ts and shares everything below the
+// transport line — the protocol, the tool table and runMcpRequest().
 
 import { isTauri } from '@/lib/desktop';
 import {
@@ -2044,6 +2049,31 @@ export async function handleMcpMessage(
   }
 }
 
+/**
+ * Run one bridged JSON-RPC request against the live design API and always come
+ * back with a response object, whatever happens.
+ *
+ * This is the seam between the tools and the transport, and there are two
+ * transports: Rust's local socket in the desktop app (below) and the hosted
+ * relay the web build talks to (src/lib/mcp/relayBridge.ts). Neither knows
+ * anything about tools, and this function is the only thing either of them
+ * calls.
+ */
+export async function runMcpRequest(
+  message: JsonRpcMessage,
+  api: McpDesignApi | null
+): Promise<unknown> {
+  try {
+    // Answer *something* even if a tool hangs on a promise that never settles.
+    // The transport drops the call at its own (longer) deadline either way, but
+    // replying here frees the client sooner and names the tool that misbehaved
+    // instead of just going quiet.
+    return await withWatchdog(handleMcpMessage(message, api), message);
+  } catch (e) {
+    return rpcError(message?.id, -32603, e instanceof Error ? e.message : String(e));
+  }
+}
+
 // ---------------------------------------------------------------------------
 // The bridge: listen for Rust-forwarded requests, run them, reply.
 // ---------------------------------------------------------------------------
@@ -2066,16 +2096,7 @@ export async function startDesktopMcpBridge(
     MCP_REQUEST_EVENT,
     async (event) => {
       const { callId, message } = event.payload;
-      let response: unknown;
-      try {
-        // Answer *something* even if a tool hangs on a promise that never
-        // settles. Rust drops the call at its own (longer) deadline either
-        // way, but replying here frees the client's connection sooner and
-        // tells it which tool misbehaved instead of just "no answer".
-        response = await withWatchdog(handleMcpMessage(message, getApi()), message);
-      } catch (e) {
-        response = rpcError(message?.id, -32603, e instanceof Error ? e.message : String(e));
-      }
+      const response = await runMcpRequest(message, getApi());
       try {
         await invoke('abs_mcp_respond', { callId, response });
       } catch {

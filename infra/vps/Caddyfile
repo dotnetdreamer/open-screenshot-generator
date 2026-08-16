@@ -83,3 +83,45 @@ pb.openscrgen.app {
 		}
 	}
 }
+
+# The MCP relay: lets an AI client drive the web editor. See mcp-relay/README.md.
+#
+# Its own hostname rather than a path under pb, because it is a different
+# service with a different lifetime — restarting it is free, restarting the
+# database is not — and because the URL is something a person copies into a
+# config file and reads back later.
+#
+# Needs its own explicit, unproxied A record, for the same reason pb does: the
+# zone carries a wildcard, and a wildcard answers the ACME challenge from
+# somewhere this Caddy never sees.
+mcp.openscrgen.app {
+	# The editor tab's event stream. A buffering proxy turns this into silence
+	# rather than an error, and silence here reads as "the AI client hung".
+	# Caddy does detect text/event-stream on its own; this is explicit because
+	# the failure mode is invisible.
+	handle /tab/* {
+		reverse_proxy openscreengen-mcp-relay:8722 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy openscreengen-mcp-relay:8722
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# No Access-Control-Allow-Origin here: the relay sends its own, and two
+	# copies of that header make the browser reject the response.
+
+	log {
+		output file /data/access-openscreengen-mcp.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

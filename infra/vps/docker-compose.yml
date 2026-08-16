@@ -20,6 +20,11 @@
 #                   service here: everything else can be recreated from this
 #                   file, pb-data cannot. NOT published to the host, so the only
 #                   way in is through a Caddy on 443.
+#   openscreengen-mcp-relay   The switchboard that lets an AI client drive the web
+#                   editor over MCP, which the desktop app does through a local
+#                   socket it can open itself. Stateless, in-memory, no disk and
+#                   no secret. Also not published to the host. See
+#                   mcp-relay/README.md.
 #
 # There is no sidecar. Both sign-in doors are verified by calling the provider
 # over plain HTTPS, which the PocketBase JS VM can do on its own — see
@@ -125,3 +130,31 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+
+  # The MCP relay. Same `openscreengen-` prefix as the database and for the same
+  # reason: this container is attached to a shared network where a service named
+  # `mcp-relay` is a name another stack could plausibly claim too.
+  #
+  # Nothing here is stateful. It holds open streams and in-flight calls in
+  # memory, so a restart costs a reconnect the editor tab does by itself, and
+  # there is no volume, no .env and no credential of any kind. If it is not
+  # running, the web editor simply shows its MCP connection as offline and every
+  # other part of the app is untouched.
+  openscreengen-mcp-relay:
+    build:
+      context: ./mcp-relay
+    image: openscreengen-mcp-relay:1.0.0
+    container_name: openscreengen-mcp-relay
+    restart: always
+    # Not published to the host, same as the database: Caddy reaches it by
+    # service name over the compose network.
+    expose:
+      - "8722"
+    environment:
+      - PORT=8722
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8722/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
