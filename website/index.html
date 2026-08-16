@@ -110,6 +110,19 @@
         ]
       },
       {
+        "@type": "VideoObject",
+        "@id": "https://openscrgen.app/#film",
+        "name": "The old way versus Open Screenshot Generator",
+        "description": "A one minute film contrasting the usual way of producing App Store and Play Store screenshots, size by size and language by language, with doing the whole set in Open Screenshot Generator. Covers the template library, the editor, one pass export for every store size, 57 language translation, app preview video export, the AI agent, and the fact that nothing leaves your machine.",
+        "thumbnailUrl": "https://openscrgen.app/assets/video/promo-desktop-poster.webp",
+        "contentUrl": "https://openscrgen.app/assets/video/promo-desktop.mp4",
+        "encodingFormat": "video/mp4",
+        "duration": "PT58S",
+        "uploadDate": "2026-08-16",
+        "isFamilyFriendly": true,
+        "inLanguage": "en"
+      },
+      {
         "@type": "FAQPage",
         "@id": "https://openscrgen.app/#faq",
         "mainEntity": [
@@ -197,6 +210,40 @@
       <div class="hero-fallback" aria-hidden="true">
         <img src="assets/img/strip-cinevault-stream.webp" alt="" loading="eager" />
         <img src="assets/img/strip-breathora-breathing.webp" alt="" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- ============ PROMO FILM ============ -->
+    <section class="film" id="film" aria-labelledby="film-title">
+      <p class="eyebrow reveal">One minute. The whole difference</p>
+      <h2 class="film-title reveal" id="film-title">The old way took an afternoon. This takes <em>one pass</em></h2>
+      <div class="film-frame reveal">
+        <!-- Source is chosen and attached by js/film.js: the landscape cut on
+             wide screens, the portrait cut on phones, and neither is fetched
+             until the panel is close to the viewport. -->
+        <video
+          class="film-video"
+          id="promo-film"
+          muted
+          loop
+          playsinline
+          preload="none"
+          poster="assets/video/promo-desktop-poster.webp"
+          data-src-wide="assets/video/promo-desktop.mp4"
+          data-src-tall="assets/video/promo-mobile.mp4"
+          data-poster-wide="assets/video/promo-desktop-poster.webp"
+          data-poster-tall="assets/video/promo-mobile-poster.webp"
+          aria-label="A one minute film comparing the old way of making store screenshots with Open Screenshot Generator"
+        ></video>
+        <button class="film-play" type="button" id="film-play" aria-controls="promo-film">
+          <span class="film-play-icon" aria-hidden="true"></span>
+          <span class="film-play-label">Play the film</span>
+        </button>
+        <button class="film-sound" type="button" id="film-sound" aria-pressed="false">Sound off</button>
+      </div>
+      <div class="hero-cta reveal">
+        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
+        <a class="btn btn-ghost" href="#how">See the three steps</a>
       </div>
     </section>
 
@@ -460,5 +507,6 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
   <script type="module" src="js/main.js"></script>
+  <script src="js/film.js" defer></script>
 </body>
 </html>

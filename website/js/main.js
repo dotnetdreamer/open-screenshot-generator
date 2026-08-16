@@ -371,8 +371,11 @@ function initCorridorScroll(state) {
     scrollTrigger: {
       trigger: "#hero",
       start: "top top",
-      endTrigger: ".steps-pin",
-      end: "top top",
+      // Ends at the promo film, not at the steps: the corridor is the hero's
+      // effect and it has to be gone before the video panel arrives, or the
+      // strips read as noise around an opaque rectangle.
+      endTrigger: "#film",
+      end: "top 70%",
       scrub: 1,
       // The strips dissolve over the back half of the ride, so by the time
       // the group is hidden there is nothing left on screen to pop away.

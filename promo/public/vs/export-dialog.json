@@ -1,0 +1,11 @@
+{
+  "text": "Export Screenshots\n\nDownload the artboards as PNGs, and optionally generate the App Store sizes this project is missing. Generated formats convert the canvas and mockups on the fly, your project stays untouched.\n\nExport current canvas\n\niPhone layout, 1290×2796\n\nSelected artboard only\n\nLeave off to export all 5 artboards\n\nAlso generate for the App Store\n\nApple accepts 1 to 10 JPG/PNG screenshots pe",
+  "box": {
+    "x": 560,
+    "y": 221,
+    "w": 480,
+    "h": 558
+  },
+  "opacity": "1",
+  "transform": "matrix(1, 0, 0, 1, -240, -279)"
+}
