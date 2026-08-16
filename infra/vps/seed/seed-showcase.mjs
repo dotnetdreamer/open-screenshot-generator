@@ -65,12 +65,14 @@ function parseArgs(argv) {
     perSurface: 6,
     all: false,
     dryRun: false,
+    only: null,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const flag = argv[i];
     if (flag === '--url') args.url = argv[++i];
     else if (flag === '--per-surface') args.perSurface = Number(argv[++i]);
     else if (flag === '--all') args.all = true;
+    else if (flag === '--only') args.only = argv[++i].split(',').map((s) => s.trim()).filter(Boolean);
     else if (flag === '--dry-run') args.dryRun = true;
     else if (flag === '--help' || flag === '-h') args.help = true;
   }
@@ -86,6 +88,7 @@ Seed the official showcase posts.
   --url <base>          PocketBase base URL (default $OPENSCREENGEN_PB_URL or http://127.0.0.1:8090)
   --per-surface <n>     How many templates per surface to post (default 6)
   --all                 Post every bundled template instead of a spread
+  --only <slug,slug>    Post exactly these templates (filename without .json), skipping the spread
   --dry-run             Say what would be posted and change nothing
 
 Credentials come from OPENSCREENGEN_PB_EMAIL and OPENSCREENGEN_PB_PASSWORD, never from a flag.
@@ -410,14 +413,25 @@ async function seedPost(author, template) {
 
 async function main() {
   const templates = await loadTemplates();
-  const chosen = args.all ? templates : curate(templates, args.perSurface);
+  let chosen;
+  if (args.only) {
+    chosen = templates.filter((t) => args.only.includes(t.file.replace(/\.json$/, '')));
+    const missing = args.only.filter((slug) => !chosen.some((t) => t.file === `${slug}.json`));
+    // A slug that resolves to nothing is a typo or a template with no preview;
+    // either way silence would look like success.
+    if (missing.length) {
+      throw new Error(`--only names not found on disk (or missing a real previewImage): ${missing.join(', ')}`);
+    }
+  } else {
+    chosen = args.all ? templates : curate(templates, args.perSurface);
+  }
 
   console.log(`${templates.length} templates on disk, ${chosen.length} to post`);
   const bySurface = chosen.reduce((acc, t) => ({ ...acc, [t.surface]: (acc[t.surface] ?? 0) + 1 }), {});
   for (const [surface, count] of Object.entries(bySurface)) {
     console.log(`  ${surface.padEnd(22)} ${count}`);
   }
-  if (!args.all && templates.length > chosen.length) {
+  if (!args.all && !args.only && templates.length > chosen.length) {
     // Never a silent cap: say what was left out and how to include it.
     console.log(
       `  (${templates.length - chosen.length} left out by --per-surface ${args.perSurface}; pass --all to post everything)`

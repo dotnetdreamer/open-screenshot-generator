@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
-const { launch, exportArtboards, sleep, clickTab, APP_URL } = require('./lib');
+const { launch, exportArtboards, sleep, clickTab, dismissTipsDialog, APP_URL } = require('./lib');
 const { renderOnPage, EDGE, CW, CH } = require('./compose-preview');
 
 const REPO = path.resolve(__dirname, '../../../..');
@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'somnia-sleep', 'kassa-money', 'pixara-ai', 'amoura-dating', 'scrappi-journal',
   'plannio-student',
   'calora-macros', 'puzzlo-word', 'sproutly-parenting',
   'zapio-remote', 'runzo-coach', 'nookly-focus',
@@ -83,13 +84,16 @@ function meta(slug) {
 
 async function openTemplate(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  if (tab) {
-    await page.waitForFunction(
-      `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(tab)}))`,
-      { timeout: 90000, polling: 500 }
-    );
-    await clickTab(page, tab);
-  }
+  // First-run Tips dialog blocks the start dialog on every fresh profile.
+  await dismissTipsDialog(page);
+  // The dialog opens on the Community feed tab now, so always click the
+  // template's own tab (default: App Screenshots).
+  const targetTab = tab || 'App Screenshots';
+  await page.waitForFunction(
+    `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(targetTab)}))`,
+    { timeout: 90000, polling: 500 }
+  );
+  await clickTab(page, targetTab);
   // Radix keeps inactive tab panels mounted (hidden), so scope the card search
   // to the active panel or a title substring can match a hidden card in another
   // tab and open the wrong project.

@@ -1,0 +1,1100 @@
+{
+ "id": "template_somnia_sleep",
+ "name": "Somnia Sleep",
+ "description": "App Store & Play Store screenshots for a sleep tracking and smart alarm app. One continuous night sky runs behind all five boards while a drifting moon rises, peaks full over the hypnogram board, and dissolves into a peach dawn, with serif headlines, constellation stat chips, and lavender on navy sleep screens.",
+ "previewImage": "/data/projects/previews/somnia-sleep.png",
+ "timestamp": "2026-08-16T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "somnia-board-1",
+   "name": "Wake Up Rested",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#3A2E66",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#3A2E66",
+    "color2": "#1C1740",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "somnia-sky-1-1",
+     "type": "image",
+     "name": "sky-1",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/somnia-sleep-sky-1.png",
+     "objectFit": "fill"
+    },
+    {
+     "id": "somnia-b1-headline-1-2",
+     "type": "text",
+     "name": "b1-headline-1",
+     "position": {
+      "x": 70,
+      "y": 250
+     },
+     "size": {
+      "width": 1150,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Wake Up",
+     "fontSize": 35,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b1-headline-2a-3",
+     "type": "text",
+     "name": "b1-headline-2a",
+     "position": {
+      "x": 186,
+      "y": 400
+     },
+     "size": {
+      "width": 500,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Actually",
+     "fontSize": 35,
+     "color": "#F2A46B",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "fontStyle": "italic",
+     "textAlign": "right",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b1-headline-2b-4",
+     "type": "text",
+     "name": "b1-headline-2b",
+     "position": {
+      "x": 718,
+      "y": 400
+     },
+     "size": {
+      "width": 480,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Rested",
+     "fontSize": 35,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b1-subline-5",
+     "type": "text",
+     "name": "b1-subline",
+     "position": {
+      "x": 70,
+      "y": 590
+     },
+     "size": {
+      "width": 1150,
+      "height": 80
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Sleep tracking that earns the nightstand",
+     "fontSize": 14,
+     "color": "#F6F1E7",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "500",
+     "textAlign": "center",
+     "lineHeight": 1.15,
+     "opacity": 0.88
+    },
+    {
+     "id": "somnia-b1-phone3d-6",
+     "type": "device",
+     "name": "Phone 3D",
+     "position": {
+      "x": 252,
+      "y": 936
+     },
+     "size": {
+      "width": 600,
+      "height": 1300
+     },
+     "rotation": 19,
+     "scale": 1.36,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "3d-right",
+     "pose3d": "upright",
+     "frameColor3d": "black",
+     "screenshotSrc": "/data/projects/somnia-sleep-screen-1.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "somnia-board-2",
+   "name": "Auto Detection",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#1C1740",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#1C1740",
+    "color2": "#12102F",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "somnia-sky-2-7",
+     "type": "image",
+     "name": "sky-2",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/somnia-sleep-sky-2.png",
+     "objectFit": "fill"
+    },
+    {
+     "id": "somnia-b2-headline-8",
+     "type": "text",
+     "name": "b2-headline",
+     "position": {
+      "x": 70,
+      "y": 160
+     },
+     "size": {
+      "width": 1150,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Knows When\nYou Drift Off",
+     "fontSize": 33,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b2-laurel-l-9",
+     "type": "shape",
+     "name": "b2-laurel-l",
+     "position": {
+      "x": 350,
+      "y": 470
+     },
+     "size": {
+      "width": 170,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E8C36A",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.95,
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "somnia-b2-laurel-r-10",
+     "type": "shape",
+     "name": "b2-laurel-r",
+     "position": {
+      "x": 770,
+      "y": 470
+     },
+     "size": {
+      "width": 170,
+      "height": 230
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E8C36A",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.95,
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "somnia-b2-rating-11",
+     "type": "text",
+     "name": "b2-rating",
+     "position": {
+      "x": 445,
+      "y": 495
+     },
+     "size": {
+      "width": 400,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "4.9",
+     "fontSize": 30,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b2-stars-12",
+     "type": "text",
+     "name": "b2-stars",
+     "position": {
+      "x": 445,
+      "y": 608
+     },
+     "size": {
+      "width": 400,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "★★★★★",
+     "fontSize": 14,
+     "color": "#E8C36A",
+     "fontFamily": "Arial",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b2-quote-shadow-13",
+     "type": "shape",
+     "name": "b2-quote-shadow",
+     "position": {
+      "x": 281,
+      "y": 776
+     },
+     "size": {
+      "width": 760,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#2A2350",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 34
+    },
+    {
+     "id": "somnia-b2-quote-card-14",
+     "type": "shape",
+     "name": "b2-quote-card",
+     "position": {
+      "x": 265,
+      "y": 760
+     },
+     "size": {
+      "width": 760,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F6F1E7",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 34
+    },
+    {
+     "id": "somnia-b2-quote-15",
+     "type": "text",
+     "name": "b2-quote",
+     "position": {
+      "x": 285,
+      "y": 760
+     },
+     "size": {
+      "width": 720,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "“Best sleep of my adult life”",
+     "fontSize": 13.5,
+     "color": "#171A33",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b2-phone-16",
+     "type": "device",
+     "name": "b2-phone",
+     "position": {
+      "x": 430,
+      "y": 1140
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -6,
+     "scale": 1.247,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "normal",
+     "frameColor": "#232041",
+     "screenshotSrc": "/data/projects/somnia-sleep-screen-2.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  },
+  {
+   "id": "somnia-board-3",
+   "name": "Sleep Stages",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#0C0A24",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#0C0A24",
+    "color2": "#12102F",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "somnia-sky-3-17",
+     "type": "image",
+     "name": "sky-3",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/somnia-sleep-sky-3.png",
+     "objectFit": "fill"
+    },
+    {
+     "id": "somnia-b3-headline-18",
+     "type": "text",
+     "name": "b3-headline",
+     "position": {
+      "x": 70,
+      "y": 740
+     },
+     "size": {
+      "width": 1150,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Every Sleep Stage,\nDecoded",
+     "fontSize": 33,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b3-phone-19",
+     "type": "device",
+     "name": "b3-phone",
+     "position": {
+      "x": 271,
+      "y": 1170
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.247,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "normal",
+     "frameColor": "#232041",
+     "screenshotSrc": "/data/projects/somnia-sleep-screen-3.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "somnia-b3-chip-l-20",
+     "type": "shape",
+     "name": "b3-chip-l",
+     "position": {
+      "x": 25,
+      "y": 1330
+     },
+     "size": {
+      "width": 250,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1F1B3F",
+     "strokeColor": "#B9A7F2",
+     "strokeWidth": 2,
+     "borderRadius": 28,
+     "opacity": 0.95
+    },
+    {
+     "id": "somnia-b3-chip-l-label-21",
+     "type": "text",
+     "name": "b3-chip-l-label",
+     "position": {
+      "x": 25,
+      "y": 1352
+     },
+     "size": {
+      "width": 250,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "DEEP SLEEP",
+     "fontSize": 10.5,
+     "color": "#B9A7F2",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b3-chip-l-value-22",
+     "type": "text",
+     "name": "b3-chip-l-value",
+     "position": {
+      "x": 25,
+      "y": 1392
+     },
+     "size": {
+      "width": 250,
+      "height": 76
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "1h 42m",
+     "fontSize": 21,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b3-const-l-23",
+     "type": "shape",
+     "name": "b3-const-l",
+     "position": {
+      "x": 190,
+      "y": 1480
+     },
+     "size": {
+      "width": 100,
+      "height": 270
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#B9A7F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.85,
+     "customPath": "M19.9 39.3 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M28.0 66.7 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M36.1 94.0 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M44.2 121.3 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M52.4 148.7 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M60.5 176.0 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M68.6 203.3 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M76.7 230.7 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M15 2 L18 9 L25 12 L18 15 L15 22 L12 15 L5 12 L12 9 Z M88 248 L91 255 L98 258 L91 261 L88 268 L85 261 L78 258 L85 255 Z ",
+     "specialProps": {
+      "viewBox": "0 0 100 270"
+     }
+    },
+    {
+     "id": "somnia-b3-chip-r-24",
+     "type": "shape",
+     "name": "b3-chip-r",
+     "position": {
+      "x": 1015,
+      "y": 1990
+     },
+     "size": {
+      "width": 250,
+      "height": 140
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#1F1B3F",
+     "strokeColor": "#B9A7F2",
+     "strokeWidth": 2,
+     "borderRadius": 28,
+     "opacity": 0.95
+    },
+    {
+     "id": "somnia-b3-chip-r-label-25",
+     "type": "text",
+     "name": "b3-chip-r-label",
+     "position": {
+      "x": 1015,
+      "y": 2012
+     },
+     "size": {
+      "width": 250,
+      "height": 40
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "REM SLEEP",
+     "fontSize": 10.5,
+     "color": "#B9A7F2",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b3-chip-r-value-26",
+     "type": "text",
+     "name": "b3-chip-r-value",
+     "position": {
+      "x": 1015,
+      "y": 2052
+     },
+     "size": {
+      "width": 250,
+      "height": 76
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "2h 05m",
+     "fontSize": 21,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b3-const-r-27",
+     "type": "shape",
+     "name": "b3-const-r",
+     "position": {
+      "x": 990,
+      "y": 1750
+     },
+     "size": {
+      "width": 100,
+      "height": 235
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#B9A7F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.85,
+     "customPath": "M75.3 198.4 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M65.8 171.8 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M56.3 145.1 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M46.8 118.5 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M37.3 91.9 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M27.8 65.3 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M18.3 38.6 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M88 215 L91 222 L98 225 L91 228 L88 235 L85 228 L78 225 L85 222 Z M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z ",
+     "specialProps": {
+      "viewBox": "0 0 100 235"
+     }
+    }
+   ]
+  },
+  {
+   "id": "somnia-board-4",
+   "name": "Smart Alarm",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#141233",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#141233",
+    "color2": "#2C2554",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "somnia-sky-4-28",
+     "type": "image",
+     "name": "sky-4",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/somnia-sleep-sky-4.png",
+     "objectFit": "fill"
+    },
+    {
+     "id": "somnia-b4-headline-29",
+     "type": "text",
+     "name": "b4-headline",
+     "position": {
+      "x": 70,
+      "y": 180
+     },
+     "size": {
+      "width": 1150,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Wakes You at\nthe Right Moment",
+     "fontSize": 33,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b4-phone-30",
+     "type": "device",
+     "name": "b4-phone",
+     "position": {
+      "x": 95,
+      "y": 1180
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 4,
+     "scale": 1.2,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "normal",
+     "frameColor": "#232041",
+     "screenshotSrc": "/data/projects/somnia-sleep-screen-4.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "somnia-b4-tl-moon-31",
+     "type": "shape",
+     "name": "b4-tl-moon",
+     "position": {
+      "x": 1060,
+      "y": 1280
+     },
+     "size": {
+      "width": 100,
+      "height": 100
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#B9A7F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.95,
+     "customPath": "M50 2 A48 48 0 1 0 50 98 A60 60 0 0 1 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "somnia-b4-tl-line-32",
+     "type": "shape",
+     "name": "b4-tl-line",
+     "position": {
+      "x": 1100,
+      "y": 1410
+     },
+     "size": {
+      "width": 20,
+      "height": 860
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#B9A7F2",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.6,
+     "customPath": "M6.8 8 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 34 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 60 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 86 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 112 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 138 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 164 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 190 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 216 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 242 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 268 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 294 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 320 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 346 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 372 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 398 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 424 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 450 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 476 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 502 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 528 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 554 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 580 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 606 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 632 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 658 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 684 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 710 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 736 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 762 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 788 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 814 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z M6.8 840 a3.2 3.2 0 1 0 6.4 0 a3.2 3.2 0 1 0 -6.4 0 Z ",
+     "specialProps": {
+      "viewBox": "0 0 20 860"
+     }
+    },
+    {
+     "id": "somnia-b4-tl-ring-33",
+     "type": "shape",
+     "name": "b4-tl-ring",
+     "position": {
+      "x": 1082,
+      "y": 1912
+     },
+     "size": {
+      "width": 56,
+      "height": 56
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "transparent",
+     "strokeColor": "#F2A46B",
+     "strokeWidth": 2,
+     "opacity": 0.6
+    },
+    {
+     "id": "somnia-b4-tl-dot-34",
+     "type": "shape",
+     "name": "b4-tl-dot",
+     "position": {
+      "x": 1092,
+      "y": 1922
+     },
+     "size": {
+      "width": 36,
+      "height": 36
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "circle",
+     "fillColor": "#F2A46B",
+     "strokeColor": "transparent",
+     "strokeWidth": 0
+    },
+    {
+     "id": "somnia-b4-tl-label-35",
+     "type": "text",
+     "name": "b4-tl-label",
+     "position": {
+      "x": 700,
+      "y": 1902
+     },
+     "size": {
+      "width": 360,
+      "height": 76
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Lightest sleep",
+     "fontSize": 11,
+     "color": "#F2A46B",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "600",
+     "textAlign": "right",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b4-tl-sun-36",
+     "type": "shape",
+     "name": "b4-tl-sun",
+     "position": {
+      "x": 1055,
+      "y": 2320
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E8C36A",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.95,
+     "customPath": "M50 2 L57.21 23.11 L74 8.43 L69.69 30.31 L91.57 26 L76.89 42.79 L98 50 L76.89 57.21 L91.57 74 L69.69 69.69 L74 91.57 L57.21 76.89 L50 98 L42.79 76.89 L26 91.57 L30.31 69.69 L8.43 74 L23.11 57.21 L2 50 L23.11 42.79 L8.43 26 L30.31 30.31 L26 8.43 L42.79 23.11 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ]
+  },
+  {
+   "id": "somnia-board-5",
+   "name": "Better Mornings",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#35296B",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#35296B",
+    "color2": "#E89A6B",
+    "angle": 180
+   },
+   "elements": [
+    {
+     "id": "somnia-sky-5-37",
+     "type": "image",
+     "name": "sky-5",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/somnia-sleep-sky-5.png",
+     "objectFit": "fill"
+    },
+    {
+     "id": "somnia-b5-laurel-l-38",
+     "type": "shape",
+     "name": "b5-laurel-l",
+     "position": {
+      "x": 300,
+      "y": 130
+     },
+     "size": {
+      "width": 150,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E8C36A",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.95,
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "somnia-b5-laurel-r-39",
+     "type": "shape",
+     "name": "b5-laurel-r",
+     "position": {
+      "x": 840,
+      "y": 130
+     },
+     "size": {
+      "width": 150,
+      "height": 200
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E8C36A",
+     "strokeColor": "transparent",
+     "strokeWidth": 3,
+     "opacity": 0.95,
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "somnia-b5-award-40",
+     "type": "text",
+     "name": "b5-award",
+     "position": {
+      "x": 395,
+      "y": 200
+     },
+     "size": {
+      "width": 500,
+      "height": 60
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Sleep App of the Year",
+     "fontSize": 12,
+     "color": "#E8C36A",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b5-headline-41",
+     "type": "text",
+     "name": "b5-headline",
+     "position": {
+      "x": 70,
+      "y": 330
+     },
+     "size": {
+      "width": 1150,
+      "height": 300
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Better Mornings\nStart Tonight",
+     "fontSize": 33,
+     "color": "#F6F1E7",
+     "fontFamily": "DM Serif Display",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b5-pill-42",
+     "type": "shape",
+     "name": "b5-pill",
+     "position": {
+      "x": 305,
+      "y": 700
+     },
+     "size": {
+      "width": 680,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#F6F1E7",
+     "strokeColor": "transparent",
+     "strokeWidth": 0,
+     "borderRadius": 48
+    },
+    {
+     "id": "somnia-b5-pill-text-43",
+     "type": "text",
+     "name": "b5-pill-text",
+     "position": {
+      "x": 305,
+      "y": 700
+     },
+     "size": {
+      "width": 680,
+      "height": 96
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Free to try, tonight counts",
+     "fontSize": 13,
+     "color": "#171A33",
+     "fontFamily": "Space Grotesk",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.15
+    },
+    {
+     "id": "somnia-b5-phone-44",
+     "type": "device",
+     "name": "b5-phone",
+     "position": {
+      "x": 284,
+      "y": 990
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.204,
+     "deviceType": "iphone-17-pro-max",
+     "styleType": "normal",
+     "frameColor": "#232041",
+     "screenshotSrc": "/data/projects/somnia-sleep-screen-5.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    }
+   ]
+  }
+ ]
+}

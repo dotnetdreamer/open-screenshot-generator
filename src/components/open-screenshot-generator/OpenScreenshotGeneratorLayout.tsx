@@ -2029,6 +2029,34 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // Template deep links: /?template=<slug> starts a new project from that
+  // catalog template (slug = the filename under public/data/projects without
+  // .json, e.g. ?template=kassa-money). The marketing site's template gallery
+  // links here. Runs once per mount after the catalog has loaded; an explicit
+  // ?projectId= always wins. The param is stripped up front either way, so a
+  // reload keeps the created copy instead of minting another one.
+  const templateParamHandled = useRef(false);
+  useEffect(() => {
+    if (templateParamHandled.current || availableProjects.length === 0) return;
+    if (typeof window === 'undefined') return;
+    templateParamHandled.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('template');
+    if (!slug) return;
+    params.delete('template');
+    const query = params.toString();
+    window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+    if (params.get('projectId')) return;
+    // Accept the filename slug, the filename-derived id, or the id written
+    // inside the file (same double lookup handleUseDiscoverPost needs).
+    const template =
+      availableProjects.find((project) => project.id === `template_${slug}`) ??
+      availableProjects.find((project) => project.id === slug) ??
+      availableProjects.find((project) => project.sourceId === slug);
+    if (template) void handleSelectTemplate(template);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableProjects]);
+
   // "Use as template" on a Discover post. Every post carries the id of the
   // project behind it, so this is the same path as picking that template out of
   // the start dialog, named after the post so the new project is recognisable

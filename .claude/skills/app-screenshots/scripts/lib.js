@@ -267,6 +267,59 @@ async function shot(page, file) {
   await page.screenshot({ path: file });
 }
 
+/**
+ * Wait until every font spec the mounted artboard elements actually use passes
+ * document.fonts.check. A fixed sleep is not enough: if Google Fonts is slow
+ * (Unbounded is a heavy family), the export captures a fallback whose different
+ * glyph widths re-space and re-wrap every headline. Tolerant: times out quietly
+ * rather than failing the export, since a missing decorative font still beats
+ * no export at all.
+ */
+async function waitForProjectFonts(page, { timeout = 60000 } = {}) {
+  try {
+    await page.waitForFunction(
+      () => {
+        const specs = new Set();
+        for (const el of document.querySelectorAll('[data-element-id]')) {
+          for (const n of el.querySelectorAll('*')) {
+            if (!n.textContent || !n.textContent.trim()) continue;
+            const cs = getComputedStyle(n);
+            specs.add(`${cs.fontStyle} ${cs.fontWeight} 40px ${cs.fontFamily}`);
+          }
+        }
+        return document.fonts.status === 'loaded' && [...specs].every((s) => document.fonts.check(s));
+      },
+      { timeout, polling: 500 }
+    );
+  } catch {
+    // Timed out; the export proceeds with whatever is loaded.
+  }
+}
+
+/**
+ * A fresh headless profile gets the first-run Tips dialog, which sits above the
+ * start dialog and hides every template card (each launch() uses a new profile,
+ * so this happens on EVERY harness run). Its shadcn X carries an sr-only
+ * "Close", so an exact-text match finds it on either tip page. Tolerant: if no
+ * tips dialog shows up quickly, there is nothing to dismiss.
+ */
+async function dismissTipsDialog(page, { timeout = 20000 } = {}) {
+  try {
+    await page.waitForFunction(
+      "[...document.querySelectorAll('button')].some((b) => (b.textContent || '').trim() === 'Close')",
+      { timeout, polling: 400 }
+    );
+  } catch {
+    return false; // no tips dialog, nothing to do
+  }
+  await sleep(500);
+  await page.evaluate(
+    "[...document.querySelectorAll('button')].find((b) => (b.textContent || '').trim() === 'Close').click()"
+  );
+  await sleep(500);
+  return true;
+}
+
 module.exports = {
   APP_URL,
   EDGE,
@@ -283,4 +336,6 @@ module.exports = {
   uploadScreenshotToSelected,
   exportArtboards,
   shot,
+  dismissTipsDialog,
+  waitForProjectFonts,
 };

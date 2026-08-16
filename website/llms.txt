@@ -21,7 +21,16 @@ Key facts:
 - [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): every accepted dimension for 2026, checked against Apple's published specifications, including the required 6.9 inch iPhone tier (1290x2796) and 13 inch iPad tier (2064x2752).
 - [Google Play screenshot sizes](https://openscrgen.app/google-play-screenshot-sizes): screenshot rules (320 to 3840px, max 2:1 ratio), the required 1024x500 feature graphic, the 512x512 icon, and the 1080px featuring rule.
 - [App preview video maker](https://openscrgen.app/app-preview-video-maker): browser based MP4 export conformed to Apple's app preview spec (886x1920, 30 fps, H.264, 15 to 30 seconds), plus Google Play's YouTube video rules.
+- [App Store screenshot templates](https://openscrgen.app/app-store-screenshot-templates): 96 free templates for iPhone and Android screenshot sets, Apple Watch, Mac, app preview videos, and Google Play feature graphics. Each opens directly in the editor via a template deep link.
+- [iPhone mockup generator](https://openscrgen.app/iphone-mockup-generator): free iPhone frames from the 17 Pro Max to a classic bezel model, plus a 3D iPhone, exported at App Store sizes.
+- [Android mockup generator](https://openscrgen.app/android-mockup-generator): punch hole, notch, and status bar chassis plus tablets, exported at Google Play sizes.
+- [iPad mockup generator](https://openscrgen.app/ipad-mockup-generator): iPad Pro 13 inch and iPad 11 inch frames at the required 2064x2752 tier.
+- [MacBook mockup generator](https://openscrgen.app/macbook-mockup-generator): MacBook and iMac frames, including a 3D MacBook, at Mac App Store 16:10 sizes.
+- [Apple Watch mockup generator](https://openscrgen.app/apple-watch-mockup-generator): a 3D Apple Watch at the required 422x514 size.
 - [AppScreens alternative](https://openscrgen.app/appscreens-alternative): an honest comparison with AppScreens, including where each tool wins.
+- [AppMockUp alternative](https://openscrgen.app/appmockup-alternative): an honest comparison with AppMockUp Studio, free versus free.
+- [Smartmockups alternative](https://openscrgen.app/smartmockups-alternative): where to go now that Smartmockups redirects to Canva.
+- [Previewed alternative](https://openscrgen.app/previewed-alternative): an honest comparison with Previewed, including its free tier limits.
 - [Privacy policy](https://openscrgen.app/privacy): no accounts, no analytics, and no data collection by design.
 - [Terms of use](https://openscrgen.app/terms): plain language terms for the free service.
 

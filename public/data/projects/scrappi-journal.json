@@ -1,0 +1,2363 @@
+{
+ "id": "template_scrappi_journal",
+ "name": "Scrappi Journal",
+ "description": "App Store & Play Store screenshots for a digital journaling and memory keeping app. Kraft paper scrapbook boards with washi taped phones, deckle edged pages, pressed flowers, sticker sheets and marker notes over cozy cream journal screens.",
+ "previewImage": "/data/projects/previews/scrappi-journal.png",
+ "timestamp": "2026-08-16T00:00:00.000Z",
+ "projectData": [
+  {
+   "id": "scrappi-board-1",
+   "name": "Your life scrapbooked",
+   "position": {
+    "x": 15,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#E4C9A1",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E4C9A1",
+    "color2": "#D2B183",
+    "angle": 160
+   },
+   "elements": [
+    {
+     "id": "scrappi-img-1",
+     "type": "image",
+     "name": "paper grain",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-grain.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-2",
+     "type": "text",
+     "name": "headline-1",
+     "position": {
+      "x": 70,
+      "y": 118
+     },
+     "size": {
+      "width": 1150,
+      "height": 165
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Your life",
+     "fontSize": 34,
+     "color": "#3B2A1A",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.05
+    },
+    {
+     "id": "scrappi-img-3",
+     "type": "image",
+     "name": "headline strip",
+     "position": {
+      "x": 260,
+      "y": 288
+     },
+     "size": {
+      "width": 770,
+      "height": 164
+     },
+     "rotation": -2,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-strip.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-4",
+     "type": "text",
+     "name": "headline-2",
+     "position": {
+      "x": 70,
+      "y": 298
+     },
+     "size": {
+      "width": 1150,
+      "height": 160
+     },
+     "rotation": -2,
+     "scale": 1,
+     "content": "scrapbooked",
+     "fontSize": 34,
+     "color": "#E4572E",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-txt-5",
+     "type": "text",
+     "name": "subline",
+     "position": {
+      "x": 95,
+      "y": 492
+     },
+     "size": {
+      "width": 1100,
+      "height": 90
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Photos, moods and moments, one cozy page",
+     "fontSize": 14,
+     "color": "#6B4A2A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-6",
+     "type": "image",
+     "name": "deckle page",
+     "position": {
+      "x": 60,
+      "y": 880
+     },
+     "size": {
+      "width": 1170,
+      "height": 1702
+     },
+     "rotation": 1,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-page.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-7",
+     "type": "image",
+     "name": "paperclip",
+     "position": {
+      "x": 150,
+      "y": 795
+     },
+     "size": {
+      "width": 96,
+      "height": 185
+     },
+     "rotation": -8,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-clip.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-8",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": 66,
+      "y": 942.4799999999999
+     },
+     "size": {
+      "width": 990,
+      "height": 1742.4
+     },
+     "rotation": -3,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-phone-9",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 165,
+      "y": 990
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -3,
+     "scale": 1.32,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-1.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-img-10",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": 55,
+      "y": 928
+     },
+     "size": {
+      "width": 360,
+      "height": 101.88
+     },
+     "rotation": -13,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-11",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 685,
+      "y": 942
+     },
+     "size": {
+      "width": 360,
+      "height": 101.88
+     },
+     "rotation": 12,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-12",
+     "type": "image",
+     "name": "polaroid slot",
+     "position": {
+      "x": 960,
+      "y": 1430
+     },
+     "size": {
+      "width": 330,
+      "height": 396
+     },
+     "rotation": 7,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-polaroid.png",
+     "imageAlt": "",
+     "objectFit": "contain",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-13",
+     "type": "image",
+     "name": "pressed flower",
+     "position": {
+      "x": 985,
+      "y": 2330
+     },
+     "size": {
+      "width": 280,
+      "height": 280
+     },
+     "rotation": -14,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-flower.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    }
+   ]
+  },
+  {
+   "id": "scrappi-board-2",
+   "name": "Type it or tape it",
+   "position": {
+    "x": 417,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#E4C9A1",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E4C9A1",
+    "color2": "#D2B183",
+    "angle": 200
+   },
+   "elements": [
+    {
+     "id": "scrappi-img-14",
+     "type": "image",
+     "name": "paper grain",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-grain.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-15",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 985,
+      "y": -32
+     },
+     "size": {
+      "width": 400,
+      "height": 113.19999999999999
+     },
+     "rotation": 14,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-16",
+     "type": "text",
+     "name": "headline",
+     "position": {
+      "x": 45,
+      "y": 118
+     },
+     "size": {
+      "width": 1200,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Type it or tape it",
+     "fontSize": 30,
+     "color": "#3B2A1A",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-txt-17",
+     "type": "text",
+     "name": "subline",
+     "position": {
+      "x": 95,
+      "y": 288
+     },
+     "size": {
+      "width": 1100,
+      "height": 85
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Write entries or collage them",
+     "fontSize": 13.5,
+     "color": "#6B4A2A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-18",
+     "type": "image",
+     "name": "deckle page",
+     "position": {
+      "x": 40,
+      "y": 560
+     },
+     "size": {
+      "width": 1210,
+      "height": 1760
+     },
+     "rotation": -1,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-page.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-19",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": -86.25,
+      "y": 768.5999999999999
+     },
+     "size": {
+      "width": 862.5,
+      "height": 1518.0000000000002
+     },
+     "rotation": -6,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-phone-20",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 0,
+      "y": 810
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -6,
+     "scale": 1.15,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-2.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-img-21",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": -90,
+      "y": 792
+     },
+     "size": {
+      "width": 320,
+      "height": 90.55999999999999
+     },
+     "rotation": -16,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-22",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 470,
+      "y": 728
+     },
+     "size": {
+      "width": 320,
+      "height": 90.55999999999999
+     },
+     "rotation": 8,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-23",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": 593.75,
+      "y": 1218.6
+     },
+     "size": {
+      "width": 862.5,
+      "height": 1518.0000000000002
+     },
+     "rotation": 7,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-phone-24",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 680,
+      "y": 1260
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 7,
+     "scale": 1.15,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-3.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-img-25",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": 655,
+      "y": 1168
+     },
+     "size": {
+      "width": 330,
+      "height": 93.38999999999999
+     },
+     "rotation": -10,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-26",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 1130,
+      "y": 1292
+     },
+     "size": {
+      "width": 330,
+      "height": 93.38999999999999
+     },
+     "rotation": 14,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-27",
+     "type": "text",
+     "name": "or-note",
+     "position": {
+      "x": 905,
+      "y": 890
+     },
+     "size": {
+      "width": 300,
+      "height": 140
+     },
+     "rotation": 8,
+     "scale": 1,
+     "content": "or!!",
+     "fontSize": 26,
+     "color": "#E4572E",
+     "fontFamily": "Permanent Marker",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-shp-28",
+     "type": "shape",
+     "name": "sketch arrow",
+     "position": {
+      "x": 830,
+      "y": 1050
+     },
+     "size": {
+      "width": 320,
+      "height": 100
+     },
+     "rotation": 28,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 6,
+     "opacity": 1,
+     "customPath": "M10 50 H90 M78 38 L92 50 L78 62 M22 38 L8 50 L22 62",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 5
+     }
+    },
+    {
+     "id": "scrappi-img-29",
+     "type": "image",
+     "name": "scrap left",
+     "position": {
+      "x": -50,
+      "y": 2560
+     },
+     "size": {
+      "width": 400,
+      "height": 286
+     },
+     "rotation": 10,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-kraft.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-30",
+     "type": "image",
+     "name": "scrap right",
+     "position": {
+      "x": 1000,
+      "y": 2640
+     },
+     "size": {
+      "width": 380,
+      "height": 271
+     },
+     "rotation": -14,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-kraft.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    }
+   ]
+  },
+  {
+   "id": "scrappi-board-3",
+   "name": "Moods as stickers",
+   "position": {
+    "x": 819,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#E4C9A1",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E4C9A1",
+    "color2": "#D2B183",
+    "angle": 140
+   },
+   "elements": [
+    {
+     "id": "scrappi-img-31",
+     "type": "image",
+     "name": "paper grain",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-grain.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-32",
+     "type": "text",
+     "name": "headline-1",
+     "position": {
+      "x": 60,
+      "y": 128
+     },
+     "size": {
+      "width": 480,
+      "height": 150
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Moods as",
+     "fontSize": 31,
+     "color": "#3B2A1A",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-rect-33",
+     "type": "shape",
+     "name": "pill shadow",
+     "position": {
+      "x": 528,
+      "y": 134
+     },
+     "size": {
+      "width": 518,
+      "height": 138
+     },
+     "rotation": -1.5,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#7DBEA3",
+     "borderRadius": 69
+    },
+    {
+     "id": "scrappi-rect-34",
+     "type": "shape",
+     "name": "pill",
+     "position": {
+      "x": 520,
+      "y": 126
+     },
+     "size": {
+      "width": 518,
+      "height": 138
+     },
+     "rotation": -1.5,
+     "scale": 1,
+     "shapeType": "rectangle",
+     "fillColor": "#A8DEC9",
+     "borderRadius": 69
+    },
+    {
+     "id": "scrappi-txt-35",
+     "type": "text",
+     "name": "headline-2",
+     "position": {
+      "x": 520,
+      "y": 128
+     },
+     "size": {
+      "width": 518,
+      "height": 136
+     },
+     "rotation": -1.5,
+     "scale": 1,
+     "content": "stickers",
+     "fontSize": 31,
+     "color": "#3B2A1A",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-txt-36",
+     "type": "text",
+     "name": "subline",
+     "position": {
+      "x": 60,
+      "y": 298
+     },
+     "size": {
+      "width": 900,
+      "height": 85
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Log the day in one peel",
+     "fontSize": 13.5,
+     "color": "#6B4A2A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "left",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-shp-37",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 1130,
+      "y": 100
+     },
+     "size": {
+      "width": 95,
+      "height": 95
+     },
+     "rotation": 15,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E4572E",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-38",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 1060,
+      "y": 230
+     },
+     "size": {
+      "width": 60,
+      "height": 60
+     },
+     "rotation": -10,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-img-39",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": -46.25,
+      "y": 731.3999999999999
+     },
+     "size": {
+      "width": 1012.5,
+      "height": 1782.0000000000002
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-phone-40",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 55,
+      "y": 780
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 0,
+     "scale": 1.35,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-4.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-img-41",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": -40,
+      "y": 722
+     },
+     "size": {
+      "width": 350,
+      "height": 99.05
+     },
+     "rotation": -12,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-42",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 605,
+      "y": 728
+     },
+     "size": {
+      "width": 350,
+      "height": 99.05
+     },
+     "rotation": 11,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-43",
+     "type": "image",
+     "name": "sticker sheet",
+     "position": {
+      "x": 848,
+      "y": 780
+     },
+     "size": {
+      "width": 430,
+      "height": 881
+     },
+     "rotation": -3,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-stickersheet.png",
+     "imageAlt": "",
+     "objectFit": "contain",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-shp-44",
+     "type": "shape",
+     "name": "peel heart die-cut",
+     "position": {
+      "x": 780,
+      "y": 1010
+     },
+     "size": {
+      "width": 150,
+      "height": 150
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFDF6",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-45",
+     "type": "shape",
+     "name": "peel heart",
+     "position": {
+      "x": 803,
+      "y": 1033
+     },
+     "size": {
+      "width": 104,
+      "height": 104
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#F2A0B4",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-46",
+     "type": "shape",
+     "name": "peel star die-cut",
+     "position": {
+      "x": 776,
+      "y": 1445
+     },
+     "size": {
+      "width": 148,
+      "height": 148
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFDF6",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-47",
+     "type": "shape",
+     "name": "peel star",
+     "position": {
+      "x": 793,
+      "y": 1462
+     },
+     "size": {
+      "width": 114,
+      "height": 114
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C99A3C",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-48",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 1160,
+      "y": 1925
+     },
+     "size": {
+      "width": 90,
+      "height": 90
+     },
+     "rotation": 20,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E4572E",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-49",
+     "type": "shape",
+     "name": "doodle-star",
+     "position": {
+      "x": 880,
+      "y": 1990
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": -14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L58.82 37.86 L91.85 36.4 L64.27 54.64 L77.63 88.02 L50 65 L24.73 84.79 L35.73 54.64 L6.25 35.79 L41.18 37.86 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-50",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 1040,
+      "y": 2075
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": 5,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-img-51",
+     "type": "image",
+     "name": "pressed flower",
+     "position": {
+      "x": 990,
+      "y": 2140
+     },
+     "size": {
+      "width": 250,
+      "height": 250
+     },
+     "rotation": 18,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-flower.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-52",
+     "type": "text",
+     "name": "marker note",
+     "position": {
+      "x": 795,
+      "y": 1745
+     },
+     "size": {
+      "width": 480,
+      "height": 105
+     },
+     "rotation": -5,
+     "scale": 1,
+     "content": "today was a 10",
+     "fontSize": 18,
+     "color": "#E4572E",
+     "fontFamily": "Permanent Marker",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-shp-53",
+     "type": "shape",
+     "name": "note arrow",
+     "position": {
+      "x": 679,
+      "y": 1333
+     },
+     "size": {
+      "width": 220,
+      "height": 290
+     },
+     "rotation": -92,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 7,
+     "opacity": 1,
+     "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 10
+     }
+    }
+   ]
+  },
+  {
+   "id": "scrappi-board-4",
+   "name": "One page a day",
+   "position": {
+    "x": 1221,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#E4C9A1",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E4C9A1",
+    "color2": "#D2B183",
+    "angle": 220
+   },
+   "elements": [
+    {
+     "id": "scrappi-img-54",
+     "type": "image",
+     "name": "paper grain",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-grain.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-55",
+     "type": "text",
+     "name": "headline",
+     "position": {
+      "x": 50,
+      "y": 118
+     },
+     "size": {
+      "width": 1190,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "One page a day",
+     "fontSize": 32,
+     "color": "#3B2A1A",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-txt-56",
+     "type": "text",
+     "name": "subline",
+     "position": {
+      "x": 95,
+      "y": 288
+     },
+     "size": {
+      "width": 1100,
+      "height": 85
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Tiny habit, giant memory box",
+     "fontSize": 13.5,
+     "color": "#6B4A2A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-57",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": 328.75,
+      "y": 771.3999999999999
+     },
+     "size": {
+      "width": 1012.5,
+      "height": 1782.0000000000002
+     },
+     "rotation": 4,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-phone-58",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 430,
+      "y": 820
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 4,
+     "scale": 1.35,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-5.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-img-59",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": 345,
+      "y": 762
+     },
+     "size": {
+      "width": 350,
+      "height": 99.05
+     },
+     "rotation": -12,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-60",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 995,
+      "y": 788
+     },
+     "size": {
+      "width": 350,
+      "height": 99.05
+     },
+     "rotation": 13,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-cus-61",
+     "type": "shape",
+     "name": "tally-marks",
+     "position": {
+      "x": 85,
+      "y": 880
+     },
+     "size": {
+      "width": 230,
+      "height": 138
+     },
+     "rotation": -3,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 6,
+     "opacity": 1,
+     "customPath": "M14 10 L11 52 M34 8 L32 50 M54 10 L51 52 M74 8 L72 50 M4 46 L92 12",
+     "specialProps": {
+      "viewBox": "0 0 100 60",
+      "strokeOnly": true,
+      "baseStrokeWidth": 3
+     }
+    },
+    {
+     "id": "scrappi-cus-62",
+     "type": "shape",
+     "name": "tally-marks",
+     "position": {
+      "x": 90,
+      "y": 1055
+     },
+     "size": {
+      "width": 230,
+      "height": 138
+     },
+     "rotation": 2,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 6,
+     "opacity": 1,
+     "customPath": "M14 10 L11 52 M34 8 L32 50 M54 10 L51 52 M74 8 L72 50 M4 46 L92 12",
+     "specialProps": {
+      "viewBox": "0 0 100 60",
+      "strokeOnly": true,
+      "baseStrokeWidth": 3
+     }
+    },
+    {
+     "id": "scrappi-cus-63",
+     "type": "shape",
+     "name": "tally-marks",
+     "position": {
+      "x": 82,
+      "y": 1230
+     },
+     "size": {
+      "width": 230,
+      "height": 138
+     },
+     "rotation": -2,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 6,
+     "opacity": 1,
+     "customPath": "M14 10 L11 52 M34 8 L32 50 M54 10 L51 52 M74 8 L72 50 M4 46 L92 12",
+     "specialProps": {
+      "viewBox": "0 0 100 60",
+      "strokeOnly": true,
+      "baseStrokeWidth": 3
+     }
+    },
+    {
+     "id": "scrappi-shp-64",
+     "type": "shape",
+     "name": "doodle line",
+     "position": {
+      "x": 300,
+      "y": 1310
+     },
+     "size": {
+      "width": 130,
+      "height": 210
+     },
+     "rotation": 55,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 5,
+     "opacity": 1,
+     "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
+     "specialProps": {
+      "viewBox": "0 0 100 100",
+      "strokeOnly": true,
+      "baseStrokeWidth": 5
+     }
+    },
+    {
+     "id": "scrappi-shp-65",
+     "type": "shape",
+     "name": "star",
+     "position": {
+      "x": 70,
+      "y": 1445
+     },
+     "size": {
+      "width": 165,
+      "height": 165
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFDF6",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-66",
+     "type": "shape",
+     "name": "star",
+     "position": {
+      "x": 88,
+      "y": 1462
+     },
+     "size": {
+      "width": 130,
+      "height": 130
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C99A3C",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-67",
+     "type": "shape",
+     "name": "star",
+     "position": {
+      "x": 225,
+      "y": 1560
+     },
+     "size": {
+      "width": 140,
+      "height": 140
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFDF6",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-68",
+     "type": "shape",
+     "name": "star",
+     "position": {
+      "x": 240,
+      "y": 1575
+     },
+     "size": {
+      "width": 110,
+      "height": 110
+     },
+     "rotation": 14,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C99A3C",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-69",
+     "type": "shape",
+     "name": "star",
+     "position": {
+      "x": 60,
+      "y": 1650
+     },
+     "size": {
+      "width": 125,
+      "height": 125
+     },
+     "rotation": -16,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#FFFDF6",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-70",
+     "type": "shape",
+     "name": "star",
+     "position": {
+      "x": 73,
+      "y": 1663
+     },
+     "size": {
+      "width": 98,
+      "height": 98
+     },
+     "rotation": -16,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C99A3C",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-71",
+     "type": "shape",
+     "name": "laurel-left",
+     "position": {
+      "x": 8,
+      "y": 1840
+     },
+     "size": {
+      "width": 190,
+      "height": 255
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C99A3C",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-72",
+     "type": "shape",
+     "name": "laurel-right",
+     "position": {
+      "x": 238,
+      "y": 1840
+     },
+     "size": {
+      "width": 190,
+      "height": 255
+     },
+     "rotation": 0,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#C99A3C",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-txt-73",
+     "type": "text",
+     "name": "laurel text",
+     "position": {
+      "x": 38,
+      "y": 1900
+     },
+     "size": {
+      "width": 360,
+      "height": 130
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Journal app\nof the year",
+     "fontSize": 12,
+     "color": "#8A5A1A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.25
+    },
+    {
+     "id": "scrappi-img-74",
+     "type": "image",
+     "name": "day tab",
+     "position": {
+      "x": 115,
+      "y": 2480
+     },
+     "size": {
+      "width": 285,
+      "height": 153
+     },
+     "rotation": -4,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-tab.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-75",
+     "type": "text",
+     "name": "day-47",
+     "position": {
+      "x": 125,
+      "y": 2498
+     },
+     "size": {
+      "width": 265,
+      "height": 110
+     },
+     "rotation": -4,
+     "scale": 1,
+     "content": "day 47",
+     "fontSize": 16,
+     "color": "#3B2A1A",
+     "fontFamily": "Permanent Marker",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-76",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": 150,
+      "y": 2438
+     },
+     "size": {
+      "width": 220,
+      "height": 62.25999999999999
+     },
+     "rotation": -12,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    }
+   ]
+  },
+  {
+   "id": "scrappi-board-5",
+   "name": "Look back and smile",
+   "position": {
+    "x": 1623,
+    "y": 15
+   },
+   "size": {
+    "width": 1290,
+    "height": 2796
+   },
+   "backgroundColor": "#E4C9A1",
+   "zoom": 1,
+   "backgroundType": "gradient",
+   "backgroundGradient": {
+    "color1": "#E4C9A1",
+    "color2": "#D2B183",
+    "angle": 115
+   },
+   "elements": [
+    {
+     "id": "scrappi-img-77",
+     "type": "image",
+     "name": "paper grain",
+     "position": {
+      "x": 0,
+      "y": 0
+     },
+     "size": {
+      "width": 1290,
+      "height": 2796
+     },
+     "rotation": 0,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-grain.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-78",
+     "type": "text",
+     "name": "headline",
+     "position": {
+      "x": 40,
+      "y": 118
+     },
+     "size": {
+      "width": 1210,
+      "height": 160
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "Look back and smile",
+     "fontSize": 31,
+     "color": "#3B2A1A",
+     "fontFamily": "Calistoga",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-txt-79",
+     "type": "text",
+     "name": "subline",
+     "position": {
+      "x": 95,
+      "y": 285
+     },
+     "size": {
+      "width": 1100,
+      "height": 85
+     },
+     "rotation": 0,
+     "scale": 1,
+     "content": "This day, every year",
+     "fontSize": 13.5,
+     "color": "#6B4A2A",
+     "fontFamily": "Baloo 2",
+     "fontWeight": "600",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-txt-80",
+     "type": "text",
+     "name": "marker note",
+     "position": {
+      "x": 335,
+      "y": 640
+     },
+     "size": {
+      "width": 620,
+      "height": 130
+     },
+     "rotation": -5,
+     "scale": 1,
+     "content": "remember this??",
+     "fontSize": 22,
+     "color": "#E4572E",
+     "fontFamily": "Permanent Marker",
+     "fontWeight": "400",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-shp-81",
+     "type": "shape",
+     "name": "confetti",
+     "position": {
+      "x": 45,
+      "y": 660
+     },
+     "size": {
+      "width": 250,
+      "height": 250
+     },
+     "rotation": 10,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#DF855B",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M5.82 14.17 L19.68 22.17 L22.18 17.83 L8.32 9.83 ZM39.34 15.09 L54.37 9.61 L52.66 4.91 L37.63 10.39 ZM74.35 11.81 L81.12 26.31 L85.65 24.19 L78.88 9.69 ZM19.46 53.99 L28.64 40.88 L24.54 38.01 L15.36 51.12 ZM49.63 40.34 L65.08 44.49 L66.37 39.66 L50.92 35.51 ZM82.88 54.64 L95.99 45.46 L93.12 41.36 L80.01 50.54 ZM6.91 71.34 L12.39 86.37 L17.09 84.66 L11.61 69.63 ZM34.56 75.85 L50.31 73.07 L49.44 68.15 L33.69 70.93 ZM62.26 78.77 L74.52 89.06 L77.74 85.23 L65.48 74.94 ZM88.17 84.18 L96.17 70.32 L91.83 67.82 L83.83 81.68 ZM28.8 26 A3.2 3.2 0 1 0 35.2 26 A3.2 3.2 0 1 0 28.8 26 ZM62.8 60 A3.2 3.2 0 1 0 69.2 60 A3.2 3.2 0 1 0 62.8 60 ZM46.8 90 A3.2 3.2 0 1 0 53.2 90 A3.2 3.2 0 1 0 46.8 90 ZM82.8 30 A3.2 3.2 0 1 0 89.2 30 A3.2 3.2 0 1 0 82.8 30 ZM6.8 60 A3.2 3.2 0 1 0 13.2 60 A3.2 3.2 0 1 0 6.8 60 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-82",
+     "type": "shape",
+     "name": "confetti",
+     "position": {
+      "x": 1010,
+      "y": 620
+     },
+     "size": {
+      "width": 240,
+      "height": 240
+     },
+     "rotation": -25,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#B38D57",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M5.82 14.17 L19.68 22.17 L22.18 17.83 L8.32 9.83 ZM39.34 15.09 L54.37 9.61 L52.66 4.91 L37.63 10.39 ZM74.35 11.81 L81.12 26.31 L85.65 24.19 L78.88 9.69 ZM19.46 53.99 L28.64 40.88 L24.54 38.01 L15.36 51.12 ZM49.63 40.34 L65.08 44.49 L66.37 39.66 L50.92 35.51 ZM82.88 54.64 L95.99 45.46 L93.12 41.36 L80.01 50.54 ZM6.91 71.34 L12.39 86.37 L17.09 84.66 L11.61 69.63 ZM34.56 75.85 L50.31 73.07 L49.44 68.15 L33.69 70.93 ZM62.26 78.77 L74.52 89.06 L77.74 85.23 L65.48 74.94 ZM88.17 84.18 L96.17 70.32 L91.83 67.82 L83.83 81.68 ZM28.8 26 A3.2 3.2 0 1 0 35.2 26 A3.2 3.2 0 1 0 28.8 26 ZM62.8 60 A3.2 3.2 0 1 0 69.2 60 A3.2 3.2 0 1 0 62.8 60 ZM46.8 90 A3.2 3.2 0 1 0 53.2 90 A3.2 3.2 0 1 0 46.8 90 ZM82.8 30 A3.2 3.2 0 1 0 89.2 30 A3.2 3.2 0 1 0 82.8 30 ZM6.8 60 A3.2 3.2 0 1 0 13.2 60 A3.2 3.2 0 1 0 6.8 60 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-83",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 120,
+      "y": 960
+     },
+     "size": {
+      "width": 85,
+      "height": 85
+     },
+     "rotation": 12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E4572E",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-84",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 1135,
+      "y": 940
+     },
+     "size": {
+      "width": 75,
+      "height": 75
+     },
+     "rotation": -8,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-img-85",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": -48.75,
+      "y": 1089.4
+     },
+     "size": {
+      "width": 637.5,
+      "height": 1122
+     },
+     "rotation": -10,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-86",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": 701.25,
+      "y": 1089.4
+     },
+     "size": {
+      "width": 637.5,
+      "height": 1122
+     },
+     "rotation": 10,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-87",
+     "type": "image",
+     "name": "paper shadow",
+     "position": {
+      "x": 326.25,
+      "y": 959.4
+     },
+     "size": {
+      "width": 637.5,
+      "height": 1122
+     },
+     "rotation": 2,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-shadow.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-phone-88",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 15,
+      "y": 1120
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": -10,
+     "scale": 0.85,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-6.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-phone-89",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 765,
+      "y": 1120
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 10,
+     "scale": 0.85,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-8.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-phone-90",
+     "type": "device",
+     "name": "Phone",
+     "position": {
+      "x": 390,
+      "y": 990
+     },
+     "size": {
+      "width": 600,
+      "height": 1200
+     },
+     "rotation": 2,
+     "scale": 0.85,
+     "deviceType": "iphone-15",
+     "styleType": "normal",
+     "frameColor": "#2A1E12",
+     "screenshotSrc": "/data/projects/scrappi-journal-screen-7.png",
+     "naturalScreenshotWidth": 1692,
+     "naturalScreenshotHeight": 3420,
+     "screenshotObjectFit": "cover",
+     "screenshotRect": {
+      "left": 0,
+      "top": 0,
+      "width": 100,
+      "height": 100
+     }
+    },
+    {
+     "id": "scrappi-img-91",
+     "type": "image",
+     "name": "tab 2024",
+     "position": {
+      "x": 145,
+      "y": 1032
+     },
+     "size": {
+      "width": 240,
+      "height": 129
+     },
+     "rotation": -10,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-tab.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-92",
+     "type": "text",
+     "name": "year-2024",
+     "position": {
+      "x": 145,
+      "y": 1042
+     },
+     "size": {
+      "width": 240,
+      "height": 108
+     },
+     "rotation": -10,
+     "scale": 1,
+     "content": "2024",
+     "fontSize": 17,
+     "color": "#3B2A1A",
+     "fontFamily": "Caveat",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-93",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": 175,
+      "y": 1002
+     },
+     "size": {
+      "width": 210,
+      "height": 59.42999999999999
+     },
+     "rotation": -18,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-94",
+     "type": "image",
+     "name": "tab 2025",
+     "position": {
+      "x": 525,
+      "y": 892
+     },
+     "size": {
+      "width": 240,
+      "height": 129
+     },
+     "rotation": 3,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-tab.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-95",
+     "type": "text",
+     "name": "year-2025",
+     "position": {
+      "x": 525,
+      "y": 902
+     },
+     "size": {
+      "width": 240,
+      "height": 108
+     },
+     "rotation": 3,
+     "scale": 1,
+     "content": "2025",
+     "fontSize": 17,
+     "color": "#3B2A1A",
+     "fontFamily": "Caveat",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-96",
+     "type": "image",
+     "name": "washi straw",
+     "position": {
+      "x": 555,
+      "y": 862
+     },
+     "size": {
+      "width": 210,
+      "height": 59.42999999999999
+     },
+     "rotation": 8,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-straw.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-97",
+     "type": "image",
+     "name": "tab 2026",
+     "position": {
+      "x": 900,
+      "y": 1032
+     },
+     "size": {
+      "width": 240,
+      "height": 129
+     },
+     "rotation": 10,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-tab.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-txt-98",
+     "type": "text",
+     "name": "year-2026",
+     "position": {
+      "x": 900,
+      "y": 1042
+     },
+     "size": {
+      "width": 240,
+      "height": 108
+     },
+     "rotation": 10,
+     "scale": 1,
+     "content": "2026",
+     "fontSize": 17,
+     "color": "#3B2A1A",
+     "fontFamily": "Caveat",
+     "fontWeight": "700",
+     "textAlign": "center",
+     "lineHeight": 1.12
+    },
+    {
+     "id": "scrappi-img-99",
+     "type": "image",
+     "name": "washi mint",
+     "position": {
+      "x": 930,
+      "y": 1002
+     },
+     "size": {
+      "width": 210,
+      "height": 59.42999999999999
+     },
+     "rotation": 16,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-tape-mint.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-100",
+     "type": "image",
+     "name": "scrap",
+     "position": {
+      "x": -45,
+      "y": 2590
+     },
+     "size": {
+      "width": 380,
+      "height": 271
+     },
+     "rotation": 9,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-scrap-kraft.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-img-101",
+     "type": "image",
+     "name": "pressed flower",
+     "position": {
+      "x": 1000,
+      "y": 2450
+     },
+     "size": {
+      "width": 265,
+      "height": 265
+     },
+     "rotation": 14,
+     "scale": 1,
+     "imageSrc": "/data/projects/scrappi-journal-flower.png",
+     "imageAlt": "",
+     "objectFit": "fill",
+     "borderRadius": 0
+    },
+    {
+     "id": "scrappi-shp-102",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 90,
+      "y": 2430
+     },
+     "size": {
+      "width": 80,
+      "height": 80
+     },
+     "rotation": 18,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#3B2A1A",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    },
+    {
+     "id": "scrappi-shp-103",
+     "type": "shape",
+     "name": "sparkle",
+     "position": {
+      "x": 1180,
+      "y": 2300
+     },
+     "size": {
+      "width": 70,
+      "height": 70
+     },
+     "rotation": -12,
+     "scale": 1,
+     "shapeType": "custom-svg",
+     "fillColor": "#E4572E",
+     "strokeColor": "transparent",
+     "strokeWidth": 4,
+     "opacity": 1,
+     "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+     "specialProps": {
+      "viewBox": "0 0 100 100"
+     }
+    }
+   ]
+  }
+ ]
+}

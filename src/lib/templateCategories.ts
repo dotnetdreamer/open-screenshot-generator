@@ -44,6 +44,11 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'somnia-sleep.json',
+      'kassa-money.json',
+      'pixara-ai.json',
+      'amoura-dating.json',
+      'scrappi-journal.json',
       'plannio-student.json',
       'calora-macros.json',
       'puzzlo-word.json',

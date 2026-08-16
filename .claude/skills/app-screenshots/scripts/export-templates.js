@@ -5,9 +5,14 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { launch, startBlankProject, sleep, exportArtboards, clickTab, APP_URL } = require('./lib');
+const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'somnia-sleep', card: 'Somnia Sleep', boards: 5 },
+  { slug: 'kassa-money', card: 'Kassa Money', boards: 5 },
+  { slug: 'pixara-ai', card: 'Pixara AI', boards: 5 },
+  { slug: 'amoura-dating', card: 'Amoura Dating', boards: 5 },
+  { slug: 'scrappi-journal', card: 'Scrappi Journal', boards: 5 },
   { slug: 'plannio-student', card: 'Plannio Student', boards: 5 },
   { slug: 'calora-macros', card: 'Calora Macros', boards: 5 },
   { slug: 'puzzlo-word', card: 'Puzzlo Word', boards: 5 },
@@ -85,19 +90,21 @@ const TEMPLATES = [
 
 async function openTemplateFromStartDialog(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  // Non-default categories (Apple Watch, Feature Graphic) live behind a Radix
-  // tab — click it first so its panel becomes active. Radix keeps INACTIVE tab
-  // panels mounted (just hidden), so the card search below must be scoped to the
-  // active panel; an unscoped [role=dialog] search matches hidden cards in other
-  // tabs and can open the wrong project (e.g. "Lavender" also appears in a
-  // screenshots-tab description).
-  if (tab) {
-    await page.waitForFunction(
-      `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(tab)}))`,
-      { timeout: 90000, polling: 500 }
-    );
-    await clickTab(page, tab);
-  }
+  // First-run Tips dialog blocks the start dialog on every fresh profile.
+  await dismissTipsDialog(page);
+  // Every template lives behind a Radix tab, and the dialog now opens on the
+  // Community feed tab, so ALWAYS click the template's tab (default: App
+  // Screenshots). Radix keeps INACTIVE tab panels mounted (just hidden), so the
+  // card search below must be scoped to the active panel; an unscoped
+  // [role=dialog] search matches hidden cards in other tabs and can open the
+  // wrong project (e.g. "Lavender" also appears in a screenshots-tab
+  // description).
+  const targetTab = tab || 'App Screenshots';
+  await page.waitForFunction(
+    `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(targetTab)}))`,
+    { timeout: 90000, polling: 500 }
+  );
+  await clickTab(page, targetTab);
   const CARDS = '[role="dialog"] [role="tabpanel"][data-state="active"] .cursor-pointer';
   // Wait for the template cards to load in the active tab panel.
   await page.waitForFunction(
@@ -116,7 +123,10 @@ async function openTemplateFromStartDialog(page, cardTitle, tab) {
     timeout: 60000,
     polling: 500,
   });
-  await sleep(4000); // fonts + images + first paint settle
+  // Fixed sleeps raced Google Fonts (Unbounded exported as an Arial fallback);
+  // wait for the fonts the project actually uses, then let images settle.
+  await waitForProjectFonts(page);
+  await sleep(4000); // images + first paint settle
 }
 
 (async () => {
@@ -132,7 +142,10 @@ async function openTemplateFromStartDialog(page, cardTitle, tab) {
     try {
       console.log('== ' + t.slug);
       await openTemplateFromStartDialog(page, t.card, t.tab);
-      const files = await exportArtboards(page, dir, t.boards);
+      // Heavy boards (3D WebGL devices, full-board PNG art) can take 90s+ each
+      // through html-to-image on this machine; 180s was only ever enough for
+      // 1-2 of 5 downloads.
+      const files = await exportArtboards(page, dir, t.boards, 600000);
       console.log('   exported:', files.join(', '));
     } catch (e) {
       console.log('   FAILED:', String(e).slice(0, 400));

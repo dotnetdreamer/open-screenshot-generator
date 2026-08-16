@@ -170,6 +170,8 @@ in editable templates, not standalone downloads.
 | calora-as100729629.png | 100729629 | Heavy dumbbell (licensed 2026-07-20) | calora-macros.json |
 | calora-as710579480.png | 710579480 | kettlebell gym equipment on white background (licensed 2026-07-20) | calora-macros.json |
 | calora-as177966215.png | 177966215 | Bottle with protein shake and powder on white background (licensed 2026-07-20) | calora-macros.json |
+| amoura-dating-as321711560.png | 321711560 | Creative mock up image of woman hand holding craft paper coffee cup with copy space isolated on white background in minimalism style. (licensed 2026-08-16) | amoura-dating.json |
+| amoura-dating-as265366403.png | 265366403 | Two coffee cup overhead view flat lay (licensed 2026-08-16) | amoura-dating.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock.
