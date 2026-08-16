@@ -1,19 +1,12 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { XIcon, ChevronLeftIcon, ChevronRightIcon, LanguagesIcon } from 'lucide-react';
+import { XIcon, ChevronLeftIcon, ChevronRightIcon, LanguagesIcon, SmartphoneIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { artboardBackground } from '@/lib/artboardBackground';
 import { projectArtboards } from '@/lib/i18n/project';
-import { elementVisualStyle } from '@/lib/elementStyle';
-import { TextElement } from './elements/TextElement';
-import { ShapeElement } from './elements/ShapeElement';
-import { DeviceFrameElement } from './elements/DeviceFrameElement';
-import { ImageElement } from './elements/ImageElement';
-import { VideoElement } from './elements/VideoElement';
-import { VideoDeviceElement } from './elements/VideoDeviceElement';
-import { GestureElement } from './elements/GestureElement';
-import type { ArtboardState, ImageElementProps, DeviceFrameElementProps, TextElementProps, ShapeElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps } from '@/types/artboard';
+import { StaticArtboard, getArtboardBackgroundStyle, count3dDevices } from './StaticArtboard';
+import { StoreListingPreview } from './StoreListingPreview';
+import type { ArtboardState } from '@/types/artboard';
 
 /** One entry in the language pill row. `null` is the base language. */
 export interface PreviewLocaleOption {
@@ -35,132 +28,32 @@ interface PreviewDialogProps {
   localeOptions?: PreviewLocaleOption[];
   activeLocale?: string | null;
   onSelectLocale?: (locale: string | null) => void;
+  /** Stands in for the app name in the store listing mockup. */
+  projectName?: string;
+  /**
+   * Which view to open on. The toolbar's Preview menu points straight at one,
+   * so the store mockup and the language sheet are one click from the top bar.
+   */
+  initialMode?: PreviewMode;
 }
 
-const noop = () => {};
-
-// Shared with the canvas and the PNG export so the preview cannot disagree
-// with what actually renders (including for a half-filled gradient).
-const getArtboardBackgroundStyle = (artboard: ArtboardState): React.CSSProperties =>
-  artboardBackground(artboard);
-
-// Renders an artboard exactly as it exports: same element components as the
-// editor canvas, but read-only and clipped to the artboard bounds.
-function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: number }) {
-  return (
-    <div
-      style={{
-        width: `${artboard.size.width * scale}px`,
-        height: `${artboard.size.height * scale}px`,
-        overflow: 'hidden',
-        flexShrink: 0,
-      }}
-    >
-      <div
-        // The canvas marks its own board with `.artboard`; this is the other
-        // render site and needs the same marker, so the dark editor palette
-        // stops at the artboard edge here too (see globals.css).
-        data-artboard-surface=""
-        style={{
-          width: `${artboard.size.width}px`,
-          height: `${artboard.size.height}px`,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          position: 'relative',
-          overflow: 'hidden',
-          pointerEvents: 'none',
-          ...getArtboardBackgroundStyle(artboard),
-        }}
-      >
-        {artboard.elements.map(element => (
-          <div
-            key={element.id}
-            style={{
-              position: 'absolute',
-              left: `${element.position.x}px`,
-              top: `${element.position.y}px`,
-              width: `${element.size.width * element.scale}px`,
-              height: `${element.size.height * element.scale}px`,
-              transform: `rotate(${element.rotation}deg)`,
-              transformOrigin: 'center center',
-              // Same shared shadow/blur/opacity the canvas applies through
-              // DraggableElement — this dialog is the other render site, and it
-              // is meant to show exactly what exports.
-              ...elementVisualStyle(element),
-            }}
-          >
-            {element.type === 'text' && (
-              <TextElement
-                element={element as TextElementProps}
-                onUpdate={noop}
-                isSelected={false}
-                artboardZoom={artboard.zoom * element.scale}
-              />
-            )}
-            {element.type === 'image' && (
-              <ImageElement
-                element={element as ImageElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'shape' && <ShapeElement element={element as ShapeElementProps} />}
-            {element.type === 'device' && (
-              <DeviceFrameElement
-                element={element as DeviceFrameElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'video' && (
-              <VideoElement
-                element={element as VideoElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'video-device' && (
-              <VideoDeviceElement
-                element={element as VideoDeviceElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'gesture' && (
-              <GestureElement element={element as GestureElementProps} isSelected={false} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+/** What the dialog body is showing. */
+export type PreviewMode = 'single' | 'compare' | 'store';
 
 // --- compare languages -------------------------------------------------------
 
 const COMPARE_THUMB_HEIGHT = 150;
 
 /**
- * Every 3D device element builds its own THREE.WebGLRenderer, and Chrome keeps
- * roughly 16 contexts alive before it starts evicting the oldest one, which
- * blanks whatever it evicted. The editor canvas is still mounted behind this
- * dialog and is already spending some of that budget, so the proof sheet takes
- * a deliberately small slice: nothing off screen is mounted at all, and the
- * visible cells are mounted in order until the 3D budget runs out.
+ * The editor canvas is still mounted behind this dialog and is already
+ * spending some of the browser's WebGL context budget (see count3dDevices), so
+ * the proof sheet takes a deliberately small slice: nothing off screen is
+ * mounted at all, and the visible cells are mounted in order until the 3D
+ * budget runs out.
  */
 const LIVE_3D_BUDGET = 6;
 /** A ceiling on plain DOM cost too, for a project with many flat boards. */
 const MAX_LIVE_THUMBS = 24;
-
-function count3dDevices(board: ArtboardState): number {
-  let total = 0;
-  for (const element of board.elements) {
-    if (element.type !== 'device') continue;
-    const style = (element as DeviceFrameElementProps).styleType;
-    if (style === '3d-left' || style === '3d-right') total += 1;
-  }
-  return total;
-}
 
 interface CompareCell {
   key: string;
@@ -325,6 +218,45 @@ function CompareLanguagesSheet({
   );
 }
 
+/**
+ * Language pills. The preview follows the editor's language, so picking one
+ * here switches the editor too.
+ */
+function LocaleRow({
+  options,
+  activeLocale,
+  onSelectLocale,
+  height,
+}: {
+  options: PreviewLocaleOption[];
+  activeLocale: string | null;
+  onSelectLocale?: (locale: string | null) => void;
+  height: number;
+}) {
+  return (
+    <div
+      className="flex flex-shrink-0 items-center justify-center gap-2 overflow-x-auto px-4"
+      style={{ height: `${height}px` }}
+    >
+      {options.map(option => (
+        <button
+          key={option.code ?? 'base'}
+          type="button"
+          onClick={() => onSelectLocale?.(option.code)}
+          className={cn(
+            "flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
+            (option.code ?? null) === activeLocale
+              ? "bg-white text-black"
+              : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
+          )}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function PreviewDialog({
   artboards,
   initialArtboardId,
@@ -333,15 +265,24 @@ export function PreviewDialog({
   localeOptions,
   activeLocale = null,
   onSelectLocale,
+  projectName,
+  initialMode = 'single',
 }: PreviewDialogProps) {
   const initialIndex = Math.max(0, artboards.findIndex(ab => ab.id === initialArtboardId));
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
-  const [compareOpen, setCompareOpen] = useState(false);
 
   const options = useMemo(() => localeOptions ?? [], [localeOptions]);
   const showLocaleRow = options.length > 1;
   const canCompare = showLocaleRow && !!baseArtboards;
+
+  // A single-language project can still be sent here with 'compare' by a stale
+  // menu, and an empty proof sheet is a dead end.
+  const [mode, setMode] = useState<PreviewMode>(
+    initialMode === 'compare' && !canCompare ? 'single' : initialMode
+  );
+  const compareOpen = mode === 'compare';
+  const storeOpen = mode === 'store';
 
   useEffect(() => {
     const measure = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
@@ -358,9 +299,9 @@ export function PreviewDialog({
     setCurrentIndex(prev => (prev < artboards.length - 1 ? prev + 1 : 0));
   }, [artboards.length]);
 
-  // The proof sheet has no single board and no filmstrip, so the arrow keys
-  // would move a selection nobody can see.
-  const arrowsActive = !compareOpen && artboards.length > 1;
+  // The proof sheet and the store mockup have no single board and no
+  // filmstrip, so the arrow keys would move a selection nobody can see.
+  const arrowsActive = mode === 'single' && artboards.length > 1;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -411,6 +352,8 @@ export function PreviewDialog({
         <div className="text-sm text-white/70">
           {compareOpen ? (
             <span className="font-medium text-white">Every language</span>
+          ) : storeOpen ? (
+            <span className="font-medium text-white">Store listing</span>
           ) : (
             <>
               <span className="font-medium text-white">{artboard.name}</span>
@@ -419,14 +362,31 @@ export function PreviewDialog({
           )}
         </div>
         <div className="text-sm text-white/70">
-          {compareOpen ? `${options.length} languages` : `${currentIndex + 1} / ${artboards.length}`}
+          {compareOpen
+            ? `${options.length} languages`
+            : storeOpen
+              ? `${artboards.length} ${artboards.length === 1 ? 'screenshot' : 'screenshots'}`
+              : `${currentIndex + 1} / ${artboards.length}`}
         </div>
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMode(prev => (prev === 'store' ? 'single' : 'store'))}
+            className={cn(
+              "gap-2 text-white hover:bg-white/10 hover:text-white",
+              storeOpen && "bg-white/15"
+            )}
+            title="See the screenshots at the size the store shows them"
+          >
+            <SmartphoneIcon className="h-4 w-4" />
+            {storeOpen ? 'Back to preview' : 'Store preview'}
+          </Button>
           {canCompare && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setCompareOpen(prev => !prev)}
+              onClick={() => setMode(prev => (prev === 'compare' ? 'single' : 'compare'))}
               className={cn(
                 "gap-2 text-white hover:bg-white/10 hover:text-white",
                 compareOpen && "bg-white/15"
@@ -451,6 +411,23 @@ export function PreviewDialog({
 
       {compareOpen && baseArtboards ? (
         <CompareLanguagesSheet baseArtboards={baseArtboards} options={options} />
+      ) : storeOpen ? (
+        <>
+          <StoreListingPreview
+            artboards={artboards}
+            appName={projectName?.trim() || 'Your App'}
+          />
+          {/* The language pills stay: checking each locale's listing is the
+              other half of why this view exists. */}
+          {showLocaleRow && (
+            <LocaleRow
+              options={options}
+              activeLocale={activeLocale}
+              onSelectLocale={onSelectLocale}
+              height={LOCALE_ROW_HEIGHT}
+            />
+          )}
+        </>
       ) : (
       <>
       {/* Main preview area */}
@@ -486,29 +463,13 @@ export function PreviewDialog({
         )}
       </div>
 
-      {/* Language pills. The preview follows the editor's language, so picking
-          one here switches the editor too. */}
       {showLocaleRow && (
-        <div
-          className="flex items-center justify-center gap-2 overflow-x-auto px-4"
-          style={{ height: `${LOCALE_ROW_HEIGHT}px` }}
-        >
-          {options.map(option => (
-            <button
-              key={option.code ?? 'base'}
-              type="button"
-              onClick={() => onSelectLocale?.(option.code)}
-              className={cn(
-                "flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                (option.code ?? null) === activeLocale
-                  ? "bg-white text-black"
-                  : "bg-white/10 text-white/80 hover:bg-white/20 hover:text-white"
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <LocaleRow
+          options={options}
+          activeLocale={activeLocale}
+          onSelectLocale={onSelectLocale}
+          height={LOCALE_ROW_HEIGHT}
+        />
       )}
 
       {/* Filmstrip of all artboards */}

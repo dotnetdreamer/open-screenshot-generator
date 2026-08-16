@@ -22,7 +22,7 @@ import { Toolbar } from './Toolbar';
 import { CanvasArea, applyCanvasStructuralChange, type CanvasStructuralChange } from './CanvasArea';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { PropertiesPanel } from './PropertiesPanel';
-import { PreviewDialog, type PreviewLocaleOption } from './PreviewDialog';
+import { PreviewDialog, type PreviewLocaleOption, type PreviewMode } from './PreviewDialog';
 import { TranslateDialog, getLanguageName } from './TranslateDialog';
 import { LanguageManagerDialog } from './LanguageManagerDialog';
 import { LocaleViewNotice } from './LocaleViewNotice';
@@ -655,6 +655,13 @@ export function OpenScreenshotGeneratorLayout() {
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // Which view the preview opens on. The toolbar's Preview menu points at one
+  // directly, so the store mockup is reachable without a detour.
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('single');
+  const openPreview = useCallback((mode: PreviewMode = 'single') => {
+    setPreviewMode(mode);
+    setIsPreviewOpen(true);
+  }, []);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
   // see src/lib/publish; the dialog explains itself on the web build.
@@ -5283,7 +5290,10 @@ const generateRandomProjectName = (): string => {
           <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
           <Toolbar
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
-            onPreview={() => setIsPreviewOpen(true)}
+            onPreview={() => openPreview('single')}
+            onPreviewStore={() => openPreview('store')}
+            onPreviewCompare={() => openPreview('compare')}
+            canCompareLanguages={previewLocaleOptions.length > 1}
             onPublishToStore={() => setIsPublishDialogOpen(true)}
             onShareToDiscover={() => openDiscover('share')}
             onExport={() => {
@@ -5718,6 +5728,8 @@ const generateRandomProjectName = (): string => {
               activeLocale={activeLocale}
               onSelectLocale={handleSelectLocale}
               initialArtboardId={activeArtboardId}
+              projectName={currentProjectName}
+              initialMode={previewMode}
               onClose={() => setIsPreviewOpen(false)}
             />
           )}

@@ -15,7 +15,8 @@ import {
   CloudDownloadIcon,
   Loader2Icon,
   Share2Icon,
-  StoreIcon
+  StoreIcon,
+  LanguagesIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -38,6 +39,12 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 interface ToolbarProps {
   onSelectTemplate: () => void;
   onPreview: () => void;
+  /** Preview, opened straight into the store listing mockup. */
+  onPreviewStore?: () => void;
+  /** Preview, opened straight into the every-language proof sheet. */
+  onPreviewCompare?: () => void;
+  /** The project has more than one language, so comparing them means something. */
+  canCompareLanguages?: boolean;
   onExport: () => void;
   /** Open the direct-to-store upload dialog (App Store Connect, Google Play). */
   onPublishToStore?: () => void;
@@ -77,9 +84,12 @@ interface ToolbarProps {
   translationAvailable?: boolean;
 }
 
-export function Toolbar({ 
+export function Toolbar({
   onSelectTemplate,
   onPreview,
+  onPreviewStore,
+  onPreviewCompare,
+  canCompareLanguages = false,
   onExport,
   onPublishToStore,
   onShareToDiscover,
@@ -271,14 +281,39 @@ export function Toolbar({
         </DropdownMenu>
       )}
 
-      <Button
-        variant="outline"
-        onClick={onPreview}
-        className="h-8 shrink-0"
-        title="Preview final result"
-      >
-        <EyeIcon className="mr-1.5 h-4 w-4" />
-      </Button>
+      {/* Preview is a menu for the same reason Import and Export are: the store
+          mockup and the language sheet are destinations of their own, and
+          making people open the preview first and hunt for a toggle inside it
+          hides the two views that answer "is this actually good enough". */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="h-8 shrink-0 gap-1" title="Preview the project">
+            <EyeIcon className="h-4 w-4" />
+            <ChevronDownIcon className="h-3.5 w-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel className="text-xs">Preview</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onPreview}>
+            <EyeIcon className="mr-2 h-4 w-4 opacity-80" />
+            Full screen
+          </DropdownMenuItem>
+          {onPreviewStore && (
+            <DropdownMenuItem onClick={onPreviewStore}>
+              <StoreIcon className="mr-2 h-4 w-4 opacity-80" />
+              Store listing
+              <span className="ml-auto pl-4 text-xs text-muted-foreground">real size</span>
+            </DropdownMenuItem>
+          )}
+          {onPreviewCompare && canCompareLanguages && (
+            <DropdownMenuItem onClick={onPreviewCompare}>
+              <LanguagesIcon className="mr-2 h-4 w-4 opacity-80" />
+              Compare languages
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Import and Export are one button each, with their sources and their
           destinations behind them. Two menus beat the three unlabelled icon
