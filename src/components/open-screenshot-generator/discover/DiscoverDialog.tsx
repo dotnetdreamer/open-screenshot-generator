@@ -31,6 +31,16 @@ import {
   SparklesIcon,
   UploadIcon,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -155,6 +165,11 @@ export function DiscoverDialog({
   const [search, setSearch] = useState('');
   const [tags, setTags] = useState<DiscoverTagCount[]>([]);
   const [refreshToken, setRefreshToken] = useState(0);
+  // Deleting a post is the one action in here nothing can undo: the row goes,
+  // the images go with it, and the design is only still around if the person
+  // who posted it kept their own copy. So it asks first.
+  const [postToDelete, setPostToDelete] = useState<DiscoverPost | null>(null);
+  const [isDeletingPost, setIsDeletingPost] = useState(false);
 
   // Keystrokes must not fire a query each: the deferred value is what the feed
   // actually asks for, same treatment the template gallery gives its search.
@@ -396,11 +411,36 @@ export function DiscoverDialog({
     }
   };
 
+  /**
+   * Runs only once the confirmation below has been answered.
+   *
+   * Unlike the toggles this one is not optimistic: the post stays on screen
+   * until the server has actually dropped it, because there is nothing to roll
+   * back to if the request fails after the view has already left for the feed.
+   */
   const deletePost = async (post: DiscoverPost) => {
-    await discoverApi.deletePost(post.id);
-    setRefreshToken((token) => token + 1);
-    backToFeed();
-    toast({ title: 'Post deleted', description: `"${post.title}" is no longer in your feed.` });
+    setIsDeletingPost(true);
+    try {
+      await discoverApi.deletePost(post.id);
+      setPostToDelete(null);
+      setRefreshToken((token) => token + 1);
+      backToFeed();
+      toast({ title: 'Post deleted', description: `"${post.title}" is no longer in your feed.` });
+    } catch (error) {
+      if (error instanceof DiscoverSignInRequiredError) {
+        setPostToDelete(null);
+        promptSignIn('manage your posts');
+        return;
+      }
+      toast({
+        title: 'Could not delete the post',
+        description:
+          error instanceof DiscoverRequestError ? error.message : 'Check your connection and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeletingPost(false);
+    }
   };
 
   const onPublished = (post: DiscoverPost) => {
@@ -415,6 +455,7 @@ export function DiscoverDialog({
   };
 
   return (
+    <>
     <Dialog
       open={open}
       onOpenChange={(next) => {
@@ -628,7 +669,7 @@ export function DiscoverDialog({
               onToggleSave={toggleSave}
               onToggleFollow={toggleFollow}
               onUseAsTemplate={activePost.templateProjectId ? useAsTemplate : undefined}
-              onDelete={activePost.isMine ? (post) => void deletePost(post) : undefined}
+              onDelete={activePost.isMine ? (post) => setPostToDelete(post) : undefined}
               onSelectTag={(selected) => {
                 setTag(selected);
                 setTab('for-you');
@@ -674,6 +715,44 @@ export function DiscoverDialog({
         )}
       </DialogContent>
     </Dialog>
+
+    {/* A sibling of the dialog rather than a child of the post view, the same
+        shape the account dialog uses: the delete unmounts the view that asked
+        for it, so the confirmation cannot live inside it and still be on
+        screen when the request comes back. */}
+    <AlertDialog
+      open={!!postToDelete}
+      onOpenChange={(next) => {
+        if (!next && !isDeletingPost) setPostToDelete(null);
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+          <AlertDialogDescription>
+            &quot;{postToDelete?.title}&quot; will be removed from the feed, along with its
+            comments and the screens you uploaded with it. Your project on this device is not
+            touched. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeletingPost}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isDeletingPost}
+            onClick={(event) => {
+              // Keep the confirmation up until the request finishes.
+              event.preventDefault();
+              if (postToDelete) void deletePost(postToDelete);
+            }}
+          >
+            {isDeletingPost && <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" />}
+            Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 

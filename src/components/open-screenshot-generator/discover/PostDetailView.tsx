@@ -20,11 +20,22 @@ import {
   StarIcon,
   Trash2Icon,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { discoverApi } from '@/lib/discover/api';
 import {
@@ -77,6 +88,7 @@ export function PostDetailView({
   canInteract = false,
   onSignIn,
 }: PostDetailViewProps) {
+  const { toast } = useToast();
   const local = useDiscoverLocalState();
   const liked = isLiked(local, post.id, post.likedByViewer);
   const saved = isSaved(local, post.id, post.savedByViewer);
@@ -87,6 +99,11 @@ export function PostDetailView({
   const [comments, setComments] = useState<DiscoverComment[] | null>(null);
   const [draft, setDraft] = useState('');
   const [isPosting, setIsPosting] = useState(false);
+  // Deleting a comment is as final as deleting the post, so it asks the same
+  // way. The row being confirmed is held here rather than in CommentRow, so
+  // only one confirmation can ever be open.
+  const [commentToDelete, setCommentToDelete] = useState<DiscoverComment | null>(null);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
 
   // Reset per post, so opening a second post does not land on the first one's
   // fourth screen or keep its half-written comment.
@@ -132,8 +149,21 @@ export function PostDetailView({
   };
 
   const removeComment = async (comment: DiscoverComment) => {
-    await discoverApi.deleteComment(post.id, comment.id);
-    setComments((previous) => (previous ?? []).filter((entry) => entry.id !== comment.id));
+    setIsDeletingComment(true);
+    try {
+      await discoverApi.deleteComment(post.id, comment.id);
+      setComments((previous) => (previous ?? []).filter((entry) => entry.id !== comment.id));
+      setCommentToDelete(null);
+    } catch {
+      // The confirmation stays up so the button can be pressed again.
+      toast({
+        title: 'Could not delete the comment',
+        description: 'Check your connection and try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeletingComment(false);
+    }
   };
 
   return (
@@ -430,7 +460,7 @@ export function PostDetailView({
               comment={comment}
               canInteract={canInteract}
               onRequireSignIn={() => onSignIn?.('like comments')}
-              onDelete={comment.isMine ? () => removeComment(comment) : undefined}
+              onDelete={comment.isMine ? () => setCommentToDelete(comment) : undefined}
             />
           ))}
         </div>
@@ -482,6 +512,37 @@ export function PostDetailView({
         </div>
         )}
       </div>
+
+      <AlertDialog
+        open={!!commentToDelete}
+        onOpenChange={(next) => {
+          if (!next && !isDeletingComment) setCommentToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your comment is removed from the thread for everyone. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingComment}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeletingComment}
+              onClick={(event) => {
+                // Keep the confirmation up until the request finishes.
+                event.preventDefault();
+                if (commentToDelete) void removeComment(commentToDelete);
+              }}
+            >
+              {isDeletingComment && <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

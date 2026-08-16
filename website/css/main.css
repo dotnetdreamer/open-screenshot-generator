@@ -137,6 +137,14 @@ main, .site-header, .site-footer, .marquee { position: relative; z-index: 1; }
   color: var(--teal);
 }
 
+/* GitHub and the CTA travel together, so the nav's margin-left:auto pushes the
+   pair as one block and the two never drift apart */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* The name is long, so on phones it stacks onto two lines and the header
    shrinks around it rather than crowding the CTA */
 @media (max-width: 560px) {
@@ -146,6 +154,7 @@ main, .site-header, .site-footer, .marquee { position: relative; z-index: 1; }
   .site-header .brand-name { font-size: 0.85rem; }
   .site-header .brand-name em { display: block; }
   .site-header .btn-small { padding: 9px 15px; font-size: 0.82rem; }
+  .header-actions { gap: 10px; }
 }
 
 .site-nav {
@@ -179,6 +188,45 @@ main, .site-header, .site-footer, .marquee { position: relative; z-index: 1; }
 @media (max-width: 860px) {
   .site-nav { display: none; }
   .site-header { justify-content: space-between; }
+}
+
+/* The nav is five links wide and the row already carried a CTA, so between the
+   phone breakpoint and a roomy desktop the GitHub button drops its word and
+   keeps only the mark. With the label in, the nav wraps onto a second line
+   anywhere under about 1250px */
+@media (max-width: 1250px) {
+  .site-nav { gap: 20px; }
+  .header-actions .btn-icon-label { display: none; }
+  .header-actions .btn-icon { padding-left: 13px; padding-right: 13px; }
+}
+
+/* Just above the breakpoint that hides the nav outright, five links and two
+   buttons in one row is as tight as it gets */
+@media (max-width: 1000px) {
+  .site-nav { gap: 14px; }
+  .site-header { gap: 18px; }
+}
+
+/* Phones get the mark on its own, without the pill around it: the row here is
+   two lines of brand name plus the gold CTA, and a second bordered button
+   beside those is what tips the header into overflowing. Last, so it wins the
+   padding back from the band above it */
+@media (max-width: 560px) {
+  .header-actions .btn-icon {
+    padding: 4px;
+    border-color: transparent;
+    background: none;
+    color: var(--muted);
+  }
+  .header-actions .btn-icon:hover { color: var(--paper); transform: none; }
+}
+
+/* The narrowest phones still in service. Everything closes up by a few pixels
+   so the CTA keeps its whole pill */
+@media (max-width: 400px) {
+  .site-header { gap: 8px; }
+  .header-actions { gap: 6px; }
+  .header-actions .btn-icon { padding: 2px; }
 }
 
 /* On phones the corridor passes behind the copy, so the scrim goes wall to wall */
@@ -237,6 +285,11 @@ main, .site-header, .site-footer, .marquee { position: relative; z-index: 1; }
 }
 
 .btn-small { padding: 10px 20px; font-size: 0.9rem; }
+
+/* A button carrying a brand mark next to its word. The mark takes currentColor,
+   so it picks up the ghost button's hover the way the text does */
+.btn-icon { gap: 9px; padding-left: 16px; padding-right: 18px; }
+.btn-icon .gh-mark { display: block; flex: none; }
 
 .btn:focus-visible, a:focus-visible, summary:focus-visible {
   outline: 2px solid var(--gold);
