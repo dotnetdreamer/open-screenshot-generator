@@ -44,20 +44,84 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/app-preview-video-maker#page",
         "url": "https://openscrgen.app/app-preview-video-maker",
         "name": "Free App Preview Video Maker",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
-        "about": { "@id": "https://openscrgen.app/#app" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
+        "about": {
+          "@id": "https://openscrgen.app/#app"
+        },
         "description": "A free app preview video maker that runs in the browser. Device frames, headlines, and MP4 export conformed to App Store Connect's app preview specifications.",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "App preview video maker", "item": "https://openscrgen.app/app-preview-video-maker" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "App preview video maker",
+            "item": "https://openscrgen.app/app-preview-video-maker"
+          }
         ]
       },
       {
@@ -66,32 +130,50 @@
           {
             "@type": "Question",
             "name": "What size does an App Store app preview need to be?",
-            "acceptedAnswer": { "@type": "Answer", "text": "886 by 1920 for modern iPhones in portrait, 1200 by 1600 for iPads, at up to 30 fps in H.264 or ProRes 422 HQ with a 500MB limit. The store ready conform here targets the iPhone spec automatically." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "886 by 1920 for modern iPhones in portrait, 1200 by 1600 for iPads, at up to 30 fps in H.264 or ProRes 422 HQ with a 500MB limit. The store ready conform here targets the iPhone spec automatically."
+            }
           },
           {
             "@type": "Question",
             "name": "How long can an app preview be?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Between 15 and 30 seconds, up to three per localization. They appear before your screenshots on the product page." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Between 15 and 30 seconds, up to three per localization. They appear before your screenshots on the product page."
+            }
           },
           {
             "@type": "Question",
             "name": "Can I show hands using the app?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. Apple requires previews to show only content from within the app, captured on device. A person holding the phone or fingers tapping the screen gets rejected." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Apple requires previews to show only content from within the app, captured on device. A person holding the phone or fingers tapping the screen gets rejected."
+            }
           },
           {
             "@type": "Question",
             "name": "Does video export work in every browser?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On browsers without it the export stops with a clear message. PNG screenshot export works everywhere." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On browsers without it the export stops with a clear message. PNG screenshot export works everywhere."
+            }
           },
           {
             "@type": "Question",
             "name": "How do Google Play preview videos work?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Google Play does not take a video upload. You link a YouTube video on your listing, set to public or unlisted with ads disabled. Both orientations are supported and only the first 30 seconds autoplays, muted." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Google Play does not take a video upload. You link a YouTube video on your listing, set to public or unlisted with ads disabled. Both orientations are supported and only the first 30 seconds autoplays, muted."
+            }
           },
           {
             "@type": "Question",
             "name": "Is there a watermark?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. Exports are clean, in every mode, always. There is no paid tier holding features back." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Exports are clean, in every mode, always. There is no paid tier holding features back."
+            }
           }
         ]
       }
@@ -310,5 +392,6 @@
       <p>Video specs on this page come from Apple's app preview specifications, checked July 2026</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ import type { Operation } from './lib/ai/operationLog';
 import type { MediaAsset } from './lib/mediaStore';
 import type { CustomFontRow } from './services/customFonts';
 import type { DiscoverPostRow } from './lib/discover/localPosts';
+import type { CloudProjectLink } from './lib/cloud/links';
 
 export class ProjectDatabase extends Dexie {
   projects!: Table<Project, string>; // <Type, KeyType>
@@ -27,6 +28,12 @@ export class ProjectDatabase extends Dexie {
   // localStorage blob that holds the rest of the feed activity.
   // See src/lib/discover/localPosts.ts.
   discoverPosts!: Table<DiscoverPostRow, string>;
+  // Which local project corresponds to which project saved to the cloud, plus
+  // the share link if there is one. Kept in its own table rather than on the
+  // project row on purpose: `handleArtboardsUpdate` rewrites that row from four
+  // fields on every commit, so a fifth one would survive exactly until the next
+  // keystroke. See src/lib/cloud/links.ts.
+  cloudLinks!: Table<CloudProjectLink, string>;
 
   constructor() {
     super('ProjectDatabase');
@@ -54,6 +61,17 @@ export class ProjectDatabase extends Dexie {
       media: 'id, createdAt',
       fonts: 'id, family, createdAt',
       discoverPosts: 'id, createdAt',
+    });
+    this.version(6).stores({
+      projects: 'id, name, timestamp',
+      operations: 'id, startedAt, status, provider',
+      media: 'id, createdAt',
+      fonts: 'id, family, createdAt',
+      discoverPosts: 'id, createdAt',
+      // Keyed by the LOCAL project id, so "is this project in the cloud" is a
+      // point read on the id the editor already has. `recordId` is indexed for
+      // the other direction, which is what opening a cloud project uses.
+      cloudLinks: 'projectId, recordId, savedAt',
     });
   }
 }

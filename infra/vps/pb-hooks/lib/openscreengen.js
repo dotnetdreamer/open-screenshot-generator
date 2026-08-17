@@ -91,6 +91,16 @@ const DEFAULTS = {
   max_image_bytes: 4 * 1024 * 1024,
   official_handle: 'openscreenshot',
   moderation_note: '',
+  // Cloud projects (pb-hooks/060_projects.pb.js). Separate switch from
+  // `enabled` on purpose: saving a project and posting to the feed are different
+  // features on the same box, and the disk filling is a reason to stop one
+  // without stopping the other.
+  cloud_projects_enabled: true,
+  max_cloud_projects: 30,
+  max_cloud_doc_bytes: 12 * 1024 * 1024,
+  max_cloud_asset_bytes: 96 * 1024 * 1024,
+  max_cloud_project_bytes: 256 * 1024 * 1024,
+  max_cloud_user_bytes: 1024 * 1024 * 1024,
 };
 
 /**
@@ -904,6 +914,223 @@ function countSince(app, collection, field, userId, sinceMs) {
   }
 }
 
+// ---------- cloud projects ----------
+
+/**
+ * A share slug: 22 characters of base36, ~113 bits.
+ *
+ * It is the entire credential for reading a link-shared project, so it is sized
+ * to be unguessable rather than to be pretty, and a new one is minted every time
+ * sharing is switched back on. That is what makes "stop sharing" final: the old
+ * URL names a slug no row carries any more, and re-sharing cannot resurrect it.
+ */
+function newShareSlug() {
+  return $security.randomStringWithAlphabet(22, 'abcdefghijklmnopqrstuvwxyz0123456789');
+}
+
+/** Shape of a slug, checked before it is ever put in a query. */
+const SHARE_SLUG_RE = /^[a-z0-9]{22}$/;
+
+/**
+ * The cloud project row for a slug, or null.
+ *
+ * Null covers every reason equally — no such slug, sharing switched off since,
+ * the project hidden by a moderator — because the caller answers 404 to all of
+ * them. Somebody probing slugs must not be able to tell a revoked link from one
+ * that never existed.
+ */
+function projectBySlug(app, slug) {
+  if (!SHARE_SLUG_RE.test(String(slug || ''))) return null;
+  let row = null;
+  try {
+    row = app.findFirstRecordByFilter('cloud_projects', 'share_slug = {:s}', { s: String(slug) });
+  } catch {
+    return null;
+  }
+  if (!row) return null;
+  if (row.getString('visibility') !== 'link') return null;
+  if (row.getBool('hidden')) return null;
+  return row;
+}
+
+/**
+ * The cloud project row for an id the caller claims to own, or null.
+ *
+ * Ownership is checked here rather than in each route, and a row owned by
+ * somebody else answers exactly as a missing one does. 404 rather than 403 for
+ * the same reason `deletePost` does it: probing ids must not report which of them
+ * exist.
+ */
+function ownedProject(app, id, userId) {
+  const row = findRecord(app, 'cloud_projects', id);
+  if (!row) return null;
+  if (row.getString('owner') !== userId) return null;
+  return row;
+}
+
+/** Every asset row of a project, oldest first. Never throws. */
+function projectAssets(app, projectId) {
+  try {
+    return app.findRecordsByFilter(
+      'cloud_project_assets',
+      'project = {:p}',
+      'created',
+      500,
+      0,
+      { p: projectId }
+    );
+  } catch (err) {
+    console.warn('openscreengen: could not read project assets —', err);
+    return [];
+  }
+}
+
+/**
+ * Bytes this account is holding across every cloud project.
+ *
+ * Summed from the asset rows rather than kept as a column on the account: a
+ * stored total drifts the first time a delete half fails, and the one place it is
+ * read (before accepting a new upload) is the one place a wrong answer costs
+ * disk. `countRecords` cannot help here — it counts rows, and this needs a sum —
+ * and PocketBase's filter language has no aggregate, so it is a bounded read.
+ */
+function cloudBytesForUser(app, userId) {
+  let total = 0;
+  try {
+    const rows = app.findRecordsByFilter(
+      'cloud_project_assets',
+      'owner = {:u}',
+      '',
+      2000,
+      0,
+      { u: userId }
+    );
+    for (const row of rows) total += row.getInt('size') || 0;
+  } catch (err) {
+    console.warn('openscreengen: could not total a user\'s cloud bytes —', err);
+    // Fail CLOSED, unlike the anti-flood counters. This one guards the disk, and
+    // "the query broke so let them upload" is how a box runs out of it.
+    return Number.MAX_SAFE_INTEGER;
+  }
+  return total;
+}
+
+/**
+ * How a cloud project goes back to the client.
+ *
+ * Named fields, for the same reason `authorOf` names its seven: `owner` is a
+ * user id that has no business on the wire, and a serializer that lists what it
+ * returns cannot accidentally grow a field somebody adds later. `shareSlug` is
+ * included only when the caller is the owner, because it is a credential.
+ */
+function cloudProjectOf(project, assets, options) {
+  const opts = options || {};
+  const list = assets || [];
+  let assetBytes = 0;
+  for (const row of list) assetBytes += row.getInt('size') || 0;
+
+  const summary = {
+    id: project.id,
+    projectId: project.getString('project_id'),
+    name: project.getString('name') || 'Untitled project',
+    boards: project.getInt('boards') || 0,
+    docBytes: project.getInt('doc_bytes') || 0,
+    assetBytes: assetBytes,
+    formatVersion: project.getInt('format_version') || 1,
+    docEncoding: project.getString('doc_encoding') || 'none',
+    visibility: project.getString('visibility') === 'link' ? 'link' : 'private',
+    created: project.getDateTime('created').string(),
+    updated: project.getDateTime('updated').string(),
+  };
+  if (opts.owner) summary.shareSlug = project.getString('share_slug') || '';
+  if (opts.assets) {
+    summary.assets = list.map((row) => ({
+      assetId: row.getString('asset_id'),
+      kind: row.getString('kind'),
+      size: row.getInt('size') || 0,
+      meta: jsonObject(row, 'meta'),
+    }));
+  }
+  return summary;
+}
+
+/**
+ * A JSON column back as a real object.
+ *
+ * Same trap as `jsonArray`: `record.get()` on a JSON field hands back a Go
+ * []byte, which JavaScript sees as an Array of numbers. Parse it, never trust it.
+ */
+function jsonObject(record, field) {
+  let raw = null;
+  try {
+    raw = record.get(field);
+  } catch {
+    return {};
+  }
+  if (raw === null || raw === undefined) return {};
+  try {
+    const text = typeof raw === 'string' ? raw : toString(raw);
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Stream one stored file straight out of PocketBase's storage.
+ *
+ * Both cloud file fields are `protected`, so PocketBase's own /api/files route
+ * refuses them and this is the only way in. The three headers are the reason it
+ * is safe to accept an upload with no mime allowlist: whatever was stored, it
+ * leaves this box as an opaque download and never as a document on this origin.
+ *
+ * `filename` must come from the record, never from the request. It is a path
+ * segment in the storage key, and a caller-supplied one is a directory traversal.
+ */
+function serveStoredFile(app, e, record, field, downloadName) {
+  const names = record.get(field);
+  const stored = Array.isArray(names) ? String(names[0] || '') : String(names || '');
+  if (!stored) return e.json(404, { error: 'no such file' });
+
+  const fsys = app.newFilesystem();
+  /*
+   * Opening the file and streaming it are in separate try blocks, and the split
+   * is load bearing.
+   *
+   * Only the open can still fail into a JSON body: once `stream` has written a
+   * byte the status line is gone, and answering a half-written response with
+   * `e.json(404)` produces a corrupt body plus a superuser log line about
+   * headers written twice, in place of a download the client can retry.
+   */
+  let reader = null;
+  try {
+    reader = fsys.getReader(`${record.baseFilesPath()}/${stored}`);
+  } catch (err) {
+    console.warn('openscreengen: could not open a stored file —', err);
+    fsys.close();
+    return e.json(404, { error: 'no such file' });
+  }
+
+  try {
+    const header = e.response.header();
+    header.set('X-Content-Type-Options', 'nosniff');
+    header.set('Content-Disposition', `attachment; filename="${downloadName || 'file.bin'}"`);
+    // Private and unstored: the URL carries no version, the owner can overwrite
+    // it on the next save, and a copy held in an intermediary would outlive a
+    // revoked link.
+    header.set('Cache-Control', 'private, no-store');
+    return e.stream(200, 'application/octet-stream', reader);
+  } finally {
+    try {
+      reader.close();
+    } catch {
+      // already closed by the stream
+    }
+    fsys.close();
+  }
+}
+
 module.exports = {
   SECOND,
   MINUTE,
@@ -934,6 +1161,7 @@ module.exports = {
   clampText,
   clampMultiline,
   jsonArray,
+  jsonObject,
   normalizeTags,
   authUser,
   optionalUser,
@@ -952,4 +1180,12 @@ module.exports = {
   freeHandle,
   fetchAvatar,
   countSince,
+  SHARE_SLUG_RE,
+  newShareSlug,
+  projectBySlug,
+  ownedProject,
+  projectAssets,
+  cloudBytesForUser,
+  cloudProjectOf,
+  serveStoredFile,
 };

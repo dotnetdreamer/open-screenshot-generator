@@ -2,9 +2,20 @@
 
 // Connect an account, then browse what is stored in it.
 //
-// The pitch to the user is that this is *their* storage: we never hold their
-// files, so there is no plan, no quota from us, and nothing to delete on our
-// side. The copy in here should keep saying that.
+// Two lists live here now, behind tabs, because "where are my projects" has two
+// answers and it is one question:
+//
+//   In the cloud       on our backend (src/lib/cloud). We hold these, they count
+//                      against a quota, and they are the only ones that can
+//                      produce a share link.
+//   In your <provider> in the user's own Drive or gists. We never hold a copy,
+//                      there is no plan and no quota from us, and there is
+//                      nothing on our side to delete. The copy in here should
+//                      keep saying that.
+//
+// One sign-in covers both: the community session the cloud list needs is minted
+// from whichever storage account is connected, so the connect buttons below are
+// the only door either list has.
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
@@ -36,9 +47,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { isTauri, openExternal } from '@/lib/desktop';
+import { CloudProjectsPanel } from '../cloud/CloudProjectsPanel';
+import type { CloudProject } from '@/lib/cloud';
 import {
   AccountCancelledError,
   CLOUD_PROVIDERS,
@@ -54,18 +68,43 @@ import { hasGithubLogin } from '@/lib/account/providers/github';
 
 const TOKEN_HELP_URL = 'https://github.com/settings/tokens?type=beta';
 
+type AccountTab = 'cloud' | 'storage';
+
 interface AccountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Shown at the top when opened from a gated action. */
   hint?: string;
-  /** Load a project from the account into the editor. */
+  /** Load a project from the user's own storage into the editor. */
   onOpenProject?: (remoteId: string, name: string) => void;
+
+  // --- our cloud, when this build has a backend ---------------------------
+  /** Undefined hides the cloud tab entirely, leaving the dialog as it was. */
+  cloud?: {
+    /** A community session exists, so the cloud list can be attributed. */
+    isSignedIn: boolean;
+    activeProjectId: string | null;
+    activeProjectName: string;
+    isSaving: boolean;
+    onSave: () => void;
+    onOpenProject: (project: CloudProject, asCopy: boolean) => Promise<void>;
+    localProjectIds: Set<string>;
+  };
+  /** Which list to land on. Ignored when there is no cloud tab. */
+  initialTab?: AccountTab;
 }
 
-export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: AccountDialogProps) {
+export function AccountDialog({
+  open,
+  onOpenChange,
+  hint,
+  onOpenProject,
+  cloud,
+  initialTab = 'cloud',
+}: AccountDialogProps) {
   const { session, isSignedIn, signOut } = useAccount();
   const { toast } = useToast();
+  const [tab, setTab] = useState<AccountTab>(initialTab);
 
   const [busyProvider, setBusyProvider] = useState<CloudProviderId | null>(null);
   const [showTokenField, setShowTokenField] = useState(false);
@@ -92,13 +131,18 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
 
   useEffect(() => {
     if (open && isSignedIn) void refreshProjects();
+    if (open) {
+      // Reopening from a different entry point has to land on the list that
+      // entry point meant, not on whichever tab was left showing last time.
+      setTab(initialTab);
+    }
     if (!open) {
       setShowTokenField(false);
       setToken('');
       setDeviceCode(null);
       setProjectToDelete(null);
     }
-  }, [open, isSignedIn, refreshProjects]);
+  }, [open, isSignedIn, refreshProjects, initialTab]);
 
   const handleSignIn = async (id: CloudProviderId) => {
     const provider = getProvider(id);
@@ -177,6 +221,21 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
   };
 
   const providerLabel = session ? getProvider(session.provider).label : '';
+  /**
+   * The product the projects are actually in.
+   *
+   * `provider.label` is "Google" / "GitHub", which reads fine in "connected to
+   * Google" and badly on a tab, where "Google" alone does not say Drive. The
+   * tabs are two proper nouns and nothing else, so they stay short enough to sit
+   * side by side at this dialog's width.
+   */
+  const storageLabel = session?.provider === 'github' ? 'GitHub' : 'Google Drive';
+  /**
+   * With no cloud tab there is only one list, so the Tabs root has to sit on it
+   * whatever `initialTab` said. Without this, a build with no backend opens on a
+   * 'cloud' tab that renders nothing and looks like an empty dialog.
+   */
+  const effectiveTab: AccountTab = cloud ? tab : 'storage';
 
   return (
     <>
@@ -188,9 +247,15 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
             {isSignedIn ? 'Your account' : 'Save to your own storage'}
           </DialogTitle>
           <DialogDescription>
-            {isSignedIn
-              ? `Projects are saved to your own ${providerLabel} storage. We never keep a copy.`
-              : 'Connect an account and your projects are saved to storage you own. Nothing is stored on our servers.'}
+            {/* Signed in with both lists available, the description cannot claim
+                we keep no copy: one of the two tabs is a copy we keep. It says
+                which is which instead, and the storage tab's own copy still
+                makes the "your files, not ours" point. */}
+            {!isSignedIn
+              ? 'Connect an account and your projects are saved to storage you own. Nothing is stored on our servers.'
+              : cloud
+                ? `Cloud projects live on our backend and can be shared by link. Your ${storageLabel} is storage you own, and we never keep a copy of what is in it.`
+                : `Projects are saved to your own ${providerLabel} storage. We never keep a copy.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -199,7 +264,18 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
         )}
 
         {isSignedIn && session ? (
-          <div className="space-y-4">
+          /*
+           * One Tabs root either way, with the list of triggers rendered only
+           * when there is a second list to switch to. That keeps the storage
+           * panel inside a Tabs context in both shapes — a bare TabsContent
+           * throws — and `effectiveTab` is what stops a build with no backend
+           * from sitting on a 'cloud' tab that does not exist.
+           */
+          <Tabs
+            value={effectiveTab}
+            onValueChange={(next) => setTab(next as AccountTab)}
+            className="space-y-4"
+          >
             <div className="flex items-center gap-3 rounded-md border p-3">
               <Avatar className="h-10 w-10">
                 {session.account.avatarUrl && <AvatarImage src={session.account.avatarUrl} alt="" />}
@@ -217,10 +293,46 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
               </Button>
             </div>
 
-            <div>
+            {/* Tabs only when there are two lists to choose between. With no
+                backend configured this renders exactly the single list it
+                always did. */}
+            {cloud && (
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="cloud">Cloud</TabsTrigger>
+                <TabsTrigger value="storage">{storageLabel}</TabsTrigger>
+              </TabsList>
+            )}
+
+            {cloud && (
+              // No bare `flex` on TabsContent: it defeats [hidden]{display:none}
+              // and the inactive panel leaks its spacing into the active one.
+              <TabsContent value="cloud" className="mt-0">
+                <CloudProjectsPanel
+                  isVisible={open && tab === 'cloud'}
+                  isSignedIn={cloud.isSignedIn}
+                  activeProjectId={cloud.activeProjectId}
+                  activeProjectName={cloud.activeProjectName}
+                  isSaving={cloud.isSaving}
+                  onSave={cloud.onSave}
+                  onOpenProject={cloud.onOpenProject}
+                  localProjectIds={cloud.localProjectIds}
+                  onOpened={() => onOpenChange(false)}
+                />
+              </TabsContent>
+            )}
+
+            <TabsContent value="storage" className="mt-0">
               <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-medium">Projects in your {providerLabel}</h3>
-                <Button variant="ghost" size="sm" onClick={refreshProjects} disabled={isListing}>
+                {/* The heading is redundant once the tab above says the same
+                    thing, so it only appears when there are no tabs. */}
+                {!cloud && <h3 className="text-sm font-medium">Projects in your {providerLabel}</h3>}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cloud ? 'ml-auto' : undefined}
+                  onClick={refreshProjects}
+                  disabled={isListing}
+                >
                   {isListing ? (
                     <Loader2Icon className="h-4 w-4 animate-spin" />
                   ) : (
@@ -237,7 +349,7 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
 
               {!listError && projects?.length === 0 && (
                 <p className="py-6 text-center text-sm text-muted-foreground">
-                  Nothing saved yet. Use &quot;Save to account&quot; in the toolbar.
+                  Nothing saved yet. Use Save &gt; To your own storage in the toolbar.
                 </p>
               )}
 
@@ -277,8 +389,8 @@ export function AccountDialog({ open, onOpenChange, hint, onOpenProject }: Accou
                   ))}
                 </ul>
               )}
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         ) : (
           <div className="space-y-3">
             {(Object.keys(CLOUD_PROVIDERS) as CloudProviderId[]).map((id) => {

@@ -46,6 +46,7 @@ import {
 import { FontFamilySelect } from './FontFamilySelect';
 import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
+import { trackScreenshotUploaded } from '@/lib/analytics';
 import { DEFAULT_BASE_LOCALE, localeLabel, localeName } from '@/lib/i18n/locales';
 import type { DetachableKey } from '@/lib/i18n/project';
 
@@ -1235,6 +1236,13 @@ export function PropertiesPanel({
               screenshotRect: isCustomFrame
                 ? { left: 5, top: 5, width: 90, height: 90 }
                 : { left: 0, top: 0, width: 100, height: 100 },
+            });
+            trackScreenshotUploaded({
+              source: 'properties_panel',
+              deviceType:
+                selectedElement?.type === 'device'
+                  ? (selectedElement as DeviceFrameElementProps).deviceType
+                  : undefined,
             });
           };
           img.src = dataUrl;

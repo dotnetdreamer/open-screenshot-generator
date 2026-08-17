@@ -762,6 +762,7 @@ Desktop signs in differently because of **origin**, not engine: a packaged app i
 - Local single-file `.json` export goes through `bundleToJson()` (blobs base64-inlined, no zip dependency); import goes through `bundleFromJson()`, which still accepts the pre-bundle `{ id, timestamp, projectData }` shape.
 - GitHub **refuses** a bundle with `bundle.media.length` and points at Drive. Do not "fix" that by dropping the blobs.
 - `importBundle()` restores blobs under their original ids and keeps an existing same-id row rather than rewriting a large blob.
+- The **cloud** save reuses this whole format unchanged (see "Cloud projects" below), so a fix to how recordings or imported fonts travel lands in Drive, the local `.json` and the cloud at once.
 
 ### Testing without disturbing a running `tauri dev`
 
@@ -772,6 +773,46 @@ The user usually has one running; it holds port 9002 and `target/debug/*.exe`, a
 - **Enumerate processes by PID or `ExecutablePath`, not process name.** Both instances share an exe name, and name matching silently measures the user's window instead. Stopping the `npx tauri dev` wrapper does not kill the exe it spawned, and the survivor then blocks the next build with an access-denied file lock.
 - `settings.json` is **shared** with the user's real install (`app_config_dir`, on Windows `%APPDATA%\com.dotnetdreamer.openscreenshotgenerator\settings.json`, read once at startup), so a scratch instance inherits their `showAssistantWindow` / `mcpServerEnabled`. Back up, flip, test, restore.
 - Headless harness: launch with `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<free high port>`; all webviews appear on one CDP endpoint. Check the port is actually free first, match the main target by URL excluding `splash.html`, and filter `type === 'page'`.
+
+---
+
+## Cloud projects: saving a project to our own backend
+
+The third place a project can live, after IndexedDB and bring-your-own-storage. It is the only one that produces a **shareable link**, which is why it exists: BYOS writes to storage we cannot serve from, so there was no URL to hand anybody.
+
+Read this alongside `infra/vps/README.md`, which is the operator's half.
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [src/lib/cloud/types.ts](../src/lib/cloud/types.ts) | `CloudProject`, `CloudAssetSummary`, the three errors |
+| [src/lib/cloud/api.ts](../src/lib/cloud/api.ts) | the transport, one method per route. Shares `DISCOVER_URL` and the bearer token with [discover/session.ts](../src/lib/discover/session.ts) |
+| [src/lib/cloud/links.ts](../src/lib/cloud/links.ts) | the Dexie `cloudLinks` table: which local project maps to which cloud row |
+| [src/lib/cloud/index.ts](../src/lib/cloud/index.ts) | `saveProjectToCloud`, `loadProjectFromCloud`, `openSharedProject`, `setCloudProjectShared`, `buildShareUrl`, the gzip pair |
+| [cloud/CloudProjectsDialog.tsx](../src/components/open-screenshot-generator/cloud/CloudProjectsDialog.tsx) | the list, with open / copy link / stop sharing / delete |
+| [cloud/CloudSaveConflictDialog.tsx](../src/components/open-screenshot-generator/cloud/CloudSaveConflictDialog.tsx) | shown only when the remote row moved since this device last wrote it |
+| [infra/vps/pb-hooks/060_projects.pb.js](../infra/vps/pb-hooks/060_projects.pb.js) | the eleven routes |
+| [infra/vps/pb-migrations/1786300000_openscreengen_projects.js](../infra/vps/pb-migrations/1786300000_openscreengen_projects.js) | `cloud_projects` + `cloud_project_assets` + six settings rows |
+
+### The rules that are easy to break
+
+1. **IndexedDB stays the source of truth.** Nothing here writes `db.projects` except through `importBundle`, the same door the local `.json` import uses. There is no background sync and no reconciliation loop: saving and opening are explicit, one-shot user actions, exactly as BYOS is.
+2. **The link belongs in `cloudLinks`, never on the `Project` row.** `handleArtboardsUpdate` rewrites that row from four fields on every commit, so a fifth would live until the next keystroke. This is the same trap `ProjectLocalization` works around.
+3. **Opening somebody's shared link always imports under a fresh local id** (`newLocalProjectId()`), and never writes a `cloudLinks` row. The recipient did not save that project and must not be offered an overwrite of it.
+4. **Every `updated` the server hands back has to be kept.** Uploading a blob and toggling sharing both re-save the project row, which moves its autodate. Drop the newer stamp and the user's *next* save reports a conflict with itself. Both routes return `updated` for exactly this reason.
+5. **Save is two phases.** `POST /projects` sends the document plus the full list of asset ids the project needs and answers with the ones the box lacks; those upload one request each. Sending a diff instead would make the server unable to prune blobs the project stopped referencing.
+6. **Both file fields are `protected: true`.** PocketBase serves files past collection rules, which is right for the public feed and wrong for somebody's working file. Every read goes through the hook, which streams `application/octet-stream` with `nosniff` — which in turn is why those fields carry no mime allowlist.
+7. `cloudProjects` in `GET /auth/methods` is `undefined` on a backend that predates the feature. Treat `undefined` as **on**; only an explicit `false` hides it.
+
+### The document, compressed
+
+`packDoc()` gzips `project.json` through `CompressionStream` when the browser has it, falls back to plain JSON when it does not or when the result got bigger, and records which in `doc_encoding`. `unpackDoc()` reads whichever the record says. Nothing on the server ever parses the document, so a new element type needs no backend change.
+
+### Testing it locally
+
+The stack in `infra/vps` runs on 127.0.0.1:8090 (`docker compose -f docker-compose.yml -f docker-compose.local.yml up -d`). Sign-in cannot work there because neither OAuth door is configured, so a UI test seeds `localStorage['open-screenshot-generator.discover.session']` with a token minted by `POST /api/collections/users/impersonate/<id>` as superuser. Point the dev server at the local box with an env override (`NEXT_PUBLIC_DISCOVER_URL=http://127.0.0.1:8090 npm run dev`) rather than editing `.env.local`, which points at **production**.
+
 
 ---
 

@@ -278,6 +278,16 @@ routerAdd('GET', '/api/openscreengen/auth/methods', (e) => {
     google: config.signin_enabled && openscreengen.idList(config.google_client_ids).length > 0,
     github: config.signin_enabled && openscreengen.idList(config.github_client_ids).length > 0,
     githubPat: config.github_allow_pat,
+    /*
+     * Whether this box will store editable projects (pb-hooks/060_projects.pb.js).
+     *
+     * Its own switch rather than a facet of `enabled`, because they are separate
+     * features: a box can host the feed and not the projects, or the reverse.
+     * `enabled` still bounds it, and not because the routes read that row — they
+     * do not — but because signing in does, and nothing here is reachable
+     * without an account.
+     */
+    cloudProjects: config.enabled && config.cloud_projects_enabled,
     note: config.moderation_note || undefined,
   });
 });

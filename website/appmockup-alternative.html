@@ -44,21 +44,85 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/appmockup-alternative#page",
         "url": "https://openscrgen.app/appmockup-alternative",
         "name": "Free AppMockUp Alternative",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
-        "about": { "@id": "https://openscrgen.app/#app" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
+        "about": {
+          "@id": "https://openscrgen.app/#app"
+        },
         "description": "An honest comparison between AppMockUp Studio and Open Screenshot Generator, two completely free app store screenshot tools, one of them open source.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "AppMockUp alternative", "item": "https://openscrgen.app/appmockup-alternative" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "AppMockUp alternative",
+            "item": "https://openscrgen.app/appmockup-alternative"
+          }
         ]
       },
       {
@@ -67,27 +131,42 @@
           {
             "@type": "Question",
             "name": "Is AppMockUp Studio really free as well?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely. No paid tier and no account, and credit to the Deaconu brothers for keeping it that way. The differences are elsewhere, in device coverage, video, localization, saving and the source being closed" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, completely. No paid tier and no account, and credit to the Deaconu brothers for keeping it that way. The differences are elsewhere, in device coverage, video, localization, saving and the source being closed"
+            }
           },
           {
             "@type": "Question",
             "name": "Is AppMockUp still maintained?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Only its makers can say. From the outside, the last blog post is from January 2025, the sitemap has not changed since April 2025, most URLs in that sitemap return 404, and the Tools and Resources links in the top navigation are dead. The editor itself still works" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Only its makers can say. From the outside, the last blog post is from January 2025, the sitemap has not changed since April 2025, most URLs in that sitemap return 404, and the Tools and Resources links in the top navigation are dead. The editor itself still works"
+            }
           },
           {
             "@type": "Question",
             "name": "Can I import my .mockup files?",
-            "acceptedAnswer": { "@type": "Answer", "text": "There is no importer. You bring your raw screenshots and captions and rebuild in one of the 96 free templates, which for most sets takes well under an hour. The optional AI agent can do the first layout pass for you" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "There is no importer. You bring your raw screenshots and captions and rebuild in one of the 96 free templates, which for most sets takes well under an hour. The optional AI agent can do the first layout pass for you"
+            }
           },
           {
             "@type": "Question",
             "name": "Does it have mesh gradients like AppMockUp?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Not the generator, no. You get gradient backgrounds, image backgrounds and a full design toolkit, but AppMockUp's mesh gradient and pattern generators are better at that one specific job. Nothing stops you making a background there and designing the set here" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Not the generator, no. You get gradient backgrounds, image backgrounds and a full design toolkit, but AppMockUp's mesh gradient and pattern generators are better at that one specific job. Nothing stops you making a background there and designing the set here"
+            }
           },
           {
             "@type": "Question",
             "name": "Can it do iPad and Apple Watch sets?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. iPad, Apple Watch, Mac and tablet frames are all free, with templates for each, and exports come out at the exact sizes App Store Connect and the Play Console expect" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. iPad, Apple Watch, Mac and tablet frames are all free, with templates for each, and exports come out at the exact sizes App Store Connect and the Play Console expect"
+            }
           }
         ]
       }
@@ -216,10 +295,10 @@
       <h2 id="us-title">When Open Screenshot Generator wins</h2>
       <ul>
         <li><strong>Your app is not only a phone app.</strong> iPad, Apple Watch, Mac and tablet frames all live here. AppMockUp stops at iPhone and Android phones</li>
-        <li><strong>You need an app preview video.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app. AppMockUp has no video support at all</li>
+        <li><strong>You need an <a href="/app-preview-video-maker">app preview video</a>.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app. AppMockUp has no video support at all</li>
         <li><strong>You ship in more than one language.</strong> Per language boards keep every localization of your set in one project. AppMockUp renders Unicode text but has no localization workflow around it</li>
         <li><strong>You do not want to lose work to a refresh.</strong> Projects here save automatically to your browser storage as you design, and the desktop app keeps them on disk. AppMockUp keeps unsaved work in memory until you export a .mockup file</li>
-        <li><strong>You want a head start.</strong> 96 free templates, 3D device poses, and an optional AI agent that lays out a first draft from your raw screens and one sentence</li>
+        <li><strong>You want a head start.</strong> 96 free <a href="/app-store-screenshot-templates">templates</a>, 3D device poses, and an optional AI agent that lays out a first draft from your raw screens and one sentence</li>
         <li><strong>You want a tool that cannot quietly disappear.</strong> AppMockUp looks dormant from the outside and its source is closed. This project is open source, so the code outlives any maintainer</li>
       </ul>
     </section>
@@ -327,5 +406,6 @@
       <p>AppMockUp Studio is a free tool built by the Deaconu brothers. Facts about it were checked on their site in August 2026 and may change</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

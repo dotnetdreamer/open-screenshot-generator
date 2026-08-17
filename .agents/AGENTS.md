@@ -16,13 +16,14 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Devices, palette, 3D | [deviceRegistry.ts](../src/lib/deviceRegistry.ts), [elementLibrary.ts](../src/lib/elementLibrary.ts), [device3dPresets.ts](../src/lib/device3dPresets.ts) |
 | Video export | [src/lib/video/](../src/lib/video/) |
 | Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
-| Dexie, 4 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts` |
+| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, and the only one that yields a share link) |
+| Dexie, 6 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks` |
 
 ## Rules
 
 **Mutating**
 
-1. `handleArtboardsUpdate(next)` is the only door. It repositions boards, writes Dexie, pushes undo. A raw `setArtboards` skips persistence and history.
+1. `handleArtboardsUpdate(next)` is the only door. It repositions boards, writes Dexie, pushes undo. A raw `setArtboards` skips persistence and history. It writes **only** `{ id, name, timestamp, projectData }`, so a new top-level field on `Project` survives until the next keystroke and then vanishes: that is why `ProjectLocalization` is mirrored onto every artboard, and why the cloud-save link lives in its own Dexie table ([src/lib/cloud/links.ts](../src/lib/cloud/links.ts)).
 2. Elements render in **two** places: [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx) and `StaticArtboard` in [PreviewDialog.tsx](../src/components/open-screenshot-generator/PreviewDialog.tsx). Miss one and the element vanishes there.
 3. Text renders at `fontSize / 0.3` px and ignores `element.scale`. Resize text via `fontSize`. The box clips, so every place a **user** edits text content, family, size, weight or line height folds `fitTextBox` ([textFit.ts](../src/lib/textFit.ts)) into the same update. Template data is never re-fitted.
 4. `ArtboardState.position` is derived and overwritten every update. Authoring it does nothing.

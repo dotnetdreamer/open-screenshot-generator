@@ -44,6 +44,53 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/android-mockup-generator#page",
         "url": "https://openscrgen.app/android-mockup-generator",
@@ -56,7 +103,10 @@
         },
         "description": "Put a screenshot into an Android frame free: punch hole, notch and classic bar chassis plus 7 and 10 inch tablets, Google Play export sizes. No account, no watermark.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
@@ -183,7 +233,7 @@
       <p class="eyebrow">Three steps</p>
       <h2 id="how-title">How it works</h2>
       <ul>
-        <li><strong>1. Open the editor.</strong> The editor runs in your browser with nothing to install and no account to create. Pick a template or start from a blank canvas at the exact store size</li>
+        <li><strong>1. Open the editor.</strong> The editor runs in your browser with nothing to install and no account to create. Pick a <a href="/app-store-screenshot-templates">ready made template</a> or start from a blank canvas at the exact <a href="/google-play-screenshot-sizes">Google Play size</a></li>
         <li><strong>2. Drop in your screenshot.</strong> Upload a raw screen capture and it snaps into the device frame, masked to the screen with the right corner radius. Switch frames or turn on a 3D pose any time</li>
         <li><strong>3. Export store ready files.</strong> Export PNG files at every size your store listing needs. Everything renders locally, so your screenshots never leave your machine</li>
       </ul>
@@ -270,7 +320,7 @@
         </details>
         <details>
           <summary>Does it make the 1024x500 feature graphic too?</summary>
-          <p>Yes. The feature graphic is its own board type with its own templates, so one project holds your screenshots and the banner Google needs before it will show your promo video</p>
+          <p>Yes. The <a href="/google-play-screenshot-sizes">feature graphic</a> is its own board type with its own <a href="/app-store-screenshot-templates">templates</a>, so one project holds your screenshots and the banner Google needs before it will show your promo video</p>
         </details>
       </div>
     </section>
@@ -350,5 +400,6 @@
       <p>Size figures were checked against Google Play Console documentation and may change when Google updates it</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

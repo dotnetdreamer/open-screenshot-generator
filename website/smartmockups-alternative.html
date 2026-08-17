@@ -44,21 +44,85 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/smartmockups-alternative#page",
         "url": "https://openscrgen.app/smartmockups-alternative",
         "name": "Free Smartmockups Alternative",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
-        "about": { "@id": "https://openscrgen.app/#app" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
+        "about": {
+          "@id": "https://openscrgen.app/#app"
+        },
         "description": "Smartmockups shut down and now redirects to Canva. An honest comparison for former users, including where Canva serves them well and where Open Screenshot Generator, a free and open source screenshot tool, fits better.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "Smartmockups alternative", "item": "https://openscrgen.app/smartmockups-alternative" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Smartmockups alternative",
+            "item": "https://openscrgen.app/smartmockups-alternative"
+          }
         ]
       },
       {
@@ -67,27 +131,42 @@
           {
             "@type": "Question",
             "name": "What happened to Smartmockups?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Canva acquired it and shut it down as a standalone product. As of August 2026, smartmockups.com redirects straight to canva.com/mockups, and its individual device mockup pages, over 1,600 of them, are gone from the web" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Canva acquired it and shut it down as a standalone product. As of August 2026, smartmockups.com redirects straight to canva.com/mockups, and its individual device mockup pages, over 1,600 of them, are gone from the web"
+            }
           },
           {
             "@type": "Question",
             "name": "Can Canva make App Store screenshots?",
-            "acceptedAnswer": { "@type": "Answer", "text": "You can design at any pixel size in Canva, so technically yes. What it lacks is a preset for App Store screenshots and an export workflow for store sizes, so you set up every dimension yourself and export each device tier by hand" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You can design at any pixel size in Canva, so technically yes. What it lacks is a preset for App Store screenshots and an export workflow for store sizes, so you set up every dimension yourself and export each device tier by hand"
+            }
           },
           {
             "@type": "Question",
             "name": "Is Open Screenshot Generator really completely free?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. There is no paid tier at all. No account, no watermark, no export limits, no gated device sizes. The full source code is public on GitHub" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. There is no paid tier at all. No account, no watermark, no export limits, no gated device sizes. The full source code is public on GitHub"
+            }
           },
           {
             "@type": "Question",
             "name": "Does it do device mockups the way Smartmockups did?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Partly. You get iPhone, iPad, Apple Watch, Mac and tablet frames, plus 3D poses for the phone, watch and Mac, which covers the device side well. What it does not try to replace is the photo scene library, the hands holding phones in real places. For those, Canva's mockup tool is the honest recommendation" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Partly. You get iPhone, iPad, Apple Watch, Mac and tablet frames, plus 3D poses for the phone, watch and Mac, which covers the device side well. What it does not try to replace is the photo scene library, the hands holding phones in real places. For those, Canva's mockup tool is the honest recommendation"
+            }
           },
           {
             "@type": "Question",
             "name": "Can it make app preview videos too?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes, in Chrome, Edge or the desktop app, where video export has WebCodecs. Drop a screen recording into a device frame and export an MP4 sized to what App Store Connect and Google Play accept" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, in Chrome, Edge or the desktop app, where video export has WebCodecs. Drop a screen recording into a device frame and export an MP4 sized to what App Store Connect and Google Play accept"
+            }
           }
         ]
       }
@@ -213,7 +292,7 @@
         <li><strong>You came to Smartmockups for store screenshots.</strong> This tool does nothing else. Templates start at store dimensions and one click exports every size Apple and Google require</li>
         <li><strong>You do not want another account.</strong> No signup, no cloud, no email. Open the editor and start, and your work stays in your browser on your machine</li>
         <li><strong>You want device mockups with real depth.</strong> iPhone, iPad, Apple Watch, Mac and tablet frames, plus 3D poses for the phone, watch and Mac, with your screens clipped to the glass whatever the angle</li>
-        <li><strong>You want preview videos from the same tool.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app, sized to what App Store Connect accepts</li>
+        <li><strong>You want <a href="/app-preview-video-maker">preview videos</a> from the same tool.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app, sized to what App Store Connect accepts</li>
         <li><strong>You have been burned by a shutdown once already.</strong> Smartmockups users lost their tool to an acquisition. This one is open source, so the code stays runnable even if the site ever went away</li>
       </ul>
     </section>
@@ -321,5 +400,6 @@
       <p>Smartmockups was acquired into Canva, and smartmockups.com now redirects there. Facts on this page were checked in August 2026 and may change</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

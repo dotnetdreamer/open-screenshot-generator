@@ -44,20 +44,84 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/play-store-screenshot-generator#page",
         "url": "https://openscrgen.app/play-store-screenshot-generator",
         "name": "Free Play Store Screenshot Generator",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
-        "about": { "@id": "https://openscrgen.app/#app" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
+        "about": {
+          "@id": "https://openscrgen.app/#app"
+        },
         "description": "A free, open source Google Play screenshot generator that runs in the browser. Phone and tablet frames, templates, the 1024 by 500 feature graphic, and exports at the sizes Google accepts.",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "Play Store screenshot generator", "item": "https://openscrgen.app/play-store-screenshot-generator" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Play Store screenshot generator",
+            "item": "https://openscrgen.app/play-store-screenshot-generator"
+          }
         ]
       },
       {
@@ -66,27 +130,42 @@
           {
             "@type": "Question",
             "name": "Is this Play Store screenshot generator really free?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. There is no account, no watermark, no export limit, and no paid tier. The full source code is public on GitHub." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. There is no account, no watermark, no export limit, and no paid tier. The full source code is public on GitHub."
+            }
           },
           {
             "@type": "Question",
             "name": "What screenshot sizes does Google Play accept?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Each side must be between 320 and 3840 pixels, with no side more than twice the other, in JPEG or 24 bit PNG with no alpha. For featuring Google wants 1080px or better in 9:16 or 16:9, which is why the default template size here is 1080 by 1920. The full size reference has every asset." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Each side must be between 320 and 3840 pixels, with no side more than twice the other, in JPEG or 24 bit PNG with no alpha. For featuring Google wants 1080px or better in 9:16 or 16:9, which is why the default template size here is 1080 by 1920. The full size reference has every asset."
+            }
           },
           {
             "@type": "Question",
             "name": "Is the feature graphic really required?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Google Play will not publish a store listing without a 1024 by 500 feature graphic, and it doubles as the cover image for your preview video. The editor ships a preset at exactly that size." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Google Play will not publish a store listing without a 1024 by 500 feature graphic, and it doubles as the cover image for your preview video. The editor ships a preset at exactly that size."
+            }
           },
           {
             "@type": "Question",
             "name": "Where do my screenshots go when I upload them?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Nowhere. The editor runs entirely in your browser. Projects and uploads live in your browser storage on your own machine, and there is no backend to send them to." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nowhere. The editor runs entirely in your browser. Projects and uploads live in your browser storage on your own machine, and there is no backend to send them to."
+            }
           },
           {
             "@type": "Question",
             "name": "Can it make App Store screenshots too?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. The same editor exports iPhone, iPad, Mac and Apple Watch screenshots at every size Apple accepts. The App Store screenshot generator page has the details." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The same editor exports iPhone, iPad, Mac and Apple Watch screenshots at every size Apple accepts. The App Store screenshot generator page has the details."
+            }
           }
         ]
       }
@@ -136,12 +215,12 @@
         <li class="feature-card">
           <span class="feature-index" aria-hidden="true">01</span>
           <h3>Android frames included</h3>
-          <p>Android phone and tablet frames alongside the Apple set, flat or tilted into 3D poses. Your screens stay clipped to the glass whatever you do to the device</p>
+          <p><a href="/android-mockup-generator">Android phone and tablet frames</a> alongside the Apple set, flat or tilted into 3D poses. Your screens stay clipped to the glass whatever you do to the device</p>
         </li>
         <li class="feature-card">
           <span class="feature-index" aria-hidden="true">02</span>
           <h3>The feature graphic too</h3>
-          <p>Google will not publish a listing without a 1024 by 500 feature graphic. The editor ships a preset at exactly that size, so you design it next to your screenshots in the same project</p>
+          <p>Google will not publish a listing without a <a href="/google-play-screenshot-sizes">1024 by 500 feature graphic</a>. The editor ships a preset at exactly that size, so you design it next to your screenshots in the same project</p>
         </li>
         <li class="feature-card">
           <span class="feature-index" aria-hidden="true">03</span>
@@ -249,7 +328,7 @@
         </details>
         <details>
           <summary>Is the feature graphic really required?</summary>
-          <p>Yes. Google Play will not publish a store listing without a 1024 by 500 feature graphic, and it doubles as the cover image for your preview video. The editor ships a preset at exactly that size</p>
+          <p>Yes. Google Play will not publish a store listing without a 1024 by 500 feature graphic, and it doubles as the cover image for your <a href="/app-preview-video-maker">preview video</a>. The editor ships a preset at exactly that size</p>
         </details>
         <details>
           <summary>Where do my screenshots go when I upload them?</summary>
@@ -274,7 +353,7 @@
 
     <section class="cta" aria-labelledby="cta-title">
       <h2 id="cta-title">Your store listing could look better <em>tonight</em></h2>
-      <p>Open the editor, pick a template, and export screenshots plus the feature graphic in one pass</p>
+      <p>Open the editor, pick a <a href="/app-store-screenshot-templates">ready made template</a>, and export screenshots plus the feature graphic in one pass</p>
       <div class="hero-cta">
         <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
         <a class="btn btn-ghost" href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">Star it on GitHub</a>
@@ -337,5 +416,6 @@
       <p>Store specs on this page were checked against Google's published requirements in July 2026</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

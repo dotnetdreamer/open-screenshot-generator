@@ -9,6 +9,7 @@ import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, Dev
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
+import { trackScreenshotUploaded } from '@/lib/analytics';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 
 // three.js (~145 KB gz) only ships when a 3D device is actually rendered. A
@@ -87,6 +88,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
               naturalScreenshotHeight: naturalHeight,
               screenshotRect: initialRect
             });
+            trackScreenshotUploaded({ source: 'canvas', deviceType: element.deviceType });
           };
           img.src = newImageSrc;
         }

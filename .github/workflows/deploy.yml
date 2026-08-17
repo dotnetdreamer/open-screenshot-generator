@@ -49,6 +49,12 @@ jobs:
           # somebody who has not stood up a backend. Set it to the PocketBase
           # host from infra/vps — for this deployment, https://pb.openscrgen.app.
           NEXT_PUBLIC_DISCOVER_URL: ${{ vars.NEXT_PUBLIC_DISCOVER_URL }}
+          # The MCP relay from infra/vps/mcp-relay, which lets Claude Code,
+          # Claude Desktop, Cursor or VS Code drive the web editor. Unset means
+          # the MCP status pill never renders, which is the right default for a
+          # fork with no relay of its own. For this deployment,
+          # https://mcp.openscrgen.app.
+          NEXT_PUBLIC_MCP_RELAY_URL: ${{ vars.NEXT_PUBLIC_MCP_RELAY_URL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:

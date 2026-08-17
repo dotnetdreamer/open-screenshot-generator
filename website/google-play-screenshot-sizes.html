@@ -44,20 +44,61 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/google-play-screenshot-sizes#page",
         "url": "https://openscrgen.app/google-play-screenshot-sizes",
         "name": "Google Play Screenshot Sizes 2026",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
         "description": "Google Play store listing asset requirements for 2026: screenshot dimensions and counts, the feature graphic, the app icon, tablet and Chromebook rules, Wear OS, Android TV, and preview video rules.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "Google Play screenshot sizes", "item": "https://openscrgen.app/google-play-screenshot-sizes" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Google Play screenshot sizes",
+            "item": "https://openscrgen.app/google-play-screenshot-sizes"
+          }
         ]
       },
       {
@@ -66,27 +107,42 @@
           {
             "@type": "Question",
             "name": "What size should Google Play screenshots be in 2026?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Each side between 320 and 3840 pixels, longer side at most twice the shorter. In practice 1080 by 1920 covers phones and also satisfies the 1080px minimum Google requires before featuring your app." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Each side between 320 and 3840 pixels, longer side at most twice the shorter. In practice 1080 by 1920 covers phones and also satisfies the 1080px minimum Google requires before featuring your app."
+            }
           },
           {
             "@type": "Question",
             "name": "How many screenshots does Google Play require?",
-            "acceptedAnswer": { "@type": "Answer", "text": "A minimum of two across device types to publish, up to 8 per device type. For featuring, apps need at least four at 1080px or better in 16:9 or 9:16, games at least three." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A minimum of two across device types to publish, up to 8 per device type. For featuring, apps need at least four at 1080px or better in 16:9 or 9:16, games at least three."
+            }
           },
           {
             "@type": "Question",
             "name": "Is the feature graphic required?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every listing must include a 1024 by 500 feature graphic in JPEG or 24 bit PNG with no transparency. It doubles as the cover for your preview video. The Play Store screenshot generator ships a preset at exactly that size." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Every listing must include a 1024 by 500 feature graphic in JPEG or 24 bit PNG with no transparency. It doubles as the cover for your preview video. The Play Store screenshot generator ships a preset at exactly that size."
+            }
           },
           {
             "@type": "Question",
             "name": "Can screenshots have transparency?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. Screenshots and the feature graphic must be JPEG or 24 bit PNG without alpha. Only the 512 by 512 app icon uses a 32 bit PNG with alpha." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Screenshots and the feature graphic must be JPEG or 24 bit PNG without alpha. Only the 512 by 512 app icon uses a 32 bit PNG with alpha."
+            }
           },
           {
             "@type": "Question",
             "name": "Does Google still have separate 7 inch and 10 inch tablet specs?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Current guidance folds tablets in with Chromebooks under the large screens rules: 1080 to 7680 pixels in 16:9 or 9:16, with at least four screenshots recommended." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Current guidance folds tablets in with Chromebooks under the large screens rules: 1080 to 7680 pixels in 16:9 or 9:16, with at least four screenshots recommended."
+            }
           }
         ]
       }
@@ -185,8 +241,9 @@
       <p class="eyebrow">Video</p>
       <h2 id="video-title">The preview video works differently</h2>
       <p>
-        Google Play does not take a video upload. The preview video is a YouTube URL on your
-        listing, shown before your screenshots with the feature graphic as its cover
+        Google Play does not take a video upload. The <a href="/app-preview-video-maker">preview video</a>
+        is a YouTube URL on your listing, shown before your screenshots with the feature
+        graphic as its cover
       </p>
       <ul>
         <li>Use a single video URL, not a playlist or channel link, with no extra parameters</li>
@@ -321,5 +378,6 @@
       <p>Sizes on this page come from Google's published preview asset requirements, checked August 2026</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

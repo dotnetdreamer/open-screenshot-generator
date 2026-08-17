@@ -49,12 +49,30 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebSite",
         "@id": "https://openscrgen.app/#website",
         "url": "https://openscrgen.app/",
         "name": "Open Screenshot Generator",
         "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "SoftwareApplication",
@@ -63,7 +81,11 @@
         "url": "https://editor.openscrgen.app/",
         "applicationCategory": "DesignApplication",
         "operatingSystem": "Web, Windows, macOS, Linux",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
         "description": "A browser based editor for designing app store screenshots and App Store preview videos. Lay out artboards, place device mockups, load your app screenshots or screen recordings, add text and shapes, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side, and nothing leaves your machine unless the optional AI agent is asked to talk to a provider.",
         "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
         "featureList": [
@@ -129,32 +151,50 @@
           {
             "@type": "Question",
             "name": "Is Open Screenshot Generator really free?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. The editor is free. There is no account, no watermark, and no paid tier. The full source code is public on GitHub." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. The editor is free. There is no account, no watermark, and no paid tier. The full source code is public on GitHub."
+            }
           },
           {
             "@type": "Question",
             "name": "Where do my screenshots go when I upload them?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Nowhere. The whole editor runs client side in your browser. Projects and uploads are stored in your browser storage on your own machine, and there is no backend to send them to. That storage is a working copy. Clearing your browser site data deletes it, so treat exported PNGs and MP4s as the real output." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nowhere. The whole editor runs client side in your browser. Projects and uploads are stored in your browser storage on your own machine, and there is no backend to send them to. That storage is a working copy. Clearing your browser site data deletes it, so treat exported PNGs and MP4s as the real output."
+            }
           },
           {
             "@type": "Question",
             "name": "Which sizes can it export?",
-            "acceptedAnswer": { "@type": "Answer", "text": "The export flow asks which store and which device classes you are targeting, then renders each artboard to PNG at the required dimensions for Google Play and the App Store, including iPhone and iPad sizes." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The export flow asks which store and which device classes you are targeting, then renders each artboard to PNG at the required dimensions for Google Play and the App Store, including iPhone and iPad sizes."
+            }
           },
           {
             "@type": "Question",
             "name": "Can it make App Store preview videos?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. Drop a screen recording into a phone frame, add your headline and tap hints, and export an MP4. A separate mode conforms your raw capture to exactly what App Store Connect accepts, which is 886 by 1920 at 30 fps in H.264. Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On other browsers the export stops with a clear message, and PNG export works everywhere." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Drop a screen recording into a phone frame, add your headline and tap hints, and export an MP4. A separate mode conforms your raw capture to exactly what App Store Connect accepts, which is 886 by 1920 at 30 fps in H.264. Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On other browsers the export stops with a clear message, and PNG export works everywhere."
+            }
           },
           {
             "@type": "Question",
             "name": "Does the AI agent need an API key?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Not necessarily. You can bring your own key for Anthropic, OpenAI, or Google, or use the accounts you are already signed into, like Claude, ChatGPT, or Gemini. The desktop app drives the signed in mode automatically. In the browser it works through a small companion extension, with a manual copy and paste fallback. The desktop app also ships keyless providers." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Not necessarily. You can bring your own key for Anthropic, OpenAI, or Google, or use the accounts you are already signed into, like Claude, ChatGPT, or Gemini. The desktop app drives the signed in mode automatically. In the browser it works through a small companion extension, with a manual copy and paste fallback. The desktop app also ships keyless providers."
+            }
           },
           {
             "@type": "Question",
             "name": "Do I need design skills?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. Templates carry the design decisions for you. Pick one, swap in your screenshots, adjust the words, and export. If you enjoy designing, the full editor with text, shapes, fonts, and 3D device poses is there too." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Templates carry the design decisions for you. Pick one, swap in your screenshots, adjust the words, and export. If you enjoy designing, the full editor with text, shapes, fonts, and 3D device poses is there too."
+            }
           }
         ]
       }
@@ -537,5 +577,6 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
   <script type="module" src="js/main.js"></script>
   <script src="js/film.js" defer></script>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

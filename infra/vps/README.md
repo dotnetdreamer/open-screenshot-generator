@@ -1,19 +1,30 @@
 # The community backend
 
-One PocketBase, one job: hold the **Discover** feed — the posts people share,
-their comments, and the likes, saves and follows on them.
+One PocketBase, two jobs:
 
-Alongside it, one much smaller thing that shares the box and nothing else: the
+- the **Discover** feed — the posts people share, their comments, and the likes,
+  saves and follows on them
+- **cloud projects** — the editable document itself, owned by one account,
+  private by default, and shareable by link
+
+They share a box and an account and nothing else. A post is finished PNGs that
+everybody can see; a cloud project is somebody's working file. Each has its own
+settings switch, so a box can host either without the other.
+
+Alongside them, one much smaller thing that shares the box and nothing else: the
 [MCP relay](mcp-relay/README.md), which lets an AI client drive the editor in a
-browser. It has no database, no disk and no credential, and the two services
-never talk to each other. Everything below is about PocketBase unless it says
+browser. It has no database, no disk and no credential, and the services never
+talk to each other. Everything below is about PocketBase unless it says
 otherwise.
 
 **The editor does not need this box.** Templates, elements, fonts, the AI agent,
-translation and every export run in the browser; projects live in IndexedDB or in
-storage the user owns. With `NEXT_PUBLIC_DISCOVER_URL` unset the app builds and
-runs exactly as before, minus one dialog — no rail button, no Community tab, no
-toolbar Share. That is the design, not a fallback. `NEXT_PUBLIC_MCP_RELAY_URL` is
+translation and every export run in the browser, and the working copy of a
+project is always the one in IndexedDB — cloud projects are a copy, never the
+source of truth. With `NEXT_PUBLIC_DISCOVER_URL` unset the app builds and runs
+exactly as before, minus one dialog and three menu items: no rail button, no
+Community tab, no Save to cloud. Bring-your-own-storage (Drive, gists) is
+untouched by any of it and remains the option for anybody who would rather we
+held nothing. That is the design, not a fallback. `NEXT_PUBLIC_MCP_RELAY_URL` is
 the same kind of switch for the relay.
 
 This stack is designed to **share a VPS with another project's**, using that
@@ -77,14 +88,15 @@ after checking a token with Google or GitHub directly.
 
 **Every collection is locked in every direction.** Not "tight rules" —
 `listRule`, `viewRule`, `createRule`, `updateRule` and `deleteRule` are all
-`null` on all eight collections, which PocketBase reads as superuser-only. Prove
+`null` on all ten collections, which PocketBase reads as superuser-only. Prove
 it at any time:
 
 ```bash
-for c in users posts comments post_likes post_saves comment_likes follows settings; do
-  printf '%-14s ' "$c"
+for c in users posts comments post_likes post_saves comment_likes follows settings \
+         cloud_projects cloud_project_assets; do
+  printf '%-22s ' "$c"
   curl -s -o /dev/null -w '%{http_code}\n' https://pb.openscrgen.app/api/collections/$c/records
-done   # 403, eight times
+done   # 403, ten times
 ```
 
 So every read and every write goes through an explicit route in `pb-hooks/`, and
@@ -98,21 +110,48 @@ accidentally grow an eighth.
 password-reset mail. None of them is part of this design and each one left open
 is a login form on the public internet.
 
-**Files are the deliberate exception.** PocketBase serves a record's files at
-`/api/files/<collection>/<id>/<file>` regardless of the collection's rules
-(verified against 0.39.9, not assumed). That is exactly what this feature wants:
-the record API answers 403 to the world while the posted screenshots load in an
-`<img>` for a signed-out visitor. Every image in this feed is public by
-intention.
+**Feed images are the deliberate exception.** PocketBase serves a record's files
+at `/api/files/<collection>/<id>/<file>` regardless of the collection's rules
+(verified against 0.39.9, not assumed). That is exactly what the feed wants: the
+record API answers 403 to the world while the posted screenshots load in an
+`<img>` for a signed-out visitor. Every image in the feed is public by intention.
 
-**Guests read, accounts write.** The four read routes work with no
+**A cloud project is the opposite, and that took one more step.** Somebody's
+unfinished work must not be reachable by URL, and an unguessable URL is not a
+permission: it survives a revoked share link, which is exactly the case that has
+to work. So both file fields on `cloud_projects` and `cloud_project_assets` are
+`protected: true`. PocketBase then demands a file token, and a file token is only
+honoured if its auth record satisfies the collection's View rule — which is
+`null` here as it is everywhere else. Nothing but a superuser gets a byte through
+the built-in route:
+
+```bash
+# a real stored file path, from the dashboard. 403, not 200
+curl -s -o /dev/null -w '%{http_code}\n' \
+  https://pb.openscrgen.app/api/files/cloud_projects/<id>/<file>
+```
+
+Every read instead goes through `pb-hooks/060_projects.pb.js`, which checks the
+owner or the share slug and streams the file itself, always as
+`application/octet-stream` with `nosniff` and an attachment disposition. That
+last part is why those file fields carry no mime allowlist: font sniffing is
+inconsistent enough that a list would reject real files, and nothing uploaded
+there can be served as a document on this origin anyway.
+
+**Guests read the feed, accounts write.** The four feed read routes work with no
 `Authorization` header and answer with fewer fields. Every write route refuses
 without a token. The editor disabling those buttons is courtesy — the permission
 is here.
 
-The one exception is `POST /posts/:id/remix`, which is open: it counts somebody
-opening a design as a starting point, that is the commonest thing a signed-out
-visitor does, and requiring a sign-in would make the number measure sign-ins.
+Two exceptions, both deliberate:
+
+- `POST /posts/:id/remix` is open. It counts somebody opening a design as a
+  starting point, that is the commonest thing a signed-out visitor does, and
+  requiring a sign-in would make the number measure sign-ins.
+- `GET /shared/:slug` and its two children are open. That is the share link, and
+  a link that needed an account would not be one. Nothing else about cloud
+  projects is reachable signed out: there is no anonymous save, no anonymous
+  listing, and every other route checks the row's `owner` against the token.
 
 ### Sign-in
 
@@ -148,6 +187,42 @@ Both allowlists start empty and an empty one answers **503**, not "allow
 everything": a box that has not been told which app it belongs to must not mint
 accounts for whoever asks first.
 
+### Cloud projects
+
+Eleven routes in [`pb-hooks/060_projects.pb.js`](pb-hooks/060_projects.pb.js).
+Eight need a bearer token and then check the row's `owner` against it; three take
+a share slug and no token.
+
+```
+GET    /api/openscreengen/projects                        auth    the account's projects
+POST   /api/openscreengen/projects                        auth    save (multipart)
+GET    /api/openscreengen/projects/:id                    auth    one, with its asset index
+DELETE /api/openscreengen/projects/:id                    auth    delete it and its blobs
+PUT    /api/openscreengen/projects/:id/share              auth    turn the link on or off
+GET    /api/openscreengen/projects/:id/doc                auth    stream project.json
+POST   /api/openscreengen/projects/:id/assets             auth    upload one blob (multipart)
+GET    /api/openscreengen/projects/:id/assets/:assetId    auth    stream one blob
+GET    /api/openscreengen/shared/:slug                    public  a link-shared project
+GET    /api/openscreengen/shared/:slug/doc                public  its document
+GET    /api/openscreengen/shared/:slug/assets/:assetId    public  one of its blobs
+```
+
+**A row that belongs to somebody else answers 404, not 403.** Probing ids must
+not report which of them exist, the same choice `deletePost` already makes.
+
+**Saving is two phases**, and the split is what stops a re-save re-uploading a
+90MB recording. `POST /projects` carries only the document plus the list of asset
+ids the finished project needs; it answers with the ids this box does not have,
+and the client uploads those one request each. The cost is a window in which the
+stored project references blobs that have not arrived — a load during it restores
+those elements blank, exactly as Drive does when a blob upload fails, and the
+repair is to save again.
+
+**The slug is the whole credential** for a link read, so it is never logged,
+never returned to anyone but the owner, and regenerated every time sharing is
+switched on. `visibility` is checked on every request rather than baked into the
+slug, so revoking takes effect immediately.
+
 ### The anti-flood limits
 
 All settings rows, all changeable without a deploy: `max_posts_per_day` (10),
@@ -155,6 +230,20 @@ All settings rows, all changeable without a deploy: `max_posts_per_day` (10),
 `feed_max_page_size` (48). The publish route also carries a 28MB body limit, so a
 client cannot stream PocketBase's 32MB default at it before the per-file checks
 run.
+
+Cloud projects have their own four, because what they bound is disk rather than
+noise: `max_cloud_projects` (30 per account), `max_cloud_doc_bytes` (12MB per
+document, and the editor gzips it first), `max_cloud_asset_bytes` (96MB per
+recording), `max_cloud_project_bytes` (256MB per project) and
+`max_cloud_user_bytes` (1GB per account). The two byte totals are summed from the
+asset rows on every upload rather than kept as a column, so a delete that half
+failed cannot leave somebody permanently over their limit — and unlike the
+anti-flood counters, a failed sum **refuses** the upload rather than allowing it.
+
+There is deliberately **no** rate limit on re-saving. A save replaces rather than
+creates, so the ceilings above bound what a busy account can occupy but not how
+often it rewrites it. If that ever matters, `cloud_projects_enabled` is the
+switch, and the per-account byte cap is the thing to lower first.
 
 ---
 
@@ -370,11 +459,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<translate host>/health
 # the feed answers a signed-out reader
 curl -s 'https://pb.openscrgen.app/api/openscreengen/discover/feed?limit=1'
 
-# which doors are open
+# which doors are open ("cloudProjects" says whether projects can be saved here)
 curl -s https://pb.openscrgen.app/api/openscreengen/auth/methods
 
 # every write is refused without a token
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://pb.openscrgen.app/api/openscreengen/discover/posts   # 401
+
+# ...and so is every cloud project route, including the reads
+curl -s -o /dev/null -w '%{http_code}\n' https://pb.openscrgen.app/api/openscreengen/projects                # 401
 
 # the MCP relay is up, and how many editor tabs are connected right now
 curl -s https://mcp.openscrgen.app/healthz        # {"ok":true,"tabs":0}
@@ -389,11 +481,25 @@ for r in posts/aaaaaaaaaaaaaaa/like posts/aaaaaaaaaaaaaaa/save authors/aaaaaaaaa
   printf "%-40s " "$r"
   curl -s -o /dev/null -w "%{http_code}\n" -X PUT https://pb.openscrgen.app/api/openscreengen/discover/$r
 done
+
+# the eight authenticated cloud-project routes. 401 on every line
+PB=https://pb.openscrgen.app/api/openscreengen
+for r in "GET /projects" "POST /projects" "GET /projects/aaaaaaaaaaaaaaa" \
+         "DELETE /projects/aaaaaaaaaaaaaaa" "PUT /projects/aaaaaaaaaaaaaaa/share" \
+         "GET /projects/aaaaaaaaaaaaaaa/doc" "POST /projects/aaaaaaaaaaaaaaa/assets" \
+         "GET /projects/aaaaaaaaaaaaaaa/assets/media_x"; do
+  set -- $r; printf "%-8s %-42s " "$1" "$2"
+  curl -s -o /dev/null -w "%{http_code}\n" -X "$1" "$PB$2"
+done
 ```
 
 **401 is the pass.** It means the file parsed, the route is there, and auth is
 doing its job. 404 means the hook did not load: read the container logs for a
 parse error.
+
+The three `/shared/:slug` routes are the exception: they take no token, so a
+made-up slug answers **404** and that is their pass. A 405 or an HTML body means
+the hook did not register.
 
 **Proving the two databases have not become one** — worth doing once after the
 first deploy, because the DNS collision it guards against is intermittent:
@@ -580,27 +686,37 @@ Every one of these is a settings row, so none needs a deploy or an app release:
 
 | To | Set |
 | --- | --- |
-| stop the whole feed | `enabled` = `false` — every route answers 503, the editor hides Discover, editing is unaffected |
-| go read only | `writes_enabled` = `false` — the feed stays fully readable, every write answers 503 |
+| stop the whole feed | `enabled` = `false` — every route answers 503, the editor hides Discover, editing is unaffected. It also shuts sign-in, so cloud projects go with it |
+| stop cloud projects only | `cloud_projects_enabled` = `false` — the feed is untouched, the editor hides Save to cloud, and every saved project stays on the disk waiting |
+| go read only | `writes_enabled` = `false` — the feed and every saved project stay fully readable, every write answers 503 |
 | close the doors without signing anybody out | `signin_enabled` = `false` |
 | close one door | blank `google_client_ids` or `github_client_ids` |
 | accept pasted GitHub tokens | `github_allow_pat` = `true` |
 | slow down a flood | `max_posts_per_day`, `max_comments_per_hour` |
+| stop the disk filling | `max_cloud_user_bytes`, `max_cloud_projects` |
 | say something under an empty feed | `moderation_note` |
 
 **Moderating a post** is `hidden = true` on the record, in the dashboard. It
 leaves the feed, the tag counts and every author page, but the row and its images
 stay — so a mistake is one checkbox to undo and a real report still has its
-evidence. Its author can still see it. **Banning** is `banned = true` on the
-account, checked on every authenticated request, so a token minted before the flag
-was set stops working the moment it is set.
+evidence. Its author can still see it. `cloud_projects.hidden` works the same way
+and is the answer to a reported share link: the link stops resolving, the owner
+keeps the project. **Banning** is `banned = true` on the account, checked on every
+authenticated request, so a token minted before the flag was set stops working the
+moment it is set.
+
+**Revoking a share link** is the owner's own button, and it is final by
+construction: turning sharing off blanks the slug, and turning it back on mints a
+new one rather than reissuing the old. There is no way to bring a revoked URL
+back to life, which is the whole point.
 
 ---
 
 ## Backups
 
-`pb-data` is the whole database **and every uploaded screenshot**, and it is a
-directory you can see:
+`pb-data` is the whole database, **every uploaded screenshot and every project
+somebody saved to the cloud**, and it is a directory you can see. The projects
+are the half that cannot be re-seeded from this repo if it is lost:
 
 ```bash
 tar czf /root/osg-$(date +%F).tgz -C /opt/openscreengen pb-data
@@ -628,6 +744,7 @@ not.
 | `pb-hooks/lib/openscreengen.js` | everything shared. **Not** `*.pb.js`, deliberately |
 | `pb-hooks/040_auth.pb.js` | the two sign-in doors, the profile, account deletion |
 | `pb-hooks/050_discover.pb.js` | the feed, posts, comments and the buttons |
+| `pb-hooks/060_projects.pb.js` | cloud projects: save, open, delete, share by link |
 | `pb-migrations/*.js` | the schema. Applied in filename order, idempotent |
 | `seed/seed-showcase.mjs` | the official showcase posts |
 | `pb-data/types.d.ts` | PocketBase's generated types, written at boot. Gitignored with the rest of `pb-data`, so the `<reference>` at the top of every hook dangles until a first local run |

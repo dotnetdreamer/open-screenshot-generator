@@ -15,9 +15,16 @@
 
 A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
 
-Everything runs client-side. Projects are saved to your browser's IndexedDB, so by default there is no account, no backend, and nothing leaves your machine. If you want your work on more than one device, you can optionally connect your own Google Drive or GitHub account and save projects into storage you own.
+Everything runs client-side. Projects are saved to your browser's IndexedDB, so by default there is no account, no backend, and nothing leaves your machine. If you want your work on more than one device, you can save it to the cloud, or connect your own Google Drive or GitHub account and keep it in storage you own.
 
 ## What's new
+
+### 17 August 2026: save projects to the cloud, and share one by link
+
+- **Save > To the cloud** keeps the editable project on the backend, behind your Google or GitHub sign-in, so you can pick it up on another device. Private until you say otherwise, and **Open > From the cloud** brings it back.
+- **Share > Get a link to share** turns that saved project into a URL. Anyone who opens it gets their own editable copy, no account needed, and nothing they do reaches your version. Turning the link off kills it for good: sharing again mints a new one.
+- The Save menu now holds all three destinations (our cloud, your own Drive or gists, a storefront), and the Share button is only about who else sees the project: a link, or a post to the community. Those are different enough to ask.
+- Your local copy stays the one you are editing. Nothing syncs in the background, and everything here needs an account, so signed out the editor behaves exactly as it did.
 
 ### 14 August 2026: Discover, the community feed
 
@@ -58,6 +65,7 @@ Optional cloud saving with no backend of ours. Connect your own Google Drive or 
 ## What it does
 
 - **Discover**: a community feed of store graphics people shared, searchable by tag, surface and text, with every post openable as a new project. Read-only for visitors, open to anyone signed in. See [infra/vps/README.md](infra/vps/README.md) for the backend, which is optional and self-hosted
+- **Cloud projects**: save the working file to that same backend and reopen it on another device, or turn on a link and hand somebody an editable copy of the design. Private by default, revocable, and gated behind the same sign-in. Your browser's copy stays the one you are editing
 - Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
 - Device frames for iPhone (X through 17 Pro Max), iPad (11-inch and Pro 13-inch), Android (bar, notch, punch-hole), tablet, MacBook, iMac, Apple Watch, and desktop, plus custom frames from your own mockup images
 - Screenshots dropped into a frame stay clipped to the device screen; frames can be rotated, scaled, and tilted using perspective presets or a raw CSS `matrix3d` if you need full control
@@ -111,7 +119,7 @@ npm run dev
 
 The dev server runs on http://localhost:9002 with Turbopack. When the app opens, pick one of the bundled templates or start blank, and you're in the editor.
 
-Everything works without any further setup. The Discover feed is the one part that needs a backend, and it is off unless you point it at one — with `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Share, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
+Everything works without any further setup. The Discover feed and cloud projects are the parts that need a backend, and both are off unless you point at one — with `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Save to cloud, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
 
 ```bash
 cd infra/vps

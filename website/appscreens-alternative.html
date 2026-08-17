@@ -44,21 +44,85 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/appscreens-alternative#page",
         "url": "https://openscrgen.app/appscreens-alternative",
         "name": "Free AppScreens Alternative",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
-        "about": { "@id": "https://openscrgen.app/#app" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
+        "about": {
+          "@id": "https://openscrgen.app/#app"
+        },
         "description": "An honest comparison between AppScreens and Open Screenshot Generator, a free and open source app store screenshot tool that runs entirely in the browser.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "AppScreens alternative", "item": "https://openscrgen.app/appscreens-alternative" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "AppScreens alternative",
+            "item": "https://openscrgen.app/appscreens-alternative"
+          }
         ]
       },
       {
@@ -67,22 +131,34 @@
           {
             "@type": "Question",
             "name": "Is Open Screenshot Generator really completely free?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. There is no paid tier at all. No account, no watermark, no export limits, no gated device sizes. The full source code is public on GitHub." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. There is no paid tier at all. No account, no watermark, no export limits, no gated device sizes. The full source code is public on GitHub."
+            }
           },
           {
             "@type": "Question",
             "name": "Is the free AppScreens plan enough for one app?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Possibly. Its free sizes do cover the required iPhone tier. The limits you hit first are five screenshots per project, five templates, a single project, and a watermark landing on your design whenever a Pro feature sneaks in." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Possibly. Its free sizes do cover the required iPhone tier. The limits you hit first are five screenshots per project, five templates, a single project, and a watermark landing on your design whenever a Pro feature sneaks in."
+            }
           },
           {
             "@type": "Question",
             "name": "Does AppScreens watermark free exports?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No, and this page will not claim it does. Exports that only use free features come out clean. Using any Pro feature applies a watermark until you remove the feature or upgrade." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No, and this page will not claim it does. Exports that only use free features come out clean. Using any Pro feature applies a watermark until you remove the feature or upgrade."
+            }
           },
           {
             "@type": "Question",
             "name": "Can I import my AppScreens project?",
-            "acceptedAnswer": { "@type": "Answer", "text": "There is no importer. You bring your raw screenshots and captions and rebuild in a template, which for most sets takes well under an hour. The optional AI agent can do the first layout pass for you." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "There is no importer. You bring your raw screenshots and captions and rebuild in a template, which for most sets takes well under an hour. The optional AI agent can do the first layout pass for you."
+            }
           }
         ]
       }
@@ -206,7 +282,7 @@
       <ul>
         <li><strong>You want free without asterisks.</strong> No watermark, no blocked exports, no gated device sizes, no template ceiling. The features do not watch which plan you are on, because there are no plans</li>
         <li><strong>Your screenshots should stay private.</strong> An unreleased app or client work under NDA never touches a server here, because there is no server. That is an architecture, not a policy</li>
-        <li><strong>You want preview videos from the same tool.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app, conformed to what App Store Connect accepts. AppScreens does not do video</li>
+        <li><strong>You want <a href="/app-preview-video-maker">preview videos</a> from the same tool.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app, conformed to what App Store Connect accepts. AppScreens does not do video</li>
         <li><strong>You like tools you can read.</strong> The full source is public on GitHub, and if the project ever disappeared, the code would still be yours to run</li>
       </ul>
     </section>
@@ -309,5 +385,6 @@
       <p>AppScreens is a product of Salty Bytes Pty Ltd. Facts about it were checked on their site in August 2026 and may change</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

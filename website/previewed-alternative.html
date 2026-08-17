@@ -44,21 +44,85 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://openscrgen.app/#app",
+        "name": "Open Screenshot Generator",
+        "url": "https://editor.openscrgen.app/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web, Windows, macOS, Linux",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Export PNGs and MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side.",
+        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/previewed-alternative#page",
         "url": "https://openscrgen.app/previewed-alternative",
         "name": "Free Previewed Alternative",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
-        "about": { "@id": "https://openscrgen.app/#app" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
+        "about": {
+          "@id": "https://openscrgen.app/#app"
+        },
         "description": "An honest comparison between Previewed and Open Screenshot Generator, a free and open source app store screenshot tool with full resolution exports and current device frames.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "Previewed alternative", "item": "https://openscrgen.app/previewed-alternative" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Previewed alternative",
+            "item": "https://openscrgen.app/previewed-alternative"
+          }
         ]
       },
       {
@@ -67,27 +131,42 @@
           {
             "@type": "Question",
             "name": "Is Previewed abandoned?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Only its makers know. The public signals as of August 2026, a changelog frozen at v1.1.8 from February 2023, a footer copyright still reading 2021, a blog subdomain that no longer resolves and no device frame newer than the iPhone 14, all point the same way. The renders it produces still look lovely" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Only its makers know. The public signals as of August 2026, a changelog frozen at v1.1.8 from February 2023, a footer copyright still reading 2021, a blog subdomain that no longer resolves and no device frame newer than the iPhone 14, all point the same way. The renders it produces still look lovely"
+            }
           },
           {
             "@type": "Question",
             "name": "What does the Previewed free tier actually allow?",
-            "acceptedAnswer": { "@type": "Answer", "text": "2D exports up to 720p, under a Creative Commons attribution license, with commercial use reserved for paid plans. Plus is a $9.99 one time purchase with 10 exports at 1080p and up, and Pro is $19 per month billed annually at $228" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "2D exports up to 720p, under a Creative Commons attribution license, with commercial use reserved for paid plans. Plus is a $9.99 one time purchase with 10 exports at 1080p and up, and Pro is $19 per month billed annually at $228"
+            }
           },
           {
             "@type": "Question",
             "name": "Is 720p usable for App Store screenshots?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. The required 6.9 inch iPhone tier is 1290 by 2796 pixels, and every other size Apple and Google accept is also far past 720p, so a 720p export cannot be uploaded as a store screenshot at all" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The required 6.9 inch iPhone tier is 1290 by 2796 pixels, and every other size Apple and Google accept is also far past 720p, so a 720p export cannot be uploaded as a store screenshot at all"
+            }
           },
           {
             "@type": "Question",
             "name": "Is Open Screenshot Generator really completely free?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. There is no paid tier at all. Exports come out at full resolution with no attribution license, no watermark, no account and no export limit. The full source code is public on GitHub" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. There is no paid tier at all. Exports come out at full resolution with no attribution license, no watermark, no account and no export limit. The full source code is public on GitHub"
+            }
           },
           {
             "@type": "Question",
             "name": "Can it match Previewed's 3D animations?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Honestly, no. You get 3D device poses on current hardware and MP4 preview videos in Chrome, Edge or the desktop app, which covers what the stores need. Previewed's cinematic animation renders remain nicer to look at, on the devices it has" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Honestly, no. You get 3D device poses on current hardware and MP4 preview videos in Chrome, Edge or the desktop app, which covers what the stores need. Previewed's cinematic animation renders remain nicer to look at, on the devices it has"
+            }
           }
         ]
       }
@@ -209,7 +288,7 @@
         <li><strong>Your screenshots must upload at full size.</strong> Apple's required iPhone tier is 1290 by 2796 pixels, far past a 720p cap. Exports here are always full resolution, for free</li>
         <li><strong>You want to own your exports.</strong> No Creative Commons attribution, no commercial use gate, no license text to read. What you export is yours</li>
         <li><strong>You want a maintained tool.</strong> New device frames and features ship here regularly, in the open, with the whole history public on GitHub</li>
-        <li><strong>You want preview videos at store specs.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app, conformed to what App Store Connect accepts</li>
+        <li><strong>You want <a href="/app-preview-video-maker">preview videos</a> at store specs.</strong> Drop a screen recording into a frame and export an MP4 in Chrome, Edge or the desktop app, conformed to what App Store Connect accepts</li>
       </ul>
     </section>
 
@@ -316,5 +395,6 @@
       <p>Previewed is the mockup tool at previewed.app. Facts about it were checked on their site in August 2026 and may change</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

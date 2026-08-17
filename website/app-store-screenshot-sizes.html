@@ -44,20 +44,61 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "Organization",
+        "@id": "https://openscrgen.app/#org",
+        "name": "Open Screenshot Generator",
+        "url": "https://openscrgen.app/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+          "width": 180,
+          "height": 180
+        },
+        "sameAs": [
+          "https://github.com/dotnetdreamer/open-screenshot-generator"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://openscrgen.app/#website",
+        "url": "https://openscrgen.app/",
+        "name": "Open Screenshot Generator",
+        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        },
+        "inLanguage": "en"
+      },
+      {
         "@type": "WebPage",
         "@id": "https://openscrgen.app/app-store-screenshot-sizes#page",
         "url": "https://openscrgen.app/app-store-screenshot-sizes",
         "name": "App Store Screenshot Sizes 2026",
-        "isPartOf": { "@id": "https://openscrgen.app/#website" },
+        "isPartOf": {
+          "@id": "https://openscrgen.app/#website"
+        },
         "description": "Every App Store screenshot size for 2026, from Apple's current specifications: iPhone, iPad, Apple Watch, Mac, Apple TV and Apple Vision Pro, with required tiers and the automatic scaling rule.",
         "dateModified": "2026-08-16",
-        "inLanguage": "en"
+        "inLanguage": "en",
+        "publisher": {
+          "@id": "https://openscrgen.app/#org"
+        }
       },
       {
         "@type": "BreadcrumbList",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://openscrgen.app/" },
-          { "@type": "ListItem", "position": 2, "name": "App Store screenshot sizes", "item": "https://openscrgen.app/app-store-screenshot-sizes" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://openscrgen.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "App Store screenshot sizes",
+            "item": "https://openscrgen.app/app-store-screenshot-sizes"
+          }
         ]
       },
       {
@@ -66,27 +107,42 @@
           {
             "@type": "Question",
             "name": "What size should App Store screenshots be in 2026?",
-            "acceptedAnswer": { "@type": "Answer", "text": "For iPhone, 1290 by 2796 pixels, the 6.9 inch tier which also accepts 1260 by 2736 and 1320 by 2868. For iPad, 2064 by 2752 pixels, which also accepts 2048 by 2732. Apple scales these down to smaller devices automatically." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "For iPhone, 1290 by 2796 pixels, the 6.9 inch tier which also accepts 1260 by 2736 and 1320 by 2868. For iPad, 2064 by 2752 pixels, which also accepts 2048 by 2732. Apple scales these down to smaller devices automatically."
+            }
           },
           {
             "@type": "Question",
             "name": "How many screenshots can I upload?",
-            "acceptedAnswer": { "@type": "Answer", "text": "One to 10 per device size, in PNG or JPEG, with no alpha channels or transparency." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "One to 10 per device size, in PNG or JPEG, with no alpha channels or transparency."
+            }
           },
           {
             "@type": "Question",
             "name": "Do I need separate screenshots for every iPhone model?",
-            "acceptedAnswer": { "@type": "Answer", "text": "No. Apple's own guidance is to provide only the highest resolution screenshots required, and they scale down to smaller device sizes automatically. One 6.9 inch set covers every modern iPhone unless you want per tier control." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Apple's own guidance is to provide only the highest resolution screenshots required, and they scale down to smaller device sizes automatically. One 6.9 inch set covers every modern iPhone unless you want per tier control."
+            }
           },
           {
             "@type": "Question",
             "name": "Do iPad screenshots have a required size?",
-            "acceptedAnswer": { "@type": "Answer", "text": "Yes. If your app runs on iPad you must provide 13 inch screenshots at 2064 by 2752 or 2048 by 2732, portrait or landscape. Smaller iPad tiers are optional and scale from the 13 inch set." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. If your app runs on iPad you must provide 13 inch screenshots at 2064 by 2752 or 2048 by 2732, portrait or landscape. Smaller iPad tiers are optional and scale from the 13 inch set."
+            }
           },
           {
             "@type": "Question",
             "name": "What sizes do App Store preview videos need?",
-            "acceptedAnswer": { "@type": "Answer", "text": "App previews use different dimensions from screenshots: 886 by 1920 for modern iPhones and 1200 by 1600 for iPads, at up to 30 fps in H.264, 15 to 30 seconds long. The app preview video maker page has the full spec." }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "App previews use different dimensions from screenshots: 886 by 1920 for modern iPhones and 1200 by 1600 for iPads, at up to 30 fps in H.264, 15 to 30 seconds long. The app preview video maker page has the full spec."
+            }
           }
         ]
       }
@@ -278,9 +334,11 @@
       <p class="eyebrow">Apple Watch and Mac</p>
       <h2 id="watch-title">Watch, Mac, TV and Vision Pro</h2>
       <p>
-        Apple Watch takes exactly one screenshot size per app. Pick the size that matches the
-        newest watch you support and keep it consistent across every localization, Apple
-        enforces that
+        <a href="/apple-watch-mockup-generator">Apple Watch</a> takes exactly one screenshot
+        size per app. Pick the size that matches the newest watch you support and keep it
+        consistent across every localization, Apple enforces that. For
+        <a href="/macbook-mockup-generator">Mac apps</a> the constraint is the aspect ratio
+        rather than the count
       </p>
       <div class="table-scroll">
         <table class="spec-table">
@@ -431,5 +489,6 @@
       <p>Sizes on this page come from Apple's published screenshot specifications, checked August 2026</p>
     </div>
   </footer>
+  <script src="/js/analytics.js" defer></script>
 </body>
 </html>

@@ -107,9 +107,24 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
 import { DiscoverDialog } from './discover/DiscoverDialog';
-import { isDiscoverConfigured } from '@/lib/discover/session';
+import { isDiscoverConfigured, useDiscoverSession } from '@/lib/discover/session';
 import { CommunityStartPanel } from './discover/CommunityStartPanel';
 import type { DiscoverPost } from '@/types/discover';
+import { CloudSaveConflictDialog } from './cloud/CloudSaveConflictDialog';
+import {
+  buildShareUrl,
+  clearSharedSlugFromUrl,
+  getCloudLink,
+  loadProjectFromCloud,
+  openSharedProject,
+  readSharedSlugFromUrl,
+  saveProjectToCloud,
+  setCloudProjectShared,
+  CloudConflictError,
+  CloudSignInRequiredError,
+  type CloudProject,
+  type CloudProjectLink,
+} from '@/lib/cloud';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -553,6 +568,13 @@ export function OpenScreenshotGeneratorLayout() {
   const [isTemplateSelectorOpen, setIsTemplateSelectorOpen] = useState(
     () => getInitialProjectIdFromUrl() === null
   );
+  // A ?shared= link is arriving. Seeded from the URL for the same reason the
+  // line above is: the import is a network round trip, and without this the
+  // start dialog and the tips wizard both open in front of it and then close
+  // themselves a second later.
+  const [isOpeningSharedLink, setIsOpeningSharedLink] = useState(
+    () => readSharedSlugFromUrl() !== null
+  );
   // Which screen of the start dialog is showing. The template gallery is the
   // dialog, as it always was; the agent is a screen you step into from the
   // banner above it. Reset on open so reopening never lands mid-agent-flow.
@@ -564,6 +586,9 @@ export function OpenScreenshotGeneratorLayout() {
   // the start dialog never flashes open behind the tips.
   const [isTipsOpen, setIsTipsOpen] = useState(false);
   useLayoutEffect(() => {
+    // Not in front of an arriving ?shared= link: somebody who followed a link to
+    // a design should land on the design, not on a wizard about this editor.
+    if (readSharedSlugFromUrl()) return;
     if (shouldShowTipsOnStartup()) setIsTipsOpen(true);
   }, []);
   // Settings. Same footer slot the Tips button held, and the way back to the
@@ -689,11 +714,34 @@ export function OpenScreenshotGeneratorLayout() {
   // dialog is opened from a gated action so it can explain why it appeared.
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountHint, setAccountHint] = useState<string | undefined>(undefined);
+  // Which of the account dialog's two project lists to land on. Set by whichever
+  // entry point opened it: "Your cloud projects" wants the cloud list, and
+  // "From your own storage" wants the other one.
+  const [accountTab, setAccountTab] = useState<'cloud' | 'storage'>('cloud');
   const [isSavingToAccount, setIsSavingToAccount] = useState(false);
   // Set when a save would land on top of a copy already in the account: holds
   // that copy while the user picks replace or save-as-new.
   const [saveConflict, setSaveConflict] = useState<CloudProjectSummary | null>(null);
   const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
+
+  // Our own cloud (src/lib/cloud). Distinct from the account above, which is
+  // storage the user owns: this is a copy on our PocketBase, and it is what
+  // makes a shareable project link possible at all. Its list lives inside the
+  // account dialog, on a tab beside the storage one, so there is no second
+  // open-state to track here.
+  const [isSavingToCloud, setIsSavingToCloud] = useState(false);
+  // Set when a cloud save would land on top of a copy this device did not
+  // write, which means another device saved in between.
+  const [cloudConflict, setCloudConflict] = useState<CloudProject | null>(null);
+  // What this device remembers about the open project's cloud copy: whether
+  // there is one, and whether it has a live link. Refreshed after every save and
+  // whenever the open project changes.
+  const [cloudLink, setCloudLink] = useState<CloudProjectLink | null>(null);
+  const { session: discoverSession, capabilities: discoverCaps } = useDiscoverSession();
+  // The backend has to be built in AND switched on. `cloudProjects` is its own
+  // settings row, so an operator can host the feed without hosting projects.
+  const isCloudAvailable = HAS_DISCOVER && discoverCaps?.cloudProjects !== false;
+  const isCloudSignedIn = !!discoverSession;
   // Desktop only: Help > About in the native menu bar opens the same dialog
   // as the sidebar's About option (settings.rs emits abs-open-about).
   useEffect(() => {
@@ -2152,8 +2200,9 @@ export function OpenScreenshotGeneratorLayout() {
 
   // --- cloud account (Bring-Your-Own-Storage) -------------------------------
 
-  const openAccountDialog = (hint?: string) => {
+  const openAccountDialog = (hint?: string, tab: 'cloud' | 'storage' = 'cloud') => {
     setAccountHint(hint);
+    setAccountTab(tab);
     setIsAccountOpen(true);
   };
 
@@ -2264,6 +2313,250 @@ export function OpenScreenshotGeneratorLayout() {
       }
     }
   };
+
+  // --- our own cloud ---------------------------------------------------------
+
+  /**
+   * Refresh what this device knows about the open project's cloud copy.
+   *
+   * Reads the local link table only: it is one IndexedDB point read, it runs on
+   * every project switch, and the toolbar labels are the only thing that depends
+   * on it. The server is asked at save time, where being wrong actually costs
+   * something.
+   */
+  const refreshCloudLink = useCallback(async () => {
+    if (!activeProjectId || !isCloudAvailable) {
+      setCloudLink(null);
+      return;
+    }
+    setCloudLink(await getCloudLink(activeProjectId, discoverSession?.viewer?.id ?? null));
+  }, [activeProjectId, discoverSession, isCloudAvailable]);
+
+  useEffect(() => {
+    void refreshCloudLink();
+  }, [refreshCloudLink]);
+
+  /**
+   * Signed out, the way in is the same account dialog Discover uses, and it is
+   * now also where the cloud list lives: connecting storage there is what mints
+   * the community session the cloud routes need, so one door covers both.
+   */
+  const requireCloudSignIn = (hint: string) => {
+    openAccountDialog(hint, 'cloud');
+  };
+
+  const handleCloudError = (error: unknown, title: string) => {
+    if (error instanceof CloudSignInRequiredError) {
+      requireCloudSignIn('Your session expired. Sign in again to reach your cloud projects.');
+      return;
+    }
+    toast({
+      title,
+      description: error instanceof Error ? error.message : 'Something went wrong.',
+      variant: 'destructive',
+    });
+  };
+
+  /**
+   * The upload. `force` is only ever true on the second attempt, after the
+   * conflict dialog has been answered.
+   */
+  const runCloudSave = async (force = false): Promise<boolean> => {
+    if (!activeProjectId) return false;
+    setIsSavingToCloud(true);
+    try {
+      const { project, failedAssets } = await saveProjectToCloud(activeProjectId, { force });
+      setCloudConflict(null);
+      await refreshCloudLink();
+      toast({
+        title: failedAssets.length ? 'Saved, with files still to upload' : 'Saved to the cloud',
+        description: failedAssets.length
+          ? `"${project.name}" is saved, but ${failedAssets.length} file${failedAssets.length === 1 ? '' : 's'} did not upload. Save again to finish.`
+          : `"${project.name}" is in your cloud. Open it from any device you sign in on.`,
+      });
+      return true;
+    } catch (error) {
+      if (error instanceof CloudConflictError) {
+        setCloudConflict(error.remote);
+        return false;
+      }
+      handleCloudError(error, 'Could not save to the cloud');
+      return false;
+    } finally {
+      setIsSavingToCloud(false);
+    }
+  };
+
+  /** Toolbar "Save to cloud". Signed out, this is how somebody finds out. */
+  const handleSaveToCloud = async () => {
+    if (!isCloudSignedIn) {
+      requireCloudSignIn('Sign in to save your projects to the cloud.');
+      return;
+    }
+    if (!activeProjectId) {
+      toast({
+        title: 'Nothing to save yet',
+        description: 'Create or open a project first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    await runCloudSave();
+  };
+
+  /**
+   * "Get a link to share": save if needed, turn the link on, copy it.
+   *
+   * One action rather than three, because "share this project with somebody" is
+   * one intention. An unsaved project is saved first: a link to nothing would be
+   * the most confusing possible outcome of clicking this.
+   */
+  const handleCopyProjectLink = async () => {
+    if (!isCloudSignedIn) {
+      requireCloudSignIn('Sign in to get a shareable link for this project.');
+      return;
+    }
+    if (!activeProjectId) {
+      toast({
+        title: 'Nothing to share yet',
+        description: 'Create or open a project first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Already shared: copy what exists rather than minting a new slug, which
+    // would break a link somebody has already been sent.
+    const existing = await getCloudLink(activeProjectId, discoverSession?.viewer?.id ?? null);
+    if (existing?.visibility === 'link' && existing.shareSlug) {
+      await copyShareUrl(buildShareUrl(existing.shareSlug));
+      return;
+    }
+
+    setIsSavingToCloud(true);
+    try {
+      const saved = await saveProjectToCloud(activeProjectId, { force: !!existing });
+      const result = await setCloudProjectShared(saved.project.id, activeProjectId, true);
+      await refreshCloudLink();
+      await copyShareUrl(result.url);
+    } catch (error) {
+      if (error instanceof CloudConflictError) {
+        setCloudConflict(error.remote);
+      } else {
+        handleCloudError(error, 'Could not create a link');
+      }
+    } finally {
+      setIsSavingToCloud(false);
+    }
+  };
+
+  /**
+   * Clipboard, with a fallback that is not "nothing happened".
+   *
+   * `navigator.clipboard` needs a secure context and a user gesture, and both
+   * WebViews have refused it before. The toast shows the URL either way, so the
+   * link is always selectable even when the write failed.
+   */
+  const copyShareUrl = async (url: string) => {
+    if (!url) return;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      copied = true;
+    } catch {
+      copied = false;
+    }
+    toast({
+      title: copied ? 'Link copied' : 'Your share link',
+      description: copied
+        ? 'Anyone with this link can open a copy of this project. Turn it off from Your cloud projects.'
+        : url,
+    });
+  };
+
+  /** Pull one of the account's own cloud projects into the editor. */
+  const handleOpenCloudProject = async (project: CloudProject, asCopy: boolean) => {
+    try {
+      setLoadPhase('project');
+      const opened = await loadProjectFromCloud(project.id, { asCopy });
+      const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
+      if (success) {
+        setIsTemplateSelectorOpen(false);
+        await refreshCloudLink();
+        toast({ title: 'Project opened', description: `"${opened.name}" loaded from your cloud.` });
+      } else {
+        toast({
+          title: 'Could not open',
+          description: `"${project.name}" failed to load.`,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      handleCloudError(error, 'Could not open that project');
+    } finally {
+      setLoadPhase('idle');
+    }
+  };
+
+  /*
+   * A ?shared= link, opened cold.
+   *
+   * Runs once, before anything else has claimed the canvas, and always imports
+   * under a fresh local id: the person following the link did not save this
+   * project and must not end up overwriting one of their own that happens to
+   * share an id.
+   *
+   * The slug comes off the URL immediately, before the import rather than after
+   * it, and that ordering is the point. `loadProjectFromData` writes
+   * `?projectId=` onto whatever query string it finds, so clearing afterwards
+   * leaves a window in which the address bar reads `?shared=…&projectId=…` — a
+   * URL that, copied into another tab, would both restore the local copy AND
+   * import a second one. Clearing first also means a reload mid-import resumes
+   * as an ordinary session instead of importing again. Nothing is lost on a
+   * failure either: the slug was cleared in that case too.
+   */
+  const sharedSlugHandled = useRef(false);
+  useEffect(() => {
+    if (sharedSlugHandled.current) return;
+    const slug = readSharedSlugFromUrl();
+    if (!slug) return;
+    sharedSlugHandled.current = true;
+    clearSharedSlugFromUrl();
+    if (!HAS_DISCOVER) {
+      setIsOpeningSharedLink(false);
+      return;
+    }
+
+    (async () => {
+      setLoadPhase('project');
+      setIsTipsOpen(false);
+      try {
+        const opened = await openSharedProject(slug);
+        const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
+        if (success) {
+          setIsTemplateSelectorOpen(false);
+          toast({
+            title: 'Shared project opened',
+            description: `"${opened.name}" is yours to edit now. It is a copy, so nothing you do here reaches whoever sent it.`,
+          });
+        }
+      } catch (error) {
+        toast({
+          title: 'Could not open that link',
+          description: error instanceof Error ? error.message : 'That link is not valid any more.',
+          variant: 'destructive',
+        });
+      } finally {
+        // Released last, so the start dialog only appears if the import failed
+        // and there is genuinely nothing open.
+        setIsOpeningSharedLink(false);
+        setLoadPhase('idle');
+      }
+    })();
+    // Once, on mount. loadProjectFromData is stable enough for this and adding
+    // it would re-run the import every render it changed identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Capture a list of artboards to PNG downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
@@ -4013,6 +4306,18 @@ const generateRandomProjectName = (): string => {
     return counts;
   }, [availableProjects]);
 
+  /**
+   * Which project ids exist on this device.
+   *
+   * The cloud list uses it to mark the overlap and to default that row's Open to
+   * "open a copy", so pulling a project down cannot quietly replace the version
+   * somebody has been editing here all morning.
+   */
+  const localProjectIds = useMemo(
+    () => new Set(recentProjects.map((project) => project.id)),
+    [recentProjects]
+  );
+
   // Name filter for the recent-projects list in the same dialog.
   const filteredRecentProjects = useMemo(() => {
     const query = recentProjectSearch.trim().toLowerCase();
@@ -4029,7 +4334,13 @@ const generateRandomProjectName = (): string => {
           // community tab's own buttons), and this dialog reappears untouched
           // as soon as they close: a controlled `open` change does not run
           // onOpenChange below.
-          open={isTemplateSelectorOpen && !isTipsOpen && !isAccountOpen && !isDiscoverOpen}
+          open={
+            isTemplateSelectorOpen &&
+            !isTipsOpen &&
+            !isAccountOpen &&
+            !isDiscoverOpen &&
+            !isOpeningSharedLink
+          }
           onOpenChange={(newOpenState) => {
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
                // Create a blank project when no template is selected
@@ -5323,7 +5634,19 @@ const generateRandomProjectName = (): string => {
             onPreviewCompare={() => openPreview('compare')}
             canCompareLanguages={previewLocaleOptions.length > 1}
             onPublishToStore={() => setIsPublishDialogOpen(true)}
-            onShareToDiscover={() => openDiscover('share')}
+            onShareToDiscover={HAS_DISCOVER ? () => openDiscover('share') : undefined}
+            // Undefined with no backend, which is what leaves the Share menu
+            // holding only the community entry rather than growing three items
+            // that answer "not available in this build".
+            onSaveToCloud={isCloudAvailable ? () => void handleSaveToCloud() : undefined}
+            onCopyProjectLink={isCloudAvailable ? () => void handleCopyProjectLink() : undefined}
+            onOpenCloudProjects={
+              isCloudAvailable ? () => openAccountDialog(undefined, 'cloud') : undefined
+            }
+            isSavingToCloud={isSavingToCloud}
+            isCloudSignedIn={isCloudSignedIn}
+            isProjectInCloud={!!cloudLink}
+            isProjectShared={cloudLink?.visibility === 'link'}
             onExport={() => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
@@ -5336,7 +5659,8 @@ const generateRandomProjectName = (): string => {
               openAccountDialog(
                 isAccountConnected
                   ? undefined
-                  : 'Sign in to open a project from your own storage.'
+                  : 'Sign in to open a project from your own storage.',
+                'storage'
               )
             }
             onSaveToAccount={handleSaveToAccount}
@@ -5899,6 +6223,10 @@ const generateRandomProjectName = (): string => {
           />
           )}
 
+          {/* Both project lists live in here: the ones on our backend, and the
+              ones in storage the user owns. `cloud` is undefined with no
+              backend configured, which collapses it back to the single list it
+              has always shown. */}
           <AccountDialog
             open={isAccountOpen}
             onOpenChange={(open) => {
@@ -5906,7 +6234,21 @@ const generateRandomProjectName = (): string => {
               if (!open) setAccountHint(undefined);
             }}
             hint={accountHint}
+            initialTab={accountTab}
             onOpenProject={handleOpenFromAccount}
+            cloud={
+              isCloudAvailable
+                ? {
+                    isSignedIn: isCloudSignedIn,
+                    activeProjectId,
+                    activeProjectName: currentProjectName,
+                    isSaving: isSavingToCloud,
+                    onSave: () => void handleSaveToCloud(),
+                    onOpenProject: handleOpenCloudProject,
+                    localProjectIds,
+                  }
+                : undefined
+            }
           />
 
           <SaveToAccountDialog
@@ -5921,6 +6263,21 @@ const generateRandomProjectName = (): string => {
             isSaving={isSavingToAccount}
             onReplace={() => void runAccountSave()}
             onSaveCopy={(name) => void runAccountSave(name)}
+          />
+
+          <CloudSaveConflictDialog
+            open={!!cloudConflict}
+            onOpenChange={(open) => {
+              if (!open) setCloudConflict(null);
+            }}
+            remote={cloudConflict}
+            isSaving={isSavingToCloud}
+            onOverwrite={() => void runCloudSave(true)}
+            onOpenRemote={() => {
+              const remote = cloudConflict;
+              setCloudConflict(null);
+              if (remote) void handleOpenCloudProject(remote, false);
+            }}
           />
 
           <TranslateDialog

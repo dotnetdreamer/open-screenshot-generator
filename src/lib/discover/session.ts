@@ -65,6 +65,17 @@ export interface DiscoverCapabilities {
   google: boolean;
   github: boolean;
   githubPat: boolean;
+  /**
+   * Whether this box will also store editable projects (src/lib/cloud).
+   *
+   * Its own switch on the server rather than a facet of `enabled`: the feed and
+   * cloud projects are separate features that happen to share a box and an
+   * account. Absent from an older backend's answer, which is why every reader
+   * treats `undefined` as "on" rather than as "off" — a box that predates the
+   * feature answers 404 on the routes anyway, and defaulting to off would hide
+   * the feature on a box that has it.
+   */
+  cloudProjects?: boolean;
   note?: string;
 }
 
