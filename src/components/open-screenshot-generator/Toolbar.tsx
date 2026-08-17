@@ -41,6 +41,7 @@ import { ArtboardState, Size } from '@/types/artboard';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { findMatchingPreset } from '@/lib/sizePresets';
 import { CanvasSizeDialog } from './CanvasSizeDialog';
+import { GithubLinkButton } from './GithubLink';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
@@ -543,6 +544,11 @@ export function Toolbar({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+
+      {/* Last on the row, because it leaves the app rather than doing anything
+          to the project. The About dialog has the same link, but nobody opens
+          an About dialog looking for the source. */}
+      <GithubLinkButton />
     </div>
   );
 }

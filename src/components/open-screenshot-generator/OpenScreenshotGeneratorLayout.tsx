@@ -29,6 +29,7 @@ import { LocaleViewNotice } from './LocaleViewNotice';
 import { TranslationTableDialog } from './TranslationTableDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
+import { GithubMark, REPO_URL } from './GithubLink';
 import type { ArtboardState, ElementLocaleOverride, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
 // The locale overlay. `artboards` always means the whole base document; one
 // language is a projection of it, derived per render and never stored.
@@ -6319,17 +6320,18 @@ const generateRandomProjectName = (): string => {
               <DialogFooter className="gap-2 sm:justify-between">
                 <Button variant="outline" asChild>
                   <a
-                    href="https://github.com/dotnetdreamer/open-screenshot-generator"
+                    href={REPO_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => {
                       // WebViews ignore target=_blank; route to the system browser
                       if (isTauri()) {
                         e.preventDefault();
-                        openExternal("https://github.com/dotnetdreamer/open-screenshot-generator");
+                        openExternal(REPO_URL);
                       }
                     }}
                   >
+                    <GithubMark className="mr-2" />
                     View on GitHub
                   </a>
                 </Button>
