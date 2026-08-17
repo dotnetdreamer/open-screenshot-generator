@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { dropElementOverrides } from '@/lib/i18n/localization';
+import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
 /**
@@ -71,6 +72,13 @@ interface CanvasAreaProps {
    */
   onUpdateBaseArtboards?: (change: CanvasStructuralChange) => void;
   onAddElementToArtboard: (artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => void;
+  /**
+   * A Previews tile (see lib/previewScenes.ts) dropped on the canvas. Unlike
+   * every other palette drop this one adds an ARTBOARD, so it never reaches
+   * addElement: the board it landed on only decides where in the row the new
+   * one is inserted.
+   */
+  onAddPreviewScene?: (sceneId: string, afterArtboardId?: string | null) => void;
   activeArtboardId: string | null;
   setActiveArtboardId: (id: string | null) => void;
   selectedElementIdOnActiveArtboard: string | null;
@@ -106,6 +114,7 @@ export function CanvasArea({
     onUpdateArtboards,
     onUpdateBaseArtboards,
     onAddElementToArtboard,
+    onAddPreviewScene,
     activeArtboardId,
     setActiveArtboardId,
     selectedElementIdOnActiveArtboard,
@@ -427,6 +436,18 @@ export function CanvasArea({
 
   const handleDropOnCanvas = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+
+    // A preview scene is a whole board, so it is answered here even when the
+    // drop landed inside an artboard: Artboard's own handler lets this one type
+    // bubble on purpose. The board under the pointer only picks the insertion
+    // point, so the new board appears next to the one you aimed at.
+    const sceneId = e.dataTransfer.getData(PREVIEW_SCENE_DRAG_TYPE);
+    if (sceneId) {
+      const node = (e.target as HTMLElement | null)?.closest?.('[data-artboard-dom-id]') ?? null;
+      onAddPreviewScene?.(sceneId, node?.getAttribute('data-artboard-dom-id') ?? activeArtboardId);
+      return;
+    }
+
     const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
     const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
     const rawStyleProps = e.dataTransfer.getData('application/artboard-element-styleprops');

@@ -29,7 +29,13 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
   screen; an **AI agent banner** sits above the tabs. `lib.js` `openAgentScreen(page)` steps into that
   agent screen (back out via `button[aria-label="Back"]`), and `clickByTextContains` clicks a button by
   a text fragment.
-- Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Images`. There is NO Layers tab anymore:
+- Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Images` / `Previews`. **Previews** holds whole App
+  Preview boards (see `src/lib/previewScenes.ts`); its tiles read `Add the <Scene Name> preview board
+  (scene:<id>)` and each one adds an ARTBOARD, not an element, so count `[data-artboard-dom-id]` rather than
+  `[data-element-id]` to detect the add. To review the scenes themselves, do NOT drive the canvas: headless
+  Edge returns torn frames after scrolling the board row. Bundle `StaticArtboard` + `previewScenes.ts` with
+  esbuild (same recipe as `regen-3d-thumbs.js`), serve the harness from `public/` so the posters resolve, and
+  screenshot the mount node per scene. There is NO Layers tab anymore:
   Properties (top) and Layers (bottom) live in one right dock with a draggable divider
   (`[role="separator"]`) between them. Collapse the dock via `button[aria-label="Collapse right panel"]`;
   collapsed it becomes a slim vertical rail — expand via `button[aria-label="Expand right panel"]` or the

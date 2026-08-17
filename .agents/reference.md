@@ -73,7 +73,7 @@ Three localStorage keys carry the `open-screenshot-generator.` prefix (`.account
 - **Root-absolute public asset paths must go through `withBasePath()`** from [src/lib/basePath.ts](../src/lib/basePath.ts) at render time. Stored/library paths stay canonical without the prefix; `next/image` and `<img>` do not apply `basePath` to a string `src`, so sub-path deploys 404.
 - **`useSearchParams` forces the Suspense boundary** in `page.tsx` under `output: 'export'`. Do not remove it, and note `getInitialProjectIdFromUrl()` seeds `isTemplateSelectorOpen` synchronously so the start dialog does not flash on refresh.
 - **`migrateVideoDevices()`** ([src/lib/video/migrateVideoDevices.ts](../src/lib/video/migrateVideoDevices.ts)) converts legacy `screenVideoMediaId`-on-device rows and is called from three places: the Dexie project load and the template/data load in the layout, and `importBundle`'s caller in [src/lib/account/index.ts](../src/lib/account/index.ts). Any new load path must call it too.
-- **`buildMcpElement` only handles `text`, `image`, `shape`, `device`** and returns `null` otherwise (which `McpDesignApi.addElement` turns into a thrown error), so the desktop MCP `add_element` / `add_elements` tools cannot create `video`, `video-device` or `gesture` elements today. Their `inputSchema` already restricts `type` to those four.
+- **`buildMcpElement` covers all seven element types** (`text`, `image`, `shape`, `device`, `video-device`, `video`, `gesture`) and returns `null` only when a shape or a flat device arrives with no `subType` (which `McpDesignApi.addElement` turns into a thrown error). A gesture takes its kind from `gestureType` or `subType`, and its default box follows the kind: a swipe needs room to travel, a tap ripple is square.
 
 ---
 
@@ -341,10 +341,11 @@ A webview cannot listen on a port, and all design state lives in React, so each 
 
 Rust never sees a tool schema. `handleMcpMessage` answers `initialize` / `ping` / `tools/list` / `tools/call` only.
 
-### Tools (42, all in the `TOOLS` array)
+### Tools (49, all in the `TOOLS` array)
 
 - Artboards: `list_artboards`, `get_artboard`, `create_artboard`, `set_active_artboard`, `update_artboard` (rename/resize/reorder), `delete_artboard`, `duplicate_artboard`, `set_background`
 - Elements: `add_element`, `add_elements` (atomic batch), `update_element`, `delete_element`, `reorder_element`, `measure_element`, `group_elements`, `transform_elements`
+- App Preview videos: `list_preview_scenes`, `add_preview_scene` (a whole finished board), `set_animation`, `set_preview_duration`, `get_preview_timeline`, `upload_recording`, `list_recordings`
 - Templates and projects: `list_templates`, `get_template`, `create_project_from_template`, `list_projects`, `open_project`
 - Assets and fonts: `list_library`, `list_fonts`, `upload_asset`, `list_assets`, `delete_asset`
 - Export: `export_png`, `export_all` (both take an optional `locale`)
@@ -359,6 +360,7 @@ Every element-shaped tool shares `ELEMENT_PROP_SCHEMA` (flat `x`, `y`, `width`, 
 ### Contracts
 
 - `McpDesignApi` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) is the interface the app layout must satisfy; result shapes are `McpArtboardSummary`, `McpTemplateSummary` / `McpTemplateDetail`, `McpProjectSummary` / `McpProjectResult`, `McpElementMeasurement`, `McpExportResult`, `McpBox`, `McpElementSpec`, plus the language set `McpLocaleState` / `McpLocaleSummary`, `McpTranslateRunResult`, `McpCsvExport` / `McpCsvImport`.
+- The App Preview tools' logic is pure the same way and lives in [previewTools.ts](../src/lib/mcp/previewTools.ts) (`listPreviewScenes`, `buildAnimationPatch`, `summarizePreviewTimeline`, `clampPreviewDuration`, `saveRecordingAsset`, `listRecordings`). `add_preview_scene` deliberately goes through the layout's `handleAddNewArtboardAfter` with a `buildPreviewScenePreset` payload, i.e. the same door the palette tile and the toolbar "+" use, so a tool-made board is byte-identical to a hand-made one.
 - The language tools' logic is pure and lives in [localeTools.ts](../src/lib/mcp/localeTools.ts) (`addProjectLocales`, `removeProjectLocales`, `setProjectBaseLocale`, `buildTranslationView`, `applyLocaleTexts`, `applyLocaleOverride`, `resetLocaleOverrides`, `listSupportedLocales`, `resolveCatalogLocale`) beside the single-string [localizedText.ts](../src/lib/mcp/localizedText.ts). Each takes and returns the base document, so the layout only resolves ids, commits, and drives the progress UI. That is also what makes them testable in node without a browser.
 - The implementation is the `mcpApi` object in [OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx), rebuilt every render and stored via `mcpApiRef.current = mcpApi` so the bridge reads fresh state per request.
 - **All mutations must go through `handleArtboardsUpdate(nextArtboards)`**, the same path `CanvasArea` uses. It repositions boards, writes the Dexie `projects` row, and calls `pushToHistory`. Writing `setArtboards` directly skips undo/redo and persistence.
@@ -386,7 +388,11 @@ Every element-shaped tool shares `ELEMENT_PROP_SCHEMA` (flat `x`, `y`, `width`, 
 - Exports write through the `abs_mcp_write_png` Rust command, defaulting to `Downloads/Open Screenshot Generator`, because the JS `fs` plugin scope only unlocks dialog-picked paths and MCP exports are unattended.
 - `delete_artboard` refuses the last board: zero artboards leaves `CanvasArea` stuck in `isLoading` and Dexie already persisted `projectData: []`.
 - `add_element` / `add_elements` / `update_element` **reject** an unknown `fontFamily` (with near matches from `similarFonts`) instead of falling back to a browser serif. Both add paths share `buildElementSpec`, so a batch validates exactly like a single call. Check `list_fonts` first.
-- `list_templates` filters through `agentUsableTemplates` ([templateCatalog.ts](../src/lib/ai/templateCatalog.ts)), which drops the `app-preview` category: those mockups play a recording no MCP client can supply.
+- `list_templates` filters through `agentUsableTemplates` ([templateCatalog.ts](../src/lib/ai/templateCatalog.ts)), which drops the `app-preview` category: those mockups play a recording the AI plan schema has no slot for. MCP callers reach preview work through `list_preview_scenes` / `add_preview_scene` instead, and `upload_recording` is the recording slot the plan schema lacks.
+- **`set_animation` refuses recordings and gestures.** A `video`/`video-device` always starts the board (trim it with `trimStart`/`trimEnd`), and a gesture is timed by `triggerTime`/`gestureDuration`; letting either take an `ElementAnimation` would store a field neither the player nor the compositor reads.
+- **An exit with no `exitStart` never fires**, and an `exitStart` before the enter lands makes a layer leave while it is still arriving. `buildAnimationPatch` rejects both rather than storing them, because either one reads to a caller as "the tool did nothing".
+- **`upload_recording` is not `upload_asset`.** `saveImageAsset` probes bytes with an `<img>` and refuses a video, and its `asset:<id>` refs are expanded to data URLs when the element is built, which would inline tens of megabytes into the project row. Recordings stay blobs in the `media` table and elements hold only `mediaId`. Request bodies are capped at 32 MiB by the Rust transport, so anything large has to arrive as an http(s) URL the app fetches rather than as base64.
+- **There is no video export tool.** `abs_mcp_write_png` forces a `.png` extension, so an MP4 needs a new Rust command and a rebuild; `export_png` on a preview board gives the poster still, which is what App Store Connect wants anyway.
 - **Two locale vocabularies, and they resolve against different lists.** `add_locales` / `set_base_locale` go through `resolveCatalogLocale` (every language the app knows, since the one being added is by definition not in the project yet); every other language tool goes through `matchLocale` (the project's own list). Using the wrong one either invents a locale with no override map or refuses a language that does exist. Both accept a name, a bare language, or the store locale, and both refuse an ambiguous bare `pt`.
 - **`set_locale_override` detaches as it writes.** `content` / `screenshotSrc` / `imageSrc` / `mediaId` are always per language, but everything else (`position`, `fontFamily`, `fontSize`, `color`, ...) is SHARED until its name is in the override's `detached` array. Writing a value without adding the flag stores data that projection ignores, which reads as "the tool did nothing".
 - **The base language is locked once a project has export languages**, in the tool exactly as in the manager dialog: every override is hashed against a base string, so re-basing would silently re-point all of them. `add_locales` takes `baseLocale` for the one moment it is still a choice.
@@ -601,6 +607,35 @@ Flat rendering: `getFlatDeviceChrome(deviceType, effectiveWidth)` returns `FlatD
 - Every `public/` asset src must go through `withBasePath` from [basePath.ts](../src/lib/basePath.ts). Neither `next/image` nor a plain `<img>` applies `basePath` to a string src, and the app deploys under a GitHub Pages sub-path.
 - Device tiles that pass `defaultSize` get centered by their real size on click and clamped inside the artboard on drop. Without `defaultSize` a device falls back to 600x1200, an image to 400x300, a shape to 300x300.
 - Image assets must never be cropped out of reference screenshots or downloaded from the web (Wikimedia, brand SVG pages). Store badges are the exception and must be official vendor badge-program artwork.
+
+---
+
+## The Previews palette tab: whole App Preview boards
+
+The palette's fourth tab drops an **artboard**, not a layer. [previewScenes.ts](../src/lib/previewScenes.ts) holds 20 finished App Preview boards (background, phone mockup, timed copy, gesture hints, call to action), each a `PreviewSceneDef` in `PREVIEW_SCENE_LIST`. That array is the only registration site.
+
+### How a drop becomes a board
+
+1. `PreviewSceneTile` in [ElementPalette.tsx](../src/components/open-screenshot-generator/ElementPalette.tsx) carries the scene id on `PREVIEW_SCENE_DRAG_TYPE` (`application/artboard-preview-scene`), and also fires on click and on a finger drag (`PaletteTilePayload.sceneId`).
+2. [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx)'s `onDrop` **lets that one dataTransfer type bubble** (its `stopPropagation` runs after the check), because a scene is not a layer on the board it landed on.
+3. `handleDropOnCanvas` in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx) answers it, reading the board under `e.target` to pick the insertion point.
+4. `handleAddPreviewScene` in the layout calls `buildPreviewScenePreset(sceneId, anchor.size)` and hands the result to **`handleAddNewArtboardAfter`**, the same creation path the hover toolbar's "+" uses. One insert, one history entry, one Dexie write.
+
+`handleAddNewArtboardAfter(currentArtboardId, { preset, historyLabel, notice })` is now the single board-creation door: the "+" passes nothing, the palette passes a whole scene. It also runs `normalizeLocalization` so a new board joins the project's languages.
+
+### Rules for authoring a scene
+
+- **Nothing may share a position and take turns in time.** Animations do not play on the canvas or in a PNG still: every layer is drawn at rest, all at once. Three headlines swapping in one spot look perfect in the MP4 and like a smear everywhere else, which is the first thing a user sees. Time brings layers IN; it never swaps two over the same pixels.
+- **Copy carries its own contrast.** The store-legal export (`rawRecordingOnly` + `keepOverlays`) throws away backgrounds, frames and decoration and composites only `text` and `gesture` layers over the full-bleed recording, so every text layer ships a drop shadow (`SHADOW_ON_LIGHT_TEXT` / `SHADOW_ON_DARK_TEXT`).
+- **Drawn at 886x1920, fitted to the project.** `previewSceneSizeFor` keeps the board size the canvas already uses when the aspect is within 25% of the scene's (every portrait phone canvas is; 1290x2796 is a 0.02% drift), else falls back to Apple's size. `scaleSceneElement` scales positions, sizes, `fontSize`, `letterSpacing`, radii, stroke, shadow and blur; `lineHeight`, `scale`, `innerRadius` and animation timings are ratios and are left alone.
+- **18 seconds** (`PREVIEW_SCENE_DURATION` on `previewDurationSeconds`), inside Apple's 15 to 30 window.
+- Text boxes are measured, never guessed: `estimateLines` counts explicit newlines **and** soft wraps (`ADVANCE_SANS` 0.54 em, `ADVANCE_CONDENSED` 0.46 for Anton/Bebas), so a label that overflows grows its box instead of being clipped. Composition blocks (`copyStack`, `chip`, `quoteCard`, `step`, `statBlock`, `cta`) all stack from those measurements.
+- Lanes keep floating cards and gesture rings apart: cards take `CLASSIC_CARD_LANE_A`/`_B`, gestures take 610 and 1120, two per scene, offset from the centre line. A gesture renders as a ring at rest, so a column of three reads as target practice.
+- Fonts must be in `GOOGLE_FONTS`; the scenes use the `VOICE` pairings (Space Grotesk, Outfit, Poppins, Bricolage Grotesque, Anton).
+
+### Verifying scenes
+
+`StaticArtboard` renders a board with the real element components, so a scene can be checked without driving the app at all: bundle it and `previewScenes.ts` with esbuild (the recipe `regen-3d-thumbs.js` uses), serve the harness from `public/` so `/data/projects/app-screens/*.png` resolve, and screenshot `#mount` per scene. That is far more reliable than the canvas (headless Edge returns torn frames after a horizontal scroll of the board row) and far faster than the in-app PNG export (~35s a board, spent trying to inline the Google Fonts stylesheet).
 
 ---
 

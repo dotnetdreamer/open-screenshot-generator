@@ -32,10 +32,14 @@ import { TranslationTableDialog } from './TranslationTableDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import { GithubMark, REPO_URL } from './GithubLink';
-import type { ArtboardState, ElementLocaleOverride, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, Project, Size } from '@/types/artboard';
+import type { ArtboardState, ElementLocaleOverride, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
 // The locale overlay. `artboards` always means the whole base document; one
 // language is a projection of it, derived per render and never stored.
 import { getLocaleDef, localeLabel, localeName } from '@/lib/i18n/locales';
+// Whole-artboard App Preview scenes, dropped from the palette's Previews tab.
+import { PREVIEW_SCENE_DURATION, PREVIEW_SCENE_SIZE, buildPreviewScenePreset } from '@/lib/previewScenes';
+// The App Preview MCP tools' pure half (animation patches, timeline read-back).
+import { buildAnimationPatch, clampPreviewDuration, summarizePreviewTimeline } from '@/lib/mcp/previewTools';
 import {
   dropElementOverrides,
   ensureUniqueElementIds,
@@ -309,6 +313,42 @@ function buildMcpElement(
       ...props, size, position: props.position ?? centered(size.width, size.height),
       type: 'device', deviceType: subType as DeviceType,
     } as DeviceFrameElementProps;
+  }
+  // --- App Preview types ---------------------------------------------------
+  // A recording mockup defaults to a flat iPhone: only flat frames composite a
+  // live video (3D and perspective poses export as static sprites), so there is
+  // no pose or screenshotRect here on purpose.
+  if (type === 'video-device') {
+    const size = sizeOr(600, 1200);
+    return {
+      ...base, objectFit: 'cover',
+      ...props, size, position: props.position ?? centered(size.width, size.height),
+      type: 'video-device', deviceType: (subType as DeviceType) || 'iphone-15-pro',
+    } as VideoDeviceElementProps;
+  }
+  if (type === 'video') {
+    const size = sizeOr(600, 1200);
+    return {
+      ...base, objectFit: 'cover', borderRadius: 0,
+      ...props, size, position: props.position ?? centered(size.width, size.height),
+      type: 'video',
+    } as VideoElementProps;
+  }
+  if (type === 'gesture') {
+    // The hint's box is the area the gesture is drawn in, so a swipe needs room
+    // to travel; a tap ripple is square.
+    const gestureType = (props.gestureType as GestureType) || (subType as GestureType) || 'tap';
+    const vertical = gestureType === 'swipe-up' || gestureType === 'swipe-down';
+    const horizontal = gestureType === 'swipe-left' || gestureType === 'swipe-right';
+    const size = sizeOr(
+      vertical ? 200 : horizontal ? 360 : 150,
+      vertical ? 340 : horizontal ? 190 : 150
+    );
+    return {
+      ...base, color: '#4F46E5', triggerTime: 0.5, gestureDuration: 1.2,
+      ...props, size, position: props.position ?? centered(size.width, size.height),
+      type: 'gesture', gestureType,
+    } as GestureElementProps;
   }
   return null;
 }
@@ -1891,25 +1931,37 @@ export function OpenScreenshotGeneratorLayout() {
     return artboards.length > 0 ? artboards[0].size : { width: 1290, height: 2796 }; // Updated default size
   };
 
-  // Handle new artboard creation with updated default size
-  // Artboards are only added from an existing artboard's hover toolbar now
-  // (the top toolbar's "+" is gone), so handleAddNewArtboardAfter is the single
-  // creation path. It always has a board to anchor to, because deleting the
-  // last artboard is refused.
-  const handleAddNewArtboardAfter = (currentArtboardId: string) => {
+  /** Anything about a new board that is not the default blank one. */
+  interface NewArtboardOptions {
+    /** Patch over the blank board: name, elements, background, size, length. */
+    preset?: Partial<ArtboardState>;
+    /** Undo-stack label. Defaults to "Add Artboard". */
+    historyLabel?: string;
+    /** Toast. Defaults to the "added after X" one. */
+    notice?: { title: string; description: string };
+  }
+
+  // The ONE artboard creation path. The hover toolbar's "+" calls it with
+  // nothing and gets a blank board the size of the one it was clicked on; the
+  // palette's Previews tab calls it with a whole scene and gets that instead.
+  // Same insert, same single history entry, same Dexie write, same selection.
+  // (The top toolbar's "+" is gone, so this is reached only from a board that
+  // already exists, and deleting the last artboard is refused.)
+  const handleAddNewArtboardAfter = (currentArtboardId: string | null, options: NewArtboardOptions = {}) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
     const defaultSize = { width: 1290, height: 2796 }; // Updated default size
     const newSize = currentArtboard ? currentArtboard.size : defaultSize;
-    
+
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
       name: `Artboard ${artboards.length + 1}`,
-      position: { x: 0, y: 0 }, 
+      position: { x: 0, y: 0 },
       size: newSize,
-      elements: [], 
+      elements: [],
       backgroundColor: '#FFFFFF', // Use explicit hex color instead of CSS variable
       backgroundType: 'solid',
       zoom: 1,
+      ...options.preset,
     };
 
     const currentIndex = artboards.findIndex(ab => ab.id === currentArtboardId);
@@ -1917,14 +1969,83 @@ export function OpenScreenshotGeneratorLayout() {
     if (currentIndex !== -1) {
       newArtboardsArray.splice(currentIndex + 1, 0, newArtboard);
     } else {
-      newArtboardsArray.push(newArtboard); 
+      newArtboardsArray.push(newArtboard);
     }
-    
-    handleArtboardsUpdate(newArtboardsArray, namedChange('Add Artboard', 'artboard', newArtboard.name));
+
+    // A board minted here carries no `localization`, and getLocalization()
+    // answers from the first board that has one; normalize re-stamps it so a
+    // new board joins the project's languages instead of silently opting out.
+    // Returns the input by reference for a project with no languages at all.
+    handleArtboardsUpdate(
+      normalizeLocalization(newArtboardsArray),
+      namedChange(options.historyLabel ?? 'Add Artboard', 'artboard', newArtboard.name)
+    );
     setActiveArtboardId(newArtboard.id);
     setSelectedElementIdOnActiveArtboard(null);
-    toast({ title: "Artboard Added", description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".` });
+    toast(options.notice ?? {
+      title: "Artboard Added",
+      description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".`,
+    });
+    return newArtboard;
   };
+
+  /**
+   * A Previews tile lands as a whole ARTBOARD, not a layer: a finished App
+   * Preview board with its animation script already timed (see
+   * lib/previewScenes.ts). It is only a preset handed to the creation path
+   * above, so there is one insert, one history entry and one save, exactly as
+   * if you had pressed "+".
+   *
+   * The board takes the size of the one it landed next to whenever that board
+   * is the same shape (every portrait phone canvas is), so the canvas keeps a
+   * single board size. The MP4 is Apple's 886x1920 either way: that is what the
+   * export dialog's default size mode renders.
+   */
+  const handleAddPreviewScene = (sceneId: string, afterArtboardId?: string | null) => {
+    const anchorId = afterArtboardId ?? activeArtboardId;
+    const anchor = artboards.find(ab => ab.id === anchorId) ?? null;
+    const preset = buildPreviewScenePreset(sceneId, anchor?.size);
+    if (!preset) {
+      toast({ title: "Unknown preview scene", description: "That scene is no longer in the library.", variant: "destructive" });
+      return;
+    }
+    const size = preset.size ?? PREVIEW_SCENE_SIZE;
+    handleAddNewArtboardAfter(anchorId, {
+      preset,
+      historyLabel: 'Add Preview Scene',
+      notice: {
+        title: `${preset.name} added`,
+        description: `A ${size.width}x${size.height} preview board, ${PREVIEW_SCENE_DURATION}s long. Drop your screen recording into the phone, then edit the text.`,
+      },
+    });
+  };
+
+  // handleAddNewArtboardAfter closes over `artboards` and is re-created every
+  // render, so the palette reaches this through a ref. The palette is memoized
+  // precisely because rebuilding its hundreds of tiles per keystroke is what
+  // made canvas drags stutter.
+  const addPreviewSceneRef = useRef(handleAddPreviewScene);
+  addPreviewSceneRef.current = handleAddPreviewScene;
+
+  /**
+   * The palette's own entry point: a click (no point) or a finger drag released
+   * over the canvas. A mouse drag goes through CanvasArea instead, which has a
+   * real drop event to read the target board off.
+   */
+  const handlePaletteAddPreviewScene = useCallback((sceneId: string, point?: Point) => {
+    let droppedOn: string | null = null;
+    if (point) {
+      // elementsFromPoint, not elementFromPoint: on a phone the palette sheet
+      // is still mounted over the canvas (faded and click-through, but there),
+      // so the board can be the second or third thing under the finger.
+      const node = document
+        .elementsFromPoint(point.x, point.y)
+        .map((el) => el.closest('[data-artboard-dom-id]'))
+        .find((el): el is Element => !!el) ?? null;
+      droppedOn = node?.getAttribute('data-artboard-dom-id') ?? null;
+    }
+    addPreviewSceneRef.current(sceneId, droppedOn);
+  }, []);
   
   const handleDuplicateArtboard = (artboardId: string) => {
     const artboardToDuplicate = artboards.find(ab => ab.id === artboardId);
@@ -5069,6 +5190,87 @@ const generateRandomProjectName = (): string => {
         active: true,
       };
     },
+    // --- App Preview video boards -------------------------------------------
+    addPreviewScene: ({ sceneId, artboardId, name }) => {
+      const anchorId = resolveBoardId(artboardId);
+      const anchor = artboards.find((ab) => ab.id === anchorId) ?? null;
+      const preset = buildPreviewScenePreset(sceneId, anchor?.size);
+      if (!preset) return null;
+      // The same door the palette and the "+" button go through, so a scene
+      // dropped by a tool is byte-identical to one dropped by hand.
+      const board = handleAddNewArtboardAfter(anchorId, {
+        preset: name?.trim() ? { ...preset, name: name.trim() } : preset,
+        historyLabel: 'Add Preview Scene',
+        notice: {
+          title: `${name?.trim() || preset.name} added`,
+          description: 'Added by an AI tool over MCP.',
+        },
+      });
+      return {
+        id: board.id,
+        name: board.name,
+        width: board.size.width,
+        height: board.size.height,
+        backgroundColor: board.backgroundColor,
+        elementCount: board.elements.length,
+        active: true,
+      };
+    },
+    setPreviewDuration: ({ artboardId, seconds }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      if (!board) return null;
+      const updated: ArtboardState =
+        seconds === null || seconds === undefined
+          ? (() => {
+              const { previewDurationSeconds, ...rest } = board;
+              return rest as ArtboardState;
+            })()
+          : { ...board, previewDurationSeconds: clampPreviewDuration(Number(seconds)) };
+      handleArtboardsUpdate(
+        artboards.map((ab) => (ab.id === boardId ? updated : ab)),
+        namedChange('Preview Length', 'edit', updated.name)
+      );
+      return summarizePreviewTimeline(updated);
+    },
+    setAnimation: ({ artboardId, elementId, patch }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      const element = board?.elements.find((el) => el.id === elementId);
+      if (!board || !element) {
+        return { ok: false, message: 'No such element. Call get_artboard for the layer ids.' };
+      }
+      if (element.type === 'gesture') {
+        return {
+          ok: false,
+          message:
+            'A gesture hint has no enter/exit animation: it is timed by triggerTime and gestureDuration. Set those with update_element.',
+        };
+      }
+      if (element.type === 'video' || element.type === 'video-device') {
+        return {
+          ok: false,
+          message:
+            'A recording always starts the board, so it takes no enter animation. Trim it with trimStart / trimEnd on update_element instead.',
+        };
+      }
+      const result = buildAnimationPatch(element.animation, patch);
+      if ('error' in result) return { ok: false, message: result.error };
+      const elements = board.elements.map((el) =>
+        el.id === elementId ? ({ ...el, animation: result.animation } as ArtboardElement) : el
+      );
+      const updated = { ...board, elements };
+      handleArtboardsUpdate(
+        artboards.map((ab) => (ab.id === boardId ? updated : ab)),
+        namedChange('Animate Layer', 'edit', element.name || element.type)
+      );
+      return { ok: true, timeline: summarizePreviewTimeline(updated) };
+    },
+    getPreviewTimeline: ({ artboardId }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboards.find((ab) => ab.id === boardId);
+      return board ? summarizePreviewTimeline(board) : null;
+    },
     addElement: ({ artboardId, type, subType, props }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
@@ -5625,7 +5827,11 @@ const generateRandomProjectName = (): string => {
               </SidebarMenu>
             </SidebarGroup>
             )}
-            <ElementPalette onAddElement={handlePaletteAddElement} onDropElement={handlePaletteDropElement} />
+            <ElementPalette
+              onAddElement={handlePaletteAddElement}
+              onDropElement={handlePaletteDropElement}
+              onAddPreviewScene={handlePaletteAddPreviewScene}
+            />
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
              <SidebarGroup className="p-0">
@@ -5764,6 +5970,7 @@ const generateRandomProjectName = (): string => {
                 onUpdateBaseArtboards={handleCanvasStructuralChange}
                 activeLocale={activeLocale}
                 onAddElementToArtboard={handleAddElementToArtboard}
+                onAddPreviewScene={handleAddPreviewScene}
                 activeArtboardId={activeArtboardId}
                 setActiveArtboardId={handleArtboardSelection}
                 selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}

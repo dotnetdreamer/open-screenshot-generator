@@ -22,6 +22,7 @@ export const DEVICE_3D_PREFIX = 'device3d:';
 export const DEVICE_COLOR_PREFIX = 'devicecolor:';
 export const BASIC_PREFIX = 'basic:';
 export const PREVIEW_PREFIX = 'preview:';
+export const SCENE_PREFIX = 'scene:';
 
 /** A vector element from ELEMENT_CATEGORIES. */
 export const elementLibraryId = (itemId: string): string => `${ELEMENT_PREFIX}${itemId}`;
@@ -48,3 +49,10 @@ export const basicLibraryId = (tileId: string): string => `${BASIC_PREFIX}${tile
 
 /** A recording frame or gesture hint in the Elements tab's App Preview group. */
 export const previewLibraryId = (tileId: string): string => `${PREVIEW_PREFIX}${tileId}`;
+
+/**
+ * A whole App Preview scene from the Previews tab (see lib/previewScenes.ts).
+ * The odd one out: this id names an ARTBOARD, not an element, so nothing
+ * stamps it onto a layer.
+ */
+export const previewSceneLibraryId = (sceneId: string): string => `${SCENE_PREFIX}${sceneId}`;

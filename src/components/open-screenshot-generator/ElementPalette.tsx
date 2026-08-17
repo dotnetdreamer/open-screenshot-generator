@@ -30,6 +30,7 @@ import {
   LaptopIcon,
   SearchIcon,
   XIcon,
+  FilmIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
@@ -63,7 +64,15 @@ import {
   elementLibraryId,
   imageLibraryId,
   previewLibraryId,
+  previewSceneLibraryId,
 } from '@/lib/libraryIds';
+import {
+  PREVIEW_SCENES,
+  PREVIEW_SCENE_DRAG_TYPE,
+  PREVIEW_SCENE_DURATION,
+  PREVIEW_SCENE_SIZE,
+  type PreviewSceneDef,
+} from '@/lib/previewScenes';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -73,13 +82,19 @@ type PaletteDragStart = (
   libraryId?: string
 ) => void;
 
-/** What a tile carries onto a board, whether by mouse drag, tap or finger drag. */
+/**
+ * What a tile carries onto a board, whether by mouse drag, tap or finger drag.
+ * A Previews tile carries `sceneId` instead of `type`: it does not add a layer
+ * to a board, it adds a board.
+ */
 export interface PaletteTilePayload {
   label: string;
-  type: ElementType;
+  type?: ElementType;
   subType?: ShapeType | DeviceType;
   styleProps?: Record<string, any>;
   libraryId?: string;
+  /** Set only by a Previews tile. See lib/previewScenes.ts. */
+  sceneId?: string;
 }
 
 /**
@@ -259,8 +274,76 @@ const ImageLibraryTile: React.FC<{
   );
 };
 
+/**
+ * The Previews tab thumbnail. Deliberately ONE generic glyph for every scene,
+ * tinted with that scene's accent: a real thumbnail here would have to be
+ * regenerated whenever a scene is retouched, and at 64px the name is what a
+ * user actually reads anyway.
+ */
+const SceneThumb: React.FC<{ accent: string }> = ({ accent }) => (
+  <svg viewBox="0 0 64 88" className="h-full w-full" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id={`scene-bg-${accent.replace('#', '')}`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor={accent} stopOpacity="0.95" />
+        <stop offset="100%" stopColor={accent} stopOpacity="0.5" />
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="64" height="88" rx="9" fill={`url(#scene-bg-${accent.replace('#', '')})`} />
+    {/* headline block */}
+    <rect x="9" y="10" width="34" height="5" rx="2.5" fill="#fff" fillOpacity="0.95" />
+    <rect x="9" y="19" width="22" height="5" rx="2.5" fill="#fff" fillOpacity="0.6" />
+    {/* phone with a play badge */}
+    <rect x="17" y="32" width="30" height="52" rx="6" fill="#0B0D14" fillOpacity="0.85" />
+    <rect x="20" y="35" width="24" height="46" rx="4" fill="#fff" fillOpacity="0.22" />
+    <circle cx="32" cy="58" r="8.5" fill="#fff" fillOpacity="0.95" />
+    <path d="M29.5 53.5 L37 58 L29.5 62.5 Z" fill={accent} />
+  </svg>
+);
+
+/**
+ * One App Preview scene. Draggable onto the canvas and clickable, like every
+ * other palette tile, except what lands is a whole artboard.
+ */
+const PreviewSceneTile: React.FC<{
+  scene: PreviewSceneDef;
+  onAdd: (sceneId: string) => void;
+  onDragStart: (e: React.DragEvent<HTMLElement>, sceneId: string) => void;
+}> = ({ scene, onAdd, onDragStart }) => {
+  const libraryId = previewSceneLibraryId(scene.id);
+  return (
+    <TileTooltip label={`Add the ${scene.label} preview board`} libraryId={libraryId}>
+      <button
+        type="button"
+        className="group flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-accent/25 cursor-grab active:cursor-grabbing"
+        draggable
+        onDragStart={(e) => onDragStart(e, scene.id)}
+        onClick={() => onAdd(scene.id)}
+        {...useTileTouchDrag({ label: scene.label, sceneId: scene.id, libraryId })}
+        aria-label={`Add the ${scene.label} preview board (${libraryId})`}
+      >
+        <span className="h-[68px] w-[50px] shrink-0 overflow-hidden rounded-lg shadow-sm">
+          <SceneThumb accent={scene.accent} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-semibold leading-tight text-foreground">{scene.label}</span>
+          <span className="mt-0.5 block text-[11px] leading-snug text-muted-foreground">{scene.blurb}</span>
+          <span className="mt-1 block font-mono text-[10px] leading-none text-muted-foreground/80">
+            {PREVIEW_SCENE_DURATION}s · {scene.elements.length} layers
+          </span>
+        </span>
+      </button>
+    </TileTooltip>
+  );
+};
+
 interface ElementPaletteProps {
   onAddElement: (type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => void;
+  /**
+   * A Previews tile was clicked, or dropped with a finger. `point` is in client
+   * coordinates when it came from a drag, so the host can insert the new board
+   * after whichever one it landed on. Absent on a host that has no canvas.
+   */
+  onAddPreviewScene?: (sceneId: string, point?: { x: number; y: number }) => void;
   /**
    * A tile dragged with a finger and let go over the canvas. The point is in
    * client coordinates; the layout works out which board is under it. Absent on
@@ -451,7 +534,7 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
  * nothing in it depends on canvas state, so it must not rebuild every time the
  * layout re-renders. Pass a stable `onAddElement` or the memo does nothing.
  */
-export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement }: ElementPaletteProps) {
+export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement, onAddPreviewScene }: ElementPaletteProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
 
@@ -510,11 +593,29 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
     }
   };
 
+  /** A Previews tile picked up with the mouse. Carries only the scene id. */
+  const handleSceneDragStart = useCallback((e: React.DragEvent<HTMLElement>, sceneId: string) => {
+    e.dataTransfer.setData(PREVIEW_SCENE_DRAG_TYPE, sceneId);
+    e.dataTransfer.effectAllowed = 'copy';
+  }, []);
+
+  const handleSceneClick = useCallback(
+    (sceneId: string) => {
+      onAddPreviewScene?.(sceneId);
+    },
+    [onAddPreviewScene]
+  );
+
   // Finger drags. A tile held for a moment lifts out of the palette and follows
   // the finger; letting go over a board drops the element there, exactly where
   // a mouse drag would have put it.
   const handleTouchDrop = useCallback(
     (payload: PaletteTilePayload, point: { x: number; y: number }) => {
+      if (payload.sceneId) {
+        onAddPreviewScene?.(payload.sceneId, point);
+        return;
+      }
+      if (!payload.type) return;
       const props = payload.libraryId ? { ...payload.styleProps, libraryId: payload.libraryId } : payload.styleProps;
       if (onDropElement) {
         onDropElement(payload.type, payload.subType, props, point);
@@ -522,7 +623,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
         onAddElement(payload.type, payload.subType, props);
       }
     },
-    [onAddElement, onDropElement]
+    [onAddElement, onDropElement, onAddPreviewScene]
   );
   const { bind: bindTileTouchDrag, ghostNode } = useTouchDrag<PaletteTilePayload>({ onDrop: handleTouchDrop });
 
@@ -532,7 +633,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
     {ghostNode}
     <div className="h-full flex flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-        <TabsList className="grid w-[95%] grid-cols-3 mx-auto mt-2 h-auto p-0.5">
+        <TabsList className="grid w-[95%] grid-cols-4 mx-auto mt-2 h-auto p-0.5">
           <TabsTrigger value="elements" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <TypeIcon className="w-4 h-4" />
             Elements
@@ -544,6 +645,10 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
           <TabsTrigger value="images" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <ImageIcon className="w-4 h-4" />
             Images
+          </TabsTrigger>
+          <TabsTrigger value="previews" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
+            <FilmIcon className="w-4 h-4" />
+            Previews
           </TabsTrigger>
         </TabsList>
 
@@ -979,6 +1084,42 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                 </CardContent>
               </Card>
             )}
+          </ScrollArea>
+        </TabsContent>
+
+        {/* Previews: whole artboards, not layers. Each tile drops a finished
+            886×1920 App Preview board with its animation script already timed;
+            the user swaps the words and drops a recording into the phone. */}
+        <TabsContent value="previews" className="flex-grow p-3 pt-2 mt-0 min-h-0">
+          <ScrollArea className="h-full">
+            <Card className="shadow-md">
+              <CardHeader className="p-3 pb-2">
+                <CardTitle className="text-base">Preview Scenes</CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 pt-0">
+                <p className="mb-2 px-1 text-[11px] leading-snug text-muted-foreground">
+                  Drop one on the canvas to add a whole App Preview board, already
+                  animated. Replace the words, drop your screen recording into the
+                  phone, then export from Export &gt; App Preview Video.
+                </p>
+                <div className="grid gap-1">
+                  {PREVIEW_SCENES.map((scene) => (
+                    <PreviewSceneTile
+                      key={scene.id}
+                      scene={scene}
+                      onAdd={handleSceneClick}
+                      onDragStart={handleSceneDragStart}
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 rounded-md bg-accent/15 px-2 py-1.5 text-[10px] leading-snug text-muted-foreground">
+                  Timed for App Store Connect: {PREVIEW_SCENE_DURATION} seconds, inside Apple's 15 to
+                  30 second window. The new board matches the ones you already have, and the MP4
+                  renders at Apple's {PREVIEW_SCENE_SIZE.width}×{PREVIEW_SCENE_SIZE.height}. Export
+                  with "Store ready with your text" to get a file it accepts.
+                </p>
+              </CardContent>
+            </Card>
           </ScrollArea>
         </TabsContent>
 

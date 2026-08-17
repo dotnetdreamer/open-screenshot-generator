@@ -363,6 +363,26 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   and expands into exactly what clicking that tile would drop:
   `element:shape-octagon`, `image:app-store`, `device:iphone-15-pro`,
   `device3d:iphone-tilted-left-black`, `devicecolor:iphone-outline-sky`.
+- *App Preview videos* — `list_preview_scenes` / `add_preview_scene` drop a
+  whole finished preview **board** (background, phone mockup, timed copy,
+  gesture hints, call to action), already animated and 18 seconds long, inside
+  the 15 to 30 second window App Store Connect accepts. That is the cheap path;
+  the parts are there too: `add_element` builds `video-device` (a phone playing
+  a recording), `video` and `gesture` layers, `set_animation` gives any other
+  layer an enter/exit, and `set_preview_duration` sets the board length.
+  `upload_recording` is what puts real footage in — `upload_asset` refuses a
+  video, and its `asset:` refs expand into data URLs, which would inline tens of
+  megabytes into the project; a recording stays a blob and the element holds
+  only its `mediaId`. `list_recordings` lists what is stored.
+  `get_preview_timeline` reads a board back as clips plus a list of what will
+  bite (a board under Apple's floor, a layer animating past the end, no
+  recording in the phone yet), because the model cannot see the canvas. Note
+  these scenes are **not** in `list_templates`, which deliberately hides the
+  `app-preview` category.
+  The rule that governs authoring: on the canvas and in a PNG still every layer
+  is drawn at rest, all at once, so two layers must never share a position and
+  take turns in time. It looks right in the MP4 and like a smear everywhere
+  else. Use time to bring layers IN.
 - *Languages, the set-up* — `list_supported_locales` is the catalog (the store
   locale to add a language by, whether a machine engine covers it, what App
   Store Connect and Google Play call it, and the font its script needs);

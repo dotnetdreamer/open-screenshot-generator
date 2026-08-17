@@ -16,6 +16,7 @@ import { artboardBackground } from '@/lib/artboardBackground';
 import { measureTextHeight } from '@/lib/textFit';
 import { cn } from '@/lib/utils';
 import { artboardTimeline } from '@/lib/video/timeline';
+import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
 import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning } from '@/lib/video/playback';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { Input } from '@/components/ui/input';
@@ -575,6 +576,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           onClick={handleArtboardClick}
           onDrop={(e) => {
             e.preventDefault();
+            // A preview scene becomes its own artboard, not a layer on this
+            // one, so it is deliberately left to bubble up to the canvas
+            // handler (which is why stopPropagation runs after this check and
+            // not before it).
+            if (e.dataTransfer.types.includes(PREVIEW_SCENE_DRAG_TYPE)) return;
             e.stopPropagation();
             const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
             const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;

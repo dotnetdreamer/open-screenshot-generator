@@ -45,6 +45,16 @@ import {
   type TranslationViewOptions,
 } from '@/lib/mcp/localeTools';
 import type { LocalizedTextResult } from '@/lib/mcp/localizedText';
+import {
+  ANIMATION_PRESETS,
+  GESTURE_TYPES,
+  VIDEO_DEVICE_TYPES,
+  listPreviewScenes,
+  listRecordings,
+  saveRecordingAsset,
+  type AnimationInput,
+  type McpPreviewTimeline,
+} from '@/lib/mcp/previewTools';
 import { ALL_FONTS } from '@/services/fontService';
 import { customFontFamilies } from '@/services/customFonts';
 import type {
@@ -293,6 +303,38 @@ export interface McpDesignApi {
   deleteArtboard(input: { artboardId?: string }): { deletedId: string; artboards: McpArtboardSummary[] } | null;
   /** Copy an artboard (elements included) and insert the copy after it. */
   duplicateArtboard(input: { artboardId?: string; name?: string; index?: number }): McpArtboardSummary | null;
+
+  // -- App Preview video boards ----------------------------------------------
+
+  /**
+   * Add a ready-made App Preview board (see lib/previewScenes.ts) after
+   * `artboardId`. Null when the scene id is unknown.
+   */
+  addPreviewScene(input: {
+    sceneId: string;
+    artboardId?: string;
+    name?: string;
+  }): McpArtboardSummary | null;
+  /**
+   * Set or clear a board's explicit preview length. `seconds: null` goes back
+   * to the length its content needs.
+   */
+  setPreviewDuration(input: {
+    artboardId?: string;
+    seconds?: number | null;
+  }): McpPreviewTimeline | null;
+  /**
+   * Set, change or remove one element's enter/exit animation. The message
+   * explains a rejected patch (a preset we do not have, an exit that fires
+   * before the enter lands).
+   */
+  setAnimation(input: {
+    artboardId?: string;
+    elementId: string;
+    patch: AnimationInput;
+  }): { ok: true; timeline: McpPreviewTimeline } | { ok: false; message: string };
+  /** The board read back as a timeline: every clip, plus what will bite. */
+  getPreviewTimeline(input: { artboardId?: string }): McpPreviewTimeline | null;
   /** Add an element; returns the new element id. */
   addElement(input: {
     artboardId?: string;
@@ -703,8 +745,45 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   frameOpacity: { type: 'number', description: 'Alpha 0..1 for the flat frame colour, for transparent devices (device elements).' },
   frameStyle: { type: 'string', description: "'solid' or 'outline' (a coloured ring around a hollow frame) (device elements)." },
   notchColor: { type: 'string', description: 'Fill of the notch / Dynamic Island / punch hole (device elements).' },
+  // --- App Preview video props ---------------------------------------------
+  mediaId: {
+    type: 'string',
+    description:
+      'Screen recording to play, as the media id upload_recording returns (video-device / video elements). This is NOT an "asset:<id>" image ref: recordings stay blobs in the media table and the element holds only the id, so the saved project never carries the bytes.',
+  },
+  videoSrc: {
+    type: 'string',
+    description:
+      'Recording as a public asset path or a data:video/mp4;base64 URL (video-device / video elements). mediaId wins over it. Unlike mediaId this travels inside an exported project file, so it is what a demo clip should use.',
+  },
+  posterSrc: {
+    type: 'string',
+    description:
+      'Still shown inside the frame until a recording is dropped in, so a board reads as a design instead of a black rectangle (video-device). Takes an "asset:<id>" ref.',
+  },
+  trimStart: { type: 'number', description: 'Seconds into the recording playback starts (video-device / video).' },
+  trimEnd: { type: 'number', description: 'Seconds into the recording playback stops (video-device / video).' },
+  gestureType: {
+    type: 'string',
+    enum: GESTURE_TYPES,
+    description: 'Which hint to draw (gesture elements). Can also be passed as subType.',
+  },
+  triggerTime: { type: 'number', description: 'Second the gesture plays (gesture elements). Default 0.5.' },
+  gestureDuration: { type: 'number', description: 'How long one play lasts, in seconds (gesture elements). Default 1.2.' },
+  gestureRepeat: {
+    type: 'boolean',
+    description: 'Loop the hint for the whole board instead of playing it once (gesture elements).',
+  },
   name: { type: 'string', description: 'Layer name shown in the Layers panel.' },
 };
+
+/** Every element type add_element can build. */
+const ELEMENT_TYPES = ['text', 'shape', 'device', 'image', 'video-device', 'video', 'gesture'];
+
+const ELEMENT_SUBTYPE_DESCRIPTION =
+  `Shape name (${SHAPE_TYPES.join(', ')}), device type (${DEVICE_TYPES.join(', ')}), ` +
+  `the frame for a video-device (${VIDEO_DEVICE_TYPES.join(', ')}), ` +
+  `or the gesture for a gesture element (${GESTURE_TYPES.join(', ')}).`;
 
 /**
  * Turn one add_element-shaped argument bag into a ready element spec:
@@ -734,7 +813,7 @@ async function buildElementSpec(
     }
   }
   if (!type) {
-    return { ok: false, message: 'Pass either type (text, shape, device, image) or libraryId.' };
+    return { ok: false, message: `Pass either type (${ELEMENT_TYPES.join(', ')}) or libraryId.` };
   }
   const own = collectElementProps(args);
   const font = resolveFontFamily(own.fontFamily);
@@ -893,18 +972,168 @@ const TOOLS: ToolDef[] = [
       return copy ? textResult(copy) : { ...textResult('No such artboard.'), isError: true };
     },
   },
+
+  // --- App Preview videos ---------------------------------------------------
   {
-    name: 'add_element',
+    name: 'list_preview_scenes',
     description:
-      'Add an element to an artboard and return its id. type is one of text, shape, device, image. For shapes set subType to a shape name; for devices set subType to a device type. Position with x/y and size with width/height (artboard pixels). To place a ready-made asset from the palette (vector element, photo, badge, 3D or coloured device preset) pass libraryId from list_library instead of type/subType.',
+      'List the ready-made App Preview scenes. Each one is a whole finished preview BOARD (background, phone mockup playing a recording, timed copy, gesture hints, call to action), not an element, and add_preview_scene drops it on the canvas. Start here for a preview video: building one from scratch with add_elements plus set_animation is several times the work and rarely as good. Note these are NOT in list_templates, which deliberately hides the app-preview category.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Filter by name or description, e.g. "finance", "social", "proof".' },
+      },
+    },
+    run: (args) => textResult({ scenes: listPreviewScenes(args.query) }),
+  },
+  {
+    name: 'add_preview_scene',
+    description:
+      'Add a ready-made App Preview scene as a NEW artboard, after artboardId (or the active board). It arrives fully animated and 18 seconds long, inside the 15 to 30 second window App Store Connect accepts. The board takes the size the project already uses when that is a portrait phone canvas, so the canvas keeps one size; the MP4 renders at Apple\'s 886x1920 either way. Then: rewrite the text layers with update_element, and put real footage in with upload_recording + update_element mediaId on the layer named "Phone (drop your recording here)". Call get_artboard afterwards to read the layer ids and names.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        sceneId: { type: 'string', description: 'From list_preview_scenes, e.g. "spotlight-launch".' },
+        artboardId: { type: 'string', description: 'Insert after this board. Defaults to the active one.' },
+        name: { type: 'string', description: 'Name for the new board. Defaults to the scene name.' },
+      },
+      required: ['sceneId'],
+    },
+    run: (args, api) => {
+      const board = api.addPreviewScene({ sceneId: args.sceneId, artboardId: args.artboardId, name: args.name });
+      return board
+        ? textResult(board)
+        : {
+            ...textResult(`Unknown scene "${args.sceneId}". Call list_preview_scenes for the ids.`),
+            isError: true,
+          };
+    },
+  },
+  {
+    name: 'set_animation',
+    description:
+      'Give one element an enter and/or exit animation for the App Preview video, or take it off. On the canvas and in a PNG still every layer is drawn at rest, all at once: animations only play in the exported MP4 and in the timeline player. That is why two layers must never share a position and take turns in time, which looks right in the video and like a smear everywhere else. Use time to bring layers IN. Call get_preview_timeline afterwards to check what it adds up to.',
     inputSchema: {
       type: 'object',
       properties: {
         artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
-        type: { type: 'string', enum: ['text', 'shape', 'device', 'image'] },
+        elementId: { type: 'string' },
+        enter: {
+          type: 'string',
+          enum: ANIMATION_PRESETS,
+          description: 'How the layer arrives. Pass null to remove the entrance (and its timings).',
+        },
+        enterDelay: { type: 'number', description: 'Second the entrance starts. Default 0.' },
+        enterDuration: { type: 'number', description: 'How long the entrance takes. Default 0.6.' },
+        exit: {
+          type: 'string',
+          enum: ANIMATION_PRESETS,
+          description: 'How the layer leaves, played in reverse. Needs exitStart. Pass null to remove it.',
+        },
+        exitStart: { type: 'number', description: 'Absolute second the exit begins. Without it the layer never leaves.' },
+        exitDuration: { type: 'number', description: 'How long the exit takes. Default 0.6.' },
+        clear: { type: 'boolean', description: 'Remove the animation entirely; the layer is then on screen the whole time.' },
+      },
+      required: ['elementId'],
+    },
+    run: (args, api) => {
+      const result = api.setAnimation({
+        artboardId: args.artboardId,
+        elementId: args.elementId,
+        patch: {
+          enter: args.enter,
+          enterDelay: args.enterDelay,
+          enterDuration: args.enterDuration,
+          exit: args.exit,
+          exitStart: args.exitStart,
+          exitDuration: args.exitDuration,
+          clear: args.clear,
+        },
+      });
+      return result.ok ? textResult(result.timeline) : { ...textResult(result.message), isError: true };
+    },
+  },
+  {
+    name: 'set_preview_duration',
+    description:
+      'Set how long an App Preview board runs, in seconds. App Store Connect takes 15 to 30 and rejects anything shorter, so a board built from a few short animations needs this. Pass seconds: null to go back to the length the content works out to.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        seconds: {
+          type: ['number', 'null'],
+          description: 'Board length, 1 to 60. Apple wants 15 to 30. null clears the override.',
+        },
+      },
+    },
+    run: (args, api) => {
+      const timeline = api.setPreviewDuration({ artboardId: args.artboardId, seconds: args.seconds });
+      return timeline ? textResult(timeline) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
+    name: 'get_preview_timeline',
+    description:
+      'Read an App Preview board back as a timeline: the board length, one clip per layer (when it appears, when it goes, what it is doing) and a list of anything that will bite at export time, such as a board under Apple\'s 15 second floor, a layer animating past the end, or no recording in the phone yet. Use this instead of guessing what a set_animation call added up to; the model cannot see the canvas.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+      },
+    },
+    run: (args, api) => {
+      const timeline = api.getPreviewTimeline({ artboardId: args.artboardId });
+      return timeline ? textResult(timeline) : { ...textResult('No such artboard.'), isError: true };
+    },
+  },
+  {
+    name: 'upload_recording',
+    description:
+      'Store a screen recording and return the mediaId to put on a video-device or video element. This is the only way to get real footage into a preview: upload_asset refuses a video (it probes the bytes as an image) and its asset: refs get expanded into data URLs, which would inline tens of megabytes into the project. Prefer an http(s) URL over base64 for anything large, the bridge caps a request body at 32 MiB. A phone records at 1290x2796; that is fine here, the export resizes it to the size Apple accepts.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: {
+          type: 'string',
+          description: 'A data:video/... URL, an http(s) URL the app can fetch, or bare base64 video data.',
+        },
+        name: { type: 'string', description: 'Label for the stored recording.' },
+        mimeType: { type: 'string', description: "For bare base64, e.g. 'video/mp4'. Default video/mp4." },
+      },
+      required: ['source'],
+    },
+    run: async (args) => {
+      try {
+        const stored = await saveRecordingAsset(String(args.source ?? ''), { name: args.name, mimeType: args.mimeType });
+        return textResult({
+          ...stored,
+          next: `Put it in the phone with update_element { elementId: "<the video-device layer>", mediaId: "${stored.mediaId}" }.`,
+        });
+      } catch (error) {
+        return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };
+      }
+    },
+  },
+  {
+    name: 'list_recordings',
+    description: 'Every screen recording stored by upload_recording, newest first, with its media id, size and duration.',
+    inputSchema: { type: 'object', properties: {} },
+    run: async () => textResult({ recordings: await listRecordings() }),
+  },
+
+  {
+    name: 'add_element',
+    description:
+      'Add an element to an artboard and return its id. type is one of text, shape, device, image, video-device, video, gesture. For shapes set subType to a shape name; for devices set subType to a device type. Position with x/y and size with width/height (artboard pixels). To place a ready-made asset from the palette (vector element, photo, badge, 3D or coloured device preset) pass libraryId from list_library instead of type/subType. video-device (a phone playing a screen recording), video and gesture are the App Preview types: adding any of them, or any animation, switches the whole project to the video export dialog, so do not put them on a screenshot board.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        type: { type: 'string', enum: ELEMENT_TYPES },
         subType: {
           type: 'string',
-          description: `Shape name (${SHAPE_TYPES.join(', ')}) or device type (${DEVICE_TYPES.join(', ')}).`,
+          description: ELEMENT_SUBTYPE_DESCRIPTION,
         },
         libraryId: {
           type: 'string',
@@ -939,8 +1168,8 @@ const TOOLS: ToolDef[] = [
           items: {
             type: 'object',
             properties: {
-              type: { type: 'string', enum: ['text', 'shape', 'device', 'image'] },
-              subType: { type: 'string', description: `Shape name (${SHAPE_TYPES.join(', ')}) or device type (${DEVICE_TYPES.join(', ')}).` },
+              type: { type: 'string', enum: ELEMENT_TYPES },
+              subType: { type: 'string', description: ELEMENT_SUBTYPE_DESCRIPTION },
               libraryId: { type: 'string', description: 'A palette asset id from list_library, in place of type/subType.' },
               ...ELEMENT_PROP_SCHEMA,
             },
@@ -2118,6 +2347,8 @@ const SLOW_TOOLS = new Set([
   'create_project_from_template',
   'open_project',
   'upload_asset',
+  // Fetches and decodes a screen recording, which can be tens of megabytes.
+  'upload_recording',
   'add_elements',
   'duplicate_artboard',
   'update_artboard',

@@ -66,6 +66,8 @@ const SLOW_TOOLS: &[&str] = &[
     "create_project_from_template",
     "open_project",
     "upload_asset",
+    // Fetches and decodes a screen recording, which can be tens of megabytes.
+    "upload_recording",
     "add_elements",
     "duplicate_artboard",
     "update_artboard",

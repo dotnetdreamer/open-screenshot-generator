@@ -14,6 +14,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | MCP server | [src/lib/mcp/](../src/lib/mcp/) + [src-tauri/src/mcp_server.rs](../src-tauri/src/mcp_server.rs) |
 | Translate and fonts | [translation.ts](../src/services/translation.ts), [fontService.ts](../src/services/fontService.ts), [customFonts.ts](../src/services/customFonts.ts), [fontLanguageMatcher.ts](../src/lib/fontLanguageMatcher.ts) |
 | Devices, palette, 3D | [deviceRegistry.ts](../src/lib/deviceRegistry.ts), [elementLibrary.ts](../src/lib/elementLibrary.ts), [device3dPresets.ts](../src/lib/device3dPresets.ts) |
+| App Preview scenes (whole boards, palette tab 4) | [previewScenes.ts](../src/lib/previewScenes.ts) |
 | Video export | [src/lib/video/](../src/lib/video/) |
 | Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
 | Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, and the only one that yields a share link) |
@@ -83,6 +84,7 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 
 - **Element type**: type union, renderer, `Artboard.addElement` branch **and** its render branch, `PreviewDialog`, PropertiesPanel, LayersPanel, ElementPalette
 - **Template**: the JSON, then its filename in `TEMPLATE_CATEGORIES[].files`. Nothing else discovers it
+- **Preview scene** (a whole App Preview board, dropped from the palette's Previews tab): one entry in `PREVIEW_SCENE_LIST` in [previewScenes.ts](../src/lib/previewScenes.ts). That is the only registration site; the tab, the tile and the drop all read it
 - **Device**: `DeviceType`, `DEVICE_REGISTRY`, `getFlatDeviceChrome`, `DEVICE_METRICS`, palette tile, MCP `DEVICE_TYPES`
 - **Web AI provider**: `WEB_ADAPTERS`, `PROVIDERS` in `web_session.rs`, extension adapter + manifest + the `build:extension` entry list, `remote.urls` in `capabilities/assistant.json`
 - **MCP tool**: `McpDesignApi`, the `TOOLS` array, `mcpApi` in the layout, both `SLOW_TOOLS` lists if it is slow
