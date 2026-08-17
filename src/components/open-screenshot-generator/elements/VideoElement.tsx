@@ -7,22 +7,31 @@ import type { VideoElementProps } from '@/types/artboard';
 import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
+import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
 
 interface VideoElementComponentProps {
   element: VideoElementProps;
   onUpdate: (updates: Partial<VideoElementProps>) => void;
   isSelected: boolean;
+  /** Board this recording sits on, so it can follow its timeline. */
+  artboardId?: string;
 }
 
 // Accepted recording containers. MOV is what iPhones produce; the browser
 // plays it as long as the codec is H.264/HEVC-in-MP4-compatible.
 export const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm';
 
-export function VideoElement({ element, onUpdate, isSelected }: VideoElementComponentProps) {
+export function VideoElement({ element, onUpdate, isSelected, artboardId }: VideoElementComponentProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const mediaUrl = useMediaUrl(element.mediaId);
+  useTimelineVideo(
+    videoRef,
+    { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
+    artboardId
+  );
   // Media-table blob wins; template/demo assets fall back to a URL source.
   const src = element.mediaId
     ? mediaUrl ?? undefined
@@ -64,6 +73,7 @@ export function VideoElement({ element, onUpdate, isSelected }: VideoElementComp
       {src ? (
         <div className="w-full h-full relative">
           <video
+            ref={videoRef}
             data-video-layer={element.id}
             src={src}
             muted

@@ -5,6 +5,8 @@ import { RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { elementVisualStyle } from '@/lib/elementStyle';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
+import { animationStateAt } from '@/lib/video/animation';
+import { usePlaybackRunning, usePlaybackTime } from '@/lib/video/playback';
 import type { ArtboardElement, Point, Size } from '@/types/artboard';
 
 interface DraggableElementProps {
@@ -21,6 +23,12 @@ interface DraggableElementProps {
    */
   screenScale?: number;
   boundary: { width: number; height: number };
+  /**
+   * Board this element belongs to. Only used to follow the App Preview
+   * playback clock: while this board is previewing, the element's enter/exit
+   * animation is evaluated per frame and folded into the transform below.
+   */
+  artboardId?: string;
   children: React.ReactNode;
 }
 
@@ -119,6 +127,7 @@ export function DraggableElement({
   artboardZoom,
   screenScale = 0,
   boundary,
+  artboardId,
   children
 }: DraggableElementProps) {
   const coarsePointer = useCoarsePointer();
@@ -553,6 +562,25 @@ export function DraggableElement({
 
   const iconSizeClass = "w-2 h-2";
 
+  // App Preview playback: null unless this board is the one in the transport.
+  // Elements without an animation opt out of the per-frame subscription — they
+  // are drawn identically at every t, so re-rendering them would be waste.
+  const playbackTime = usePlaybackTime(artboardId, !!element.animation);
+  // A running timeline is a player: elements cannot be grabbed out from under
+  // the animation. The board itself stays clickable, so selecting it (and the
+  // transport, and Esc) always works.
+  const playbackRunning = usePlaybackRunning(artboardId);
+  const anim =
+    playbackTime === null
+      ? null
+      : animationStateAt(element.animation, playbackTime, boundary.height * 0.05);
+  // Same composition the export compositor applies (see withElementTransform in
+  // lib/video/videoExport.ts): offset the box, rotate it, scale about its
+  // centre. Uniform scale, so the CSS order matches the canvas order.
+  const animTransform = anim
+    ? `translate(${anim.dx}px, ${anim.dy}px) rotate(${currentRotation}deg) scale(${anim.scale})`
+    : `rotate(${currentRotation}deg)`;
+
   return (
     <div
       ref={elementRef}
@@ -560,10 +588,16 @@ export function DraggableElement({
         position: 'absolute',
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: `${displaySize.width}px`, 
-        height: `${displaySize.height}px`, 
-        transform: `rotate(${currentRotation}deg)`,
+        width: `${displaySize.width}px`,
+        height: `${displaySize.height}px`,
+        transform: animTransform,
         transformOrigin: 'center center',
+        ...(anim
+          ? {
+              opacity: anim.opacity,
+              visibility: anim.visible ? 'visible' : ('hidden' as const),
+            }
+          : null),
         cursor: isSelected && interactionMode === null ? 'grab' : (interactionMode ? document.body.style.cursor : 'pointer'),
         boxSizing: 'border-box',
         // A selected element is a drag surface, so the browser must not claim
@@ -571,6 +605,7 @@ export function DraggableElement({
         // across it scrolls the canvas as it would over any other artwork, and
         // the first tap is what makes it draggable.
         touchAction: isSelected ? 'none' : 'auto',
+        ...(playbackRunning ? { pointerEvents: 'none' as const } : null),
       }}
       onPointerDown={(e) => {
         if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {

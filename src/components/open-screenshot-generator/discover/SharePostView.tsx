@@ -26,6 +26,7 @@ import { artboardBackground } from '@/lib/artboardBackground';
 import { discoverApi } from '@/lib/discover/api';
 import { composeStrip, downscaleBoard, guessSurface, type CapturedBoard } from '@/lib/discover/capture';
 import { parseTags, SURFACE_LABELS } from '@/lib/discover/format';
+import { artboardTimeline } from '@/lib/video/timeline';
 import type { ArtboardState } from '@/types/artboard';
 import type { DiscoverPost, DiscoverSurface, PublishImageInput } from '@/types/discover';
 
@@ -95,7 +96,15 @@ export function SharePostView({
   const viewer = discoverApi.getViewer();
   // Memoized so runCapture keeps one identity: the capture effect must fire
   // once, not on every keystroke in the form below it.
-  const boardsToCapture = useMemo(() => artboards.slice(0, MAX_BOARDS), [artboards]);
+  // App Preview boards are video, and a still of one is the whole timeline
+  // stacked on top of itself: every beat visible at once. They are left out of
+  // a shared design rather than posted as a mess.
+  const shareableBoards = useMemo(
+    () => artboards.filter((ab) => !artboardTimeline(ab).hasMotion),
+    [artboards]
+  );
+  const previewBoardsLeftOut = artboards.length - shareableBoards.length;
+  const boardsToCapture = useMemo(() => shareableBoards.slice(0, MAX_BOARDS), [shareableBoards]);
 
   const [capture, setCapture] = useState<CaptureState>({ status: 'idle' });
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -103,7 +112,9 @@ export function SharePostView({
   const [caption, setCaption] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [appName, setAppName] = useState(projectName);
-  const [surface, setSurface] = useState<DiscoverSurface>(() => guessSurface(artboards[0]?.size));
+  const [surface, setSurface] = useState<DiscoverSurface>(() =>
+    guessSurface((artboards.find((ab) => !artboardTimeline(ab).hasMotion) ?? artboards[0])?.size)
+  );
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** Boards that timed out or failed, named so the user is not left guessing. */
@@ -115,7 +126,13 @@ export function SharePostView({
 
   const runCapture = useCallback(async () => {
     if (boardsToCapture.length === 0) {
-      setCapture({ status: 'error', message: 'This project has no artboards to share yet.' });
+      setCapture({
+        status: 'error',
+        message:
+          previewBoardsLeftOut > 0
+            ? 'This project only has app preview boards. Those are videos, so there is nothing to share as a design yet.'
+            : 'This project has no artboards to share yet.',
+      });
       return;
     }
     setCapture({ status: 'capturing', done: 0, total: boardsToCapture.length });
@@ -302,6 +319,15 @@ export function SharePostView({
               );
             })}
           </div>
+        )}
+
+        {capture.status === 'ready' && previewBoardsLeftOut > 0 && (
+          <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+            <AlertCircleIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            {previewBoardsLeftOut === 1
+              ? 'The app preview board is left out: it is a video, not a still design'
+              : `${previewBoardsLeftOut} app preview boards are left out: they are videos, not still designs`}
+          </p>
         )}
 
         {capture.status === 'ready' && skippedBoards.length > 0 && (

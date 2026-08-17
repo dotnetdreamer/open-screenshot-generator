@@ -8,6 +8,7 @@ import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePl
 import { cn } from '@/lib/utils';
 import { getElementDisplayName } from '@/lib/historyLabels';
 import { localeName } from '@/lib/i18n/locales';
+import { ELEMENT_DRAG_TYPE } from './PreviewTimelineBar';
 
 /** How one element resolves in the active locale. Mirrors overrideStateFor. */
 export type LocaleOverrideState = 'inherited' | 'manual' | 'auto' | 'stale-manual' | 'stale-auto';
@@ -190,6 +191,18 @@ export function LayersPanel({ elements, selectedElementId, onSelectElement, onMo
                 <div
                   key={element.id}
                   ref={element.id === selectedElementId ? selectedRowRef : undefined}
+                  // Draggable so a layer can be dropped onto the App Preview
+                  // timeline, which animates it at the second you dropped it
+                  // (see PreviewTimelineBar). Harmless everywhere else: nothing
+                  // else on screen accepts this type.
+                  // Not while renaming: a draggable ancestor stops the mouse
+                  // from selecting text inside the row's input.
+                  draggable={editingElementId !== element.id}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(ELEMENT_DRAG_TYPE, element.id);
+                    e.dataTransfer.effectAllowed = 'copy';
+                    onSelectElement(element.id);
+                  }}
                   className={cn(
                     "flex items-center w-full justify-start p-1 rounded-md text-sm",
                     element.id === selectedElementId ? "bg-accent text-accent-foreground" : "hover:bg-accent/50"

@@ -8,6 +8,7 @@ import {
   FolderOpenIcon,
   EyeIcon,
   ImagesIcon,
+  ClapperboardIcon,
   SmartphoneIcon,
   ChevronDownIcon,
   RulerIcon,
@@ -55,6 +56,12 @@ interface ToolbarProps {
   /** The project has more than one language, so comparing them means something. */
   canCompareLanguages?: boolean;
   onExport: () => void;
+  /**
+   * True for App Preview projects, where that first item opens the video
+   * dialog rather than the screenshot one. The label has to say so: "Artboards
+   * as images" is a lie on a board whose output is an MP4.
+   */
+  isAppPreviewProject?: boolean;
   /** Open the direct-to-store upload dialog (App Store Connect, Google Play). */
   onPublishToStore?: () => void;
   /** Post the open project to the community feed (Discover). */
@@ -120,6 +127,7 @@ export function Toolbar({
   onPublishToStore,
   onShareToDiscover,
   onExportJSON,
+  isAppPreviewProject = false,
   onImportJSON,
   onOpenFromAccount,
   onSaveToAccount,
@@ -396,8 +404,15 @@ export function Toolbar({
           {/* Images first: it is what most sessions end with, and the JSON is
               the "keep working on this later" path rather than the output. */}
           <DropdownMenuItem onClick={onExport}>
-            <ImagesIcon className="mr-2 h-4 w-4 opacity-80" />
-            Artboards as images
+            {isAppPreviewProject ? (
+              <ClapperboardIcon className="mr-2 h-4 w-4 opacity-80" />
+            ) : (
+              <ImagesIcon className="mr-2 h-4 w-4 opacity-80" />
+            )}
+            {isAppPreviewProject ? 'App preview video' : 'Artboards as images'}
+            {isAppPreviewProject && (
+              <span className="ml-auto pl-4 text-xs text-muted-foreground">.mp4</span>
+            )}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={onExportJSON}>
             <FileJsonIcon className="mr-2 h-4 w-4 opacity-80" />

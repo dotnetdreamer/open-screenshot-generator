@@ -150,22 +150,36 @@ the phone on the artboard is a **recording mockup**: you upload a screen capture
 plays inside the frame, with your headline, background and tap or swipe hints layered around it. Trim
 the clip, animate the text in and out, then export.
 
-The export dialog for these projects offers two things:
+Select a board with motion and a timeline appears across the bottom of the canvas, with a row for every
+layer on it. Layers you have not animated sit there as dashed placeholders: drag one along the timeline
+(or drop a layer onto it from the Layers panel) and it fades in at that second, which is all it takes to
+start animating. Press play and the whole thing runs in place: text animates in and out on its timings,
+gesture hints fire when they are set to, and your recording plays inside the phone. Drag the playhead
+to scrub, drag a clip sideways to retime it, drag its edges to trim, drag it up or down to restack the
+layer, and set the preview's length in the field next to the clock. It runs the same timing code the
+encoder does, so nothing has to be exported to see what you are getting.
+
+The export dialog for these projects offers three renders:
 
 - **Styled video.** Your whole artboard rendered to MP4: background, text, the phone frame, and your
   recording playing inside its screen. This is the one for a landing page, a Product Hunt post, or the
-  Play Store.
-- **Store-ready recording.** No design, just your raw capture conformed to what App Store Connect
-  actually accepts (886x1920, 30fps, H.264). A recording straight off an iPhone is 1290x2796 at 60fps
-  and gets rejected on upload, so this mode saves a round trip through a video editor.
+  Play Store. App Store Connect rejects it, see below.
+- **Store-ready with your text.** Your recording full screen at Apple's size, with the artboard's text
+  and gesture hints animating over it. App Review guideline 2.3.4 says a preview "may only use video
+  screen captures of the app itself", which rules out the phone frame and the designed background, but
+  it also says "you can add narration and video or textual overlays to help explain anything that isn't
+  clear from the video alone". So this one keeps your words and still uploads.
+- **Store-ready recording.** No design at all, just your capture conformed to what App Store Connect
+  accepts (886x1920, 30fps, H.264). A recording straight off an iPhone is 1290x2796 at 60fps and gets
+  rejected on upload, so this mode saves a round trip through a video editor.
 
 The encoding happens in your browser with WebCodecs, the same as everything else here: each frame is
 composited on a canvas and fed to the hardware H.264 encoder, then muxed to MP4. Nothing is uploaded
 anywhere. The recording itself is stored as a blob in IndexedDB rather than inside the project, so an
 exported project file stays small and does not carry your footage.
 
-Two things it does not do yet: audio (the MP4 is video only), and 3D or tilted poses for recording
-mockups (they render flat).
+Two things it does not do yet: audio (the MP4 is video only, and the canvas player is silent too), and
+3D or tilted poses for recording mockups (they render flat).
 
 ## The AI agent
 

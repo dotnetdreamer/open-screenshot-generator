@@ -222,9 +222,14 @@ async function uploadScreenshotToSelected(page, filePath) {
  *   does not apply there (a video board has no App Store screenshot tiers).
  */
 async function exportArtboards(page, downloadDir, expectedCount, timeoutMs = 180000, extraFormats = []) {
-  // The toolbar's export button is a menu now: the images path is the
-  // "Artboards as images" item inside it, next to the project-file export.
-  await clickMenuItem(page, 'Export', 'Artboards as images');
+  // The toolbar's export button is a menu, and the render item is labelled for
+  // the project: "Artboards as images" for screenshots, "App preview video" for
+  // App Preview projects. Both open the dialog this helper drives.
+  try {
+    await clickMenuItem(page, 'Export', 'Artboards as images');
+  } catch {
+    await clickMenuItem(page, 'Export', 'App preview video');
+  }
   await page.waitForFunction(
     "!!document.querySelector('#export-as-is') || !!document.querySelector('#apv-styled')",
     { timeout: 15000, polling: 500 }

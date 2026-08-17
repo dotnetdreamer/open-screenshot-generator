@@ -216,6 +216,11 @@ export interface VideoDeviceElementProps extends BaseElement {
   type: 'video-device';
   deviceType: DeviceType;
   mediaId?: string; // Dexie media row id of the recording
+  // Recording carried by the project itself: a public asset path or a data:
+  // URL. Uploads (mediaId) win over it, so dropping your own capture onto a
+  // template's demo footage replaces it. Unlike mediaId this survives a project
+  // export/import, since the media table does not travel with the JSON.
+  videoSrc?: string;
   trimStart?: number; // seconds into the recording playback starts
   trimEnd?: number; // seconds into the recording playback stops
   objectFit?: 'contain' | 'cover' | 'fill'; // how the recording fills the screen
@@ -398,6 +403,11 @@ export interface ArtboardState {
   };
   zoom: number; // Zoom level for the artboard's content itself
   exportScale?: number; // Optional export scale for higher resolution exports
+  // App Preview boards: how long the timeline runs, in seconds. Unset means
+  // "as long as the content needs" (the length the animations and the
+  // recording add up to). Set from the timeline bar, and it is what both the
+  // canvas player and the video export use.
+  previewDurationSeconds?: number;
   // Language its text elements were last translated into (a code from the
   // translate dialog's list). Set only when a whole artboard translated
   // cleanly, so the next run knows what to use as the source instead of

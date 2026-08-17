@@ -50,6 +50,9 @@ export interface VideoExportRequest {
   durationSeconds: number; // 1..30
   sizeMode: VideoSizeMode;
   rawRecordingOnly: boolean;
+  // Store-safe render that keeps the explanatory overlays (text + gesture
+  // hints) over the footage. Only meaningful with rawRecordingOnly.
+  keepOverlays?: boolean;
   // Render only the artboard the canvas has selected, not every video board.
   currentArtboardOnly: boolean;
 }

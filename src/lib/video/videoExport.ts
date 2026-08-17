@@ -10,7 +10,7 @@
 // - Output is video-only (no audio track). App Store previews are watched
 //   muted ~98% of the time and Apple accepts silent previews.
 
-import { toPng } from 'html-to-image';
+import { toPng, getFontEmbedCSS } from 'html-to-image';
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import type {
   ArtboardState,
@@ -33,8 +33,15 @@ export interface VideoExportSettings {
   height: number;
   bitrate?: number; // default 12 Mbps (Apple's H.264 target range)
   // App Store safe mode: only the first screen recording, full-bleed, no
-  // frames/text/overlays — guaranteed to satisfy Review Guideline 2.3.4.
+  // frames or backgrounds — what Review Guideline 2.3.4 asks for ("previews
+  // may only use video screen captures of the app itself").
   rawRecordingOnly?: boolean;
+  // ...but the same guideline allows overlays: "You can add narration and
+  // video or textual overlays to help explain anything that isn't clear from
+  // the video alone." With this on, the store-safe render keeps the text and
+  // the gesture hints (and their animations) over the footage. Ignored unless
+  // rawRecordingOnly is set.
+  keepOverlays?: boolean;
   onProgress?: (done: number, total: number) => void;
   signal?: AbortSignal;
 }
@@ -59,9 +66,10 @@ export async function analyzeArtboardForVideo(ab: ArtboardState): Promise<Artboa
       const start = el.trimStart ?? 0;
       const stop = el.trimEnd ?? duration;
       end = Math.max(end, Math.max(0, stop - start));
-    } else if (el.type === 'video-device' && el.mediaId) {
+    } else if (el.type === 'video-device' && (el.mediaId || el.videoSrc)) {
       hasVideo = true;
-      const duration = el.durationSeconds ?? (await getMediaAsset(el.mediaId))?.duration ?? 0;
+      const duration =
+        el.durationSeconds ?? (el.mediaId ? (await getMediaAsset(el.mediaId))?.duration ?? 0 : 0);
       const start = el.trimStart ?? 0;
       const stop = el.trimEnd ?? duration;
       end = Math.max(end, Math.max(0, stop - start));
@@ -149,6 +157,30 @@ const SPRITE_FILTER = (node: Node) => {
   );
 };
 
+/**
+ * Web fonts, inlined ONCE per export.
+ *
+ * html-to-image re-resolves @font-face rules on every call — and with
+ * cacheBust on, it re-downloads the CSS and every woff2 for each one. A board
+ * with 40 elements is 40 sprite captures, so that alone turned a render into
+ * minutes of network before a single frame was drawn. Resolve it once, hand
+ * the same string to every capture, and let the images (all data: URLs or
+ * same-origin assets) come from the browser cache.
+ */
+// undefined, never '': html-to-image treats any non-null fontEmbedCSS as the
+// complete font CSS, so an empty string would silently export every sprite in
+// a fallback font instead of falling back to resolving fonts per capture.
+let spriteFontEmbedCSS: string | undefined;
+
+async function primeFontEmbedCSS(root: HTMLElement) {
+  try {
+    const css = await getFontEmbedCSS(root);
+    spriteFontEmbedCSS = css || undefined;
+  } catch {
+    spriteFontEmbedCSS = undefined; // let each capture resolve fonts itself
+  }
+}
+
 async function dataUrlToImage(dataUrl: string): Promise<HTMLImageElement> {
   const img = new Image();
   img.src = dataUrl;
@@ -196,7 +228,10 @@ async function captureSprite(
       width: Math.max(1, Math.round(boxW + pad * 2)),
       height: Math.max(1, Math.round(boxH + pad * 2)),
       pixelRatio: 1,
-      cacheBust: true,
+      // cacheBust would append a unique query to every fetched resource,
+      // defeating the browser cache across dozens of captures.
+      cacheBust: false,
+      fontEmbedCSS: spriteFontEmbedCSS,
       filter: extraFilter ? (n: Node) => SPRITE_FILTER(n) && extraFilter(n) : SPRITE_FILTER,
     });
     return { image: await dataUrlToImage(dataUrl), pad };
@@ -503,6 +538,7 @@ export async function exportArtboardVideo(
   // Let the 3D device renderers re-render supersampled, same as PNG export.
   window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
   await new Promise((resolve) => setTimeout(resolve, 100));
+  if (root) await primeFontEmbedCSS(root);
   try {
     if (settings.rawRecordingOnly) {
       // First recording only, full-bleed. Guideline-2.3.4-safe output.
@@ -514,8 +550,12 @@ export async function exportArtboardVideo(
             break;
           }
         }
-        if (el.type === 'video-device' && el.mediaId) {
-          const source = await loadVideoSource({ mediaId: el.mediaId }, el.trimStart, el.trimEnd);
+        if (el.type === 'video-device' && (el.mediaId || el.videoSrc)) {
+          const source = await loadVideoSource(
+            { mediaId: el.mediaId, videoSrc: el.videoSrc },
+            el.trimStart,
+            el.trimEnd
+          );
           if (source) {
             const full: VideoElementProps = {
               id: `${el.id}_raw`, type: 'video', position: { x: 0, y: 0 }, size: artboard.size,
@@ -527,6 +567,22 @@ export async function exportArtboardVideo(
         }
       }
       if (layers.length === 0) throw new Error('No screen recording found on this artboard.');
+      if (settings.keepOverlays) {
+        // Explanatory overlays only: text and gesture hints, in canvas order,
+        // over the full-bleed footage. Frames, backgrounds and decorative
+        // artwork stay out — those are what make a preview "not a screen
+        // capture" and get it rejected.
+        for (const el of artboard.elements) {
+          throwIfAborted(signal);
+          if (el.type === 'gesture') {
+            layers.push({ kind: 'gesture', el });
+            continue;
+          }
+          if (el.type !== 'text') continue;
+          const sprite = await captureSprite(root!, el);
+          if (sprite) layers.push({ kind: 'sprite', el, sprite });
+        }
+      }
     } else {
       for (const el of artboard.elements) {
         throwIfAborted(signal);
@@ -538,8 +594,12 @@ export async function exportArtboardVideo(
           }
           // Missing media row: fall through to a static sprite (placeholder).
         }
-        if (el.type === 'video-device' && el.mediaId) {
-          const source = await loadVideoSource({ mediaId: el.mediaId }, el.trimStart, el.trimEnd);
+        if (el.type === 'video-device' && (el.mediaId || el.videoSrc)) {
+          const source = await loadVideoSource(
+            { mediaId: el.mediaId, videoSrc: el.videoSrc },
+            el.trimStart,
+            el.trimEnd
+          );
           if (source) {
             const chrome = await captureSprite(root!, el);
             if (chrome) {

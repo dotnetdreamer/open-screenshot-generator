@@ -8,6 +8,7 @@ import type { VideoDeviceElementProps as VideoDeviceElementType } from '@/types/
 import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
+import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 import { VIDEO_ACCEPT } from './VideoElement';
 
@@ -15,6 +16,8 @@ interface VideoDeviceElementComponentProps {
   element: VideoDeviceElementType;
   onUpdate: (updates: Partial<VideoDeviceElementType>) => void;
   isSelected: boolean;
+  /** Board this mockup sits on, so the recording can follow its timeline. */
+  artboardId?: string;
 }
 
 /**
@@ -25,11 +28,20 @@ interface VideoDeviceElementComponentProps {
  * content and the properties: a recording, a trim, a fit — no screenshot rect,
  * no 3D pose.
  */
-export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDeviceElementComponentProps) {
+export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }: VideoDeviceElementComponentProps) {
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const mediaUrl = useMediaUrl(element.mediaId);
+  // An uploaded recording wins; otherwise the project may carry its own footage
+  // (a demo asset path or an embedded data: URL) that survives export/import.
+  const screenVideoSrc = element.mediaId ? mediaUrl ?? undefined : element.videoSrc ? withBasePath(element.videoSrc) : undefined;
+  useTimelineVideo(
+    videoRef,
+    { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
+    artboardId
+  );
 
   const effectiveWidth = element.size.width * (element.scale || 1);
   const chrome = getFlatDeviceChrome(element.deviceType, effectiveWidth);
@@ -101,10 +113,11 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
             {/* Cutout sits above the screen content, exactly as on a real phone */}
             {chrome.notch}
 
-            {element.mediaId && mediaUrl ? (
+            {screenVideoSrc ? (
               <video
+                ref={videoRef}
                 data-screen-video={element.id}
-                src={mediaUrl}
+                src={screenVideoSrc}
                 muted
                 loop
                 autoPlay
@@ -130,7 +143,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
             )}
 
             {/* Drop-your-recording affordance, shown over the poster too */}
-            {isSelected && !element.mediaId && (
+            {isSelected && !screenVideoSrc && (
               <div
                 data-export-exclude
                 className="absolute inset-0 flex items-center justify-center"
@@ -152,7 +165,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected }: VideoDevic
                 </Button>
               </div>
             )}
-            {isSelected && element.mediaId && (
+            {isSelected && screenVideoSrc && (
               <div
                 data-export-exclude
                 data-touch-reveal

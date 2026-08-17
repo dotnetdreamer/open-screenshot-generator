@@ -5,6 +5,7 @@ import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
+import { stopPlayback } from '@/lib/video/playback';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
 import {
   SidebarProvider,
@@ -20,6 +21,7 @@ import {
 import { ElementPalette } from './ElementPalette';
 import { Toolbar } from './Toolbar';
 import { CanvasArea, applyCanvasStructuralChange, type CanvasStructuralChange } from './CanvasArea';
+import { PreviewTimelineBar } from './PreviewTimelineBar';
 import { CanvasContextMenu } from './CanvasContextMenu';
 import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog, type PreviewLocaleOption, type PreviewMode } from './PreviewDialog';
@@ -1717,6 +1719,36 @@ export function OpenScreenshotGeneratorLayout() {
     if (found) commitView(updatedArtboards);
   };
 
+  // Restack one element next to another (the timeline bar's vertical drag).
+  // Array order IS z-order, so this is a splice, and it moves the layer in the
+  // Layers panel by exactly the same amount.
+  const handleReorderElementNextTo = (elementId: string, targetElementId: string, after: boolean) => {
+    let changed = false;
+    const updatedArtboards = viewArtboards.map((ab) => {
+      const from = ab.elements.findIndex((el) => el.id === elementId);
+      const to = ab.elements.findIndex((el) => el.id === targetElementId);
+      if (from < 0 || to < 0 || from === to) return ab;
+      changed = true;
+      const elements = [...ab.elements];
+      const [moved] = elements.splice(from, 1);
+      const targetIndex = elements.findIndex((el) => el.id === targetElementId);
+      elements.splice(after ? targetIndex + 1 : targetIndex, 0, moved);
+      return { ...ab, elements };
+    });
+    if (changed) commitView(updatedArtboards);
+  };
+
+  // Explicit App Preview length for one board; null goes back to "as long as
+  // the content needs".
+  const handleSetPreviewDuration = (artboardId: string, seconds: number | null) => {
+    const updatedArtboards = viewArtboards.map((ab) =>
+      ab.id === artboardId
+        ? { ...ab, previewDurationSeconds: seconds === null ? undefined : seconds }
+        : ab
+    );
+    commitView(updatedArtboards);
+  };
+
   // The project's current device format (phone platform or Play Store
   // tablet), null when mixed/none — drives the Toolbar Devices menu's button
   // label and checkmarks.
@@ -2750,6 +2782,9 @@ export function OpenScreenshotGeneratorLayout() {
   // history or Dexie, so this can never corrupt the user's work.
   const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly, locales }: ExportSelection) => {
     setIsExportDialogOpen(false);
+    // Both exports rasterize the live canvas, so a timeline left running would
+    // bake a mid-animation frame into the output.
+    stopPlayback();
 
     const original = artboardsRef.current;
 
@@ -3082,8 +3117,10 @@ export function OpenScreenshotGeneratorLayout() {
     const info = videoInfos[ab.id];
     return !!info && (info.hasVideo || info.hasMotion);
   });
+  // A board with an explicit preview length (set on the timeline bar) states
+  // its own duration; the rest fall back to what their content adds up to.
   const suggestedVideoDuration = videoBoards.reduce(
-    (max, ab) => Math.max(max, videoInfos[ab.id]?.suggestedDuration ?? 0),
+    (max, ab) => Math.max(max, ab.previewDurationSeconds ?? videoInfos[ab.id]?.suggestedDuration ?? 0),
     0
   ) || 15;
 
@@ -3095,6 +3132,7 @@ export function OpenScreenshotGeneratorLayout() {
   // shares nothing between languages, and Apple caps previews per language
   // anyway. Switch language and run it again to get the next one.
   const handleExportVideo = async (request: VideoExportRequest) => {
+    stopPlayback(); // see handleConfirmExport
     const boards = viewArtboards.filter((ab) => {
       if (request.currentArtboardOnly && ab.id !== activeArtboardId) return false;
       const info = videoInfos[ab.id];
@@ -3154,6 +3192,7 @@ export function OpenScreenshotGeneratorLayout() {
           width: size.width,
           height: size.height,
           rawRecordingOnly: request.rawRecordingOnly,
+          keepOverlays: request.keepOverlays,
           signal: abort.signal,
           onProgress: (frame, total) =>
             setVideoProgress({
@@ -3167,7 +3206,14 @@ export function OpenScreenshotGeneratorLayout() {
         // Indexed in the same list the boards came from: board order is
         // identical in every language, so the numbering is too.
         const orderPrefix = String(viewArtboards.indexOf(board) + 1).padStart(orderPadWidth, '0');
-        const filename = `${orderPrefix}_${board.name.replace(/\s+/g, '_')}_AppPreview.mp4`;
+        // Distinct suffix per mode so the three renders of one board can sit
+        // in the same folder without overwriting each other.
+        const suffix = !request.rawRecordingOnly
+          ? 'AppPreview'
+          : request.keepOverlays
+            ? 'StoreReady_Text'
+            : 'StoreReady';
+        const filename = `${orderPrefix}_${board.name.replace(/\s+/g, '_')}_${suffix}.mp4`;
         const savedPath = exportDir
           ? await saveBlobToPath(blob, exportDir, filename)
           : await saveBlobToDisk(blob, filename);
@@ -5652,6 +5698,7 @@ const generateRandomProjectName = (): string => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
             }}
+            isAppPreviewProject={isAppPreviewProject}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             // The account dialog is where the projects in storage are listed,
@@ -5732,6 +5779,18 @@ const generateRandomProjectName = (): string => {
                 onExportArtboard={handleExportArtboard}
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
+              />
+
+              {/* Full-width App Preview timeline, docked above the tool pill.
+                  Shows itself whenever the selected board has motion. */}
+              <PreviewTimelineBar
+                artboards={viewArtboards}
+                activeArtboardId={activeArtboardId}
+                selectedElementId={selectedElementIdOnActiveArtboard}
+                onSelectElement={(elementId) => handleElementSelectionOnArtboard(elementId)}
+                onUpdateElement={handleUpdateElementById}
+                onReorderElement={handleReorderElementNextTo}
+                onSetDuration={handleSetPreviewDuration}
               />
 
               {/* Floating bar (bottom-left of canvas): the project name, which
@@ -6100,6 +6159,7 @@ const generateRandomProjectName = (): string => {
               onOpenChange={setIsExportDialogOpen}
               videoBoardCount={videoBoards.length}
               suggestedVideoDuration={suggestedVideoDuration}
+              hasRecording={videoBoards.some((ab) => videoInfos[ab.id]?.hasVideo)}
               onExportVideo={handleExportVideo}
               onCancelVideoExport={handleCancelVideoExport}
               onExportStills={(currentArtboardOnly) =>

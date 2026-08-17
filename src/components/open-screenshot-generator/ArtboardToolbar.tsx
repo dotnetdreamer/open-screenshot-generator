@@ -11,6 +11,8 @@ import {
   ShuffleIcon, // Using Shuffle as a general move icon
   Languages,
   DownloadIcon,
+  PlayIcon,
+  PauseIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +26,10 @@ interface ArtboardToolbarProps {
   // Opens the shared export dialog with this board selected and its
   // "Selected artboard only" box already ticked.
   onExport?: (artboardId: string) => void;
+  // App Preview boards only: run the timeline live on the canvas.
+  onTogglePlayback?: () => void;
+  canPlay?: boolean;
+  isPlaying?: boolean;
   canDelete: boolean;
   canMoveLeft: boolean;
   canMoveRight: boolean;
@@ -38,6 +44,9 @@ export function ArtboardToolbar({
   onMove,
   onTranslate,
   onExport,
+  onTogglePlayback,
+  canPlay = false,
+  isPlaying = false,
   canDelete,
   canMoveLeft,
   canMoveRight,
@@ -62,6 +71,25 @@ export function ArtboardToolbar({
           </TooltipTrigger>
           <TooltipContent side="bottom"><p>Add New Artboard After</p></TooltipContent>
         </Tooltip>
+
+        {canPlay && onTogglePlayback && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
+                className={cn("w-7 h-7", isPlaying && "text-primary")}
+                onClick={onTogglePlayback}
+              >
+                {isPlaying ? <PauseIcon className="w-4 h-4" /> : <PlayIcon className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{isPlaying ? 'Pause Preview' : 'Play App Preview Here'}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         <Tooltip>
           <TooltipTrigger asChild>

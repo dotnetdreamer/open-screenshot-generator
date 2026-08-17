@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ClapperboardIcon, ImageIcon } from 'lucide-react';
+import { PREVIEW_DURATION_MAX } from '@/lib/video/timeline';
 import type { VideoExportRequest, VideoExportProgress, VideoSizeMode } from './ExportDialog';
 
 // The export dialog for App Preview VIDEO projects. Deliberately separate from
@@ -45,6 +46,9 @@ interface AppPreviewExportDialogProps {
   // the scope checkbox that narrows both exports to that one board.
   activeArtboardName?: string | null;
   artboardCount?: number;
+  // False when no board carries an actual recording yet: the two store modes
+  // have nothing to render, so they are held back and the styled one leads.
+  hasRecording?: boolean;
   // Set when the dialog is opened from an artboard's own toolbar.
   defaultCurrentArtboardOnly?: boolean;
 }
@@ -61,12 +65,18 @@ export function AppPreviewExportDialog({
   isVideoExporting,
   activeArtboardName,
   artboardCount = 0,
+  hasRecording = false,
   defaultCurrentArtboardOnly = false,
 }: AppPreviewExportDialogProps) {
   const [fps, setFps] = useState<'30' | '60'>('30');
   const [duration, setDuration] = useState<number>(15);
   const [sizeMode, setSizeMode] = useState<VideoSizeMode>('appstore-portrait');
-  const [rawRecordingOnly, setRawRecordingOnly] = useState(false);
+  // 'styled' = the whole artboard. 'store-text' and 'store-raw' are the two
+  // App-Store-legal renders: footage only, with or without the overlays
+  // guideline 2.3.4 explicitly allows.
+  // Defaults to the store-legal cut with your text on it: that is the file
+  // most people are here to upload, and the styled one is a click away.
+  const [mode, setMode] = useState<'styled' | 'store-text' | 'store-raw'>('store-text');
   const [currentArtboardOnly, setCurrentArtboardOnly] = useState(false);
 
   const canScopeToArtboard = !!activeArtboardName;
@@ -74,11 +84,11 @@ export function AppPreviewExportDialog({
 
   useEffect(() => {
     if (isOpen) {
-      setRawRecordingOnly(false);
+      setMode(hasRecording ? 'store-text' : 'styled');
       setDuration(suggestedVideoDuration);
       setCurrentArtboardOnly(defaultCurrentArtboardOnly);
     }
-  }, [isOpen, suggestedVideoDuration, defaultCurrentArtboardOnly]);
+  }, [isOpen, suggestedVideoDuration, defaultCurrentArtboardOnly, hasRecording]);
 
   const durationWarning =
     duration < 15
@@ -105,8 +115,8 @@ export function AppPreviewExportDialog({
         <div className="grid gap-4 py-2">
           <RadioGroup
             className="grid gap-2"
-            value={rawRecordingOnly ? 'raw' : 'styled'}
-            onValueChange={(v) => setRawRecordingOnly(v === 'raw')}
+            value={mode}
+            onValueChange={(v) => setMode(v as typeof mode)}
           >
             <div className="flex items-start space-x-2">
               <RadioGroupItem id="apv-styled" value="styled" className="mt-0.5" />
@@ -115,20 +125,40 @@ export function AppPreviewExportDialog({
                 <p className="text-xs text-muted-foreground">
                   The whole artboard: headlines, phone mockup, gesture hints and
                   animations, with your recording playing inside the screen. For
-                  ads, socials and your website.
+                  ads, socials and your website. App Store Connect rejects this
+                  one, see below.
                 </p>
               </div>
             </div>
             <div className="flex items-start space-x-2">
-              <RadioGroupItem id="apv-raw" value="raw" className="mt-0.5" />
+              <RadioGroupItem id="apv-store-text" value="store-text" className="mt-0.5" disabled={!hasRecording} />
               <div className="grid gap-0.5 leading-none">
-                <Label htmlFor="apv-raw">Store-ready recording (no design)</Label>
+                <Label htmlFor="apv-store-text" className={!hasRecording ? 'text-muted-foreground' : undefined}>
+                  Store-ready with your text
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Your recording full screen at Apple's size, with the artboard's
+                  text and gesture hints animating over it. Guideline 2.3.4 allows
+                  "narration and video or textual overlays to help explain
+                  anything that isn't clear from the video alone", so this stays
+                  uploadable while keeping your words.
+                  {!hasRecording && ' Drop a screen recording into the mockup to use this.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-2">
+              <RadioGroupItem id="apv-raw" value="store-raw" className="mt-0.5" disabled={!hasRecording} />
+              <div className="grid gap-0.5 leading-none">
+                <Label htmlFor="apv-raw" className={!hasRecording ? 'text-muted-foreground' : undefined}>
+                  Store-ready recording (no design)
+                </Label>
                 <p className="text-xs text-muted-foreground">
                   Your recording alone, resized and re-encoded to the exact size
                   Apple accepts, with your trim applied. A phone records at
                   1290×2796, which App Store Connect rejects, so upload this file
-                  instead. Apple does not allow device frames or added text in a
-                  store preview, which is why the design is left out here.
+                  instead. The phone frame and the designed background are left
+                  out of both store modes: a preview may only use video screen
+                  captures of the app itself.
                 </p>
               </div>
             </div>
@@ -193,12 +223,12 @@ export function AppPreviewExportDialog({
                 id="apv-duration"
                 type="number"
                 min={1}
-                max={30}
+                max={PREVIEW_DURATION_MAX}
                 className="h-8 text-xs"
                 value={duration}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
-                  if (!Number.isNaN(v)) setDuration(Math.max(1, Math.min(30, v)));
+                  if (!Number.isNaN(v)) setDuration(Math.max(1, Math.min(PREVIEW_DURATION_MAX, v)));
                 }}
               />
             </div>
@@ -226,13 +256,18 @@ export function AppPreviewExportDialog({
                   fps: parseInt(fps, 10),
                   durationSeconds: duration,
                   sizeMode,
-                  rawRecordingOnly,
+                  rawRecordingOnly: mode !== 'styled',
+                  keepOverlays: mode === 'store-text',
                   currentArtboardOnly: scopedToArtboard,
                 })
               }
             >
               <ClapperboardIcon className="w-4 h-4 mr-1.5" />
-              {rawRecordingOnly ? 'Export Store-Ready Recording' : 'Export Styled Video'}
+              {mode === 'styled'
+                ? 'Export Styled Video'
+                : mode === 'store-text'
+                  ? 'Export Store-Ready With Text'
+                  : 'Export Store-Ready Recording'}
             </Button>
           )}
 

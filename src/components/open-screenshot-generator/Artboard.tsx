@@ -1,7 +1,7 @@
 "use client";
 
 import type React from 'react';
-import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from 'react';
 import { DraggableElement } from './elements/DraggableElement';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
@@ -15,6 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { measureTextHeight } from '@/lib/textFit';
 import { cn } from '@/lib/utils';
+import { artboardTimeline } from '@/lib/video/timeline';
+import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning } from '@/lib/video/playback';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { Input } from '@/components/ui/input';
 import { EditIcon } from 'lucide-react';
@@ -497,16 +499,34 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     return () => window.removeEventListener('resize', measure);
   }, [globalZoom, artboard.size.width, artboard.zoom]);
 
+  // App Preview playback. The timeline is read off the elements as they stand,
+  // so adding an animation or dropping in a recording changes the preview
+  // length straight away.
+  const timeline = useMemo(() => artboardTimeline({ ...artboard, elements }), [artboard, elements]);
+  const isPlaying = usePlaybackRunning(artboard.id);
+
+  // A board that goes away (deleted, project swapped, language switched) must
+  // not leave the clock running against an id nothing renders any more.
+  useEffect(() => {
+    const id = artboard.id;
+    return () => {
+      if (getPlayback().artboardId === id) stopPlayback();
+    };
+  }, [artboard.id]);
+
   return (
     <div className="relative mt-4" suppressHydrationWarning>
       <ArtboardToolbar
         artboardId={artboard.id}
-        onAddNew={() => onAddNewArtboard()} 
+        onAddNew={() => onAddNewArtboard()}
         onDuplicate={onDuplicateArtboard}
         onDelete={onDeleteArtboard}
         onMove={onMoveArtboard}
         onTranslate={onTranslateArtboard}
         onExport={onExportArtboard}
+        onTogglePlayback={() => togglePlayback(artboard.id, timeline.duration)}
+        canPlay={timeline.hasMotion}
+        isPlaying={isPlaying}
         canDelete={canDeleteArtboard}
         canMoveLeft={canMoveArtboardLeft}
         canMoveRight={canMoveArtboardRight}
@@ -545,6 +565,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             left: 0,
             marginTop: '0', // Keep this at 0
             overflow: 'hidden', // Clip to artboard bounds so canvas matches the exported result
+            // NOTE: the board itself always takes pointer events, even mid
+            // playback — locking it made a previewing board impossible to
+            // select. Only its elements go inert while the timeline runs (see
+            // DraggableElement), so the artwork cannot be dragged out from
+            // under a moving animation.
             ...backgroundStyle,
           }}
           onClick={handleArtboardClick}
@@ -570,31 +595,37 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           }}
           suppressHydrationWarning
         >
-          {elements.map(element => (
+          {elements.map(element => {
+            // Selection chrome (outlines, handles, upload overlays) is editing
+            // furniture; while the timeline runs the board shows only what will
+            // be in the exported video.
+            const isElementSelected = selectedElementId === element.id && !isPlaying;
+            return (
             <DraggableElement
               key={element.id}
               element={element}
-              isSelected={selectedElementId === element.id}
+              isSelected={isElementSelected}
               onSelect={handleSelectElement}
               onUpdateElement={handleUpdateElement}
               onDeleteElement={handleDeleteElement}
               artboardZoom={artboard.zoom}
               screenScale={screenScale}
               boundary={{width: artboard.size.width, height: artboard.size.height}}
+              artboardId={artboard.id}
             >
               {element.type === 'text' && (
-                <TextElement 
-                  element={element} 
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                  isSelected={selectedElementId === element.id}
+                <TextElement
+                  element={element}
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
+                  isSelected={isElementSelected}
                   artboardZoom={artboard.zoom * element.scale}
                 />
               )}
               {element.type === 'image' && (
-                <ImageElement 
-                  element={element as ImageElementProps} 
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)} 
-                  isSelected={selectedElementId === element.id}
+                <ImageElement
+                  element={element as ImageElementProps}
+                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
+                  isSelected={isElementSelected}
                 />
               )}
               {element.type === 'shape' && <ShapeElement element={element} />}
@@ -602,31 +633,35 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
                 <DeviceFrameElement
                   element={element}
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={isElementSelected}
                 />
               )}
               {element.type === 'video' && (
                 <VideoElement
                   element={element as VideoElementProps}
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={isElementSelected}
+                  artboardId={artboard.id}
                 />
               )}
               {element.type === 'video-device' && (
                 <VideoDeviceElement
                   element={element as VideoDeviceElementProps}
                   onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={isElementSelected}
+                  artboardId={artboard.id}
                 />
               )}
               {element.type === 'gesture' && (
                 <GestureElement
                   element={element as GestureElementProps}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={isElementSelected}
+                  artboardId={artboard.id}
                 />
               )}
             </DraggableElement>
-          ))}
+            );
+          })}
         </div>
       </div>
       
