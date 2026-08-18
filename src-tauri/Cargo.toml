@@ -1,6 +1,6 @@
 [package]
 name = "open-screenshot-generator"
-version = "0.1.17"
+version = "0.1.18"
 description = "Open Screenshot Generator, a device mockup and app screenshot design studio"
 authors = ["dotnetdreamer <dotnetdreamer@users.noreply.github.com>"]
 license = "MIT"
