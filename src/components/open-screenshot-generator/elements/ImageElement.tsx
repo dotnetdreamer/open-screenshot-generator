@@ -8,6 +8,8 @@ import { UploadCloudIcon, ImageIcon } from 'lucide-react';
 import type { ImageElementProps } from '@/types/artboard';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
+import { useImageSrc } from '@/lib/mediaStore';
+import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 
 interface ImageElementComponentProps {
   element: ImageElementProps;
@@ -31,23 +33,26 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
     });
   }, [element.id, element.skewX, element.skewY, element.perspectiveX, element.perspectiveY, element.matrix3d]);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Uploads land in the Dexie media table and the element keeps only an
+  // asset:<id> reference — inlining the file as a data URL made every undo
+  // snapshot and autosave duplicate it (issue #19).
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setIsLoading(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const imageDataUrl = reader.result as string;
-        onUpdate({
-          imageSrc: imageDataUrl,
-          imageAlt: file.name,
-        });
-        setIsLoading(false);
-      };
-      reader.readAsDataURL(file);
-    }
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+    if (!file) return;
+    setIsLoading(true);
+    try {
+      const asset = await saveImageBlobAsset(file, { name: file.name });
+      onUpdate({
+        imageSrc: asset.ref,
+        imageAlt: file.name,
+      });
+    } catch (error) {
+      console.error('Could not store the uploaded image.', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,6 +104,10 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
 
   const transformStyle = generateTransformStyle();
 
+  // asset:<id> references resolve to a cached object URL; plain URLs pass
+  // through. undefined while a reference is still loading from Dexie.
+  const resolvedSrc = useImageSrc(element.imageSrc);
+
   return (
     <div
       className="w-full h-full relative flex items-center justify-center"
@@ -106,13 +115,13 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
         perspective: '1000px' // Add perspective for 3D transforms
       }}
     >
-      {element.imageSrc ? (
-        <div 
+      {resolvedSrc ? (
+        <div
           className="w-full h-full relative"
           style={transformStyle}
         >
           <Image
-            src={withBasePath(element.imageSrc)}
+            src={withBasePath(resolvedSrc)}
             alt={element.imageAlt || 'Uploaded image'}
             fill
             style={{
@@ -146,6 +155,10 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
             </div>
           )}
         </div>
+      ) : element.imageSrc ? (
+        // A reference still resolving from Dexie: hold the space, no dashed
+        // "empty" state flashing before the image appears.
+        <div className="w-full h-full" />
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground border border-dashed border-muted-foreground/20 rounded-lg">
           <ImageIcon className="w-1/4 h-1/4 opacity-25 mb-2" />

@@ -1,11 +1,31 @@
-// Blob storage for large media (screen recordings) behind the App Preview
-// video feature. Blobs live in the Dexie `media` table; elements store only
-// the row id. This module owns the id -> objectURL cache so every consumer
-// (canvas <video>, the export engine) shares one URL per asset instead of
-// leaking a new objectURL per render.
+// Blob storage for large media behind the App Preview video feature and, since
+// the issue #19 memory work, uploaded images too. Blobs live in the Dexie
+// `media` table; elements store only a reference (video: a `mediaId` field,
+// images: an `asset:<id>` string in their src prop). This module owns the
+// id -> objectURL cache so every consumer (canvas <video>/<img>, the export
+// engine) shares one URL per asset instead of leaking a new objectURL per
+// render.
 
 import { useEffect, useState } from 'react';
 import { db } from '@/database';
+
+/**
+ * Prefix that marks an element image source (imageSrc, screenshotSrc,
+ * customFrameSrc, posterSrc) as a reference into the media table instead of a
+ * URL that carries the bytes itself. Same scheme the MCP upload_asset tool
+ * hands out, so an agent-supplied ref and an editor upload are the same thing.
+ */
+export const ASSET_REF_PREFIX = 'asset:';
+
+/** True for a string that references the media table rather than holding image data. */
+export function isAssetRef(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().startsWith(ASSET_REF_PREFIX);
+}
+
+/** The media-table row id inside an `asset:<id>` reference. */
+export function assetIdFromRef(ref: string): string {
+  return ref.trim().slice(ASSET_REF_PREFIX.length);
+}
 
 export interface MediaAsset {
   id: string;
@@ -130,4 +150,19 @@ export function useMediaUrl(mediaId: string | undefined): string | null | undefi
     };
   }, [mediaId]);
   return url;
+}
+
+/**
+ * React hook: resolve an element image source to something an <img> can show.
+ * `asset:<id>` references become a cached object URL over the Dexie blob;
+ * every other shape (public path, http(s), data:) passes through untouched.
+ * Returns undefined while a reference is still resolving, and also when the
+ * referenced row is gone (cleared site data) — the element then shows its
+ * empty-state placeholder, mirroring how a missing recording renders.
+ */
+export function useImageSrc(src: string | undefined): string | undefined {
+  const assetId = isAssetRef(src) ? assetIdFromRef(src) : undefined;
+  const mediaUrl = useMediaUrl(assetId);
+  if (!assetId) return src;
+  return mediaUrl ?? undefined;
 }

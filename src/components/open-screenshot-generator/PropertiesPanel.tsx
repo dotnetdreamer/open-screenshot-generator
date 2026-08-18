@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { saveMedia } from '@/lib/mediaStore';
+import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
 import { fitTextBox } from '@/lib/textFit';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
@@ -1210,54 +1211,57 @@ export function PropertiesPanel({
     />
   );
 
-  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Uploads land in the Dexie media table and the element keeps only an
+  // asset:<id> reference — inlining the file as a data URL made every undo
+  // snapshot and autosave duplicate it (issue #19).
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && uploadPurpose) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        if (uploadPurpose === 'customFrame' && selectedElement && selectedElement.type === 'device' && (selectedElement as DeviceFrameElementProps).deviceType === 'custom') {
-          onUpdateElement({ customFrameSrc: dataUrl, screenshotSrc: undefined, screenshotRect: undefined, naturalScreenshotHeight: undefined, naturalScreenshotWidth: undefined });
-        } else if (uploadPurpose === 'screenshot') {
-          const img = new window.Image();
-          img.onload = () => {
-            // Predefined devices already carry a padded screen area, so the
-            // screenshot should FILL it (0,0,100,100); insetting reveals the
-            // black screen background as a fake bezel and hides the notch /
-            // punch-hole (black on black). Only the 'custom' frame needs the
-            // 5% inset. Mirrors DeviceFrameElement's own upload handler.
-            const isCustomFrame =
-              selectedElement?.type === 'device' &&
-              (selectedElement as DeviceFrameElementProps).deviceType === 'custom';
-            onUpdateElement({
-              screenshotSrc: dataUrl,
-              naturalScreenshotWidth: img.naturalWidth,
-              naturalScreenshotHeight: img.naturalHeight,
-              screenshotRect: isCustomFrame
-                ? { left: 5, top: 5, width: 90, height: 90 }
-                : { left: 0, top: 0, width: 100, height: 100 },
-            });
-            trackScreenshotUploaded({
-              source: 'properties_panel',
-              deviceType:
-                selectedElement?.type === 'device'
-                  ? (selectedElement as DeviceFrameElementProps).deviceType
-                  : undefined,
-            });
-          };
-          img.src = dataUrl;
-        } else if (uploadPurpose === 'image') {
-          onUpdateElement({
-            imageSrc: dataUrl,
-            imageAlt: file.name,
-          });
-        }
-        setUploadPurpose(null);
-      };
-      reader.readAsDataURL(file);
-    }
+    const purpose = uploadPurpose;
     if (hiddenFileInputRef.current) {
       hiddenFileInputRef.current.value = "";
+    }
+    setUploadPurpose(null);
+    if (!file || !purpose) return;
+    try {
+      const asset = await saveImageBlobAsset(file, { name: file.name });
+      if (purpose === 'customFrame' && selectedElement && selectedElement.type === 'device' && (selectedElement as DeviceFrameElementProps).deviceType === 'custom') {
+        onUpdateElement({ customFrameSrc: asset.ref, screenshotSrc: undefined, screenshotRect: undefined, naturalScreenshotHeight: undefined, naturalScreenshotWidth: undefined });
+      } else if (purpose === 'screenshot') {
+        // Predefined devices already carry a padded screen area, so the
+        // screenshot should FILL it (0,0,100,100); insetting reveals the
+        // black screen background as a fake bezel and hides the notch /
+        // punch-hole (black on black). Only the 'custom' frame needs the
+        // 5% inset. Mirrors DeviceFrameElement's own upload handler.
+        const isCustomFrame =
+          selectedElement?.type === 'device' &&
+          (selectedElement as DeviceFrameElementProps).deviceType === 'custom';
+        onUpdateElement({
+          screenshotSrc: asset.ref,
+          naturalScreenshotWidth: asset.width,
+          naturalScreenshotHeight: asset.height,
+          screenshotRect: isCustomFrame
+            ? { left: 5, top: 5, width: 90, height: 90 }
+            : { left: 0, top: 0, width: 100, height: 100 },
+        });
+        trackScreenshotUploaded({
+          source: 'properties_panel',
+          deviceType:
+            selectedElement?.type === 'device'
+              ? (selectedElement as DeviceFrameElementProps).deviceType
+              : undefined,
+        });
+      } else if (purpose === 'image') {
+        onUpdateElement({
+          imageSrc: asset.ref,
+          imageAlt: file.name,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Could not load image',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
     }
   };
 

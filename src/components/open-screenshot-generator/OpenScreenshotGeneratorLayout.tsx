@@ -7,6 +7,7 @@ import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlT
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { stopPlayback } from '@/lib/video/playback';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
+import { externalizeInlineMedia } from '@/lib/externalizeInlineMedia';
 import {
   SidebarProvider,
   Sidebar,
@@ -1012,16 +1013,29 @@ export function OpenScreenshotGeneratorLayout() {
           if (project && project.projectData) {
             // Projects saved before recordings became their own element type
             // still carry them on the screenshot device — convert on load.
+            // externalizeInlineMedia moves inline base64 screenshots/images into
+            // the Dexie media table (issue #19: inline media multiplied through
+            // every undo snapshot and autosave until WKWebView killed the page).
             // Positions are derived, so re-lay the boards here too: an imported
             // or externally written project can carry stale/identical positions
             // that would stack every board on the same spot.
             // ensureUniqueElementIds repairs boards an older Duplicate Artboard
             // aliased; normalizeLocalization re-stamps the language config and
-            // sweeps overrides whose element or language is gone. Both return
+            // sweeps overrides whose element or language is gone. All return
             // their input by reference when there is nothing to fix.
+            const externalized = await externalizeInlineMedia(migrateVideoDevices(project.projectData));
             const projectData = calculateArtboardPositions(
-              normalizeLocalization(ensureUniqueElementIds(migrateVideoDevices(project.projectData)))
+              normalizeLocalization(ensureUniqueElementIds(externalized))
             );
+            if (externalized !== project.projectData) {
+              // Persist the slimmed row now, so the multi-MB base64 version is
+              // gone even if the user closes without editing. Timestamp kept:
+              // opening is not a modification.
+              await db.projects.put({
+                ...project,
+                projectData: JSON.parse(JSON.stringify(projectData)),
+              });
+            }
             setArtboards(projectData);
             setCurrentProjectName(project.name || 'Untitled Project');
             setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
@@ -2176,17 +2190,22 @@ export function OpenScreenshotGeneratorLayout() {
       el.screenshotObjectFit = el.screenshotObjectFit ?? 'cover';
     }
 
+    // Screenshots handed in as data URLs (the AI build path) and any inline
+    // media a template carries move into the Dexie media table before the row
+    // is written, so the project starts life reference-only (issue #19).
+    const externalizedArtboards = await externalizeInlineMedia(updatedArtboards);
+
     await db.projects.put({
       id: newProjectId,
       name: projectName,
       description: template.description,
       timestamp: new Date(),
-      projectData: JSON.parse(JSON.stringify(updatedArtboards)),
+      projectData: JSON.parse(JSON.stringify(externalizedArtboards)),
     });
 
-    const success = await loadProjectFromData(updatedArtboards, projectName, newProjectId);
+    const success = await loadProjectFromData(externalizedArtboards, projectName, newProjectId);
     if (!success) return null;
-    return { projectId: newProjectId, name: projectName, artboards: updatedArtboards, warnings };
+    return { projectId: newProjectId, name: projectName, artboards: externalizedArtboards, warnings };
   };
 
   // `nameOverride` lets the AI agent name the project itself; the gallery and
@@ -2764,7 +2783,11 @@ export function OpenScreenshotGeneratorLayout() {
         height: artboard.size.height,
         backgroundColor,
         pixelRatio: 1, // Set to 1 to avoid doubling resolution
-        cacheBust: true, // Prevent caching issues
+        // cacheBust appends a query string to every fetched resource, which
+        // breaks blob: object URLs (a busted blob URL is an unregistered one,
+        // net::ERR_FILE_NOT_FOUND) — and uploaded images resolve to blob URLs
+        // since the issue #19 media work. Same rationale as videoExport.ts.
+        cacheBust: false,
         // Editor chrome (selection outlines, resize handles, upload buttons)
         // must never be baked into the exported image
         filter: (node) => {
@@ -4333,10 +4356,14 @@ export function OpenScreenshotGeneratorLayout() {
     try {
       setIsLoadingTemplate(true); // Prevent effect from loading project
       
-      // Apply proper positioning to the artboards
+      // Apply proper positioning to the artboards. externalizeInlineMedia keeps
+      // inline base64 media out of the in-memory state this seeds (issue #19);
+      // it is a no-op pass-through when the data already carries references.
       console.log("Loading project data with positioning for:", projectName);
       const finalArtboards = calculateArtboardPositions(
-        normalizeLocalization(ensureUniqueElementIds(migrateVideoDevices(projectData)))
+        normalizeLocalization(
+          ensureUniqueElementIds(await externalizeInlineMedia(migrateVideoDevices(projectData)))
+        )
       );
       console.log("Final artboards with positions:", finalArtboards.map((ab: ArtboardState) => ({ id: ab.id, position: ab.position })));
       
@@ -4979,7 +5006,9 @@ const generateRandomProjectName = (): string => {
         height: board.size.height,
         backgroundColor,
         pixelRatio: scale,
-        cacheBust: true,
+        // false for the same reason as captureArtboardDataUrl: a cache-busted
+        // blob: object URL 404s, and uploaded images are blob-backed now.
+        cacheBust: false,
         filter: (n) => {
           const el = n as HTMLElement;
           return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ClapperboardIcon } from 'lucide-react';
 import type { VideoDeviceElementProps as VideoDeviceElementType } from '@/types/artboard';
-import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
+import { saveMedia, useMediaUrl, useImageSrc } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
 import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
@@ -37,6 +37,9 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
   // An uploaded recording wins; otherwise the project may carry its own footage
   // (a demo asset path or an embedded data: URL) that survives export/import.
   const screenVideoSrc = element.mediaId ? mediaUrl ?? undefined : element.videoSrc ? withBasePath(element.videoSrc) : undefined;
+  // Template posters are public paths; a migrated project may hold an
+  // asset:<id> reference instead — both come out of this as an <img>-able URL.
+  const posterUrl = useImageSrc(element.posterSrc);
   useTimelineVideo(
     videoRef,
     { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
@@ -125,10 +128,10 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
                 style={{ width: '100%', height: '100%', objectFit: fit, display: 'block' }}
                 draggable={false}
               />
-            ) : element.posterSrc ? (
+            ) : posterUrl ? (
               // Template placeholder until the user drops their recording in.
               <img
-                src={withBasePath(element.posterSrc)}
+                src={withBasePath(posterUrl)}
                 alt="Placeholder app screen"
                 style={{ width: '100%', height: '100%', objectFit: fit, display: 'block' }}
                 draggable={false}

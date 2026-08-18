@@ -27,7 +27,7 @@ import {
 import {
   deleteImageAsset,
   listImageAssets,
-  resolveAssetProps,
+  validateAssetProps,
   saveImageAsset,
   type StoredAsset,
 } from '@/lib/mcp/assetStore';
@@ -819,7 +819,7 @@ async function buildElementSpec(
   const font = resolveFontFamily(own.fontFamily);
   if (font.error) return { ok: false, message: font.error };
   if (font.family) own.fontFamily = font.family;
-  const props = await resolveAssetProps({ ...libraryProps, ...own });
+  const props = await validateAssetProps({ ...libraryProps, ...own });
   return { ok: true, spec: { type, subType, props } };
 }
 
@@ -1212,7 +1212,7 @@ const TOOLS: ToolDef[] = [
       const font = resolveFontFamily(props.fontFamily);
       if (font.error) return { ...textResult(font.error), isError: true };
       if (font.family) props.fontFamily = font.family;
-      const resolved = await resolveAssetProps(props);
+      const resolved = await validateAssetProps(props);
       const ok = api.updateElement({ artboardId: args.artboardId, elementId: args.elementId, props: resolved });
       return ok ? textResult({ ok }) : { ...textResult('No such element.'), isError: true };
     },
@@ -1873,9 +1873,9 @@ const TOOLS: ToolDef[] = [
         if (font.error) return { ...textResult(font.error), isError: true };
         if (font.family) props.fontFamily = font.family;
       }
-      // asset:<id> references expand to bytes here, exactly as they do when an
-      // element is built, so a localized screenshot can be uploaded once.
-      const resolved = await resolveAssetProps(props);
+      // asset:<id> references stay references (renderers resolve them), so a
+      // localized screenshot is uploaded once and never expands into state.
+      const resolved = await validateAssetProps(props);
       return textResult(api.setLocaleOverride({ artboardId, elementId: String(elementId), locale, props: resolved }));
     },
   },

@@ -15,6 +15,7 @@
 //     one file and we avoid pulling in a zip dependency.
 
 import { db } from '@/database';
+import { isAssetRef, assetIdFromRef } from '@/lib/mediaStore';
 import {
   getCustomFontRows,
   installCustomFont,
@@ -33,6 +34,14 @@ import type {
 
 /** Element fields that hold a Dexie media row id, including the legacy one. */
 const MEDIA_ID_KEYS = ['mediaId', 'screenVideoMediaId'] as const;
+
+/**
+ * Element/override fields that can hold an `asset:<id>` image reference
+ * (uploaded screenshots and images since the issue #19 memory work). Their
+ * blobs live in the same media table, so the bundle must carry them exactly
+ * like recordings or a moved project opens with empty frames.
+ */
+const ASSET_SRC_KEYS = ['imageSrc', 'screenshotSrc', 'customFrameSrc', 'posterSrc'] as const;
 
 /**
  * Every locale override row on a board, flattened. The locale overlay stores a
@@ -63,6 +72,10 @@ export function collectMediaIds(projectData: ArtboardState[]): string[] {
     for (const key of MEDIA_ID_KEYS) {
       const value = record[key];
       if (typeof value === 'string' && value) ids.add(value);
+    }
+    for (const key of ASSET_SRC_KEYS) {
+      const value = record[key];
+      if (isAssetRef(value)) ids.add(assetIdFromRef(value));
     }
   };
   for (const artboard of projectData ?? []) {

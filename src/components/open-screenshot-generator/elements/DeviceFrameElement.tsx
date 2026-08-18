@@ -1,6 +1,6 @@
 "use client";
 import type React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, Dev
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
+import { useImageSrc } from '@/lib/mediaStore';
+import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import { trackScreenshotUploaded } from '@/lib/analytics';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 
@@ -36,68 +38,52 @@ interface DeviceFrameElementProps {
 }
 
 export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFrameElementProps) {
-  const [screenshot, setScreenshot] = useState<string | undefined>(element.screenshotSrc);
-  const [customFrame, setCustomFrame] = useState<string | undefined>(element.customFrameSrc);
+  // asset:<id> references resolve to a cached object URL over the Dexie blob;
+  // template/public paths pass through untouched. undefined while resolving.
+  const screenshot = useImageSrc(element.screenshotSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<'customFrame' | 'screenshot' | null>(null);
   // Add a state to track if high-quality rendering should be used
   const [useHighQualityRendering, setUseHighQualityRendering] = useState(true);
 
-  useEffect(() => {
-    setScreenshot(element.screenshotSrc);
-  }, [element.screenshotSrc]);
-
-  useEffect(() => {
-    setCustomFrame(element.customFrameSrc);
-  }, [element.customFrameSrc]);
-
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Uploads land in the Dexie media table and the element keeps only an
+  // asset:<id> reference — inlining the file as a data URL made every undo
+  // snapshot and autosave duplicate it (issue #19).
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && uploadTarget) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newImageSrc = reader.result as string;
-        if (uploadTarget === 'customFrame' && element.deviceType === 'custom') {
-          setCustomFrame(newImageSrc);
-          onUpdate({
-            customFrameSrc: newImageSrc,
-            screenshotSrc: undefined, // Reset screenshot if custom frame changes
-            screenshotRect: undefined,
-            naturalScreenshotWidth: undefined,
-            naturalScreenshotHeight: undefined,
-          });
-        } else if (uploadTarget === 'screenshot') {
-          setScreenshot(newImageSrc);
-          const img = new window.Image();
-          img.onload = () => {
-            const naturalWidth = img.naturalWidth;
-            const naturalHeight = img.naturalHeight;
-
-            let initialRect: { left: number; top: number; width: number; height: number };
-            if (element.deviceType === 'custom') {
-              initialRect = { left: 5, top: 5, width: 90, height: 90 }; // Default for custom
-            } else {
-              // For predefined devices, screenshot should fill the already padded screen area
-              initialRect = { left: 0, top: 0, width: 100, height: 100 };
-            }
-
-            onUpdate({
-              screenshotSrc: newImageSrc,
-              naturalScreenshotWidth: naturalWidth,
-              naturalScreenshotHeight: naturalHeight,
-              screenshotRect: initialRect
-            });
-            trackScreenshotUploaded({ source: 'canvas', deviceType: element.deviceType });
-          };
-          img.src = newImageSrc;
-        }
-        setUploadTarget(null);
-      };
-      reader.readAsDataURL(file);
-    }
+    const target = uploadTarget;
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+    setUploadTarget(null);
+    if (!file || !target) return;
+    try {
+      const asset = await saveImageBlobAsset(file, { name: file.name });
+      if (target === 'customFrame' && element.deviceType === 'custom') {
+        onUpdate({
+          customFrameSrc: asset.ref,
+          screenshotSrc: undefined, // Reset screenshot if custom frame changes
+          screenshotRect: undefined,
+          naturalScreenshotWidth: undefined,
+          naturalScreenshotHeight: undefined,
+        });
+      } else if (target === 'screenshot') {
+        // For predefined devices the screenshot fills the already padded screen
+        // area; only the 'custom' frame gets the 5% inset.
+        const initialRect =
+          element.deviceType === 'custom'
+            ? { left: 5, top: 5, width: 90, height: 90 }
+            : { left: 0, top: 0, width: 100, height: 100 };
+        onUpdate({
+          screenshotSrc: asset.ref,
+          naturalScreenshotWidth: asset.width,
+          naturalScreenshotHeight: asset.height,
+          screenshotRect: initialRect,
+        });
+        trackScreenshotUploaded({ source: 'canvas', deviceType: element.deviceType });
+      }
+    } catch (error) {
+      console.error('Could not store the uploaded image.', error);
     }
   };
 
