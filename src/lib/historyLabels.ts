@@ -44,6 +44,11 @@ export interface HistoryEntry extends HistoryChange {
   timestamp: number;
   /** Full project snapshot this state restores. */
   artboards: ArtboardState[];
+  /**
+   * Serialized size of the snapshot, measured where it is cloned so the byte
+   * cap below never has to re-stringify the stack to enforce itself.
+   */
+  bytes: number;
 }
 
 /** Consecutive same-key pushes closer than this collapse into one state. */
@@ -51,10 +56,19 @@ export const HISTORY_MERGE_WINDOW_MS = 900;
 
 /**
  * How many states to keep. Every state is a deep copy of the whole project,
- * screenshots included, so this is a memory ceiling as much as a UI one
- * (Photoshop defaults to 50).
+ * so this is a memory ceiling as much as a UI one (Photoshop defaults to 50).
  */
 export const HISTORY_LIMIT = 100;
+
+/**
+ * Ceiling on the summed serialized size of every kept state. Media now lives
+ * in the Dexie media table as asset references, so a normal project's whole
+ * stack is a few MB; this cap exists for the outliers that still carry inline
+ * payloads (a migration that failed, an old template's embedded clip), where
+ * 100 full copies walked the macOS webview into its memory kill limit
+ * (issue #19). Oldest states drop first, same as the count cap.
+ */
+export const HISTORY_MAX_BYTES = 64 * 1024 * 1024;
 
 /**
  * Name for a layer, preferring the user's own. Shared with the layers list so

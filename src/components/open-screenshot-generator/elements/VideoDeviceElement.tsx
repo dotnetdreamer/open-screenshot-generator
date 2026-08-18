@@ -43,7 +43,8 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
   useTimelineVideo(
     videoRef,
     { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
-    artboardId
+    artboardId,
+    screenVideoSrc
   );
 
   const effectiveWidth = element.size.width * (element.scale || 1);
@@ -123,7 +124,6 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
                 src={screenVideoSrc}
                 muted
                 loop
-                autoPlay
                 playsInline
                 style={{ width: '100%', height: '100%', objectFit: fit, display: 'block' }}
                 draggable={false}

@@ -27,17 +27,18 @@ export function VideoElement({ element, onUpdate, isSelected, artboardId }: Vide
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const mediaUrl = useMediaUrl(element.mediaId);
-  useTimelineVideo(
-    videoRef,
-    { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
-    artboardId
-  );
   // Media-table blob wins; template/demo assets fall back to a URL source.
   const src = element.mediaId
     ? mediaUrl ?? undefined
     : element.videoSrc
       ? withBasePath(element.videoSrc)
       : undefined;
+  useTimelineVideo(
+    videoRef,
+    { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
+    artboardId,
+    src
+  );
 
   const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -78,7 +79,6 @@ export function VideoElement({ element, onUpdate, isSelected, artboardId }: Vide
             src={src}
             muted
             loop
-            autoPlay
             playsInline
             style={{
               width: '100%',

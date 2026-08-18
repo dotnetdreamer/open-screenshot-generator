@@ -32,6 +32,13 @@ base64 = "0.22"
 # a clean shutdown via recv_timeout so the on/off toggle can stop it instantly.
 tiny_http = "0.12"
 
+# ISO-8601 timestamps for the WebContent-process crash log and the
+# abs_webview_crash_info report (webview_crash.rs). Already in the dependency
+# tree via tauri's cookie handling, so this adds no new crate, and the crash
+# hook only exists on macOS/iOS, so other targets do not build it at all.
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+time = { version = "0.3", features = ["formatting"] }
+
 # Screenshot capture of the assistant windows for the operation timeline.
 # Windows only: WebView2's CapturePreview renders even while the window is
 # hidden, so a background run is still traceable. Versions must match the ones

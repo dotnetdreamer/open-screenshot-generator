@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -113,6 +113,20 @@ const MAC_BODY_COLORS: Record<Device3DFrameColor, number> = {
 };
 
 const CAMERA_FOV = 20;
+
+// Live Device3DRenderer instances. Every mounted device holds a real WebGL
+// context, and browsers cap ~16 live contexts (the oldest is silently evicted),
+// so the pixel-ratio budget scales down as more devices mount.
+const liveInstances = new Set<symbol>();
+let warnedContextPressure = false;
+
+// Per-device pixel-ratio ceiling for the current instance count: the usual 3
+// for a handful of devices, tighter as a template mounts many at once so total
+// GPU buffer cost stays roughly bounded.
+function pixelRatioCap(): number {
+  const count = liveInstances.size;
+  return count <= 4 ? 3 : count <= 8 ? 2 : 1.5;
+}
 
 // Pose presets: yaw spins the device toward its exposed rail (mirrored for
 // side 'right'), pitch reclines it back toward the camera so it reads as
@@ -301,12 +315,27 @@ function makeDeckTexture(bodyColor: number): THREE.CanvasTexture {
  */
 export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 'cover', pose = 'classic', frameColor = 'titanium' }: Device3DRendererProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  // Bumped when the browser restores an evicted WebGL context; re-runs the
+  // effect below so the whole renderer/scene is rebuilt from scratch.
+  const [rebuildTick, setRebuildTick] = useState(0);
 
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
+    // Constructing the renderer can throw under GPU pressure ("Error creating
+    // WebGL context"), and a throw skips the effect cleanup entirely, so the
+    // instance registers in the live count only once construction succeeded;
+    // registering first would permanently inflate the count and pin every
+    // healthy device's pixel-ratio cap at the lowest tier.
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    const instanceId = Symbol('device3d');
+    liveInstances.add(instanceId);
+    if (!warnedContextPressure && liveInstances.size > 12) {
+      warnedContextPressure = true;
+      console.warn(`Device3DRenderer: ${liveInstances.size} live WebGL contexts. Browsers cap around 16 and silently evict the oldest, which blanks that device until its context is restored.`);
+    }
+
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     const canvas = renderer.domElement;
@@ -314,6 +343,17 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     canvas.style.height = '100%';
     canvas.style.display = 'block';
     mount.appendChild(canvas);
+
+    // When the browser evicts this context ("Oldest context will be lost"),
+    // preventDefault marks the restore as wanted (three.js also does this in
+    // its own internal handler; keeping ours makes the contract explicit).
+    const handleContextLost = (e: Event) => e.preventDefault();
+    // three.js turns render() into a no-op while the context is lost and does
+    // NOT repaint after restore, so rebuild the renderer/scene outright: bump
+    // the tick, which re-runs this effect (full cleanup + fresh build).
+    const handleContextRestored = () => setRebuildTick((t) => t + 1);
+    canvas.addEventListener('webglcontextlost', handleContextLost);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored);
 
     const scene = new THREE.Scene();
     const pmrem = new THREE.PMREMGenerator(renderer);
@@ -853,7 +893,10 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       // layout size regardless of the current zoom. This also bounds memory to
       // roughly what is visible on screen.
       const target = cssScale * (window.devicePixelRatio || 1) * 2;
-      return Math.min(Math.max(target, 1), 3);
+      // Cap by the live instance count so 8+ devices can't each claim a 3x
+      // buffer; the 800ms scale watch re-reads this, so existing devices adopt
+      // a changed cap on their next poll.
+      return Math.min(Math.max(target, 1), pixelRatioCap());
     };
 
     // The expensive path: reallocating the drawing buffer and re-extruding the
@@ -945,6 +988,11 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
 
     return () => {
       disposed = true;
+      liveInstances.delete(instanceId);
+      // Detach before forceContextLoss below fires 'webglcontextlost' on this
+      // very canvas — a teardown loss must not schedule a rebuild.
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored);
       window.removeEventListener('artboard:export', handleExportPhase);
       window.clearInterval(scaleWatch);
       window.clearTimeout(resizeTimer);
@@ -965,7 +1013,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
       renderer.forceContextLoss();
       mount.removeChild(canvas);
     };
-  }, [deviceType, side, screenshotSrc, objectFit, pose, frameColor]);
+  }, [deviceType, side, screenshotSrc, objectFit, pose, frameColor, rebuildTick]);
 
   return <div ref={mountRef} style={{ width: '100%', height: '100%', pointerEvents: 'none' }} />;
 }

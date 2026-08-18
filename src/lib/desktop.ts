@@ -183,6 +183,23 @@ export async function signalAppReady(): Promise<void> {
   }
 }
 
+/**
+ * One-shot: the timestamp of the last time the OS killed and reloaded the
+ * editor's web content (macOS terminates the WKWebView process at its memory
+ * ceiling; the shell reloads it and records the moment, issue #19). Returns
+ * null on the web, on older shells without the command, and when there was
+ * no termination since the last ask.
+ */
+export async function fetchWebviewCrashInfo(): Promise<string | null> {
+  if (!isTauri()) return null;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return (await invoke<string | null>('abs_webview_crash_info')) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Open a URL in the system browser (Tauri) or a new tab (web). */
 export async function openExternal(url: string): Promise<void> {
   if (isTauri()) {

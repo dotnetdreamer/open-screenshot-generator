@@ -51,6 +51,17 @@ fn window_label(provider: &str) -> String {
     format!("assistant-{provider}")
 }
 
+/// Whether a window label belongs to one of the assistant provider windows.
+/// The macOS web-content-process crash handler (webview_crash.rs) uses this to
+/// tell the hidden background windows, which it destroys on a renderer crash,
+/// apart from the app's own UI windows, which it reloads. Exact match against
+/// the provider list rather than a prefix test, so a future app window whose
+/// label merely starts with "assistant-" cannot be destroyed by accident.
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub fn is_assistant_window(label: &str) -> bool {
+    PROVIDERS.iter().any(|(provider, _)| window_label(provider) == label)
+}
+
 #[derive(Clone)]
 struct PendingJob {
     request_id: String,
@@ -232,9 +243,10 @@ pub async fn abs_web_close<R: Runtime>(app: AppHandle<R>, provider: String) {
 }
 
 /// Forget every stored provider login so the next run starts from a clean
-/// sign-in. Deletes the profile's cookie jar (where the providers keep their
-/// sessions) and closes the assistant windows so no stale in-memory session
-/// lingers. Cookies only: the app's own saved projects and run history
+/// sign-in. Closes the assistant windows so no stale in-memory session
+/// lingers, then deletes the profile's cookie jar (where the providers keep
+/// their sessions; Windows only, elsewhere closing the windows is all we can
+/// do). Cookies only: the app's own saved projects and run history
 /// (IndexedDB / localStorage) are left untouched, since those are not cookies.
 #[tauri::command]
 pub async fn abs_web_clear_sessions<R: Runtime>(
@@ -262,17 +274,25 @@ pub async fn abs_web_clear_sessions<R: Runtime>(
         );
     }
 
-    // Cookies are shared across every webview in the app's profile, so clearing
-    // them from the main window signs the user out of all providers at once.
-    clear_cookies(&app).await?;
-
-    // Close the provider windows so a page still holding an in-memory session
-    // does not linger; the next run rebuilds them from the now-empty cookie jar.
+    // Close the provider windows first, so a page still holding an in-memory
+    // session does not linger; the next run rebuilds them from the cookie jar.
+    // Order matters: this used to run after the cookie step, whose `?` made it
+    // unreachable on macOS/Linux (clear_cookies errors there by design), so
+    // "clear sessions" closed nothing at all on those platforms.
     for (provider, _) in PROVIDERS {
         if let Some(window) = app.get_webview_window(&window_label(provider)) {
             let _ = window.close();
         }
     }
+
+    // Cookies are shared across every webview in the app's profile, so clearing
+    // them from the main window signs the user out of all providers at once.
+    // The error still propagates: on platforms where cookies cannot be wiped
+    // (non-Windows, see clear_cookies) the stored logins genuinely survive, and
+    // swallowing that would let the frontend toast "signed out of every
+    // assistant" while the next run comes back signed in. Windows closed above
+    // stay closed either way.
+    clear_cookies(&app).await?;
     Ok(())
 }
 

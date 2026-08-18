@@ -215,31 +215,26 @@ async function captureSprite(
   // for every element without those props, so existing projects rasterize
   // exactly as before.
   const pad = spriteOverspill(el);
-  const prev = {
-    left: node.style.left,
-    top: node.style.top,
-    transform: node.style.transform,
-  };
-  node.style.left = `${pad}px`;
-  node.style.top = `${pad}px`;
-  node.style.transform = 'none';
-  try {
-    const dataUrl = await toPng(node, {
-      width: Math.max(1, Math.round(boxW + pad * 2)),
-      height: Math.max(1, Math.round(boxH + pad * 2)),
-      pixelRatio: 1,
-      // cacheBust would append a unique query to every fetched resource,
-      // defeating the browser cache across dozens of captures.
-      cacheBust: false,
-      fontEmbedCSS: spriteFontEmbedCSS,
-      filter: extraFilter ? (n: Node) => SPRITE_FILTER(n) && extraFilter(n) : SPRITE_FILTER,
-    });
-    return { image: await dataUrlToImage(dataUrl), pad };
-  } finally {
-    node.style.left = prev.left;
-    node.style.top = prev.top;
-    node.style.transform = prev.transform;
-  }
+  // Repositioning goes through toPng's `style` option, which is applied to the
+  // CLONE. The live node used to be moved to the pad origin with its transform
+  // stripped for the whole async capture, which visibly displaced the element
+  // on the canvas per sprite and left it misplaced if a capture threw.
+  const dataUrl = await toPng(node, {
+    width: Math.max(1, Math.round(boxW + pad * 2)),
+    height: Math.max(1, Math.round(boxH + pad * 2)),
+    pixelRatio: 1,
+    // cacheBust would append a unique query to every fetched resource,
+    // defeating the browser cache across dozens of captures.
+    cacheBust: false,
+    fontEmbedCSS: spriteFontEmbedCSS,
+    filter: extraFilter ? (n: Node) => SPRITE_FILTER(n) && extraFilter(n) : SPRITE_FILTER,
+    style: {
+      left: `${pad}px`,
+      top: `${pad}px`,
+      transform: 'none',
+    },
+  });
+  return { image: await dataUrlToImage(dataUrl), pad };
 }
 
 /**

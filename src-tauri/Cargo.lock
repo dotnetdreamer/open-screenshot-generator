@@ -2442,6 +2442,7 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-http",
  "tauri-plugin-opener",
+ "time",
  "tiny_http",
  "webview2-com",
  "windows",

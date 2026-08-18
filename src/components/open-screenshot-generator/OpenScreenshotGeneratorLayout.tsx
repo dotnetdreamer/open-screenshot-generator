@@ -3,7 +3,7 @@ import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useR
 import { toPng } from 'html-to-image';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
-import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal } from '@/lib/desktop';
+import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { stopPlayback } from '@/lib/video/playback';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
@@ -161,6 +161,7 @@ import {
   getElementDisplayName,
   namedChange,
   HISTORY_LIMIT,
+  HISTORY_MAX_BYTES,
   HISTORY_MERGE_WINDOW_MS,
   type HistoryChange,
   type HistoryEntry,
@@ -232,14 +233,28 @@ let historyEntrySeq = 0;
 
 // One history state: the change's name plus the snapshot it restores. The
 // snapshot is deep-copied here so later edits to the live artboards can never
-// reach back into a recorded state.
+// reach back into a recorded state. One stringify serves both the copy and the
+// entry's byte size, which is what the HISTORY_MAX_BYTES cap trims against.
 function makeHistoryEntry(artboards: ArtboardState[], change: HistoryChange): HistoryEntry {
+  const json = JSON.stringify(artboards);
   return {
     ...change,
     id: `h${++historyEntrySeq}`,
     timestamp: Date.now(),
-    artboards: JSON.parse(JSON.stringify(artboards)),
+    artboards: JSON.parse(json),
+    bytes: json.length,
   };
+}
+
+// The recent-projects list, metadata only. Loading full rows parked every
+// saved project's artboards (screenshots included, pre-migration) in React
+// state for the whole session (issue #19). The list renders id, name and
+// timestamp; the one consumer that needs a project's artboards (duplicate)
+// does a point read by id. projectData is stubbed empty rather than retyped
+// so every existing Project-typed consumer keeps compiling.
+async function fetchRecentProjectMetas(): Promise<Project[]> {
+  const rows = await db.projects.orderBy('timestamp').reverse().toArray();
+  return rows.map((row) => ({ ...row, projectData: [] }));
 }
 
 // Update the function with reduced margin
@@ -927,8 +942,7 @@ export function OpenScreenshotGeneratorLayout() {
   useEffect(() => {
     const fetchRecentProjects = async () => {
       try {
-        const projects = await db.projects.orderBy("timestamp").reverse().toArray();
-        setRecentProjects(projects);
+        setRecentProjects(await fetchRecentProjectMetas());
       } catch (error) {
         console.error("Error fetching recent projects:", error);
         // Optionally show a toast or handle the error gracefully
@@ -962,6 +976,28 @@ export function OpenScreenshotGeneratorLayout() {
     window.addEventListener('beforeunload', confirmLeave);
     return () => window.removeEventListener('beforeunload', confirmLeave);
   }, [artboards.length]);
+
+  // The macOS shell records when the OS killed and reloaded the editor's web
+  // content (memory ceiling, issue #19). Surfacing it turns a silent mystery
+  // reload into something the user can report; autosave means at most the
+  // last half-second of edits was at risk.
+  useEffect(() => {
+    if (!isTauri()) return;
+    let cancelled = false;
+    fetchWebviewCrashInfo().then((crashedAt) => {
+      if (cancelled || !crashedAt) return;
+      toast({
+        title: "The editor was reloaded",
+        description: "It ran out of memory and the app recovered it. Your last saved work is intact.",
+        variant: "destructive",
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // On mount only; the command is one-shot on the Rust side.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // --- 1. On mount, check for projectId in URL and set as activeProjectId ---
   useEffect(() => {
@@ -1009,6 +1045,9 @@ export function OpenScreenshotGeneratorLayout() {
       if (activeProjectId && !isLoadingTemplate) {
         setLoadPhase('project');
         try {
+          // Commit any debounced edits of the outgoing project before the
+          // switch, so nothing of it is lost or written after we move on.
+          flushProjectSave();
           const project = await db.projects.get(activeProjectId);
           if (project && project.projectData) {
             // Projects saved before recordings became their own element type
@@ -1091,9 +1130,18 @@ export function OpenScreenshotGeneratorLayout() {
     let next = canMerge
       ? [...trimmed.slice(0, -1), { ...entry, id: previous.id }]
       : [...trimmed, entry];
-    // Snapshots carry whole projects, screenshots included, so the stack is
-    // capped from the oldest end.
+    // Snapshots carry whole projects, so the stack is capped from the oldest
+    // end: by count, and by summed bytes for projects that still carry large
+    // inline payloads (issue #19; media normally lives out-of-state now).
     if (next.length > HISTORY_LIMIT) next = next.slice(next.length - HISTORY_LIMIT);
+    let totalBytes = 0;
+    for (const kept of next) totalBytes += kept.bytes;
+    let drop = 0;
+    while (drop < next.length - 1 && totalBytes > HISTORY_MAX_BYTES) {
+      totalBytes -= next[drop].bytes;
+      drop++;
+    }
+    if (drop > 0) next = next.slice(drop);
 
     setHistory(next);
     setHistoryIndex(next.length - 1);
@@ -1108,8 +1156,7 @@ export function OpenScreenshotGeneratorLayout() {
         description: "The project has been removed from your recent projects."
       });
       // Update the recentProjects list
-      const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
-      setRecentProjects(updatedProjects);
+      setRecentProjects(await fetchRecentProjectMetas());
     } catch (error) {
       console.error("Error deleting project:", error);
       toast({ 
@@ -1139,14 +1186,31 @@ export function OpenScreenshotGeneratorLayout() {
     if (duplicatingProjectId) return;
     setDuplicatingProjectId(project.id);
     try {
-      const source: Project =
-        project.id === activeProjectId
-          ? {
-              ...project,
-              name: currentProjectName,
-              projectData: JSON.parse(JSON.stringify(artboardsRef.current)),
-            }
-          : project;
+      flushProjectSave();
+      // The recent-projects list holds metadata only (issue #19), so a copy of
+      // a non-open project reads the full row here, on demand. A missing row
+      // must fail loudly: the list entry is a stub, and duplicating it would
+      // produce an empty copy that looks like the design was destroyed.
+      let source: Project;
+      if (project.id === activeProjectId) {
+        source = {
+          ...project,
+          name: currentProjectName,
+          projectData: JSON.parse(JSON.stringify(artboardsRef.current)),
+        };
+      } else {
+        const stored = await db.projects.get(project.id);
+        if (!stored) {
+          toast({
+            title: "Project not found",
+            description: "That project is no longer in this browser. The list has been refreshed.",
+            variant: "destructive",
+          });
+          setRecentProjects(await fetchRecentProjectMetas());
+          return;
+        }
+        source = stored;
+      }
       const bundle = await serializeProject(source);
       // Matching the SaveToAccountDialog convention, which names its copy the
       // same way.
@@ -1154,7 +1218,7 @@ export function OpenScreenshotGeneratorLayout() {
         projectId: `project_${Date.now()}`,
         name: `${source.name} copy`,
       });
-      setRecentProjects(await db.projects.orderBy('timestamp').reverse().toArray());
+      setRecentProjects(await fetchRecentProjectMetas());
       const opened = await loadProjectFromData(copy.projectData, copy.name, copy.id);
       if (!opened) {
         toast({
@@ -1177,6 +1241,73 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  // Debounced project save (issue #19). A slider can commit per pixel, and each
+  // commit used to serialize the whole project and rewrite the full IndexedDB
+  // row on the spot: hundreds of stringify+structured-clone passes per gesture.
+  // Commits now only schedule; the row is written once the edits go quiet.
+  // The scheduled row captures id/name/artboards at schedule time, so a save
+  // that fires after a project switch still writes the right data to the right
+  // row. Flushed early on unload and before a project switch or duplicate.
+  const pendingSaveRef = useRef<{
+    timer: ReturnType<typeof setTimeout>;
+    id: string;
+    name: string;
+    artboards: ArtboardState[];
+  } | null>(null);
+  // Returns the put's promise so close paths can wait for durability; readers
+  // that follow up with db.projects.get need not await it, since IndexedDB
+  // runs overlapping-scope transactions in creation order.
+  const flushProjectSave = useCallback((): Promise<unknown> => {
+    const pending = pendingSaveRef.current;
+    if (!pending) return Promise.resolve();
+    pendingSaveRef.current = null;
+    clearTimeout(pending.timer);
+    return db.projects.put({
+      id: pending.id,
+      name: pending.name,
+      timestamp: new Date(),
+      projectData: JSON.parse(JSON.stringify(pending.artboards)),
+    }).catch((error) => {
+      console.error("Error saving project to Dexie:", error);
+    });
+  }, []);
+  const scheduleProjectSave = useCallback((id: string, name: string, artboardsToSave: ArtboardState[]) => {
+    if (pendingSaveRef.current) clearTimeout(pendingSaveRef.current.timer);
+    const timer = setTimeout(() => flushProjectSave(), 600);
+    pendingSaveRef.current = { timer, id, name, artboards: artboardsToSave };
+  }, [flushProjectSave]);
+  // Unload must not lose the last half-second of edits. `pagehide` covers the
+  // web; a Tauri window close destroys the webview WITHOUT any unload events,
+  // so the desktop shell needs the window's close-requested hook, where the
+  // put can actually be awaited before the close proceeds.
+  useEffect(() => {
+    const flush = () => flushProjectSave();
+    window.addEventListener('pagehide', flush);
+    let disposed = false;
+    let unlistenClose: (() => void) | undefined;
+    if (isTauri()) {
+      (async () => {
+        try {
+          const { getCurrentWindow } = await import('@tauri-apps/api/window');
+          const unlisten = await getCurrentWindow().onCloseRequested(async () => {
+            // Not prevented: the close proceeds after the write settles.
+            await flushProjectSave();
+          });
+          if (disposed) unlisten();
+          else unlistenClose = unlisten;
+        } catch (error) {
+          console.error('Could not hook the window close for the final save.', error);
+        }
+      })();
+    }
+    return () => {
+      disposed = true;
+      window.removeEventListener('pagehide', flush);
+      unlistenClose?.();
+      flush();
+    };
+  }, [flushProjectSave]);
+
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
     console.log("handleArtboardsUpdate called", activeProjectId);
     // An export has a converted or re-projected list on the canvas. A commit
@@ -1188,7 +1319,7 @@ export function OpenScreenshotGeneratorLayout() {
     }
     const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
     setArtboards(repositionedArtboards); // Update React state first
-  
+
     const saveProject = async () => {
       let projectIdToSave = activeProjectId;
       if (!projectIdToSave) {
@@ -1197,16 +1328,8 @@ export function OpenScreenshotGeneratorLayout() {
         // Set a random project name for new projects
         setCurrentProjectName(generateRandomProjectName());
       }
-  
-      // Save to Dexie database
-      db.projects.put({
-        id: projectIdToSave,
-        name: currentProjectName,
-        timestamp: new Date(),
-        projectData: JSON.parse(JSON.stringify(repositionedArtboards)), // Save the full state
-      }).catch(error => {
-        console.error("Error saving project to Dexie:", error);
-      });
+
+      scheduleProjectSave(projectIdToSave, currentProjectName, repositionedArtboards);
 
       if (activeProjectId !== projectIdToSave) {
         setActiveProjectId(projectIdToSave); // Set the new active project ID if it was just created
@@ -1864,8 +1987,10 @@ export function OpenScreenshotGeneratorLayout() {
       const trimmedName = newName.trim();
       setCurrentProjectName(trimmedName);
       
-      // Update the project in the database
+      // Update the project in the database. Flush any debounced save first:
+      // a pending row still carries the old name and would win the race.
       try {
+        flushProjectSave();
         const project = await db.projects.get(activeProjectId);
         if (project) {
           await db.projects.put({
@@ -2331,7 +2456,9 @@ export function OpenScreenshotGeneratorLayout() {
     }
 
     try {
-      // Fetch the current project from IndexedDB
+      // Fetch the current project from IndexedDB. The debounced save may still
+      // hold the last edits; flush so the export never omits them.
+      flushProjectSave();
       const project = await db.projects.get(activeProjectId);
       
       if (!project) {
@@ -2408,6 +2535,8 @@ export function OpenScreenshotGeneratorLayout() {
     if (!activeProjectId) return;
     setIsSavingToAccount(true);
     try {
+      // saveProjectToAccount reads the stored row; commit pending edits first.
+      flushProjectSave();
       const saved = await saveProjectToAccount(activeProjectId, {
         saveAsCopy: copyName ? { id: newCloudProjectId(), name: copyName } : undefined,
       });
@@ -2538,6 +2667,8 @@ export function OpenScreenshotGeneratorLayout() {
     if (!activeProjectId) return false;
     setIsSavingToCloud(true);
     try {
+      // saveProjectToCloud reads the stored row; commit pending edits first.
+      flushProjectSave();
       const { project, failedAssets } = await saveProjectToCloud(activeProjectId, { force });
       setCloudConflict(null);
       await refreshCloudLink();
@@ -2608,6 +2739,8 @@ export function OpenScreenshotGeneratorLayout() {
 
     setIsSavingToCloud(true);
     try {
+      // saveProjectToCloud reads the stored row; commit pending edits first.
+      flushProjectSave();
       const saved = await saveProjectToCloud(activeProjectId, { force: !!existing });
       const result = await setCloudProjectShared(saved.project.id, activeProjectId, true);
       await refreshCloudLink();
@@ -2739,9 +2872,6 @@ export function OpenScreenshotGeneratorLayout() {
   // and the store upload so both produce identical PNGs, and so the
   // filter/background/unscale recipe only exists once. Returns null when the
   // board is not currently mounted (nothing off-DOM can be captured).
-  //
-  // The style restore is in a finally on purpose: a throwing toPng used to
-  // leave the artboard stuck at scale(1) on the canvas.
   const captureArtboardDataUrl = async (artboard: ArtboardState): Promise<string | null> => {
     const artboardElement = document.querySelector(
       `[data-artboard-dom-id="${artboard.id}"]`
@@ -2757,54 +2887,47 @@ export function OpenScreenshotGeneratorLayout() {
       return null;
     }
 
-    const originalTransform = artboardElement.style.transform;
-    const originalWidth = artboardElement.style.width;
-    const originalHeight = artboardElement.style.height;
-
-    try {
-      // Remove scale transform for export
-      artboardElement.style.transform = 'scale(1)';
-
-      // toPng does not wait for webfonts. Exporting straight after switching to
-      // a language in another script used to rasterize the fallback face with
-      // no error at all, which is invisible until the store rejects it.
-      if (typeof document !== 'undefined' && document.fonts?.ready) {
-        try {
-          await document.fonts.ready;
-        } catch {
-          // A browser that cannot report font loading just captures what it has.
-        }
+    // toPng does not wait for webfonts. Exporting straight after switching to
+    // a language in another script used to rasterize the fallback face with
+    // no error at all, which is invisible until the store rejects it.
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        // A browser that cannot report font loading just captures what it has.
       }
-
-      // Use html-to-image to capture the artboard at exact specified dimensions
-      const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-      return await toPng(artboardElement, {
-        width: artboard.size.width,
-        height: artboard.size.height,
-        backgroundColor,
-        pixelRatio: 1, // Set to 1 to avoid doubling resolution
-        // cacheBust appends a query string to every fetched resource, which
-        // breaks blob: object URLs (a busted blob URL is an unregistered one,
-        // net::ERR_FILE_NOT_FOUND) — and uploaded images resolve to blob URLs
-        // since the issue #19 media work. Same rationale as videoExport.ts.
-        cacheBust: false,
-        // Editor chrome (selection outlines, resize handles, upload buttons)
-        // must never be baked into the exported image
-        filter: (node) => {
-          const el = node as HTMLElement;
-          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-        },
-        style: {
-          width: `${artboard.size.width}px`,
-          height: `${artboard.size.height}px`,
-          backgroundImage,
-        }
-      });
-    } finally {
-      artboardElement.style.transform = originalTransform;
-      artboardElement.style.width = originalWidth;
-      artboardElement.style.height = originalHeight;
     }
+
+    // Use html-to-image to capture the artboard at exact specified dimensions.
+    // The unscale goes through the `style` option, which html-to-image applies
+    // to its CLONE: the live node used to be blown up to scale(1) in place for
+    // the whole async capture, briefly overlapping neighboring boards on
+    // screen, which is the background-bleed half of the issue #19 glitch.
+    const { backgroundColor, backgroundImage } = artboardBackground(artboard);
+    return await toPng(artboardElement, {
+      width: artboard.size.width,
+      height: artboard.size.height,
+      backgroundColor,
+      pixelRatio: 1, // Set to 1 to avoid doubling resolution
+      // cacheBust appends a query string to every fetched resource, which
+      // breaks blob: object URLs (a busted blob URL is an unregistered one,
+      // net::ERR_FILE_NOT_FOUND) — and uploaded images resolve to blob URLs
+      // since the issue #19 media work. Same rationale as videoExport.ts.
+      cacheBust: false,
+      // Editor chrome (selection outlines, resize handles, upload buttons)
+      // must never be baked into the exported image
+      filter: (node) => {
+        const el = node as HTMLElement;
+        return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+      },
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left',
+        width: `${artboard.size.width}px`,
+        height: `${artboard.size.height}px`,
+        backgroundImage,
+      }
+    });
   };
 
   const captureArtboards = async (
@@ -3407,16 +3530,11 @@ export function OpenScreenshotGeneratorLayout() {
     setSelectedElementIdOnActiveArtboard(null);
 
     if (activeProjectId) {
-      db.projects.put({
-        id: activeProjectId,
-        name: currentProjectName,
-        timestamp: new Date(),
-        projectData: JSON.parse(JSON.stringify(state)),
-      }).catch(error => {
-        console.error("Error saving restored history state to Dexie:", error);
-      });
+      // Through the same debounce as ordinary commits: rapid undo-undo-redo
+      // used to write three full rows back to back.
+      scheduleProjectSave(activeProjectId, currentProjectName, state);
     }
-  }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName]);
+  }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName, scheduleProjectSave]);
 
   const handleUndo = useCallback(() => {
     applyHistoryIndex(historyIndex - 1);
@@ -4355,6 +4473,8 @@ export function OpenScreenshotGeneratorLayout() {
   const loadProjectFromData = async (projectData: ArtboardState[], projectName: string, projectId: string) => {
     try {
       setIsLoadingTemplate(true); // Prevent effect from loading project
+      // The outgoing project may still have a debounced save pending.
+      flushProjectSave();
       
       // Apply proper positioning to the artboards. externalizeInlineMedia keeps
       // inline base64 media out of the in-memory state this seeds (issue #19);
@@ -4382,8 +4502,7 @@ export function OpenScreenshotGeneratorLayout() {
       setIsTemplateSelectorOpen(false);
 
       // Update recent projects list
-      const updatedProjects = await db.projects.orderBy("timestamp").reverse().toArray();
-      setRecentProjects(updatedProjects);
+      setRecentProjects(await fetchRecentProjectMetas());
 
       // Update URL with new project ID
       if (typeof window !== "undefined") {
@@ -4996,30 +5115,29 @@ const generateRandomProjectName = (): string => {
     if (!node) throw new Error('That artboard is not on screen; open the project in the app first.');
     const scale = Math.min(4, Math.max(0.1, options.scale ?? 1));
 
-    const original = { transform: node.style.transform, width: node.style.width, height: node.style.height };
-    node.style.transform = 'scale(1)';
-    let dataUrl: string;
-    try {
-      const { backgroundColor, backgroundImage } = artboardBackground(board);
-      dataUrl = await toPng(node, {
-        width: board.size.width,
-        height: board.size.height,
-        backgroundColor,
-        pixelRatio: scale,
-        // false for the same reason as captureArtboardDataUrl: a cache-busted
-        // blob: object URL 404s, and uploaded images are blob-backed now.
-        cacheBust: false,
-        filter: (n) => {
-          const el = n as HTMLElement;
-          return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
-        },
-        style: { width: `${board.size.width}px`, height: `${board.size.height}px`, backgroundImage },
-      });
-    } finally {
-      node.style.transform = original.transform;
-      node.style.width = original.width;
-      node.style.height = original.height;
-    }
+    // Unscale via the clone (the `style` option), never the live node: see
+    // captureArtboardDataUrl for the on-screen overlap this used to cause.
+    const { backgroundColor, backgroundImage } = artboardBackground(board);
+    const dataUrl = await toPng(node, {
+      width: board.size.width,
+      height: board.size.height,
+      backgroundColor,
+      pixelRatio: scale,
+      // false for the same reason as captureArtboardDataUrl: a cache-busted
+      // blob: object URL 404s, and uploaded images are blob-backed now.
+      cacheBust: false,
+      filter: (n) => {
+        const el = n as HTMLElement;
+        return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+      },
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left',
+        width: `${board.size.width}px`,
+        height: `${board.size.height}px`,
+        backgroundImage,
+      },
+    });
 
     const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
     const result: McpExportResult = {
@@ -5639,6 +5757,9 @@ const generateRandomProjectName = (): string => {
       }));
     },
     openProject: async (projectId) => {
+      // Reopening the already-open project must not resurrect a pre-edit row:
+      // commit any pending debounced save before the read.
+      flushProjectSave();
       const project = await db.projects.get(projectId);
       if (!project || !project.projectData) return null;
       const name = project.name || 'Untitled Project';
