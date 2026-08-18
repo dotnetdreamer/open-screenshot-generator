@@ -10,7 +10,8 @@
 // - Output is video-only (no audio track). App Store previews are watched
 //   muted ~98% of the time and Apple accepts silent previews.
 
-import { toPng, getFontEmbedCSS } from 'html-to-image';
+import { getFontEmbedCSS } from 'html-to-image';
+import { captureNodeToPng } from '@/lib/exportRaster';
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import type {
   ArtboardState,
@@ -215,11 +216,11 @@ async function captureSprite(
   // for every element without those props, so existing projects rasterize
   // exactly as before.
   const pad = spriteOverspill(el);
-  // Repositioning goes through toPng's `style` option, which is applied to the
+  // Repositioning goes through the capture's `style` option, applied to the
   // CLONE. The live node used to be moved to the pad origin with its transform
   // stripped for the whole async capture, which visibly displaced the element
   // on the canvas per sprite and left it misplaced if a capture threw.
-  const dataUrl = await toPng(node, {
+  const dataUrl = await captureNodeToPng(node, {
     width: Math.max(1, Math.round(boxW + pad * 2)),
     height: Math.max(1, Math.round(boxH + pad * 2)),
     pixelRatio: 1,

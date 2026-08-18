@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
-import { toPng } from 'html-to-image';
+import { captureNodeToPng } from '@/lib/exportRaster';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
@@ -2904,7 +2904,7 @@ export function OpenScreenshotGeneratorLayout() {
     // the whole async capture, briefly overlapping neighboring boards on
     // screen, which is the background-bleed half of the issue #19 glitch.
     const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-    return await toPng(artboardElement, {
+    return await captureNodeToPng(artboardElement, {
       width: artboard.size.width,
       height: artboard.size.height,
       backgroundColor,
@@ -5118,7 +5118,7 @@ const generateRandomProjectName = (): string => {
     // Unscale via the clone (the `style` option), never the live node: see
     // captureArtboardDataUrl for the on-screen overlap this used to cause.
     const { backgroundColor, backgroundImage } = artboardBackground(board);
-    const dataUrl = await toPng(node, {
+    const dataUrl = await captureNodeToPng(node, {
       width: board.size.width,
       height: board.size.height,
       backgroundColor,
