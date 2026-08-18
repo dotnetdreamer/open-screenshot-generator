@@ -43,8 +43,13 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   const screenshot = useImageSrc(element.screenshotSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadTarget, setUploadTarget] = useState<'customFrame' | 'screenshot' | null>(null);
-  // Add a state to track if high-quality rendering should be used
   const [useHighQualityRendering, setUseHighQualityRendering] = useState(true);
+  // Fade-in used to set img.style.opacity in onLoad. A later React render
+  // writes opacity: 0 back from the style prop, and onLoad does not fire
+  // again, so PNG export (html-to-image copies computed styles) captured an
+  // invisible screenshot. Track which src has loaded instead of mutating the DOM.
+  const [loadedScreenshotSrc, setLoadedScreenshotSrc] = useState<string | null>(null);
+  const screenshotReady = Boolean(screenshot && loadedScreenshotSrc === screenshot);
 
   // Uploads land in the Dexie media table and the element keeps only an
   // asset:<id> reference — inlining the file as a data URL made every undo
@@ -443,7 +448,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   alt={`${element.deviceType} screenshot`}
                   style={{
                     cursor: 'inherit',
-                    opacity: 0,
+                    opacity: screenshotReady ? 1 : 0,
                     width: '100%',
                     height: '100%',
                     objectFit: element.screenshotObjectFit || "cover",
@@ -451,7 +456,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                     top: 0,
                     left: 0,
                   }}
-                  onLoad={e => { (e.currentTarget as HTMLImageElement).style.opacity = '1'; }}
+                  onLoad={() => setLoadedScreenshotSrc(screenshot)}
                   data-ai-hint="app interface mobile"
                   draggable={false}
                 />

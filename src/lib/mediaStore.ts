@@ -45,6 +45,15 @@ export interface VideoProbeResult {
 }
 
 const urlCache = new Map<string, string>();
+// Object URL -> original Blob. html-to-image re-fetches every <img> src during
+// PNG export; WKWebView's fetch(blob:) often fails silently, so export needs
+// the Blob itself to inline a data URL without going back through fetch.
+const blobByObjectUrl = new Map<string, Blob>();
+
+/** Blob that backs a session object URL minted by getMediaUrl, if we still have it. */
+export function blobForObjectUrl(url: string): Blob | undefined {
+  return blobByObjectUrl.get(url);
+}
 
 /** Read a video blob's dimensions and duration via a throwaway <video>. */
 export function probeVideoBlob(blob: Blob): Promise<VideoProbeResult> {
@@ -117,6 +126,7 @@ export async function getMediaUrl(id: string): Promise<string | null> {
     return winner;
   }
   urlCache.set(id, url);
+  blobByObjectUrl.set(url, asset.blob);
   return url;
 }
 
@@ -125,6 +135,7 @@ export async function deleteMedia(id: string): Promise<void> {
   if (url) {
     URL.revokeObjectURL(url);
     urlCache.delete(id);
+    blobByObjectUrl.delete(url);
   }
   await db.media.delete(id);
 }

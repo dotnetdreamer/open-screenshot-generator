@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { toPng } from 'html-to-image';
+import { withBlobImagesInlined } from '@/lib/inlineBlobImages';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
@@ -2904,7 +2905,9 @@ export function OpenScreenshotGeneratorLayout() {
     // the whole async capture, briefly overlapping neighboring boards on
     // screen, which is the background-bleed half of the issue #19 glitch.
     const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-    return await toPng(artboardElement, {
+    // WKWebView cannot reliably fetch(blob:) during html-to-image's embed
+    // pass, so uploaded screenshots must be data URLs for this capture.
+    return await withBlobImagesInlined(artboardElement, () => toPng(artboardElement, {
       width: artboard.size.width,
       height: artboard.size.height,
       backgroundColor,
@@ -2927,7 +2930,7 @@ export function OpenScreenshotGeneratorLayout() {
         height: `${artboard.size.height}px`,
         backgroundImage,
       }
-    });
+    }));
   };
 
   const captureArtboards = async (
@@ -5118,7 +5121,7 @@ const generateRandomProjectName = (): string => {
     // Unscale via the clone (the `style` option), never the live node: see
     // captureArtboardDataUrl for the on-screen overlap this used to cause.
     const { backgroundColor, backgroundImage } = artboardBackground(board);
-    const dataUrl = await toPng(node, {
+    const dataUrl = await withBlobImagesInlined(node, () => toPng(node, {
       width: board.size.width,
       height: board.size.height,
       backgroundColor,
@@ -5137,7 +5140,7 @@ const generateRandomProjectName = (): string => {
         height: `${board.size.height}px`,
         backgroundImage,
       },
-    });
+    }));
 
     const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
     const result: McpExportResult = {

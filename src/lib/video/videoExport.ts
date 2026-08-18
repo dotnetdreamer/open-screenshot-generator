@@ -12,6 +12,7 @@
 
 import { toPng, getFontEmbedCSS } from 'html-to-image';
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
+import { withBlobImagesInlined } from '@/lib/inlineBlobImages';
 import type {
   ArtboardState,
   ArtboardElement,
@@ -219,7 +220,7 @@ async function captureSprite(
   // CLONE. The live node used to be moved to the pad origin with its transform
   // stripped for the whole async capture, which visibly displaced the element
   // on the canvas per sprite and left it misplaced if a capture threw.
-  const dataUrl = await toPng(node, {
+  const dataUrl = await withBlobImagesInlined(node, () => toPng(node, {
     width: Math.max(1, Math.round(boxW + pad * 2)),
     height: Math.max(1, Math.round(boxH + pad * 2)),
     pixelRatio: 1,
@@ -233,7 +234,7 @@ async function captureSprite(
       top: `${pad}px`,
       transform: 'none',
     },
-  });
+  }));
   return { image: await dataUrlToImage(dataUrl), pad };
 }
 
