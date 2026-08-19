@@ -885,6 +885,153 @@ The stack in `infra/vps` runs on 127.0.0.1:8090 (`docker compose -f docker-compo
 
 ---
 
+## Versions: what a project looked like, across reloads
+
+The undo stack answers "take back what I just did", within one sitting, and it
+is **deliberately not persisted**: a hundred full project snapshots on disk is
+the exact shape that caused the WKWebView crash loop in issue #19. Versions
+answer the other question, "put it back the way it was this morning", and they
+survive a reload, a crash and a week.
+
+| Path | What |
+| --- | --- |
+| [versions/store.ts](../src/lib/versions/store.ts) | write, read, list, thin. Owns the Dexie `projectVersions` table |
+| [VersionsPanel.tsx](../src/components/open-screenshot-generator/VersionsPanel.tsx) | the list, under States in the History tab |
+| [compressJson.ts](../src/lib/compressJson.ts) | the gzip pair, shared with the cloud save |
+
+**What one costs.** The document only, gzipped: 20 to 40KB for a typical
+project. Media is referenced by id and already lives in the `media` table, so a
+version of a project holding a 90MB recording is still tens of kilobytes. The
+ids it references are recorded on the row, because nothing sweeps unused blobs
+today and whatever does one day has to treat a version as a reason to keep one.
+
+**Five things write one**, all in the layout, none of them "every commit":
+
+1. the state a project was in when it was **opened**, held in a ref and written
+   lazily on the first edit, so browsing a project leaves nothing behind
+2. a checkpoint every `VERSION_INTERVAL_MS` (10 minutes) of editing
+3. before anything whole-project: a device format conversion, a restore
+4. on an **export**, because that is the state that got shipped
+5. whenever somebody names one, which is the only kind never thinned away
+
+**Thinning** (`thinVersions`) is Time Machine's curve: everything from the last
+hour, one an hour for a day, one a day beyond that, plus hard caps of 60 rows
+and 24MB. Named versions are exempt from all of it.
+
+**Restoring goes through `handleArtboardsUpdate`.** That is what makes it an
+ordinary edit: it lands in undo, it is written to Dexie, and it reaches everyone
+in a live session. The state being replaced is kept first, labelled "Before
+restore", so a restore is never a one-way door. **Open as a copy** writes a new
+project row instead, which is how one template becomes two variants; media is
+not copied, because both projects reference the same rows in the same browser.
+
+**Not yet cloud.** Versions are per browser. The same rows mirrored to a
+`cloud_project_versions` collection is the obvious next step, and the store's
+shape (id, document blob, encoding, asset ids) is already what such a row would
+hold.
+
+---
+
+## Editing together: live sessions over WebRTC
+
+One link, and everybody holding it edits the same project at the same time, with
+each other's pointers and selections on the canvas. It is built on the cloud
+share link (the snapshot), the community sign-in (the identity) and a CRDT over
+peer connections (everything after that). **No design data passes through any
+server of ours once a session is up.**
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [collab/ydoc.ts](../src/lib/collab/ydoc.ts) | the Y.Doc mirror of `ArtboardState[]`, and the two functions that keep them equal |
+| [collab/session.ts](../src/lib/collab/session.ts) | one session: the provider, awareness, ICE, and the lazy asset fetch |
+| [collab/links.ts](../src/lib/collab/links.ts) | the invite URL, the room id, and what each half of the link is allowed to know |
+| [collab/types.ts](../src/lib/collab/types.ts) | `CollabPeer`, and the colour a person is to everybody |
+| [use-collab.ts](../src/hooks/use-collab.ts) | the React binding: `start` / `stop` / `publish` / `setSelection` / `setCursor` |
+| [collab/CollabBoardOverlay.tsx](../src/components/open-screenshot-generator/collab/CollabBoardOverlay.tsx) | rings and pointers, drawn inside each board |
+| [collab/CollabBar.tsx](../src/components/open-screenshot-generator/collab/CollabBar.tsx) | who is here, in the toolbar |
+| [collab/CollabDialog.tsx](../src/components/open-screenshot-generator/collab/CollabDialog.tsx) | the invite screen: link, room, reset |
+| [mcp-relay/src/collab.js](../infra/vps/mcp-relay/src/collab.js) | the signalling server, hand rolled, in the relay's container |
+| [pb-hooks/070_collab.pb.js](../infra/vps/pb-hooks/070_collab.pb.js) | `GET /collab/whoami`, the one thing the box is asked |
+
+### How a session starts
+
+**Owner.** Share menu > Edit together > Create the invite link. That saves the
+project to the cloud if it is not there, turns link sharing on if it is not on,
+mints a 128-bit room key (kept ONLY on this device, on the `cloudLinks` row),
+joins the room and copies `…/?collab=<slug>#k=<key>`.
+
+**Guest.** Opening that URL signs them in if they are not, then looks for a
+local copy of that room (`joinedProjectFor`, then their own cloud links) before
+importing a fresh one through the ordinary shared-project path. Then it joins.
+
+**Room id** is `sha256(slug:key)`, so the signalling server can neither reverse
+it to a project nor derive the key that encrypts what passes through it.
+
+### The rules that are easy to break
+
+1. **The fragment is the secret.** `#k=` never reaches a server, which is what
+   makes the session end to end encrypted. Never log it, never put it in a query
+   string, never store it on the box. It lives on the local `cloudLinks` row and
+   in the link.
+2. **Read the invite at module load, not in an effect.** Next's app router runs
+   `history.replaceState` while it hydrates and the URL it writes has **no
+   fragment**. `links.ts` snapshots `window.location.href` in its module body for
+   exactly this reason; moving that read into a component loses the key on every
+   join, silently, and it looks like a signalling failure.
+3. **Every local write is one transaction tagged `LOCAL_ORIGIN`.** The observer
+   ignores those. Drop the tag and each remote change bounces back at its author
+   forever.
+4. **Remote changes do not go through `handleArtboardsUpdate`.** That door
+   republishes and pushes undo history. `applyRemoteArtboards` writes the canvas,
+   the Dexie row and the TOP history entry (replacing it, never appending), which
+   is what keeps undo meaning "undo my last action".
+5. **Boards and elements are keyed by id, with order in its own `Y.Array<string>`.**
+   Not `Y.Array<Y.Map>`. Two peers seeding the same project into an empty room
+   would otherwise merge into two of every board, and reordering (which has no
+   move operation in this Yjs) would destroy a concurrently edited element.
+6. **`position` is never synced.** It is derived; every client runs
+   `calculateArtboardPositions` on what it receives.
+7. **A data channel message over ~256KB fails.** Nothing large may enter the
+   document: media stays in the `media` table and travels as a reference, and a
+   peer missing the bytes fetches them from the project's cloud copy over the
+   share link (`fetchMissingAssets`).
+
+### Presence
+
+Awareness carries `{user, selection, cursor}`. The overlay is drawn INSIDE each
+`Artboard`, as a sibling of the `.artboard` node (which is what the exporter
+rasterises, so a cursor can never reach an exported PNG), in artboard
+coordinates, with everything that must stay a constant size divided by the
+`screenScale` that component measures. The pointer is read off the board's own
+`data-original-width` on `pointermove`, throttled twice: once in the canvas,
+once in the session.
+
+### What it does not do, and say so plainly
+
+- **Nobody's server holds the live document.** If everybody closes the tab, each
+  person keeps their own merged copy (y-indexeddb, plus the ordinary Dexie
+  project), and the owner's cloud copy is whatever the auto saver last pushed.
+- **A guest's new screenshot does not reach the others live.** The owner's
+  does, because their auto save puts it in the cloud copy the others read from.
+- **Undo is snapshot based.** Undoing while somebody else is editing reverts
+  their concurrent change to the same properties too.
+- **Text merges per property, not per character.** Two people in one text box at
+  the same instant is last writer wins.
+- **Revoking is "Reset the link".** It mints a new slug and a new key. Peers
+  already connected stay connected until they leave.
+
+### Testing it locally
+
+No PocketBase needed. Run the relay with `POCKETBASE_URL` pointing at a stub
+that answers `/api/openscreengen/collab/whoami`, run the dev server with
+`NEXT_PUBLIC_COLLAB_URL=http://127.0.0.1:8722`, and drive **two separate browser
+launches** (one profile is one browser: two tabs of the same profile sync over
+BroadcastChannel and never exercise WebRTC at all).
+
+---
+
 ## Direct-to-store upload (desktop only)
 
 Hands rendered artboards to App Store Connect and Google Play with the user's own developer
@@ -1085,7 +1232,7 @@ A root `npm install` only covers the Next app. Five sibling projects live in thi
 
 ### Dexie schema changes
 
-[src/database.ts](../src/database.ts) is at `version(3)`. Adding a table or an index means appending a **new** `this.version(n).stores({...})` block that restates every existing table. Never edit an existing version block: Dexie replays them in order and an edited block corrupts upgrades for anyone already on that version. Never put large blobs on the project row either, recordings go in the `media` table through [mediaStore.ts](../src/lib/mediaStore.ts) and are referenced by id.
+[src/database.ts](../src/database.ts) is at `version(7)`. Adding a table or an index means appending a **new** `this.version(n).stores({...})` block that restates every existing table. Never edit an existing version block: Dexie replays them in order and an edited block corrupts upgrades for anyone already on that version. Never put large blobs on the project row either, recordings go in the `media` table through [mediaStore.ts](../src/lib/mediaStore.ts) and are referenced by id.
 
 ### Dead scaffold, do not build on it
 

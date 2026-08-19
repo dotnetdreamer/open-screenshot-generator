@@ -15,13 +15,15 @@
 // bandwidth on somebody's connection and real disk on ours. And a commit can
 // arrive per pixel of a slider drag. So five numbers:
 //
-//   QUIET_MS       the edits have to go quiet for this long before a push
-//   MAX_DEFER_MS   but an hour of continuous editing still pushes this often
+//   QUIET_MS       the edits have to go quiet for this long before a push. Five
+//                  seconds is short enough to feel immediate and long enough
+//                  that a drag, which commits per pixel, is still one push
+//   MAX_DEFER_MS   but continuous editing still pushes this often
 //   MIN_GAP_MS     never two pushes closer together than this, whatever happens
 //   FIRST_PUSH_MS  a project with no cloud copy yet gets one this long after it
-//                  opens, untouched. Long enough that clicking through four
-//                  templates does not leave four projects in the cloud, short
-//                  enough that a project somebody stays in is protected early
+//                  opens, untouched. It is the one number that is not about
+//                  speed: an account holds 30 projects, so clicking through a
+//                  gallery must not fill it
 //   BACKOFF_MS     what a failed push waits, growing, so a box that is down is
 //                  asked once every ten minutes rather than twice a minute
 //
@@ -51,10 +53,10 @@ import {
   type CloudProject,
 } from './types';
 
-const QUIET_MS = 15_000;
-const MAX_DEFER_MS = 90_000;
-const MIN_GAP_MS = 25_000;
-const FIRST_PUSH_MS = 20_000;
+const QUIET_MS = 5_000;
+const MAX_DEFER_MS = 30_000;
+const MIN_GAP_MS = 8_000;
+const FIRST_PUSH_MS = 10_000;
 const BACKOFF_MS = [30_000, 60_000, 120_000, 300_000, 600_000];
 /** Offline is not a failure worth backing off over, it is a wait. */
 const OFFLINE_RETRY_MS = 20_000;

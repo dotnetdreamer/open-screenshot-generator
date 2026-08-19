@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { dropElementOverrides } from '@/lib/i18n/localization';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
 import { useEditorPreference } from '@/lib/editorPreferences';
+import type { CollabPeer } from '@/lib/collab/types';
+import { CollabBoardOverlay } from './collab/CollabBoardOverlay';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
 /**
@@ -143,6 +145,16 @@ interface CanvasAreaProps {
    * value); this is what the wheel and pinching two fingers both drive.
    */
   onZoomChange?: (zoom: number) => void;
+  /**
+   * The other people in a live session. Empty (the usual case) costs nothing:
+   * no overlay is rendered and no pointer is reported.
+   */
+  collabPeers?: CollabPeer[];
+  /**
+   * Where this person's pointer is, in the coordinates of the board it is over,
+   * or null when it is over bare canvas. Only wired up during a session.
+   */
+  onCollabCursor?: (cursor: { artboardId: string; x: number; y: number } | null) => void;
   // While a project/template is still loading (Dexie read + artboard build),
   // the parent sets this so the canvas shows a stable skeleton instead of a
   // fake placeholder artboard. Artboard positioning is owned by the parent
@@ -166,6 +178,8 @@ export function CanvasArea({
     selectedElementIdOnActiveArtboard,
     setSelectedElementIdOnActiveArtboard,
     canvasZoom,
+    collabPeers,
+    onCollabCursor,
     artboardRefs,
     onAddNewArtboardFromToolbar,
     onDuplicateArtboardFromToolbar,
@@ -595,6 +609,39 @@ export function CanvasArea({
     e.preventDefault(); 
   };
 
+  /**
+   * Tell the room where this pointer is, in the coordinates of the board it is
+   * over.
+   *
+   * Measured off the board's own DOM node rather than computed from the zoom
+   * and the scroll: the board carries its untransformed width in an attribute,
+   * so one `getBoundingClientRect` gives the exact scale in force, whatever the
+   * canvas is doing above it. Throttled because this fires on every pointer
+   * move and a rect read forces layout.
+   */
+  const cursorSentAt = useRef(0);
+  const handleCollabPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!onCollabCursor) return;
+    const now = performance.now();
+    if (now - cursorSentAt.current < 50) return;
+    cursorSentAt.current = now;
+    const node = (e.target as HTMLElement | null)?.closest?.('[data-artboard-dom-id]') as HTMLElement | null;
+    if (!node) {
+      onCollabCursor(null);
+      return;
+    }
+    const width = Number(node.getAttribute('data-original-width')) || 0;
+    if (!width) return;
+    const rect = node.getBoundingClientRect();
+    const scale = rect.width / width;
+    if (!(scale > 0)) return;
+    onCollabCursor({
+      artboardId: node.getAttribute('data-artboard-dom-id') || '',
+      x: (e.clientX - rect.left) / scale,
+      y: (e.clientY - rect.top) / scale,
+    });
+  };
+
   // Handle artboard deletion with confirmation if needed
   const handleDeleteArtboard = (artboardId: string) => {
     const artboard = artboards.find(ab => ab.id === artboardId);
@@ -665,6 +712,8 @@ export function CanvasArea({
           cursor: activeTool === 'select' ? 'default' : undefined,
         }}
         onPointerDown={handlePointerDownOnContentArea}
+        onPointerMove={onCollabCursor ? handleCollabPointerMove : undefined}
+        onPointerLeave={onCollabCursor ? () => onCollabCursor(null) : undefined}
         onDrop={handleDropOnCanvas}
         onDragOver={handleDragOverCanvas}
       >
@@ -739,6 +788,17 @@ export function CanvasArea({
                 canDeleteArtboard={artboards.length > 1}
                 canMoveArtboardLeft={index > 0}
                 canMoveArtboardRight={index < artboards.length - 1}
+                renderCollabOverlay={
+                  collabPeers?.length
+                    ? ({ screenScale }) => (
+                        <CollabBoardOverlay
+                          artboard={artboard}
+                          peers={collabPeers}
+                          screenScale={screenScale}
+                        />
+                      )
+                    : undefined
+                }
               />
             </div>
           ))}

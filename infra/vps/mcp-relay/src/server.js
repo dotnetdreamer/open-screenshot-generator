@@ -27,6 +27,10 @@
 
 import http from 'node:http';
 import { randomUUID } from 'node:crypto';
+// Live editing's signalling endpoint. It shares this container and nothing
+// else: no state, no route and no credential in common. See collab.js for why
+// it is here rather than in a service of its own.
+import { attachCollab, collabStats, handleCollabHttp } from './collab.js';
 
 const PORT = Number(process.env.PORT || 8722);
 
@@ -309,8 +313,11 @@ const server = http.createServer((req, res) => {
   const path = (req.url || '/').split('?')[0].replace(/\/+$/, '') || '/';
 
   if (path === '/healthz') {
-    return sendJson(res, 200, { ok: true, tabs: tabs.size });
+    return sendJson(res, 200, { ok: true, tabs: tabs.size, collab: collabStats() });
   }
+
+  // POST /collab/ticket, and nothing else. Answers false for every other path.
+  if (handleCollabHttp(req, res, { sendJson, sendEmpty })) return;
 
   const mcp = path.match(/^\/mcp\/([^/]+)$/);
   if (mcp) {
@@ -346,6 +353,8 @@ const server = http.createServer((req, res) => {
 // the wrong end. The call has its own budget above.
 server.requestTimeout = 0;
 server.headersTimeout = 60_000;
+
+attachCollab(server);
 
 server.listen(PORT, () => {
   console.log(`[mcp-relay] listening on :${PORT}`);

@@ -1,25 +1,20 @@
 "use client";
 
-// What auto saving to the cloud looks like from the canvas: one small pill in
-// the bottom left, next to the project name.
+// What auto saving to the cloud looks like from the canvas: one small mark at
+// the end of the project name.
 //
-// It is deliberately the only UI the feature has. Auto save that announces every
-// push with a toast is worse than no auto save, and a progress dialog for
-// something nobody asked for would be worse still. So the pill is quiet while
-// things work, and it is the one place that says so when they do not.
+// It is deliberately the only UI the feature has, and deliberately wordless.
+// Auto save that announces every push with a toast is worse than no auto save,
+// a progress dialog for something nobody asked for would be worse still, and a
+// pill that reads "Changes pending" next to the name is a sentence you have to
+// read every time you glance at it. So: an icon, an animation while something
+// is in flight, and the words in the tooltip for the moment you want them.
 //
 // Every visible state is clickable, and the click is always the thing a person
 // would want next: sign in, answer the conflict, retry the failure, or push now.
 
 import React from 'react';
-import {
-  CloudAlertIcon,
-  CloudIcon,
-  CloudOffIcon,
-  CloudUploadIcon,
-  Loader2Icon,
-  type LucideIcon,
-} from 'lucide-react';
+import { CloudAlertIcon, CloudIcon, CloudOffIcon, Loader2Icon, type LucideIcon } from 'lucide-react';
 import type { CloudAutoSaveStatus } from '@/lib/cloud/autoSave';
 import type { CloudProject } from '@/lib/cloud';
 import { cn } from '@/lib/utils';
@@ -28,7 +23,7 @@ interface CloudAutoSaveChipProps {
   status: CloudAutoSaveStatus;
   /** Send somebody through the account dialog, on its cloud tab. */
   onSignIn: () => void;
-  /** Push now: what a paused or failed chip offers. */
+  /** Push now: what a paused or failed mark offers. */
   onSaveNow: () => void;
   /** Hand the remote row to the conflict dialog. */
   onResolveConflict: (remote: CloudProject) => void;
@@ -36,7 +31,9 @@ interface CloudAutoSaveChipProps {
 }
 
 interface ChipFace {
-  icon: LucideIcon;
+  /** Null when the mark is the animated dots rather than an icon. */
+  icon: LucideIcon | null;
+  /** Read out to a screen reader, and shown on hover. */
   label: string;
   title: string;
   spin?: boolean;
@@ -61,7 +58,7 @@ function faceFor(status: CloudAutoSaveStatus): ChipFace | null {
         label: 'Sign in to sync',
         title:
           status.message ||
-          'Projects are saved in this browser only. Sign in and this one is kept in your cloud too',
+          'Saved in this browser only. Sign in and this project is kept in your cloud too',
       };
     case 'waiting':
       return {
@@ -71,7 +68,7 @@ function faceFor(status: CloudAutoSaveStatus): ChipFace | null {
       };
     case 'pending':
       return {
-        icon: CloudUploadIcon,
+        icon: null,
         label: 'Changes pending',
         title: status.pendingAssets
           ? `${status.pendingAssets} file${status.pendingAssets === 1 ? '' : 's'} still to upload. Click to push now`
@@ -106,6 +103,30 @@ function faceFor(status: CloudAutoSaveStatus): ChipFace | null {
         loud: true,
       };
   }
+}
+
+/**
+ * Three dots, walking.
+ *
+ * The one state worth animating is the one where something is about to happen
+ * and has not yet: a static icon there reads as "done", which is the opposite
+ * of what it means. Staggered so it reads as motion rather than a flash.
+ */
+function PendingDots({ loud }: { loud?: boolean }) {
+  return (
+    <span className="flex items-center gap-[3px]" aria-hidden>
+      {[0, 1, 2].map((index) => (
+        <span
+          key={index}
+          className={cn(
+            'h-1 w-1 rounded-full animate-bounce',
+            loud ? 'bg-destructive' : 'bg-muted-foreground'
+          )}
+          style={{ animationDelay: `${index * 140}ms`, animationDuration: '900ms' }}
+        />
+      ))}
+    </span>
+  );
 }
 
 export function CloudAutoSaveChip({
@@ -143,17 +164,18 @@ export function CloudAutoSaveChip({
       title={face.title}
       aria-label={`Cloud auto save: ${face.label}`}
       className={cn(
-        'flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium transition-colors',
+        'flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        face.loud ? 'text-destructive hover:bg-destructive/10' : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+        face.loud ? 'text-destructive hover:bg-destructive/10' : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
         'disabled:cursor-default disabled:hover:bg-transparent',
         className
       )}
     >
-      <Icon className={cn('h-3.5 w-3.5', face.spin && 'animate-spin')} />
-      {/* The label is the first thing to go when the canvas gets narrow: the
-          icon and the tooltip still carry the state. */}
-      <span className="hidden lg:inline">{face.label}</span>
+      {Icon ? (
+        <Icon className={cn('h-3.5 w-3.5', face.spin && 'animate-spin')} />
+      ) : (
+        <PendingDots loud={face.loud} />
+      )}
     </button>
   );
 }

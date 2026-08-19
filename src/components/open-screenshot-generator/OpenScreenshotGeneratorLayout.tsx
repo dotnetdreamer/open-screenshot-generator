@@ -121,6 +121,19 @@ import type { DiscoverPost } from '@/types/discover';
 import { CloudSaveConflictDialog } from './cloud/CloudSaveConflictDialog';
 import { CloudAutoSaveChip } from './cloud/CloudAutoSaveChip';
 import { useCloudAutoSave } from '@/hooks/use-cloud-auto-save';
+import { CollabBar } from './collab/CollabBar';
+import { CollabDialog } from './collab/CollabDialog';
+import { useCollab } from '@/hooks/use-collab';
+import {
+  buildInviteUrl,
+  clearInviteFromUrl,
+  invitedWithoutKey,
+  joinedProjectFor,
+  newRoomKey,
+  readInviteFromUrl,
+  rememberJoined,
+  type CollabInvite,
+} from '@/lib/collab/links';
 import {
   buildShareUrl,
   clearSharedSlugFromUrl,
@@ -130,6 +143,8 @@ import {
   readSharedSlugFromUrl,
   saveProjectToCloud,
   setCloudProjectShared,
+  setCloudLinkCollabKey,
+  listCloudLinks,
   CloudConflictError,
   CloudSignInRequiredError,
   type CloudProject,
@@ -158,6 +173,15 @@ import {
 } from '@/lib/account';
 import { LayersPanel } from './LayersPanel';
 import { HistoryPanel } from './HistoryPanel';
+import { VersionsPanel } from './VersionsPanel';
+import {
+  deleteVersion,
+  deleteVersionsForProject,
+  listVersions,
+  readVersion,
+  saveVersion,
+  type ProjectVersionMeta,
+} from '@/lib/versions/store';
 import {
   describeArtboardsChange,
   getElementDisplayName,
@@ -219,6 +243,8 @@ const LONG_PRESS_SLOP_PX = 10;
 const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
 const RIGHT_DOCK_LAYERS_HEIGHT_KEY = 'abs-right-dock-layers-height';
 const RIGHT_DOCK_TAB_KEY = 'abs-right-dock-tab';
+/** The dock's top section. 'history' is the undo states, 'versions' the saved ones. */
+type RightDockTab = 'properties' | 'history' | 'versions';
 const LAYERS_SECTION_MIN = 120; // px, keeps the layers list usable
 // The dock is a bottom sheet on a phone and only 70% of a short screen tall, so
 // the layers list starts shorter there than the desktop split. A starting
@@ -229,6 +255,12 @@ const MOBILE_LAYERS_SECTION_DEFAULT = 170; // px
 // Long enough not to fire on every nudge of a drag, short enough that a user who
 // keeps making shared edits keeps being told.
 const SHARED_EDIT_NOTICE_INTERVAL_MS = 30_000;
+// How much editing there has to be between two automatic versions. Ten minutes
+// is the number that makes the list readable: a version per commit would be
+// hundreds a day and a version per hour would miss the mistake you are looking
+// for. Anything that matters more than the clock (an export, a conversion,
+// somebody naming one) writes its own regardless.
+const VERSION_INTERVAL_MS = 10 * 60 * 1000;
 const PROPERTIES_SECTION_MIN = 160; // px, keeps the properties form usable
 
 let historyEntrySeq = 0;
@@ -595,6 +627,22 @@ export function OpenScreenshotGeneratorLayout() {
   // call or a stray drag landing mid-swap cannot write a temporary render into
   // the project.
   const isExportingRef = useRef(false);
+  /**
+   * The newest thing the room said while an export was holding the canvas.
+   *
+   * An export swaps a converted list onto the canvas for a few seconds, and
+   * applying a peer's change on top of that would persist the converted list as
+   * the project. So the change waits here and lands when the run finishes;
+   * only the last one is kept, because a CRDT hands over whole states rather
+   * than a queue of steps.
+   */
+  const pendingRemoteRef = useRef<{ boards: ArtboardState[]; name: string | null } | null>(null);
+  const flushPendingRemote = () => {
+    const pending = pendingRemoteRef.current;
+    if (!pending) return;
+    pendingRemoteRef.current = null;
+    remoteArtboardsRef.current(pending.boards, pending.name);
+  };
   // What the canvas paints while that swap is up. Non-null only during a run,
   // and already resolved for its language, so it must NOT be projected again.
   const [exportCanvasArtboards, setExportCanvasArtboards] = useState<ArtboardState[] | null>(null);
@@ -623,6 +671,10 @@ export function OpenScreenshotGeneratorLayout() {
   // project snapshot plus the name of the change that produced it.
   const [history, setHistory] = useState<HistoryEntry[]>(() => [makeHistoryEntry([], namedChange('New Document', 'open'))]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  // Read by the live session, which arrives from a socket rather than from a
+  // render and so cannot close over state.
+  const historyIndexRef = useRef(0);
+  historyIndexRef.current = historyIndex;
   // Seed from the URL: closed when refreshing straight into an open project
   // (?projectId present), open on a fresh visit. Prevents the selector flashing
   // open-then-closed on refresh. See getInitialProjectIdFromUrl.
@@ -636,6 +688,23 @@ export function OpenScreenshotGeneratorLayout() {
   const [isOpeningSharedLink, setIsOpeningSharedLink] = useState(
     () => readSharedSlugFromUrl() !== null
   );
+  // A live-session invite is arriving, for the same reason and with the same
+  // effect: nothing else may claim the canvas while the room is being joined.
+  const [isJoiningInvite, setIsJoiningInvite] = useState(() => readInviteFromUrl() !== null);
+  /** The invite waiting on a sign-in, or on the join itself. */
+  const [pendingInvite, setPendingInvite] = useState<CollabInvite | null>(null);
+  const [isCollabOpen, setIsCollabOpen] = useState(false);
+  const [isCollabWorking, setIsCollabWorking] = useState(false);
+  /**
+   * The room this project has an invite for, whether or not a session is up.
+   *
+   * Read from the project's cloud link, which is where the key is remembered.
+   * A live session's own room outranks it (see `collabRoom` below), because a
+   * guest is in a room their local copy knows nothing about.
+   */
+  const [collabInvite, setCollabInvite] = useState<CollabInvite | null>(null);
+  /** Which project the open room belongs to, so switching project leaves it. */
+  const collabProjectRef = useRef<string | null>(null);
   // Which screen of the start dialog is showing. The template gallery is the
   // dialog, as it always was; the agent is a screen you step into from the
   // banner above it. Reset on open so reopening never lands mid-agent-flow.
@@ -737,6 +806,12 @@ export function OpenScreenshotGeneratorLayout() {
   // keeps the same id. Only the cloud auto saver reads it, to start again.
   const [projectOpenToken, setProjectOpenToken] = useState(0);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Untitled Project');
+  // Same reason as historyIndexRef: the live session reads these from callbacks
+  // that were created before the current render.
+  const projectNameRef = useRef(currentProjectName);
+  projectNameRef.current = currentProjectName;
+  const activeProjectIdRef = useRef<string | null>(null);
+  activeProjectIdRef.current = activeProjectId;
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [recentProjectSearch, setRecentProjectSearch] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
@@ -834,9 +909,9 @@ export function OpenScreenshotGeneratorLayout() {
   // subtree, so PNG, video and preview output can never include it.
   const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
-  // Which of the dock's top-section tabs is showing: the properties form or
-  // the project's history states.
-  const [rightDockTab, setRightDockTab] = useState<'properties' | 'history'>('properties');
+  // Which of the dock's top-section tabs is showing: the properties form, the
+  // undo states, or the versions saved to disk.
+  const [rightDockTab, setRightDockTab] = useState<RightDockTab>('properties');
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
   // Set when the run is scoped to one text element (the properties panel
@@ -874,7 +949,10 @@ export function OpenScreenshotGeneratorLayout() {
   useLayoutEffect(() => {
     try {
       if (window.localStorage.getItem(RIGHT_DOCK_OPEN_KEY) === '0') setIsRightDockOpen(false);
-      if (window.localStorage.getItem(RIGHT_DOCK_TAB_KEY) === 'history') setRightDockTab('history');
+      // 'history' is also what the two-lists-in-one-tab version wrote, and it
+      // still means the states list. Anything else falls back to Properties.
+      const storedTab = window.localStorage.getItem(RIGHT_DOCK_TAB_KEY);
+      if (storedTab === 'history' || storedTab === 'versions') setRightDockTab(storedTab);
       const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
       if (Number.isFinite(stored)) {
         setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
@@ -911,7 +989,7 @@ export function OpenScreenshotGeneratorLayout() {
     else setLayersSectionHeight(height);
   };
 
-  const selectRightDockTab = (tab: 'properties' | 'history') => {
+  const selectRightDockTab = (tab: RightDockTab) => {
     setRightDockTab(tab);
     try { window.localStorage.setItem(RIGHT_DOCK_TAB_KEY, tab); } catch {}
   };
@@ -1084,6 +1162,14 @@ export function OpenScreenshotGeneratorLayout() {
             }
             setArtboards(projectData);
             setCurrentProjectName(project.name || 'Untitled Project');
+            // Held, not written: a project somebody opens and closes again
+            // should leave nothing behind. The first edit is what turns this
+            // into a version (see noteVersionCheckpoint).
+            openedSnapshotRef.current = {
+              projectId: activeProjectId,
+              boards: projectData,
+              name: project.name || 'Untitled Project',
+            };
             setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
             setHistoryIndex(0);
             // Auto-select the first artboard so a refreshed project opens ready to
@@ -1158,6 +1244,8 @@ export function OpenScreenshotGeneratorLayout() {
   const handleDeleteProject = async (projectId: string) => {
     try {
       await db.projects.delete(projectId);
+      // The versions are copies of a project that no longer exists.
+      await deleteVersionsForProject(projectId);
       toast({ 
         title: "Project Deleted", 
         description: "The project has been removed from your recent projects."
@@ -1302,6 +1390,28 @@ export function OpenScreenshotGeneratorLayout() {
   });
   const noteCloudChange = cloudAutoSave.noteChange;
 
+  /*
+   * Editing together.
+   *
+   * The session is peer to peer (src/lib/collab), so nothing here is a request
+   * to a server: `publish` hands the commit to a CRDT that every other browser
+   * in the room already has half of, and `applyRemoteArtboards` below is the
+   * other direction. Both are wired into the paths the editor already had, so
+   * nothing about the canvas, the panels or the undo stack knows this exists.
+   *
+   * `onRemote` goes through a ref because the handler it needs is defined
+   * further down, next to the history stack it writes to.
+   */
+  const remoteArtboardsRef = useRef<(boards: ArtboardState[], name: string | null) => void>(() => {});
+  const collab = useCollab({
+    viewer: discoverSession?.viewer ?? null,
+    token: discoverSession?.token ?? null,
+    getBoards: () => artboardsRef.current,
+    getProjectName: () => projectNameRef.current,
+    onRemote: (boards, name) => remoteArtboardsRef.current(boards, name),
+  });
+  const collabPublish = collab.publish;
+
   const scheduleProjectSave = useCallback((id: string, name: string, artboardsToSave: ArtboardState[]) => {
     if (pendingSaveRef.current) clearTimeout(pendingSaveRef.current.timer);
     const timer = setTimeout(() => flushProjectSave(), 600);
@@ -1341,6 +1451,80 @@ export function OpenScreenshotGeneratorLayout() {
     };
   }, [flushProjectSave]);
 
+  /*
+   * Versions: what this project looked like, kept across reloads.
+   *
+   * The undo stack above is one sitting and lives in React state. This is the
+   * other half of the question people actually ask, "put it back the way it was
+   * this morning", and it is deliberately coarse: five things write a version
+   * and a thinning pass keeps the list readable (src/lib/versions/store.ts).
+   *
+   *   1. the state a project was in when it was OPENED, written lazily on the
+   *      first edit, so browsing a project never writes anything
+   *   2. a checkpoint every VERSION_INTERVAL_MS of editing
+   *   3. before anything whole-project: a device conversion, a translation run,
+   *      restoring another version
+   *   4. on an export, because that is the state that got shipped
+   *   5. whenever somebody names one
+   */
+  const [versions, setVersions] = useState<ProjectVersionMeta[]>([]);
+  const [isVersionBusy, setIsVersionBusy] = useState(false);
+  /** The document as it was when this project opened, until the first edit. */
+  const openedSnapshotRef = useRef<{ projectId: string; boards: ArtboardState[]; name: string } | null>(null);
+  const lastAutoVersionRef = useRef(0);
+
+  const refreshVersions = useCallback(async (projectId: string | null) => {
+    setVersions(await listVersions(projectId));
+  }, []);
+
+  useEffect(() => {
+    void refreshVersions(activeProjectId);
+    // A different project means a different list, and a different "opened"
+    // snapshot: the one for the outgoing project is no longer worth writing.
+    lastAutoVersionRef.current = Date.now();
+  }, [activeProjectId, projectOpenToken, refreshVersions]);
+
+  const writeVersion = useCallback(
+    async (
+      boards: ArtboardState[],
+      label: string,
+      kind: 'named' | 'auto' | 'safety',
+      projectId?: string | null,
+      projectName?: string
+    ) => {
+      const target = projectId ?? activeProjectIdRef.current;
+      if (!target) return;
+      await saveVersion(target, boards, projectName ?? projectNameRef.current, { kind, label });
+      if (target === activeProjectIdRef.current) await refreshVersions(target);
+    },
+    [refreshVersions]
+  );
+
+  /**
+   * Called from the one commit door, so it runs on every edit.
+   *
+   * Everything here is a timestamp comparison until the rare moment it decides
+   * to write, and the write itself is not awaited: a commit must never wait for
+   * a gzip.
+   */
+  const noteVersionCheckpoint = useCallback(
+    (boards: ArtboardState[]) => {
+      const projectId = activeProjectIdRef.current;
+      if (!projectId) return;
+      const opened = openedSnapshotRef.current;
+      if (opened && opened.projectId === projectId) {
+        openedSnapshotRef.current = null;
+        lastAutoVersionRef.current = Date.now();
+        void writeVersion(opened.boards, 'Before this session', 'auto', projectId, opened.name);
+        return;
+      }
+      if (Date.now() - lastAutoVersionRef.current < VERSION_INTERVAL_MS) return;
+      lastAutoVersionRef.current = Date.now();
+      void writeVersion(boards, 'While editing', 'auto', projectId);
+    },
+    [writeVersion]
+  );
+
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
     console.log("handleArtboardsUpdate called", activeProjectId);
     // An export has a converted or re-projected list on the canvas. A commit
@@ -1352,6 +1536,10 @@ export function OpenScreenshotGeneratorLayout() {
     }
     const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
     setArtboards(repositionedArtboards); // Update React state first
+    noteVersionCheckpoint(repositionedArtboards);
+    // Into the room, if there is one. A no-op otherwise, and cheap when there
+    // is: the CRDT is handed the whole document but writes only what differs.
+    collabPublish(repositionedArtboards, currentProjectName);
 
     const saveProject = async () => {
       let projectIdToSave = activeProjectId;
@@ -1380,7 +1568,141 @@ export function OpenScreenshotGeneratorLayout() {
     }
     saveProject(); // Call the async save function
     pushToHistory(repositionedArtboards, change);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId]);
+  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId, collabPublish, scheduleProjectSave, noteVersionCheckpoint]);
+
+  /**
+   * A change from somebody else in the room.
+   *
+   * Deliberately NOT through `handleArtboardsUpdate`: that door republishes,
+   * which would bounce every remote edit straight back at the person who made
+   * it, and it pushes an undo entry, which would fill this person's history
+   * with other people's keystrokes. So this writes the three things that must
+   * move (canvas, the row in Dexie, the top of the undo stack) and nothing else.
+   *
+   * Replacing the top history entry rather than adding one is what keeps undo
+   * meaning "undo MY last action" while still leaving the stack describing a
+   * document that exists. The cost is stated in the docs: an undo taken while
+   * somebody else is editing reverts their concurrent change to the same
+   * properties too, because a snapshot restore is an edit like any other.
+   */
+  const applyRemoteArtboards = useCallback(
+    (incoming: ArtboardState[], remoteName: string | null) => {
+      if (!incoming.length) return;
+      if (isExportingRef.current) {
+        // The canvas is holding a converted list for the exporter. Keep the
+        // newest room state and apply it the moment the run finishes.
+        pendingRemoteRef.current = { boards: incoming, name: remoteName };
+        return;
+      }
+      const next = calculateArtboardPositions(
+        normalizeLocalization(ensureUniqueElementIds(incoming))
+      );
+      setArtboards(next);
+      artboardsRef.current = next;
+      setHistory((prev) => {
+        const copy = [...prev];
+        const at = Math.min(historyIndexRef.current, copy.length - 1);
+        if (at >= 0) copy[at] = makeHistoryEntry(next, namedChange('Live edit', 'open'));
+        return copy;
+      });
+      const projectId = activeProjectIdRef.current;
+      if (projectId) scheduleProjectSave(projectId, remoteName || projectNameRef.current, next);
+      if (remoteName && remoteName !== projectNameRef.current) setCurrentProjectName(remoteName);
+    },
+    [scheduleProjectSave]
+  );
+  remoteArtboardsRef.current = applyRemoteArtboards;
+
+  /** Keep this exact state under a name. Never thinned away afterwards. */
+  const handleSaveNamedVersion = async (label: string) => {
+    if (!activeProjectId || isVersionBusy) return;
+    setIsVersionBusy(true);
+    try {
+      await writeVersion(artboardsRef.current, label, 'named');
+      toast({ title: 'Version saved', description: `"${label}" is in the Versions list, under History.` });
+    } finally {
+      setIsVersionBusy(false);
+    }
+  };
+
+  /**
+   * Put a saved state back on the canvas.
+   *
+   * Two things make this safe to press. The state being replaced is kept first,
+   * so a restore is never a one-way door, and the restore itself goes through
+   * `handleArtboardsUpdate`, which means it is an ordinary edit: it lands in
+   * undo, it is written to Dexie, and it reaches everybody in a live session.
+   */
+  const handleRestoreVersion = async (version: ProjectVersionMeta) => {
+    if (isVersionBusy) return;
+    setIsVersionBusy(true);
+    try {
+      const restored = await readVersion(version.id);
+      if (!restored) {
+        toast({
+          title: 'That version could not be read',
+          description: 'It may have been cleared with the browser data.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      await writeVersion(artboardsRef.current, 'Before restore', 'safety');
+      handleArtboardsUpdate(restored.boards, namedChange('Restore version', 'open', version.label));
+      toast({
+        title: 'Version restored',
+        description: `"${version.label}" is on the canvas. Undo puts it back the way it was.`,
+      });
+    } catch (error) {
+      console.error('Could not restore that version', error);
+      toast({ title: 'Restore failed', description: 'Nothing was changed.', variant: 'destructive' });
+    } finally {
+      setIsVersionBusy(false);
+    }
+  };
+
+  /**
+   * Open a saved state as a project of its own.
+   *
+   * This is what makes one template two: the original is untouched, and the
+   * copy is an ordinary project from here on. Media is not copied, because it
+   * is referenced by id and both projects are in the same browser.
+   */
+  const handleOpenVersionCopy = async (version: ProjectVersionMeta) => {
+    if (isVersionBusy) return;
+    setIsVersionBusy(true);
+    try {
+      const restored = await readVersion(version.id);
+      if (!restored) throw new Error('That version could not be read.');
+      flushProjectSave();
+      const copyId = `project_${Date.now()}`;
+      const name = `${restored.projectName} (${version.label})`;
+      await db.projects.put({
+        id: copyId,
+        name,
+        timestamp: new Date(),
+        projectData: JSON.parse(JSON.stringify(restored.boards)),
+      });
+      setRecentProjects(await fetchRecentProjectMetas());
+      const opened = await loadProjectFromData(restored.boards, name, copyId);
+      if (!opened) throw new Error('The copy could not be opened.');
+      toast({ title: 'Opened as a new project', description: `"${name}" is open. The original is untouched.` });
+    } catch (error) {
+      console.error('Could not open that version as a copy', error);
+      toast({
+        title: 'Could not open a copy',
+        description: error instanceof Error ? error.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsVersionBusy(false);
+    }
+  };
+
+  const handleDeleteVersion = async (version: ProjectVersionMeta) => {
+    await deleteVersion(version.id);
+    await refreshVersions(activeProjectIdRef.current);
+  };
+
 
   // Board background, name and the rest of the board-level form. It used to run
   // its own db.projects.put and skip repositioning; folding it into the door
@@ -1981,6 +2303,9 @@ export function OpenScreenshotGeneratorLayout() {
       });
       return;
     }
+    // Every board resized and every mockup swapped in one commit: undo covers
+    // it, but only until the tab is closed.
+    void writeVersion(artboardsRef.current, `Before ${preset.label}`, 'safety');
     handleArtboardsUpdate(converted, namedChange(`Convert to ${preset.label}`, 'device'));
     trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
@@ -2668,7 +2993,14 @@ export function OpenScreenshotGeneratorLayout() {
       setCloudLink(null);
       return;
     }
-    setCloudLink(await getCloudLink(activeProjectId, discoverSession?.viewer?.id ?? null));
+    const link = await getCloudLink(activeProjectId, discoverSession?.viewer?.id ?? null);
+    setCloudLink(link);
+    // The invite link is the share slug plus the room key, and the key only
+    // ever exists on this device. A project with one but not the other has no
+    // invite yet: the dialog offers to make one.
+    setCollabInvite(
+      link?.shareSlug && link?.collabKey ? { slug: link.shareSlug, key: link.collabKey } : null
+    );
   }, [activeProjectId, discoverSession, isCloudAvailable]);
 
   useEffect(() => {
@@ -2804,6 +3136,230 @@ export function OpenScreenshotGeneratorLayout() {
       setIsSavingToCloud(false);
     }
   };
+
+  // --- editing together ------------------------------------------------------
+
+  /**
+   * The room this device is in, or the one this project has an invite for.
+   *
+   * The live session wins: a guest is in a room their own copy of the project
+   * has never heard of, and the link they should see is the one they are
+   * actually in.
+   */
+  const collabRoom: CollabInvite | null = collab.room ?? collabInvite;
+  const collabInviteUrl = collabRoom ? buildInviteUrl(collabRoom.slug, collabRoom.key) : null;
+
+  /** The invite link, copied with the words that describe what it grants. */
+  const copyCollabUrl = async (url: string) => {
+    if (!url) return;
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      copied = true;
+    } catch {
+      copied = false;
+    }
+    toast({
+      title: copied ? 'Invite link copied' : 'Your invite link',
+      description: copied
+        ? 'Anyone with this link can edit this project with you, once they sign in.'
+        : url,
+    });
+  };
+
+  /**
+   * Start editing together, or hand the link out again.
+   *
+   * Four steps, each skipped when it is already done: the project has to be in
+   * the cloud (that is where somebody following the link gets their first copy
+   * from), the cloud copy has to be link-shared (that is what makes it readable
+   * to them), the project needs a room key (minted here, kept only on this
+   * device), and this browser has to join the room.
+   *
+   * `rotate` is the reset: a new slug AND a new key, which is what makes every
+   * link handed out so far open nothing at all.
+   */
+  const startCollabSession = async (options: { rotate?: boolean } = {}) => {
+    if (!isCloudAvailable) return;
+    if (!isCloudSignedIn) {
+      requireCloudSignIn('Sign in to edit this project with other people.');
+      return;
+    }
+    if (!activeProjectId) {
+      toast({
+        title: 'Nothing to share yet',
+        description: 'Create or open a project first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsCollabWorking(true);
+    try {
+      // The push reads the stored row, exactly as every other cloud path does.
+      flushProjectSave();
+      const accountId = discoverSession?.viewer?.id ?? null;
+      let link = await getCloudLink(activeProjectId, accountId);
+      if (!link) {
+        await saveProjectToCloud(activeProjectId);
+        cloudAutoSave.noteSaved();
+        link = await getCloudLink(activeProjectId, accountId);
+      }
+      if (!link) throw new Error('This project could not be saved to the cloud.');
+
+      let slug = link.shareSlug;
+      if (options.rotate || link.visibility !== 'link' || !slug) {
+        const shared = await setCloudProjectShared(link.recordId, activeProjectId, true);
+        slug = shared.shareSlug;
+      }
+      let key = options.rotate ? '' : link.collabKey ?? '';
+      if (!key) {
+        key = newRoomKey();
+        await setCloudLinkCollabKey(activeProjectId, key);
+      }
+
+      collabProjectRef.current = activeProjectId;
+      if (options.rotate) collab.stop();
+      await collab.start(slug, key);
+      setCollabInvite({ slug, key });
+      await refreshCloudLink();
+      setIsCollabOpen(true);
+      await copyCollabUrl(buildInviteUrl(slug, key));
+    } catch (error) {
+      if (error instanceof CloudConflictError) setCloudConflict(error.remote);
+      else handleCloudError(error, 'Could not start the session');
+    } finally {
+      setIsCollabWorking(false);
+    }
+  };
+
+  /**
+   * Open somebody's invite.
+   *
+   * The link carries where the first copy is and the key to the room. What it
+   * does not carry is which local project that turns into, so this looks for
+   * one already here (a room joined before, or the owner's own project) before
+   * importing a fresh copy. Skipping that check is what would leave somebody
+   * with five copies of a project they joined five times.
+   */
+  const joinCollabInvite = async (invite: CollabInvite) => {
+    setIsCollabWorking(true);
+    setLoadPhase('project');
+    try {
+      const accountId = discoverSession?.viewer?.id ?? null;
+      let projectId = joinedProjectFor(invite.slug);
+      if (!projectId) {
+        const links = await listCloudLinks(accountId);
+        projectId = links.find((row) => row.shareSlug === invite.slug)?.projectId ?? null;
+      }
+
+      let opened = false;
+      if (projectId) {
+        const stored = await db.projects.get(projectId);
+        if (stored?.projectData) {
+          opened = await loadProjectFromData(stored.projectData, stored.name, stored.id);
+        }
+      }
+      if (!opened) {
+        const project = await openSharedProject(invite.slug);
+        opened = await loadProjectFromData(project.projectData, project.name, project.id);
+        projectId = project.id;
+        if (opened) rememberJoined(invite.slug, project.id);
+      }
+      if (!opened || !projectId) throw new Error('That project could not be opened.');
+
+      setIsTemplateSelectorOpen(false);
+      collabProjectRef.current = projectId;
+      await collab.start(invite.slug, invite.key);
+      toast({
+        title: 'You are editing together',
+        description:
+          'Everyone holding this link works on the same project. Their pointers and selections show up as they go.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not join that session',
+        description: error instanceof Error ? error.message : 'That link is not valid any more.',
+        variant: 'destructive',
+      });
+    } finally {
+      setPendingInvite(null);
+      setIsJoiningInvite(false);
+      setIsCollabWorking(false);
+      setLoadPhase('idle');
+    }
+  };
+
+  /**
+   * An invite on the URL, handled once.
+   *
+   * The link comes off the address bar immediately, fragment and all: the
+   * fragment is the room key, and a key left in the URL ends up in the next
+   * screenshot and in the history of a shared machine.
+   */
+  const collabInviteHandled = useRef(false);
+  useEffect(() => {
+    if (collabInviteHandled.current) return;
+    const invite = readInviteFromUrl();
+    if (!invite) {
+      // A link that arrived without its fragment cannot open a session, and
+      // failing silently is how both people end up believing they are in one.
+      if (invitedWithoutKey()) {
+        collabInviteHandled.current = true;
+        clearInviteFromUrl();
+        toast({
+          title: 'That invite link is incomplete',
+          description:
+            'The part after the # is what opens the session, and it did not survive the copy. Ask for the link again and paste the whole thing.',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+    collabInviteHandled.current = true;
+    clearInviteFromUrl();
+    if (!HAS_DISCOVER) {
+      setIsJoiningInvite(false);
+      toast({
+        title: 'Live editing is not available here',
+        description: 'This build has no session server configured.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsTipsOpen(false);
+    setPendingInvite(invite);
+    // Once, on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Held until somebody is signed in, because a session with no name on it is
+  // exactly what this feature is not.
+  useEffect(() => {
+    if (!pendingInvite || isCollabWorking) return;
+    if (!isCloudSignedIn) {
+      requireCloudSignIn('Sign in to join this live editing session.');
+      return;
+    }
+    void joinCollabInvite(pendingInvite);
+    // joinCollabInvite is re-created on every render; the guard above is what
+    // stops a second run rather than the dependency list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingInvite, isCloudSignedIn]);
+
+  // What this person has selected, so everybody else's canvas can draw a ring
+  // around it in their colour.
+  useEffect(() => {
+    if (collab.status === 'off') return;
+    collab.setSelection(activeArtboardId, selectedElementIdOnActiveArtboard);
+  }, [collab.status, collab.setSelection, activeArtboardId, selectedElementIdOnActiveArtboard]);
+
+  // Opening another project leaves the room. Staying in would publish the new
+  // project's boards into the old project's session.
+  useEffect(() => {
+    if (!collab.room) return;
+    if (activeProjectId && activeProjectId !== collabProjectRef.current) collab.stop();
+  }, [activeProjectId, collab.room, collab.stop]);
 
   /**
    * Clipboard, with a fallback that is not "nothing happened".
@@ -3210,6 +3766,9 @@ export function OpenScreenshotGeneratorLayout() {
     // Counts files *attempted*, not saved, so a board that fails to capture
     // does not drag the "image 3 of 12" counter backwards for the rest.
     let nextFileIndex = 1;
+    // The state that got exported is the state worth being able to come back
+    // to, so it is kept before the canvas is swapped for the run.
+    void writeVersion(artboardsRef.current, 'Exported', 'auto');
     // Closes the mutation door for the whole run. Nothing may write the project
     // while the canvas is showing a converted or re-projected list.
     isExportingRef.current = true;
@@ -3276,6 +3835,7 @@ export function OpenScreenshotGeneratorLayout() {
       // the user never selected.
       setExportCanvasArtboards(null);
       isExportingRef.current = false;
+      flushPendingRemote();
       setPngProgress(null);
       setIsCancellingPngExport(false);
       const cancelled = pngExportCancelRef.current;
@@ -3389,6 +3949,7 @@ export function OpenScreenshotGeneratorLayout() {
     } finally {
       setExportCanvasArtboards(null);
       isExportingRef.current = false;
+      flushPendingRemote();
     }
   };
 
@@ -4540,8 +5101,10 @@ export function OpenScreenshotGeneratorLayout() {
       setCurrentProjectName(projectName);
       setActiveProjectId(projectId);
       // Every open path funnels through here, which is what makes this the one
-      // place the cloud auto saver has to be re-armed from.
+      // place the cloud auto saver has to be re-armed from, and the one place
+      // that can hold on to the state a project was opened in.
       setProjectOpenToken((token) => token + 1);
+      openedSnapshotRef.current = { projectId, boards: finalArtboards, name: projectName };
       
       // Set artboards and history without triggering handleArtboardsUpdate
       setArtboards(finalArtboards);
@@ -4705,7 +5268,8 @@ const generateRandomProjectName = (): string => {
             !isTipsOpen &&
             !isAccountOpen &&
             !isDiscoverOpen &&
-            !isOpeningSharedLink
+            !isOpeningSharedLink &&
+            !isJoiningInvite
           }
           onOpenChange={(newOpenState) => {
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
@@ -6102,6 +6666,32 @@ const generateRandomProjectName = (): string => {
             isCloudSignedIn={isCloudSignedIn}
             isProjectInCloud={!!cloudLink}
             isProjectShared={cloudLink?.visibility === 'link'}
+            // Undefined with no session server, which leaves the Share menu
+            // exactly as it was rather than offering something that cannot run.
+            onEditTogether={
+              isCloudAvailable && collab.isConfigured ? () => setIsCollabOpen(true) : undefined
+            }
+            // Named versions have to be reachable from where people save, not
+            // only from a panel in the right dock they may never open.
+            onSaveVersion={
+              activeProjectId
+                ? () => {
+                    setRightDockTab('versions');
+                    setIsRightDockOpen(true);
+                    void handleSaveNamedVersion(
+                      `Version ${versions.filter((entry) => entry.kind === 'named').length + 1}`
+                    );
+                  }
+                : undefined
+            }
+            collab={
+              <CollabBar
+                status={collab.status}
+                me={collab.me}
+                peers={collab.peers}
+                onOpen={() => setIsCollabOpen(true)}
+              />
+            }
             onExport={() => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
@@ -6179,6 +6769,10 @@ const generateRandomProjectName = (): string => {
                 setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
                 canvasZoom={canvasZoom}
                 onZoomChange={setCanvasZoom}
+                collabPeers={collab.peers}
+                // Wired only during a session, so a pointer move costs nothing
+                // when there is nobody to tell.
+                onCollabCursor={collab.status === 'off' ? undefined : collab.setCursor}
                 artboardRefs={artboardRefs}
                 onAddNewArtboardFromToolbar={handleAddNewArtboardAfter}
                 onDuplicateArtboardFromToolbar={handleDuplicateArtboard}
@@ -6211,19 +6805,22 @@ const generateRandomProjectName = (): string => {
                   currentProjectName={currentProjectName}
                   onRenameProject={handleRenameProject}
                   className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
+                  // Inside the name's own pill, at the end of it: where the
+                  // project is saved is a fact about the project. Renders
+                  // nothing at all with no backend, or with auto save off.
+                  trailing={
+                    activeProjectId ? (
+                      <CloudAutoSaveChip
+                        status={cloudAutoSave.status}
+                        onSignIn={() =>
+                          requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')
+                        }
+                        onSaveNow={cloudAutoSave.saveNow}
+                        onResolveConflict={(remote) => setCloudConflict(remote)}
+                      />
+                    ) : undefined
+                  }
                 />
-                {/* Beside the name because it is about this project, not about
-                    the canvas. Renders nothing at all when there is no backend,
-                    or when the user has switched auto save off. */}
-                {activeProjectId && (
-                  <CloudAutoSaveChip
-                    status={cloudAutoSave.status}
-                    onSignIn={() => requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')}
-                    onSaveNow={cloudAutoSave.saveNow}
-                    onResolveConflict={(remote) => setCloudConflict(remote)}
-                    className="border border-border bg-card/95 shadow-lg backdrop-blur"
-                  />
-                )}
               </div>
 
               {/* Floating bar (bottom center of canvas): the select and pan
@@ -6358,7 +6955,7 @@ const generateRandomProjectName = (): string => {
               >
                 <Tabs
                   value={rightDockTab}
-                  onValueChange={(value) => selectRightDockTab(value as 'properties' | 'history')}
+                  onValueChange={(value) => selectRightDockTab(value as RightDockTab)}
                   className="flex min-h-0 flex-1 flex-col"
                 >
                 {/* Underline tabs, not the default segmented pill: inside a
@@ -6378,6 +6975,12 @@ const generateRandomProjectName = (): string => {
                       className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
                     >
                       History
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="versions"
+                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                    >
+                      Versions
                     </TabsTrigger>
                   </TabsList>
                   <Button
@@ -6420,6 +7023,10 @@ const generateRandomProjectName = (): string => {
                       className="h-full border-l-0 shadow-none"
                     />
                   </TabsContent>
+                  {/* A tab each, because they answer different questions:
+                      History is this sitting and dies with the reload, Versions
+                      is what survives one. Sharing a split gave each of them
+                      half a dock and neither enough rows to be read. */}
                   <TabsContent
                     value="history"
                     className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
@@ -6428,6 +7035,20 @@ const generateRandomProjectName = (): string => {
                       entries={history}
                       currentIndex={historyIndex}
                       onJumpTo={applyHistoryIndex}
+                    />
+                  </TabsContent>
+                  <TabsContent
+                    value="versions"
+                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
+                  >
+                    <VersionsPanel
+                      versions={versions}
+                      projectId={activeProjectId}
+                      isBusy={isVersionBusy}
+                      onSaveNamed={(label) => void handleSaveNamedVersion(label)}
+                      onRestore={(version) => void handleRestoreVersion(version)}
+                      onOpenCopy={(version) => void handleOpenVersionCopy(version)}
+                      onDelete={(version) => void handleDeleteVersion(version)}
                     />
                   </TabsContent>
                   <div
@@ -6522,6 +7143,7 @@ const generateRandomProjectName = (): string => {
                   {([
                     { label: 'Properties', tab: 'properties' as const },
                     { label: 'History', tab: 'history' as const },
+                    { label: 'Versions', tab: 'versions' as const },
                     { label: 'Layers', tab: null },
                   ]).map(({ label, tab }) => (
                     <button
@@ -6745,6 +7367,21 @@ const generateRandomProjectName = (): string => {
             isSaving={isSavingToAccount}
             onReplace={() => void runAccountSave()}
             onSaveCopy={(name) => void runAccountSave(name)}
+          />
+
+          <CollabDialog
+            open={isCollabOpen}
+            onOpenChange={setIsCollabOpen}
+            status={collab.status}
+            inviteUrl={collabInviteUrl}
+            me={collab.me}
+            peers={collab.peers}
+            isWorking={isCollabWorking}
+            error={collab.error}
+            onCreate={() => void startCollabSession()}
+            onCopy={() => void copyCollabUrl(collabInviteUrl ?? '')}
+            onLeave={() => collab.stop()}
+            onReset={() => void startCollabSession({ rotate: true })}
           />
 
           <CloudSaveConflictDialog

@@ -16,6 +16,7 @@ import { BASE_PATH } from '@/lib/basePath';
 import { ensureUniqueElementIds, normalizeLocalization } from '@/lib/i18n/localization';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
 import { importBundle, serializeProject } from '@/lib/account/projectBundle';
+import { packJson, unpackJson } from '@/lib/compressJson';
 import type {
   BundledFont,
   BundledFontMeta,
@@ -48,6 +49,7 @@ export {
   getCloudLink,
   listCloudLinks,
   deleteCloudLink,
+  setCloudLinkCollabKey,
   type CloudProjectLink,
 } from './links';
 
@@ -64,40 +66,9 @@ export class CloudConflictError extends Error {
   }
 }
 
-// ---------------------------------------------------------------------------
-// the document, compressed
-// ---------------------------------------------------------------------------
-
-/**
- * project.json, gzipped when the browser can do it.
- *
- * An artboard document is mostly repeated key names and hex colours, so this is
- * routinely an 8x saving on both our disk and the user's upload. Every browser
- * this app supports has CompressionStream, but the feature test is real rather
- * than decorative: `doc_encoding` travels with the file, so a build running
- * somewhere without it stores plain JSON and reads back exactly the same.
- */
-async function packDoc(json: string): Promise<{ blob: Blob; encoding: 'none' | 'gzip' }> {
-  const plain = new Blob([json], { type: 'application/json' });
-  if (typeof CompressionStream === 'undefined') return { blob: plain, encoding: 'none' };
-  try {
-    const stream = plain.stream().pipeThrough(new CompressionStream('gzip'));
-    const blob = await new Response(stream).blob();
-    // A document that got bigger means the stream did nothing useful. Cheap to
-    // check, and it keeps the stored file honest.
-    if (blob.size >= plain.size) return { blob: plain, encoding: 'none' };
-    return { blob, encoding: 'gzip' };
-  } catch {
-    return { blob: plain, encoding: 'none' };
-  }
-}
-
-/** The other half. Reads whichever encoding the record says it was stored in. */
-async function unpackDoc(blob: Blob, encoding: 'none' | 'gzip'): Promise<string> {
-  if (encoding !== 'gzip') return blob.text();
-  const stream = blob.stream().pipeThrough(new DecompressionStream('gzip'));
-  return new Response(stream).text();
-}
+// The document is gzipped on its way up and read back by whichever encoding the
+// record says it was stored in. Shared with the local version history, which
+// stores the same document the same way: see src/lib/compressJson.ts.
 
 // ---------------------------------------------------------------------------
 // saving
@@ -148,7 +119,7 @@ export async function saveProjectToCloud(
   const bundle = await serializeProject(project, onProgress);
 
   onProgress?.('Compressing', 0.4);
-  const { blob: doc, encoding } = await packDoc(JSON.stringify(bundle.manifest));
+  const { blob: doc, encoding } = await packJson(JSON.stringify(bundle.manifest));
 
   const manifestAssets = [
     ...bundle.media.map((item) => ({ id: item.meta.id, kind: 'media' as const })),
@@ -286,7 +257,7 @@ async function fetchBundle(
 ): Promise<ProjectBundle> {
   onProgress?.('Reading project', 0);
   const manifest = JSON.parse(
-    await unpackDoc(await source.doc(), summary.docEncoding)
+    await unpackJson(await source.doc(), summary.docEncoding)
   ) as ProjectManifest;
 
   if (!Array.isArray(manifest.projectData)) {

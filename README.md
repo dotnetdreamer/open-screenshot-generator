@@ -19,6 +19,19 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
+### 19 August 2026: versions that survive a reload
+
+- The **History** tab now has two lists. States is the undo stack for this sitting, as before. **Versions** below it is kept in the browser: the state a project was in when you opened it, a checkpoint every ten minutes of editing, one before a device conversion, one whenever you export, and one whenever you press Save this state and name it.
+- Put any of them back with one click. The state being replaced is kept first, so a restore is never a one way door, and it lands in undo like any other edit. **Open as a copy** forks it into its own project instead, which is how one template becomes two variants.
+- They cost almost nothing: a version is the document, gzipped, usually tens of kilobytes, and screenshots and recordings are shared rather than copied. The list thins itself, and the ones you named are never thinned.
+
+### 19 August 2026: edit together, live
+
+- **Share > Edit together** hands out one link. Everybody who opens it works on the same project at the same time, and sees the others as they go: a coloured pointer per person, a ring around whatever they have selected, and their face in the toolbar. Signing in is required, so every edit has a name on it.
+- It is peer to peer. Once a session is up the design travels straight between the browsers in it, encrypted with a key that lives in the half of the link after the `#`, which is never sent to any server. Ours introduces the browsers to each other and then carries nothing.
+- Nothing is locked. Two people can work on the same board, the same element, even the same property, and it merges: the only thing that resolves as "last one wins" is two people setting the same property in the same instant.
+- Reset the link from the same dialog and every invite handed out so far stops opening anything.
+
 ### 19 August 2026: projects save themselves, and the wheel zooms
 
 - Signed in, the open project is now kept in your cloud without anybody clicking Save. Create, open or import one and it goes up shortly after you stop editing, then again whenever there is something new. The pill next to the project name is the whole interface: it says saved, pending, or what went wrong. Settings > Cloud turns it off.

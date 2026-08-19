@@ -52,6 +52,17 @@ export interface CloudProjectLink {
    * instead of pretending it is fine, and the next save retries exactly these.
    */
   pendingAssets: string[];
+  /**
+   * The room key for editing this project together, once somebody has asked for
+   * one. See src/lib/collab/links.ts.
+   *
+   * It is deliberately not on the server. The key is the half of an invite that
+   * never leaves the people holding the link: it encrypts the session, and a
+   * copy on our box would make "end to end" a claim rather than a fact. The
+   * cost is that the same project invited from two devices is two rooms, which
+   * is the right way round for a secret.
+   */
+  collabKey?: string;
 }
 
 /** The link for a local project, or null. Never throws. */
@@ -90,6 +101,11 @@ export async function putCloudLink(
   pendingAssets: string[]
 ): Promise<void> {
   try {
+    // The room key is the one field on this row the server knows nothing about,
+    // so a save must carry it forward rather than write it away: the auto saver
+    // runs every minute, and losing it would silently end a live session's
+    // invite link between one edit and the next.
+    const existing = await db.cloudLinks.get(projectId);
     await db.cloudLinks.put({
       projectId,
       recordId: project.id,
@@ -99,6 +115,7 @@ export async function putCloudLink(
       visibility: project.visibility,
       shareSlug: project.shareSlug ?? '',
       pendingAssets,
+      ...(existing?.collabKey ? { collabKey: existing.collabKey } : {}),
     });
   } catch (error) {
     // A lost hint is not worth failing a save that already succeeded upstream.
@@ -130,6 +147,22 @@ export async function setCloudLinkSharing(
     });
   } catch (error) {
     console.error('Could not remember the share link for this project', error);
+  }
+}
+
+/**
+ * Remember the room key for editing this project together.
+ *
+ * Written next to the share slug because the two are only useful as a pair: the
+ * slug says where the starting copy is, the key opens the room it is edited in.
+ */
+export async function setCloudLinkCollabKey(projectId: string, collabKey: string): Promise<void> {
+  try {
+    const row = await db.cloudLinks.get(projectId);
+    if (!row) return;
+    await db.cloudLinks.put({ ...row, collabKey });
+  } catch (error) {
+    console.error('Could not remember the room key for this project', error);
   }
 }
 

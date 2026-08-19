@@ -19,12 +19,21 @@ interface ProjectNameFieldProps {
   currentProjectName?: string;
   onRenameProject?: (newName: string) => void;
   className?: string;
+  /**
+   * A mark at the end of the name, inside the same pill.
+   *
+   * The cloud auto save indicator lives here rather than in a chip of its own:
+   * it is a fact about this project, and a second floating pill beside the name
+   * was one more thing to read in the corner of every screenshot.
+   */
+  trailing?: React.ReactNode;
 }
 
 export function ProjectNameField({
   currentProjectName,
   onRenameProject,
   className,
+  trailing,
 }: ProjectNameFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(currentProjectName || 'Untitled Project');
@@ -74,7 +83,7 @@ export function ProjectNameField({
 
   return (
     <div
-      className={cn('flex items-center', className)}
+      className={cn('flex items-center gap-1', className)}
       onMouseDown={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >
@@ -104,6 +113,7 @@ export function ProjectNameField({
           </span>
         </div>
       )}
+      {trailing}
     </div>
   );
 }
