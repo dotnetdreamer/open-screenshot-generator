@@ -166,8 +166,9 @@ import {
   type HistoryChange,
   type HistoryEntry,
 } from '@/lib/historyLabels';
-import { LoadStatusBar } from './LoadStatusBar';
+import { LoadStatusBar, type ProjectLoadStep } from './LoadStatusBar';
 import { LocalFontNotice } from './LocalFontNotice';
+import { ProjectLoadOverlay } from './ProjectLoadOverlay';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -673,9 +674,18 @@ export function OpenScreenshotGeneratorLayout() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   // Load-progress feedback for the top status bar. 'templates' = fetching the
   // template gallery on startup (determinate: done/total); 'project' = opening a
-  // template/saved project into the canvas (indeterminate). 'idle' hides the bar.
+  // template/saved project into the canvas (determinate whenever the loader
+  // reports steps, see projectLoadStatus). 'idle' hides the bar.
   const [loadPhase, setLoadPhase] = useState<'idle' | 'templates' | 'project'>('templates');
   const [templateProgress, setTemplateProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  /**
+   * What the project open is doing right now, for the status bar and the canvas
+   * card. Only the remote paths (your own storage, our cloud, a share link) fill
+   * this in: they are the ones that take long enough for "it is doing nothing"
+   * to be the natural reading, and their loaders already count the files they
+   * are moving. A local IndexedDB open leaves it null and keeps the sweep.
+   */
+  const [projectLoadStatus, setProjectLoadStatus] = useState<ProjectLoadStep | null>(null);
   const { toast } = useToast();
   const artboardRefs = useRef<Record<string, any>>({});
   // Latest design-tool API for the desktop MCP server; assigned each render and
@@ -2592,10 +2602,24 @@ export function OpenScreenshotGeneratorLayout() {
     await runAccountSave();
   };
 
-  /** Pull a project out of the connected account and open it in the editor. */
+  /**
+   * Pull a project out of the connected account and open it in the editor.
+   *
+   * Every step is reported: this downloads the document, then each recording and
+   * imported font one at a time, then writes them all into IndexedDB. On a big
+   * project that is a long wait in which the canvas would otherwise sit there
+   * showing the project the user is leaving.
+   */
   const handleOpenFromAccount = async (remoteId: string, name: string) => {
+    setLoadPhase('project');
+    setProjectLoadStatus({ name, step: 'Reading your project', ratio: 0 });
     try {
-      const project = await loadProjectFromAccount(remoteId);
+      const project = await loadProjectFromAccount(remoteId, (step, ratio) =>
+        setProjectLoadStatus({ name, step, ratio })
+      );
+      // Building the boards is the tail of the same wait: positions are
+      // recalculated and inline media is externalized before anything renders.
+      setProjectLoadStatus({ name: project.name, step: 'Preparing artboards', ratio: 0.97 });
       const success = await loadProjectFromData(project.projectData, project.name, project.id);
       if (success) {
         setIsTemplateSelectorOpen(false);
@@ -2613,6 +2637,9 @@ export function OpenScreenshotGeneratorLayout() {
           variant: "destructive",
         });
       }
+    } finally {
+      setLoadPhase('idle');
+      setProjectLoadStatus(null);
     }
   };
 
@@ -2784,7 +2811,12 @@ export function OpenScreenshotGeneratorLayout() {
   const handleOpenCloudProject = async (project: CloudProject, asCopy: boolean) => {
     try {
       setLoadPhase('project');
-      const opened = await loadProjectFromCloud(project.id, { asCopy });
+      setProjectLoadStatus({ name: project.name, step: 'Reading your project', ratio: 0 });
+      const opened = await loadProjectFromCloud(project.id, {
+        asCopy,
+        onProgress: (step, ratio) => setProjectLoadStatus({ name: project.name, step, ratio }),
+      });
+      setProjectLoadStatus({ name: opened.name, step: 'Preparing artboards', ratio: 0.97 });
       const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
       if (success) {
         setIsTemplateSelectorOpen(false);
@@ -2801,6 +2833,7 @@ export function OpenScreenshotGeneratorLayout() {
       handleCloudError(error, 'Could not open that project');
     } finally {
       setLoadPhase('idle');
+      setProjectLoadStatus(null);
     }
   };
 
@@ -2835,9 +2868,13 @@ export function OpenScreenshotGeneratorLayout() {
 
     (async () => {
       setLoadPhase('project');
+      setProjectLoadStatus({ step: 'Reading the shared project', ratio: 0 });
       setIsTipsOpen(false);
       try {
-        const opened = await openSharedProject(slug);
+        const opened = await openSharedProject(slug, (step, ratio) =>
+          setProjectLoadStatus({ step, ratio })
+        );
+        setProjectLoadStatus({ name: opened.name, step: 'Preparing artboards', ratio: 0.97 });
         const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
         if (success) {
           setIsTemplateSelectorOpen(false);
@@ -2857,6 +2894,7 @@ export function OpenScreenshotGeneratorLayout() {
         // and there is genuinely nothing open.
         setIsOpeningSharedLink(false);
         setLoadPhase('idle');
+        setProjectLoadStatus(null);
       }
     })();
     // Once, on mount. loadProjectFromData is stable enough for this and adding
@@ -6029,7 +6067,11 @@ const generateRandomProjectName = (): string => {
         </Sidebar>
 
         <SidebarInset className="relative flex flex-col overflow-hidden">
-          <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
+          <LoadStatusBar
+            phase={loadPhase}
+            templateProgress={templateProgress}
+            projectStep={projectLoadStatus}
+          />
           <Toolbar
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => openPreview('single')}
@@ -6137,6 +6179,12 @@ const generateRandomProjectName = (): string => {
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
+
+              {/* Says what the open is doing, over the canvas rather than in the
+                  2px bar at the top of the editor. Held back a beat inside the
+                  component, so a local open that finishes immediately does not
+                  flash a card. */}
+              <ProjectLoadOverlay active={loadPhase === 'project'} status={projectLoadStatus} />
 
               {/* Full-width App Preview timeline, docked above the tool pill.
                   Shows itself whenever the selected board has motion. */}

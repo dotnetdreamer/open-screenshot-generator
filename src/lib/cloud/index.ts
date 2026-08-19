@@ -15,7 +15,7 @@ import { db } from '@/database';
 import { BASE_PATH } from '@/lib/basePath';
 import { ensureUniqueElementIds, normalizeLocalization } from '@/lib/i18n/localization';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
-import { importBundle, serializeProject } from '@/lib/account/projectBundle';
+import { importBundle, serializeProject, splitProgress } from '@/lib/account/projectBundle';
 import type {
   BundledFont,
   BundledFontMeta,
@@ -383,6 +383,9 @@ export async function loadProjectFromCloud(
   const summary = await cloudApi.getProject(recordId);
   if (!summary) throw new CloudRequestError('That project is no longer in your cloud.', 404);
 
+  // Downloading and then writing the blobs to this device are both slow enough
+  // to be worth reporting, and splitProgress keeps them on one rising bar.
+  const progress = splitProgress(onProgress);
   const bundle = normalize(
     await fetchBundle(
       summary,
@@ -390,7 +393,7 @@ export async function loadProjectFromCloud(
         doc: () => cloudApi.fetchDoc(recordId),
         asset: (assetId) => cloudApi.fetchAsset(recordId, assetId),
       },
-      onProgress
+      progress.download
     )
   );
 
@@ -398,6 +401,7 @@ export async function loadProjectFromCloud(
   const project = await importBundle(bundle, {
     projectId: localId,
     name: asCopy ? `${summary.name} copy` : summary.name,
+    onProgress: progress.install,
   });
 
   // A copy is a new project with no cloud row of its own. Only the in-place
@@ -421,6 +425,7 @@ export async function openSharedProject(
   const summary = await cloudApi.getShared(slug);
   if (!summary) throw new CloudRequestError('That link is not valid any more.', 404);
 
+  const progress = splitProgress(onProgress);
   const bundle = normalize(
     await fetchBundle(
       summary,
@@ -428,11 +433,15 @@ export async function openSharedProject(
         doc: () => cloudApi.fetchSharedDoc(slug),
         asset: (assetId) => cloudApi.fetchSharedAsset(slug, assetId),
       },
-      onProgress
+      progress.download
     )
   );
 
-  return importBundle(bundle, { projectId: newLocalProjectId(), name: summary.name });
+  return importBundle(bundle, {
+    projectId: newLocalProjectId(),
+    name: summary.name,
+    onProgress: progress.install,
+  });
 }
 
 // ---------------------------------------------------------------------------

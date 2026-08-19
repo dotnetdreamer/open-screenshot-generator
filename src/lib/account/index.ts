@@ -9,7 +9,7 @@ import { ensureUniqueElementIds, normalizeLocalization } from '@/lib/i18n/locali
 import type { Project } from '@/types/artboard';
 import { googleDriveProvider } from './providers/googleDrive';
 import { githubProvider } from './providers/github';
-import { importBundle, serializeProject } from './projectBundle';
+import { importBundle, serializeProject, splitProgress } from './projectBundle';
 import { getSession, setSession } from './store';
 import {
   AccountAuthError,
@@ -114,7 +114,15 @@ export async function loadProjectFromAccount(
 
   try {
     const session = await withFreshSession(stored);
-    const bundle = await getProvider(session.provider).loadProject(session, remoteId, onProgress);
+    // Two loops, one bar: the download counts to three quarters and writing the
+    // blobs to this device counts the rest. Reported raw they would each run 0
+    // to 100 and the bar would restart halfway through the wait.
+    const progress = splitProgress(onProgress);
+    const bundle = await getProvider(session.provider).loadProject(
+      session,
+      remoteId,
+      progress.download
+    );
     // Same normalization the local load path runs, so a project saved by an
     // older build comes back on the current element shapes. ensureUniqueElementIds
     // repairs boards an older Duplicate Artboard aliased, and normalizeLocalization
@@ -123,7 +131,7 @@ export async function loadProjectFromAccount(
     bundle.manifest.projectData = normalizeLocalization(
       ensureUniqueElementIds(migrateVideoDevices(bundle.manifest.projectData))
     );
-    return await importBundle(bundle);
+    return await importBundle(bundle, { onProgress: progress.install });
   } catch (error) {
     return handleAuthFailure(error);
   }
@@ -156,6 +164,7 @@ export { getSession, setSession, clearSession, useAccount, subscribe } from './s
 export {
   serializeProject,
   importBundle,
+  splitProgress,
   bundleToJson,
   bundleFromJson,
   collectFontFamilies,
