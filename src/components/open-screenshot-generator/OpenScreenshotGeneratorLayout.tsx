@@ -151,6 +151,7 @@ import {
   newCloudProjectId,
   saveProjectToAccount,
   serializeProject,
+  splitProgress,
   useAccount,
   type CloudProjectSummary,
 } from '@/lib/account';
@@ -4558,7 +4559,15 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  // Import project from JSON
+  /**
+   * Import project from JSON.
+   *
+   * Reported step by step, the same way opening from an account or the cloud is
+   * (handleOpenFromAccount): an exported file carries its screen recordings and
+   * imported fonts inline as base64, so reading it, decoding them and writing
+   * them into IndexedDB is a wait of the same order as a download. Without the
+   * bar and the overlay the canvas sits on the outgoing project saying nothing.
+   */
   const handleImportProjectFromJSON = () => {
     // Create a hidden file input element
     const fileInput = document.createElement('input');
@@ -4570,20 +4579,40 @@ export function OpenScreenshotGeneratorLayout() {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      // The file names the project until the manifest can.
+      const fileName = file.name.replace(/\.json$/i, '');
+      setLoadPhase('project');
+      setProjectLoadStatus({ name: fileName, step: 'Reading the file', ratio: 0 });
       try {
         const fileContent = await file.text();
+        setProjectLoadStatus({ name: fileName, step: 'Restoring media and fonts', ratio: 0.25 });
+        // Two frames, so that step is on screen before the parse and the base64
+        // decode take the main thread for as long as the file is large.
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        );
         // bundleFromJson validates the shape and restores any bundled media and
         // fonts. It still accepts files written before either travelled with
         // the JSON, so older exports keep importing.
         const bundle = bundleFromJson(JSON.parse(fileContent));
 
         const importedName = bundle.manifest.name || `Imported ${bundle.manifest.id}`;
+        // importBundle counts its fonts and media from 0 to 1 of its own; the
+        // read and the decode already spent the first third of the bar, and the
+        // last slice belongs to building the artboards, so the bar only ever
+        // moves forward. Same split the account loader uses.
+        const install = splitProgress(
+          (step, ratio) => setProjectLoadStatus({ name: importedName, step, ratio }),
+          { downloadTo: 0.3, installTo: 0.95 }
+        ).install;
         const imported = await importBundle(bundle, {
           // A fresh id keeps an import from overwriting the project it came from.
           projectId: `imported_${Date.now()}`,
           name: importedName,
+          onProgress: install,
         });
 
+        setProjectLoadStatus({ name: imported.name, step: 'Preparing artboards', ratio: 0.97 });
         const success = await loadProjectFromData(
           imported.projectData,
           imported.name,
@@ -4611,6 +4640,9 @@ export function OpenScreenshotGeneratorLayout() {
           description: error instanceof Error ? error.message : "There was an error reading or parsing the JSON file.",
           variant: "destructive",
         });
+      } finally {
+        setLoadPhase('idle');
+        setProjectLoadStatus(null);
       }
     };
 

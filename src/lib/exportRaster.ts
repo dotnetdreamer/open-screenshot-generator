@@ -32,6 +32,8 @@
 
 import { toPng, toSvg } from 'html-to-image';
 import type { Options } from 'html-to-image/lib/types';
+import { resolveFontEmbedCss } from '@/lib/fontEmbed';
+import { encodeOpaquePngDataUrl } from '@/lib/pngOpaque';
 
 /** Exactly what html-to-image's toSvg returns. Anything else and we bail. */
 const SVG_DATA_URL_PREFIX = 'data:image/svg+xml;charset=utf-8,';
@@ -109,18 +111,43 @@ function clampCanvas(canvas: HTMLCanvasElement): void {
 }
 
 /**
+ * Resolve the node's web fonts here rather than leaving it to html-to-image.
+ *
+ * Its own pass cannot read a cross-origin stylesheet, and what it does instead
+ * is download every font file the whole sheet mentions, for every capture: the
+ * app's Google Fonts sheet turned one export into thousands of parallel woff2
+ * requests and a wall of net::ERR_INSUFFICIENT_RESOURCES. See fontEmbed.ts.
+ *
+ * A caller that already has the CSS (videoExport resolves it once and reuses it
+ * across dozens of sprites) passes it in and this is a no-op.
+ */
+async function withEmbeddedFonts(node: HTMLElement, options: Options): Promise<Options> {
+  if (options.fontEmbedCSS != null || options.skipFonts) return options;
+  try {
+    return { ...options, fontEmbedCSS: await resolveFontEmbedCss(node) };
+  } catch (error) {
+    // Deliberately not falling through to html-to-image's own pass: that is
+    // the thing this exists to keep off the network. A capture in the fallback
+    // face beats a capture that never finishes.
+    console.warn('Could not resolve the fonts for this capture', error);
+    return { ...options, fontEmbedCSS: '' };
+  }
+}
+
+/**
  * Capture `node` as a PNG data URL. Drop-in for html-to-image's `toPng` and
  * the only capture entry point the app should call: PNG export, store upload,
  * Discover share, the MCP export tools and the App Preview sprite pass all go
  * through here so none of them can quietly lose images on macOS again.
  */
 export async function captureNodeToPng(node: HTMLElement, options: Options = {}): Promise<string> {
-  const svgDataUrl = await toSvg(node, options);
+  const capture = await withEmbeddedFonts(node, options);
+  const svgDataUrl = await toSvg(node, capture);
   const patched = withSyncImageDecoding(svgDataUrl);
   // A future html-to-image could serialize differently. Exporting through the
   // library unchanged is the right failure: correct everywhere but macOS,
   // rather than blank everywhere.
-  if (!patched) return toPng(node, options);
+  if (!patched) return toPng(node, capture);
 
   // Same fallback one step later. If the rewritten markup is somehow not
   // something this browser will parse, rasterize what the library built, so a
@@ -142,14 +169,22 @@ export async function captureNodeToPng(node: HTMLElement, options: Options = {})
   canvas.height = (options.canvasHeight || height) * ratio;
   if (!options.skipAutoScale) clampCanvas(canvas);
 
-  const context = canvas.getContext('2d');
-  if (!context) throw new Error('This browser could not prepare the export canvas.');
   // A sprite capture wants the transparency; a board passes its own colour so
-  // edge antialiasing blends into the design instead of into nothing.
+  // edge antialiasing blends into the design instead of into nothing. That
+  // colour is also what makes the board's canvas opaque, which is the whole
+  // requirement App Store Connect states: no alpha channel, transparent pixels
+  // or not (see pngOpaque.ts).
+  const opaque = !!options.backgroundColor;
+  const context = canvas.getContext('2d', opaque ? { alpha: false } : undefined);
+  if (!context) throw new Error('This browser could not prepare the export canvas.');
   if (options.backgroundColor) {
     context.fillStyle = options.backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
   }
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  if (opaque) {
+    const withoutAlpha = await encodeOpaquePngDataUrl(canvas);
+    if (withoutAlpha) return withoutAlpha;
+  }
   return canvas.toDataURL();
 }
