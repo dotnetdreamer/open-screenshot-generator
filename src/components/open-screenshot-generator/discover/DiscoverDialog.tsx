@@ -103,14 +103,21 @@ const FEED_TABS: {
   sort: DiscoverSort;
   scope: DiscoverScope;
 }[] = [
+  // Newest leads, and it is what the feed opens on. A feed this size is judged
+  // on whether anything is happening in it, and "for you" cannot answer that on
+  // somebody's first visit: with nothing to personalise from it ranks the same
+  // posts it ranked last week. What landed today is the honest first screen.
+  { id: 'newest', label: 'Newest', sort: 'newest', scope: 'all' },
   { id: 'for-you', label: 'For you', sort: 'for-you', scope: 'all' },
   { id: 'trending', label: 'Trending', sort: 'trending', scope: 'all' },
-  { id: 'newest', label: 'Newest', sort: 'newest', scope: 'all' },
   { id: 'top', label: 'Top', sort: 'top', scope: 'all' },
   { id: 'following', label: 'Following', sort: 'newest', scope: 'following' },
   { id: 'saved', label: 'Saved', sort: 'newest', scope: 'saved' },
   { id: 'mine', label: 'Yours', sort: 'newest', scope: 'mine' },
 ];
+
+/** The tab the feed opens on, and the one every "back to the feed" lands on. */
+const DEFAULT_FEED_TAB = FEED_TABS[0].id;
 
 interface DiscoverDialogProps {
   open: boolean;
@@ -159,7 +166,7 @@ export function DiscoverDialog({
   const canInteract = isSignedIn && capabilities?.writes !== false;
   const [view, setView] = useState<'feed' | 'post' | 'share'>('feed');
   const [activePost, setActivePost] = useState<DiscoverPost | null>(null);
-  const [tab, setTab] = useState('for-you');
+  const [tab, setTab] = useState(DEFAULT_FEED_TAB);
   const [surface, setSurface] = useState<DiscoverSurface | 'all'>('all');
   const [tag, setTag] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -672,7 +679,7 @@ export function DiscoverDialog({
               onDelete={activePost.isMine ? (post) => setPostToDelete(post) : undefined}
               onSelectTag={(selected) => {
                 setTag(selected);
-                setTab('for-you');
+                setTab(DEFAULT_FEED_TAB);
                 backToFeed();
               }}
               onCopyLink={(post) => void copyLink(post)}
