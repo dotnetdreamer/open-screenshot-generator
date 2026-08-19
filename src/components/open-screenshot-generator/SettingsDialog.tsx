@@ -26,6 +26,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/contexts/ThemeContext';
 import type { ThemePreference } from '@/lib/theme';
+import { useEditorPreference } from '@/lib/editorPreferences';
+import { isDiscoverConfigured } from '@/lib/discover/session';
 import { shouldShowTipsOnStartup, setShowTipsOnStartup } from './TipsDialog';
 import { cn } from '@/lib/utils';
 
@@ -152,6 +154,12 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialogProps) {
   const { theme, resolvedTheme } = useTheme();
   const [tipsOnStartup, setTipsOnStartup] = useState(true);
+  // Both live in localStorage and both have readers that are already mounted
+  // (the canvas, the auto saver), so they go through the shared preference
+  // store rather than being read and written here. Flipping one takes effect
+  // on the open project immediately.
+  const [autoSaveToCloud, setAutoSaveToCloud] = useEditorPreference('cloudAutoSave');
+  const [wheelZoom, setWheelZoom] = useEditorPreference('wheelZoom');
   const contentRef = useRef<HTMLDivElement>(null);
 
   // localStorage is only readable after mount, and the wizard's own checkbox
@@ -202,6 +210,36 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
               stacked
             />
           </SettingsSection>
+
+          <SettingsSection title="Canvas">
+            <SettingsRow
+              label="Zoom with the mouse wheel"
+              description="A wheel over the canvas zooms instead of scrolling. A trackpad is left alone, so two fingers still scroll, and Ctrl or Cmd with the wheel zooms either way"
+              htmlFor="settings-wheel-zoom"
+              control={
+                <Switch id="settings-wheel-zoom" checked={wheelZoom} onCheckedChange={setWheelZoom} />
+              }
+            />
+          </SettingsSection>
+
+          {/* No backend in this build means there is no cloud to save to, and a
+              switch for a feature that cannot run is worse than no switch. */}
+          {isDiscoverConfigured() && (
+            <SettingsSection title="Cloud">
+              <SettingsRow
+                label="Save to your cloud automatically"
+                description="Keeps the open project in your cloud on its own, shortly after each round of edits. Sign in to use it, and watch the corner of the canvas to see where it got to"
+                htmlFor="settings-cloud-auto-save"
+                control={
+                  <Switch
+                    id="settings-cloud-auto-save"
+                    checked={autoSaveToCloud}
+                    onCheckedChange={setAutoSaveToCloud}
+                  />
+                }
+              />
+            </SettingsSection>
+          )}
 
           <SettingsSection title="Tips">
             <SettingsRow

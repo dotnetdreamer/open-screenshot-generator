@@ -246,7 +246,7 @@ export function CloudProjectsPanel({
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{activeProjectName}</p>
               <p className="text-xs text-muted-foreground">
-                {activeIsSaved ? 'Already here. Saving updates it' : 'Not saved to the cloud yet'}
+                {activeIsSaved ? 'Already here, and kept up to date on its own' : 'Not up here yet. It goes up on its own, or press Save'}
               </p>
             </div>
             <Button size="sm" onClick={onSave} disabled={isSaving}>
@@ -291,7 +291,8 @@ export function CloudProjectsPanel({
 
         {!error && projects?.length === 0 && (
           <p className="py-6 text-center text-sm text-muted-foreground">
-            Nothing here yet. Save the project you have open and it will show up.
+            Nothing here yet. The project you have open goes up on its own shortly after you
+            work on it, or send it now with Save.
           </p>
         )}
 

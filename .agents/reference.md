@@ -840,20 +840,39 @@ Read this alongside `infra/vps/README.md`, which is the operator's half.
 | [src/lib/cloud/api.ts](../src/lib/cloud/api.ts) | the transport, one method per route. Shares `DISCOVER_URL` and the bearer token with [discover/session.ts](../src/lib/discover/session.ts) |
 | [src/lib/cloud/links.ts](../src/lib/cloud/links.ts) | the Dexie `cloudLinks` table: which local project maps to which cloud row |
 | [src/lib/cloud/index.ts](../src/lib/cloud/index.ts) | `saveProjectToCloud`, `loadProjectFromCloud`, `openSharedProject`, `setCloudProjectShared`, `buildShareUrl`, the gzip pair |
-| [cloud/CloudProjectsDialog.tsx](../src/components/open-screenshot-generator/cloud/CloudProjectsDialog.tsx) | the list, with open / copy link / stop sharing / delete |
+| [cloud/CloudProjectsPanel.tsx](../src/components/open-screenshot-generator/cloud/CloudProjectsPanel.tsx) | the list, with open / copy link / stop sharing / delete. Lives on the account dialog's cloud tab |
+| [cloud/autoSave.ts](../src/lib/cloud/autoSave.ts) | the auto saver: when to push, and what to do when a push fails. No React in it |
+| [use-cloud-auto-save.ts](../src/hooks/use-cloud-auto-save.ts) | binds one saver to the open project and hands the layout `status` / `noteChange` / `noteSaved` / `saveNow` |
+| [cloud/CloudAutoSaveChip.tsx](../src/components/open-screenshot-generator/cloud/CloudAutoSaveChip.tsx) | the pill beside the project name, which is the feature's only UI |
+| [editorPreferences.ts](../src/lib/editorPreferences.ts) | the `cloudAutoSave` switch (and the canvas wheel one), shared by Settings and its readers |
 | [cloud/CloudSaveConflictDialog.tsx](../src/components/open-screenshot-generator/cloud/CloudSaveConflictDialog.tsx) | shown only when the remote row moved since this device last wrote it |
 | [infra/vps/pb-hooks/060_projects.pb.js](../infra/vps/pb-hooks/060_projects.pb.js) | the eleven routes |
 | [infra/vps/pb-migrations/1786300000_openscreengen_projects.js](../infra/vps/pb-migrations/1786300000_openscreengen_projects.js) | `cloud_projects` + `cloud_project_assets` + six settings rows |
 
 ### The rules that are easy to break
 
-1. **IndexedDB stays the source of truth.** Nothing here writes `db.projects` except through `importBundle`, the same door the local `.json` import uses. There is no background sync and no reconciliation loop: saving and opening are explicit, one-shot user actions, exactly as BYOS is.
+1. **IndexedDB stays the source of truth.** Nothing here writes `db.projects` except through `importBundle`, the same door the local `.json` import uses. Auto save (below) only ever **pushes**: there is still no pull, no merge and no reconciliation loop, so a cloud copy can never rewrite what is on the canvas.
 2. **The link belongs in `cloudLinks`, never on the `Project` row.** `handleArtboardsUpdate` rewrites that row from four fields on every commit, so a fifth would live until the next keystroke. This is the same trap `ProjectLocalization` works around.
 3. **Opening somebody's shared link always imports under a fresh local id** (`newLocalProjectId()`), and never writes a `cloudLinks` row. The recipient did not save that project and must not be offered an overwrite of it.
 4. **Every `updated` the server hands back has to be kept.** Uploading a blob and toggling sharing both re-save the project row, which moves its autodate. Drop the newer stamp and the user's *next* save reports a conflict with itself. Both routes return `updated` for exactly this reason.
 5. **Save is two phases.** `POST /projects` sends the document plus the full list of asset ids the project needs and answers with the ones the box lacks; those upload one request each. Sending a diff instead would make the server unable to prune blobs the project stopped referencing.
 6. **Both file fields are `protected: true`.** PocketBase serves files past collection rules, which is right for the public feed and wrong for somebody's working file. Every read goes through the hook, which streams `application/octet-stream` with `nosniff` — which in turn is why those fields carry no mime allowlist.
 7. `cloudProjects` in `GET /auth/methods` is `undefined` on a backend that predates the feature. Treat `undefined` as **on**; only an explicit `false` hides it.
+
+### Auto save
+
+On by default, and armed by the open project rather than by a button, so creating, opening or importing one is all it takes. [autoSave.ts](../src/lib/cloud/autoSave.ts) owns the whole state machine; the layout only tells it a commit landed (one line inside `scheduleProjectSave`) and hands it `flushProjectSave`, because a push reads the stored Dexie row and the editor's own write is 600ms behind the canvas.
+
+The cadence, all in that file: push 15s after the edits go quiet, but never later than 90s after the first unsaved one, never closer together than 25s, and a project with no cloud copy yet gets its first push 20s after it opens even untouched. That last number is what keeps clicking through four templates from leaving four projects in the cloud (the account limit is 30). Hiding the tab pushes early, since that is how most sessions end; `pagehide` deliberately gets nothing, because a request killed mid flight can still land while this device never records that it did, and the next save would then report a conflict with itself.
+
+Failures are most of that file, and the rule is that it never decides anything for the user:
+
+- a **conflict** pauses and hands the remote row to the chip, which opens the same `CloudSaveConflictDialog` the manual save uses. `force` is never passed from here
+- a **refusal that retrying cannot fix** (account full, document too large, 4xx that is not 408 or 429) pauses too, carrying the server's own sentence
+- anything **transient** backs off 30s, 1m, 2m, 5m, 10m. A push that lands but leaves blobs behind counts as one of these, or a file the box keeps refusing would re-upload the document every gap forever
+- an **expired session** drops to "signed out", which is a state and not an error
+
+`openToken` in the config is the tell that a project was re-opened: restoring the cloud copy of the project that is already open keeps the same local id, so without it the saver would carry a pause across the very thing that answered it.
 
 ### The document, compressed
 

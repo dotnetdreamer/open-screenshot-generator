@@ -119,6 +119,8 @@ import { isDiscoverConfigured, useDiscoverSession } from '@/lib/discover/session
 import { CommunityStartPanel } from './discover/CommunityStartPanel';
 import type { DiscoverPost } from '@/types/discover';
 import { CloudSaveConflictDialog } from './cloud/CloudSaveConflictDialog';
+import { CloudAutoSaveChip } from './cloud/CloudAutoSaveChip';
+import { useCloudAutoSave } from '@/hooks/use-cloud-auto-save';
 import {
   buildShareUrl,
   clearSharedSlugFromUrl,
@@ -729,6 +731,11 @@ export function OpenScreenshotGeneratorLayout() {
   // active id on the first render instead of a transient null (which would force
   // the template dialog open for a frame on refresh). See getInitialProjectIdFromUrl.
   const [activeProjectId, setActiveProjectId] = useState<string | null>(getInitialProjectIdFromUrl);
+  // Bumped by every path that puts a project on the canvas: a template, a recent
+  // project, an import, the cloud, a shared link. The id cannot carry that on
+  // its own, since restoring the cloud copy of the project that is already open
+  // keeps the same id. Only the cloud auto saver reads it, to start again.
+  const [projectOpenToken, setProjectOpenToken] = useState(0);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Untitled Project');
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [recentProjectSearch, setRecentProjectSearch] = useState('');
@@ -1271,11 +1278,37 @@ export function OpenScreenshotGeneratorLayout() {
       console.error("Error saving project to Dexie:", error);
     });
   }, []);
+
+  /*
+   * The same project, kept in the cloud on its own.
+   *
+   * Armed by the open project rather than by a button, so creating, opening or
+   * importing one is all it takes. Everything about WHEN it pushes is in
+   * src/lib/cloud/autoSave.ts; the two things the editor owes it are a flush of
+   * the debounced local write (a push reads the stored row) and a word whenever
+   * a commit lands, which is the line inside scheduleProjectSave below.
+   *
+   * It never forces. A conflict, a full account or an expired session stops it
+   * and shows up on the chip in the corner of the canvas, which is where the
+   * user answers it.
+   */
+  const cloudAutoSave = useCloudAutoSave({
+    projectId: activeProjectId,
+    accountId: discoverSession?.viewer?.id ?? null,
+    available: isCloudAvailable,
+    signedIn: isCloudSignedIn,
+    openToken: projectOpenToken,
+    flushLocal: flushProjectSave,
+  });
+  const noteCloudChange = cloudAutoSave.noteChange;
+
   const scheduleProjectSave = useCallback((id: string, name: string, artboardsToSave: ArtboardState[]) => {
     if (pendingSaveRef.current) clearTimeout(pendingSaveRef.current.timer);
     const timer = setTimeout(() => flushProjectSave(), 600);
     pendingSaveRef.current = { timer, id, name, artboards: artboardsToSave };
-  }, [flushProjectSave]);
+    // Cheap by design: this runs once per commit, and a drag commits per pixel.
+    noteCloudChange(id);
+  }, [flushProjectSave, noteCloudChange]);
   // Unload must not lose the last half-second of edits. `pagehide` covers the
   // web; a Tauri window close destroys the webview WITHOUT any unload events,
   // so the desktop shell needs the window's close-requested hook, where the
@@ -1997,6 +2030,10 @@ export function OpenScreenshotGeneratorLayout() {
             ...project,
             name: trimmedName,
           });
+          // A rename writes the row without going through handleArtboardsUpdate,
+          // so the cloud copy has to be told about it here or it would keep the
+          // old name until the next edit to the design itself.
+          noteCloudChange(activeProjectId);
           toast({ title: "Project Renamed", description: `Project renamed to "${trimmedName}".` });
         }
       } catch (error) {
@@ -2638,6 +2675,14 @@ export function OpenScreenshotGeneratorLayout() {
     void refreshCloudLink();
   }, [refreshCloudLink]);
 
+  // An auto save writes the same link row a manual one does, so the toolbar has
+  // to catch up: "To the cloud" becomes "Update the cloud copy" the moment the
+  // first automatic push lands, without anybody clicking anything.
+  useEffect(() => {
+    if (!cloudAutoSave.status.savedAt) return;
+    void refreshCloudLink();
+  }, [cloudAutoSave.status.savedAt, refreshCloudLink]);
+
   /**
    * Signed out, the way in is the same account dialog Discover uses, and it is
    * now also where the cloud list lives: connecting storage there is what mints
@@ -2671,6 +2716,9 @@ export function OpenScreenshotGeneratorLayout() {
       flushProjectSave();
       const { project, failedAssets } = await saveProjectToCloud(activeProjectId, { force });
       setCloudConflict(null);
+      // This push covers everything the automatic one was waiting to send, and
+      // an overwrite here is also the answer to whatever it was paused on.
+      cloudAutoSave.noteSaved();
       await refreshCloudLink();
       toast({
         title: failedAssets.length ? 'Saved, with files still to upload' : 'Saved to the cloud',
@@ -2742,6 +2790,7 @@ export function OpenScreenshotGeneratorLayout() {
       // saveProjectToCloud reads the stored row; commit pending edits first.
       flushProjectSave();
       const saved = await saveProjectToCloud(activeProjectId, { force: !!existing });
+      cloudAutoSave.noteSaved();
       const result = await setCloudProjectShared(saved.project.id, activeProjectId, true);
       await refreshCloudLink();
       await copyShareUrl(result.url);
@@ -4490,6 +4539,9 @@ export function OpenScreenshotGeneratorLayout() {
       // Set project details first to avoid triggering effects
       setCurrentProjectName(projectName);
       setActiveProjectId(projectId);
+      // Every open path funnels through here, which is what makes this the one
+      // place the cloud auto saver has to be re-armed from.
+      setProjectOpenToken((token) => token + 1);
       
       // Set artboards and history without triggering handleArtboardsUpdate
       setArtboards(finalArtboards);
@@ -6160,6 +6212,18 @@ const generateRandomProjectName = (): string => {
                   onRenameProject={handleRenameProject}
                   className="rounded-full border border-border bg-card/95 px-2 py-1 shadow-lg backdrop-blur"
                 />
+                {/* Beside the name because it is about this project, not about
+                    the canvas. Renders nothing at all when there is no backend,
+                    or when the user has switched auto save off. */}
+                {activeProjectId && (
+                  <CloudAutoSaveChip
+                    status={cloudAutoSave.status}
+                    onSignIn={() => requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')}
+                    onSaveNow={cloudAutoSave.saveNow}
+                    onResolveConflict={(remote) => setCloudConflict(remote)}
+                    className="border border-border bg-card/95 shadow-lg backdrop-blur"
+                  />
+                )}
               </div>
 
               {/* Floating bar (bottom center of canvas): the select and pan

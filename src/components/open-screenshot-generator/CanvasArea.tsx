@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { dropElementOverrides } from '@/lib/i18n/localization';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
+import { useEditorPreference } from '@/lib/editorPreferences';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
 
 /**
@@ -40,6 +41,51 @@ const BOARD_LABEL_ROOM = 90;
 /** Zoom range shared with the zoom pill in the layout. */
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
+/**
+ * How much of a zoom one wheel event is worth.
+ *
+ * Tuned against a mouse notch, which is 100px in Chrome: exp(100 x 0.0022) is
+ * 1.25, near enough to the 1.2 step the zoom pill's buttons take, so the wheel
+ * and the buttons feel like the same control. A trackpad pinch sends far
+ * smaller deltas and gets a proportionally smaller step out of the same line,
+ * which is what makes it feel continuous rather than notched.
+ */
+const WHEEL_ZOOM_SENSITIVITY = 0.0022;
+/** One event may not cross more than this much of the range, however fast. */
+const WHEEL_ZOOM_MAX_STEP_PX = 120;
+
+/**
+ * Is this a wheel, or two fingers on a trackpad?
+ *
+ * It matters because they want opposite things from the same event: a wheel is
+ * the control people reach for to zoom, while two fingers on a trackpad are how
+ * people scroll, and turning THAT into zoom would leave a laptop with no way to
+ * pan the canvas at all. The browser does not say which device it was, so:
+ *
+ *   - lines or pages (`deltaMode` 1 or 2) are only ever reported by a wheel.
+ *     Firefox's wheel lands here, which is why it needs nothing below
+ *   - Chrome and Safari still send the legacy `wheelDeltaY`, and its ratio to
+ *     `deltaY` is the giveaway: a trackpad's is exactly -3x, while a wheel notch
+ *     reports 120 against a deltaY of 100
+ *   - anything else is pixel scrolling with no tell, which is a trackpad
+ */
+function isMouseWheel(event: WheelEvent): boolean {
+  if (event.deltaMode !== 0) return true;
+  const legacy = (event as WheelEvent & { wheelDeltaY?: number }).wheelDeltaY;
+  if (typeof legacy === 'number' && legacy !== 0) return legacy !== -3 * event.deltaY;
+  return false;
+}
+
+/** One event's worth of zoom, as a multiplier. */
+function wheelZoomFactor(event: WheelEvent): number {
+  const pixels =
+    event.deltaMode === 1 ? event.deltaY * 16 : event.deltaMode === 2 ? event.deltaY * 400 : event.deltaY;
+  const step = Math.max(-WHEEL_ZOOM_MAX_STEP_PX, Math.min(WHEEL_ZOOM_MAX_STEP_PX, pixels));
+  // Exponential rather than linear so zooming out and back in by the same
+  // amount of wheel lands exactly where it started.
+  return Math.exp(-step * WHEEL_ZOOM_SENSITIVITY);
+}
+
 /** A pan has to travel this far before it swallows the click that ends it. */
 const PAN_CLICK_SLOP_PX = 3;
 
@@ -94,7 +140,7 @@ interface CanvasAreaProps {
   activeTool: 'select' | 'pan';
   /**
    * Set the canvas zoom. The parent owns it (the zoom pill reads the same
-   * value); this is what pinching two fingers on the canvas drives.
+   * value); this is what the wheel and pinching two fingers both drive.
    */
   onZoomChange?: (zoom: number) => void;
   // While a project/template is still loading (Dexie read + artboard build),
@@ -163,9 +209,13 @@ export function CanvasArea({
     /** Padding between the scroll origin and the board layer, unzoomed. */
     padding: Point;
   } | null>(null);
-  // Written by pinch, read once the zoom has repainted: setting scroll in the
-  // same tick would use the old, pre-zoom scroll extents and get clamped.
+  // Written by the pinch and the wheel, read once the zoom has repainted:
+  // setting scroll in the same tick would use the old, pre-zoom scroll extents
+  // and get clamped.
   const pendingScrollRef = useRef<Point | null>(null);
+  // Whether a plain wheel zooms rather than scrolls. Ctrl or Cmd with a wheel
+  // zooms either way, so this only decides the unmodified case.
+  const [wheelZoomEnabled] = useEditorPreference('wheelZoom');
   const zoomRef = useRef(canvasZoom);
   zoomRef.current = canvasZoom;
 
@@ -422,8 +472,80 @@ export function CanvasArea({
     };
   }, [onZoomChange]);
 
-  // The scroll the pinch asked for, applied after the zoom has been laid out.
-  // Setting it inside the touchmove would clamp it against the old extents.
+  /**
+   * The wheel: zoom around the pointer.
+   *
+   * Two gestures arrive here and both mean zoom, so both are answered:
+   *
+   *   - Ctrl or Cmd with a wheel, which is also what a trackpad pinch reports.
+   *     Always zooms, whatever the preference says, and `preventDefault` is what
+   *     stops the browser zooming the whole page instead of the canvas
+   *   - a plain wheel, when the preference is on and the event came from an
+   *     actual wheel rather than two fingers (see isMouseWheel). A trackpad is
+   *     left to scroll, which is the only way to pan a canvas on a laptop
+   *
+   * The anchoring is the same trick the pinch uses: work out which canvas point
+   * is under the pointer, then set the scroll so it is still under the pointer
+   * at the new zoom. The scroll itself is handed to the effect below, because
+   * setting it now would clamp it against the extents of the zoom we are leaving.
+   *
+   * Not `onWheel` on the element: React attaches wheel listeners passively, and
+   * a passive listener may not preventDefault, so Ctrl with a wheel would zoom
+   * the page as well as the canvas.
+   */
+  useEffect(() => {
+    const scrollViewport = scrollViewportRef.current;
+    if (!scrollViewport || !onZoomChange) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const zoomModifier = e.ctrlKey || e.metaKey;
+      if (!zoomModifier && !(wheelZoomEnabled && isMouseWheel(e))) return;
+      const layer = boardLayerRef.current;
+      if (!layer) return;
+      e.preventDefault();
+
+      const zoom = zoomRef.current;
+      const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * wheelZoomFactor(e)));
+      // Already at a limit. Returning here rather than carrying on keeps the
+      // canvas still, instead of drifting sideways on every further notch.
+      if (nextZoom === zoom) return;
+
+      const layerRect = layer.getBoundingClientRect();
+      const viewportRect = scrollViewport.getBoundingClientRect();
+      const renderedScale = layerRect.width / (layer.offsetWidth || 1);
+      if (!(renderedScale > 0)) return;
+
+      const anchor = {
+        x: (e.clientX - layerRect.left) / renderedScale,
+        y: (e.clientY - layerRect.top) / renderedScale,
+      };
+      // Whatever sits between the scroll origin and the board layer, measured
+      // unzoomed so it can be re-applied at the new zoom. Against
+      // `renderedScale` rather than `zoom`, because both halves then describe
+      // the DOM as it stands, which stays true even when a second event in the
+      // same frame has already claimed a zoom React has not painted yet.
+      const padding = {
+        x: (layerRect.left - viewportRect.left + scrollViewport.scrollLeft) / renderedScale,
+        y: (layerRect.top - viewportRect.top + scrollViewport.scrollTop) / renderedScale,
+      };
+      pendingScrollRef.current = {
+        x: (padding.x + anchor.x) * nextZoom - (e.clientX - viewportRect.left),
+        y: (padding.y + anchor.y) * nextZoom - (e.clientY - viewportRect.top),
+      };
+      // Claim the new zoom before React has rendered it, so a fast scroll
+      // accumulates instead of every event in the frame measuring from the same
+      // starting point and only the last one counting. The next render puts the
+      // real value back, which is also what corrects it if the parent clamped.
+      zoomRef.current = nextZoom;
+      onZoomChange(nextZoom);
+    };
+
+    scrollViewport.addEventListener('wheel', handleWheel, { passive: false });
+    return () => scrollViewport.removeEventListener('wheel', handleWheel);
+  }, [onZoomChange, wheelZoomEnabled]);
+
+  // The scroll the pinch or the wheel asked for, applied after the zoom has been
+  // laid out. Setting it inside the handler would clamp it against the old extents.
   useEffect(() => {
     const target = pendingScrollRef.current;
     const scrollViewport = scrollViewportRef.current;

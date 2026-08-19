@@ -15,16 +15,22 @@
 
 A browser-based editor for designing app store screenshots and App Store preview videos. You lay out artboards on a canvas, place device mockups on them, load your app screenshots or screen recordings into the frames, add text and shapes around them, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for.
 
-Everything runs client-side. Projects are saved to your browser's IndexedDB, so by default there is no account, no backend, and nothing leaves your machine. If you want your work on more than one device, you can save it to the cloud, or connect your own Google Drive or GitHub account and keep it in storage you own.
+Everything runs client-side. Projects are saved to your browser's IndexedDB, so by default there is no account, no backend, and nothing leaves your machine. If you want your work on more than one device, sign in and the open project is kept in your cloud on its own, or connect your own Google Drive or GitHub account and keep it in storage you own.
 
 ## What's new
+
+### 19 August 2026: projects save themselves, and the wheel zooms
+
+- Signed in, the open project is now kept in your cloud without anybody clicking Save. Create, open or import one and it goes up shortly after you stop editing, then again whenever there is something new. The pill next to the project name is the whole interface: it says saved, pending, or what went wrong. Settings > Cloud turns it off.
+- It still never overwrites anything on your behalf. If the project was saved from another device in the meantime, or the account is full, auto save stops and hands you the same choice the manual save does: replace the copy up there, or open it instead.
+- A mouse wheel over the canvas zooms, around the pointer rather than the middle of the screen. Two fingers on a trackpad still scroll, since that is the only way to pan a canvas on a laptop, and Ctrl or Cmd with the wheel zooms whatever you are on. Settings > Canvas turns the plain wheel back into scrolling.
 
 ### 17 August 2026: save projects to the cloud, and share one by link
 
 - **Save > To the cloud** keeps the editable project on the backend, behind your Google or GitHub sign-in, so you can pick it up on another device. Private until you say otherwise, and **Open > From the cloud** brings it back.
 - **Share > Get a link to share** turns that saved project into a URL. Anyone who opens it gets their own editable copy, no account needed, and nothing they do reaches your version. Turning the link off kills it for good: sharing again mints a new one.
 - The Save menu now holds all three destinations (our cloud, your own Drive or gists, a storefront), and the Share button is only about who else sees the project: a link, or a post to the community. Those are different enough to ask.
-- Your local copy stays the one you are editing. Nothing syncs in the background, and everything here needs an account, so signed out the editor behaves exactly as it did.
+- Your local copy stays the one you are editing: the cloud copy is only ever written from here, never read back over your work. Everything here needs an account, so signed out the editor behaves exactly as it did.
 
 ### 14 August 2026: Discover, the community feed
 
