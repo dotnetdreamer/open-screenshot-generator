@@ -6,7 +6,7 @@
 // engine) shares one URL per asset instead of leaking a new objectURL per
 // render.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { db } from '@/database';
 
 /**
@@ -45,6 +45,31 @@ export interface VideoProbeResult {
 }
 
 const urlCache = new Map<string, string>();
+
+/**
+ * Rows can now appear from somewhere other than a user action.
+ *
+ * A live editing session pulls down the blobs a peer's document references (see
+ * lib/collab/session.ts), which lands a row for an id something on screen is
+ * ALREADY showing as missing. `useMediaUrl` resolves once per id, so without a
+ * nudge that element stays blank until the next unrelated re-render. This is
+ * the nudge: one counter, and every resolver re-runs.
+ */
+let mediaRevision = 0;
+const mediaListeners = new Set<() => void>();
+
+/** Tell every mounted resolver that the media table has changed underneath it. */
+export function notifyMediaChanged(): void {
+  mediaRevision += 1;
+  mediaListeners.forEach((listener) => listener());
+}
+
+export function subscribeMedia(listener: () => void): () => void {
+  mediaListeners.add(listener);
+  return () => {
+    mediaListeners.delete(listener);
+  };
+}
 
 /** Read a video blob's dimensions and duration via a throwaway <video>. */
 export function probeVideoBlob(blob: Blob): Promise<VideoProbeResult> {
@@ -135,6 +160,13 @@ export async function deleteMedia(id: string): Promise<void> {
  */
 export function useMediaUrl(mediaId: string | undefined): string | null | undefined {
   const [url, setUrl] = useState<string | null | undefined>(mediaId ? undefined : null);
+  // Re-resolves whenever a blob arrives from anywhere, which is what makes a
+  // teammate's screenshot appear on this canvas without a reload.
+  const revision = useSyncExternalStore(
+    subscribeMedia,
+    () => mediaRevision,
+    () => 0
+  );
   useEffect(() => {
     let cancelled = false;
     if (!mediaId) {
@@ -148,7 +180,7 @@ export function useMediaUrl(mediaId: string | undefined): string | null | undefi
     return () => {
       cancelled = true;
     };
-  }, [mediaId]);
+  }, [mediaId, revision]);
   return url;
 }
 

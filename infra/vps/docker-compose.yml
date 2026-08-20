@@ -22,9 +22,13 @@
 #                   way in is through a Caddy on 443.
 #   openscreengen-mcp-relay   The switchboard that lets an AI client drive the web
 #                   editor over MCP, which the desktop app does through a local
-#                   socket it can open itself. Stateless, in-memory, no disk and
-#                   no secret. Also not published to the host. See
-#                   mcp-relay/README.md.
+#                   socket it can open itself. It also holds the signalling
+#                   endpoint for live editing, which is a WebSocket that
+#                   introduces two browsers to each other and then carries
+#                   nothing: the document itself goes peer to peer, encrypted
+#                   with a key neither this box nor the database ever sees.
+#                   Stateless, in-memory, no disk and no secret. Also not
+#                   published to the host. See mcp-relay/README.md.
 #
 # There is no sidecar. Both sign-in doors are verified by calling the provider
 # over plain HTTPS, which the PocketBase JS VM can do on its own — see
@@ -152,6 +156,17 @@ services:
       - "8722"
     environment:
       - PORT=8722
+      # What turns live editing's sign-in requirement into a real one.
+      #
+      # The signalling endpoint in this container refuses a socket that carries
+      # no valid account, and this is the only way it can check: it calls
+      # `/api/openscreengen/collab/whoami` on the database with the caller's own
+      # token. Over the compose network by service name, so nothing is published
+      # and no credential is shared between the two.
+      #
+      # UNSET MEANS THE CHECK IS SKIPPED and anybody may signal, which is right
+      # for a laptop and wrong for a box on the internet.
+      - POCKETBASE_URL=http://openscreengen-pocketbase:8090
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8722/healthz"]
       interval: 30s

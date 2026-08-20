@@ -5,6 +5,7 @@ import type { MediaAsset } from './lib/mediaStore';
 import type { CustomFontRow } from './services/customFonts';
 import type { DiscoverPostRow } from './lib/discover/localPosts';
 import type { CloudProjectLink } from './lib/cloud/links';
+import type { ProjectVersion } from './lib/versions/store';
 
 export class ProjectDatabase extends Dexie {
   projects!: Table<Project, string>; // <Type, KeyType>
@@ -34,6 +35,14 @@ export class ProjectDatabase extends Dexie {
   // fields on every commit, so a fifth one would survive exactly until the next
   // keystroke. See src/lib/cloud/links.ts.
   cloudLinks!: Table<CloudProjectLink, string>;
+  // Point-in-time copies of a project: the state it was in when it was opened,
+  // a checkpoint every so often while it is edited, one before anything
+  // whole-project, and the ones somebody named. The undo stack is per session
+  // and lives in React state; this is what survives a reload.
+  // Each row holds the document gzipped as a Blob, never as a string on the
+  // row, for the same reason media does (issue #19).
+  // See src/lib/versions/store.ts.
+  projectVersions!: Table<ProjectVersion, string>;
 
   constructor() {
     super('ProjectDatabase');
@@ -72,6 +81,17 @@ export class ProjectDatabase extends Dexie {
       // point read on the id the editor already has. `recordId` is indexed for
       // the other direction, which is what opening a cloud project uses.
       cloudLinks: 'projectId, recordId, savedAt',
+    });
+    this.version(7).stores({
+      projects: 'id, name, timestamp',
+      operations: 'id, startedAt, status, provider',
+      media: 'id, createdAt',
+      fonts: 'id, family, createdAt',
+      discoverPosts: 'id, createdAt',
+      cloudLinks: 'projectId, recordId, savedAt',
+      // Compound index because every read is "this project's versions, newest
+      // first": one index answers the list, the thinning pass and the delete.
+      projectVersions: 'id, [projectId+createdAt], projectId, createdAt',
     });
   }
 }

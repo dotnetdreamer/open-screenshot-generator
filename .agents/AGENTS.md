@@ -17,8 +17,10 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | App Preview scenes (whole boards, palette tab 4) | [previewScenes.ts](../src/lib/previewScenes.ts) |
 | Video export | [src/lib/video/](../src/lib/video/) |
 | Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
-| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, and the only one that yields a share link) |
-| Dexie, 6 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks` |
+| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, the only one that yields a share link, and the one that saves itself: [autoSave.ts](../src/lib/cloud/autoSave.ts)) |
+| Editing together, live | [src/lib/collab/](../src/lib/collab) (Yjs over WebRTC), signalling in [mcp-relay/src/collab.js](../infra/vps/mcp-relay/src/collab.js) |
+| Versions of a project | [src/lib/versions/store.ts](../src/lib/versions/store.ts) + the Dexie `projectVersions` table |
+| Dexie, 7 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks`, `projectVersions` |
 
 ## Rules
 
@@ -62,6 +64,17 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 21. A finger never hovers and never right-clicks. Hover-only affordances get `data-touch-reveal` (shown outright on a coarse pointer, see globals.css); the context menu also opens on a long press ([OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx)); double-click is replayed from a double-tap by [DraggableElement.tsx](../src/components/open-screenshot-generator/elements/DraggableElement.tsx).
 22. HTML5 drag and drop (`draggable`, `dataTransfer`) does not fire for touch at all. Palette tiles carry both: the native drag for a mouse, and a long-press drag ([use-touch-drag.tsx](../src/hooks/use-touch-drag.tsx)) for a finger. A new draggable source needs both.
 23. The canvas scroll extents are stated in pixels in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx), because the board layer is sized by a CSS transform and a transform contributes nothing to a scroll extent. Change how boards are laid out and `contentExtent` has to follow, or the canvas silently stops scrolling to the last board.
+24. **A wheel is not a trackpad.** The canvas zooms on a mouse wheel and lets two fingers scroll, told apart by `isMouseWheel` in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx) (`deltaMode`, then the legacy `wheelDeltaY` ratio). Ctrl or Cmd with a wheel always zooms, and the listener is registered by hand with `passive: false`, because React attaches wheel listeners passively and a passive listener cannot stop the browser zooming the page.
+25. A user-facing switch that more than one place reads goes in [editorPreferences.ts](../src/lib/editorPreferences.ts): one cache, one listener set, live across the app. localStorage alone would leave an already mounted canvas on the old value until reload.
+
+**Live editing**
+
+26. A remote change NEVER goes through `handleArtboardsUpdate` (it would republish and fill the author's undo stack with other people's edits); every local write into the CRDT is one transaction tagged `LOCAL_ORIGIN` (or it bounces back forever); nothing large may enter the document (a WebRTC message over ~256KB fails, so media travels as a reference and is fetched from the cloud copy). Full rules in [reference.md](reference.md).
+27. The room key lives in the invite's URL **fragment** and is read at module load in [collab/links.ts](../src/lib/collab/links.ts), because Next's router `replaceState`s the fragment away during hydration. Never move that read into a component, and never put the key in a query string or a log.
+
+**Versions**
+
+28. The undo stack is never persisted (a hundred project snapshots on disk is issue #19 again). Crossing a reload is what [versions/store.ts](../src/lib/versions/store.ts) is for, and it is coarse on purpose: five triggers, a thinning curve, and a document that carries media by reference. A restore goes through `handleArtboardsUpdate` like any other edit, after keeping the state it replaces.
 
 ## Commands
 

@@ -83,6 +83,22 @@ let current: DiscoverSession | null = null;
 let hydrated = false;
 const listeners = new Set<() => void>();
 
+/**
+ * Make the viewer's picture something an `<img>` can actually load.
+ *
+ * The box hands back a server-relative path (`/api/files/users/...`), which is
+ * right: the same record then renders against a local box and the live one
+ * without either side rewriting anything. Every OTHER consumer resolves it on
+ * the way in (see api.ts), but the viewer on the session was going out raw, so
+ * anything that rendered it pointed at the EDITOR's origin and got a 404 and a
+ * broken-image glyph. Resolved here, once, so nobody has to remember.
+ */
+function normalizeViewer(viewer: DiscoverAuthor): DiscoverAuthor {
+  if (!viewer?.avatarUrl) return viewer;
+  const resolved = discoverUrl(viewer.avatarUrl);
+  return resolved === viewer.avatarUrl ? viewer : { ...viewer, avatarUrl: resolved };
+}
+
 function read(): DiscoverSession | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -90,7 +106,9 @@ function read(): DiscoverSession | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<DiscoverSession>;
     if (!parsed.token || !parsed.viewer?.id) return null;
-    return parsed as DiscoverSession;
+    // Sessions stored before this was fixed hold the raw path, so the repair
+    // happens on the way out rather than only at sign-in.
+    return { ...parsed, viewer: normalizeViewer(parsed.viewer) } as DiscoverSession;
   } catch {
     return null;
   }
@@ -236,7 +254,7 @@ export async function signInToDiscover(): Promise<DiscoverSession | null> {
 
   const session: DiscoverSession = {
     token: String(payload.token ?? ''),
-    viewer: payload.record as DiscoverAuthor,
+    viewer: normalizeViewer(payload.record as DiscoverAuthor),
     provider: account.provider,
     accountId: account.account.id,
   };

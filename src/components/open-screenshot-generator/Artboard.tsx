@@ -41,6 +41,15 @@ interface ArtboardProps {
   canDeleteArtboard: boolean;
   canMoveArtboardLeft: boolean;
   canMoveArtboardRight: boolean;
+  /**
+   * What the other people in a live session are doing on this board.
+   *
+   * A render function rather than a node, because the only sane place to draw a
+   * peer's ring is inside the board's own coordinate space, and how big a
+   * screen pixel is in there is something only this component measures
+   * (`screenScale` below). Absent outside a session, which is the usual case.
+   */
+  renderCollabOverlay?: (context: { screenScale: number }) => React.ReactNode;
 }
 
 export interface ArtboardRef {
@@ -66,6 +75,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   canDeleteArtboard,
   canMoveArtboardLeft,
   canMoveArtboardRight,
+  renderCollabOverlay,
 }, ref) => {
   const [elements, setElements] = useState<ArtboardElement[]>(artboard.elements);
   const artboardDivRef = useRef<HTMLDivElement>(null);
@@ -669,6 +679,30 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             );
           })}
         </div>
+
+        {/* Live session marks: peers' selections and pointers.
+            A SIBLING of the .artboard node above, never a child, because that
+            node is exactly what the exporter rasterises. Same geometry and the
+            same scale, so everything inside is drawn in artboard pixels. */}
+        {renderCollabOverlay && (
+          <div
+            data-export-exclude
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: `${artboard.size.width}px`,
+              height: `${artboard.size.height}px`,
+              transform: `scale(${displayScaleFactor})`,
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+              // Above the board, below the canvas chrome.
+              zIndex: 5,
+            }}
+          >
+            {renderCollabOverlay({ screenScale })}
+          </div>
+        )}
       </div>
       
       {/* Artboard name label below the artboard on main canvas */}

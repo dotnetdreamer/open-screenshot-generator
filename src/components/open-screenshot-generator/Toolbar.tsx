@@ -14,7 +14,6 @@ import {
   RulerIcon,
   CloudUploadIcon,
   CloudDownloadIcon,
-  CloudIcon,
   // A drive rather than a cloud for bring-your-own-storage: with two clouds in
   // the same menu, one of them had to stop looking like a cloud, and the one
   // that is somebody's own Drive or gists is the one that is not ours.
@@ -22,6 +21,7 @@ import {
   HardDriveDownloadIcon,
   LinkIcon,
   Loader2Icon,
+  HistoryIcon,
   Share2Icon,
   StoreIcon,
   UsersIcon,
@@ -89,6 +89,18 @@ interface ToolbarProps {
   isCloudSignedIn?: boolean;
   /** The open project already has a copy in the cloud, so Save reads "Update". */
   isProjectInCloud?: boolean;
+  /** Invite people to edit this project live. Absent with no session server. */
+  onEditTogether?: () => void;
+  /** Keep this exact state in the project's version list. */
+  onSaveVersion?: () => void;
+  /**
+   * Who is in the room, rendered by the layout.
+   *
+   * A slot rather than props because it is a self-contained widget with its own
+   * state (see collab/CollabBar.tsx), and because it renders nothing at all
+   * when nobody is collaborating, which is the usual case.
+   */
+  collab?: React.ReactNode;
   /** That copy has a live share link, so the copy action is a plain copy. */
   isProjectShared?: boolean;
   onUpdateArtboardSize: (width: number, height: number, scaleContent: boolean) => void;
@@ -140,6 +152,9 @@ export function Toolbar({
   isCloudSignedIn = false,
   isProjectInCloud = false,
   isProjectShared = false,
+  onEditTogether,
+  onSaveVersion,
+  collab,
   onUpdateArtboardSize,
   initialArtboardSize,
   className,
@@ -486,19 +501,24 @@ export function Toolbar({
               To App Store Connect or Google Play
             </DropdownMenuItem>
           )}
-          {/* Below the rule because it is not a destination: the three above
-              send this project somewhere, this one opens the list of the ones
-              already sent. It is also where a share link is revoked, which is
-              why it is reachable from here rather than only from Open. */}
-          {onOpenCloudProjects && (
+          {/* Below the rule because it is not a destination: it keeps a copy
+              of this state here, in this browser, so the project can be put
+              back the way it was after the tab (and its undo stack) is gone. */}
+          {onSaveVersion && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={onOpenCloudProjects}>
-                <CloudIcon className="mr-2 h-4 w-4 opacity-80" />
-                Your cloud projects
+              <DropdownMenuItem onClick={onSaveVersion}>
+                <HistoryIcon className="mr-2 h-4 w-4 opacity-80" />
+                Keep a version of this state
               </DropdownMenuItem>
             </>
           )}
+
+          {/* The list of projects already in the cloud is NOT repeated here.
+              It lives in the account dialog, which is the one place that holds
+              everything about an account, and it is reachable from Open above.
+              A second door to it in a menu about saving read as a fourth
+              destination. */}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -520,6 +540,9 @@ export function Toolbar({
           meaning, and the language switcher shares this space at laptop widths
           where one stray label is the difference between a clean run and a
           squashed one. */}
+      {/* Who is in the room. Renders nothing outside a session. */}
+      {collab}
+
       {(onShareToDiscover || onCopyProjectLink) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -544,6 +567,19 @@ export function Toolbar({
               >
                 <LinkIcon className="mr-2 h-4 w-4 opacity-80" />
                 {isProjectShared ? 'Copy the project link' : 'Get a link to share'}
+                {!isCloudSignedIn && (
+                  <span className="ml-auto pl-4 text-xs text-muted-foreground">sign in</span>
+                )}
+              </DropdownMenuItem>
+            )}
+
+            {onEditTogether && (
+              <DropdownMenuItem
+                onClick={onEditTogether}
+                className={cn(!isCloudSignedIn && 'opacity-60')}
+              >
+                <UsersIcon className="mr-2 h-4 w-4 opacity-80" />
+                Edit together, live
                 {!isCloudSignedIn && (
                   <span className="ml-auto pl-4 text-xs text-muted-foreground">sign in</span>
                 )}

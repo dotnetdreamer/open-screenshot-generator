@@ -186,6 +186,27 @@ jobs:
           NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
           NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
           NEXT_PUBLIC_TRANSLATION_FALLBACK_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_FALLBACK_URL }}
+          # The community backend: Discover, cloud projects, and the sign-in
+          # that live editing attributes every change to. Unset here until now,
+          # which is why desktop releases had none of the three.
+          NEXT_PUBLIC_DISCOVER_URL: ${{ vars.NEXT_PUBLIC_DISCOVER_URL }}
+          # Live editing's signalling server, and the one variable the desktop
+          # build genuinely needs that the web build does not.
+          #
+          # On the web it is left unset and the code falls back to
+          # NEXT_PUBLIC_MCP_RELAY_URL, because signalling shares that container.
+          # Desktop has no such fallback: it hosts its own MCP server over a
+          # local socket (src-tauri/src/mcp_server.rs) and so is never given a
+          # relay URL. Without this, the desktop app has no session server and
+          # the Edit together item never appears.
+          NEXT_PUBLIC_COLLAB_URL: ${{ vars.NEXT_PUBLIC_COLLAB_URL }}
+          # Expiring TURN credentials, for the pairs whose networks refuse a
+          # direct connection. The shared secret is never here: this names an
+          # endpoint that mints credentials, not a credential.
+          NEXT_PUBLIC_TURN_ENDPOINT: ${{ vars.NEXT_PUBLIC_TURN_ENDPOINT }}
+          # STUN, which only tells a browser its own public address. Unset falls
+          # back to Google's public server.
+          NEXT_PUBLIC_STUN_URLS: ${{ vars.NEXT_PUBLIC_STUN_URLS }}
           # Windows only: link the MSVC C runtime statically. The default
           # dynamic linkage makes the exe fail with "VCRUNTIME140.dll was not
           # found" on a clean Windows install without the VC++ redistributable,

@@ -65,8 +65,8 @@ export function HistoryPanel({ entries, currentIndex, onJumpTo }: HistoryPanelPr
   const undoneCount = Math.max(0, entries.length - 1 - currentIndex);
 
   return (
-    <div className="flex h-full w-full flex-col bg-card">
-      {/* "States", not "History": the tab above already says History. */}
+    <div className="flex h-full w-full min-h-0 flex-col bg-card">
+      {/* "States", not "History": the tab it sits in already says History. */}
       <div className="flex h-9 shrink-0 items-center justify-between border-b px-3">
         <span className="text-sm font-semibold">States</span>
         <span className="text-xs tabular-nums text-muted-foreground">
