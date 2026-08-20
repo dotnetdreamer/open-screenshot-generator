@@ -55,6 +55,18 @@ jobs:
           # fork with no relay of its own. For this deployment,
           # https://mcp.openscrgen.app.
           NEXT_PUBLIC_MCP_RELAY_URL: ${{ vars.NEXT_PUBLIC_MCP_RELAY_URL }}
+          # Live editing. The signalling server lives in the relay container
+          # above, so NEXT_PUBLIC_COLLAB_URL is only needed if it ever moves.
+          NEXT_PUBLIC_COLLAB_URL: ${{ vars.NEXT_PUBLIC_COLLAB_URL }}
+          # Where a browser gets expiring TURN credentials, for the pairs whose
+          # networks refuse a direct connection. Unset means STUN only, which
+          # still connects most pairs and is the right default for a fork with
+          # no relay of its own. The shared secret is never here: this is an
+          # endpoint that mints credentials, not a credential.
+          NEXT_PUBLIC_TURN_ENDPOINT: ${{ vars.NEXT_PUBLIC_TURN_ENDPOINT }}
+          # STUN, which only tells a browser its own public address. Unset
+          # falls back to Google's public server.
+          NEXT_PUBLIC_STUN_URLS: ${{ vars.NEXT_PUBLIC_STUN_URLS }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
