@@ -151,12 +151,48 @@ export function createGoogleFontsUrl(fonts: AppFont[] = GOOGLE_FONTS): string {
   return `https://fonts.googleapis.com/css2?${families.map(f => `family=${f}`).join('&')}&display=swap`;
 }
 
-// Function to preload Google fonts
+/** Claimed before the CSS arrives, so a second call cannot fetch it twice. */
+const GOOGLE_FONT_STYLE_ID = 'google-font-faces';
+
+/**
+ * Put every built-in family on the page.
+ *
+ * The CSS is fetched and injected as a same-origin <style> rather than pointed
+ * at with a <link>, because a <link> to fonts.googleapis.com makes the sheet
+ * cross-origin, and a cross-origin sheet is one nothing in the page can read:
+ * `sheet.cssRules` throws SecurityError. The export path has to read those
+ * @font-face rules to carry the right faces into the capture (see
+ * lib/fontEmbed.ts), and html-to-image's own answer to the SecurityError is to
+ * download every font file the whole sheet mentions, which for this many
+ * families is thousands of requests per exported board. Same fonts, same
+ * loading behaviour, readable rules.
+ */
 export function preloadGoogleFonts(fonts: AppFont[] = GOOGLE_FONTS): void {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = createGoogleFontsUrl(fonts);
-  document.head.appendChild(link);
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(GOOGLE_FONT_STYLE_ID)) return;
+  const href = createGoogleFontsUrl(fonts);
+  const style = document.createElement('style');
+  style.id = GOOGLE_FONT_STYLE_ID;
+  document.head.appendChild(style);
+
+  fetch(href)
+    .then((response) => {
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.text();
+    })
+    .then((css) => {
+      style.textContent = css;
+    })
+    .catch((error) => {
+      // The fonts matter more than the export path does: fall back to the link
+      // so the editor still renders in the right faces. An export then reads
+      // the sheet by fetching it instead, which fontEmbed.ts handles.
+      console.warn('Could not inline the Google Fonts stylesheet', error);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.appendChild(link);
+    });
 }
 
 // Get font options for select components

@@ -169,15 +169,48 @@ export async function serializeProject(
 }
 
 /**
+ * One progress bar for a multi phase open.
+ *
+ * Downloading a remote project and then writing its blobs to this device are
+ * separate loops that each count 0 to 1. Reported raw, the bar restarts halfway
+ * through the wait. Here the download fills the bar up to `downloadTo` and the
+ * local write carries it to `installTo`, with the last slice left for whatever
+ * the caller does afterwards (the editor builds the artboards), so the bar only
+ * ever moves forward.
+ */
+export function splitProgress(
+  onProgress: ProgressFn | undefined,
+  { downloadTo = 0.7, installTo = 0.95 }: { downloadTo?: number; installTo?: number } = {}
+): { download?: ProgressFn; install?: ProgressFn } {
+  if (!onProgress) return {};
+  return {
+    download: (step, ratio) => onProgress(step, ratio == null ? undefined : ratio * downloadTo),
+    install: (step, ratio) =>
+      onProgress(step, downloadTo + (ratio ?? 0) * (installTo - downloadTo)),
+  };
+}
+
+/**
  * Write a bundle into Dexie and return the project row.
  * Blobs are restored under their original ids so element references resolve
  * without rewriting the document.
  */
 export async function importBundle(
   bundle: ProjectBundle,
-  options: { projectId?: string; name?: string } = {}
+  options: { projectId?: string; name?: string; onProgress?: ProgressFn } = {}
 ): Promise<Project> {
-  for (const font of bundle.fonts ?? []) {
+  const { onProgress } = options;
+  // Writing the blobs is the slow half of opening a remote project: a screen
+  // recording is tens of megabytes and every one of them is a separate IndexedDB
+  // write. It reports the same way the download half does so the editor can show
+  // one bar across both.
+  const bundledFonts = bundle.fonts ?? [];
+  const steps = bundledFonts.length + bundle.media.length;
+  let done = 0;
+
+  for (const font of bundledFonts) {
+    onProgress?.('Installing fonts', steps ? done / steps : undefined);
+    done += 1;
     try {
       await installCustomFont({
         id: font.meta.id,
@@ -197,7 +230,12 @@ export async function importBundle(
     }
   }
 
-  for (const item of bundle.media) {
+  for (const [index, item] of bundle.media.entries()) {
+    onProgress?.(
+      `Saving media ${index + 1} of ${bundle.media.length}`,
+      steps ? done / steps : undefined
+    );
+    done += 1;
     // Keep whatever is already there: a same-id row is the same recording, and
     // rewriting it would churn a potentially huge blob for nothing.
     const existing = await db.media.get(item.meta.id);
@@ -214,6 +252,7 @@ export async function importBundle(
     });
   }
 
+  onProgress?.('Writing the project', 1);
   const project: Project = {
     id: options.projectId ?? bundle.manifest.id,
     name: options.name ?? bundle.manifest.name ?? 'Untitled project',

@@ -1,0 +1,2798 @@
+/* =========================================================================
+   Open Screenshot Generator Control — the whole look, in one file.
+
+   Two palettes, both designed rather than derived. The Ludo Wala dashboard this
+   one is modelled on is dark only and says so in its header; that was the right
+   call there because it is a tool for watching a live game at night. This box
+   is looked at in an office in the middle of the afternoon as often as it is
+   looked at from a phone in bed, so it carries a light theme, a dark theme, and
+   a "system" setting that stamps nothing and lets the OS decide.
+
+   HOW THE THEME IS PLUMBED
+   ------------------------
+   Three blocks, in this order, and the order matters:
+
+     :root                                            the complete LIGHT palette
+     @media (prefers-color-scheme: dark) {
+       :root:not([data-theme="light"])                dark, when the OS says so
+     }
+     :root[data-theme="dark"]                         dark, when the operator says so
+
+   The `:not([data-theme="light"])` in the middle block is the whole trick. An
+   operator on a dark OS who explicitly picks light gets `data-theme="light"`
+   stamped on <html>, and that selector then refuses to match, so the light
+   values on bare `:root` stand. Without the `:not(...)` the media query would
+   win on specificity grounds every time and the light button would do nothing
+   for exactly the people most likely to press it.
+
+   The third block repeats the second block's values verbatim, because there is
+   no way to name one declaration list from two different selector contexts in
+   plain CSS and this file has no build step to do it for us. THE TWO DARK
+   BLOCKS MUST BE EDITED TOGETHER. A value changed in one and not the other is
+   a bug that only shows up for operators whose OS preference disagrees with
+   their explicit choice, which is a small enough group that nobody reports it.
+
+   Every colour in this sheet lives in one of those three blocks. Everything
+   below them is `var(--…)`. That is not tidiness for its own sake: a raw hex
+   further down is a colour that is correct in one theme and wrong in the other,
+   and it will be wrong in the theme whoever wrote it was not looking at.
+
+   Non-colour tokens (--radius*, --sans, --mono, --rail-w) are declared once, on
+   `:root`. They are identical in both palettes by definition, so repeating them
+   in the dark blocks would be two more lines that can drift apart for no gain.
+   The rule that actually matters is that no COLOUR is defined only inside a
+   theme block, and that rule is kept.
+
+   There is exactly one non-colour token that is NOT identical between the
+   palettes, and it lives in the theme blocks with the colours for that reason:
+   `--dim-disabled`. It is an opacity, and an opacity applied to a control is a
+   colour operation whose result depends on which direction the ground lies in.
+   See the note on `.btn:disabled` for the arithmetic that forces the two
+   values apart.
+
+   LIGHT IS NOT DARK WITH THE NUMBERS FLIPPED
+   ------------------------------------------
+   A dark UI separates a card from its ground by making the card LIGHTER: the
+   surface ramp does the work and borders are almost decorative. A light UI
+   cannot do that, because there is nothing above white. It separates with a
+   border and a shadow instead. So `--card-shadow` is an inset white hairline in
+   the dark palette and a real drop shadow in the light one, `--line` is a
+   quiet grey in the dark and a definite one in the light, and the rail is a hair
+   darker than the ground in light while being a hair darker than the surface in
+   dark. Same tokens, opposite mechanics.
+
+   CONTRAST
+   --------
+   Every ink token clears WCAG AA 4.5:1 against every surface it is allowed to
+   sit on, in both palettes, including the 11px captions. The measured ratios
+   are written into each palette block. They were computed, not asserted: the
+   relative-luminance formula from WCAG 2.1, against the darkest surface the ink
+   can land on in light and the lightest it can land on in dark, which is the
+   worst case in each direction.
+
+   The state colours are never the only carrier of meaning. Every chip has a
+   word in it and every chart carries a table view, so a reader who cannot tell
+   `--good` from `--warning` still reads the page correctly.
+   ========================================================================= */
+
+:root {
+  /* ---- LIGHT palette ----------------------------------------------------
+
+     Ground is a very slightly cool off-white rather than pure white, so that a
+     white card has something to sit ON. A pure-white ground with white cards is
+     a page where the only thing separating a card from nothing is its border,
+     and at 1px on a cheap monitor that border is not always there.
+
+     Measured against every surface an ink is allowed on (bg, surface-1,
+     surface-2, surface-3, surface-hover), worst case first:
+
+       --ink   #111826 on #e6eaf2 = 14.73:1   (best 17.76:1 on white)
+       --ink-2 #4a5468 on #e6eaf2 =  6.31:1
+       --ink-3 #5a6376 on #e6eaf2 =  5.00:1   <- the 11px captions live here
+       --accent      on #ffffff   =  5.85:1, on #e6eaf2 = 4.85:1
+       --accent-ink  on --accent  =  5.85:1
+       --good        on #ffffff   =  5.45:1
+       --warning     on #ffffff   =  5.93:1, on #e6eaf2 = 4.92:1
+       --serious     on #ffffff   =  5.48:1
+       --critical    on #ffffff   =  5.83:1
+       --good-ink on --good-soft  =  6.01:1
+       --warn-ink on --warn-soft  =  6.38:1
+       --bad-ink  on --bad-soft   =  7.09:1
+  */
+  color-scheme: light;
+
+  --bg: #f6f7fa;
+  --surface-1: #ffffff;
+  --surface-2: #f1f4f9;
+  --surface-3: #e6eaf2;
+  --surface-hover: #edf1f7;
+
+  --line: #d8dce5;
+  --line-soft: #e7eaf1;
+  --line-strong: #c1c8d6;
+
+  --ink: #111826;
+  --ink-2: #4a5468;
+  --ink-3: #5a6376;
+
+  /* The soft grounds are OPAQUE, not an rgba tint over whatever is behind.
+     A translucent chip background makes its contrast ratio a function of the
+     card it happens to land on, and this dashboard puts the same chip on a
+     card, on the page ground and inside a drawer. Opaque means the ratio quoted
+     above is a fact rather than a hope. */
+  --accent: #1a5fd0;
+  --accent-soft: #e8f0fd;
+  --accent-ring: #1a5fd0;
+  --accent-ink: #ffffff;
+
+  /* Categorical slots, fixed order, never cycled. Re-tuned for white: the dark
+     palette's hues would be the same four colours nominally and three of them
+     would be unreadable pastels here. Blue, rust, teal, ochre: separated by HUE,
+     and deliberately not by lightness.
+
+     That is worth being honest about, because the obvious claim to make here is
+     that four hues this different must also survive greyscale, and they do not.
+     Measured pairwise, the greyscale contrast between the four runs 1.01 to 1.20
+     in every palette in this file: not one pair clears even 1.3:1. It is not an
+     oversight. All four are tuned into a single narrow luminance band on purpose,
+     because each of them also has to work as INK, in a legend key, in a chart
+     table cell and in a bar label, and a set that spread far enough apart in
+     lightness to be told apart in greyscale would have two members too pale to
+     read on a white card and two too dark to read on a black one.
+
+     So the colour is never what carries the series here. Every chart with two or
+     more series draws a named legend, and every chart in this dashboard ships a
+     table-view twin underneath it with the series named in a header cell. Those
+     two are the actual defence for a greyscale print and for a reader with a
+     colour vision deficiency; the hues are shorthand for the people who can use
+     them, and nothing on this page is only knowable through them. */
+  --series-1: #2563c9;
+  --series-2: #c2410c;
+  --series-3: #0f766e;
+  --series-4: #a16207;
+
+  /* Status. Reserved: never used as a series colour, because a green line in a
+     chart would mean "good" to a reader who has just read a green chip. */
+  --good: #0f7a34;
+  --warning: #8a5a00;
+  --serious: #b04a12;
+  --critical: #c22626;
+
+  --good-soft: #e2f4e7;
+  --warn-soft: #fbefd8;
+  --bad-soft: #fdeaea;
+  --good-ink: #14682f;
+  --warn-ink: #7a4d05;
+  --bad-ink: #9a1c1c;
+
+  --grid: #e9ecf3;
+  --axis: #d3d9e4;
+
+  /* Chrome grounds. The rail is fully opaque. The topbar is NOT, and the eight
+     digit hex is where that is said: `--topbar-bg` ends in `f2`, which is alpha
+     0.949, and `.topbar` puts a 12px `backdrop-filter` behind it, so a long
+     table scrolling underneath is felt rather than read.
+
+     0.95 rather than the 0.72 the dark-only Ludo original uses. At 0.72 a light
+     theme stops being a frosted panel and becomes a smear of grey text behind
+     the search box, and every ink ratio quoted above turns into a function of
+     whatever happens to be scrolling past. At 0.95 the ground underneath moves
+     a ratio by less than the rounding on those numbers, which is the whole
+     reason the alpha is set where it is: enough see-through to give the page
+     depth, not enough to make the contrast conditional. */
+  --rail-bg: #eef1f6;
+  --topbar-bg: #f6f7faf2;
+
+  /* The one soft light source on the page. In light it is a barely-there cool
+     wash that keeps a full-bleed page from reading as a scanned sheet of paper;
+     in dark it is doing much more work. */
+  --glow: radial-gradient(120% 100% at 50% 0%, rgba(26, 95, 208, 0.05), transparent 70%);
+
+  /* The bright stop in the skeleton sweep. White at nearly full strength here,
+     a whisper of white in dark: a loading placeholder should read as "this is
+     coming" without becoming the brightest thing on the page. */
+  --shimmer: rgba(255, 255, 255, 0.92);
+
+  --scrim: rgba(17, 24, 38, 0.34);
+
+  /* Light separates with shadow. --card-shadow is the resting elevation every
+     card and tile carries; the dark palette swaps it for an inset highlight,
+     because a drop shadow on a dark ground is invisible and an inset highlight
+     on a white one is a smudge. */
+  --card-shadow: 0 1px 2px rgba(17, 24, 38, 0.05);
+  --shadow-1: 0 1px 2px rgba(17, 24, 38, 0.06), 0 6px 18px -10px rgba(17, 24, 38, 0.22);
+  --shadow-2: 0 2px 8px rgba(17, 24, 38, 0.08), 0 24px 56px -20px rgba(17, 24, 38, 0.3);
+
+  /* How far a disabled control fades. Higher here than in dark on purpose; the
+     arithmetic is on `.btn:disabled`, and the short version is that fading
+     towards white costs a light theme far more contrast than fading towards
+     near-black costs a dark one. 0.6 lands the disabled pager button at 4.40:1
+     on a card, against the 4.52:1 the dark palette gets there at 0.5. */
+  --dim-disabled: 0.6;
+
+  /* ---- theme independent ---- */
+  --radius: 14px;
+  --radius-sm: 9px;
+  --radius-xs: 6px;
+
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --rail-w: 216px;
+}
+
+/* ---- DARK palette, when the operating system asks for it ------------------
+
+   `:not([data-theme="light"])` is what lets an explicit light choice beat a
+   dark OS. See the header.
+
+   Measured against every surface an ink is allowed on, worst case first:
+
+     --ink   #e8ecf5 on #1e2331 = 13.24:1   (best 16.53:1 on the ground)
+     --ink-2 #9aa4ba on #1e2331 =  6.26:1
+     --ink-3 #828da2 on #1e2331 =  4.69:1   <- the 11px captions live here
+     --accent      on #12151d   =  6.83:1, on #1e2331 = 5.87:1
+     --accent-ink  on --accent  =  7.06:1
+     --good        on #12151d   =  7.70:1
+     --warning     on #12151d   = 10.77:1
+     --serious     on #12151d   =  7.60:1
+     --critical    on #12151d   =  6.07:1
+     --good-ink on --good-soft  =  8.65:1
+     --warn-ink on --warn-soft  =  9.98:1
+     --bad-ink  on --bad-soft   =  8.29:1
+
+   Note --accent: it is LIGHTER here than in the light palette and the ink that
+   sits on top of it is nearly black. That is not a stylistic preference, it is
+   forced by arithmetic. For accent-coloured text to clear 4.5:1 on #12151d the
+   accent has to be at least that bright, and white on a colour that bright is
+   about 2.7:1. One accent hue cannot be both a readable link on a dark ground
+   and a background for white text; something has to give, and what gives is the
+   ink on the button.
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0a0c11;
+    --surface-1: #12151d;
+    --surface-2: #171b25;
+    --surface-3: #1e2331;
+    --surface-hover: #1b2130;
+
+    --line: #262e3d;
+    --line-soft: #1a202c;
+    --line-strong: #333d50;
+
+    --ink: #e8ecf5;
+    --ink-2: #9aa4ba;
+    --ink-3: #828da2;
+
+    --accent: #5aa2f0;
+    --accent-soft: #152439;
+    --accent-ring: #5aa2f0;
+    --accent-ink: #06121f;
+
+    --series-1: #5aa2f0;
+    --series-2: #f0813f;
+    --series-3: #2bbd8a;
+    --series-4: #e0a326;
+
+    --good: #3fbf68;
+    --warning: #f0c05a;
+    --serious: #ef8f5a;
+    --critical: #ef6b6b;
+
+    --good-soft: #102718;
+    --warn-soft: #2a2211;
+    --bad-soft: #2c1618;
+    --good-ink: #6fd48a;
+    --warn-ink: #f0c977;
+    --bad-ink: #f0a0a0;
+
+    --grid: #1f2532;
+    --axis: #2f3849;
+
+    --rail-bg: #0b0e14;
+    --topbar-bg: #0a0c11f2;
+
+    --glow: radial-gradient(120% 100% at 50% 0%, rgba(90, 162, 240, 0.09), transparent 70%);
+    --shimmer: rgba(255, 255, 255, 0.055);
+    --scrim: rgba(4, 6, 10, 0.62);
+
+    --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    --shadow-2: 0 24px 60px -20px rgba(0, 0, 0, 0.75);
+
+    /* Lower than light. See `.btn:disabled` for why the two cannot be the same
+       number: 0.5 puts the disabled pager button at 4.52:1 here, and the same
+       0.5 would put it at 3.23:1 on the light palette. */
+    --dim-disabled: 0.5;
+  }
+}
+
+/* ---- DARK palette, when the operator asks for it --------------------------
+   Byte for byte the block above. Edit both or neither. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0c11;
+  --surface-1: #12151d;
+  --surface-2: #171b25;
+  --surface-3: #1e2331;
+  --surface-hover: #1b2130;
+
+  --line: #262e3d;
+  --line-soft: #1a202c;
+  --line-strong: #333d50;
+
+  --ink: #e8ecf5;
+  --ink-2: #9aa4ba;
+  --ink-3: #828da2;
+
+  --accent: #5aa2f0;
+  --accent-soft: #152439;
+  --accent-ring: #5aa2f0;
+  --accent-ink: #06121f;
+
+  --series-1: #5aa2f0;
+  --series-2: #f0813f;
+  --series-3: #2bbd8a;
+  --series-4: #e0a326;
+
+  --good: #3fbf68;
+  --warning: #f0c05a;
+  --serious: #ef8f5a;
+  --critical: #ef6b6b;
+
+  --good-soft: #102718;
+  --warn-soft: #2a2211;
+  --bad-soft: #2c1618;
+  --good-ink: #6fd48a;
+  --warn-ink: #f0c977;
+  --bad-ink: #f0a0a0;
+
+  --grid: #1f2532;
+  --axis: #2f3849;
+
+  --rail-bg: #0b0e14;
+  --topbar-bg: #0a0c11f2;
+
+  --glow: radial-gradient(120% 100% at 50% 0%, rgba(90, 162, 240, 0.09), transparent 70%);
+  --shimmer: rgba(255, 255, 255, 0.055);
+  --scrim: rgba(4, 6, 10, 0.62);
+
+  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-2: 0 24px 60px -20px rgba(0, 0, 0, 0.75);
+
+  /* Lower than light. See `.btn:disabled` for why the two cannot be the same
+     number: 0.5 puts the disabled pager button at 4.52:1 here, and the same
+     0.5 would put it at 3.23:1 on the light palette. */
+  --dim-disabled: 0.5;
+}
+
+/* ============================ base ============================ */
+
+* { box-sizing: border-box; }
+
+/**
+ * `hidden` has to beat a class, and by default it does not.
+ *
+ * The UA sheet's `[hidden] { display: none }` is a type-level rule, so any
+ * class that sets `display` outranks it, and `.gate { display: grid }` and
+ * `.app { display: grid }` both do. Without this line the sign-in door stays on
+ * screen on top of the signed-in dashboard, and the dashboard renders
+ * underneath the door before anybody has signed in. Every visibility toggle in
+ * this project is done with the `hidden` property, so this one declaration is
+ * holding all of them up.
+ */
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  /* The page itself never scrolls. `.view` does, `.drawer` does, and a wide
+     table scrolls inside `.table-wrap`. That is what keeps the rail and the
+     topbar fixed without a single `position: fixed` on either of them. */
+  overflow: hidden;
+}
+
+/* A single soft light source at the top, so a full-bleed page has a direction.
+   It is a token, so it is a blue haze in the dark palette and a barely-visible
+   cool wash in the light one rather than the same haze burnt onto white. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 420px;
+  background: var(--glow);
+  pointer-events: none;
+  z-index: 0;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/**
+ * The focus ring.
+ *
+ * `--accent-ring` is opaque in both palettes rather than a translucent halo,
+ * for the same reason the chip grounds are: a ring drawn in rgba is a different
+ * colour on a card than it is on the page, and a keyboard operator tabbing
+ * across a page should not have the indicator fade out over one of them. The
+ * offset is what keeps it off the control's own border.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 8px;
+  /* The border is the trick that makes a 10px thumb look like a 6px one without
+     shrinking the hit area: it is painted in the page ground, so it reads as
+     padding. It has to be a token or the thumb grows a light halo in dark. */
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+
+/* ============================ the door ============================ */
+
+/**
+ * The no-JavaScript notice.
+ *
+ * It has to cover the door rather than sit above it in the flow: `.gate` is
+ * `position: fixed` at z-index 40, so a plain block in the body renders
+ * underneath it and the operator sees a sign-in form that can never submit.
+ * z-index 90 puts this over everything including the toast host.
+ */
+.noscript {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+.noscript .empty { max-width: 44ch; }
+
+.gate {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 40;
+  overflow: auto;
+}
+
+.gate-card {
+  width: min(400px, 100%);
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 32px 28px 24px;
+  box-shadow: var(--shadow-2);
+  position: relative;
+}
+
+/* The brand mark: an artboard with two panes on it, drawn in currentColor so it
+   inherits the ink of whichever palette is live. Nothing about it is themed
+   separately, which is the point of drawing it in stroke rather than fill. */
+.gate-mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 18px;
+  border-radius: 13px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.gate-mark svg { display: block; }
+
+.gate-card h1 { font-size: 19px; text-align: center; }
+.gate-sub { margin: 6px 0 22px; text-align: center; color: var(--ink-3); font-size: 13px; }
+.gate-foot { margin: 16px 0 0; text-align: center; color: var(--ink-3); font-size: 11.5px; line-height: 1.5; }
+.gate-error {
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--bad-soft);
+  border: 1px solid var(--critical);
+  color: var(--bad-ink);
+  font-size: 12.5px;
+}
+
+/* ============================ form controls ============================ */
+
+.field { display: block; margin-bottom: 13px; }
+.field > span {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* `.input` is in this list because `ui.js` writes `class="input mono"` on the
+   prompt dialog's field. That element is an `input[type="text"]`, so the type
+   selectors already dressed it and the class was inert rather than broken, but
+   an inert class name is still a promise the sheet does not keep: the next
+   person to want a field look on a `<div contenteditable>` or on an
+   `input[type="date"]` will reach for `.input`, find it in the markup, and get
+   nothing. Naming it here costs one selector and makes the promise true. */
+input[type="text"], input[type="email"], input[type="password"], input[type="url"],
+input[type="search"], input[type="number"], select, textarea, .input {
+  width: 100%;
+  /* In dark the field is a well cut into the surface, so it takes the page
+     ground. In light a white-on-white well is invisible, so the same token
+     lands one step down the ramp and the border does the rest. That is the
+     dark/light mechanic in a single declaration. */
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 13.5px;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+input:hover, select:hover, textarea:hover { border-color: var(--line-strong); }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: var(--surface-1); }
+input::placeholder { color: var(--ink-3); }
+textarea { resize: vertical; min-height: 76px; font-family: var(--mono); font-size: 12px; }
+
+/* `.mono` on its own cannot win on an input, and it is worth understanding why
+   rather than deleting the class from the markup. `.mono` scores (0,1,0). The
+   block above matches the same element through `input[type="text"]` at (0,1,1),
+   and its `font: inherit` shorthand resets the family while its `font-size`
+   pins 13.5px, so a field carrying `class="input mono"` came out in the sans
+   stack and the class did nothing at all. This rule matches at (0,1,1) as well
+   and sits later in the file, so it wins on source order.
+
+   Not a cosmetic point: the prompt dialog is where settings values get typed,
+   and telling 1786000000 from 178600000 in a proportional face is guesswork. */
+input.mono, .input.mono { font-family: var(--mono); font-size: 12.5px; }
+
+/* Native tick boxes and radios follow the accent in both palettes. Cheaper and
+   more accessible than a hand-drawn one, and `color-scheme` in the palette
+   blocks already makes the UA draw the rest of the control correctly. */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+
+/**
+ * THE FOCUS RING, PUT BACK ON EVERY TICK BOX AND RADIO ON THE PAGE.
+ *
+ * `input:focus { outline: none }` a few rules up is written for text fields,
+ * which show focus through their border colour instead. It scores (0,1,1) and
+ * so it beats the page-wide `:focus-visible` rule at (0,1,0) on specificity, no
+ * matter which one comes later in the file. A checkbox has no border of its own
+ * to recolour, so that one declaration left every tick box on the dashboard
+ * with no keyboard indicator at all.
+ *
+ * This used to be patched back for `table.data th.check input` and
+ * `table.data td.check input` only, which covered the moderation tables and
+ * nothing else. Feed's boxes live in `.post-meta` (one per card) and in
+ * `label.check-inline` (the Select page control), so 25 tick boxes on that one
+ * page had no ring, in both palettes, and the operator arrowing through a
+ * moderation queue could not see which post they were about to tick.
+ *
+ * Written against the TYPE rather than against the places tick boxes currently
+ * appear, because the last version of this rule was a list of places and the
+ * bug was a place that was not on the list. Every future tick box is covered by
+ * construction. (0,2,1) beats the blanket rule at (0,1,1).
+ */
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
+/**
+ * A tick box with its label beside it, on one line.
+ *
+ * `views/feed.js` needed this for the "Select page" control that sits in the
+ * filter row above the post grid, and it is the shape every future one of these
+ * will want. It replaces a bare `<label class="tiny nowrap">` whose only
+ * separator between the box and the word was the whitespace text node in the
+ * markup, which is about 3px at this size and reads as the two things touching.
+ *
+ * Why a flex container rather than a margin on the input. The UA gives a
+ * checkbox an asymmetric margin (3px 3px 3px 4px in Blink) that no rule in this
+ * sheet resets, so the space on the left of the label was the sum of that margin
+ * and a collapsed text node, and it changed with the font. A flex row with a
+ * `gap` deletes the whitespace node from the layout entirely and states the
+ * distance once. The margin is zeroed here for the same reason the table cell
+ * rule zeroes it: two different sources of spacing on one control is how a row
+ * of tick boxes ends up not lining up.
+ *
+ * The label is the click target, so the pointer cursor belongs on the whole
+ * cluster and not only on the box.
+ */
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.check-inline input { width: auto; margin: 0; cursor: pointer; }
+
+/* ============================ buttons ============================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 8px 13px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+.btn:hover { background: var(--surface-hover); border-color: var(--line-strong); }
+/**
+ * A disabled control, and why the fade is a token instead of a number.
+ *
+ * WCAG exempts a disabled control from the contrast minimum, so neither of the
+ * numbers below is a failure. What was wrong was the SPREAD: one hard-coded
+ * `opacity: 0.5` produced 3.23:1 in light and 4.52:1 in dark on the disabled
+ * Previous button in the pager, sitting on a card. The same control, greyed out
+ * the same way, was a third less readable for the operator on the light theme,
+ * which is not a decision anybody made.
+ *
+ * Those two are arithmetic, not a pixel sample, and the difference matters when
+ * checking this: sampling the rendered button reads 4.41 and 4.49 for the pair
+ * below rather than 4.40 and 4.52, because the darkest pixel that covers enough
+ * of a 13px glyph to count is not always a full-strength stem. `opacity` is a
+ * group composite, so the honest number is o*colour + (1-o)*ground per channel,
+ * which is what these are.
+ *
+ * The reason one number cannot serve both is that opacity composites the whole
+ * button, ink and ground together, over whatever is behind it, and the two
+ * palettes lie in opposite directions from their card:
+ *
+ *   light   ink #111826 and button ground #f1f4f9 fade towards #ffffff.
+ *           At 0.5 the ink lands on #888c93 and the ground on #f8fafc: 3.23:1.
+ *           The ground barely moves (it was nearly white already) while the ink
+ *           gives up half its distance from white, so almost the entire loss
+ *           comes out of the ink.
+ *   dark    ink #e8ecf5 and button ground #171b25 fade towards #12151d.
+ *           At 0.5 the ink lands on #7d8189 and the ground on #151821: 4.52:1.
+ *           Relative luminance is steep near black, so dragging a near-black
+ *           ground very slightly darker costs it almost nothing, and the pair
+ *           holds together far better.
+ *
+ * So the light palette gets 0.6 and the dark one 0.5, and the two land at
+ * 4.40:1 and 4.52:1 on a card, and 4.48:1 and 4.43:1 on the page ground: a
+ * tenth apart instead of 1.29 apart, whichever surface the button is on. Both
+ * still read as unmistakably faded next to an enabled button, which is at about
+ * 15:1 in either theme.
+ */
+.btn:disabled { opacity: var(--dim-disabled); cursor: not-allowed; }
+/* --accent-ink rather than white. See the note in the dark palette: on a dark
+   ground the accent has to be bright enough to read as text, and white on it
+   would be about 2.7:1. The token is white in light and near-black in dark. */
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-danger { background: var(--bad-soft); border-color: var(--critical); color: var(--bad-ink); }
+.btn-danger:hover { background: var(--bad-soft); border-color: var(--critical); filter: brightness(1.06); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+.btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-block { width: 100%; justify-content: center; padding: 10px; }
+
+/**
+ * Two or three buttons standing side by side.
+ *
+ * The action rows in `views/postDetail.js`, `views/projects.js` and
+ * `views/tables.js`, plus the retry under a failed load in `views/storage.js`.
+ * All four reached for `.chip-row`, which is the wrong thing twice over: it is
+ * named for chips, so the next person reading the markup looks for chips in it,
+ * and its 5px gap is tuned for objects that are 21px tall and pill shaped. Two
+ * buttons 5px apart read as one segmented control rather than as two separate
+ * decisions, and on this page one of those decisions is Delete.
+ *
+ * 8px, which is the same distance `.filter-row`, `.page-tools` and
+ * `.topbar-right` already put between two controls, so a row of buttons in a
+ * card looks like a row of buttons anywhere else in the dashboard.
+ *
+ * `.filter-row` was the other candidate and is wrong for a different reason: it
+ * carries `margin-bottom: 16px` because it is a page-level band that scopes what
+ * is under it, and a button row inside a `.card-body` that reserves 16px below
+ * itself leaves a hole at the bottom of every card that ends in one.
+ *
+ * Wrapping, because these rows sit inside a 720px drawer that becomes a phone
+ * screen: four buttons and a spacer do not fit at 412px and the alternative to
+ * wrapping is a row that overflows a card with no way to scroll it.
+ */
+.btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* The retry button under an error state. `errorState` renders a bordered, tinted
+   box, and a button flush against its bottom edge reads as part of that box
+   rather than as the way out of it. 14px is the gap the page grid uses. */
+.empty + .btn-row { margin-top: 14px; }
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+/* ============================ shell ============================ */
+
+/**
+ * The skip link.
+ *
+ * Off screen until it takes focus, then a real button in the top left corner of
+ * the shell. It is the first focusable thing inside `#app`, so it is the first
+ * thing a Tab from the address bar lands on.
+ *
+ * `transform` rather than `left: -9999px`, and that is not a style preference.
+ * A control parked off to the side with `left` is genuinely laid out over
+ * there, and the browser scrolls the nearest scroll container to reveal a
+ * control when it takes focus. This page's body is `overflow: hidden` and there
+ * is no horizontal scroll container to move, so the reveal silently does
+ * nothing and the link would be focused somewhere nobody can look at. A
+ * transform moves the PAINT and leaves the layout box exactly where it is, so
+ * there is nothing for the browser to try to scroll to, and one property in two
+ * states carries the whole hide-and-show rather than a hider plus an undo that
+ * can drift apart.
+ *
+ * `:focus` and not `:focus-visible`. The only way to reach this link is a Tab
+ * from the top of the document, so in every case anybody will actually meet the
+ * two behave identically; the difference is what happens in the case nobody
+ * predicted. A `:focus-visible` that fails to match leaves a control that HAS
+ * focus and paints nothing, and this is the control a keyboard operator meets
+ * first. Unconditional is the right trade for exactly one element.
+ *
+ * The colours are the accent pair, which is the one combination in each palette
+ * measured for a solid fill with text on it: --accent-ink on --accent is 5.85:1
+ * in light and 7.06:1 in dark, both quoted in the palette blocks at the top.
+ *
+ * z-index 60 puts it over the rail, which becomes a fixed overlay at 55 on a
+ * narrow screen and would otherwise cover it. The drawer is above it, at
+ * document level rather than inside `#app`; that is correct, because a drawer
+ * is modal and the shell underneath it is not what anybody is skipping to.
+ */
+.skip-link {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 60;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  /* Far enough up to clear its own shadow as well as its box. */
+  transform: translateY(calc(-100% - 24px));
+  transition: transform 140ms ease;
+}
+.skip-link:hover { text-decoration: none; }
+.skip-link:focus {
+  transform: none;
+  /* The page-wide ring is drawn in --accent-ring, which is --accent, and an
+     accent ring 2px outside an accent fill is invisible. A ring in the ink
+     colour, drawn just inside the offset, is the same shape and reads on both
+     palettes: --accent-ink on --accent is the pair measured above. */
+  outline: 2px solid var(--accent-ink);
+  outline-offset: -4px;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  height: 100%;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--line-soft);
+  background: var(--rail-bg);
+  padding: 14px 12px;
+  min-height: 0;
+}
+
+.rail-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+}
+.rail-mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.rail-mark svg { display: block; }
+.rail-name { font-weight: 600; font-size: 14.5px; letter-spacing: -0.01em; }
+
+.rail-nav { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1; min-height: 0; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+  position: relative;
+  transition: background 140ms ease, color 140ms ease;
+}
+.nav-item:hover { background: var(--surface-hover); color: var(--ink); text-decoration: none; }
+.nav-item svg { flex: none; opacity: 0.85; }
+/* The active item's ink is the accent itself rather than a tinted white. That
+   reads at 5.85:1 on --accent-soft in dark and 5.10:1 in light, and it means
+   there is no fifth ink token to keep validated. */
+.nav-item.is-active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav-item.is-active svg { opacity: 1; }
+.nav-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent);
+}
+.nav-count {
+  margin-left: auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: 20px;
+  padding: 0 7px;
+}
+.nav-item.is-active .nav-count { background: var(--surface-1); border-color: var(--accent-ring); color: var(--accent); }
+
+.rail-foot { border-top: 1px solid var(--line-soft); padding-top: 12px; margin-top: 12px; }
+.rail-who { font-size: 11.5px; color: var(--ink-3); padding: 0 8px 8px; overflow-wrap: anywhere; }
+
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  flex: none;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--topbar-bg);
+  /* Near-opaque with a hint of see-through, plus a blur, so a long table
+     scrolling underneath is felt rather than read. At 0.72 alpha (which is what
+     the dark-only original uses) the light theme turns into a smear of grey
+     text behind the search box, which is why this is 0.95. */
+  backdrop-filter: blur(12px);
+}
+.rail-toggle { display: none; }
+
+.search { position: relative; flex: 1; max-width: 460px; }
+.search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+/* `appearance: none` is not cosmetic here. Safari draws `input[type=search]`
+   with its own native chrome, which ignores the height and the left padding, so
+   without this the magnifier drawn above sits on top of the first two typed
+   characters. */
+.search input {
+  padding-left: 32px;
+  height: 34px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.search input::-webkit-search-decoration,
+.search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  padding: 6px;
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 30;
+}
+.search-group {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  padding: 8px 9px 5px;
+  font-weight: 600;
+}
+.search-hit {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+}
+.search-hit:hover { background: var(--surface-2); }
+/**
+ * `is-active` is the KEYBOARD CURSOR: Up and Down move it and Enter opens the
+ * row it is on. It used to share this line with `:hover` and carry nothing but
+ * a one-step background change, on the argument that the keyboard cursor and
+ * the pointer highlight should look the same.
+ *
+ * That argument is wrong twice. The smaller half is that they are not the same
+ * thing: a pointer highlight follows the mouse and disappears with it, while
+ * this one is the thing Enter acts on, so it is a selection and it has to be
+ * findable without moving anything. The larger half is arithmetic. One step
+ * along the surface ramp, measured off the painted pixels against the
+ * neighbouring rows on the same panel:
+ *
+ *     dark   #171b25 beside #12151d  ->  1.06:1
+ *     light  #f1f4f9 beside #ffffff  ->  1.10:1
+ *
+ * There is no outline, no border and no weight change to fall back on, so
+ * arrowing down selected a real option and the panel looked untouched. At
+ * 1.06:1 it is not a weak indicator, it is not an indicator.
+ *
+ * The replacement is the ring the rest of the page already uses for "this is
+ * where the keyboard is", drawn inside the row so it cannot overlap its
+ * neighbour, plus the accent tint underneath it. `--accent-ring` against the
+ * two grounds it can land on:
+ *
+ *     dark   #5aa2f0 on --accent-soft #152439  ->  5.85:1
+ *     dark   #5aa2f0 on --surface-1   #12151d  ->  6.83:1
+ *     light  #1a5fd0 on --accent-soft #e8f0fd  ->  5.10:1
+ *     light  #1a5fd0 on --surface-1   #ffffff  ->  5.85:1
+ *
+ * all of them well past the 3:1 a non-text indicator needs. It comes after the
+ * `:hover` rule rather than before it because the two score the same (0,2,0)
+ * and source order is what decides which one an active row under the pointer
+ * gets: the keyboard cursor must win, or moving the mouse erases it.
+ */
+.search-hit.is-active {
+  background: var(--accent-soft);
+  outline: 2px solid var(--accent-ring);
+  outline-offset: -2px;
+}
+.search-hit .muted { margin-left: auto; }
+.search-hit .truncate { min-width: 0; }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* ---- the three way theme control ----
+
+   Sun, monitor, moon. Three buttons rather than one that cycles, because a
+   cycling button cannot show you that "system" is a distinct state from the
+   theme it currently resolves to, and that distinction is the entire feature:
+   an operator on system at 6pm wants the page to go dark on its own, and one on
+   an explicit choice does not. Shift+D cycles for people who prefer a key.
+
+   `aria-pressed` carries the state for a screen reader; the fill carries it for
+   everyone else. Both are set by theme.js. */
+.theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-1);
+}
+.theme-switch button {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.theme-switch button:hover { color: var(--ink); }
+.theme-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.theme-switch svg { display: block; }
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px 0 9px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); flex: none; }
+/* The dot is never the only signal: the pill also carries the word. */
+.live-pill[data-state="live"] .live-dot { background: var(--good); animation: pulse 2.4s ease-in-out infinite; }
+.live-pill[data-state="down"] .live-dot { background: var(--critical); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+.view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 24px 72px;
+  scroll-behavior: smooth;
+}
+.view:focus { outline: none; }
+/**
+ * Never flash a skeleton on a refetch.
+ *
+ * A view that clears itself to skeletons every time the range control moves is
+ * a view that jumps under the hand, and on a fast box the skeleton is visible
+ * for four frames, which reads as a flicker rather than as loading. Holding the
+ * last render at reduced opacity says "this is the previous answer" without
+ * moving anything. `is-stale` goes on the view or on any container inside it.
+ */
+.is-stale { opacity: 0.55; transition: opacity 180ms ease; }
+
+/* ============================ page furniture ============================ */
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.page-head h2 { font-size: 20px; }
+.page-head .sub { color: var(--ink-3); font-size: 12.5px; margin-top: 3px; max-width: 78ch; }
+.page-tools { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* One filter row above everything it scopes, never inside a card. A range
+   control that lives inside the first chart looks like it belongs to that chart
+   and nobody presses it expecting the other three to move. */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/**
+ * Form controls inside a filter row.
+ *
+ * Every list view hit this and `views/tables.js` wrote it up at length before
+ * working around it with two inline widths: the base rule up in "form controls"
+ * gives every text input and every select `width: 100%`, which is exactly right
+ * for a field stacked inside a `.field` and exactly wrong for one sitting in a
+ * wrapping flex row. A 100% basis claims the whole row, so the segmented control
+ * next to it wraps onto a line of its own, and a filter row with four controls
+ * in it becomes four rows and pushes the data it is filtering off the screen.
+ *
+ * `width: auto` puts the control back on its content, and then the sheet, not
+ * the call site, decides how much room each kind of control gets. That is the
+ * part that matters: `views/feed.js`, `views/accounts.js`, `views/settings.js`
+ * and `views/tables.js` each picked their own number by hand (240, 250, 250,
+ * 320) for the same control doing the same job, and nothing was going to bring
+ * those back together again.
+ *
+ * `max-width: 100%` on all of them, carried over from the inline width in
+ * `views/tables.js`, so that a fixed width below can never be wider than the row
+ * holding it. It does nothing at 412px, where 320px still fits; it is what stops
+ * the filter expression box hanging off the edge on the narrowest phones there
+ * are, and it costs one declaration to keep that true.
+ */
+.filter-row input,
+.filter-row select,
+.filter-row textarea,
+.filter-row .input {
+  width: auto;
+  max-width: 100%;
+}
+/* A search or title box. 250px is a little over 30 characters at this size,
+   which fits a handle, an app name or a post id without scrolling. */
+.filter-row input[type="search"],
+.filter-row input[type="text"] { width: 250px; }
+/* The one exception, and it is a real one: a PocketBase filter expression is a
+   line of code, not a phrase. `views/tables.js` types things like
+   `hidden = true && created > "2026-01-01"` in here, and at 250px the front of
+   the expression scrolls out of sight while the end of it is being written.
+   `.mono` is already on that input because the face is part of reading it, so
+   the sheet can key off it rather than inventing a second class. */
+.filter-row input.mono { width: 320px; }
+/* A menu is as wide as its longest option once `width` is auto, which is right,
+   but a collection list that happens to start out short would otherwise render
+   as a stub beside a 250px field. The floor keeps the row looking deliberate
+   while the options are still loading. */
+.filter-row select { min-width: 200px; }
+
+.segmented {
+  display: inline-flex;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+.segmented button {
+  border: none;
+  background: none;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.segmented button:hover { color: var(--ink); }
+/* In dark the pressed segment is a lighter surface; in light it is a tinted
+   one plus a border, because one step up the ramp from white is not enough of a
+   difference to see at 12.5px. Same token, different mechanic. */
+.segmented button[aria-pressed="true"] {
+  background: var(--surface-3);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Tabs, for the drawer sections that are too long to stack (an account's posts,
+   comments and projects). A strip of buttons over one panel host. */
+.tabstrip {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabstrip::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex: none;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  padding: 8px 10px;
+  cursor: pointer;
+  /* The 2px underline is on the resting state too, transparent, so the label
+     does not shift down by two pixels the moment it becomes active. */
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.is-active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tab-btn .nav-count { margin-left: 6px; }
+.tabs { display: grid; gap: 14px; }
+
+.card {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px 0;
+  flex-wrap: wrap;
+}
+.card-head h3 { font-size: 13.5px; }
+.card-head .sub { color: var(--ink-3); font-size: 11.5px; margin-top: 2px; }
+.card-head .spacer { margin-left: auto; }
+/**
+ * The body of a card, with one adjustable edge.
+ *
+ * The top padding is a variable because a card body that FOLLOWS a table needs
+ * less of it, or none at all: `table.data` already ends in a row of cells with
+ * 9px of their own padding, so the usual 14px lands on top of that and the pager
+ * underneath floats away from the rows it pages. `views/accounts.js` wants 0
+ * there and `views/accountDetail.js` wants 8px, and both of them were setting it
+ * inline, which is the one thing a spacing decision must not be: invisible to
+ * the responsive block and to anybody reading this sheet.
+ *
+ * A custom property rather than a modifier class because the two call sites want
+ * two different numbers, and `--avatar-size` above has already established the
+ * handoff as the house pattern for exactly this. The default in the `var()` is
+ * what every other card body gets, so nothing has to opt in.
+ *
+ * Note that `.finding-body .card-body` further down re-declares the whole
+ * shorthand and therefore ignores this. That is deliberate: a finding's body is
+ * a tighter box on purpose and is not a place a view gets to tune.
+ */
+.card-body { padding: var(--card-body-top, 14px) 16px 16px; }
+
+.grid { display: grid; gap: 14px; }
+.grid-kpi { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+/* Charts need more width than a card does to stay readable, so they wrap at two
+   across rather than three: a 24px-capped column inside a third-width card
+   leaves more air on the page than data. */
+.grid-charts { grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); }
+/* Post cards are portrait screenshots, so they are narrow and want auto-fill:
+   four posts should sit four across and leave the gaps, not stretch to half the
+   page each. */
+.grid-cards { grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); }
+/* Cards in this grid keep their own heights instead of all stretching to the
+   tallest one. `views/tags.js` (twice) and `views/storage.js` both wrote
+   `align-items: start` inline for this. It is a real choice and not a tidy-up:
+   a bar list of four tags beside a table of twenty posts stretches to twenty
+   rows of empty card, and the reader spends a moment working out whether the
+   emptiness means something. Where the two cards ARE comparable, leaving this
+   off and letting them match is still the better look, which is why it is a
+   modifier and not baked into `.grid-2`. */
+.grid-top { align-items: start; }
+.stack { display: grid; gap: 14px; }
+
+/* A KPI strip followed straight away by another grid, with no section title
+   between them to carry the space. `views/storage.js` is the only page that
+   does this and it was setting `margin-top` inline.
+   Deliberately NOT `.grid + .grid`: on Pulse the KPI strip and the chart grid
+   are both children of a `.stack`, whose 14px gap already separates them, and a
+   margin on a grid item is ADDED to the track it sits in, so the general form
+   of this rule would silently double the seam on the busiest page in the
+   dashboard. */
+.grid-kpi + .grid-2 { margin-top: 14px; }
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  font-weight: 600;
+  margin: 26px 0 12px;
+}
+.section-title:first-child { margin-top: 0; }
+
+/* ============================ stat tiles ============================ */
+
+.kpi {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 15px 12px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 104px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-label { font-size: 11.5px; color: var(--ink-3); font-weight: 500; }
+/* Proportional figures on the big number. `tabular-nums` is right in a table,
+   where columns have to line up, and wrong here: it makes 121 look loose. */
+.kpi-value { font-size: 27px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+.kpi-meta { display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; color: var(--ink-3); margin-top: auto; }
+.kpi-delta { font-weight: 600; }
+/* The arrow in the label is what carries the direction. The colour agrees with
+   it, it does not replace it. */
+.kpi-delta.up { color: var(--good); }
+.kpi-delta.down { color: var(--critical); }
+.kpi-spark { position: absolute; right: 0; bottom: 0; left: 0; height: 34px; opacity: 0.9; pointer-events: none; }
+.kpi.has-spark { padding-bottom: 30px; }
+
+.hero { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.hero-figure { font-size: 52px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+.hero-note { color: var(--ink-2); font-size: 13px; max-width: 40ch; }
+
+/* ============================ chips and text ============================ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 21px;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+/* Every one of these has a word in it. The colour is agreement, never the
+   message: a reader who cannot tell the green from the amber still reads
+   "hidden" and "featured". */
+.chip-good, .chip-live { background: var(--good-soft); border-color: var(--good); color: var(--good-ink); }
+.chip-warn { background: var(--warn-soft); border-color: var(--warning); color: var(--warn-ink); }
+.chip-bad { background: var(--bad-soft); border-color: var(--critical); color: var(--bad-ink); }
+.chip-accent { background: var(--accent-soft); border-color: var(--accent-ring); color: var(--accent); }
+
+/* A chip that is a button: the surface filters on the feed, the tag rows that
+   click through, the asset kinds in a project drawer. */
+.chip-row { display: flex; gap: 5px; flex-wrap: wrap; }
+button.chip-btn {
+  font: inherit;
+  font-size: 11.5px;
+  height: 22px;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+button.chip-btn:hover { background: var(--surface-hover); border-color: var(--line-strong); color: var(--ink); }
+button.chip-btn.is-on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.chip-btn.is-on .mono { color: var(--accent-ink); }
+
+/**
+ * The small explanatory line under a chart, a list or a table.
+ *
+ * `views/storage.js` needed one in ten places and `views/accountDetail.js` in
+ * two. Every one of them wrote `class="tiny dim"` or `class="muted tiny"` and
+ * then a one-off inline margin on top, which is the tell that the sheet was
+ * missing a thing rather than that they each wanted something different.
+ * `views/tables.js` and `views/tags.js` hit the same gap and dodged it the other
+ * way, by reaching for a `<div>` so that no UA margin would arrive at all. Those
+ * are left alone: they sit inside a `.stack`, whose grid gap already spaces
+ * them, and switching them to a paragraph would add a margin on top of that gap
+ * for no gain. This rule is for the note that has to sit under something inside
+ * a plain card body, which is where the fight actually was.
+ *
+ * The margin is the whole reason this exists. The base of this sheet resets h1
+ * to h4 and `body`, and deliberately does not reset `p`, so a bare paragraph
+ * still carries the UA's `margin: 1em 0`. At 11.5px that is 11.5px above AND
+ * below, and inside a `.drawer-body`, which is a grid with a 16px gap of its
+ * own, the bottom half of it opens a visible hole under the last card on the
+ * page. Setting it here means a note never has to be told to be flush again.
+ *
+ * Top only, because a note explains the thing ABOVE it and belongs to that
+ * thing. `:first-child` drops even that: a note that opens a card body is
+ * already positioned by the body's padding, and adding to it would make the one
+ * card that starts with prose sit lower than every other card in the row.
+ *
+ * `+ .note` is a paragraph break inside one explanation, so it is tighter than
+ * the gap between the note and whatever it is about. `views/storage.js` has the
+ * only pair, in the panel that says why post images cannot be counted.
+ *
+ * The ink is `--ink-2`, the same value `.dim` carries, so `class="tiny dim"`
+ * becomes `class="note"` with nothing else changing. This rule is placed ABOVE
+ * `.muted` and `.dim` on purpose: they are single-declaration utilities of the
+ * same specificity, so writing `class="note muted"` still gets the caption ink
+ * for the notes that want to be quieter still.
+ *
+ * No `max-width` here, though `.page-head .sub` and `.finding-head .sub` both
+ * cap their measure. A note lives inside a card whose width the view already
+ * chose, and capping it in this rule would silently re-wrap prose in every one
+ * of the nine places at once.
+ */
+.note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.note:first-child { margin-top: 0; }
+.note + .note { margin-top: 8px; }
+
+.muted { color: var(--ink-3); }
+.dim { color: var(--ink-2); }
+/* Pushes whatever follows it to the right of a flex row. Declared once,
+   globally, rather than repeated inside `.card-head`, `.pager`, `.drawer-head`
+   and `.bulk-bar`: a view that puts one in a row this file has not thought of
+   should still get the behaviour the name promises. */
+.spacer { margin-left: auto; }
+.mono { font-family: var(--mono); font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+.nowrap { white-space: nowrap; }
+.tiny { font-size: 11.5px; }
+.strong { font-weight: 600; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/**
+ * The ceiling a truncating box needs before it will actually truncate.
+ *
+ * `.truncate` on its own does nothing in a `table.data` cell, and that is not
+ * obvious. A data table is laid out with `table-layout: auto`, which sizes a
+ * column to its widest cell, so `overflow: hidden` is handed a box that has
+ * already grown to fit its content and there is never anything to hide. A 500
+ * character comment body then stretches the column, the table starts scrolling
+ * sideways inside `.table-wrap`, and the Actions cell disappears off the right.
+ *
+ * The number itself is per column and cannot live in this sheet: 280px for a
+ * comment body, 190px for a name, 210px for an email, 180px for a post title
+ * next to it. So the mechanism is here and the measurement is handed over from
+ * the call site as `style="--truncate-cap:280px"`, the same way `--avatar-size`
+ * is handed to `.avatar`. That is not the inline styling this pass exists to
+ * remove: the declaration is in the sheet, it can be overridden by a media
+ * query, and what crosses the boundary is one number rather than a rule.
+ *
+ * `none` is the initial value of `max-width`, so every `.truncate` that does not
+ * hand one over is completely unaffected.
+ */
+.truncate { max-width: var(--truncate-cap, none); }
+
+.code-tag {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  padding: 2px 7px;
+  color: var(--ink);
+}
+
+/**
+ * An account's picture, or its initials when there is not one.
+ *
+ * ## Two children in one cell, which is the whole rule
+ *
+ * `ui.js` always renders both: an `.avatar-ini` span with the letters, and, when
+ * the account has a file, an `.avatar-img` after it. The image is not instead of
+ * the chip, it is ON TOP of it, so a file that has been deleted off the box or a
+ * thumb that 403s costs nothing. The image paints nothing, the initials that
+ * were always underneath show through, and no `onerror` handler has to fight the
+ * retry-with-a-fresh-token path in `pb.js` for ownership of the node.
+ *
+ * That only works if both children are placed in the same grid cell.
+ * `.avatar` is `display: grid` with `overflow: hidden`, so without
+ * `grid-area: 1 / 1` on each of them the browser does the reasonable thing and
+ * lays them out as two ROWS: the picture becomes a 26 by 13 sliver with the top
+ * half of the initials squashed above it, inside a clipped circle. It is a
+ * defect that stays invisible until an account actually has an avatar, which on
+ * a fresh box is never, so it ships.
+ *
+ * `object-fit` lives on the image and nowhere else. It used to sit on `.avatar`,
+ * where it did precisely nothing: that element is a `<span>`, and `object-fit`
+ * only has meaning on replaced content.
+ *
+ * ## One size, expressed once
+ *
+ * `avatar(user, size)` accepts 'sm' | 'md' | 'lg' or a number of pixels, and the
+ * numeric path sets `--avatar-size` inline. Nothing read that property, so the
+ * numeric argument was silently inert and `avatar(user, 64)` produced a 26px
+ * chip. Fixed by making the variable the only thing that sets the box: the size
+ * classes set it too, so the two paths cannot disagree, and adding a fourth size
+ * is one line rather than three.
+ *
+ * The font size is derived from the same variable rather than pinned per class,
+ * so a numeric size gets letters that fit it. The curve is deliberately shallow,
+ * roughly 0.27 of the diameter over a floor, rather than a flat fraction: two
+ * capitals have to fit across a chord and not across the diameter, so a small
+ * chip needs proportionally more of its box for the text than a large one does.
+ * It lands on 9.0px at 20, 10.6px at 26 and 16.0px at 46, which are the three
+ * values this file used to hardcode, so nothing on screen moves.
+ */
+.avatar {
+  width: var(--avatar-size, 26px);
+  height: var(--avatar-size, 26px);
+  font-size: calc(3.6px + var(--avatar-size, 26px) * 0.269);
+  border-radius: 50%;
+  background: var(--surface-3);
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.avatar-sm { --avatar-size: 20px; }
+.avatar-md { --avatar-size: 26px; }
+.avatar-lg { --avatar-size: 46px; }
+
+/* Both children claim the single cell. Source order does the stacking: the image
+   comes after the initials in the markup, so it paints over them, and no z-index
+   is needed to say so. */
+.avatar-ini { grid-area: 1 / 1; line-height: 1; user-select: none; }
+.avatar-img { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/**
+ * An identity: a face, a name, and usually a handle, on one line.
+ *
+ * The most reached-for shape in the whole dashboard and the one thing the sheet
+ * did not have. `views/comments.js`, `views/accounts.js`, `views/postDetail.js`,
+ * `views/projects.js`, `views/accountDetail.js`, `views/pulse.js` and
+ * `views/tags.js` all needed it, in a table cell, in a list row, in a drawer
+ * head and in a card, and each of them worked around it differently:
+ *
+ *   - `.chip-row`, which is the nearest thing that existed and is wrong twice.
+ *     It WRAPS, so a long handle drops to a second line inside a narrow column
+ *     and the row grows a line for one account; and it has no `align-items`, so
+ *     the flex default of `stretch` leaves a 20px picture pinned to the top of a
+ *     two line name block instead of centred against it.
+ *   - `.post-meta`, which centres correctly but also pins 11.5px and the caption
+ *     ink, because it is the meta line of a post CARD. Borrowed into a 13px data
+ *     table it silently shrinks the one column an operator reads names in.
+ *   - `style="display:flex;align-items:center;gap:9px;min-width:0"` written out
+ *     by hand, which is the same literal the Ludo dashboard carries in its
+ *     `players.js`. Two projects arriving at the same four declarations
+ *     independently is the argument for this class existing.
+ *   - nothing at all, in `views/tags.js`, where it actually broke: `.avatar` is
+ *     `display: grid` and therefore a block box, so an avatar dropped into a
+ *     table cell next to a `<span>` put the name on the LINE BELOW the picture.
+ *
+ * It carries no type and no colour on purpose. This cluster appears at 15px in
+ * a drawer head, at 13px in a table and at 11.5px in a card, and a class that
+ * decided that for all of them is a class the next person works around.
+ *
+ * `min-width: 0` on the cluster itself is what lets the whole thing shrink when
+ * it is a flex item in something else, which it usually is: a drawer head, a
+ * card head, a post card body.
+ */
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+/**
+ * The block beside the face that holds the name and, under or after it, the
+ * handle. It must be allowed to shrink or the truncation inside it is inert: a
+ * flex item's automatic minimum size is its content, so `overflow: hidden` is
+ * handed a box that is already as wide as the longest name in the table.
+ *
+ * Two selectors because the call sites come in two shapes. Some wrap the name
+ * and the handle in a plain block, which gets `.identity-text`. Some put a
+ * `.truncate` straight into the cluster, and rather than make every one of those
+ * carry a second class the cluster grants it, exactly as `.post-meta` already
+ * does for the same reason.
+ */
+.identity-text,
+.identity .truncate { min-width: 0; }
+/**
+ * A chip in the cluster does not give way, whether it arrives on its own or in
+ * a `.chip-row` as it does on the author card in `views/postDetail.js`.
+ * "banned" and "badge" are fixed facts that mean nothing clipped, so the name
+ * is the part that absorbs a narrow column. Without this the flex default lets
+ * every item shrink in proportion and a long display name squeezes "banned"
+ * down to "ban", which is the one word on the row that has to survive.
+ */
+.identity > .chip,
+.identity > .chip-row { flex: none; }
+
+/* ============================ tables ============================ */
+
+.table-wrap {
+  /* The page never scrolls sideways (`body { overflow: hidden }`), so a table
+     with eleven columns has to scroll inside its own box or the last four
+     columns are simply unreachable. */
+  overflow-x: auto;
+  border-radius: var(--radius);
+}
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th {
+  text-align: left;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  font-weight: 600;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  /* Sticky, and therefore opaque: a header row that lets the body scroll
+     through it is unreadable after the first ten rows. */
+  position: sticky;
+  top: 0;
+  background: var(--surface-1);
+  z-index: 1;
+}
+table.data th.sortable { cursor: pointer; user-select: none; }
+table.data th.sortable:hover { color: var(--ink-2); }
+table.data th .arrow { opacity: 0.9; margin-left: 3px; }
+table.data td { padding: 9px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data tbody tr { transition: background 120ms ease; }
+table.data tbody tr:hover { background: var(--surface-2); }
+table.data tbody tr.clickable { cursor: pointer; }
+table.data tbody tr:last-child td { border-bottom: none; }
+/* A row that just arrived over realtime. It fades from the accent tint to
+   nothing, so a row that landed while you were reading is findable for a second
+   and a half and then stops shouting. */
+table.data tr.is-new { animation: flash-in 1.6s ease-out; }
+@keyframes flash-in { from { background: var(--accent-soft); } to { background: transparent; } }
+/* The row whose detail panel is open below the table, so it stays obvious which
+   thing the panel is about after the page has been scrolled. */
+table.data tr.is-open, table.data tbody tr.is-open:hover { background: var(--accent-soft); }
+
+/* The base input rule enumerates text/email/password/url/search/number/select/
+   textarea and deliberately does not cover a checkbox, so these are the only
+   sizing rules a tick box in a table gets. */
+table.data th.check, table.data td.check { width: 34px; padding-right: 0; }
+table.data th.check input, table.data td.check input { width: auto; margin: 0; cursor: pointer; }
+/* The focus ring for these used to be patched back here, scoped to the table.
+   It now lives with the other checkbox rules in the form-controls section,
+   written against `input[type="checkbox"]` so that a tick box anywhere gets it.
+   Do not re-add a table-scoped copy: a list of places is what let Feed's 25
+   boxes go without a ring for as long as they did. */
+
+/**
+ * The buttons in a row's Actions cell.
+ *
+ * `views/comments.js` had Hide and Delete in a `<td class="nowrap">` with
+ * nothing between them but the newline in the template literal, and
+ * `views/postDetail.js` had the same pair inside a `.chip-row`. The first is the
+ * worse of the two: the distance between "hide this comment" and "delete this
+ * comment forever" was a collapsed whitespace text node, about 3px, which is
+ * both too close for a pair of decisions of very different weight and liable to
+ * change the moment somebody reformats the template.
+ *
+ * 6px rather than the 8px of `.btn-row`. A moderation queue is thirty of these
+ * stacked up and the cell has to stay narrow enough that the table does not
+ * start scrolling; the pair still reads as two buttons because one of them is
+ * `.btn-danger` and carries its own border.
+ *
+ * `inline-flex` on a span INSIDE the cell, never on the `<td>` itself. Giving a
+ * table cell `display: flex` takes it out of the table's layout entirely and the
+ * row comes apart, which is a spectacular way to find out that this rule was
+ * applied to the wrong element.
+ */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.pager { display: flex; align-items: center; gap: 10px; padding: 12px 4px 0; font-size: 12.5px; color: var(--ink-3); }
+.pager .spacer { margin-left: auto; }
+
+.empty { padding: 34px 20px; text-align: center; color: var(--ink-3); font-size: 13px; line-height: 1.55; }
+.empty strong { display: block; color: var(--ink-2); margin-bottom: 4px; font-size: 13.5px; }
+
+/**
+ * The it-broke state. `ui.js` `errorState` renders `<div class="empty is-error">`
+ * and nothing in this sheet used to mention `is-error`, so a failed request was
+ * pixel identical to an empty one.
+ *
+ * That is not a cosmetic gap. "No posts match this filter" and "the box answered
+ * 500 while counting them" would then read as the same fact, and they are the
+ * difference between changing the filter and going to look at the server. An
+ * operator who cannot tell them apart eventually stops trusting the empty state
+ * as well, which costs more than the error did.
+ *
+ * `--bad-ink` on `--bad-soft` rather than `--critical` on the card ground. That
+ * is the one pair in each palette measured for exactly this job: 7.09:1 in
+ * light, 8.29:1 in dark, both quoted in the palette blocks at the top. Using
+ * `--critical` as the body ink instead would shout louder and clear less, since
+ * the state hues are tuned against the card grounds rather than against the
+ * tinted one. Readability is the point: this box carries the status code and,
+ * on a 400, the column name the server objected to, and those are the two
+ * things somebody is going to retype into a migration.
+ */
+.empty.is-error {
+  color: var(--bad-ink);
+  background: var(--bad-soft);
+  border: 1px solid var(--critical);
+  border-radius: var(--radius-sm);
+}
+.empty.is-error strong { color: var(--bad-ink); }
+/* The message is a raw server string: a filter expression, a SQL fragment, a URL
+   with no spaces in it. Without this it pushes the card sideways or, inside a
+   `.table-wrap`, quietly widens the scroll region instead of wrapping. */
+.empty.is-error .mono { overflow-wrap: anywhere; }
+
+/* ============================ loading shapes ============================ */
+
+/**
+ * Skeletons, not spinners.
+ *
+ * A spinner says "wait" and nothing else. A skeleton says "wait, and here is
+ * the shape of what is coming", which means the page does not reflow when the
+ * data lands and the operator's eye is already in the right place. Every view
+ * loads into the layout it is about to fill.
+ *
+ * ## The class names here are the ones `ui.js` actually emits
+ *
+ * This section used to define `.skeleton`, `.skeleton::after`, `.skeleton-row`,
+ * `.skeleton-card` and `.skeleton-tile`. `ui.js` has never emitted a single one
+ * of them: it emits `.skel` and a finer set underneath it, with zero overlap. So
+ * every loading state in the dashboard rendered as a stack of unstyled divs with
+ * no height, and the skeleton, whose entire job is to hold the layout steady,
+ * caused the exact jump it exists to prevent. Nothing was visibly broken enough
+ * to notice, which is why it survived: an empty box for 200ms and then content
+ * looks like a fast page.
+ *
+ * It was fixed here, against the JS names, rather than by renaming the JS. The
+ * JS carries the finer structure, a box plus a set of bars, three bar weights, a
+ * thumb and an avatar, and collapsing that back onto four flat rectangles to
+ * match the old names would have thrown away the part that makes a skeleton
+ * legible as the thing it stands in for.
+ *
+ * ## Holding the same box, which is the entire job
+ *
+ * These are not decorative grey blocks that happen to be about the right size.
+ * Each one is sized off the real element it stands in for and shares its grid:
+ *
+ *   .skel-cards uses `.grid-cards`' template, and `.skel-card` carries
+ *   `.post-thumb`'s aspect ratio AND its 260px cap
+ *   .skel-tiles uses `.grid-kpi`'s template, and `.skel-tile` carries `.kpi`'s
+ *   padding and its 104px min-height
+ *   .skel-row is padded and ruled like a `table.data` row around a 26px avatar
+ *
+ * Change one of those and change its twin here, or the page starts jumping again
+ * for a reason nobody will think to look for in this file.
+ *
+ * ## One sweep per item, which is neither of the two obvious choices
+ *
+ * The sweep is on the CARD, the TILE and the ROW, not on `.skel` and not on the
+ * individual bars. Both of the obvious placements were tried on screen first and
+ * both are worse:
+ *
+ * On each bar, the sweep is forty separate gradients crossing forty different
+ * widths, and a 60px wide bar and a 280px wide one finish together only by
+ * travelling at different speeds. It reads as noise rather than as one thing
+ * moving, and it is forty animations instead of eight.
+ *
+ * On `.skel`, the block, it paints across the WHOLE block, and a grid that has
+ * been asked for one card in a three column layout is two thirds empty. In the
+ * dark palette `--shimmer` is white at 0.055 and nothing shows. In the light
+ * palette it is white at 0.92, so what actually rendered was a large bright
+ * rectangle sliding over the page ground beside the card, which looks like a
+ * paint bug rather than like loading. That is not a hypothetical: it was in the
+ * first screenshot of this section and it is why the rules moved down a level.
+ *
+ * Per item, the sweep is clipped to something that has a card under it, every
+ * item starts in the same frame so they stay in phase, and the gradient only
+ * brightens what it crosses.
+ *
+ * It is a token gradient in all three cases: painting it with a hardcoded white
+ * makes it a soft sheen in the light theme and a flashlight in the dark one. The
+ * reduced-motion block at the foot of this file already stops it, and the print
+ * block sets `--shimmer: transparent`, so neither needs a mention here.
+ */
+/* The block wrapper. It carries `aria-hidden` and nothing inside it is ever
+   interactive, so it declines the pointer as well: a click that lands during a
+   load should reach whatever the view has underneath rather than being swallowed
+   by a placeholder that is about to be replaced. */
+.skel { display: block; pointer-events: none; }
+
+.skel-card, .skel-tile, .skel-row { position: relative; overflow: hidden; }
+.skel-card::after, .skel-tile::after, .skel-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--shimmer), transparent);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+/* The grey shapes themselves. `.skel-box` stands in for a picture, `.skel-bar`
+   for a line of text. `--surface-3` rather than `--surface-2`: these sit on a
+   `--surface-1` card, and one step up the ramp is not a difference anybody can
+   see in an 8px tall bar on a cheap monitor. */
+.skel-box, .skel-bar { background: var(--surface-3); border-radius: var(--radius-xs); }
+.skel-bar { height: 11px; }
+.skel-bar-sm { height: 8px; }
+/* A KPI's figure is 27px of type, so its stand-in is a block rather than a line.
+   A thin bar there makes the tile read as three captions and the eye stops
+   expecting a number to arrive in it. */
+.skel-bar-lg { height: 24px; border-radius: var(--radius-sm); }
+
+/* ---- rows, for tables and moderation queues ---- */
+
+.skel-rows { display: block; }
+.skel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* `table.data td` is 9px above and below its content plus the 1px rule under
+     it, and the tallest thing in the first column is a 26px avatar, so a real
+     row is 45px. Match it: this skeleton stands in front of Accounts, Comments
+     and Tables, and every one of them has an avatar in that column. */
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+/* `table.data tbody tr:last-child td` drops its rule too, so the last skeleton
+   row must drop it as well or the loading state ends in a line the loaded state
+   does not have, which is a 1px jump on every refetch. */
+.skel-row:last-child { border-bottom: none; }
+.skel-avatar { width: 26px; height: 26px; border-radius: 50%; flex: none; }
+/* A name over its detail, in the 26px the avatar beside them already claims:
+   11 plus a 5px gap plus 8 is 24. Two lines that fit inside the row height
+   rather than setting it, so a two line skeleton and a one line table row are
+   still the same box. */
+.skel-lines { display: grid; gap: 5px; flex: 1; min-width: 0; }
+
+/* ---- cards, for the post grid ---- */
+
+/* The same template as `.grid-cards`, so the skeleton and the real grid break to
+   the same column count at the same width and the posts land where the
+   placeholders already were. */
+.skel-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); }
+/**
+ * The card itself, spaced to `.post-card-body` rather than to taste.
+ *
+ * The markup gives this three children: a thumb and two bars. The real card body
+ * has four rows: a title, a meta line with an avatar in it, and an engagement
+ * strip pinned to the bottom by `margin-top: auto` above its own rule. Two bars
+ * standing in for four rows is 55px short of the real card, measured, which is
+ * a sixth of its height and quite enough to make the feed jump when the posts
+ * land.
+ *
+ * So the engagement strip is drawn here, as `::before` with `order: 1` to put it
+ * last (a pseudo-element of a flex container is a flex item, and `order` is the
+ * only way to move a `::before` past its siblings). It carries the same 1px rule
+ * `.post-engage` does, so the skeleton is not merely the right height, it has
+ * the same horizontal line across it in the same place.
+ *
+ * The margins are explicit rather than a single `gap`, because the real spacing
+ * is not uniform: 11px under the thumb, a smaller step between the two text
+ * rows, and a larger one above the rule. The remaining few pixels of difference
+ * are the meta row, which is 26px of avatar in the real card and an 8px bar
+ * here, and are absorbed in the bottom padding instead of being faked with a
+ * bar too tall to read as a line of text.
+ */
+.skel-card {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 18px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+.skel-card::before {
+  content: "";
+  order: 1;
+  height: 26px;
+  margin: 14px 12px 0;
+  border-top: 1px solid var(--line-soft);
+}
+/* `.post-thumb`'s ratio and its cap, both of them. The ratio is what keeps a
+   grid of posts a grid; the cap is what stops a 300px column becoming a 375px
+   tall placeholder that shows one and a half cards per screen. */
+.skel-thumb {
+  aspect-ratio: 4 / 5;
+  max-height: 260px;
+  width: 100%;
+  border-radius: 0;
+  border-bottom: 1px solid var(--line-soft);
+  /* `.post-thumb`'s quieter ground. A `--surface-3` block this large stops
+     reading as a placeholder and becomes the loudest thing on the page. */
+  background: var(--surface-2);
+  margin-bottom: 12px;
+}
+/* The bars are direct children of the card, with no body wrapper in the markup,
+   so the card's horizontal padding has to be put on them instead. */
+.skel-card .skel-bar { margin: 0 12px; }
+.skel-card .skel-bar + .skel-bar { margin-top: 10px; }
+
+/* ---- tiles, for the KPI strips ---- */
+
+.skel-tiles { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.skel-tile {
+  /* `.kpi`, to the pixel: same padding, same min-height, same card treatment.
+     The KPI row sits at the very top of Pulse, so it is the one skeleton whose
+     height decides whether the whole page below it moves when the data lands. */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 15px 12px;
+  min-height: 104px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* ============================ post cards ============================ */
+
+/* One card, shared by the Pulse live column and the Feed grid, so a post looks
+   the same everywhere it appears and there is one place to fix it. */
+.post-card {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+.post-card:hover { border-color: var(--line-strong); transform: translateY(-1px); box-shadow: var(--shadow-1); }
+.post-card.is-on { border-color: var(--accent); }
+
+/* The thumbnail box has a fixed aspect so a grid of posts is a grid and not a
+   staircase. App Store screenshots are portrait; a landscape Play feature
+   graphic lands in the same box and is letterboxed by `contain`, which is
+   correct: cropping a feature graphic hides the thing it exists to show. */
+.post-thumb {
+  aspect-ratio: 4 / 5;
+  /* The aspect ratio keeps a grid of posts a grid; the cap keeps it a grid you
+     can scan. On a wide monitor `auto-fill` makes each column 300px or more,
+     and 4:5 of that is a 375px tall thumbnail, which is one and a half posts
+     per screen. The cap wins over the ratio and the card just gets a wider,
+     shorter window onto the same `contain`ed image. */
+  max-height: 260px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  position: relative;
+}
+.post-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* The fallback when there is no image, or when the file 403s. Not an error, so
+   it is drawn in the caption ink rather than in red. */
+.post-thumb .empty { padding: 0; font-size: 11.5px; }
+
+/* Every image on a post, side by side, scrolling inside its own box. A post can
+   carry ten screenshots and the drawer is 720px wide; stacking them puts the
+   comment list four screens down. */
+.post-thumb-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+.post-thumb-strip img {
+  height: 300px;
+  width: auto;
+  flex: none;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+  display: block;
+}
+
+.post-card-body { padding: 11px 12px 12px; display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
+.post-card-body h4 { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+.post-meta { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 11.5px; color: var(--ink-3); }
+.post-meta .truncate { min-width: 0; }
+.post-engage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
+}
+.post-engage .spacer { margin-left: auto; }
+/* The surface a post was made for (screenshots, apple-watch, mac, ...). Its own
+   class rather than a `chip-accent`, because it is a category and not a state,
+   and colouring categories with the state palette is how "featured" and
+   "apple-watch" end up looking like the same kind of fact. */
+.surface-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* ============================ drawer ============================ */
+
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  animation: fade-in 160ms ease;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(720px, 100vw);
+  background: var(--surface-1);
+  border-left: 1px solid var(--line);
+  z-index: 51;
+  overflow-y: auto;
+  box-shadow: var(--shadow-2);
+  animation: slide-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes slide-in { from { transform: translateX(24px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+
+.drawer-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--line-soft);
+  /* Opaque, because it is sticky over a scrolling body. See the topbar note. */
+  background: var(--surface-1);
+  /**
+   * WHY THIS WRAPS.
+   *
+   * The account drawer's head is an avatar, a name block, an optional chip, a
+   * spacer, FOUR action buttons and the close button. Measured at 412px with
+   * `nowrap`: the row wanted 431px inside a 411px box, and because the only
+   * item in it that can give way is `.identity-text` (it carries `min-width: 0`
+   * so the truncation inside it works at all), the browser paid for the
+   * overflow by squeezing the name block to width 0 and STILL put the close
+   * button's right edge at x=432. The name vanished and the only way out of the
+   * drawer was off screen. Escape closes it, but nothing on the screen says so.
+   *
+   * `flex-wrap: wrap` costs the wide layout nothing, because a row that fits on
+   * one line does not wrap. The floor below is the other half of the fix: with
+   * `min-width: 0` and no floor the name block would still rather collapse to
+   * nothing than push a button onto a second line.
+   */
+  flex-wrap: wrap;
+}
+.drawer-head h3 { font-size: 15px; }
+.drawer-head .sub { color: var(--ink-3); font-size: 11.5px; margin-top: 2px; }
+.drawer-head .spacer { margin-left: auto; }
+/* The floor that stops the wrap above being paid for by the name instead. 140px
+   is about eighteen characters at 15px, which is enough of a display name to
+   recognise an account by; below that the truncation is showing so little that
+   the block may as well not be there. Scoped to the head on purpose: the same
+   class in a table cell must still be free to shrink to nothing, because there
+   the column is the thing being squeezed and the row beside it carries the id. */
+.drawer-head .identity-text { min-width: 140px; }
+/**
+ * WHY THIS NAMES A COLUMN.
+ *
+ * `display: grid` with no `grid-template-columns` gives you ONE implicit column
+ * sized `auto`, and an auto track in a grid whose own width is content-derived
+ * resolves to max-content. So the drawer body was as wide as its widest child
+ * wanted to be and never narrower: measured at 412px, the body's scrollWidth
+ * against its clientWidth came out 434 vs 411 on the post drawer, 470 vs 411 on
+ * the project drawer and 664 vs 411 on the account drawer. Every one of them
+ * scrolled sideways, which on the post drawer directly contradicted its own
+ * on-screen copy about the thumbnail strip scrolling so the drawer never has to.
+ *
+ * `minmax(0, 1fr)` is the fix and the `0` is the whole of it: a bare `1fr` is
+ * `minmax(auto, 1fr)`, whose auto minimum is again the largest min-content in
+ * the track, which is exactly the behaviour being removed. With a real 0 floor
+ * the track takes the drawer's width, and the children that are genuinely wider
+ * than a phone (the raw JSON block, the thumbnail strip, a wide table) scroll
+ * inside their own `overflow-x: auto` boxes, which is what they were written to
+ * do.
+ */
+.drawer-body { padding: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+.kv { display: grid; grid-template-columns: minmax(120px, auto) 1fr; gap: 7px 16px; font-size: 12.5px; }
+.kv dt { color: var(--ink-3); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+
+/**
+ * A JSON blob, collapsed. Deliberately raw: the whole reason a project document
+ * is opaque to the server is that this dashboard is the only place anybody can
+ * look inside one, so it renders exactly what is stored and nothing prettier.
+ */
+details.raw { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); }
+details.raw > summary {
+  cursor: pointer;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  list-style: none;
+  user-select: none;
+}
+details.raw > summary::-webkit-details-marker { display: none; }
+details.raw > summary::before { content: "\25B8 "; color: var(--ink-3); }
+details.raw[open] > summary::before { content: "\25BE "; }
+details.raw pre {
+  margin: 0;
+  padding: 0 12px 12px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+
+/* ============================ charts ============================ */
+
+.chart { position: relative; }
+/* `overflow: visible` so the last axis label is not clipped by the viewBox, and
+   `display: block` so the SVG does not sit on a text baseline and leave four
+   pixels of ghost padding under every chart. */
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-2); margin-bottom: 10px; }
+.chart-legend .key { display: inline-flex; align-items: center; gap: 6px; }
+.chart-legend .swatch { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+
+/**
+ * A LEGEND KEY THAT HAS BEEN TOGGLED OFF.
+ *
+ * `charts.js` builds each key as a real <button> with `aria-pressed`, and when
+ * a series is switched off it also sets `style.opacity = '0.42'` inline. Its own
+ * comment says the sheet is welcome to style
+ * `.chart-legend .key[aria-pressed="false"]` on top of that, and this is the
+ * sheet doing so.
+ *
+ * WHAT WAS WRONG. Dimming the whole button to 0.42 takes an ENABLED control
+ * below the floor for text. Measured off the painted pixels, 11.5px label text
+ * on the card ground:
+ *
+ *     dark   #9aa4ba over #12151d at 0.42  ->  2.30:1
+ *     light  #4a5468 over #ffffff at 0.42  ->  2.01:1
+ *
+ * WCAG's exemption is for a DISABLED control, and this one is not disabled: it
+ * is the control you press to bring the series back, so it has to stay
+ * readable. 11.5px is not large text, so the bar is 4.5:1 for the label and
+ * 3:1 for the swatch as a non-text indicator.
+ *
+ * WHAT IT DOES INSTEAD. The ink does not move at all, so the label keeps the
+ * ratio it has when the series is on:
+ *
+ *     dark   #9aa4ba on #12151d  ->  7.29:1   (need 4.5)
+ *     light  #4a5468 on #ffffff  ->  7.61:1   (need 4.5)
+ *
+ * and the off state is carried by two shape changes instead of by ink: a
+ * line through the label, and a swatch that is OUTLINED rather than filled. The
+ * outline is punched with a radial gradient in the card ground rather than
+ * drawn as a border, because the swatch's fill arrives inline as
+ * `background: var(--series-N)` and a border colour cannot read it back. Both
+ * edges of the remaining ring are series colour against card ground, which is
+ * the same pair the filled swatch already had:
+ *
+ *     dark   --series-1 #5aa2f0 on #12151d  ->  6.83:1   (need 3)
+ *     light  --series-1 #2563c9 on #ffffff  ->  5.67:1   (need 3)
+ *
+ * `!important` is not decoration here and it is the only thing that works: an
+ * `!important` author declaration is the one thing that outranks a style
+ * attribute, and both the 0.42 and the swatch fill arrive in style attributes.
+ * If `charts.js` ever stops setting them inline, these two lines still say
+ * exactly the same thing and nothing changes.
+ */
+.chart-legend .key[aria-pressed="false"] {
+  opacity: 1 !important;
+  color: var(--ink-2);
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-3);
+  text-decoration-thickness: 1.5px;
+}
+.chart-legend .key[aria-pressed="false"] .swatch {
+  /* closest-side on a 9px box puts the reference circle at radius 4.5px, so the
+     hole is 2.1px of radius and the ring that survives is about 2.4px wide.
+     The two stops are 4% apart so the edge is antialiased rather than jagged. */
+  background-image: radial-gradient(
+    closest-side,
+    var(--surface-1) 0 46%,
+    rgba(0, 0, 0, 0) 50%
+  ) !important;
+  /* The line through the label must not be dragged across the swatch as well:
+     a flex item is a blockified in-flow box, and text decoration propagates
+     into those. A struck swatch on top of a hollowed one is a smudge. */
+  text-decoration: none;
+}
+
+.chart-tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font-size: 11.5px;
+  box-shadow: var(--shadow-2);
+  white-space: nowrap;
+  z-index: 5;
+  min-width: 190px;
+  transform: translate(-50%, -100%);
+}
+/* The bucket the reader is standing on, written out in full. A tooltip that
+   says "14" and nothing else is a tooltip that has to be counted back to. */
+.chart-tip .t-label { display: block; color: var(--ink); font-weight: 600; font-size: 12px; }
+.chart-tip .t-sub { display: block; color: var(--ink-3); font-size: 10.5px; margin-top: 2px; }
+.chart-tip .t-row { display: flex; align-items: baseline; gap: 7px; font-variant-numeric: tabular-nums; }
+.chart-tip .t-big { margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+.chart-tip .t-big strong { font-size: 16px; color: var(--ink); font-weight: 600; }
+.chart-tip .t-unit { color: var(--ink-3); }
+.chart-tip .swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; align-self: center; }
+.chart-tip .t-stats {
+  display: grid;
+  gap: 3px 14px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+}
+.chart-tip .t-stats > div { display: flex; align-items: baseline; gap: 12px; }
+.chart-tip .t-stats span { color: var(--ink-3); }
+.chart-tip .t-stats b { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.chart-tip .t-stats b.up { color: var(--good); }
+.chart-tip .t-stats b.down { color: var(--critical); }
+.chart-tip .t-flag { margin-top: 7px; font-size: 10.5px; color: var(--warning); }
+.chart-tip .t-foot {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+
+/* The hovered column's backing band. It is moved, never created: creating one
+   per hover is what makes a chart stutter on a slow machine. */
+.chart svg .band { transition: opacity 90ms ease; }
+.chart svg .hit { cursor: crosshair; }
+.chart-axis { font-size: 10.5px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+/* The second axis row: which DAY a run of hours belongs to. Brighter than the
+   ticks above it, because it is the label that stops "10" reading as a date. */
+.chart-axis-group { fill: var(--ink-2); font-weight: 600; letter-spacing: 0.01em; }
+
+/* The table-view twin every chart carries. A tooltip must never be the only way
+   to read a value: it is unreachable on a touch screen, invisible to a screen
+   reader, and impossible to copy out of. */
+.chart-table { margin-top: 12px; max-height: 260px; overflow-y: auto; }
+
+.barlist { display: grid; gap: 9px; }
+.barlist-row { display: grid; grid-template-columns: minmax(90px, 150px) 1fr auto; gap: 12px; align-items: center; font-size: 12.5px; }
+.barlist-row.clickable { cursor: pointer; }
+.barlist-row.clickable:hover .barlist-track { background: var(--surface-3); }
+.barlist-track { height: 8px; background: var(--surface-2); border: 1px solid var(--line-soft); border-radius: 4px; overflow: hidden; }
+/* `display: block` is load bearing: the fill is a <span>, and an inline box
+   ignores `height`, so without this every bar renders as an empty track. */
+.barlist-fill { display: block; height: 100%; border-radius: 4px; background: var(--series-1); }
+.barlist-val { font-variant-numeric: tabular-nums; color: var(--ink-2); min-width: 54px; text-align: right; }
+
+/* The surface split. Label and value are always visible beside the ring, never
+   only in a tooltip and never carried by the colour alone. */
+.donut { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+/* A descendant selector rather than a child one, so it still holds if the ring
+   ever picks up a wrapper for a centre label. It has to come after the
+   `.chart svg { width: 100% }` rule above, which it ties with on specificity
+   and beats on source order; moving this block up the file would silently make
+   every donut full width and 150px tall. */
+.donut svg { flex: none; width: 150px; height: 150px; }
+.donut-legend { display: grid; gap: 8px; flex: 1; min-width: 180px; font-size: 12.5px; }
+.donut-legend .key { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.donut-legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
+.donut-legend .num { color: var(--ink-2); }
+
+/* ============================ toasts ============================ */
+
+.toasts { position: fixed; bottom: 18px; right: 18px; display: grid; gap: 8px; z-index: 60; }
+.toast {
+  background: var(--surface-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  font-size: 13px;
+  color: var(--ink);
+  box-shadow: var(--shadow-2);
+  animation: slide-in 180ms ease;
+  max-width: 380px;
+  transition: opacity 220ms ease;
+}
+.toast.bad { background: var(--bad-soft); border-color: var(--critical); color: var(--bad-ink); }
+.toast.good { background: var(--good-soft); border-color: var(--good); color: var(--good-ink); }
+
+/* ============================ dialogs ============================ */
+
+/**
+ * The confirm and the prompt, both from `modal()` in `ui.js`.
+ *
+ * These rules did not exist. The whole family was missing from this sheet, so
+ * `confirmAction` and `promptValue` appended two unstyled, unpositioned divs to
+ * the end of `<body>`, below the fold, while the page behind them locked its
+ * scroll and waited for an answer to a question that was not on screen. Since
+ * the build contract puts a confirm in front of every single write, that made
+ * every destructive action in the dashboard unusable rather than ugly. It is
+ * written down here at length because it is the failure that hid the longest:
+ * nothing throws, nothing logs, the promise simply never settles.
+ *
+ * ## Layering, which is most of the reason this section is written down
+ *
+ * The overlay ladder on this page, bottom to top:
+ *
+ *     .gate            40    the sign-in door
+ *     .drawer-scrim    50
+ *     .drawer          51    post, account and project detail
+ *     .toasts          60    the report of what just happened
+ *     .modal-scrim     70
+ *     .modal           71    this, and it must clear both of the above
+ *
+ * Above the drawer, because every detail drawer here has a Delete in it and the
+ * dialog that button raises is appended to `<body>`, not into the drawer. At any
+ * value below 51 it opens BEHIND the thing that opened it, and the operator is
+ * left looking at a drawer that has stopped responding for no visible reason.
+ *
+ * Above the toast host, because a bulk action fires one toast per row and the
+ * toast host is bottom right, which is exactly where the Cancel and Confirm
+ * buttons of a centred dialog sit. Four stacked toasts covering the buttons of
+ * the dialog asking whether to delete thirty posts is not a cosmetic problem.
+ *
+ * That second point is also why this dialog reports its own errors inline
+ * through `.modal-error` instead of raising a toast for them: a toast would land
+ * underneath the card that produced it, and the operator would never learn why
+ * the box refused what they typed.
+ *
+ * ## Two elements, not one
+ *
+ * `ui.js` appends the scrim and the dialog to `<body>` as SIBLINGS rather than
+ * nesting the card inside the scrim. A click on the scrim cancels; nesting would
+ * make every click inside the card also a click on the scrim, and the handler
+ * would have to inspect the event target to tell a Cancel from a caret placed in
+ * the text field. Siblings make that distinction structural instead of clever.
+ */
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+  animation: fade-in 140ms ease;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 71;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  /* The cancelling click belongs to the scrim underneath. This layer spans the
+     whole window so that the card can be centred in it, so it has to be
+     transparent to hit testing or everything outside the card becomes a dead
+     zone that neither cancels nor does anything else. `pointer-events: none`
+     here and `auto` on the card is the pair that does it. */
+  pointer-events: none;
+}
+
+.modal-card {
+  pointer-events: auto;
+  width: min(460px, 100%);
+  /* The CARD scrolls, not the layer around it. A centred grid item in a
+     scrolling parent has its overflow pushed off the top edge where no scrollbar
+     can reach it, and a delete-account confirm that spells out the posts, the
+     comments, the likes, the follows and the projects it is about to take with
+     it is tall enough to hit that on a laptop in landscape. */
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  animation: fade-in 140ms ease;
+}
+
+.modal-title { font-size: 15.5px; }
+/* `body` is HTML from the caller, so it can carry a count in bold or a short
+   list. `--ink-2` rather than `--ink`: the title is the question and this is the
+   detail underneath it, and setting both at full strength leaves the reader
+   nothing to read first. */
+.modal-body { color: var(--ink-2); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.modal-body strong { color: var(--ink); }
+.modal-body p { margin: 0 0 8px; }
+.modal-body p:last-child { margin-bottom: 0; }
+.modal-body ul { margin: 0; padding-left: 18px; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+/**
+ * The settings guard: the value now, beside the value after.
+ *
+ * "Are you sure" on its own is a button people learn to click through inside a
+ * week. Two cells, one holding what is stored and one holding what is about to
+ * replace it, is a question that has to be read before it can be answered, and
+ * on the Settings page it is the only thing between a mistyped rate limit and a
+ * box that has quietly stopped accepting posts.
+ *
+ * `.is-next` is not merely the second cell. It has to be visibly THE NEW VALUE,
+ * or the pair is two lines of identical looking text and the guard is decoration
+ * again. It takes the accent ground, the accent border and the accent ink, and
+ * the value itself goes to weight 600. The weight is the half that survives a
+ * greyscale print and a colour blind reader, for the same reason the series hues
+ * at the top of this file are not allowed to be the only signal either.
+ *
+ * `auto-fit` rather than two fixed columns: at the width this card reaches on a
+ * phone, two 150px cells side by side truncate a URL or a client id list into
+ * two identical looking stubs, and stacking them is the honest answer.
+ */
+.modal-diff { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.modal-diff-cell {
+  display: grid;
+  gap: 5px;
+  padding: 9px 11px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.modal-diff-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+/* Monospace, because these are settings values: ids, integers, comma separated
+   client id lists, and a proportional face makes two of them that differ in one
+   digit look the same, which is precisely the mistake this dialog is here to
+   catch. `anywhere` because none of them has a space in it to break at. */
+.modal-diff-value {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.modal-diff-cell.is-next { border-color: var(--accent-ring); background: var(--accent-soft); }
+.modal-diff-cell.is-next .modal-diff-label { color: var(--accent); }
+.modal-diff-cell.is-next .modal-diff-value { color: var(--accent); font-weight: 600; }
+
+/* ---- the prompt's field ---- */
+
+/* Its own grid rather than a reused `.field`, because the input shares a row
+   with an optional generate button and the error line has to sit under both of
+   them rather than under the input alone. */
+.modal-field { display: grid; gap: 6px; }
+.modal-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.modal-input-row { display: flex; align-items: center; gap: 8px; }
+/* The base field rule sets `width: 100%`, which inside a flex row means "as wide
+   as my content" rather than "the rest of the row". `flex: 1` is what actually
+   fills it, and `min-width: 0` is what lets it shrink past an input's default
+   twenty character intrinsic width instead of shouldering the New button off
+   the edge of the card. */
+.modal-input-row > input, .modal-input-row > .input { flex: 1; min-width: 0; }
+/* Answered inside the dialog, never as a toast: see the layering note above. It
+   starts `hidden`, and `[hidden] { display: none !important }` at the top of
+   this file means no rule here can accidentally reveal an empty one. */
+.modal-error { margin: 0; font-size: 12px; color: var(--critical); overflow-wrap: anywhere; }
+
+/* ============================ settings ============================ */
+
+.setting {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) 1fr;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  align-items: start;
+}
+.setting:last-child { border-bottom: none; }
+.setting-key { font-family: var(--mono); font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere; }
+.setting-desc { color: var(--ink-3); font-size: 11.5px; margin-top: 5px; line-height: 1.5; }
+.setting-val { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.setting-val input { max-width: 320px; }
+
+/* ============================ bulk selection ============================ */
+
+/* Sticky rather than fixed, so it rides the top of the list it belongs to
+   instead of floating over an unrelated part of the page once the operator has
+   scrolled. It is tinted with the accent because it is a mode, not a warning:
+   the count in it says how many rows are about to be touched. */
+.bulk-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--accent-ring);
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.bulk-bar .spacer { margin-left: auto; }
+
+/* ============================ integrity findings ============================ */
+
+/**
+ * One card per check on the Integrity page.
+ *
+ * A check that found nothing collapses to a single line rather than
+ * disappearing. That is deliberate: if a passing check vanished, the page could
+ * not tell an operator the difference between "we looked and it is fine" and
+ * "we never looked", and those are very different states when a check has
+ * started throwing on the server.
+ */
+.finding {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+.finding-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  flex-wrap: wrap;
+}
+.finding-head h3 { font-size: 13.5px; }
+.finding-head .sub { color: var(--ink-3); font-size: 11.5px; margin-top: 2px; line-height: 1.5; max-width: 72ch; }
+.finding-head .spacer { margin-left: auto; }
+.finding-body { border-top: 1px solid var(--line-soft); }
+.finding-body .card-body { padding: 12px 15px 14px; }
+/* The "nothing to report" line. Green, and it also says the word. */
+.finding-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 15px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12.5px;
+  color: var(--good-ink);
+  background: var(--good-soft);
+}
+/* A finding card that DID find something wears the state on its edge as well as
+   in its chip, because a page of fourteen cards needs to be scannable at arm's
+   length. */
+.finding.is-active { border-color: var(--warning); }
+.finding.is-active .finding-head { background: var(--warn-soft); }
+.finding.is-active .finding-head h3 { color: var(--warn-ink); }
+
+/* ============================ responsive ============================ */
+
+@media (max-width: 760px) {
+  /* Four stacked segmented controls push the content a screen and a half down
+     on a phone. One scrolling row keeps the data above the fold. */
+  .filter-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-row > * { flex: none; }
+
+  .setting { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .hero-figure { font-size: 40px; }
+  .post-thumb-strip img { height: 220px; }
+
+  /* Hide and Delete stack on a phone.
+     Not cosmetic: a nowrap cell's minimum width is the SUM of the two buttons
+     plus the gap, and that number is what the comment table inside the post
+     drawer hands up as its min-content width. On a 412px screen the drawer is
+     the width of the screen, so those extra 60px push the whole drawer body
+     sideways and the caption, the tags and the actions all go with it. Letting
+     the pair wrap puts the cell's minimum back to the wider of the two buttons,
+     which is what it was before this class existed. The side by side reading
+     is worth having wherever there is room for it, and at this width there is
+     not. */
+  .row-actions { flex-wrap: wrap; }
+}
+
+@media (max-width: 1000px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--rail-w);
+    background: var(--surface-1);
+    z-index: 55;
+    transform: translateX(-100%);
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: var(--shadow-2);
+  }
+  .app.rail-open .rail { transform: none; }
+  .rail-toggle { display: inline-grid; }
+  .view { padding: 18px 14px 64px; }
+  .topbar { padding: 0 12px; gap: 8px; }
+  .drawer { width: 100%; }
+  .grid-charts { grid-template-columns: minmax(0, 1fr); }
+  .kv { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+  .kv dt { margin-top: 8px; }
+}
+
+@media (max-width: 560px) {
+  /* The theme control is the first thing to go: it is a preference, and on a
+     phone the OS setting is the one people actually use. Shift+D still cycles
+     for anybody with a keyboard attached. */
+  .theme-switch { display: none; }
+
+  /* Two equal buttons filling the row rather than two small ones tucked into
+     the right corner. Cancel and Confirm are about 40px apart at this width,
+     which is inside the range where a thumb reaching across the screen hits the
+     wrong one, and on this dialog the wrong one deletes an account. The order is
+     left alone: Cancel stays first, so the muscle memory built on a desktop
+     still lands on the same button here. */
+  .modal { padding: 14px; }
+  .modal-card { max-height: calc(100vh - 28px); }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+  .live-pill { padding: 0 8px; }
+  .live-pill .live-text { display: none; }
+}
+
+/* ============================ motion and print ============================ */
+
+/**
+ * Reduced motion.
+ *
+ * Not "fewer animations": none. The shimmer on a skeleton, the pulse on the
+ * live dot and the slide on the drawer are all decoration, and every one of
+ * them is a repeating movement in the corner of the eye, which is exactly what
+ * this preference exists to switch off. 0.001ms rather than 0 so that
+ * `animationend` and `transitionend` listeners still fire and nothing that
+ * waits on them hangs.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/**
+ * Print. The third palette, and the only other place in this file that is
+ * allowed to name a colour.
+ *
+ * Somebody will print the Integrity page to take into a meeting. The chrome is
+ * not useful on paper, the scroll containers have to be released or the page
+ * prints one screenful and stops, and the ground has to be white regardless of
+ * which theme is live, because printing a dark dashboard is how an office runs
+ * out of toner. Overriding `body`'s colours alone would not do it: every card,
+ * chip and table cell paints its own token, so the tokens themselves are what
+ * has to change.
+ *
+ * The selector list is not decoration. `:root:not([data-theme="light"])` inside
+ * the dark media query scores (0,2,0), so a plain `:root` here at (0,1,0) would
+ * lose to it and an operator on a dark OS would print a black page. Naming all
+ * three selectors matches the specificity and wins on source order instead.
+ *
+ * Ink is pushed harder than on screen (pure black on white, darker mid-tones),
+ * because a 10.5px caption at 5:1 on a monitor is a 10.5px caption at rather
+ * less than that once an inkjet has had its way with it.
+ */
+@media print {
+  :root,
+  :root:not([data-theme="light"]),
+  :root[data-theme="dark"] {
+    color-scheme: light;
+
+    --bg: #ffffff;
+    --surface-1: #ffffff;
+    --surface-2: #ffffff;
+    --surface-3: #f2f3f6;
+    --surface-hover: #ffffff;
+
+    --line: #b4b9c4;
+    --line-soft: #d5d8e0;
+    --line-strong: #8d93a1;
+
+    --ink: #000000;
+    --ink-2: #232c3a;
+    --ink-3: #3b4453;
+
+    --accent: #10409a;
+    --accent-soft: #ffffff;
+    --accent-ring: #10409a;
+    --accent-ink: #ffffff;
+
+    --series-1: #10409a;
+    --series-2: #8a2c08;
+    --series-3: #0a544e;
+    --series-4: #6f4305;
+
+    --good: #0b4d22;
+    --warning: #5c3a04;
+    --serious: #7a3009;
+    --critical: #7d1616;
+
+    --good-soft: #ffffff;
+    --warn-soft: #ffffff;
+    --bad-soft: #ffffff;
+    --good-ink: #0b4d22;
+    --warn-ink: #5c3a04;
+    --bad-ink: #7d1616;
+
+    --grid: #dcdfe6;
+    --axis: #b4b9c4;
+
+    --rail-bg: #ffffff;
+    --topbar-bg: #ffffff;
+
+    --glow: none;
+    --shimmer: transparent;
+    --scrim: transparent;
+
+    --card-shadow: none;
+    --shadow-1: none;
+    --shadow-2: none;
+
+    /* Paper is a light ground, so a disabled control fades the light palette's
+       distance, not the dark one's. Without this line an operator on the dark
+       theme would print at 0.5 onto white, which is the exact pairing the note
+       on `.btn:disabled` exists to stop. Nothing on paper is disabled today
+       because `.pager` is hidden below, but the rule this block states about
+       itself is that every token that is wrong on paper gets its paper value
+       here, and this is one. */
+    --dim-disabled: 0.6;
+  }
+
+  /* `.modal-scrim` and `.modal` join the drawer and the toasts here for the same
+     reason they do: they are transient chrome, and a dialog is a question that
+     has not been answered yet rather than part of the record somebody is taking
+     into a meeting. The scrim in particular has to go, not just fade: its
+     `--scrim` token is transparent on paper but its `backdrop-filter` is not,
+     so leaving it in would print the whole page behind it blurred. */
+  /* `.skip-link` is in the list because it is hidden on screen by a transform
+     rather than by `display`, and a transform is a paint-time move: print
+     layout puts the box back at the top left of the first page and prints an
+     accent-coloured button that means nothing on paper. */
+  .rail, .topbar, .drawer, .drawer-scrim, .toasts, .bulk-bar, .pager, .page-tools, .filter-row,
+  .modal-scrim, .modal, .skip-link {
+    display: none !important;
+  }
+  /* Everything on screen scrolls inside a box. On paper nothing does, so every
+     one of those boxes has to be released or it prints its first screenful and
+     silently drops the rest. */
+  body, .view, .table-wrap, .chart-table, .post-thumb-strip, .rail-nav, .search-results {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  body { background: var(--bg); color: var(--ink); }
+  body::before { display: none; }
+  .app { display: block; }
+  .card, .kpi, .finding, .post-card, .setting { break-inside: avoid; }
+  table.data th { position: static; }
+  a { text-decoration: underline; }
+}

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
-import { toPng } from 'html-to-image';
+import { captureNodeToPng } from '@/lib/exportRaster';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
@@ -168,6 +168,7 @@ import {
   newCloudProjectId,
   saveProjectToAccount,
   serializeProject,
+  splitProgress,
   useAccount,
   type CloudProjectSummary,
 } from '@/lib/account';
@@ -192,8 +193,9 @@ import {
   type HistoryChange,
   type HistoryEntry,
 } from '@/lib/historyLabels';
-import { LoadStatusBar } from './LoadStatusBar';
+import { LoadStatusBar, type ProjectLoadStep } from './LoadStatusBar';
 import { LocalFontNotice } from './LocalFontNotice';
+import { ProjectLoadOverlay } from './ProjectLoadOverlay';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -744,9 +746,18 @@ export function OpenScreenshotGeneratorLayout() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   // Load-progress feedback for the top status bar. 'templates' = fetching the
   // template gallery on startup (determinate: done/total); 'project' = opening a
-  // template/saved project into the canvas (indeterminate). 'idle' hides the bar.
+  // template/saved project into the canvas (determinate whenever the loader
+  // reports steps, see projectLoadStatus). 'idle' hides the bar.
   const [loadPhase, setLoadPhase] = useState<'idle' | 'templates' | 'project'>('templates');
   const [templateProgress, setTemplateProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  /**
+   * What the project open is doing right now, for the status bar and the canvas
+   * card. Only the remote paths (your own storage, our cloud, a share link) fill
+   * this in: they are the ones that take long enough for "it is doing nothing"
+   * to be the natural reading, and their loaders already count the files they
+   * are moving. A local IndexedDB open leaves it null and keeps the sweep.
+   */
+  const [projectLoadStatus, setProjectLoadStatus] = useState<ProjectLoadStep | null>(null);
   const { toast } = useToast();
   const artboardRefs = useRef<Record<string, any>>({});
   // Latest design-tool API for the desktop MCP server; assigned each render and
@@ -2954,10 +2965,24 @@ export function OpenScreenshotGeneratorLayout() {
     await runAccountSave();
   };
 
-  /** Pull a project out of the connected account and open it in the editor. */
+  /**
+   * Pull a project out of the connected account and open it in the editor.
+   *
+   * Every step is reported: this downloads the document, then each recording and
+   * imported font one at a time, then writes them all into IndexedDB. On a big
+   * project that is a long wait in which the canvas would otherwise sit there
+   * showing the project the user is leaving.
+   */
   const handleOpenFromAccount = async (remoteId: string, name: string) => {
+    setLoadPhase('project');
+    setProjectLoadStatus({ name, step: 'Reading your project', ratio: 0 });
     try {
-      const project = await loadProjectFromAccount(remoteId);
+      const project = await loadProjectFromAccount(remoteId, (step, ratio) =>
+        setProjectLoadStatus({ name, step, ratio })
+      );
+      // Building the boards is the tail of the same wait: positions are
+      // recalculated and inline media is externalized before anything renders.
+      setProjectLoadStatus({ name: project.name, step: 'Preparing artboards', ratio: 0.97 });
       const success = await loadProjectFromData(project.projectData, project.name, project.id);
       if (success) {
         setIsTemplateSelectorOpen(false);
@@ -2975,6 +3000,9 @@ export function OpenScreenshotGeneratorLayout() {
           variant: "destructive",
         });
       }
+    } finally {
+      setLoadPhase('idle');
+      setProjectLoadStatus(null);
     }
   };
 
@@ -3389,7 +3417,12 @@ export function OpenScreenshotGeneratorLayout() {
   const handleOpenCloudProject = async (project: CloudProject, asCopy: boolean) => {
     try {
       setLoadPhase('project');
-      const opened = await loadProjectFromCloud(project.id, { asCopy });
+      setProjectLoadStatus({ name: project.name, step: 'Reading your project', ratio: 0 });
+      const opened = await loadProjectFromCloud(project.id, {
+        asCopy,
+        onProgress: (step, ratio) => setProjectLoadStatus({ name: project.name, step, ratio }),
+      });
+      setProjectLoadStatus({ name: opened.name, step: 'Preparing artboards', ratio: 0.97 });
       const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
       if (success) {
         setIsTemplateSelectorOpen(false);
@@ -3406,6 +3439,7 @@ export function OpenScreenshotGeneratorLayout() {
       handleCloudError(error, 'Could not open that project');
     } finally {
       setLoadPhase('idle');
+      setProjectLoadStatus(null);
     }
   };
 
@@ -3440,9 +3474,13 @@ export function OpenScreenshotGeneratorLayout() {
 
     (async () => {
       setLoadPhase('project');
+      setProjectLoadStatus({ step: 'Reading the shared project', ratio: 0 });
       setIsTipsOpen(false);
       try {
-        const opened = await openSharedProject(slug);
+        const opened = await openSharedProject(slug, (step, ratio) =>
+          setProjectLoadStatus({ step, ratio })
+        );
+        setProjectLoadStatus({ name: opened.name, step: 'Preparing artboards', ratio: 0.97 });
         const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
         if (success) {
           setIsTemplateSelectorOpen(false);
@@ -3462,6 +3500,7 @@ export function OpenScreenshotGeneratorLayout() {
         // and there is genuinely nothing open.
         setIsOpeningSharedLink(false);
         setLoadPhase('idle');
+        setProjectLoadStatus(null);
       }
     })();
     // Once, on mount. loadProjectFromData is stable enough for this and adding
@@ -3509,7 +3548,7 @@ export function OpenScreenshotGeneratorLayout() {
     // the whole async capture, briefly overlapping neighboring boards on
     // screen, which is the background-bleed half of the issue #19 glitch.
     const { backgroundColor, backgroundImage } = artboardBackground(artboard);
-    return await toPng(artboardElement, {
+    return await captureNodeToPng(artboardElement, {
       width: artboard.size.width,
       height: artboard.size.height,
       backgroundColor,
@@ -5135,7 +5174,15 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  // Import project from JSON
+  /**
+   * Import project from JSON.
+   *
+   * Reported step by step, the same way opening from an account or the cloud is
+   * (handleOpenFromAccount): an exported file carries its screen recordings and
+   * imported fonts inline as base64, so reading it, decoding them and writing
+   * them into IndexedDB is a wait of the same order as a download. Without the
+   * bar and the overlay the canvas sits on the outgoing project saying nothing.
+   */
   const handleImportProjectFromJSON = () => {
     // Create a hidden file input element
     const fileInput = document.createElement('input');
@@ -5147,20 +5194,40 @@ export function OpenScreenshotGeneratorLayout() {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      // The file names the project until the manifest can.
+      const fileName = file.name.replace(/\.json$/i, '');
+      setLoadPhase('project');
+      setProjectLoadStatus({ name: fileName, step: 'Reading the file', ratio: 0 });
       try {
         const fileContent = await file.text();
+        setProjectLoadStatus({ name: fileName, step: 'Restoring media and fonts', ratio: 0.25 });
+        // Two frames, so that step is on screen before the parse and the base64
+        // decode take the main thread for as long as the file is large.
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        );
         // bundleFromJson validates the shape and restores any bundled media and
         // fonts. It still accepts files written before either travelled with
         // the JSON, so older exports keep importing.
         const bundle = bundleFromJson(JSON.parse(fileContent));
 
         const importedName = bundle.manifest.name || `Imported ${bundle.manifest.id}`;
+        // importBundle counts its fonts and media from 0 to 1 of its own; the
+        // read and the decode already spent the first third of the bar, and the
+        // last slice belongs to building the artboards, so the bar only ever
+        // moves forward. Same split the account loader uses.
+        const install = splitProgress(
+          (step, ratio) => setProjectLoadStatus({ name: importedName, step, ratio }),
+          { downloadTo: 0.3, installTo: 0.95 }
+        ).install;
         const imported = await importBundle(bundle, {
           // A fresh id keeps an import from overwriting the project it came from.
           projectId: `imported_${Date.now()}`,
           name: importedName,
+          onProgress: install,
         });
 
+        setProjectLoadStatus({ name: imported.name, step: 'Preparing artboards', ratio: 0.97 });
         const success = await loadProjectFromData(
           imported.projectData,
           imported.name,
@@ -5188,6 +5255,9 @@ export function OpenScreenshotGeneratorLayout() {
           description: error instanceof Error ? error.message : "There was an error reading or parsing the JSON file.",
           variant: "destructive",
         });
+      } finally {
+        setLoadPhase('idle');
+        setProjectLoadStatus(null);
       }
     };
 
@@ -5734,7 +5804,7 @@ const generateRandomProjectName = (): string => {
     // Unscale via the clone (the `style` option), never the live node: see
     // captureArtboardDataUrl for the on-screen overlap this used to cause.
     const { backgroundColor, backgroundImage } = artboardBackground(board);
-    const dataUrl = await toPng(node, {
+    const dataUrl = await captureNodeToPng(node, {
       width: board.size.width,
       height: board.size.height,
       backgroundColor,
@@ -6645,7 +6715,11 @@ const generateRandomProjectName = (): string => {
         </Sidebar>
 
         <SidebarInset className="relative flex flex-col overflow-hidden">
-          <LoadStatusBar phase={loadPhase} templateProgress={templateProgress} />
+          <LoadStatusBar
+            phase={loadPhase}
+            templateProgress={templateProgress}
+            projectStep={projectLoadStatus}
+          />
           <Toolbar
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
             onPreview={() => openPreview('single')}
@@ -6783,6 +6857,12 @@ const generateRandomProjectName = (): string => {
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
+
+              {/* Says what the open is doing, over the canvas rather than in the
+                  2px bar at the top of the editor. Held back a beat inside the
+                  component, so a local open that finishes immediately does not
+                  flash a card. */}
+              <ProjectLoadOverlay active={loadPhase === 'project'} status={projectLoadStatus} />
 
               {/* Full-width App Preview timeline, docked above the tool pill.
                   Shows itself whenever the selected board has motion. */}

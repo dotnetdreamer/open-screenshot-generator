@@ -10,7 +10,8 @@
 // - Output is video-only (no audio track). App Store previews are watched
 //   muted ~98% of the time and Apple accepts silent previews.
 
-import { toPng, getFontEmbedCSS } from 'html-to-image';
+import { captureNodeToPng } from '@/lib/exportRaster';
+import { resolveFontEmbedCss } from '@/lib/fontEmbed';
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import type {
   ArtboardState,
@@ -160,12 +161,11 @@ const SPRITE_FILTER = (node: Node) => {
 /**
  * Web fonts, inlined ONCE per export.
  *
- * html-to-image re-resolves @font-face rules on every call — and with
- * cacheBust on, it re-downloads the CSS and every woff2 for each one. A board
- * with 40 elements is 40 sprite captures, so that alone turned a render into
- * minutes of network before a single frame was drawn. Resolve it once, hand
- * the same string to every capture, and let the images (all data: URLs or
- * same-origin assets) come from the browser cache.
+ * A capture resolves @font-face rules for whatever node it was handed, so a
+ * board with 40 elements would rebuild the same font CSS 40 times, and every
+ * sprite would carry a fresh copy of the same base64 faces. Resolve it once
+ * against the whole board, hand the same string to every capture, and let the
+ * images (all data: URLs or same-origin assets) come from the browser cache.
  */
 // undefined, never '': html-to-image treats any non-null fontEmbedCSS as the
 // complete font CSS, so an empty string would silently export every sprite in
@@ -174,7 +174,7 @@ let spriteFontEmbedCSS: string | undefined;
 
 async function primeFontEmbedCSS(root: HTMLElement) {
   try {
-    const css = await getFontEmbedCSS(root);
+    const css = await resolveFontEmbedCss(root);
     spriteFontEmbedCSS = css || undefined;
   } catch {
     spriteFontEmbedCSS = undefined; // let each capture resolve fonts itself
@@ -215,11 +215,11 @@ async function captureSprite(
   // for every element without those props, so existing projects rasterize
   // exactly as before.
   const pad = spriteOverspill(el);
-  // Repositioning goes through toPng's `style` option, which is applied to the
+  // Repositioning goes through the capture's `style` option, applied to the
   // CLONE. The live node used to be moved to the pad origin with its transform
   // stripped for the whole async capture, which visibly displaced the element
   // on the canvas per sprite and left it misplaced if a capture threw.
-  const dataUrl = await toPng(node, {
+  const dataUrl = await captureNodeToPng(node, {
     width: Math.max(1, Math.round(boxW + pad * 2)),
     height: Math.max(1, Math.round(boxH + pad * 2)),
     pixelRatio: 1,

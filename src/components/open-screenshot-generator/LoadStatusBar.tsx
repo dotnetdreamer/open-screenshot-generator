@@ -5,10 +5,26 @@ import { cn } from "@/lib/utils";
 
 export type LoadPhase = "idle" | "templates" | "project";
 
+/** What the project loader is doing right now, when it reports it. */
+export interface ProjectLoadStep {
+  /** The project being opened, when the caller knows the name yet. */
+  name?: string;
+  /** eg "Downloading media 3 of 12". */
+  step: string;
+  /** 0 to 1 when the step is measurable, otherwise the sweep stays. */
+  ratio?: number;
+}
+
 interface LoadStatusBarProps {
   phase: LoadPhase;
   /** Determinate progress for the 'templates' phase. */
   templateProgress: { done: number; total: number };
+  /**
+   * Live detail for the 'project' phase. Opening a remote project runs through
+   * a download and a write that both know how far along they are, so the bar
+   * says so instead of sweeping for however long the network takes.
+   */
+  projectStep?: ProjectLoadStep | null;
   className?: string;
 }
 
@@ -18,14 +34,22 @@ interface LoadStatusBarProps {
  * artboard):
  *   - 'templates' : determinate, "Loading templates 42 / 111" while the startup
  *                   gallery fetch runs.
- *   - 'project'   : indeterminate sweep, "Opening project" while a saved project
- *                   or template is read from IndexedDB and its artboards build.
+ *   - 'project'   : "Opening project" while a saved project or template is read
+ *                   and its artboards build. Determinate whenever the loader
+ *                   passes a `projectStep` (opening from an account downloads
+ *                   and writes a known number of files), an indeterminate sweep
+ *                   otherwise, which is the local IndexedDB read.
  *
  * Sits just above the sticky Toolbar. Renders nothing when idle. After a phase
  * finishes it briefly shows a full/complete state, then fades out, so the bar
  * doesn't vanish abruptly mid-progress.
  */
-export function LoadStatusBar({ phase, templateProgress, className }: LoadStatusBarProps) {
+export function LoadStatusBar({
+  phase,
+  templateProgress,
+  projectStep,
+  className,
+}: LoadStatusBarProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -42,8 +66,15 @@ export function LoadStatusBar({ phase, templateProgress, className }: LoadStatus
   if (!visible) return null;
 
   const { done, total } = templateProgress;
-  const isDeterminate = phase === "templates" && total > 0;
-  const pct = isDeterminate ? Math.min(100, Math.round((done / total) * 100)) : phase === "idle" ? 100 : 0;
+  const hasProjectRatio = phase === "project" && typeof projectStep?.ratio === "number";
+  const isDeterminate = (phase === "templates" && total > 0) || hasProjectRatio;
+  const pct = isDeterminate
+    ? hasProjectRatio
+      ? Math.min(100, Math.max(0, Math.round((projectStep?.ratio ?? 0) * 100)))
+      : Math.min(100, Math.round((done / total) * 100))
+    : phase === "idle"
+      ? 100
+      : 0;
 
   const label =
     phase === "templates"
@@ -51,7 +82,7 @@ export function LoadStatusBar({ phase, templateProgress, className }: LoadStatus
         ? `Loading templates ${done} / ${total}`
         : "Loading templates"
       : phase === "project"
-        ? "Opening project"
+        ? projectStep?.step || "Opening project"
         : "Ready";
 
   return (

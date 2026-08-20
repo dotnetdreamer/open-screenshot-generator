@@ -446,6 +446,250 @@ What it means for this box:
 
 ---
 
+## The control dashboard
+
+`https://pb.openscrgen.app/dash/` is an operator's view of this box: the feed as
+it actually is, the accounts behind it, the projects sitting on the disk, and a
+short list of buttons that change any of that. PocketBase serves it itself, on
+the same hostname as the API, out of `pb-hooks/dash/`.
+
+Eleven pages, each answering one question:
+
+| Page | What it answers |
+| --- | --- |
+| Pulse | is anything happening right now, and is the box healthy |
+| Feed | every post, by surface and by visibility. The main moderation surface |
+| Comments | the comment queue, with the hidden ones one click away |
+| Accounts | who signed up, which door they came through, and what they have posted |
+| Cloud projects | whose working files are here, how big they are, which are shared by link |
+| Growth | the same counts over a longer window, as charts with a table under each |
+| Tags and surfaces | what people are making: tags, surfaces, app names, template reuse |
+| Storage | is the disk filling, and where |
+| Integrity | drift, orphans, bursts and over-quota rows, with the repair beside each |
+| Settings | every `settings` row, grouped, with the description it was seeded with |
+| Tables | the raw collection browser, so nothing in the database is unreachable |
+
+It is not a replacement for `/_/`. Schema changes, the scheduled backups, the
+`_logs` collection and anything involving a field that did not exist when these
+routes were written all still belong in PocketBase's own dashboard. This one
+knows about the collections this project defined and nothing else.
+
+### Getting in
+
+Sign in with the **PocketBase superuser**: the same address and password as
+`/_/`, the pair in `/opt/openscreengen/.pb-superuser`. There is deliberately no
+second credential and no second user table. A separate operator account would be
+another thing to rotate, another thing to lose, and another login form on the
+public internet, and it would have to be granted superuser to be useful anyway,
+because every route the page calls refuses anything else.
+
+The Server field is prefilled with the origin the page was served from, so on the
+box it is already correct. It stays editable because the same static page is
+useful pointed at a local stack on `http://127.0.0.1:8090` with nothing to
+change.
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://pb.openscrgen.app/dash/   # 200
+curl -s https://pb.openscrgen.app/api/openscreengen/dash/stats             # {"error":"superuser only"}
+```
+
+**That 401 is the pass**, exactly as it is for every other route in
+[Checking it works](#checking-it-works): it says the hook file parsed, the route
+registered, and auth is doing its job. A 404 on either line means
+`100_dash.pb.js` did not load, and the container log has the parse error in it.
+
+### Why it is served out of `pb_hooks/dash` rather than deployed somewhere
+
+Two reasons, and the first one is not a preference.
+
+**Same origin as the API, because of how PocketBase does realtime.** The Pulse
+page watches new posts and comments arrive, which is Server-Sent Events on
+`/api/realtime`. A browser cannot put an `Authorization` header on an
+`EventSource`, so PocketBase's protocol is: connect anonymously, receive a
+`clientId`, then POST the list of things to subscribe to **with** the token.
+Served from the same origin, that POST is an ordinary same-origin request with no
+preflight and no CORS question at all. Served from anywhere else it is a
+cross-origin POST carrying a custom header, so it preflights, and this box would
+need a CORS policy widened for a page exactly one person ever opens. The
+`flush_interval -1` on `/api/realtime` in both Caddy blocks was written
+speculatively, with a comment saying nothing subscribed yet. Something does now.
+
+**It ships with the database.** The dashboard is a directory inside the bind
+mount that already carries the routes it calls, so deploying the hooks deploys
+the page, and the page cannot drift from the schema and the routes it was written
+against. There is no build step, no bundler and no dependency: plain ES modules
+the browser loads directly, nothing vendored and nothing fetched from a CDN, so
+it also works on a box with no outbound network and on the day a CDN is down.
+
+### Read only by default
+
+Every page reads. Everything that writes is marked as such in the interface and
+asks before it does it. That is the complete list of writes:
+
+| Where | What it writes |
+| --- | --- |
+| Feed, and the post drawer | hide, unhide, feature, unfeature, delete a post |
+| Comments, and the post drawer | hide, unhide, delete a comment |
+| Accounts, and the account drawer | ban, unban, give or take the verified badge, delete an account |
+| Cloud projects | revoke the share link, hide, unhide, delete a project |
+| Settings | change one setting value, with the old one shown beside the new |
+| Integrity | Recount, which rebuilds the denormalized counters |
+
+Nothing else on any page changes anything. **Every one of those lands a row in
+`mod_log`** with the operator's email, the action, the id, what the thing was
+called at the time, and what the route decided in words. That collection exists
+because a superuser token otherwise leaves no trace at all: hiding a post,
+banning an account, revoking a link and deleting somebody's work all look
+identical afterwards to a box that never recorded them, and six weeks later the
+only question anybody asks is who did it and when. It holds text rather than
+relations on purpose, so the row that records a deletion survives the deletion.
+Its five rules are `null` like every other collection here, so it is superuser
+only in both directions.
+
+Two behaviours worth knowing before using any of it:
+
+- **Hiding is not deleting, and it touches no counter.** A hidden post still
+  exists, its images are still on the disk, its likes are still real, and its
+  author can still see it. One checkbox undoes it.
+- **Deleting adjusts the two columns that cascade cannot.** Deleting a post
+  decrements its author's `post_count`; deleting a comment decrements its post's
+  `comments`. Both are clamped at zero. The join rows go by cascade, those two
+  columns do not, which is the subject of the next part.
+
+### The counter drift story
+
+This is the one thing an operator has to understand about this database.
+
+`posts.likes`, `posts.comments`, `comments.likes`, `users.followers` and
+`users.post_count` are not facts. They are caches of `post_likes`, `comments`,
+`comment_likes`, `follows` and `posts`, kept because the feed sorts and ranks on
+them and a `COUNT(*)` per row per page is not something to do on every read.
+
+**Cascade deletes remove the join rows and do not touch those columns.** So
+deleting one account that had liked forty posts removes forty rows from
+`post_likes` and leaves forty posts each reading one like too many. Nothing is
+broken, nothing errors, and nothing will fix it on its own. The same happens to
+`followers` when a follower's account goes, and to `comments` on a post whose
+commenter is deleted.
+
+That is not a defect to hide, it is the thing the dashboard exists to surface and
+repair:
+
+- **Integrity** finds it. Five separate drift checks, each listing the rows where
+  the stored number and the counted number disagree, alongside the orphan counts
+  (which should all be zero, because every relation cascades, so a number there
+  means a cascade did not fire) and the accounts over the posting and commenting
+  limits. Every card on that page is a lead and not a verdict, and the page says
+  so.
+- **Recount** repairs it. Each drift card carries the fix beside the finding, and
+  the account drawer carries one too when that account's own two numbers
+  disagree. The scopes are `post_likes`, `post_comments`, `comment_likes`,
+  `post_count`, `followers` and `all`.
+
+Recount is bounded on purpose: 500 rows per scope by default and never more than
+2000 in one call, in a transaction, with one `UPDATE` per scope that writes only
+the rows actually wrong. It answers with how many it fixed and how many are still
+outstanding, so a run that leaves work behind says so and you run it again. It is
+safe to run at any time and safe to run twice, because it does not adjust
+anything: it sets each column to what the count says it should be.
+
+The account delete says the same thing in its own words. It reports how many
+posts, comments and projects went with the account, and then that like and
+follower counts elsewhere may now be stale and that Recount is how that is put
+right.
+
+### The Caddy question
+
+**No change is needed.** Both site blocks end in a catch-all
+`handle { reverse_proxy openscreengen-pocketbase:8090 }`, so `/dash/`, the module
+files under it and `/api/openscreengen/dash/*` are already proxied along with
+everything else PocketBase serves.
+
+If you have uncommented the `basic_auth` block in front of `/_/` on the box,
+extend it to the dashboard as well. The `path` matcher takes more than one
+pattern:
+
+```
+@admin path /_/* /dash/*
+```
+
+On the shared box that edit belongs in the neighbour's repo, in the block
+described in [`shared-caddy.Caddyfile`](shared-caddy.Caddyfile), for the same
+reason everything else about that hostname does.
+
+**Do not extend it to `/api/*`**, and the comment beside that block in
+[`Caddyfile`](Caddyfile) is why. Basic auth on `/dash` alone is safe precisely
+because the dashboard's own XHR is not under `/dash`: every call it makes goes to
+`/api/openscreengen/dash/...` or `/api/collections/...`, the browser binds a basic
+credential to the path prefix it was challenged on, and a request carries one
+`Authorization` header rather than two. The one the XHR sends is the superuser
+token, which is already what stands between `/api/*` and the world. Put basic
+auth in front of `/api/*` and the page signs in, renders its shell, and then
+every panel on it fails.
+
+### Deploying it
+
+The `dash` directory is part of `pb-hooks`, so it arrives with the hooks in the
+same tar described under [Deploying](#deploying). There is nothing to build,
+nothing extra to upload and no separate restart for the page itself.
+
+**`pb-hooks` and `pb-migrations` are two independent bind mounts, and both have
+to be synced together.** `pb-migrations/1786400000_openscreengen_mod_log.js` is
+what creates `mod_log` and the two indexes on it. Upload the hooks without it and
+everything looks fine: the page loads, every read works, and every button appears
+to do its job. What actually happens is that nothing is recorded. `writeLog` is
+wrapped and never throws, deliberately, because a failed audit line must not cost
+the moderation action it describes, so it warns into the container log and
+returns. The visible symptom is the row counts on Pulse and Storage going empty,
+because the query behind them is a single `UNION ALL` across every collection and
+one missing table takes the whole statement with it.
+
+So the upload line is the one already in [Deploying](#deploying), with both
+directories named, and the restart after it earns its keep twice over: hooks are
+picked up by the watcher, but a migration only ever runs at boot.
+
+```bash
+tar -czf - -C infra/vps pb-hooks pb-migrations | ssh -i "$KEY" "$BOX" 'tar -xzf - -C /opt/openscreengen'
+```
+
+Then confirm the migration landed rather than assuming it, since a successful one
+logs nothing:
+
+```bash
+ssh -i "$KEY" "$BOX" 'cd /opt/openscreengen && docker compose -f docker-compose.yml -f docker-compose.shared-caddy.yml exec -T openscreengen-pocketbase /pb/pocketbase migrate up --dir=/pb/pb_data --migrationsDir=/pb/pb_migrations'
+# No new migrations to apply.
+```
+
+The Tables page listing `mod_log` is the other proof, and it is the one that also
+shows the hooks and the schema are the same age.
+
+### What it costs the box
+
+**The whole overview is one request.** `dash/stats` answers every number on Pulse
+and it answers them with SQL `COUNT` and `SUM` rather than pulling rows down the
+wire for the browser to count. At 35 posts the difference is nothing. At a
+hundred thousand likes it is the difference between a page and an outage: twenty
+list calls fetching rows so JavaScript can measure their length transfers a large
+part of the database to a browser once per refresh. The same shape holds
+everywhere else. `dash/series` groups on a `substr` of the `created` column, so a
+chart bucket is a UTC string prefix that costs the same index scan a count does.
+`dash/risk` runs each finding as its own wrapped query, so a check that cannot
+run costs that check and not the page.
+
+**The one expensive thing is opt in.** The Storage page has a Measure disk
+button, and only that button touches the filesystem. It exists because there is
+no byte column for feed images anywhere in the database: `cloud_projects` carries
+`doc_bytes` and `asset_bytes` because the quota code needs them, posted
+screenshots carry nothing at all, so the only honest answer to how much disk the
+screenshots are using is to go and look. The walk is bounded at 20000 files and
+4000 directories, iterative rather than recursive so a deep tree cannot exhaust
+the stack, and it sets `truncated` when it hits either cap so the number is
+presented as a floor rather than passed off as a total. A filesystem it cannot
+read returns nothing rather than a 500. The page says all of that on the page,
+because a disk figure nobody can account for is worse than no disk figure.
+
+---
+
 ## Checking it works
 
 ```bash
@@ -742,9 +986,13 @@ not.
 | `mcp-relay/src/server.js` | the whole relay. No dependencies, no state, no secret |
 | `mcp-relay/Dockerfile` | node + one file. Nothing is installed at build time |
 | `pb-hooks/lib/openscreengen.js` | everything shared. **Not** `*.pb.js`, deliberately |
+| `pb-hooks/lib/dash.js` | the control dashboard's share of that, kept separate so it cannot inherit the feed's parsing rules. **Not** `*.pb.js` either |
 | `pb-hooks/040_auth.pb.js` | the two sign-in doors, the profile, account deletion |
 | `pb-hooks/050_discover.pb.js` | the feed, posts, comments and the buttons |
 | `pb-hooks/060_projects.pb.js` | cloud projects: save, open, delete, share by link |
+| `pb-hooks/100_dash.pb.js` | the control dashboard's routes: aggregates, moderation, recount. Superuser only, every one |
+| `pb-hooks/dash/` | the dashboard page itself. Plain ES modules, no build step, and never globbed as a hook |
 | `pb-migrations/*.js` | the schema. Applied in filename order, idempotent |
+| `pb-migrations/1786400000_openscreengen_mod_log.js` | the one the dashboard needs: it creates `mod_log`. Sync `pb-migrations` with `pb-hooks`, always |
 | `seed/seed-showcase.mjs` | the official showcase posts |
 | `pb-data/types.d.ts` | PocketBase's generated types, written at boot. Gitignored with the rest of `pb-data`, so the `<reference>` at the top of every hook dangles until a first local run |

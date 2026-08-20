@@ -125,9 +125,14 @@ export function CloudProjectsPanel({
 
   const handleOpen = async (project: CloudProject, asCopy: boolean) => {
     setBusyId(project.id);
+    // Closed before the download starts, not after it finishes. The editor
+    // reports the open on the canvas, and this dialog sitting on top of it for
+    // the whole wait is what made opening a large project look like nothing was
+    // happening. A failure still lands as a toast, over the canvas the user
+    // came back to.
+    onOpened?.();
     try {
       await onOpenProject(project, asCopy);
-      onOpened?.();
     } finally {
       setBusyId(null);
     }

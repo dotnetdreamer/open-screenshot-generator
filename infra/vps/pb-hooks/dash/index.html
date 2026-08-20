@@ -1,0 +1,357 @@
+<!doctype html>
+<!--
+  Open Screenshot Generator Control.
+
+  Served by PocketBase itself out of pb_hooks/dash, mounted by 100_dash.pb.js at
+  /dash/ with index fallback on, which is what makes a pasted #/post/<id> link
+  work on a cold load. Same origin as the API on purpose: the realtime feed is
+  SSE, a browser cannot put an Authorization header on an EventSource, so
+  PocketBase's protocol is "connect anonymously, then POST the subscription list
+  with the token" and same origin means that POST has no preflight to fail.
+
+  There is no build step. Every script here is a plain ES module loaded straight
+  off disk, nothing is vendored and nothing is fetched from a CDN, because this
+  page has to come up on a box with no outbound network.
+
+  Note there is no `data-theme` on <html>. The inline script in <head> puts one
+  there when the operator has made an explicit choice, and deliberately leaves it
+  off when they are on "system". See the comment on that script.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- This is an operator tool behind a superuser login. It should never be
+         in an index, and the sign-in gate is not a page anybody should land on
+         from a search result. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- Starts honest: this page supports both. theme.js narrows it to "light"
+         or "dark" the moment an explicit choice is in play, so native scrollbars
+         and form controls follow rather than staying on the OS setting. -->
+    <meta name="color-scheme" content="light dark" />
+    <title>Open Screenshot Generator Control</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231a5fd0'/%3E%3Crect x='7' y='8' width='7.6' height='16' rx='2.2' fill='%23ffffff'/%3E%3Crect x='17.4' y='8' width='7.6' height='9.4' rx='2.2' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='17.4' y='19.6' width='7.6' height='4.4' rx='1.8' fill='%23ffffff' fill-opacity='.45'/%3E%3C/svg%3E"
+    />
+
+    <!--
+      The anti-flash script. It has to be inline, it has to be here, and it has
+      to block.
+
+      theme.js is a module, modules are deferred by definition, and a deferred
+      script runs after first paint. So without these eight lines the browser
+      paints the light palette, then theme.js runs and repaints the dark one: a
+      full-screen white flash on every single load, at 2am, in the face of the
+      one person who is awake because something is wrong. Moving it into a file
+      would not help either, because an external script that blocks paint is a
+      round trip that blocks paint.
+
+      Only `light` and `dark` are ever stamped. `system` deliberately stamps
+      nothing, because styles.css keys its dark half off the ABSENCE of the
+      attribute plus prefers-color-scheme, which is what makes "system" keep
+      following the OS live instead of freezing at whatever it was on load.
+
+      'osg_dash_theme' is the same string as THEME_KEY in theme.js. There is no
+      import that can join them up, since a module cannot block paint. If one
+      changes, change the other.
+    -->
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem('osg_dash_theme');
+          if (mode !== 'light' && mode !== 'dark') return;
+          document.documentElement.setAttribute('data-theme', mode);
+          var meta = document.querySelector('meta[name="color-scheme"]');
+          if (meta) meta.setAttribute('content', mode);
+        } catch (err) {
+          /* A locked down localStorage costs the stored preference, not the
+             page. theme.js re-applies from scratch once it loads. */
+        }
+      })();
+    </script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!--
+      Everything below is one page app. There is no server rendered fallback to
+      degrade to, so say so plainly rather than showing a sign-in form that will
+      never submit.
+    -->
+    <noscript>
+      <div class="noscript">
+        <p class="empty">
+          <strong>This dashboard needs JavaScript</strong>
+          It reads the PocketBase API from the browser, so there is nothing to show without it.
+          Turn JavaScript on for this origin and reload
+        </p>
+      </div>
+    </noscript>
+
+    <!-- ===================== the door ===================== -->
+    <!--
+      `hidden` here for the same reason `#app` carries it, and for one more that
+      is not cosmetic at all.
+
+      A form with no `method` computes to `method="get"`, and a GET form with no
+      `action` submits to the current URL with every named field in the query
+      string. So with `app.js` missing (one bad deploy, one 404, one syntax
+      error anywhere in the module graph) this door was still fully interactive,
+      and pressing Enter in the password box navigated to
+
+        /dash/?url=<the+server>&username=<the+email>&password=<the+password>
+
+      That is the PocketBase superuser password, in the address bar, in browser
+      history, in the referrer of anything the page loads next, and in Caddy's
+      access log for this vhost, which records the full request URI including
+      the query string. Verified on a throwaway box by aborting the request for
+      app.js and pressing Enter: that shape is what the browser landed on, with
+      the real values in place of the three placeholders.
+
+      Two changes, either of which alone would stop it, both kept because they
+      fail in different directions. `hidden` means nothing on this card is
+      reachable until a module has run and app.js has decided which of the two
+      screens to show, and `method="post"` means that even if something does
+      submit it, the fields go in a body rather than into a URL that gets
+      written down in three places.
+
+      The cost is honest: if the module graph never loads, this page is blank
+      rather than showing a form. A blank page is the correct outcome. The form
+      could not have signed anybody in either way, and the version that looked
+      alive was the version that leaked the password.
+    -->
+    <div id="gate" class="gate" hidden>
+      <form class="gate-card" id="gate-form" method="post" autocomplete="on">
+        <!--
+          The mark: an artboard with two panes on it, one portrait screenshot
+          and one shorter tile. Drawn in stroke on `currentColor`, so it takes
+          the accent from whichever palette is live and there is no second copy
+          of it to keep in step. The only place in this file that names a colour
+          is the favicon, which cannot inherit anything.
+        -->
+        <span class="gate-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linejoin="round">
+            <rect x="2.5" y="3.5" width="19" height="17" rx="3.2" />
+            <rect x="5.7" y="6.9" width="5.6" height="10.2" rx="1.3" />
+            <rect x="13.2" y="6.9" width="5.1" height="5.5" rx="1.3" />
+          </svg>
+        </span>
+
+        <h1>Open Screenshot Generator Control</h1>
+        <p class="gate-sub">Sign in with the PocketBase superuser</p>
+
+        <label class="field">
+          <span>Server</span>
+          <input id="gate-url" name="url" type="url" spellcheck="false" required />
+        </label>
+        <label class="field">
+          <span>Email</span>
+          <input id="gate-email" name="username" type="email" autocomplete="username" spellcheck="false" required />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="gate-pass" name="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <!-- `role="alert"` so a failed sign-in is announced rather than just
+             appearing above a button the operator is already looking away from. -->
+        <p class="gate-error" id="gate-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-block" id="gate-go" type="submit">Sign in</button>
+
+        <!--
+          No count in this sentence. The Ludo original said "three" and went
+          stale twice as pages were added, which turned a promise about the
+          whole dashboard into a quiet lie. The property that matters is the
+          second half, and it does not need a number to be true.
+        -->
+        <p class="gate-foot">
+          Read only by default. Everything that writes is marked, and all of it asks first.
+        </p>
+      </form>
+    </div>
+
+    <!-- ===================== the app ===================== -->
+    <!-- `hidden` rather than a class, and styles.css carries the
+         `[hidden] { display: none !important }` that makes it beat
+         `.app { display: grid }`. Without that one rule the door and the
+         dashboard render on top of each other. -->
+    <div id="app" class="app" hidden>
+      <!--
+        The skip link.
+
+        There are seventeen tab stops between the top of the document and the
+        first control inside the page on a wide viewport: eleven rail links,
+        Sign out, the search box, three theme buttons and Refresh. The router
+        already moves focus to `main#view` after a route change, so navigating
+        WITHIN the dashboard costs a keyboard operator nothing, but a fresh
+        load, a refresh, or a pasted `#/post/<id>` link all start at the top,
+        and those are exactly the ways somebody arrives at 2am.
+
+        Inside `#app` rather than as the first child of `<body>`, deliberately.
+        `#gate` and `#app` are never both on screen, and whichever one is not on
+        screen is `display: none`, so nothing inside it is focusable. Putting
+        the link here makes it the first focusable thing in the document
+        whenever the dashboard is up, and keeps it from being a link to a hidden
+        `<main>` while the sign-in door is up, which is a link to nowhere. The
+        door is one card with three fields; it has nothing to skip.
+
+        `href="#view"` is what it means, and it is NOT what the browser is
+        allowed to do with it: see the module at the bottom of this file.
+      -->
+      <a class="skip-link" href="#view">Skip to content</a>
+
+      <aside class="rail">
+        <div class="rail-brand">
+          <span class="rail-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
+                 stroke-width="1.7" stroke-linejoin="round">
+              <rect x="2.5" y="3.5" width="19" height="17" rx="3.2" />
+              <rect x="5.7" y="6.9" width="5.6" height="10.2" rx="1.3" />
+              <rect x="13.2" y="6.9" width="5.1" height="5.5" rx="1.3" />
+            </svg>
+          </span>
+          <span class="rail-name">Control</span>
+        </div>
+
+        <!-- Filled by app.js from its ROUTES table, so the rail and the router
+             cannot disagree about which pages exist. -->
+        <nav class="rail-nav" id="rail-nav" aria-label="Sections"></nav>
+
+        <div class="rail-foot">
+          <div class="rail-who" id="rail-who"></div>
+          <button class="btn btn-ghost btn-sm" id="sign-out" type="button">Sign out</button>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <button class="icon-btn rail-toggle" id="rail-toggle" type="button" aria-label="Menu">
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" fill="none"
+                 stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M3 5.5h14M3 10h14M3 14.5h14" />
+            </svg>
+          </button>
+
+          <div class="search" role="search">
+            <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" class="search-icon"
+                 fill="none" stroke="currentColor" stroke-width="1.6">
+              <circle cx="9" cy="9" r="5.4" />
+              <path d="M13.2 13.2 17 17" stroke-linecap="round" />
+            </svg>
+            <input
+              id="search-input"
+              type="search"
+              placeholder="Handle, post, project, id"
+              spellcheck="false"
+              autocomplete="off"
+              aria-label="Search accounts, posts and cloud projects"
+            />
+            <div class="search-results" id="search-results" hidden></div>
+          </div>
+
+          <div class="topbar-right">
+            <!--
+              The three way theme control: light, system, dark.
+
+              Three buttons rather than one that cycles, because a cycling
+              button cannot show that "system" is a state of its own rather than
+              a synonym for whichever theme it happens to resolve to right now,
+              and that distinction is the whole feature. Shift+D cycles for
+              anybody who would rather not reach for it.
+
+              theme.js writes `aria-pressed` on every change, and styles.css
+              hangs the fill off exactly that attribute, so the accessible state
+              and the visible one cannot drift apart. app.js owns the clicks:
+              `data-theme-set` is the value each button asks for.
+            -->
+            <div class="theme-switch" id="theme-switch" role="group" aria-label="Theme">
+              <button type="button" data-theme-set="light" aria-pressed="false" title="Light" aria-label="Light theme">
+                <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none"
+                     stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                  <circle cx="10" cy="10" r="3.4" />
+                  <path d="M10 2.4v1.7M10 15.9v1.7M17.6 10h-1.7M4.1 10H2.4M15.3 4.7l-1.2 1.2M5.9 14.1l-1.2 1.2M15.3 15.3l-1.2-1.2M5.9 5.9 4.7 4.7" />
+                </svg>
+              </button>
+              <button type="button" data-theme-set="system" aria-pressed="false" title="Follow the system" aria-label="Follow the system theme">
+                <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none"
+                     stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+                  <rect x="2.6" y="4" width="14.8" height="10.2" rx="1.9" />
+                  <path d="M7.2 17.2h5.6M10 14.2v3" />
+                </svg>
+              </button>
+              <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark" aria-label="Dark theme">
+                <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none"
+                     stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+                  <path d="M16 11.8A6.6 6.6 0 0 1 8.2 4a6.6 6.6 0 1 0 7.8 7.8z" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- The dot is never the only signal: the word beside it says the
+                 same thing, for the same reason every status chip does. -->
+            <span class="live-pill" id="live-pill" title="Realtime feed">
+              <span class="live-dot"></span><span class="live-text">connecting</span>
+            </span>
+
+            <button class="icon-btn" id="refresh" type="button" aria-label="Refresh" title="Refresh">
+              <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none"
+                   stroke="currentColor" stroke-width="1.6">
+                <path d="M16.5 10a6.5 6.5 0 1 1-1.9-4.6" stroke-linecap="round" />
+                <path d="M16.5 3.2v3.4h-3.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- The one scrolling region on the page. `tabindex="-1"` so the router
+             can move focus here after a route change, which is what stops a
+             keyboard operator being dumped back at the top of the document. -->
+        <main class="view" id="view" tabindex="-1"></main>
+      </div>
+    </div>
+
+    <!-- The drawer and its scrim live outside `.app` so they are not clipped by
+         the shell's grid, and the toast host sits above both. -->
+    <div class="drawer-scrim" id="drawer-scrim" hidden></div>
+    <aside class="drawer" id="drawer" hidden aria-label="Detail"></aside>
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <!--
+      The skip link's click handler, and the reason it cannot be a plain
+      fragment link.
+
+      `app.js` owns `location.hash`: it is the router's whole input. A browser
+      following `href="#view"` sets the hash to `#view`, which fires
+      `hashchange`, which the router parses as a route id, fails to find in its
+      ROUTES table, and falls back to the first route. So the plain-HTML version
+      of this link would throw the operator off whatever page they were on and
+      onto Pulse, and take the post id in the URL with it. Skipping the chrome
+      is not supposed to be navigation.
+
+      `preventDefault` plus an explicit `focus()` does exactly what the link
+      says and nothing else. `main#view` already carries `tabindex="-1"` for the
+      router's own after-a-route-change focus move, so there is nothing to add
+      to the markup for this to land.
+
+      Inline, and a module, because everything on this page is a module loaded
+      off disk with no build step, and because these six lines are about the
+      shell in this file rather than about anything in app.js. It is registered
+      before app.js only so the reason sits next to the markup it explains;
+      module scripts are deferred, so the order between the two does not matter.
+    -->
+    <script type="module">
+      const skip = document.querySelector('.skip-link');
+      const view = document.querySelector('#view');
+      if (skip && view) {
+        skip.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          view.focus();
+        });
+      }
+    </script>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
