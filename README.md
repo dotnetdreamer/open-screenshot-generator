@@ -19,67 +19,22 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
-### 19 August 2026: versions that survive a reload
+### 21 August 2026: panels on another screen, smaller exports
 
-- The **History** tab now has two lists. States is the undo stack for this sitting, as before. **Versions** below it is kept in the browser: the state a project was in when you opened it, a checkpoint every ten minutes of editing, one before a device conversion, one whenever you export, and one whenever you press Save this state and name it.
-- Put any of them back with one click. The state being replaced is kept first, so a restore is never a one way door, and it lands in undo like any other edit. **Open as a copy** forks it into its own project instead, which is how one template becomes two variants.
-- They cost almost nothing: a version is the document, gzipped, usually tens of kilobytes, and screenshots and recordings are shared rather than copied. The list thins itself, and the ones you named are never thinned.
+The right dock (Properties, History, Versions, Layers) can now be opened in its own window and left on a second display, and the editor can move to whichever display you pick. Exports came out better too: text renders in exactly the fonts you chose, and PNGs are written the way App Store Connect wants them, at roughly a third of the file size.
 
-### 19 August 2026: edit together, live
+Before that:
 
-- **Share > Edit together** hands out one link. Everybody who opens it works on the same project at the same time, and sees the others as they go: a coloured pointer per person, a ring around whatever they have selected, and their face in the toolbar. Signing in is required, so every edit has a name on it.
-- It is peer to peer. Once a session is up the design travels straight between the browsers in it, encrypted with a key that lives in the half of the link after the `#`, which is never sent to any server. Ours introduces the browsers to each other and then carries nothing.
-- Nothing is locked. Two people can work on the same board, the same element, even the same property, and it merges: the only thing that resolves as "last one wins" is two people setting the same property in the same instant.
-- Reset the link from the same dialog and every invite handed out so far stops opening anything.
-
-### 19 August 2026: projects save themselves, and the wheel zooms
-
-- Signed in, the open project is now kept in your cloud without anybody clicking Save. Create, open or import one and it goes up shortly after you stop editing, then again whenever there is something new. The pill next to the project name is the whole interface: it says saved, pending, or what went wrong. Settings > Cloud turns it off.
-- It still never overwrites anything on your behalf. If the project was saved from another device in the meantime, or the account is full, auto save stops and hands you the same choice the manual save does: replace the copy up there, or open it instead.
-- A mouse wheel over the canvas zooms, around the pointer rather than the middle of the screen. Two fingers on a trackpad still scroll, since that is the only way to pan a canvas on a laptop, and Ctrl or Cmd with the wheel zooms whatever you are on. Settings > Canvas turns the plain wheel back into scrolling.
-
-### 17 August 2026: save projects to the cloud, and share one by link
-
-- **Save > To the cloud** keeps the editable project on the backend, behind your Google or GitHub sign-in, so you can pick it up on another device. Private until you say otherwise, and **Open > From the cloud** brings it back.
-- **Share > Get a link to share** turns that saved project into a URL. Anyone who opens it gets their own editable copy, no account needed, and nothing they do reaches your version. Turning the link off kills it for good: sharing again mints a new one.
-- The Save menu now holds all three destinations (our cloud, your own Drive or gists, a storefront), and the Share button is only about who else sees the project: a link, or a post to the community. Those are different enough to ask.
-- Your local copy stays the one you are editing: the cloud copy is only ever written from here, never read back over your work. Everything here needs an account, so signed out the editor behaves exactly as it did.
-
-### 14 August 2026: Discover, the community feed
-
-- Browse store graphics other people shipped and open any of them as a starting point for your own. Reading it needs no account at all; posting, commenting, liking and saving use the Google or GitHub sign-in the editor already has. Runs on a small self-hosted PocketBase — [set it up](infra/vps/README.md), or leave `NEXT_PUBLIC_DISCOVER_URL` unset and the feature simply is not there.
-
-### 12 August 2026: one project, every language
-
-- Add the languages you ship in and the whole project switches between them: one shared layout, with text, fonts and screenshots per language, machine translations to start from, and a properties panel that writes each language on its own. [60 second walkthrough](https://youtu.be/mO17AX-PXgc)
-
-### 11 August 2026: your own fonts, and line breaks in text
-
-- Import your own `.ttf`, `.otf`, `.woff` or `.woff2` from the Font Family picker, use it like any built-in font, and it travels with the project when you export the JSON or save to your account. Text elements now take manual line breaks, and the box grows to fit them
-
-### 7 August 2026: exports, cloud saves, translation
-
-- Export a single artboard with a progress dialog you can cancel, save to your account without silently overwriting an earlier copy, and translate just one text element or artboard instead of the whole project
-
-### 6 August 2026: upload screenshots straight to the stores
-
-The desktop app sends your finished artboards to App Store Connect or
-Google Play with your own developer credentials, each one matched to the right store slot and
-checked before it goes. [Setup guide](docs/STORE-UPLOAD.md)
-
-### 30 July 2026: Automatic Text Translation
-
-You can now automatically translate your artboard text directly inside the editor! With a single click, instantly translate all text elements across your selected artboards (or your entire project) into over 50 different languages. Designing localized app store graphics has never been faster.
-
-### 25 July 2026: save projects to your own account
-
-Optional cloud saving with no backend of ours. Connect your own Google Drive or GitHub and projects are saved into storage you control.
-
-- Drive keeps whole projects including screen recordings, GitHub keeps the design as a secret gist
-- New **Account** button in the sidebar to browse, open, and delete cloud projects
-- Fixed: local JSON export now bundles screen recordings instead of dropping them
-
-[Setup](docs/ACCOUNT-SYNC.md)
+- **20 August.** A dashboard for anyone running their own Discover feed: moderation, accounts, posts, storage and growth in one place. [Setup](infra/vps/README.md)
+- **19 August.** **Versions** in the History tab keeps checkpoints as you work, when you open a project, every ten minutes, before a device conversion, on every export, and whenever you name one; put any of them back in a click, or **Open as a copy** to fork it. **Share > Edit together** hands out one link and everybody works on the same project at once, each with their own cursor, and the design travels straight between the browsers in the session rather than through us. Signed in, the open project also saves itself without anybody clicking Save, and a mouse wheel over the canvas zooms around the pointer.
+- **17 August.** **Save > To the cloud** keeps the editable project behind your sign-in. **Share > Get a link to share** turns it into a link that hands anyone their own copy.
+- **14 August.** **Discover**, a community feed of store graphics, any of them openable as a starting point. Optional, and it runs on a server you own. [Setup](infra/vps/README.md)
+- **12 August.** One project, every language: one layout, with text, fonts and screenshots per language, and machine translations to start from. [60 second walkthrough](https://youtu.be/mO17AX-PXgc)
+- **11 August.** Import your own font files and use them like the built in ones, and put manual line breaks in text.
+- **7 August.** Export a single artboard with a progress dialog you can cancel, save to your account without silently overwriting, translate one element or artboard.
+- **6 August.** The desktop app uploads finished artboards straight to App Store Connect or Google Play with your own developer credentials. [Setup guide](docs/STORE-UPLOAD.md)
+- **30 July.** One click translates artboard text into 50+ languages.
+- **25 July.** Save projects into storage you own: whole projects to Google Drive, the design to GitHub, browsable from the **Account** button. [Setup](docs/ACCOUNT-SYNC.md)
 
 ## What it does
 
