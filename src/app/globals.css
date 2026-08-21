@@ -503,3 +503,14 @@ html.palette-dragging [data-sidebar="sidebar"][data-mobile="true"] {
   pointer-events: none;
   transition: opacity 120ms ease;
 }
+
+/* A detached panel window (Properties, Layers, History, Versions living on
+   another monitor) loads the same document as the editor, so the statically
+   exported HTML hands it the editor's Suspense fallback: the whole chrome
+   skeleton. React only learns which window it is in once it hydrates, which is
+   a frame too late to stop that skeleton flashing. The blocking boot script in
+   lib/panels/boot.ts marks the window first, and this keeps the skeleton off
+   screen there. */
+html[data-osg-panel] [data-editor-chrome-skeleton] {
+  display: none;
+}

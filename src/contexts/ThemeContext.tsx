@@ -7,6 +7,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   DARK_MEDIA_QUERY,
+  THEME_STORAGE_KEY,
   applyTheme,
   persistTheme,
   readStoredTheme,
@@ -69,6 +70,27 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     query.addEventListener('change', handleChange);
     return () => query.removeEventListener('change', handleChange);
   }, [theme]);
+
+  // The same person, in another window of the same app: a detached panel window
+  // on a second monitor, or a second tab. `storage` fires in every OTHER
+  // document on the origin and never in the one that wrote, so this is exactly
+  // the cross-window half and cannot loop. Modelled on watchStorage() in
+  // lib/editorPreferences.ts, which does this for the editor's own switches.
+  //
+  // 'system' already stays in step on its own, because every window watches the
+  // same media query. This is what carries an explicit light or dark across.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY) return;
+      const stored = readStoredTheme();
+      const resolved = resolveTheme(stored);
+      setThemeState(stored);
+      setResolvedTheme(resolved);
+      applyTheme(resolved);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
   const setTheme = useCallback((preference: ThemePreference) => {
     const resolved = resolveTheme(preference);

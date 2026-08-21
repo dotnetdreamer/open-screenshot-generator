@@ -244,9 +244,20 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
             // Not a setting, just an action: reload the app webview in place,
             // like a browser refresh. The splash handshake is reload-safe
             // (reveal() is idempotent), so nothing else needs to happen.
+            //
+            // The FOCUSED window, not `main`. On macOS this menu is app-wide,
+            // so with a detached panel window in front Cmd+R would otherwise
+            // reload the editor behind it and throw away the canvas nobody
+            // asked to reset. A panel window is safe to reload: it holds no
+            // state, and it re-handshakes with the editor on the way back up.
             MENU_ID_RELOAD_WINDOW => {
-                if let Some(main) = app.get_webview_window("main") {
-                    let _ = main.reload();
+                let target = app
+                    .webview_windows()
+                    .into_values()
+                    .find(|window| window.is_focused().unwrap_or(false))
+                    .or_else(|| app.get_webview_window("main"));
+                if let Some(window) = target {
+                    let _ = window.reload();
                 }
             }
             // The dialog lives in the frontend; just ask it to open.

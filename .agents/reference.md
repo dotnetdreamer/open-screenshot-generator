@@ -1032,6 +1032,146 @@ BroadcastChannel and never exercise WebRTC at all).
 
 ---
 
+## Detached panels and multi monitor placement
+
+The right dock (Properties, History, Versions, Layers) can leave the editor
+window and live on another display, and the editor can move itself to a display
+you pick. On the desktop a detached panel is a real Tauri window; in a browser
+it is a popup of the same document. Above the transport the two are the same
+code.
+
+**One rule holds the whole feature up: the editor window is the only writer.** A
+panel window renders a snapshot it was sent and answers clicks with a named
+intent; the editor replays that intent against the very same handler the docked
+panel would have called. So `handleArtboardsUpdate` is still the only mutation
+door, undo still records one entry per edit, and there is never a second thing
+writing the project.
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [url.ts](../src/lib/panels/url.ts) | Which window this document is. Dependency free, because `<Analytics />` and `<AdSense />` import it from the root layout |
+| [boot.ts](../src/lib/panels/boot.ts) | Blocking `<head>` script marking a panel window before first paint, so the editor's Suspense skeleton never flashes in it |
+| [protocol.ts](../src/lib/panels/protocol.ts) | `DockData`, `DockSnapshot`, the `DockIntent` and `PanelMessage` unions, and the projection that decides what may travel |
+| [bus.ts](../src/lib/panels/bus.ts) | One interface, two drivers: Tauri events on the desktop, `BroadcastChannel` on the web |
+| [useDockHost.ts](../src/lib/panels/useDockHost.ts) | The editor's half: publish, replay, track which panels are out |
+| [useDockClient.ts](../src/lib/panels/useDockClient.ts) | The panel window's half: hello, render, send intents |
+| [windows.ts](../src/lib/panels/windows.ts) | Open, focus and close a panel window; remembered geometry |
+| [monitors.ts](../src/lib/panels/monitors.ts) | The display list and putting a window on one |
+| [useDetachedGeometry.ts](../src/lib/panels/useDetachedGeometry.ts) | A panel window writing down where it was dragged to |
+| [RightDockPanels.tsx](../src/components/open-screenshot-generator/panels/RightDockPanels.tsx) | The panel stack. Rendered by the dock AND by the detached window |
+| [DetachedPanelsWindow.tsx](../src/components/open-screenshot-generator/panels/DetachedPanelsWindow.tsx) | The panel window's root, chosen in [page.tsx](../src/app/page.tsx) on `?panel=` |
+| [panels.rs](../src-tauri/src/panels.rs) | Restores the editor's geometry, and closes panel windows with it |
+| [capabilities/panels.json](../src-tauri/capabilities/panels.json) | What a `panel-*` window is allowed to do |
+
+### How a window gets opened
+
+A panel window loads `/?panel=<group>&host=<busId>`, the same route as the
+editor. A query string, not a route of its own: `output: 'export'` would give a
+second route a second HTML entry point and Tauri's asset resolver and `next dev`
+disagree about whether that is `/panel` or `/panel.html`. Not a fragment either,
+because the layout rewrites the URL as `pathname + '?' + params` in several
+places and a fragment would be gone within milliseconds.
+
+`group` is `dock` (all four panels) or one panel name. It becomes the Tauri
+window label `panel-<group>`, which is what `capabilities/panels.json` matches
+with its `panel-*` glob, and the popup name `osg-panel-<group>` on the web,
+which is what makes a second click focus the window instead of opening another.
+
+### What may travel
+
+`toWireSnapshot` is the projection, and it is not an optimisation. Three things
+in `DockData` are enormous in their editor form:
+
+- `HistoryEntry.artboards` is a deep copy of the whole project, per row, up to
+  fifty rows. Stripped: the panel renders a label and jumps by index.
+- `activeArtboardDetails` carries every element and the whole locale override
+  map. Stripped to the board itself: the form reads the name and the background.
+- `screenshotSrc` / `imageSrc` / `customFrameSrc` / `videoSrc` / `posterSrc` can
+  hold base64 on a project from before the issue #19 media work. Replaced with a
+  short sentinel, not deleted, because the form reads them for truthiness only
+  and deleting one would flip "Change Screenshot" back to "Upload Screenshot".
+
+Media never travels. Elements reference it (`asset:<id>`, `mediaId`) and
+IndexedDB is shared by every window on the origin, so a window that needs bytes
+reads them itself. **Never put a `blob:` URL on the wire**: an object URL belongs
+to the document that created it and resolves to nothing anywhere else.
+
+### Physical pixels, always
+
+Monitor positions and sizes are physical. A mixed DPI desk (a 4K display at 150%
+next to a 1080p at 100%) has no shared logical origin, so a target computed in
+logical units on one display lands somewhere else on the other. Store physical,
+pass `PhysicalPosition` / `PhysicalSize` explicitly, and convert only when a
+number is going into CSS. `moveWindowToMonitor` sets the position first and the
+size second, because Windows fires a DPI change on the way over and resizes the
+window itself.
+
+### Traps
+
+1. **The projection is the maintenance cost.** Any future PropertiesPanel
+   feature that reads a field `toWireSnapshot` drops will work docked and fail
+   silently detached. Add the field to the projection in the same commit.
+2. **A Tauri `emit` comes back to the sender.** The JS `emit` command body is
+   `app.emit`, which fans out to every webview including the emitting one. Every
+   message carries `from` and readers drop their own, which is what makes one
+   shared channel safe.
+3. **A Tauri window close fires no unload event.** A panel window says goodbye
+   from `onCloseRequested`, not from `pagehide`, on the desktop. Same split as
+   the editor's final project save.
+4. **Never publish a render.** An export swaps a converted board list onto the
+   canvas and every value in `DockData` follows it, so `isExporting` holds the
+   publisher until the real project is back.
+5. **A panel window that outlived an editor reload has to be reclaimed.** The
+   reloaded editor announces `host-up`, the panel re-says hello, and the `hello`
+   arm puts its panels back into `detachedGroups`. Without that last step the
+   dock would render Properties while the panel window is also rendering it.
+6. **`ProjectVersionMeta.createdAt` is a real `Date`.** It arrives as a string
+   and the panel calls `getTime()` on it, so `fromWireSnapshot` revives it.
+   Version intents carry an id instead of a row for the same reason.
+7. **HTML5 drag and drop does not cross windows.** A detached Layers panel
+   cannot be dragged onto the App Preview timeline in the editor.
+8. **Closing a panel window IS a reattach.** Its `bye` returns its panels to the
+   dock, so the title bar's X and "Put back in the editor" do the same thing;
+   anything else leaves the dock showing a rail for a window that is gone. The
+   reclaim waits `RECLAIM_GRACE_MS` first, because a RELOAD of a panel window
+   sends the same `bye` and then says `hello` again, and the `hello` cancels it.
+   Nothing in a browser can tell a reload from a close inside `pagehide`, which
+   is why this is a timer and not a flag.
+9. **Keyboard shortcuts and the clipboard are per window.** The layout's keydown
+   listeners never see a keystroke in a panel window, and `ClipboardContext` is
+   plain state per document.
+10. **Display placement on the web is Chromium only.** `getScreenDetails()` is
+    permission prompted, so it is a menu item the user chooses ("Let this page
+    see my other displays"), never something that happens in front of the detach
+    click: one `await` between the click and `window.open` and the popup blocker
+    takes the window.
+11. **`setSize` is the CLIENT area, `outerSize` includes the frame.** Save and
+    restore the same measure (outer position, inner size) or a window grows by
+    the height of its own title bar every time it reopens.
+
+### Verifying it
+
+Two harnesses, both under `.claude/skills/app-screenshots/scripts/`:
+
+| Script | Covers |
+| --- | --- |
+| `verify-detach.js` | The web path against `npm run dev`: detach opens a popup, the popup renders from a pushed snapshot, selecting, deleting and a history jump in the popup all land in the editor, reattach puts the panels back |
+| `verify-detach-desktop.js` | The desktop path. Needs the app running with the inspector port open: `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333 npm run tauri:dev`. Covers a real Tauri window, the Tauri event bus, placement inside a display work area, remembered geometry, and that reopening does not resize the window |
+
+Do NOT run `npm run build` while `next dev` is up: the production build writes
+into the same `.next` and the dev server starts serving 500s until it is cleared.
+
+What neither can answer, because this machine has one display:
+
+- Moving a window between a 100% display and a 150% one. Detach, move, close,
+  relaunch: the window must come back the same size on the same display.
+- Unplugging a display with a panel on it. The panel must not come back
+  invisible; `isOnSomeMonitor` should reject the saved rectangle and centre it.
+- A slider drag in a detached properties form. If the value snaps backwards mid
+  drag, the 90ms publish is beating the control.
+
 ## Direct-to-store upload (desktop only)
 
 Hands rendered artboards to App Store Connect and Google Play with the user's own developer

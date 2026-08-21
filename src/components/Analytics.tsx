@@ -9,6 +9,7 @@
 // Event helpers live in src/lib/analytics.ts.
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
+import { isDetachedPanelWindow } from '@/lib/panels/url';
 import { GA_MEASUREMENT_ID } from '@/lib/analytics';
 
 export function Analytics() {
@@ -17,6 +18,10 @@ export function Analytics() {
   useEffect(() => {
     if (!GA_MEASUREMENT_ID) return;
     if ('__TAURI_INTERNALS__' in window) return; // desktop shell
+    // A detached panel window is a tool window, not a page view: it would
+    // double-count every session and, for AdSense, put a loader in a window
+    // that has nowhere to put an ad.
+    if (isDetachedPanelWindow()) return;
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1' || host === '') return; // dev
     setEnabled(true);

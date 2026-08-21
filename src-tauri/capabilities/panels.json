@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "panels",
+  "description": "Capability for the detached panel windows (label panel-*): the Properties, Layers, History and Versions panels torn off onto another display. They talk to the editor window over Tauri events and place themselves on a display the user picks. core:default already carries the event channel and the read only display queries; the window setters below are what let one move itself, and close plus destroy are what 'Put back in the editor' needs: a window with a JS close-requested listener (this one has, so it can tell the editor it is going) is only closed by the destroy() the API calls afterwards, and set-title keeps the taskbar entry naming the project that is actually open. Deliberately absent: dialog, fs, http and opener. A panel window reads its media from the shared IndexedDB and asks the editor for everything else, so it needs no disk and no network of its own.",
+  "windows": ["panel-*"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    "core:window:allow-set-focus",
+    "core:window:allow-close",
+    "core:window:allow-destroy",
+    "core:window:allow-unmaximize",
+    "core:window:allow-set-title"
+  ]
+}

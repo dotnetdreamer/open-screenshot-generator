@@ -17,6 +17,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | App Preview scenes (whole boards, palette tab 4) | [previewScenes.ts](../src/lib/previewScenes.ts) |
 | Video export | [src/lib/video/](../src/lib/video/) |
 | Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
+| Panels out of the window, and displays | [src/lib/panels/](../src/lib/panels/) + [panels/](../src/components/open-screenshot-generator/panels/) + [panels.rs](../src-tauri/src/panels.rs) |
 | Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, the only one that yields a share link, and the one that saves itself: [autoSave.ts](../src/lib/cloud/autoSave.ts)) |
 | Editing together, live | [src/lib/collab/](../src/lib/collab) (Yjs over WebRTC), signalling in [mcp-relay/src/collab.js](../infra/vps/mcp-relay/src/collab.js) |
 | Versions of a project | [src/lib/versions/store.ts](../src/lib/versions/store.ts) + the Dexie `projectVersions` table |
@@ -47,7 +48,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 
 11. Wrap every `public/` asset src in `withBasePath()` from [basePath.ts](../src/lib/basePath.ts) **at render time**. Store paths canonical. `next/image` and `<img>` ignore `basePath` on a string src.
 12. All file saves go through [src/lib/desktop.ts](../src/lib/desktop.ts). macOS WKWebView ignores `<a download>`, and WebViews ignore `target="_blank"` (use `openExternal()`).
-13. Tauri allows nothing by default. A new command needs a line in `generate_handler![...]`; a new outbound host needs one in [capabilities/default.json](../src-tauri/capabilities/default.json). Missing entries look like network errors but are permission errors.
+13. Tauri allows nothing by default. A new command needs a line in `generate_handler![...]`; a new outbound host needs one in [capabilities/default.json](../src-tauri/capabilities/default.json). Missing entries look like network errors but are permission errors. `core:window:default` is **read only**: it answers `availableMonitors` and `outerPosition` but not one setter, and `onCloseRequested` needs `core:window:allow-destroy`, because Tauri prevents the native close whenever a window has a JS close-requested listener and the API's own handler calls `destroy()` to finish it. A new window label needs its own capability file, matched by a glob such as `panel-*`.
 14. `isTauri()` is false during SSR and first client render. Gate desktop-only UI on a `mounted` flag too.
 
 **UI**
@@ -76,6 +77,12 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 
 28. The undo stack is never persisted (a hundred project snapshots on disk is issue #19 again). Crossing a reload is what [versions/store.ts](../src/lib/versions/store.ts) is for, and it is coarse on purpose: five triggers, a thinning curve, and a document that carries media by reference. A restore goes through `handleArtboardsUpdate` like any other edit, after keeping the state it replaces.
 
+**More than one window**
+
+29. The right dock can leave the editor and live on another display, so **the editor window is the only writer**. A detached panel renders a snapshot it was sent and answers clicks with a named intent; the editor replays that intent against the same handler the docked panel calls. A panel window must never write the project, join a live session, run auto save or start the MCP bridge. It renders [RightDockPanels](../src/components/open-screenshot-generator/panels/RightDockPanels.tsx), the same component the dock does, so the two cannot drift.
+30. What crosses a window boundary goes through the projection in [protocol.ts](../src/lib/panels/protocol.ts), and that projection is the maintenance cost of the feature: a new PropertiesPanel field it drops will work docked and fail **silently** detached. Media never crosses (elements carry `asset:<id>` and `mediaId`, and IndexedDB is shared by every window on the origin); a `blob:` URL means nothing outside the document that made it.
+31. Display geometry is in **physical** pixels, always. A 4K display at 150% next to a 1080p at 100% has no shared logical origin, so a position computed in logical units on one lands somewhere else on the other.
+
 ## Commands
 
 | Command | Note |
@@ -102,6 +109,7 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 - **Web AI provider**: `WEB_ADAPTERS`, `PROVIDERS` in `web_session.rs`, extension adapter + manifest + the `build:extension` entry list, `remote.urls` in `capabilities/assistant.json`
 - **MCP tool**: `McpDesignApi`, the `TOOLS` array, `mcpApi` in the layout, both `SLOW_TOOLS` lists if it is slow
 - **Font**: `GOOGLE_FONTS`, plus `AGENT_FONTS` and a `<SelectGroup>` in [FontFamilySelect.tsx](../src/components/open-screenshot-generator/FontFamilySelect.tsx) if it is a new script. That one component is every picker. Fonts the **user** imports are separate: Dexie `fonts` table, see [customFonts.ts](../src/services/customFonts.ts)
+- **Panel prop**: the field on `DockData` in [protocol.ts](../src/lib/panels/protocol.ts), the value in the layout's `dockData` memo, the prop in `RightDockPanels`, and, if it is a callback, an arm in the `DockIntent` union plus `dispatch` in [useDockHost](../src/lib/panels/useDockHost.ts) and `handlers` in [useDockClient](../src/lib/panels/useDockClient.ts)
 - **Store slot** (App Store display type, Play image type): `APPLE_DISPLAY_TARGETS` / `PLAY_IMAGE_TARGETS` in [storeTargets.ts](../src/lib/publish/storeTargets.ts), the only registration site. A new outbound host also needs `capabilities/default.json`
 
 ## Deeper detail

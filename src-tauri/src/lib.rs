@@ -2,6 +2,7 @@ mod devtools;
 mod mcp_server;
 mod migrate;
 mod oauth;
+mod panels;
 mod settings;
 mod splash;
 mod web_session;
@@ -60,6 +61,10 @@ pub fn run() {
             // Settings first: it manages the state the other modules read.
             settings::register(app.handle())?;
             splash::register(app.handle());
+            // Put the editor back on the display it was closed on, while it is
+            // still hidden behind the splash, and make sure its detached panel
+            // windows never outlive it.
+            panels::register(app.handle());
             web_session::register(app.handle());
             // Restore the MCP server if the user left it enabled last session.
             mcp_server::register(app.handle());

@@ -6,6 +6,7 @@ import { Analytics } from "@/components/Analytics";
 import { AdSense } from "@/components/AdSense";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
+import { PANEL_WINDOW_BOOT_SCRIPT } from "@/lib/panels/boot";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -49,6 +50,10 @@ export default function RootLayout({
         {/* Blocking on purpose, and first: it decides the theme before the body
             is parsed, so a dark-mode load never flashes the light palette. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        {/* Same reason, one line later: a detached panel window is served the
+            editor's HTML, skeleton and all, and this marks it before that
+            skeleton can paint. See lib/panels/boot.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: PANEL_WINDOW_BOOT_SCRIPT }} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
         <ThemeProvider>

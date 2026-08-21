@@ -24,7 +24,6 @@ import { Toolbar } from './Toolbar';
 import { CanvasArea, applyCanvasStructuralChange, type CanvasStructuralChange } from './CanvasArea';
 import { PreviewTimelineBar } from './PreviewTimelineBar';
 import { CanvasContextMenu } from './CanvasContextMenu';
-import { PropertiesPanel } from './PropertiesPanel';
 import { PreviewDialog, type PreviewLocaleOption, type PreviewMode } from './PreviewDialog';
 import { TranslateDialog, getLanguageName } from './TranslateDialog';
 import { LanguageManagerDialog } from './LanguageManagerDialog';
@@ -153,7 +152,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDownIcon, ChevronLeftIcon, CompassIcon, CopyIcon, HandIcon, InfoIcon, Loader2Icon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronLeftIcon, CompassIcon, CopyIcon, ExternalLinkIcon, HandIcon, InfoIcon, Loader2Icon, MonitorIcon, MoreHorizontalIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, PictureInPicture2Icon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -172,9 +171,27 @@ import {
   useAccount,
   type CloudProjectSummary,
 } from '@/lib/account';
-import { LayersPanel } from './LayersPanel';
-import { HistoryPanel } from './HistoryPanel';
-import { VersionsPanel } from './VersionsPanel';
+// Detachable dock. The panel stack itself is a component now, because it also
+// renders in a window of its own on another monitor (see lib/panels).
+import {
+  RightDockPanels,
+  LAYERS_SECTION_MIN,
+  RIGHT_DOCK_LAYERS_HEIGHT_KEY,
+  type DockHandlers,
+} from './panels/RightDockPanels';
+import { MonitorMenuItems } from './panels/MonitorMenuItems';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useDockHost } from '@/lib/panels/useDockHost';
+import { canPlaceWindows, monitorOfWindow, moveWindowToMonitor } from '@/lib/panels/monitors';
+import { DETACHABLE_PANELS, PANEL_GROUP_ALL } from '@/lib/panels/url';
+import type { DockData, RightDockTab } from '@/lib/panels/protocol';
 import {
   deleteVersion,
   deleteVersionsForProject,
@@ -243,11 +260,10 @@ const LONG_PRESS_SLOP_PX = 10;
 // Right dock (Properties + Layers) persistence. localStorage so the layout
 // survives an app relaunch, not just a reload.
 const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
-const RIGHT_DOCK_LAYERS_HEIGHT_KEY = 'abs-right-dock-layers-height';
 const RIGHT_DOCK_TAB_KEY = 'abs-right-dock-tab';
-/** The dock's top section. 'history' is the undo states, 'versions' the saved ones. */
-type RightDockTab = 'properties' | 'history' | 'versions';
-const LAYERS_SECTION_MIN = 120; // px, keeps the layers list usable
+// RightDockTab, LAYERS_SECTION_MIN and PROPERTIES_SECTION_MIN now live with the
+// panel stack itself (panels/RightDockPanels), because a detached panel window
+// renders that same stack and has to agree with the dock about all three.
 // The dock is a bottom sheet on a phone and only 70% of a short screen tall, so
 // the layers list starts shorter there than the desktop split. A starting
 // height, not a cap: capping it is what made the divider look broken on touch,
@@ -263,7 +279,6 @@ const SHARED_EDIT_NOTICE_INTERVAL_MS = 30_000;
 // for. Anything that matters more than the clock (an export, a conversion,
 // somebody naming one) writes its own regardless.
 const VERSION_INTERVAL_MS = 10 * 60 * 1000;
-const PROPERTIES_SECTION_MIN = 160; // px, keeps the properties form usable
 
 let historyEntrySeq = 0;
 
@@ -923,6 +938,13 @@ export function OpenScreenshotGeneratorLayout() {
   // Which of the dock's top-section tabs is showing: the properties form, the
   // undo states, or the versions saved to disk.
   const [rightDockTab, setRightDockTab] = useState<RightDockTab>('properties');
+  // The editor pointing at one of the dock's tabs, e.g. straight after saving a
+  // named version. A token rather than a plain value, because it is an event:
+  // asking for Versions twice has to arrive twice, and by then that tab may be
+  // in a window on another monitor rather than in the dock.
+  const [tabRequest, setTabRequest] = useState<{ tab: RightDockTab; token: number } | undefined>(
+    undefined
+  );
   const [isTranslateDialogOpen, setIsTranslateDialogOpen] = useState<boolean>(false);
   const [isTranslateSingleArtboard, setIsTranslateSingleArtboard] = useState<boolean>(false);
   // Set when the run is scoped to one text element (the properties panel
@@ -970,8 +992,6 @@ export function OpenScreenshotGeneratorLayout() {
       }
     } catch {}
   }, []);
-  const dockContentRef = useRef<HTMLDivElement | null>(null);
-  const dividerDragRef = useRef<{ pointerId: number; startY: number; startHeight: number; lastHeight: number } | null>(null);
 
   const setRightDockOpen = (open: boolean) => {
     setIsRightDockOpen(open);
@@ -4814,6 +4834,149 @@ export function OpenScreenshotGeneratorLayout() {
     return states;
   }, [artboards, activeArtboardId, activeLocale]);
 
+  // --- the dock, and the windows it can be torn off into --------------------
+  //
+  // One object holds everything the four panels render. The docked stack takes
+  // it as it stands; useDockHost publishes a cut-down copy of the same object to
+  // any detached window. Two views, one description, so they cannot drift.
+  //
+  // Memoized deliberately: its identity is what decides whether a snapshot goes
+  // out, and a canvas drag re-renders this component per pixel.
+  const dockData = useMemo<DockData>(
+    () => ({
+      activeProjectId,
+      projectName: currentProjectName,
+      selectedElement: selectedElementDetails,
+      // The board-level form only when nothing is selected, which is the rule
+      // the docked panel has always followed.
+      activeArtboardDetails:
+        activeArtboardId && !selectedElementIdOnActiveArtboard ? (activeArtboard ?? null) : null,
+      activeLocale,
+      baseLocale: baseLocaleCode,
+      localeOverride: selectedLocaleOverride,
+      baseElement: selectedBaseElement,
+      localeDetached: selectedLocaleDetached,
+      layerElements: activeArtboardElements,
+      selectedElementId: selectedElementIdOnActiveArtboard,
+      activeArtboardName,
+      layerLocaleStates,
+      history,
+      historyIndex,
+      versions,
+      isVersionBusy,
+      // exportCanvasArtboards is the export's temporary board list, and every
+      // value above is derived from it while it is up. Publishing that to a
+      // detached panel would offer a person a board they never made.
+      isExporting: exportCanvasArtboards !== null,
+      tabRequest,
+    }),
+    [
+      activeProjectId,
+      currentProjectName,
+      selectedElementDetails,
+      activeArtboardId,
+      selectedElementIdOnActiveArtboard,
+      activeArtboard,
+      activeLocale,
+      baseLocaleCode,
+      selectedLocaleOverride,
+      selectedBaseElement,
+      selectedLocaleDetached,
+      activeArtboardElements,
+      activeArtboardName,
+      layerLocaleStates,
+      history,
+      historyIndex,
+      versions,
+      isVersionBusy,
+      exportCanvasArtboards,
+      tabRequest,
+    ]
+  );
+
+  // Not memoized on purpose: nearly every one of these is recreated per render
+  // anyway, so a dependency list here would only be a lie. useDockHost keeps it
+  // in a ref, so its identity does not cost anything.
+  const dockHandlers: DockHandlers = {
+    onUpdateElement: handleUpdateSelectedElement,
+    onUpdateElementById: handleUpdateElementById,
+    onTranslateElement: handleTranslateTextElement,
+    onUpdateArtboardDetails: handleUpdateArtboardDetails,
+    onResetLocaleField: handleResetLocaleField,
+    onToggleLocaleDetach: handleToggleLocaleDetach,
+    onResetLocaleOverrides: handleResetLocaleOverrides,
+    onJumpToHistory: applyHistoryIndex,
+    onSaveNamedVersion: (label) => void handleSaveNamedVersion(label),
+    onRestoreVersion: (version) => void handleRestoreVersion(version),
+    onOpenVersionCopy: (version) => void handleOpenVersionCopy(version),
+    onDeleteVersion: (version) => void handleDeleteVersion(version),
+    onSelectElement: handleSelectElementFromLayerPanel,
+    onMoveElementLayer: handleMoveElementLayer,
+    onDeleteElement: handleDeleteElementFromLayerPanel,
+    onRenameElement: handleRenameElementFromLayerPanel,
+  };
+
+  const dockHost = useDockHost({
+    data: dockData,
+    handlers: dockHandlers,
+    projectName: currentProjectName,
+    onSelectTab: selectRightDockTab,
+  });
+
+  /** Panels still in the dock. The rest are showing in a window of their own. */
+  const dockedPanels = DETACHABLE_PANELS.filter(
+    (panel) => !dockHost.detachedPanels.includes(panel)
+  );
+  /** True when there is nothing left in the dock to show. */
+  const wholeDockDetached = dockedPanels.length === 0;
+
+  /**
+   * Show a tab, wherever it lives now.
+   *
+   * In the dock that means opening the dock on it; in a detached window it means
+   * bringing that window forward and letting the snapshot's tabRequest do the
+   * rest. Both, because a single panel can be detached while the dock stays.
+   */
+  const revealDockTab = (tab: RightDockTab) => {
+    setTabRequest((current) => ({ tab, token: (current?.token ?? 0) + 1 }));
+    if (dockHost.detachedPanels.includes(tab)) {
+      const group = dockHost.detachedGroups.includes(PANEL_GROUP_ALL) ? PANEL_GROUP_ALL : tab;
+      void dockHost.focus(group);
+      return;
+    }
+    selectRightDockTab(tab);
+    setRightDockOpen(true);
+  };
+
+  /**
+   * Detach, and say so when it did not happen.
+   *
+   * On the desktop this only fails if the window could not be created. In a
+   * browser it fails when the popup blocker takes the window, which looks
+   * exactly like nothing happening unless somebody says otherwise.
+   */
+  const detachPanels = (group: Parameters<typeof dockHost.detach>[0]) => {
+    void dockHost.detach(group).then((opened) => {
+      if (opened) return;
+      toast({
+        title: 'That window could not be opened',
+        description: isTauri()
+          ? 'Something stopped the panel window from opening. Try again.'
+          : 'Your browser blocked the pop-up. Allow pop-ups for this site, then try again.',
+        variant: 'destructive',
+      });
+    });
+  };
+
+  // Which display the editor window itself is on, for the "Move editor to
+  // display" list. Read when the menu opens, because a display can be plugged
+  // in, unplugged or rearranged while the app is running.
+  const [editorMonitorId, setEditorMonitorId] = useState<string | null>(null);
+  const refreshWindowMenu = async () => {
+    const list = await dockHost.refreshMonitors();
+    setEditorMonitorId((await monitorOfWindow('main', list))?.id ?? null);
+  };
+
   // Base first, then the export languages in project order. The base entry's
   // code must be null, because the pill row compares it to activeLocale.
   const previewLocaleOptions = useMemo<PreviewLocaleOption[]>(() => {
@@ -6750,8 +6913,7 @@ const generateRandomProjectName = (): string => {
             onSaveVersion={
               activeProjectId
                 ? () => {
-                    setRightDockTab('versions');
-                    setIsRightDockOpen(true);
+                    revealDockTab('versions');
                     void handleSaveNamedVersion(
                       `Version ${versions.filter((entry) => entry.kind === 'named').length + 1}`
                     );
@@ -7015,16 +7177,52 @@ const generateRandomProjectName = (): string => {
               )}
             </div>
 
-            {/* Right dock: Properties/History tabs on top, Layers below,
-                resizable split. Collapsed it becomes a slim vertical rail with
-                rotated labels (Android Studio tool-window style).
+            {/* Right dock: Properties, History and Versions as tabs on top,
+                Layers below, split by a draggable divider. Collapsed it becomes
+                a slim vertical rail with rotated labels (Android Studio
+                tool-window style).
+
+                Any of it can also be torn off into a window of its own, which
+                is what a second monitor is for. The panels themselves are
+                RightDockPanels either way and this file owns only the chrome
+                around them, so the docked stack and the detached one cannot
+                drift apart.
 
                 On a phone it is the same panel, moved: a 320px column beside a
-                390px screen would leave the canvas 70px wide, so below `md` it
+                390px screen would leave the canvas 70px wide, so below `lg` it
                 lifts out of the row and covers the bottom of the canvas like a
                 sheet. No backdrop on purpose, so the element being edited stays
                 visible while its properties are changed. */}
-            {dockOpen ? (
+            {wholeDockDetached ? (
+              // Everything is in another window, so the dock gives its width
+              // back to the canvas and keeps only the two controls that matter:
+              // find that window, or take it back.
+              <div
+                className="hidden h-full w-9 flex-shrink-0 flex-col items-center gap-1 border-l bg-card py-1.5 lg:flex"
+                data-export-exclude
+              >
+                <PictureInPicture2Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                <div className="mt-1 h-px w-5 bg-border" />
+                <button
+                  type="button"
+                  className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  style={{ writingMode: 'vertical-rl' }}
+                  onClick={() => void dockHost.focus(PANEL_GROUP_ALL)}
+                  title="Bring the panel window forward"
+                >
+                  Show panels
+                </button>
+                <button
+                  type="button"
+                  className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  style={{ writingMode: 'vertical-rl' }}
+                  onClick={() => void dockHost.reattach(PANEL_GROUP_ALL)}
+                  title="Close the panel window and put the panels back here"
+                >
+                  Put back
+                </button>
+              </div>
+            ) : dockOpen ? (
               <div
                 className={cn(
                   "flex flex-col border-l bg-card",
@@ -7033,175 +7231,109 @@ const generateRandomProjectName = (): string => {
                 )}
                 data-export-exclude
               >
-                <Tabs
-                  value={rightDockTab}
-                  onValueChange={(value) => selectRightDockTab(value as RightDockTab)}
-                  className="flex min-h-0 flex-1 flex-col"
-                >
-                {/* Underline tabs, not the default segmented pill: inside a
-                    320px dock the pill reads as a single button rather than a
-                    pair of tabs. -mb-px drops the active underline onto the
-                    header rule so the two line up. */}
-                <div className="flex h-9 shrink-0 items-stretch justify-between border-b pl-2 pr-1.5">
-                  <TabsList className="-mb-px h-auto items-stretch gap-4 rounded-none bg-transparent p-0">
-                    <TabsTrigger
-                      value="properties"
-                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
-                    >
-                      Properties
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="history"
-                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
-                    >
-                      History
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="versions"
-                      className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
-                    >
-                      Versions
-                    </TabsTrigger>
-                  </TabsList>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 self-center max-lg:h-8 max-lg:w-8"
-                    onClick={() => setDockOpen(false)}
-                    title="Collapse right panel"
-                    aria-label="Collapse right panel"
-                  >
-                    <PanelRightCloseIcon className="h-4 w-4 max-lg:hidden" />
-                    <ChevronDownIcon className="hidden h-5 w-5 max-lg:block" />
-                  </Button>
-                </div>
-                <div ref={dockContentRef} className="flex min-h-0 flex-1 flex-col">
-                  {/* data-[state=active]:flex, never a bare flex: a bare flex
-                      class beats Radix's [hidden] and the inactive tab would
-                      still take up the dock. */}
-                  <TabsContent
-                    value="properties"
-                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
-                  >
-                    <PropertiesPanel
-                      selectedElement={selectedElementDetails}
-                      onUpdateElement={handleUpdateSelectedElement}
-                      onUpdateElementById={handleUpdateElementById}
-                      onTranslateElement={handleTranslateTextElement}
-                      activeArtboardDetails={
-                        activeArtboardId && !selectedElementIdOnActiveArtboard ? activeArtboard : null
-                      }
-                      onUpdateArtboardDetails={handleUpdateArtboardDetails}
-                      activeLocale={activeLocale}
-                      baseLocale={baseLocaleCode}
-                      localeOverride={selectedLocaleOverride}
-                      baseElement={selectedBaseElement}
-                      onResetLocaleField={handleResetLocaleField}
-                      localeDetached={selectedLocaleDetached}
-                      onToggleLocaleDetach={handleToggleLocaleDetach}
-                      onResetLocaleOverrides={handleResetLocaleOverrides}
-                      className="h-full border-l-0 shadow-none"
-                    />
-                  </TabsContent>
-                  {/* A tab each, because they answer different questions:
-                      History is this sitting and dies with the reload, Versions
-                      is what survives one. Sharing a split gave each of them
-                      half a dock and neither enough rows to be read. */}
-                  <TabsContent
-                    value="history"
-                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
-                  >
-                    <HistoryPanel
-                      entries={history}
-                      currentIndex={historyIndex}
-                      onJumpTo={applyHistoryIndex}
-                    />
-                  </TabsContent>
-                  <TabsContent
-                    value="versions"
-                    className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
-                  >
-                    <VersionsPanel
-                      versions={versions}
-                      projectId={activeProjectId}
-                      isBusy={isVersionBusy}
-                      onSaveNamed={(label) => void handleSaveNamedVersion(label)}
-                      onRestore={(version) => void handleRestoreVersion(version)}
-                      onOpenCopy={(version) => void handleOpenVersionCopy(version)}
-                      onDelete={(version) => void handleDeleteVersion(version)}
-                    />
-                  </TabsContent>
-                  <div
-                    role="separator"
-                    aria-orientation="horizontal"
-                    title="Drag to resize"
-                    // The bar stays 8px, which is all a cursor needs, but a
-                    // fingertip cannot aim at 8px. On a coarse pointer the
-                    // ::before spreads the hit area 12px above and below without
-                    // moving anything on screen; it is positioned, so it
-                    // hit-tests above the static panels either side. Gated on
-                    // the pointer, because those same 12px would be dead space
-                    // stolen from both panels for someone holding a mouse.
-                    className={cn(
-                      "group relative z-10 h-2 shrink-0 cursor-row-resize touch-none border-y bg-muted/50 hover:bg-primary/15",
-                      "[@media(pointer:coarse)]:before:absolute [@media(pointer:coarse)]:before:-inset-y-3 [@media(pointer:coarse)]:before:inset-x-0 [@media(pointer:coarse)]:before:content-['']"
-                    )}
-                    onPointerDown={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.setPointerCapture(e.pointerId);
-                      dividerDragRef.current = {
-                        pointerId: e.pointerId,
-                        startY: e.clientY,
-                        startHeight: layersHeight,
-                        lastHeight: layersHeight,
-                      };
-                    }}
-                    onPointerMove={(e) => {
-                      const drag = dividerDragRef.current;
-                      if (!drag || drag.pointerId !== e.pointerId) return;
-                      const dockHeight = dockContentRef.current?.getBoundingClientRect().height ?? 800;
-                      const max = Math.max(LAYERS_SECTION_MIN, dockHeight - PROPERTIES_SECTION_MIN);
-                      const next = Math.round(
-                        Math.min(max, Math.max(LAYERS_SECTION_MIN, drag.startHeight + (drag.startY - e.clientY)))
-                      );
-                      drag.lastHeight = next;
-                      setLayersHeight(next);
-                    }}
-                    onPointerUp={(e) => {
-                      const drag = dividerDragRef.current;
-                      if (!drag || drag.pointerId !== e.pointerId) return;
-                      dividerDragRef.current = null;
-                      // The phone sheet's split is its own, so it is not saved
-                      // over the docked-panel height a desktop session set.
-                      if (isMobileViewport) return;
-                      try { window.localStorage.setItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY, String(drag.lastHeight)); } catch {}
-                    }}
-                    onPointerCancel={() => {
-                      dividerDragRef.current = null;
-                    }}
-                  >
-                    <div className="absolute left-1/2 top-1/2 h-0.5 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground/40 group-hover:bg-primary/60" />
-                  </div>
-                  {/* max-h keeps the properties form usable when a persisted
-                      height is taller than the current window allows. */}
-                  <div
-                    style={{ height: layersHeight }}
-                    className="max-h-[calc(100%-10rem)] shrink-0 overflow-hidden"
-                  >
-                    <LayersPanel
-                      elements={activeArtboardElements}
-                      selectedElementId={selectedElementIdOnActiveArtboard}
-                      onSelectElement={handleSelectElementFromLayerPanel}
-                      onMoveElementLayer={handleMoveElementLayer}
-                      onDeleteElement={handleDeleteElementFromLayerPanel}
-                      onRenameElement={handleRenameElementFromLayerPanel}
-                      activeArtboardName={activeArtboardName}
-                      activeLocale={activeLocale}
-                      localeStates={layerLocaleStates}
-                    />
-                  </div>
-                </div>
-                </Tabs>
+                <RightDockPanels
+                  data={dockData}
+                  handlers={dockHandlers}
+                  panels={dockedPanels}
+                  tab={rightDockTab}
+                  onTabChange={selectRightDockTab}
+                  layersHeight={layersHeight}
+                  onLayersHeightChange={setLayersHeight}
+                  onLayersHeightCommit={(height) => {
+                    // The phone sheet's split is its own, so it is not saved
+                    // over the docked-panel height a desktop session set.
+                    if (isMobileViewport) return;
+                    try { window.localStorage.setItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY, String(height)); } catch {}
+                  }}
+                  headerActions={
+                    <>
+                      {/* Detaching and moving windows is a desktop-sized idea: a
+                          phone has one screen and nowhere to put a second
+                          window. */}
+                      <DropdownMenu onOpenChange={(open) => { if (open) void refreshWindowMenu(); }}>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 max-lg:hidden"
+                            title="Panel and display options"
+                            aria-label="Panel and display options"
+                          >
+                            <MoreHorizontalIcon className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-72">
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onSelect={() => detachPanels(PANEL_GROUP_ALL)}
+                          >
+                            <ExternalLinkIcon className="h-4 w-4 text-muted-foreground" />
+                            Open all panels in a window
+                          </DropdownMenuItem>
+                          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                            Open one panel in a window
+                          </DropdownMenuLabel>
+                          {dockedPanels.map((panel) => (
+                            <DropdownMenuItem
+                              key={panel}
+                              className="gap-2 pl-8 capitalize"
+                              onSelect={() => detachPanels(panel)}
+                            >
+                              {panel}
+                            </DropdownMenuItem>
+                          ))}
+                          {dockHost.detachedGroups.length > 0 && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="gap-2"
+                                onSelect={() => {
+                                  dockHost.detachedGroups.forEach((group) => void dockHost.reattach(group));
+                                }}
+                              >
+                                <PanelRightCloseIcon className="h-4 w-4 text-muted-foreground" />
+                                Put every panel back here
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {dockHost.canAskForDisplays && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="gap-2"
+                                onSelect={() => void dockHost.requestDisplayAccess()}
+                              >
+                                <MonitorIcon className="h-4 w-4 text-muted-foreground" />
+                                Let this page see my other displays
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {canPlaceWindows() && (
+                            <MonitorMenuItems
+                              monitors={dockHost.monitors}
+                              currentId={editorMonitorId}
+                              label="Move the editor to a display"
+                              onPick={(monitor) => {
+                                void moveWindowToMonitor('main', monitor).then(refreshWindowMenu);
+                              }}
+                            />
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 max-lg:h-8 max-lg:w-8"
+                        onClick={() => setDockOpen(false)}
+                        title="Collapse right panel"
+                        aria-label="Collapse right panel"
+                      >
+                        <PanelRightCloseIcon className="h-4 w-4 max-lg:hidden" />
+                        <ChevronDownIcon className="hidden h-5 w-5 max-lg:block" />
+                      </Button>
+                    </>
+                  }
+                />
               </div>
             ) : (
               <>
@@ -7235,7 +7367,7 @@ const generateRandomProjectName = (): string => {
                         if (tab) selectRightDockTab(tab);
                         setDockOpen(true);
                       }}
-                      title={`Open ${label}`}
+                      title={"Open " + label}
                     >
                       {label}
                     </button>

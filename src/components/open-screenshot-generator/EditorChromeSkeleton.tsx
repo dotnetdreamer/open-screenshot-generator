@@ -24,7 +24,13 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export function EditorChromeSkeleton() {
   return (
-    <div className="flex h-full w-full overflow-hidden bg-background" aria-hidden="true">
+    // data-editor-chrome-skeleton is what globals.css hides in a detached panel
+    // window, which is served this same HTML and has no editor to frame.
+    <div
+      className="flex h-full w-full overflow-hidden bg-background"
+      aria-hidden="true"
+      data-editor-chrome-skeleton
+    >
       {/* Left palette rail (matches Sidebar --sidebar-width: 18rem) */}
       <aside className="hidden w-[18rem] shrink-0 flex-col border-r bg-sidebar md:flex">
         <div className="flex items-center gap-3 border-b px-2 py-2.5">

@@ -97,3 +97,32 @@ export class ProjectDatabase extends Dexie {
 }
 
 export const db = new ProjectDatabase();
+
+// More than one window of this app can be open at once now: a detached panel
+// window on a second monitor (src/lib/panels) is a second document on the same
+// origin, so it shares this database. That only matters across an app update,
+// where one window opens a newer schema while another still holds the old
+// connection. Dexie's defaults for that are silent and unhelpful: the stale
+// window's connection is closed with a console warning, and every later read or
+// write rejects with DatabaseClosedError into call sites that all swallow it,
+// which reads as "the app quietly stopped saving".
+//
+// So both handlers are registered, and both are deliberately quiet rather than
+// clever. Nothing here can migrate a document that is already on screen; what
+// it can do is make the failure legible instead of invisible.
+
+/** Another window opened a newer schema. Let go, and say so. */
+db.on('versionchange', () => {
+  console.warn(
+    'Another window of Open Screenshot Generator opened a newer version of the local database. Reload this window to catch up.'
+  );
+  db.close();
+  return false;
+});
+
+/** We are the newer schema and an older window will not let go. */
+db.on('blocked', () => {
+  console.warn(
+    'Another window of Open Screenshot Generator is holding the local database open on an older version. Close it, or reload it, to finish upgrading.'
+  );
+});
