@@ -7,6 +7,7 @@ A product promo built with [Remotion](https://www.remotion.dev/), three.js and G
 - `PromoMobile` — a portrait 36-second cut for phones, Shorts and Reels (`out/open-screenshot-generator-promo-mobile.mp4`), 1080x1920
 - `PromoAI` — a 10-second cut on the AI features (`out/open-screenshot-generator-promo-ai.mp4`), 1920x1080: the AI agent dialog and the desktop MCP server, shown screen-recording style with an animated cursor and camera zooms onto the UI
 - `PromoAIMobile` — the same 10-second AI cut in portrait for phones, Shorts and Reels (`out/open-screenshot-generator-promo-ai-mobile.mp4`), 1080x1920: deeper zooms since the wide dialog does not fit a phone frame, captions raised above the Shorts UI overlay
+- `PromoFeatures` — the 79-second feature reel (`out/open-screenshot-generator-promo-features.mp4`), 1920x1080: what the editor does, then every release since July in order, each beat dated on a timeline that rides the whole second act, closing on a two column scoreboard. This is the cut to update when something ships
 - `PromoVs` — the 58-second "old way vs new way" hero cut for the top of openscrgen.app (`out/open-screenshot-generator-promo-vs.mp4`), 1920x1080
 - `PromoVsMobile` — the same 58-second edit in portrait (`out/open-screenshot-generator-promo-vs-mobile.mp4`), 1080x1920. One implementation, not two: every scene reads `useVideoConfig()` and reflows
 - `PromoSteps` — a 30-second portrait cut (`out/open-screenshot-generator-promo-steps.mp4`), 1080x1920, walking the three steps to store-ready screenshots: pick a template, drop in your screenshot, preview. Its own visual system under `src/steps/` (not shared with the other cuts): a GLSL aurora + drifting-motes three.js backdrop whose palette and energy pulse follow the step beats, deep camera dives with a touch-ripple pointer and a spotlight highlight over the real UI, and its own music bed (`music-steps.m4a`)
@@ -25,6 +26,9 @@ npm run render:mobile  # render the portrait cut
 npm run render:ai      # render the 10-second AI cut
 npm run render:ai-mobile  # render the portrait 10-second AI cut
 npm run render:steps   # render the 30-second portrait 3-steps cut
+npm run render:features   # render the 79-second feature reel
+npm run capture:features  # re-capture and re-crop the footage the feature reel uses
+npm run gen:music-features # regenerate public/music-features.wav (then convert to m4a with ffmpeg)
 npm run render:vs         # render the 58-second landscape hero cut
 npm run render:vs-mobile  # render the 58-second portrait hero cut
 npm run capture:vs        # re-capture and re-crop the app footage the hero cut uses
@@ -90,3 +94,53 @@ the AI agent, and nothing leaving your machine).
   on a downbeat. Edit the two together.
 - **No three.js in this cut**, by choice. It is a typographic motion-graphics
   piece, which renders fast, stays deterministic, and keeps both files near 17MB.
+
+## The feature reel (`src/features/`)
+
+The film that answers "what does this do, and what has it just gained". Two
+acts over 79.2 seconds: five beats on what the editor already did (templates,
+the canvas, export, preview videos, the agent), then a dated run through every
+release from 25 July to 21 August, then a scoreboard and the address.
+
+- **Everything is built on a 72 frame bar.** 100 BPM makes a bar exactly 2.4s,
+  and every scene boundary in `style.ts` `T` is a whole number of them, so the
+  cuts land on downbeats without a table of odd seconds. The whole cut is 33
+  bars. `scripts/gen-music-features.js` reads the same numbers; edit the two
+  together.
+- **The release rail is the spine.** `RELEASES` in `style.ts` is the release
+  list, and `RAIL_INDEX` says which node each beat lights. Adding a release
+  means adding a row there, a beat in `Act2.tsx`, and 72 or 144 frames to `T`.
+- **Brand tokens and the type primitives come from the hero cut** (`../vs`), so
+  the two films look like one product. Everything else here is its own.
+- **Footage.** Four capture passes, all against the dev server on :9002:
+  `capture-features.js` (signed out surfaces and the live community feed),
+  `capture-features2.js` (signed in: the Save and Share menus, Versions with
+  real named versions in it, the Languages dialog, the font list),
+  `capture-features3.js` (the agent screen, an App Preview Video project with
+  its timeline, the 3D device palette, the MCP dialog) and
+  `capture-features4.js` (the MCP dialog with its private link masked, and a
+  real detached panel window). `crop-features.js` then cuts each plate down to
+  the region its beat is about.
+- **Signing in for a capture.** Seeding the two localStorage keys is not
+  enough on its own: the seeded token reaches the real backend, comes back 401,
+  and `src/lib/cloud/api.ts` signs the session out mid run, so every cloud row
+  shoots with a "sign in" chip on it. Pass two intercepts the backend in
+  puppeteer and answers it locally instead. Nothing is ever sent to the live box.
+- **The detached panel window is real.** `?panel=dock` is the same bundle in
+  panel mode, and on the web the editor projects the dock over a
+  BroadcastChannel, which two tabs of one browser share, so a second puppeteer
+  page renders the live panels of the first.
+- **Nothing with a code in it goes in a video.** The MCP dialog carries a per
+  tab private link; pass four rewrites it in the DOM before the shutter rather
+  than blurring it afterwards.
+- **Legibility rule, again.** A 1400 CSS px dialog cannot be read in a 1920
+  frame beside a column of copy. Either crop to a region under about 700 CSS px
+  wide, or rebuild the moment: the agent beat runs the real dialog softly out of
+  focus and sets the prompt itself in type, and the operator dashboard is drawn
+  (`DashCard`), because it only exists against a running box with real accounts
+  on it.
+- **One NaN sample kills the whole track.** `idx()` floors, so the first sample
+  of a section can land a hair before its start time, and a negative base under
+  a fractional power is NaN. That one sample took the peak, then the master
+  gain, then every sample. If a generated bed comes out silent, look for a
+  `Math.pow` on a value that can go slightly negative.

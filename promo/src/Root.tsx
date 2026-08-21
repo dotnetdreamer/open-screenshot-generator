@@ -11,10 +11,21 @@ import {
 import { AI_DURATION, PromoAI, PromoAIMobile } from "./PromoAI";
 import { STEPS_DURATION, StepsPromo } from "./steps/StepsPromo";
 import { PromoVs, VS_DURATION } from "./vs/PromoVs";
+import { FEATURES_DURATION, PromoFeatures } from "./features/PromoFeatures";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      {/* The feature reel: what the editor does, then every release since
+          July, each beat dated on the rail that rides the second act. */}
+      <Composition
+        id="PromoFeatures"
+        component={PromoFeatures}
+        durationInFrames={FEATURES_DURATION}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
       {/* The "old way vs new way" hero cut for the top of openscrgen.app.
           Same 58s edit in both aspects; the scenes read useVideoConfig and
           reflow, so there is one implementation, not two. */}
