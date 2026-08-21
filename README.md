@@ -17,6 +17,13 @@ A browser-based editor for designing app store screenshots and App Store preview
 
 Everything runs client-side. Projects are saved to your browser's IndexedDB, so by default there is no account, no backend, and nothing leaves your machine. If you want your work on more than one device, sign in and the open project is kept in your cloud on its own, or connect your own Google Drive or GitHub account and keep it in storage you own.
 
+<p align="center">
+  <img src="docs/screenshot-editor.png" alt="The editor: five artboards of a crypto app on one canvas, the element palette on the left, the properties and layers dock on the right" width="900">
+</p>
+<p align="center">
+  <em>The whole set on one canvas. Pick any mockup and its model, pose, frame and screenshot placement are one panel away.</em>
+</p>
+
 ## What's new
 
 ### 21 August 2026: panels on another screen, smaller exports
@@ -40,20 +47,78 @@ Before that:
 
 - **Discover**: a community feed of store graphics people shared, searchable by tag, surface and text, with every post openable as a new project. Read-only for visitors, open to anyone signed in. See [infra/vps/README.md](infra/vps/README.md) for the backend, which is optional and self-hosted
 - **Cloud projects**: save the working file to that same backend and reopen it on another device, or turn on a link and hand somebody an editable copy of the design. Private by default, revocable, and gated behind the same sign-in. Your browser's copy stays the one you are editing
+- **Edit together**: one link puts everybody on the same project at once, each with their own cursor, and the design travels straight between the browsers in the session rather than through a server of ours
+- **Versions**: checkpoints are kept as you work, when you open a project, every ten minutes, before a device conversion, on every export, and whenever you name one. Put any of them back in a click, or open one as a copy to fork it. The History tab still holds the full undo trail for the session
+- **One project, every language**: one layout, with text, fonts and screenshots per language, across 57 languages. Machine translations give you something to edit, a translation table shows every string side by side, and a CSV round trip hands the whole thing to a translator and takes it back
 - Multiple artboards on one canvas: add, duplicate, rename, and drag them around, with undo/redo across the whole project
 - Device frames for iPhone (X through 17 Pro Max), iPad (11-inch and Pro 13-inch), Android (bar, notch, punch-hole), tablet, MacBook, iMac, Apple Watch, and desktop, plus custom frames from your own mockup images
 - Screenshots dropped into a frame stay clipped to the device screen; frames can be rotated, scaled, and tilted using perspective presets or a raw CSS `matrix3d` if you need full control
 - Text, shapes (rectangles, circles, stars, speech bubbles, custom SVG paths, and more), and plain images as freely placed elements
-- A curated set of Google Fonts, including Arabic and Urdu families like Cairo, Amiri, and Noto Nastaliq Urdu, alongside the usual system fonts
-- Layers panel for ordering and a properties panel for fine-tuning whatever is selected
+- An image library to place around the mockups: licensed photographs of hands holding and pointing at phones, of people, food and study scenes, all cut out on transparency, plus store badges for the App Store, Google Play, Microsoft Store, Amazon Appstore and F-Droid. [Where every photo came from](docs/image-asset-licenses.md)
+- 61 Google Fonts, including Arabic and Urdu families like Cairo, Amiri, and Noto Nastaliq Urdu, alongside the usual system fonts, plus your own font files imported from disk
+- Layers panel for ordering and a properties panel for fine-tuning whatever is selected, in one right dock that can be torn off into its own window and left on a second display
 - A dark theme for the editor (Settings > Appearance: follow your system, or force light or dark) that deliberately stops at the artboard edge, so your designs look on screen exactly as they export
 - Copy and paste elements within and across artboards
 - An export flow that asks which store (Google Play or App Store) and which device classes you're targeting, then renders each artboard to PNG at the store's required dimensions
+- **Store listing preview**: the finished set shown the way the store shows it, App Store or Google Play, product page or search results, light or dark, at real size on a phone, before anything is uploaded
 - App Store preview videos: drop a screen recording into a phone frame, dress it with headlines and tap hints, and export an MP4 (see below)
-- Bundled example projects to start from instead of a blank canvas
+- 20 ready made preview boards in the **Previews** tab: a whole animated board, timings included, that only wants your recording dropped into the phone
+- 101 bundled templates across App Screenshots, Apple Watch, Mac, App Preview Videos and Google Feature Graphic, to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
+- An MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor with 49 tools while you watch it happen on the canvas
 - Optional account saving to your own Google Drive or GitHub, so projects follow you between machines without us storing anything (see below)
 - Direct upload to App Store Connect and Google Play from the desktop app, using your own developer credentials (see below)
+
+## A closer look
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<img src="docs/screenshot-export.png" alt="The export dialog, with the current canvas checked and iPad 13-inch and 11-inch offered as generated App Store sizes" width="100%">
+<p><em>One canvas covers every size. The export dialog converts the boards and the mockups on the fly, and your project stays as you left it.</em></p>
+</td>
+<td width="50%" valign="top">
+<img src="docs/screenshot-store-listing.png" alt="The store listing preview: the finished screenshots inside an App Store product page on an iPhone 16 Pro" width="100%">
+<p><em>The store listing preview, at the size a shopper actually sees. Switch between App Store and Google Play, product page and search results, light and dark.</em></p>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+<img src="docs/screenshot-languages.png" alt="The compare languages sheet showing the same five boards in English, Arabic and German" width="100%">
+<p><em>Every language off one layout. Arabic comes back right to left in a face that carries the glyphs, and a design change reaches all of them at once.</em></p>
+</td>
+<td width="50%" valign="top">
+<img src="docs/screenshot-discover.png" alt="The Discover feed: a grid of store graphics people shared, with tags and an open as template button on each" width="100%">
+<p><em>Discover, the community feed. Every post opens as a new project. It is optional, and the backend is one you run.</em></p>
+</td>
+</tr>
+</table>
+
+## How it compares
+
+Most tools in this space are a subscription with a free tier that stops just short of the thing you needed. Here there is no paid tier, no account, no watermark, no export cap, and no gated device size, and the source is in this repository. Checked against public pricing and documentation in August 2026:
+
+| | Open Screenshot Generator | AppScreens | Previewed | AppMockUp Studio | Smartmockups |
+| --- | --- | --- | --- | --- | --- |
+| Price | Free, no paid tier exists | Free plan, then $25 a month or $99 a year, Scale at $180 a year | Free tier, Plus at $9.99 once for 10 exports, Pro at $228 a year | Free | Folded into Canva, which has free and paid plans |
+| Account | None | Required, projects live in their cloud | Needed before the template pages show anything | None | Canva account required |
+| Free exports at store sizes | Every size both stores require, full resolution | Core sizes free, Apple Watch, Vision Pro, Wear OS and custom sizes need a plan, and Pro features stamp a watermark | 2D exports capped at 720p, under a Creative Commons attribution licence | Yes, on iPhone and Android frames | No store size workflow, you set the dimensions up yourself |
+| App preview videos | Yes, MP4 rendered in your browser, plus a store ready conversion | Not offered | Animated promo videos, on 2022 era devices | Not offered | Canva edits video, but there is no app preview workflow |
+| Open source | Yes, MIT | No | No | No | No |
+
+Credit where it is due: AppMockUp is free with no account and has lovely background generators, and Previewed's 3D renders still look better than most. The longer comparisons, one tool at a time, are on the site: [AppScreens](https://openscrgen.app/appscreens-alternative), [Previewed](https://openscrgen.app/previewed-alternative), [AppMockUp](https://openscrgen.app/appmockup-alternative), [Smartmockups](https://openscrgen.app/smartmockups-alternative).
+
+Past price, these are the parts that tend not to exist in the paid tools at all:
+
+- **An AI agent on the subscription you already pay for.** Point it at the Claude, ChatGPT or Gemini account you are already signed into and it picks a template, places your screenshots and writes the copy. No API key, no per export credits, and the desktop app drives it in an embedded window so the login never leaves your machine
+- **Your AI client can drive the editor.** The MCP server exposes 49 tools, so Claude Code, Claude Desktop, Cursor or VS Code can build and edit boards, add languages and export PNGs while you watch it happen on the canvas
+- **Real localization, not a text field.** One layout, 57 languages, per language text, fonts and screenshots, machine translations to edit, and a CSV a translator can fill in and hand back
+- **App preview videos that survive review.** Beyond the styled MP4, there is a mode that keeps your text and gesture hints over a full screen capture, which is what App Review guideline 2.3.4 actually allows, and a store ready conversion to 886x1920 at 30fps H.264
+- **See the store before the store sees it.** The listing preview puts the finished set inside an App Store or Play product page and a search result, light and dark, at real size
+- **Everybody on one link.** Live collaboration runs peer to peer between the browsers in the session, with a cursor each
+- **The store upload is free.** The desktop app pushes finished artboards to App Store Connect or Google Play with your own developer credentials, no plan involved
+- **Panels on your second monitor.** Properties, History, Versions and Layers can be torn out of the window and left on another display
+- **The work stays yours.** Browser storage by default, or your own Google Drive or GitHub, or a Discover feed running on a server you control. Nothing is required to leave your machine
 
 ## Feature checklist: web vs desktop
 
@@ -61,7 +126,7 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 
 | Feature | Web | Desktop |
 | --- | :---: | :---: |
-| All editor features: artboards, device mockups, 3D poses, templates, store-size PNG export | ✅ | ✅ |
+| All editor features: artboards, device mockups, 3D poses, templates, store-size PNG export, store listing preview, versions, per language boards, live collaboration | ✅ | ✅ |
 | App preview videos: styled MP4 export, plus store-ready recording conversion (886x1920, 30fps, H.264) | ✅ ¹ | ✅ |
 | AI agent with your own API key (Anthropic, OpenAI, Google) | ✅ | ✅ |
 | AI agent on the Claude, ChatGPT or Gemini account you already have (beta: Copilot, DeepSeek, Qwen, Perplexity) | ✅ ² | ✅ |
@@ -78,7 +143,7 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 
 ⁴ Not a product decision: App Store Connect serves no CORS headers, so no browser tab can call it. The desktop app makes these requests outside the webview. See [docs/STORE-UPLOAD.md](docs/STORE-UPLOAD.md).
 
-⁵ Same 42 tools either way, and they run in the app either way. The desktop app hosts the server itself on `127.0.0.1`, because a native process can open a socket; a browser tab cannot, so the web build connects out to a small relay that passes messages between your AI client and your tab ([infra/vps/mcp-relay](infra/vps/mcp-relay/README.md), free to run, no database and no account). Set `NEXT_PUBLIC_MCP_RELAY_URL` to switch it on. The one thing only the desktop app can do is write exported PNGs straight into a folder you name.
+⁵ Same 49 tools either way, and they run in the app either way. The desktop app hosts the server itself on `127.0.0.1`, because a native process can open a socket; a browser tab cannot, so the web build connects out to a small relay that passes messages between your AI client and your tab ([infra/vps/mcp-relay](infra/vps/mcp-relay/README.md), free to run, no database and no account). Set `NEXT_PUBLIC_MCP_RELAY_URL` to switch it on. The one thing only the desktop app can do is write exported PNGs straight into a folder you name.
 
 ## Running it locally
 
@@ -103,10 +168,10 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 then set `NEXT_PUBLIC_DISCOVER_URL=http://127.0.0.1:8090` in `.env.local`. [Full instructions, including seeding it with the bundled templates](infra/vps/README.md#running-it-locally).
 
 <p align="center">
-  <img src="docs/screenshot-home.png" alt="The start screen: a grid of bundled template cards and a Start Blank button" width="700">
+  <img src="docs/screenshot-start.png" alt="The start screen: template cards for App Screenshots, with tabs for Community, Apple Watch, Mac, App Preview Videos and Google Feature Graphic, and cards for the AI agent and a blank canvas" width="860">
 </p>
 <p align="center">
-  <em>The start screen: pick a template or start with a blank canvas.</em>
+  <em>The start screen: 101 templates across five categories, whatever the community shared today, the AI agent, or a blank canvas.</em>
 </p>
 
 Other scripts:
@@ -132,6 +197,13 @@ gesture hints fire when they are set to, and your recording plays inside the pho
 to scrub, drag a clip sideways to retime it, drag its edges to trim, drag it up or down to restack the
 layer, and set the preview's length in the field next to the clock. It runs the same timing code the
 encoder does, so nothing has to be exported to see what you are getting.
+
+<p align="center">
+  <img src="docs/screenshot-preview-timeline.png" alt="An App Preview Videos project: three boards on the canvas and a timeline underneath with a clip per layer" width="900">
+</p>
+<p align="center">
+  <em>A preview board and its timeline. Every layer has a clip you can retime, trim or restack, and the phone is waiting for your recording.</em>
+</p>
 
 The export dialog for these projects offers three renders:
 
@@ -160,7 +232,15 @@ Two things it does not do yet: audio (the MP4 is video only, and the canvas play
 The start dialog opens on three choices: start with the AI agent, pick a template, or start blank.
 The agent takes your app screenshots plus a sentence about what you want ("put these in a clean dark
 template", "use Breathora", "design something new") and produces a finished project: template chosen,
-screenshots placed in the device mockups, copy rewritten for your app.
+screenshots placed in the device mockups, copy rewritten for your app. Every run keeps a timeline of what
+it did, reachable from **Recent runs**, so a project you did not expect can be read back step by step.
+
+<p align="center">
+  <img src="docs/screenshot-agent.png" alt="The AI agent screen: three uploaded app screenshots, a prompt describing the app, and the choice between running on your own account or your own API key" width="880">
+</p>
+<p align="center">
+  <em>Three screenshots, one sentence, and a choice of who runs the model. The account mode uses the Claude, ChatGPT or Gemini subscription you already have.</em>
+</p>
 
 However it runs, it always produces the same thing: an `AgentPlan`, a small
 zod-validated JSON document that [buildProjectFromPlan.ts](src/lib/ai/buildProjectFromPlan.ts) turns
@@ -197,7 +277,7 @@ The prompts, the catalog builders, and the plan schema all live in [src/lib/ai/]
 
 Saved projects live in IndexedDB under a database called `ProjectDatabase`. Clearing site data deletes them, so treat exported PNGs and MP4s as your real output and the browser store as a working copy. Uploaded screen recordings sit in the same database in a separate `media` table, and projects only reference them by id, so an exported project file stays small and does not carry your footage with it.
 
-Templates are plain JSON files in [public/data/projects/](public/data/projects/), fetched at runtime. The file list is hardcoded in [projectService.ts](src/services/projectService.ts), so adding your own template means dropping a JSON file in that folder and adding its filename to the array. A template is essentially a saved array of artboard states. The practical way to make one is to design it in the app and copy the shape of an existing template file.
+Templates are plain JSON files in [public/data/projects/](public/data/projects/), fetched at runtime. The catalog that lists them, and the tab each one belongs in, is [templateCategories.ts](src/lib/templateCategories.ts), so adding your own template means dropping a JSON file in that folder and adding its filename to the right category. A template is essentially a saved array of artboard states. The practical way to make one is to design it in the app and copy the shape of an existing template file.
 
 After adding or editing templates, regenerate the AI agent's hosted catalog with `npm run gen:ai-catalog` (a normal `npm run build` also does it) so [public/data/ai/catalog.txt](public/data/ai/catalog.txt) stays in sync; see [docs/AI-AGENT.md](docs/AI-AGENT.md).
 
