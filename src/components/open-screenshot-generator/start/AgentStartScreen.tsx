@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import type { Project } from '@/types/artboard';
-import { AgentPlanSchema, formatPlanIssues, type AgentPlan } from '@/lib/ai/agentPlanSchema';
+import { AGENT_LIMITS, AgentPlanSchema, formatPlanIssues, type AgentPlan } from '@/lib/ai/agentPlanSchema';
 import { AgentBuildError, buildProjectFromPlan, type BuildResult } from '@/lib/ai/buildProjectFromPlan';
 import { AgentError, generatePlan } from '@/lib/ai/generatePlan';
 import { extractJsonCandidates } from '@/lib/ai/jsonExtract';
@@ -70,6 +70,13 @@ interface AgentStartScreenProps {
   templates: Project[];
   isLoadingTemplates: boolean;
   onCreateProject: (project: Project, options: { nameOverride?: string }) => void | Promise<void>;
+  /**
+   * Screenshots the user already uploaded on the quick start screen. Arriving
+   * here used to mean uploading everything a second time.
+   */
+  handoffScreenshots?: UploadedScreenshot[];
+  /** Changes on every handoff, so re-entering seeds the set exactly once. */
+  handoffToken?: number;
 }
 
 const EXAMPLE_INSTRUCTIONS = [
@@ -96,8 +103,27 @@ export function AgentStartScreen({
   templates,
   isLoadingTemplates,
   onCreateProject,
+  handoffScreenshots,
+  handoffToken,
 }: AgentStartScreenProps) {
   const [screenshots, setScreenshots] = useState<UploadedScreenshot[]>([]);
+  /**
+   * How many the quick start handed over, so the cap can be explained rather
+   * than silently applied.
+   */
+  const [handedOver, setHandedOver] = useState(0);
+
+  // Seeded in an effect keyed on the token, never in the state initialiser:
+  // coming back to this screen must not clobber a set the user edited here.
+  // Sliced to the agent's own cap, which exists because the prompt quotes its
+  // per-image budget to the provider. A template fill has no such budget, which
+  // is why the two limits are different numbers and stay that way.
+  useEffect(() => {
+    if (!handoffToken || !handoffScreenshots?.length) return;
+    setHandedOver(handoffScreenshots.length);
+    setScreenshots(handoffScreenshots.slice(0, AGENT_LIMITS.maxScreenshots));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoffToken]);
   const [instruction, setInstruction] = useState('');
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState<BridgeStage | null>(null);
@@ -552,6 +578,11 @@ export function AgentStartScreen({
       <section className="space-y-2">
         <Label className="text-sm font-bold">1. Add your app screenshots</Label>
         <ScreenshotUploader screenshots={screenshots} onChange={setScreenshots} disabled={busy} />
+        {handedOver > AGENT_LIMITS.maxScreenshots && (
+          <p className="text-xs text-muted-foreground">
+            {`Only the first ${AGENT_LIMITS.maxScreenshots} go to the agent. The rest are still on the quick start screen`}
+          </p>
+        )}
       </section>
 
       <section className="space-y-2">

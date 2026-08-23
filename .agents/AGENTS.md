@@ -9,7 +9,8 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Data model, read this first | [src/types/artboard.ts](../src/types/artboard.ts) |
 | All state, export, MCP api | [OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx) |
 | Canvas and element renderers | [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx), [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx), [elements/](../src/components/open-screenshot-generator/elements/) |
-| Templates (96 JSON files) | [public/data/projects/](../public/data/projects/), registered in [templateCategories.ts](../src/lib/templateCategories.ts) |
+| Templates (101 JSON files) | [public/data/projects/](../public/data/projects/), registered in [templateCategories.ts](../src/lib/templateCategories.ts) |
+| Screenshots in, finished designs out | [src/lib/intake/](../src/lib/intake/) + [start/quickstart/](../src/components/open-screenshot-generator/start/quickstart/) |
 | AI agent | [src/lib/ai/](../src/lib/ai/) |
 | MCP server | [src/lib/mcp/](../src/lib/mcp/) + [src-tauri/src/mcp_server.rs](../src-tauri/src/mcp_server.rs) |
 | Translate and fonts | [translation.ts](../src/services/translation.ts), [fontService.ts](../src/services/fontService.ts), [customFonts.ts](../src/services/customFonts.ts), [fontLanguageMatcher.ts](../src/lib/fontLanguageMatcher.ts) |
@@ -82,6 +83,14 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 29. The right dock can leave the editor and live on another display, so **the editor window is the only writer**. A detached panel renders a snapshot it was sent and answers clicks with a named intent; the editor replays that intent against the same handler the docked panel calls. A panel window must never write the project, join a live session, run auto save or start the MCP bridge. It renders [RightDockPanels](../src/components/open-screenshot-generator/panels/RightDockPanels.tsx), the same component the dock does, so the two cannot drift.
 30. What crosses a window boundary goes through the projection in [protocol.ts](../src/lib/panels/protocol.ts), and that projection is the maintenance cost of the feature: a new PropertiesPanel field it drops will work docked and fail **silently** detached. Media never crosses (elements carry `asset:<id>` and `mediaId`, and IndexedDB is shared by every window on the origin); a `blob:` URL means nothing outside the document that made it.
 31. Display geometry is in **physical** pixels, always. A 4K display at 150% next to a 1080p at 100% has no shared logical origin, so a position computed in logical units on one lands somewhere else on the other.
+
+**Screenshot intake**
+
+32. An uploaded screenshot is stored **once** and travels as `asset:<id>` ([intakeAssets.ts](../src/lib/intake/intakeAssets.ts)). The results deck renders the same shots inside a dozen templates at once, and `getMediaUrl` caches one object URL per id, so every card shares one decoded image. Pass a `data:` URL around instead and each card decodes its own copy of a 2796px PNG.
+33. Ranking and filling are **pure and offline**: [templateIndex.ts](../src/lib/intake/templateIndex.ts) derives its index from `projectData` (never a hand-authored tag file, which `gen:ai-catalog` would then have to track), and [autoFill.ts](../src/lib/intake/autoFill.ts) is a pure transform over a deep copy, so a preview can be rebuilt on every keystroke. `fillTemplate` keeps the template's own `id` because `handleSelectTemplate` reports it to analytics.
+34. Duplicate screenshots are matched on the analysis **fingerprint** plus dimensions plus byte length, never on byte length alone: two different screens of one app routinely compress to the same size, and the user's set silently arrives short.
+35. Every device frame in the catalog ships with placeholder art, so "is this frame empty" is never `!screenshotSrc`. A shipped placeholder is a public path; the user's own content is `asset:`, `data:` or `blob:`.
+36. A card that would overspend the WebGL budget renders **flattened** (`flattenBoard3d`), never as the shipped preview PNG: the whole point of the deck is that the boards hold the user's screenshots.
 
 ## Commands
 

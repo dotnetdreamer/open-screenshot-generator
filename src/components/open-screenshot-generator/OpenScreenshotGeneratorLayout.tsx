@@ -110,6 +110,12 @@ import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, track
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
+import { QuickStartPromoCard } from './start/quickstart/QuickStartPromoCard';
+import { QuickStartScreen } from './start/quickstart/QuickStartScreen';
+import { DialogDropLayer } from './start/quickstart/DialogDropLayer';
+import { peekRememberedCount } from '@/lib/intake/intakeMemory';
+import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
+import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
@@ -725,7 +731,41 @@ export function OpenScreenshotGeneratorLayout() {
   // Which screen of the start dialog is showing. The template gallery is the
   // dialog, as it always was; the agent is a screen you step into from the
   // banner above it. Reset on open so reopening never lands mid-agent-flow.
-  const [dialogView, setDialogView] = useState<'templates' | 'agent'>('templates');
+  const [dialogView, setDialogView] = useState<'templates' | 'agent' | 'quickstart'>('templates');
+  // Latches once the quick start has been opened, so it can stay mounted behind
+  // the other views without being built for every session that never uses it.
+  const [quickstartOpened, setQuickstartOpened] = useState(false);
+  useEffect(() => {
+    if (dialogView === 'quickstart') setQuickstartOpened(true);
+  }, [dialogView]);
+  // Where the agent screen was opened from, so its Back button returns there
+  // instead of always dumping the user on the template gallery. Arriving from
+  // the quick start and going back to a grid of templates loses the upload from
+  // view and reads as a dead end.
+  const [agentReturnView, setAgentReturnView] = useState<'templates' | 'quickstart'>('templates');
+  // Files dropped anywhere in the start dialog, handed to the quick start.
+  const [pendingIntakeFiles, setPendingIntakeFiles] = useState<{ files: File[]; token: number } | null>(null);
+  // Screenshots handed from the quick start to the AI agent, so switching to it
+  // does not throw the upload away. The token re-seeds the agent's own state.
+  const [agentHandoff, setAgentHandoff] = useState<{ shots: UploadedScreenshot[]; token: number } | null>(null);
+  // A ref rather than the state itself, so the two window keydown effects can
+  // stand down while the dialog is open without either of them gaining a
+  // dependency and re-subscribing on every open and close.
+  const isTemplateSelectorOpenRef = useRef(false);
+  useEffect(() => {
+    isTemplateSelectorOpenRef.current = isTemplateSelectorOpen;
+  }, [isTemplateSelectorOpen]);
+
+  // Screenshots left over from a previous visit, so the entry card can offer
+  // them by name. Read in an effect, never in the initial state: localStorage
+  // does not exist during the static export or the first client render.
+  const [rememberedShotCount, setRememberedShotCount] = useState(0);
+  // Re-read on every view change too, not just on open: the quick start screen
+  // can clear the remembered set from under this, and the entry card would go
+  // on offering shots that are gone.
+  useEffect(() => {
+    setRememberedShotCount(peekRememberedCount());
+  }, [isTemplateSelectorOpen, dialogView]);
   // Startup tips. Opens in front of the start dialog (which is suppressed
   // while it is up, see the Dialog below) until the user unticks its box.
   // The default has to match what the static export rendered, so the stored
@@ -2430,6 +2470,170 @@ export function OpenScreenshotGeneratorLayout() {
    * here. Released clear of every board, it still lands (centred on the active
    * one) rather than silently doing nothing.
    */
+  /**
+   * Screenshots dragged from the desktop straight onto the canvas.
+   *
+   * The in-editor door to the same idea as the start dialog: the files land in
+   * the empty device frames this project already has, in reading order, and
+   * anything left over becomes an image element where it was dropped.
+   *
+   * Deliberately NOT a useCallback: it is only ever called from an inline arrow
+   * on CanvasArea, so a stable identity buys nothing, and a dependency array
+   * here froze a stale `currentProjectName` into the closure. Dropping a file
+   * right after renaming a project then wrote the OLD name back into the Dexie
+   * row and broadcast it to every peer in a live session.
+   *
+   * Three things here are load-bearing. Every file is stored once through
+   * saveImageBlobAsset and referenced as `asset:<id>`, never inlined as base64,
+   * or every undo snapshot and autosave carries the megabytes (issue #19). The
+   * whole next artboards array is built first and committed with ONE
+   * handleArtboardsUpdate call, because committing per file would turn a folder
+   * of twenty into twenty deep copies and twenty undo entries. And a predefined
+   * device gets the full-screen screenshotRect while only `custom` gets the 5%
+   * inset, matching DeviceFrameElement and the properties panel; insetting a
+   * predefined frame reveals its black screen as a fake bezel.
+   */
+  const handleCanvasImageDrop = async (files: File[], point: Point) => {
+    if (files.length === 0 || artboards.length === 0) return;
+    {
+      const stored = await Promise.all(
+        files.map(async (file) => {
+          try {
+            const asset = await saveImageBlobAsset(file, { name: file.name });
+            return asset.ref;
+          } catch {
+            return null;
+          }
+        })
+      );
+      const refs = stored.filter((ref: string | null): ref is string => !!ref);
+      if (refs.length === 0) {
+        toast({ title: "Those images could not be read", variant: "destructive" });
+        return;
+      }
+
+      // Which frames may be written to, in reading order, empty ones first.
+      //
+      // "Empty" alone is not a usable rule here: every one of the 419 device
+      // frames in the bundled catalog ships with placeholder art, so a project
+      // started from a template has no empty frame at all and this gesture
+      // would silently do nothing. A shipped placeholder is a public path
+      // ("/data/projects/..."); anything the USER put there is an `asset:<id>`
+      // reference, a data URL or a blob URL. So placeholders are fair game and
+      // the user's own screenshots are never overwritten.
+      const isPlaceholder = (src: string | undefined): boolean =>
+        !src || src.startsWith('/');
+
+      const targets: string[] = [];
+      const placeholders: string[] = [];
+      for (const board of artboards) {
+        for (const element of board.elements) {
+          if (element.type !== 'device') continue;
+          const device = element as DeviceFrameElementProps;
+          if (!device.screenshotSrc) targets.push(device.id);
+          else if (isPlaceholder(device.screenshotSrc)) placeholders.push(device.id);
+        }
+      }
+      const fillOrder = [...targets, ...placeholders].slice(0, refs.length);
+      const assignment = new Map(fillOrder.map((id, index) => [id, refs[index]]));
+      const filled = assignment.size;
+
+      const next = artboards.map((board) => {
+        let changed = false;
+        const elements = board.elements.map((element) => {
+          if (element.type !== 'device') return element;
+          const device = element as DeviceFrameElementProps;
+          const ref = assignment.get(device.id);
+          if (!ref) return element;
+          changed = true;
+          return {
+            ...device,
+            screenshotSrc: ref,
+            screenshotObjectFit: device.screenshotObjectFit ?? 'cover',
+            // A predefined device gets the full screen area; only 'custom'
+            // takes the 5% inset. Insetting a predefined frame reveals its
+            // black screen as a fake bezel and hides the notch.
+            screenshotRect:
+              device.screenshotRect ??
+              (device.deviceType === 'custom'
+                ? { left: 5, top: 5, width: 90, height: 90 }
+                : { left: 0, top: 0, width: 100, height: 100 }),
+          } as ArtboardElement;
+        });
+        return changed ? { ...board, elements } : board;
+      });
+
+      // Anything with no frame to go in becomes a plain image element on the
+      // board under the pointer, which is what dropping a picture on a canvas
+      // usually means.
+      //
+      // Built into the SAME array rather than through handleAddElementToArtboard,
+      // and this is the part that has to stay that way. That helper commits
+      // through handleCanvasStructuralChange, which rebuilds the whole document
+      // from `artboardsRef.current`, and that ref is only refreshed in the
+      // render body. Nothing re-renders inside this synchronous block, so each
+      // such call would rebuild from the PRE-DROP boards: the frame fills above
+      // would be silently reverted and every leftover but the last discarded.
+      // One array, one commit, one undo entry.
+      const leftover = refs.slice(filled);
+      let placedImages = 0;
+      if (leftover.length > 0) {
+        const targetId =
+          document
+            .elementsFromPoint(point.x, point.y)
+            .map((el) => el.closest('[data-artboard-dom-id]'))
+            .find((el): el is Element => !!el)
+            ?.getAttribute('data-artboard-dom-id') ??
+          activeArtboardId ??
+          next[0]?.id ??
+          null;
+        const boardIndex = next.findIndex((board) => board.id === targetId);
+        if (boardIndex >= 0) {
+          const board = next[boardIndex];
+          const stamp = Date.now();
+          const added: ArtboardElement[] = leftover.map((ref, index) => ({
+            id: `el_${stamp}_${index}_${Math.random().toString(36).slice(2, 7)}`,
+            type: 'image',
+            name: 'Image',
+            // Staggered, so a batch does not stack into one pile.
+            position: {
+              x: Math.max(0, board.size.width / 2 - 200 + index * 40),
+              y: Math.max(0, board.size.height / 2 - 150 + index * 40),
+            },
+            size: { width: 400, height: 300 },
+            rotation: 0,
+            scale: 1,
+            imageSrc: ref,
+            objectFit: 'contain',
+            opacity: 1,
+            borderRadius: 0,
+          } as ArtboardElement));
+          next[boardIndex] = { ...board, elements: [...board.elements, ...added] };
+          placedImages = added.length;
+        }
+      }
+
+      if (filled > 0 || placedImages > 0) {
+        const total = filled + placedImages;
+        handleArtboardsUpdate(
+          next,
+          namedChange(
+            total === 1 ? 'Drop in a screenshot' : `Drop in ${total} screenshots`,
+            'add'
+          )
+        );
+      }
+
+      toast({
+        title: filled > 0 ? "Screenshots placed" : "Images added",
+        description:
+          filled > 0
+            ? `${filled} into device frames${placedImages > 0 ? `, ${placedImages} added as images` : ''}`
+            : `${placedImages} added to the canvas`,
+      });
+    }
+  };
+
   const handlePaletteDropElement = useCallback((
     type: ElementType,
     subType: ShapeType | DeviceType | undefined,
@@ -4250,6 +4454,13 @@ export function OpenScreenshotGeneratorLayout() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Preview mode has its own keyboard handling
       if (isPreviewOpen) return;
+      // The start dialog owns the keyboard while it is up. Read through a ref so
+      // neither of these effects gains a dependency and re-subscribes. Without
+      // this the editor shortcuts fire underneath the dialog: Cmd+V is
+      // preventDefault'ed before the browser can raise a `paste` event, so
+      // pasting a screenshot into the intake could never work, and a bare `h`
+      // or `v` silently retargets the canvas tool.
+      if (isTemplateSelectorOpenRef.current) return;
       // Skip if we're typing in an input, textarea, etc.
       if (
         e.target instanceof HTMLInputElement || 
@@ -4267,12 +4478,14 @@ export function OpenScreenshotGeneratorLayout() {
         }
       }
 
-      // Paste: Ctrl+V or Cmd+V
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      // Paste: Ctrl+V or Cmd+V. preventDefault ONLY when there is actually an
+      // element on the internal clipboard. Calling it unconditionally also
+      // suppressed the browser's own `paste` event, so nothing in the app could
+      // ever receive an image off the system clipboard: that is what the quick
+      // start's paste-a-screenshot intake listens for.
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardItem) {
         e.preventDefault();
-        if (clipboardItem) {
-          handlePasteElement();
-        }
+        handlePasteElement();
       }
 
       // Delete key for element or artboard deletion
@@ -5214,6 +5427,13 @@ export function OpenScreenshotGeneratorLayout() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Preview mode has its own keyboard handling
       if (isPreviewOpen) return;
+      // The start dialog owns the keyboard while it is up. Read through a ref so
+      // neither of these effects gains a dependency and re-subscribes. Without
+      // this the editor shortcuts fire underneath the dialog: Cmd+V is
+      // preventDefault'ed before the browser can raise a `paste` event, so
+      // pasting a screenshot into the intake could never work, and a bare `h`
+      // or `v` silently retargets the canvas tool.
+      if (isTemplateSelectorOpenRef.current) return;
       // Skip if we're typing in an input, textarea, etc.
       if (
         e.target instanceof HTMLInputElement || 
@@ -5231,12 +5451,14 @@ export function OpenScreenshotGeneratorLayout() {
         }
       }
 
-      // Paste: Ctrl+V or Cmd+V
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      // Paste: Ctrl+V or Cmd+V. preventDefault ONLY when there is actually an
+      // element on the internal clipboard. Calling it unconditionally also
+      // suppressed the browser's own `paste` event, so nothing in the app could
+      // ever receive an image off the system clipboard: that is what the quick
+      // start's paste-a-screenshot intake listens for.
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardItem) {
         e.preventDefault();
-        if (clipboardItem) {
-          handlePasteElement();
-        }
+        handlePasteElement();
       }
 
       // Delete key for element or artboard deletion
@@ -5520,22 +5742,39 @@ const generateRandomProjectName = (): string => {
           }}
         >
           <DialogContent className="flex max-h-[92vh] w-[95vw] max-w-[1400px] flex-col">
-            {dialogView === 'agent' ? (
+            {/* Every part of this dialog is a drop target, so somebody browsing
+                templates who drags their screenshots in does not have to find
+                the right card first. Off on the agent screen, which runs its
+                own intake. */}
+            <DialogDropLayer
+              active={dialogView !== 'agent'}
+              onFiles={(files) => {
+                setPendingIntakeFiles({ files, token: Date.now() });
+                setDialogView('quickstart');
+              }}
+            >
+            {dialogView === 'agent' || dialogView === 'quickstart' ? (
               <DialogHeader>
                 <div className="flex items-start gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
                     className="-ml-2 h-8 w-8 shrink-0"
-                    onClick={() => setDialogView('templates')}
+                    onClick={() =>
+                      setDialogView(dialogView === 'agent' ? agentReturnView : 'templates')
+                    }
                     aria-label="Back"
                   >
                     <ChevronLeftIcon className="h-4 w-4" />
                   </Button>
                   <div className="min-w-0 flex-1 text-left">
-                    <DialogTitle>Design with the AI agent</DialogTitle>
+                    <DialogTitle>
+                      {dialogView === 'agent' ? 'Design with the AI agent' : 'Start from your screenshots'}
+                    </DialogTitle>
                     <DialogDescription>
-                      Upload your screenshots, say what you want, and let the agent build the project.
+                      {dialogView === 'agent'
+                        ? 'Upload your screenshots, say what you want, and let the agent build the project.'
+                        : 'Drop them in and every design that fits shows your own screens. Pick one to open it.'}
                     </DialogDescription>
                   </div>
                 </div>
@@ -5560,6 +5799,44 @@ const generateRandomProjectName = (): string => {
                   templates={availableProjects}
                   isLoadingTemplates={isLoadingProjects}
                   onCreateProject={(project, options) => handleSelectTemplate(project, options)}
+                  handoffScreenshots={agentHandoff?.shots}
+                  handoffToken={agentHandoff?.token}
+                />
+              </div>
+            )}
+
+            {/* Kept MOUNTED once it has been opened, and hidden rather than
+                unmounted while another view is up. Everything the user has done
+                here lives in its own state: the uploaded set, the order they
+                put it in, the app name, the colour. Unmounting to look at the
+                AI screen and coming back to an empty drop zone is the whole
+                reason this is not a plain conditional. */}
+            {quickstartOpened && (
+              // Same native scroll container as the agent view, for the same
+              // reason: a Radix ScrollArea cannot resolve its height under
+              // flex-1 inside a max-h-capped dialog and stops scrolling.
+              <div
+                className={
+                  dialogView === 'quickstart'
+                    ? 'min-h-0 flex-1 overflow-y-auto px-1 pb-1'
+                    : 'hidden'
+                }
+              >
+                <QuickStartScreen
+                  active={dialogView === 'quickstart'}
+                  templates={availableProjects}
+                  isLoadingTemplates={isLoadingProjects}
+                  onCreateProject={(project, options) => handleSelectTemplate(project, options)}
+                  pendingFiles={pendingIntakeFiles}
+                  onPendingFilesConsumed={() => setPendingIntakeFiles(null)}
+                  onHandOffToAgent={(shots) => {
+                    // Carry the upload across. Switching to the agent used to
+                    // mean uploading everything a second time.
+                    setAgentHandoff({ shots, token: Date.now() });
+                    setAgentReturnView('quickstart');
+                    setDialogView('agent');
+                  }}
+                  onBrowseAll={() => setDialogView('templates')}
                 />
               </div>
             )}
@@ -5722,9 +5999,19 @@ const generateRandomProjectName = (): string => {
                   <p className="text-sm text-muted-foreground">No recent projects found.</p>
                 )}
               </div>
-              {/* AI agent and blank-canvas entry points, stacked as two rows. */}
-              <div className="grid min-h-[20vh] grid-rows-2 gap-3">
-                <AgentPromoBanner onStartAgent={() => setDialogView('agent')} />
+              {/* Three entry points, fastest first: your own screenshots into a
+                  finished design, the AI agent, then an empty canvas. */}
+              <div className="grid min-h-[20vh] grid-rows-3 gap-2">
+                <QuickStartPromoCard
+                  onStart={() => setDialogView('quickstart')}
+                  remembered={rememberedShotCount}
+                />
+                <AgentPromoBanner
+                  onStartAgent={() => {
+                    setAgentReturnView('templates');
+                    setDialogView('agent');
+                  }}
+                />
                 <BlankCanvasCard
                   size={activeCategory.defaultSize}
                   categoryLabel={activeCategory.label}
@@ -5733,6 +6020,7 @@ const generateRandomProjectName = (): string => {
               </div>
             </div>
             )}
+            </DialogDropLayer>
           </DialogContent>
         </Dialog>
 
@@ -6885,6 +7173,10 @@ const generateRandomProjectName = (): string => {
           />
           <Toolbar
             onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
+            onDropInScreenshots={() => {
+              setDialogView('quickstart');
+              setIsTemplateSelectorOpen(true);
+            }}
             onPreview={() => openPreview('single')}
             onPreviewStore={() => openPreview('store')}
             onPreviewCompare={() => openPreview('compare')}
@@ -6999,6 +7291,7 @@ const generateRandomProjectName = (): string => {
                 activeLocale={activeLocale}
                 onAddElementToArtboard={handleAddElementToArtboard}
                 onAddPreviewScene={handleAddPreviewScene}
+                onDropImageFiles={(files, point) => void handleCanvasImageDrop(files, point)}
                 activeArtboardId={activeArtboardId}
                 setActiveArtboardId={handleArtboardSelection}
                 selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}

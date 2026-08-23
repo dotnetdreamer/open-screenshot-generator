@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DownloadIcon,
+  ImagePlus as ImagePlusIcon,
   LayoutTemplateIcon,
   FileJsonIcon,
   FolderOpenIcon,
@@ -48,6 +49,11 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface ToolbarProps {
   onSelectTemplate: () => void;
+  /**
+   * Open the start dialog straight on the screenshot intake. Optional so the
+   * prop can be added without touching any other caller.
+   */
+  onDropInScreenshots?: () => void;
   onPreview: () => void;
   /** Preview, opened straight into the store listing mockup. */
   onPreviewStore?: () => void;
@@ -131,6 +137,7 @@ interface ToolbarProps {
 
 export function Toolbar({
   onSelectTemplate,
+  onDropInScreenshots,
   onPreview,
   onPreviewStore,
   onPreviewCompare,
@@ -214,6 +221,19 @@ export function Toolbar({
         >
           <LayoutTemplateIcon className="h-[1.2rem] w-[1.2rem]" />
         </Button>
+        {/* The fast path, reachable with a project already open. Without this
+            it exists only on the start screen, which somebody mid-project has
+            no reason to go back to. */}
+        {onDropInScreenshots && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onDropInScreenshots}
+            title="Start from screenshots"
+          >
+            <ImagePlusIcon className="h-[1.2rem] w-[1.2rem]" />
+          </Button>
+        )}
       </div>
 
       <div className="h-8 w-px shrink-0 bg-muted mx-2" />

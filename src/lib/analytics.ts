@@ -70,12 +70,17 @@ export function trackTemplateSelected(params: {
 // The file itself is never touched here. Only which upload path was used and
 // what kind of frame received it, never the name, size, or contents.
 export function trackScreenshotUploaded(params: {
-  source: 'canvas' | 'properties_panel';
+  // 'drop_in' is the quick start intake, kept on the SAME event as the two
+  // in-editor uploads so the activation funnel still compares like with like.
+  source: 'canvas' | 'properties_panel' | 'drop_in';
   deviceType?: string;
+  /** How many arrived at once. Only the fast path ever sends more than one. */
+  count?: number;
 }): void {
   track('screenshot_uploaded', {
     source: params.source,
     device_type: params.deviceType || 'unknown',
+    ...(params.count !== undefined ? { shot_count: params.count } : {}),
   });
 }
 

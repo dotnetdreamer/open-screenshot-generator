@@ -591,6 +591,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             // handler (which is why stopPropagation runs after this check and
             // not before it).
             if (e.dataTransfer.types.includes(PREVIEW_SCENE_DRAG_TYPE)) return;
+            // Files from the desktop bubble for the same reason: the canvas
+            // handler places them across EVERY board's empty device frames, not
+            // just this one, so answering here would strand the rest of a
+            // dropped folder on the board that happened to be under the cursor.
+            if (e.dataTransfer.types.includes('Files')) return;
             e.stopPropagation();
             const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
             const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
@@ -606,7 +611,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             }
           }}
           onDragOver={(e) => {
-            e.preventDefault(); 
+            e.preventDefault();
+            // Same exception as the drop above, so the canvas can say "copy"
+            // and the cursor stops claiming a file cannot be dropped here.
+            if (e.dataTransfer.types.includes('Files')) return;
             e.stopPropagation();
           }}
           suppressHydrationWarning

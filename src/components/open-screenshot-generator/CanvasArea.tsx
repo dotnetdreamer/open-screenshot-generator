@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { dropElementOverrides } from '@/lib/i18n/localization';
+import { collectDroppedFiles } from '@/lib/intake/intakeFiles';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
 import { useEditorPreference } from '@/lib/editorPreferences';
 import type { CollabPeer } from '@/lib/collab/types';
@@ -127,6 +128,13 @@ interface CanvasAreaProps {
    * one is inserted.
    */
   onAddPreviewScene?: (sceneId: string, afterArtboardId?: string | null) => void;
+  /**
+   * Image files dragged onto the canvas from the desktop. Answered before any
+   * palette drag type is read, because an OS file drag carries none of them.
+   * Mouse only by nature: an OS file drag has no touch equivalent, which is why
+   * the toolbar button and the start dialog exist alongside it.
+   */
+  onDropImageFiles?: (files: File[], point: Point) => void;
   activeArtboardId: string | null;
   setActiveArtboardId: (id: string | null) => void;
   selectedElementIdOnActiveArtboard: string | null;
@@ -173,6 +181,7 @@ export function CanvasArea({
     onUpdateBaseArtboards,
     onAddElementToArtboard,
     onAddPreviewScene,
+    onDropImageFiles,
     activeArtboardId,
     setActiveArtboardId,
     selectedElementIdOnActiveArtboard,
@@ -573,6 +582,23 @@ export function CanvasArea({
   const handleDropOnCanvas = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
 
+    // Files from the desktop, answered first: an OS drag carries no palette
+    // drag type at all, so every read below would come back empty and the drop
+    // would silently do nothing.
+    if (onDropImageFiles && e.dataTransfer.types.includes('Files')) {
+      e.stopPropagation();
+      // collectDroppedFiles, not dataTransfer.files: a dropped FOLDER has no
+      // entry in `files` at all, so reading that list means dragging a
+      // simulator's export folder onto the canvas does nothing and says
+      // nothing. The entry list is read synchronously inside, before the await,
+      // because dataTransfer is neutered at the end of the event turn.
+      const point = { x: e.clientX, y: e.clientY };
+      void collectDroppedFiles(e.dataTransfer).then((files) => {
+        if (files.length > 0) onDropImageFiles(files, point);
+      });
+      return;
+    }
+
     // A preview scene is a whole board, so it is answered here even when the
     // drop landed inside an artboard: Artboard's own handler lets this one type
     // bubble on purpose. The board under the pointer only picks the insertion
@@ -606,7 +632,12 @@ export function CanvasArea({
   };
 
   const handleDragOverCanvas = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); 
+    e.preventDefault();
+    // Say what will happen. Without this the cursor shows the browser's default
+    // "no drop" over a canvas that does in fact accept the file.
+    if (onDropImageFiles && e.dataTransfer.types.includes('Files')) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
   };
 
   /**
