@@ -21,7 +21,7 @@ import type {
   VideoDeviceElementProps,
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
-import { getMediaAsset, getMediaUrl } from '@/lib/mediaStore';
+import { assetIdFromRef, getMediaAsset, getMediaUrl, isAssetRef } from '@/lib/mediaStore';
 import { normalizeGradient } from '@/lib/artboardBackground';
 import { withBasePath } from '@/lib/basePath';
 import { animationStateAt, animationEndTime } from './animation';
@@ -43,6 +43,11 @@ export interface VideoExportSettings {
   // the gesture hints (and their animations) over the footage. Ignored unless
   // rawRecordingOnly is set.
   keepOverlays?: boolean;
+  // No recording on the board yet: stand the recording mockup's poster in for
+  // the footage so the store-safe layout can be proofed before the capture
+  // exists. The file that comes out is a still under the overlays, so it is a
+  // rehearsal, not something to upload. Ignored unless rawRecordingOnly is set.
+  allowPosterFallback?: boolean;
   onProgress?: (done: number, total: number) => void;
   signal?: AbortSignal;
 }
@@ -127,6 +132,27 @@ interface Sprite {
   pad: number;
 }
 
+/**
+ * The recording mockup's poster as an <img>, for the store-safe rehearsal
+ * render (see allowPosterFallback). Resolves the same `asset:<id>` references
+ * the canvas renderers do, plus public paths and data: URLs.
+ */
+async function loadPosterImage(posterSrc: string): Promise<HTMLImageElement | null> {
+  let url: string | null = posterSrc;
+  if (isAssetRef(posterSrc)) url = await getMediaUrl(assetIdFromRef(posterSrc));
+  else if (!/^(data:|blob:|https?:)/.test(posterSrc)) url = withBasePath(posterSrc);
+  if (!url) return null;
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = url;
+    await img.decode();
+    return img;
+  } catch {
+    return null;
+  }
+}
+
 /** Draw a padded sprite so its element box lands exactly on (0, 0, w, h). */
 function drawSprite(ctx: CanvasRenderingContext2D, sprite: Sprite, w: number, h: number) {
   ctx.drawImage(sprite.image, -sprite.pad, -sprite.pad, w + sprite.pad * 2, h + sprite.pad * 2);
@@ -147,7 +173,9 @@ type Layer =
       // screen rect relative to the element box (unrotated px)
       screen: { x: number; y: number; width: number; height: number; radius: number };
     }
-  | { kind: 'gesture'; el: GestureElementProps };
+  | { kind: 'gesture'; el: GestureElementProps }
+  // Poster standing in for absent footage (see allowPosterFallback).
+  | { kind: 'still'; el: VideoElementProps; image: HTMLImageElement };
 
 const SPRITE_FILTER = (node: Node) => {
   const el = node as HTMLElement;
@@ -365,7 +393,7 @@ function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
 
 function drawFitted(
   ctx: CanvasRenderingContext2D,
-  video: HTMLVideoElement,
+  video: HTMLVideoElement | HTMLImageElement,
   x: number,
   y: number,
   w: number,
@@ -376,8 +404,9 @@ function drawFitted(
   ctx.save();
   roundRectPath(ctx, x, y, w, h, radius);
   ctx.clip();
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
+  const isVideo = video instanceof HTMLVideoElement;
+  const vw = isVideo ? video.videoWidth : video.naturalWidth;
+  const vh = isVideo ? video.videoHeight : video.naturalHeight;
   if (!vw || !vh || fit === 'fill') {
     ctx.drawImage(video, x, y, w, h);
   } else {
@@ -561,7 +590,31 @@ export async function exportArtboardVideo(
           }
         }
       }
-      if (layers.length === 0) throw new Error('No screen recording found on this artboard.');
+      if (layers.length === 0 && settings.allowPosterFallback) {
+        // No capture yet. Stand the mockup's poster in for it so the overlays
+        // can be proofed in the shape the store cut will actually take.
+        for (const el of artboard.elements) {
+          if (el.type !== 'video-device' || !el.posterSrc) continue;
+          const image = await loadPosterImage(el.posterSrc);
+          if (!image) continue;
+          layers.push({
+            kind: 'still',
+            el: {
+              id: `${el.id}_poster`, type: 'video', position: { x: 0, y: 0 },
+              size: artboard.size, rotation: 0, scale: 1, objectFit: 'cover',
+            },
+            image,
+          });
+          break;
+        }
+      }
+      if (layers.length === 0) {
+        throw new Error(
+          settings.allowPosterFallback
+            ? 'This artboard has no screen recording and no poster to stand in for one.'
+            : 'No screen recording found on this artboard.'
+        );
+      }
       if (settings.keepOverlays) {
         // Explanatory overlays only: text and gesture hints, in canvas order,
         // over the full-bleed footage. Frames, backgrounds and decorative
@@ -674,6 +727,11 @@ export async function exportArtboardVideo(
           case 'sprite':
             withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
               drawSprite(ctx, layer.sprite, boxW, boxH);
+            });
+            break;
+          case 'still':
+            withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
+              drawFitted(ctx, layer.image, 0, 0, boxW, boxH, 'cover', 0);
             });
             break;
           case 'video':

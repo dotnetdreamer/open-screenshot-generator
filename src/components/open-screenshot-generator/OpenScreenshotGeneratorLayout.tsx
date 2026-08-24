@@ -4277,8 +4277,10 @@ export function OpenScreenshotGeneratorLayout() {
       if (request.currentArtboardOnly && ab.id !== activeArtboardId) return false;
       const info = videoInfos[ab.id];
       if (!info) return false;
-      // Safe mode exports raw footage, so it needs an actual recording.
-      return request.rawRecordingOnly ? info.hasVideo : info.hasVideo || info.hasMotion;
+      // Safe mode exports raw footage, so it needs an actual recording, unless
+      // the dialog let the poster stand in for one (a rehearsal render).
+      if (!request.rawRecordingOnly) return info.hasVideo || info.hasMotion;
+      return info.hasVideo || (!!request.allowPosterFallback && info.hasMotion);
     });
     if (boards.length === 0) {
       toast({
@@ -4333,6 +4335,7 @@ export function OpenScreenshotGeneratorLayout() {
           height: size.height,
           rawRecordingOnly: request.rawRecordingOnly,
           keepOverlays: request.keepOverlays,
+          allowPosterFallback: request.allowPosterFallback,
           signal: abort.signal,
           onProgress: (frame, total) =>
             setVideoProgress({
@@ -4348,11 +4351,10 @@ export function OpenScreenshotGeneratorLayout() {
         const orderPrefix = String(viewArtboards.indexOf(board) + 1).padStart(orderPadWidth, '0');
         // Distinct suffix per mode so the three renders of one board can sit
         // in the same folder without overwriting each other.
+        const usedPoster = request.allowPosterFallback && !videoInfos[board.id]?.hasVideo;
         const suffix = !request.rawRecordingOnly
           ? 'AppPreview'
-          : request.keepOverlays
-            ? 'StoreReady_Text'
-            : 'StoreReady';
+          : `${request.keepOverlays ? 'StoreReady_Text' : 'StoreReady'}${usedPoster ? '_PosterProof' : ''}`;
         const filename = `${orderPrefix}_${board.name.replace(/\s+/g, '_')}_${suffix}.mp4`;
         const savedPath = exportDir
           ? await saveBlobToPath(blob, exportDir, filename)

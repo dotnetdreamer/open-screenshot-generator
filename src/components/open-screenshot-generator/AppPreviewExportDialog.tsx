@@ -90,6 +90,14 @@ export function AppPreviewExportDialog({
     }
   }, [isOpen, suggestedVideoDuration, defaultCurrentArtboardOnly, hasRecording]);
 
+  // Both store modes composite the first recording. Without one they fall back
+  // to the mockup's poster, which renders the right shape but is a still, so it
+  // proofs the layout and is not uploadable.
+  const posterProofWarning =
+    mode !== 'styled' && !hasRecording
+      ? 'No screen recording on this board yet, so the poster stands in for the footage and the file comes out as a still under your overlays. Good for checking the layout, not for uploading: guideline 2.3.4 wants a capture of the app itself. Drop a recording into the mockup to make it real.'
+      : null;
+
   const durationWarning =
     duration < 15
       ? 'Apple requires 15 to 30 seconds. Shorter is fine for ads and socials, but App Store Connect will reject it.'
@@ -131,9 +139,9 @@ export function AppPreviewExportDialog({
               </div>
             </div>
             <div className="flex items-start space-x-2">
-              <RadioGroupItem id="apv-store-text" value="store-text" className="mt-0.5" disabled={!hasRecording} />
+              <RadioGroupItem id="apv-store-text" value="store-text" className="mt-0.5" />
               <div className="grid gap-0.5 leading-none">
-                <Label htmlFor="apv-store-text" className={!hasRecording ? 'text-muted-foreground' : undefined}>
+                <Label htmlFor="apv-store-text">
                   Store-ready with your text
                 </Label>
                 <p className="text-xs text-muted-foreground">
@@ -142,14 +150,14 @@ export function AppPreviewExportDialog({
                   "narration and video or textual overlays to help explain
                   anything that isn't clear from the video alone", so this stays
                   uploadable while keeping your words.
-                  {!hasRecording && ' Drop a screen recording into the mockup to use this.'}
+                  {!hasRecording && ' With no recording on the board yet, the mockup\u2019s poster stands in for the footage.'}
                 </p>
               </div>
             </div>
             <div className="flex items-start space-x-2">
-              <RadioGroupItem id="apv-raw" value="store-raw" className="mt-0.5" disabled={!hasRecording} />
+              <RadioGroupItem id="apv-raw" value="store-raw" className="mt-0.5" />
               <div className="grid gap-0.5 leading-none">
-                <Label htmlFor="apv-raw" className={!hasRecording ? 'text-muted-foreground' : undefined}>
+                <Label htmlFor="apv-raw">
                   Store-ready recording (no design)
                 </Label>
                 <p className="text-xs text-muted-foreground">
@@ -233,6 +241,9 @@ export function AppPreviewExportDialog({
               />
             </div>
           </div>
+          {posterProofWarning && (
+            <p className="text-xs text-amber-600 dark:text-amber-500 -mt-2">{posterProofWarning}</p>
+          )}
           {durationWarning && (
             <p className="text-xs text-amber-600 dark:text-amber-500 -mt-2">{durationWarning}</p>
           )}
@@ -258,6 +269,7 @@ export function AppPreviewExportDialog({
                   sizeMode,
                   rawRecordingOnly: mode !== 'styled',
                   keepOverlays: mode === 'store-text',
+                  allowPosterFallback: !hasRecording,
                   currentArtboardOnly: scopedToArtboard,
                 })
               }
@@ -265,9 +277,11 @@ export function AppPreviewExportDialog({
               <ClapperboardIcon className="w-4 h-4 mr-1.5" />
               {mode === 'styled'
                 ? 'Export Styled Video'
-                : mode === 'store-text'
-                  ? 'Export Store-Ready With Text'
-                  : 'Export Store-Ready Recording'}
+                : !hasRecording
+                  ? 'Export Poster Proof'
+                  : mode === 'store-text'
+                    ? 'Export Store-Ready With Text'
+                    : 'Export Store-Ready Recording'}
             </Button>
           )}
 

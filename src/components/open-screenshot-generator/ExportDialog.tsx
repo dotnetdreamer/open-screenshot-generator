@@ -53,6 +53,11 @@ export interface VideoExportRequest {
   // Store-safe render that keeps the explanatory overlays (text + gesture
   // hints) over the footage. Only meaningful with rawRecordingOnly.
   keepOverlays?: boolean;
+  // Let a store-safe render stand in the recording mockup's poster when the
+  // board carries no recording yet, so the layout can be proofed before the
+  // footage exists. The result is NOT uploadable (guideline 2.3.4 wants a
+  // screen capture), which is why the dialog only sets this behind a warning.
+  allowPosterFallback?: boolean;
   // Render only the artboard the canvas has selected, not every video board.
   currentArtboardOnly: boolean;
 }
