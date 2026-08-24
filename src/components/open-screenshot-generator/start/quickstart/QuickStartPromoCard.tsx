@@ -7,8 +7,6 @@ import { cn } from '@/lib/utils';
 
 interface QuickStartPromoCardProps {
   onStart: () => void;
-  /** Shots still on this device from a previous visit, if any. */
-  remembered?: number;
 }
 
 /**
@@ -17,7 +15,7 @@ interface QuickStartPromoCardProps {
  * Deliberately louder than the AI card below it, because it is the one that
  * finishes in seconds and needs nothing but the files somebody already has.
  */
-export function QuickStartPromoCard({ onStart, remembered = 0 }: QuickStartPromoCardProps) {
+export function QuickStartPromoCard({ onStart }: QuickStartPromoCardProps) {
   return (
     <button
       type="button"
@@ -43,11 +41,6 @@ export function QuickStartPromoCard({ onStart, remembered = 0 }: QuickStartPromo
               Fastest
             </span>
           </div>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            {remembered > 0
-              ? `Your ${remembered} from last time are still here. See them inside every design that fits, then open one`
-              : 'See them inside every design that fits, right away, then open the one you like. No steps, no waiting'}
-          </p>
         </div>
         {/* A span, not a Button: the whole card is already a <button>. */}
         <span className={cn(buttonVariants({ size: 'sm' }), 'shrink-0')}>

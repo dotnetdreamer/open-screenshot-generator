@@ -42,10 +42,6 @@ export function AgentPromoBanner({ onStartAgent }: AgentPromoBannerProps) {
               New
             </span>
           </div>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            Upload your screenshots and say what you want. Run it free with the built-in providers,
-            your Claude, ChatGPT or Gemini account, or your own API key.
-          </p>
         </div>
         {/* A span, not a Button: the whole card is already a <button>, and a
             nested one is invalid HTML that trips React's hydration check. */}

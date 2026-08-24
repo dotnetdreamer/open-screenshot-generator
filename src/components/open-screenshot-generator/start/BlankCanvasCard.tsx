@@ -4,17 +4,13 @@ import React from 'react';
 import { ArrowRight, PlusIcon } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { Size } from '@/types/artboard';
 
 interface BlankCanvasCardProps {
-  /** Canvas size of the tab that is currently active in the template picker. */
-  size: Size;
-  categoryLabel: string;
   onStartBlank: () => void;
 }
 
 /** The non-AI entry point, stacked under {@link AgentPromoBanner} beside the recent projects. */
-export function BlankCanvasCard({ size, categoryLabel, onStartBlank }: BlankCanvasCardProps) {
+export function BlankCanvasCard({ onStartBlank }: BlankCanvasCardProps) {
   return (
     <button
       type="button"
@@ -31,9 +27,6 @@ export function BlankCanvasCard({ size, categoryLabel, onStartBlank }: BlankCanv
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold tracking-tight">Start with a blank canvas</h3>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-            An empty {size.width} × {size.height} artboard sized for {categoryLabel}.
-          </p>
         </div>
         {/* A span, not a Button: the whole card is already a <button>. */}
         <span className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}>

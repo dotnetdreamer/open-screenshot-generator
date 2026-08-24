@@ -113,7 +113,6 @@ import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { QuickStartPromoCard } from './start/quickstart/QuickStartPromoCard';
 import { QuickStartScreen } from './start/quickstart/QuickStartScreen';
 import { DialogDropLayer } from './start/quickstart/DialogDropLayer';
-import { peekRememberedCount } from '@/lib/intake/intakeMemory';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { AgentStartScreen } from './start/AgentStartScreen';
@@ -743,6 +742,19 @@ export function OpenScreenshotGeneratorLayout() {
   // the quick start and going back to a grid of templates loses the upload from
   // view and reads as a dead end.
   const [agentReturnView, setAgentReturnView] = useState<'templates' | 'quickstart'>('templates');
+  /**
+   * Opens the start dialog on a given view, defaulting to the template gallery.
+   *
+   * Every open goes through here rather than flipping `isTemplateSelectorOpen`
+   * on its own: the dialog keeps whichever view it was closed on, so reopening
+   * it from the toolbar used to land mid-flow — on the quick start screen, say,
+   * with Back the only way out — instead of at the start it was asked for.
+   */
+  const openStartDialog = useCallback((view: 'templates' | 'quickstart' = 'templates') => {
+    setDialogView(view);
+    setAgentReturnView('templates');
+    setIsTemplateSelectorOpen(true);
+  }, []);
   // Files dropped anywhere in the start dialog, handed to the quick start.
   const [pendingIntakeFiles, setPendingIntakeFiles] = useState<{ files: File[]; token: number } | null>(null);
   // Screenshots handed from the quick start to the AI agent, so switching to it
@@ -756,16 +768,6 @@ export function OpenScreenshotGeneratorLayout() {
     isTemplateSelectorOpenRef.current = isTemplateSelectorOpen;
   }, [isTemplateSelectorOpen]);
 
-  // Screenshots left over from a previous visit, so the entry card can offer
-  // them by name. Read in an effect, never in the initial state: localStorage
-  // does not exist during the static export or the first client render.
-  const [rememberedShotCount, setRememberedShotCount] = useState(0);
-  // Re-read on every view change too, not just on open: the quick start screen
-  // can clear the remembered set from under this, and the entry card would go
-  // on offering shots that are gone.
-  useEffect(() => {
-    setRememberedShotCount(peekRememberedCount());
-  }, [isTemplateSelectorOpen, dialogView]);
   // Startup tips. Opens in front of the start dialog (which is suppressed
   // while it is up, see the Dialog below) until the user unticks its box.
   // The default has to match what the static export rendered, so the stored
@@ -1187,14 +1189,14 @@ export function OpenScreenshotGeneratorLayout() {
     // This effect runs only once on mount
     // If no project is active on initial load, open the template selector
     if (activeProjectId === null) {
-      setIsTemplateSelectorOpen(true);
+      openStartDialog();
     }
  }, [activeProjectId]); // Depend on activeProjectId to react to potential initial load via URL (future)
 
  // Effect to load project when activeProjectId changes
   useEffect(() => {
     if (!activeProjectId && artboards.length === 0) {
-      setIsTemplateSelectorOpen(true);
+      openStartDialog();
     }
 
     const loadProject = async () => {
@@ -1253,20 +1255,20 @@ export function OpenScreenshotGeneratorLayout() {
             console.warn(`Project with ID ${activeProjectId} not found.`);
             setActiveProjectId(null); // Clear active project state
             toast({ title: "Project Not Found", description: "The selected project could not be loaded.", variant: "destructive" });
-            setIsTemplateSelectorOpen(true); // Re-open template selector
+            openStartDialog(); // Re-open template selector
           }
         } catch (error) {
           console.error("Error loading project from Dexie:", error);
           setActiveProjectId(null); // Clear active project state on error
           toast({ title: "Loading Error", description: "Failed to load project. See console for details.", variant: "destructive" });
-          setIsTemplateSelectorOpen(true); // Re-open template selector on error
+          openStartDialog(); // Re-open template selector on error
         } finally {
           setLoadPhase('idle');
         }
       }
     };
     loadProject();
- }, [activeProjectId, isLoadingTemplate, toast, setIsTemplateSelectorOpen]); // Added isLoadingTemplate dependency
+ }, [activeProjectId, isLoadingTemplate, toast, openStartDialog]); // Added isLoadingTemplate dependency
   /**
    * Record a new history state. `change` names the command when the caller
    * knows it (Paste, Convert to iPhone 15); otherwise the name is recovered by
@@ -6004,10 +6006,7 @@ const generateRandomProjectName = (): string => {
               {/* Three entry points, fastest first: your own screenshots into a
                   finished design, the AI agent, then an empty canvas. */}
               <div className="grid min-h-[20vh] grid-rows-3 gap-2">
-                <QuickStartPromoCard
-                  onStart={() => setDialogView('quickstart')}
-                  remembered={rememberedShotCount}
-                />
+                <QuickStartPromoCard onStart={() => setDialogView('quickstart')} />
                 <AgentPromoBanner
                   onStartAgent={() => {
                     setAgentReturnView('templates');
@@ -6015,8 +6014,6 @@ const generateRandomProjectName = (): string => {
                   }}
                 />
                 <BlankCanvasCard
-                  size={activeCategory.defaultSize}
-                  categoryLabel={activeCategory.label}
                   onStartBlank={() => handleSelectTemplate(createBlankProject(activeCategory.defaultSize))}
                 />
               </div>
@@ -7174,11 +7171,8 @@ const generateRandomProjectName = (): string => {
             projectStep={projectLoadStatus}
           />
           <Toolbar
-            onSelectTemplate={() => setIsTemplateSelectorOpen(true)}
-            onDropInScreenshots={() => {
-              setDialogView('quickstart');
-              setIsTemplateSelectorOpen(true);
-            }}
+            onSelectTemplate={() => openStartDialog()}
+            onDropInScreenshots={() => openStartDialog('quickstart')}
             onPreview={() => openPreview('single')}
             onPreviewStore={() => openPreview('store')}
             onPreviewCompare={() => openPreview('compare')}

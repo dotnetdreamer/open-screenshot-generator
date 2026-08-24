@@ -462,10 +462,11 @@ export function QuickStartScreen({
           }}
         />
 
-        {/* Intake. Sticky, because the strip is the control surface for the deck
-            below it: scrolling the results should never take the reorder, the
-            device readout or the Add tile off screen. */}
-        <section className="sticky top-0 z-20 space-y-3 bg-background pb-2 pt-1">
+        {/* Intake. In normal flow, NOT sticky: once the shots are in, the deck
+            below is what the user is reading, and pinning the drop zone and the
+            strip to the top ate the room the designs need. Scrolling up takes
+            the whole intake off screen; scrolling back down returns it. */}
+        <section className="space-y-3 pb-2 pt-1">
           <IntakeDropZone
             active={active}
             onFiles={(files) => void addFiles(files)}
@@ -529,11 +530,8 @@ export function QuickStartScreen({
           )}
         </section>
 
-        {/* The store import, in normal flow and DELIBERATELY not inside the
-            sticky section above. A position:sticky block cannot scroll its own
-            overflow: anything taller than the viewport just hangs below the
-            fold with no way to reach it, which stranded this panel's own
-            buttons the moment a listing was expanded. */}
+        {/* The store import, kept a sibling of the intake rather than a child
+            of it, so its own height is never bounded by that section. */}
         {storeOpen && (
           <StoreImportPanel
             onClose={() => setStoreOpen(false)}
