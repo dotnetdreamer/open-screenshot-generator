@@ -49,6 +49,30 @@ const TOUCH_HANDLE_PX = 34;
 const DOUBLE_TAP_MS = 320;
 const DOUBLE_TAP_SLOP_PX = 24;
 
+/**
+ * Dispatched on the element wrapper when a plain click or tap lands on an
+ * element that was ALREADY selected, which is the gesture that opens an inline
+ * editor. Only the renderers that have one listen, TextElement today.
+ *
+ * A DOM event rather than a prop because the editor's state belongs to the
+ * child that owns it: routing this through the artboard would mean a second
+ * copy of "which element is being edited" for every board to keep in step.
+ */
+export const QUICK_EDIT_EVENT = 'osg:quick-edit';
+
+/**
+ * True for a press that landed inside this element's own inline editor.
+ *
+ * Such a press is a caret placement or a text selection, never a drag: the
+ * move interaction's preventDefault() would otherwise swallow it and leave the
+ * caret stuck wherever focus first put it.
+ */
+const isInsideInlineEditor = (target: HTMLElement | null) =>
+  // Not [contenteditable="true"]: the text box asks for "plaintext-only", and
+  // an engine that does not know that value reports something else again. Any
+  // value but "false" means editable.
+  !!target?.closest('textarea, input, [contenteditable]:not([contenteditable="false"])');
+
 type HandleType = 'tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r' | 'rotate';
 
 // Update the constant for the display scale factor
@@ -167,6 +191,14 @@ export function DraggableElement({
   });
   // When and where the previous tap landed, for the double-tap replay below.
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  /**
+   * Whether this press landed on an element that was already selected.
+   *
+   * Read at pointerdown, never at pointerup: selecting re-renders, so by the
+   * time the release is handled `isSelected` is true either way, and the very
+   * first click, the one that only means "select this", would open the editor.
+   */
+  const pressOnSelectedRef = useRef(false);
   // Set when a press started on the delete handle, so releasing over it deletes
   // but a press that began elsewhere and drifted onto it does not.
   const deletePressRef = useRef<number | null>(null);
@@ -312,6 +344,31 @@ export function DraggableElement({
         clientY: e.clientY,
       })
     );
+  };
+
+  /**
+   * A plain click or tap on an element that was already selected opens its
+   * inline editor, so retitling a headline is click, click, type rather than a
+   * double-click nobody finds or a trip to the Properties panel.
+   *
+   * The press has to have STARTED on a selected element. Editing on the first
+   * click too would leave no way to pick a text box up, and no way to select
+   * one and press Delete: the keystroke would land in the editor instead.
+   */
+  const handleTapForQuickEdit = (e: React.PointerEvent) => {
+    if (e.button !== 0) return; // right and middle release open other things
+    if (!pressOnSelectedRef.current) return; // that click only meant "select this"
+    if (dragArmedRef.current) return; // that was a drag, not a tap
+    // Modifiers belong to the selection and duplicate gestures, never to editing.
+    if (e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.closest('[data-interaction-handle]')) return;
+    if (isInsideInlineEditor(target)) return; // already editing, this placed a caret
+    // Dispatched on the wrapper, not on `target`: a move interaction turns off
+    // pointer events on the artwork inside, so the release commonly lands on
+    // the wrapper itself and an event fired there would never bubble DOWN to
+    // the renderer that listens. Renderers subscribe to the wrapper instead.
+    elementRef.current?.dispatchEvent(new CustomEvent(QUICK_EDIT_EVENT));
   };
 
   useEffect(() => {
@@ -609,7 +666,12 @@ export function DraggableElement({
       }}
       onPointerDown={(e) => {
         if (!(e.target as HTMLElement).closest('[data-interaction-handle]')) {
+          // A press in this element's own inline editor belongs to the editor.
+          // It still reaches the artboard, which leaves the selection alone for
+          // anything inside a [data-element-id], so nothing more is needed here.
+          if (isInsideInlineEditor(e.target as HTMLElement)) return;
           e.stopPropagation(); // Prevent event from bubbling to artboard
+          pressOnSelectedRef.current = isSelected;
           if (isSelected) {
             handleInteractionStart(e, 'move');
           } else {
@@ -619,7 +681,9 @@ export function DraggableElement({
       }}
       onPointerUp={(e) => {
         handleTapForDoubleTap(e);
+        handleTapForQuickEdit(e);
         dragArmedRef.current = false;
+        pressOnSelectedRef.current = false;
       }}
       data-element-id={element.id}
       className="group" 
