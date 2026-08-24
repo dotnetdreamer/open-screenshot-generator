@@ -1,6 +1,6 @@
 {
   "name": "open-screenshot-generator",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "private": true,
   "license": "MIT",
   "scripts": {
