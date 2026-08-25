@@ -129,6 +129,8 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
       { id: 'social-story', label: 'Story / Reel / TikTok', width: 1080, height: 1920, aspectLabel: '9:16', note: '9:16 full-screen vertical (IG/FB Stories, Reels, TikTok, Shorts).' },
       { id: 'social-og', label: 'Link Preview (Open Graph)', width: 1200, height: 630, aspectLabel: '1.91:1', note: 'Shared-link / Open Graph preview image for Facebook, LinkedIn, etc.' },
       { id: 'youtube-thumb', label: 'YouTube Thumbnail', width: 1280, height: 720, aspectLabel: '16:9', note: '16:9 video thumbnail; also a handy 720p export size.' },
+      { id: 'x-banner', label: 'X Header', width: 1500, height: 500, aspectLabel: '3:1', note: 'X (Twitter) profile header. The bottom edge sits behind the avatar, so keep copy high.' },
+      { id: 'linkedin-banner', label: 'LinkedIn Banner', width: 1584, height: 396, aspectLabel: '4:1', note: 'LinkedIn personal profile cover. A company page cover is 1128×191.' },
     ],
   },
   {

@@ -112,6 +112,8 @@ import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
 import { QuickStartPromoCard } from './start/quickstart/QuickStartPromoCard';
 import { QuickStartScreen } from './start/quickstart/QuickStartScreen';
+import { GraphicsPromoCard } from './start/graphics/GraphicsPromoCard';
+import { GraphicsStartScreen } from './start/graphics/GraphicsStartScreen';
 import { DialogDropLayer } from './start/quickstart/DialogDropLayer';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
@@ -730,12 +732,21 @@ export function OpenScreenshotGeneratorLayout() {
   // Which screen of the start dialog is showing. The template gallery is the
   // dialog, as it always was; the agent is a screen you step into from the
   // banner above it. Reset on open so reopening never lands mid-agent-flow.
-  const [dialogView, setDialogView] = useState<'templates' | 'agent' | 'quickstart'>('templates');
+  const [dialogView, setDialogView] = useState<'templates' | 'agent' | 'quickstart' | 'graphics'>(
+    'templates'
+  );
   // Latches once the quick start has been opened, so it can stay mounted behind
   // the other views without being built for every session that never uses it.
   const [quickstartOpened, setQuickstartOpened] = useState(false);
   useEffect(() => {
     if (dialogView === 'quickstart') setQuickstartOpened(true);
+  }, [dialogView]);
+  // The same latch for the graphics screen, and for the same reason: it holds
+  // the uploaded set, the app name and the colour, so stepping over to the
+  // template gallery and back must not empty it.
+  const [graphicsOpened, setGraphicsOpened] = useState(false);
+  useEffect(() => {
+    if (dialogView === 'graphics') setGraphicsOpened(true);
   }, [dialogView]);
   // Where the agent screen was opened from, so its Back button returns there
   // instead of always dumping the user on the template gallery. Arriving from
@@ -750,13 +761,20 @@ export function OpenScreenshotGeneratorLayout() {
    * it from the toolbar used to land mid-flow — on the quick start screen, say,
    * with Back the only way out — instead of at the start it was asked for.
    */
-  const openStartDialog = useCallback((view: 'templates' | 'quickstart' = 'templates') => {
+  const openStartDialog = useCallback((view: 'templates' | 'quickstart' | 'graphics' = 'templates') => {
     setDialogView(view);
     setAgentReturnView('templates');
     setIsTemplateSelectorOpen(true);
   }, []);
-  // Files dropped anywhere in the start dialog, handed to the quick start.
-  const [pendingIntakeFiles, setPendingIntakeFiles] = useState<{ files: File[]; token: number } | null>(null);
+  // Files dropped anywhere in the start dialog, handed to one intake screen.
+  //
+  // `target` matters: both intake screens stay mounted once opened, and each
+  // drains a batch it has not seen by token. Without a target, a drop meant for
+  // the graphics screen would also land in the screenshot deck, and whichever
+  // effect ran first would clear the batch out from under the other.
+  const [pendingIntakeFiles, setPendingIntakeFiles] = useState<
+    { files: File[]; token: number; target: 'quickstart' | 'graphics' } | null
+  >(null);
   // Screenshots handed from the quick start to the AI agent, so switching to it
   // does not throw the upload away. The token re-seeds the agent's own state.
   const [agentHandoff, setAgentHandoff] = useState<{ shots: UploadedScreenshot[]; token: number } | null>(null);
@@ -5753,11 +5771,15 @@ const generateRandomProjectName = (): string => {
             <DialogDropLayer
               active={dialogView !== 'agent'}
               onFiles={(files) => {
-                setPendingIntakeFiles({ files, token: Date.now() });
-                setDialogView('quickstart');
+                // Stay on the graphics screen if that is where the drop landed;
+                // bouncing to the screenshot deck would throw away the format
+                // and colour the user had already chosen.
+                const target = dialogView === 'graphics' ? 'graphics' : 'quickstart';
+                setPendingIntakeFiles({ files, token: Date.now(), target });
+                if (target === 'quickstart') setDialogView('quickstart');
               }}
             >
-            {dialogView === 'agent' || dialogView === 'quickstart' ? (
+            {dialogView === 'agent' || dialogView === 'quickstart' || dialogView === 'graphics' ? (
               <DialogHeader>
                 <div className="flex items-start gap-2">
                   <Button
@@ -5773,12 +5795,18 @@ const generateRandomProjectName = (): string => {
                   </Button>
                   <div className="min-w-0 flex-1 text-left">
                     <DialogTitle>
-                      {dialogView === 'agent' ? 'Design with the AI agent' : 'Start from your screenshots'}
+                      {dialogView === 'agent'
+                        ? 'Design with the AI agent'
+                        : dialogView === 'graphics'
+                          ? 'Social graphics from your screenshots'
+                          : 'Start from your screenshots'}
                     </DialogTitle>
                     <DialogDescription>
                       {dialogView === 'agent'
                         ? 'Upload your screenshots, say what you want, and let the agent build the project.'
-                        : 'Drop them in and every design that fits shows your own screens. Pick one to open it.'}
+                        : dialogView === 'graphics'
+                          ? 'Pick a size and every style is drawn at it, with your own screens inside. Open one to edit it.'
+                          : 'Drop them in and every design that fits shows your own screens. Pick one to open it.'}
                     </DialogDescription>
                   </div>
                 </div>
@@ -5831,7 +5859,7 @@ const generateRandomProjectName = (): string => {
                   templates={availableProjects}
                   isLoadingTemplates={isLoadingProjects}
                   onCreateProject={(project, options) => handleSelectTemplate(project, options)}
-                  pendingFiles={pendingIntakeFiles}
+                  pendingFiles={pendingIntakeFiles?.target === 'quickstart' ? pendingIntakeFiles : null}
                   onPendingFilesConsumed={() => setPendingIntakeFiles(null)}
                   onHandOffToAgent={(shots) => {
                     // Carry the upload across. Switching to the agent used to
@@ -5841,6 +5869,29 @@ const generateRandomProjectName = (): string => {
                     setDialogView('agent');
                   }}
                   onBrowseAll={() => setDialogView('templates')}
+                />
+              </div>
+            )}
+
+            {/* Kept mounted once opened, and hidden rather than unmounted, for
+                the same reason the quick start above it is: the uploaded set,
+                the app name, the colour and the chosen format all live in its
+                own state. A native overflow container, never a Radix
+                ScrollArea, which cannot resolve its height under flex-1 inside
+                a max-h dialog and silently stops scrolling. */}
+            {graphicsOpened && (
+              <div
+                className={
+                  dialogView === 'graphics'
+                    ? 'min-h-0 flex-1 overflow-y-auto px-1 pb-1'
+                    : 'hidden'
+                }
+              >
+                <GraphicsStartScreen
+                  active={dialogView === 'graphics'}
+                  onCreateProject={(project, options) => handleSelectTemplate(project, options)}
+                  pendingFiles={pendingIntakeFiles?.target === 'graphics' ? pendingIntakeFiles : null}
+                  onPendingFilesConsumed={() => setPendingIntakeFiles(null)}
                 />
               </div>
             )}
@@ -6003,10 +6054,12 @@ const generateRandomProjectName = (): string => {
                   <p className="text-sm text-muted-foreground">No recent projects found.</p>
                 )}
               </div>
-              {/* Three entry points, fastest first: your own screenshots into a
-                  finished design, the AI agent, then an empty canvas. */}
-              <div className="grid min-h-[20vh] grid-rows-3 gap-2">
+              {/* Four entry points, fastest first: your own screenshots into a
+                  finished store design, the same screenshots into social
+                  graphics, the AI agent, then an empty canvas. */}
+              <div className="grid min-h-[20vh] grid-rows-4 gap-2">
                 <QuickStartPromoCard onStart={() => setDialogView('quickstart')} />
+                <GraphicsPromoCard onStart={() => setDialogView('graphics')} />
                 <AgentPromoBanner
                   onStartAgent={() => {
                     setAgentReturnView('templates');
@@ -7173,6 +7226,7 @@ const generateRandomProjectName = (): string => {
           <Toolbar
             onSelectTemplate={() => openStartDialog()}
             onDropInScreenshots={() => openStartDialog('quickstart')}
+            onMakeGraphics={() => openStartDialog('graphics')}
             onPreview={() => openPreview('single')}
             onPreviewStore={() => openPreview('store')}
             onPreviewCompare={() => openPreview('compare')}

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   DownloadIcon,
   ImagePlus as ImagePlusIcon,
+  Shapes as ShapesIcon,
   LayoutTemplateIcon,
   FileJsonIcon,
   FolderOpenIcon,
@@ -54,6 +55,8 @@ interface ToolbarProps {
    * prop can be added without touching any other caller.
    */
   onDropInScreenshots?: () => void;
+  /** Open the start dialog straight on the social graphics deck. Optional too. */
+  onMakeGraphics?: () => void;
   onPreview: () => void;
   /** Preview, opened straight into the store listing mockup. */
   onPreviewStore?: () => void;
@@ -138,6 +141,7 @@ interface ToolbarProps {
 export function Toolbar({
   onSelectTemplate,
   onDropInScreenshots,
+  onMakeGraphics,
   onPreview,
   onPreviewStore,
   onPreviewCompare,
@@ -232,6 +236,19 @@ export function Toolbar({
             title="Start from screenshots"
           >
             <ImagePlusIcon className="h-[1.2rem] w-[1.2rem]" />
+          </Button>
+        )}
+        {/* Same argument as the button above it: a link preview or a story is
+            something you want the day you ship, which is well after the start
+            screen is out of reach. */}
+        {onMakeGraphics && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onMakeGraphics}
+            title="Make social graphics"
+          >
+            <ShapesIcon className="h-[1.2rem] w-[1.2rem]" />
           </Button>
         )}
       </div>

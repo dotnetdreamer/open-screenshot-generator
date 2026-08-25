@@ -22,6 +22,16 @@ import { readScreenshotFile } from '@/lib/ai/imageUtils';
 import type { ShotAnalysis } from './screenshotAnalysis';
 import type { PersistedShot } from './intakeAssets';
 
+/**
+ * One key, shared by every one-click flow, on purpose.
+ *
+ * Both the screenshot deck and the graphics deck call `rememberIntake`, so the
+ * later one wins. That is the behaviour we want rather than an accident to be
+ * namespaced away: it is the same app and the same screenshots, and somebody
+ * who drops five shots to make store screenshots and then switches over to make
+ * a link preview should be offered that set back, not an empty drop zone.
+ * The app name rides along for the same reason.
+ */
 const MANIFEST_KEY = 'osg.intake.lastSet.v1';
 
 interface ManifestEntry {
