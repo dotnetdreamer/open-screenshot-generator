@@ -7,8 +7,10 @@
 // Deliberate limits, matching what the canvas renders:
 // - Screen recordings composite into FLAT device frames only. 3D / perspective
 //   devices export as static sprites (their screenshot, or an empty screen).
-// - Output is video-only (no audio track). App Store previews are watched
-//   muted ~98% of the time and Apple accepts silent previews.
+// - Output carries a SILENT AAC track. The picture is what matters (previews
+//   are watched muted almost always), but App Store Connect rejects a preview
+//   with no audio track at all: "Your app preview contains unsupported or
+//   corrupted audio." So we mux 48kHz stereo silence alongside the video.
 
 import { captureNodeToPng } from '@/lib/exportRaster';
 import { resolveFontEmbedCss } from '@/lib/fontEmbed';
@@ -151,6 +153,88 @@ async function loadPosterImage(posterSrc: string): Promise<HTMLImageElement | nu
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Silent audio track.
+//
+// Apple's spec asks for AAC, and App Store Connect treats a MISSING audio track
+// as a broken one ("unsupported or corrupted audio"), so every export carries
+// 48kHz stereo silence. AAC-LC is 'mp4a.40.2'; 1024 frames is its native
+// packet size, so encoding in 1024-frame chunks avoids any resampling.
+
+const AUDIO_SAMPLE_RATE = 48000;
+const AUDIO_CHANNELS = 2;
+const AUDIO_FRAMES_PER_CHUNK = 1024;
+
+interface SilentAudioTrack {
+  encodeInto(muxer: Muxer<ArrayBufferTarget>): Promise<void>;
+}
+
+/**
+ * A silent AAC track `seconds` long, or null when this browser cannot encode
+ * one. Never throws: a missing track is worth far less than a failed export,
+ * and the caller simply muxes video only.
+ */
+async function createSilentAudioTrack(seconds: number): Promise<SilentAudioTrack | null> {
+  if (typeof AudioEncoder === 'undefined' || typeof AudioData === 'undefined') return null;
+  const config: AudioEncoderConfig = {
+    codec: 'mp4a.40.2',
+    sampleRate: AUDIO_SAMPLE_RATE,
+    numberOfChannels: AUDIO_CHANNELS,
+    bitrate: 128_000,
+  };
+  try {
+    const support = await AudioEncoder.isConfigSupported(config);
+    if (!support.supported) return null;
+  } catch {
+    return null;
+  }
+
+  return {
+    async encodeInto(muxer) {
+      let failed = false;
+      const encoder = new AudioEncoder({
+        output: (chunk, meta) => {
+          if (!failed) muxer.addAudioChunk(chunk, meta);
+        },
+        error: () => {
+          // A dead audio encoder must not take the video down with it.
+          failed = true;
+        },
+      });
+      try {
+        encoder.configure(config);
+        const total = Math.ceil(seconds * AUDIO_SAMPLE_RATE);
+        // One reused buffer of zeros: AudioData copies it on construction.
+        const silence = new Float32Array(AUDIO_FRAMES_PER_CHUNK * AUDIO_CHANNELS);
+        for (let frame = 0; frame < total && !failed; frame += AUDIO_FRAMES_PER_CHUNK) {
+          const count = Math.min(AUDIO_FRAMES_PER_CHUNK, total - frame);
+          const data = new AudioData({
+            format: 'f32-planar',
+            sampleRate: AUDIO_SAMPLE_RATE,
+            numberOfFrames: count,
+            numberOfChannels: AUDIO_CHANNELS,
+            timestamp: Math.round((frame / AUDIO_SAMPLE_RATE) * 1_000_000),
+            data: count === AUDIO_FRAMES_PER_CHUNK
+              ? silence
+              : new Float32Array(count * AUDIO_CHANNELS),
+          });
+          encoder.encode(data);
+          data.close();
+        }
+        if (!failed) await encoder.flush();
+      } catch {
+        failed = true;
+      } finally {
+        try {
+          if (encoder.state !== 'closed') encoder.close();
+        } catch {
+          // already closed
+        }
+      }
+    },
+  };
 }
 
 /** Draw a padded sprite so its element box lands exactly on (0, 0, w, h). */
@@ -673,9 +757,17 @@ export async function exportArtboardVideo(
 
   // ---- Encoder + muxer ----
   const config = await pickEncoderConfig(outW, outH, fps, bitrate);
+  // App Store Connect refuses a preview with no audio track, so the file gets
+  // one made of silence. Everything about it is best-effort: if this browser
+  // has no AudioEncoder (older WebViews), the export still produces a valid
+  // video-only MP4 rather than failing.
+  const audio = await createSilentAudioTrack(durationSeconds);
   const muxer = new Muxer({
     target: new ArrayBufferTarget(),
     video: { codec: 'avc', width: outW, height: outH },
+    ...(audio
+      ? { audio: { codec: 'aac', numberOfChannels: AUDIO_CHANNELS, sampleRate: AUDIO_SAMPLE_RATE } }
+      : {}),
     fastStart: 'in-memory',
     firstTimestampBehavior: 'offset',
   });
@@ -687,6 +779,10 @@ export async function exportArtboardVideo(
     },
   });
   encoder.configure(config);
+
+  // Encode the silence up front: it is a few hundred KB and keeps the frame
+  // loop below untouched.
+  const audioDone = audio ? audio.encodeInto(muxer) : Promise.resolve();
 
   const canvas = document.createElement('canvas');
   canvas.width = outW;
@@ -798,6 +894,7 @@ export async function exportArtboardVideo(
 
     await encoder.flush();
     if (encoderError) throw encoderError;
+    await audioDone;
     muxer.finalize();
   } finally {
     try {
