@@ -546,6 +546,50 @@ Rules for anyone touching this:
 - Keep `main`'s `backgroundColor` in sync with `--background` in
   `src/app/globals.css`.
 
+## Linux AppImage and WebKitGTK
+
+The AppImage bundles the WebKitGTK it was built against. That build is pinned to
+`ubuntu-22.04` (see `.github/workflows/desktop.yml`) so the binary links the
+oldest glibc we support, which also means the bundled WebKit is a 2022 one.
+
+On distros whose Mesa has moved past it, that WebKit cannot create an EGL
+display. Both of its helper processes abort with
+
+```
+Could not create default EGL display: EGL_BAD_PARAMETER. Aborting...
+```
+
+the main process survives, and the splash fallback timer then reveals a main
+window that never painted. That is issue #25: a white window with a working
+native menu bar and nothing under it. None of the usual workarounds apply.
+`WEBKIT_DISABLE_DMABUF_RENDERER=1` and `WEBKIT_DISABLE_COMPOSITING_MODE=1` were
+both measured against it and neither changes anything, because the failure is in
+EGL display creation and happens before any renderer is chosen.
+
+So `scripts/patch-appimage.sh` injects `src-tauri/appimage/osg-host-webkit.sh`
+into the AppImage's `AppRun` after Tauri has bundled it. The hook checks whether
+the host has a complete WebKitGTK 4.1 stack of its own and, if so, runs against
+that instead. `LD_LIBRARY_PATH` is searched before the binary's
+`RUNPATH` (`$ORIGIN/../lib`), so pointing it at the system library directories is
+enough to win without patching the ELF. A host missing any one of the five
+libraries the check names is rejected outright, because a half-host stack is
+worse than either whole one.
+
+`OSG_APPIMAGE_STACK` overrides the probe: `bundled` always uses the copy inside
+the AppImage, `host` always uses the system one.
+
+Two things worth knowing if you touch this:
+
+- The patch has to run after `tauri-action`, since linuxdeploy writes `AppRun`
+  itself and leaves no earlier hook point. That is also why the workflow
+  re-uploads the AppImage with `--clobber`.
+- The hook holds `GDK_BACKEND=x11` on the host path too, matching what
+  linuxdeploy's GTK hook does for the bundled path. That keeps the change to one
+  variable, which WebKit runs, rather than also changing the display protocol.
+
+To reproduce the original failure without an affected machine, run the AppImage
+in an `archlinux` container under Xvfb with `OSG_APPIMAGE_STACK=bundled`.
+
 ## Desktop-specific behavior notes
 
 - File saves: WKWebView on macOS ignores `<a download>`, so all export paths

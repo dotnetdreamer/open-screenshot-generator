@@ -255,6 +255,8 @@ jobs:
             - **macOS:** Gatekeeper says the app cannot be verified -> right-click the app -> Open -> Open.
             - **Linux:** `chmod +x` the AppImage before running it.
 
+            The Linux AppImage runs against your system WebKitGTK when you have one installed, which is what keeps it working on rolling releases such as Arch and Fedora. Without one it falls back to the copy inside the AppImage. Set `OSG_APPIMAGE_STACK=bundled` to force that copy, or `=host` to require the system one.
+
             Projects are stored locally in the app. Nothing is uploaded anywhere.
           args: ${{ matrix.args }}
 
@@ -314,6 +316,40 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload 'v${{ needs.version.outputs.version }}' 'Open.Screenshot.Generator_${{ needs.version.outputs.version }}_x64_portable.zip' --clobber
+
+      # The AppImage carries the WebKitGTK it was built against, and that build
+      # is pinned to ubuntu-22.04 so the binary keeps the oldest glibc we
+      # support. On distros whose Mesa has moved on that WebKit cannot create an
+      # EGL display, and the app comes up as a white window (issue #25). The
+      # hook injected here prefers the host's WebKitGTK whenever there is a
+      # complete one, and falls back to the bundle otherwise. It runs after
+      # tauri-action because linuxdeploy writes AppRun itself, leaving no
+      # earlier hook point.
+      - name: Prefer the host WebKitGTK in the AppImage
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          # Runners have no FUSE, so appimagetool cannot mount itself to run.
+          APPIMAGE_EXTRACT_AND_RUN: 1
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/appimagetool" \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x "$RUNNER_TEMP/appimagetool"
+          appimage="$(find src-tauri/target -path '*/release/bundle/appimage/*.AppImage' | head -n1)"
+          if [ -z "$appimage" ]; then
+            echo "No AppImage found under src-tauri/target" >&2
+            find src-tauri/target -name '*.AppImage' >&2 || true
+            exit 1
+          fi
+          PATH="$RUNNER_TEMP:$PATH" bash scripts/patch-appimage.sh "$appimage"
+          echo "APPIMAGE_PATH=$appimage" >> "$GITHUB_ENV"
+
+      # tauri-action uploaded the unpatched AppImage from this same job a step
+      # ago, so this replaces it rather than adding to it.
+      - name: Replace the released AppImage with the patched one
+        if: matrix.platform == 'ubuntu-22.04' && !inputs.dry_run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload 'v${{ needs.version.outputs.version }}' "$APPIMAGE_PATH" --clobber
 
       # tauri-action only uploads to a GitHub release, so a dry run would
       # otherwise leave nothing to inspect. The .app is skipped on purpose:

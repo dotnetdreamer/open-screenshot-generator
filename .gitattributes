@@ -2,3 +2,8 @@
 # rebuilt byte-for-byte in the browser to derive its VERIFICATION-TOKEN. Let
 # core.autocrlf rewrite it and the working copy stops matching what is served.
 public/data/ai/catalog.txt text eol=lf
+
+# Shell scripts run on the Linux CI runner and inside the AppImage. core.autocrlf
+# hands a Windows checkout CRLF, and bash refuses a script whose shebang ends
+# in \r, so pin them the same way.
+*.sh text eol=lf
