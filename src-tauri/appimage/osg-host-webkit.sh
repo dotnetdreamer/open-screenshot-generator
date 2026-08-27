@@ -10,8 +10,8 @@
 #   Could not create default EGL display: EGL_BAD_PARAMETER. Aborting...
 #
 # the main process survives, and splash.rs's fallback timer then reveals a main
-# window that never painted. That is the white screen of issue #25. None of the
-# usual WEBKIT_DISABLE_DMABUF_RENDERER / WEBKIT_DISABLE_COMPOSITING_MODE
+# window that never painted. That is the white screen of issues #25 and #28.
+# None of the usual WEBKIT_DISABLE_DMABUF_RENDERER / WEBKIT_DISABLE_COMPOSITING_MODE
 # workarounds help, because the failure is in EGL display creation itself and
 # happens before any renderer choice is made.
 #
@@ -30,6 +30,35 @@ osg_host_lib_dirs() {
         [ -d "$dir" ] && dirs="${dirs:+$dirs:}$dir"
     done
     printf '%s' "$dirs"
+}
+
+# Where the host WebKit will look for WebKitWebProcess and WebKitNetworkProcess.
+#
+# That path is fixed when WebKit is compiled and distros do not agree on it:
+# Debian and Arch keep it beside the library, Fedora and openSUSE put it under
+# libexec, Nix puts it in the store. Guessing it wrong is not harmless - the
+# first version of this hook only looked beside the library, so it rejected
+# every Fedora host and left them on the bundled WebKit, which is issue #28.
+# WEBKIT_EXEC_PATH would settle it but current WebKitGTK no longer reads it, so
+# read the compiled-in path out of the library instead and only fall back to
+# guessing when that turns up nothing.
+osg_webkit_helper_dir() {
+    local lib="$1" libdir candidate
+    libdir="$(dirname "$lib")"
+
+    for candidate in \
+        $(grep -aoE '/[[:alnum:]_./+-]*/webkit2gtk-4\.1' "$lib" 2>/dev/null | sort -u) \
+        "$libdir/webkit2gtk-4.1" \
+        "$(dirname "$libdir")/libexec/webkit2gtk-4.1" \
+        /usr/libexec/webkit2gtk-4.1
+    do
+        if [ -x "$candidate/WebKitNetworkProcess" ] && [ -x "$candidate/WebKitWebProcess" ]; then
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 # True when every library of the web stack resolves to a host copy. The binary
@@ -55,11 +84,10 @@ osg_host_stack_usable() {
         esac
     done
 
-    # WebKit spawns its helper processes out of a directory next to the library
-    # it loaded. If a host packaged them somewhere else we would only find out
-    # as a failure to spawn, so confirm they are where WebKit will look.
+    # A host library with no helper processes to spawn would only fail once the
+    # window was already up, so rule it out now.
     resolved="$(printf '%s\n' "$out" | sed -n 's|.*[[:space:]]libwebkit2gtk-4.1.so.0 => \([^ ]*\).*|\1|p' | head -n1)"
-    [ -x "$(dirname "$resolved")/webkit2gtk-4.1/WebKitNetworkProcess" ] || return 1
+    osg_webkit_helper_dir "$resolved" >/dev/null || return 1
 
     return 0
 }

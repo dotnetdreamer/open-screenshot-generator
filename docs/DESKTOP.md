@@ -560,7 +560,7 @@ Could not create default EGL display: EGL_BAD_PARAMETER. Aborting...
 ```
 
 the main process survives, and the splash fallback timer then reveals a main
-window that never painted. That is issue #25: a white window with a working
+window that never painted. That is issues #25 and #28: a white window with a working
 native menu bar and nothing under it. None of the usual workarounds apply.
 `WEBKIT_DISABLE_DMABUF_RENDERER=1` and `WEBKIT_DISABLE_COMPOSITING_MODE=1` were
 both measured against it and neither changes anything, because the failure is in
@@ -574,6 +574,19 @@ that instead. `LD_LIBRARY_PATH` is searched before the binary's
 enough to win without patching the ELF. A host missing any one of the five
 libraries the check names is rejected outright, because a half-host stack is
 worse than either whole one.
+
+Finding the host's WebKit helper processes is the part that needs care, and
+getting it wrong is what issue #28 was. `WebKitWebProcess` and
+`WebKitNetworkProcess` live at a path fixed when WebKit is compiled, and distros
+disagree: Debian and Arch keep it beside the library
+(`/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1`, `/usr/lib/webkit2gtk-4.1`), Fedora
+and openSUSE put it under `/usr/libexec/webkit2gtk-4.1`, Nix puts it in the
+store. The first version of the hook only looked beside the library, so it
+rejected every Fedora host and quietly left it on the bundled WebKit, which is
+the same white window the hook exists to prevent. `WEBKIT_EXEC_PATH` would
+settle it, but current WebKitGTK no longer reads it. So the hook greps the
+compiled-in path out of the library itself and only falls back to guessing when
+that turns up nothing.
 
 `OSG_APPIMAGE_STACK` overrides the probe: `bundled` always uses the copy inside
 the AppImage, `host` always uses the system one.
