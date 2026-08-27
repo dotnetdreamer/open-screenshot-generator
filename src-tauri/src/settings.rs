@@ -32,6 +32,22 @@ const MENU_ID_DEVTOOLS: &str = "abs-settings-devtools";
 const MENU_ID_RELOAD_WINDOW: &str = "abs-settings-reload-window";
 const MENU_ID_ABOUT: &str = "abs-help-about";
 
+// muda's GTK backend implements only Separator, Copy, Cut, Paste, SelectAll and
+// About, and silently drops every other predefined item. A File or Window menu
+// built from close_window/quit/minimize/maximize therefore comes up completely
+// empty on Linux, which is what issue #28's reporter hit: the submenu opens as a
+// blank box. These ids back ordinary menu items that stand in for them there.
+// macOS and Windows keep the predefined items, which carry the platform's own
+// labels, accelerators and semantics.
+#[cfg(target_os = "linux")]
+const MENU_ID_CLOSE_WINDOW: &str = "abs-window-close";
+#[cfg(target_os = "linux")]
+const MENU_ID_QUIT: &str = "abs-file-quit";
+#[cfg(target_os = "linux")]
+const MENU_ID_MINIMIZE: &str = "abs-window-minimize";
+#[cfg(target_os = "linux")]
+const MENU_ID_MAXIMIZE: &str = "abs-window-maximize";
+
 /// `#[serde(default)]` keeps old settings files readable as fields get added.
 #[derive(Clone, Serialize, Deserialize, Default)]
 #[serde(default, rename_all = "camelCase")]
@@ -102,6 +118,21 @@ fn update<R: Runtime>(app: &AppHandle<R>, apply: impl FnOnce(&mut AppSettings)) 
     };
     save(app, &snapshot);
     let _ = app.emit(SETTINGS_EVENT_CHANNEL, &snapshot);
+}
+
+/// The window a window-scoped menu action applies to: the focused one, falling
+/// back to `main`.
+///
+/// The FOCUSED window, not `main`. On macOS this menu is app-wide, so with a
+/// detached panel window in front Cmd+R would otherwise reload the editor
+/// behind it and throw away the canvas nobody asked to reset. A panel window is
+/// safe to reload: it holds no state, and it re-handshakes with the editor on
+/// the way back up. Closing and minimising want the same answer.
+fn action_window<R: Runtime>(app: &AppHandle<R>) -> Option<tauri::WebviewWindow<R>> {
+    app.webview_windows()
+        .into_values()
+        .find(|window| window.is_focused().unwrap_or(false))
+        .or_else(|| app.get_webview_window("main"))
 }
 
 /// Build the menu bar (platform defaults plus our Settings submenu) and start
@@ -176,9 +207,28 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     }
 
     let file_menu = {
-        let file = SubmenuBuilder::new(app, "File").close_window();
-        #[cfg(not(target_os = "macos"))]
-        let file = file.quit();
+        #[cfg(target_os = "linux")]
+        let file = SubmenuBuilder::new(app, "File")
+            .item(
+                &MenuItemBuilder::with_id(MENU_ID_CLOSE_WINDOW, "Close Window")
+                    .accelerator("CmdOrCtrl+W")
+                    .build(app)?,
+            )
+            .separator()
+            .item(
+                &MenuItemBuilder::with_id(MENU_ID_QUIT, "Quit")
+                    .accelerator("CmdOrCtrl+Q")
+                    .build(app)?,
+            );
+
+        #[cfg(not(target_os = "linux"))]
+        let file = {
+            let file = SubmenuBuilder::new(app, "File").close_window();
+            #[cfg(not(target_os = "macos"))]
+            let file = file.quit();
+            file
+        };
+
         file.build()?
     };
 
@@ -195,10 +245,25 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let view_menu = SubmenuBuilder::new(app, "View").fullscreen().build()?;
 
     let window_menu = {
-        let window = SubmenuBuilder::new(app, "Window").minimize().maximize();
-        #[cfg(target_os = "macos")]
-        let window = window.separator();
-        window.close_window().build()?
+        #[cfg(target_os = "linux")]
+        let window = SubmenuBuilder::new(app, "Window")
+            .item(&MenuItemBuilder::with_id(MENU_ID_MINIMIZE, "Minimize").build(app)?)
+            .item(&MenuItemBuilder::with_id(MENU_ID_MAXIMIZE, "Maximize").build(app)?)
+            .separator()
+            .item(
+                &MenuItemBuilder::with_id(MENU_ID_CLOSE_WINDOW, "Close Window")
+                    .build(app)?,
+            );
+
+        #[cfg(not(target_os = "linux"))]
+        let window = {
+            let window = SubmenuBuilder::new(app, "Window").minimize().maximize();
+            #[cfg(target_os = "macos")]
+            let window = window.separator();
+            window.close_window()
+        };
+
+        window.build()?
     };
 
     let about_item = MenuItemBuilder::with_id(MENU_ID_ABOUT, "About Open Screenshot Generator").build(app)?;
@@ -244,22 +309,33 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
             // Not a setting, just an action: reload the app webview in place,
             // like a browser refresh. The splash handshake is reload-safe
             // (reveal() is idempotent), so nothing else needs to happen.
-            //
-            // The FOCUSED window, not `main`. On macOS this menu is app-wide,
-            // so with a detached panel window in front Cmd+R would otherwise
-            // reload the editor behind it and throw away the canvas nobody
-            // asked to reset. A panel window is safe to reload: it holds no
-            // state, and it re-handshakes with the editor on the way back up.
             MENU_ID_RELOAD_WINDOW => {
-                let target = app
-                    .webview_windows()
-                    .into_values()
-                    .find(|window| window.is_focused().unwrap_or(false))
-                    .or_else(|| app.get_webview_window("main"));
-                if let Some(window) = target {
+                if let Some(window) = action_window(app) {
                     let _ = window.reload();
                 }
             }
+            // Linux stand-ins for the predefined items muda's GTK backend drops
+            // on the floor. Same target rule as Reload window above.
+            #[cfg(target_os = "linux")]
+            MENU_ID_CLOSE_WINDOW => {
+                if let Some(window) = action_window(app) {
+                    let _ = window.close();
+                }
+            }
+            #[cfg(target_os = "linux")]
+            MENU_ID_MINIMIZE => {
+                if let Some(window) = action_window(app) {
+                    let _ = window.minimize();
+                }
+            }
+            #[cfg(target_os = "linux")]
+            MENU_ID_MAXIMIZE => {
+                if let Some(window) = action_window(app) {
+                    let _ = window.maximize();
+                }
+            }
+            #[cfg(target_os = "linux")]
+            MENU_ID_QUIT => app.exit(0),
             // The dialog lives in the frontend; just ask it to open.
             MENU_ID_ABOUT => {
                 let _ = app.emit_to("main", ABOUT_EVENT_CHANNEL, ());
