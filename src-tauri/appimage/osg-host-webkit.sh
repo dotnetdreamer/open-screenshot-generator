@@ -95,11 +95,21 @@ osg_host_stack_usable() {
 osg_run_on_host_stack() {
     local dirs="$1" bin="$2"
 
-    # The bundle's module caches describe the bundled GTK, so none of them apply
-    # to the host one. linuxdeploy's GTK hook has not run yet, but a nested
-    # launch or a user environment can still have set them.
+    # The bundle's module caches and data prefixes all point into the AppDir and
+    # describe the bundled GTK, so none of them apply to the host one.
+    #
+    # GTK_THEME is deliberately NOT in this list. It names a theme, not a bundled
+    # path, and the host GTK understands it perfectly well. Clearing it was a bug:
+    # it threw away both linuxdeploy's choice and any APPIMAGE_GTK_THEME the user
+    # set, so the menu bar always fell back to Adwaita light.
     unset GTK_PATH GTK_EXE_PREFIX GTK_DATA_PREFIX GTK_IM_MODULE_FILE \
-          GDK_PIXBUF_MODULE_FILE GIO_EXTRA_MODULES GSETTINGS_SCHEMA_DIR GTK_THEME
+          GDK_PIXBUF_MODULE_FILE GIO_EXTRA_MODULES GSETTINGS_SCHEMA_DIR
+
+    # XDG_DATA_DIRS still leads with $APPDIR/usr/share, which would have the host
+    # GTK read the bundle's Ubuntu 22.04 gsettings schemas and icon theme.
+    XDG_DATA_DIRS="$(printf '%s' "${XDG_DATA_DIRS:-}" | tr ':' '\n' \
+        | grep -v "^${APPDIR:-$this_dir}" | paste -sd: -)"
+    export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 
     # LD_LIBRARY_PATH is searched before the binary's RUNPATH, which is how the
     # host copies win over the bundled ones without patching the ELF.
@@ -112,6 +122,28 @@ osg_run_on_host_stack() {
     export GDK_BACKEND="${GDK_BACKEND:-x11}"
 
     exec "$bin" "$@"
+}
+
+# linuxdeploy decides dark-vs-light by grepping the `gtk-theme` key for "dark".
+# Modern GNOME leaves that at "Adwaita" and signals dark through `color-scheme`
+# instead, so the check never fires and a dark desktop still gets Adwaita:light:
+# GTK then draws near-white menu labels on a light bar.
+#
+# Its APPIMAGE_GTK_THEME cannot be used to detect a user preference, because the
+# hook assigns that variable itself whether or not the user set it. What it does
+# tell us is that GTK_THEME now holds linuxdeploy's own computed value, and
+# "Adwaita:light" is exactly what its broken check produces. Correct only that
+# exact value, so anyone who pinned a theme of their own keeps it - including
+# plain "Adwaita", which stays light on a dark desktop.
+osg_apply_dark_preference() {
+    [ "${GTK_THEME:-}" = "Adwaita:light" ] || return 0
+    command -v gsettings >/dev/null 2>&1 || return 0
+    case "$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null)" in
+        *prefer-dark*)
+            export GTK_THEME="Adwaita:dark"
+            export APPIMAGE_GTK_THEME="Adwaita:dark"
+            ;;
+    esac
 }
 
 osg_select_stack() {
@@ -134,4 +166,5 @@ osg_select_stack() {
     return 0
 }
 
+osg_apply_dark_preference
 osg_select_stack "$this_dir" "$@"

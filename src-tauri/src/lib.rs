@@ -61,6 +61,21 @@ pub fn run() {
             // Settings first: it manages the state the other modules read.
             settings::register(app.handle())?;
             splash::register(app.handle());
+            // The window backgroundColor in tauri.conf.json is there so Windows
+            // has something other than black to show before the webview paints.
+            // On Linux it also sits behind the GTK menu bar, which draws no
+            // background of its own, so a hardcoded light grey stayed put while
+            // a dark GTK theme rendered its labels in near-white on top of it:
+            // an unreadable menu bar in GNOME dark mode. Clearing it hands the
+            // bar back to GTK. Safe to do here because `main` is still hidden
+            // behind the splash and has painted nothing yet.
+            #[cfg(target_os = "linux")]
+            {
+                use tauri::Manager as _;
+                if let Some(main) = app.get_webview_window("main") {
+                    let _ = main.set_background_color(None);
+                }
+            }
             // Put the editor back on the display it was closed on, while it is
             // still hidden behind the splash, and make sure its detached panel
             // windows never outlive it.
