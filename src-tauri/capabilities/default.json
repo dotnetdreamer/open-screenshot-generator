@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the main window: save/open dialogs, writing exported files, opening external links in the system browser, calling the free AI providers (Pollinations cloud, plus Ollama / LM Studio on localhost) without CORS limits, reaching Google Drive / GitHub for the optional 'save to your own storage' account feature, reaching App Store Connect / Google Play for the direct-to-store screenshot upload, and opening and placing the detached panel windows (Properties, Layers, History, Versions) on whichever display the user picks. allow-destroy is what lets this window close AT ALL: Tauri prevents the native close whenever a window has a JS close-requested listener (this one has, for the final project save), and the API's own onCloseRequested calls destroy() to finish the job.",
+  "description": "Capability for the main window: save/open dialogs, writing exported files, opening external links in the system browser, calling the free AI providers (Pollinations cloud, plus Ollama / LM Studio on localhost) without CORS limits, reaching whatever OpenAI-compatible endpoint the user typed into the AI agent, reaching Google Drive / GitHub for the optional 'save to your own storage' account feature, reaching App Store Connect / Google Play for the direct-to-store screenshot upload, and opening and placing the detached panel windows (Properties, Layers, History, Versions) on whichever display the user picks. allow-destroy is what lets this window close AT ALL: Tauri prevents the native close whenever a window has a JS close-requested listener (this one has, for the final project save), and the API's own onCloseRequested calls destroy() to finish the job. The named hosts below are documentation, not the boundary: 'https://*' is there because the AI agent lets the user name any OpenAI-compatible endpoint, and the host of one is unknowable when this file is written. Plain http stays limited to this machine, so nothing new leaves it in cleartext.",
   "windows": ["main"],
   "permissions": [
     "core:default",
@@ -32,7 +32,9 @@
         { "url": "https://gist.githubusercontent.com/*" },
         { "url": "https://api.appstoreconnect.apple.com/*" },
         { "url": "https://*.apple.com/*" },
-        { "url": "https://androidpublisher.googleapis.com/*" }
+        { "url": "https://androidpublisher.googleapis.com/*" },
+        { "url": "https://*" },
+        { "url": "https://*/*" }
       ]
     }
   ]

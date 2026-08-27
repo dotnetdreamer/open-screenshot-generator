@@ -238,6 +238,31 @@ tab; browser users use the extension/manual relay or the API-key mode
 Adding a provider is one registry entry in `freeProviders.ts` plus, for a new
 cloud host, a scope entry in `capabilities/default.json`.
 
+## Any OpenAI-compatible endpoint, with your own key
+
+The "Use my API key" tab ends with **OpenAI compatible**, where the endpoint is
+yours to name: a MiniMax, DeepSeek, Groq, Together, Mistral, xAI, Moonshot,
+Z.ai or Qwen subscription, a gateway such as the Vercel AI Gateway, or a vLLM
+or LiteLLM server on this machine. `COMPATIBLE_PRESETS` in
+`src/lib/ai/providers.ts` only fills the URL in for you; anything else works by
+pasting its base URL, and "Load" asks the endpoint itself what models it serves.
+
+This is a desktop-first feature for the same reason the store upload is: the
+calls go through `tauri-plugin-http` (`src/lib/ai/httpBridge.ts`) rather than the
+webview, so CORS never enters into it and a `127.0.0.1` server is reachable.
+
+That is also why `capabilities/default.json` allows `https://*` in the
+`http:default` scope. The host of a user-named endpoint cannot be listed ahead of
+time, and the named hosts in that file are documentation rather than the boundary.
+Plain http stays limited to `localhost` and `127.0.0.1`, so nothing new leaves the
+machine in cleartext. A host the scope does refuse is retried through the webview,
+which then only succeeds if that host allows direct calls from a web page.
+
+A key belongs to an endpoint, not to the provider slot: custom-endpoint keys are
+stored per host in `AiSettings.compatibleKeys`, and the panel swaps the field
+whenever the endpoint changes, so a key pasted for one service is never sent to
+the next one the user tries.
+
 ## Use-my-account mode via an embedded browser (desktop only)
 
 The AI agent's "Free, use my account" tab lets the user run on the Claude,

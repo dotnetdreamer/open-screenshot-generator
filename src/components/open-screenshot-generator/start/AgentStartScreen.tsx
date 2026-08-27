@@ -41,7 +41,7 @@ import {
 } from '@/lib/ai/promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from '@/lib/ai/templateCatalog';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
-import { AI_PROVIDERS, type AiProviderId } from '@/lib/ai/providers';
+import { describeEndpoint } from '@/lib/ai/providers';
 import { WEB_PROVIDERS, type WebProviderId } from '@/lib/ai/webAdapters';
 import {
   BridgeError,
@@ -59,7 +59,7 @@ import {
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
 import { isTauri } from '@/lib/desktop';
 import { useToast } from '@/hooks/use-toast';
-import { ApiKeyModePanel } from './ApiKeyModePanel';
+import { ApiKeyModePanel, type ApiKeyRunArgs } from './ApiKeyModePanel';
 import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
 import { RunHistoryDialog } from './RunHistoryDialog';
@@ -297,7 +297,7 @@ export function AgentStartScreen({
   );
 
   const runApiMode = useCallback(
-    async (args: { provider: AiProviderId; model: string; apiKey: string }) => {
+    async (args: ApiKeyRunArgs) => {
       const controller = new AbortController();
       abortRef.current = controller;
       setBusy(true);
@@ -308,7 +308,7 @@ export function AgentStartScreen({
       const recorder = new OperationRecorder({
         mode: 'api',
         provider: args.provider,
-        providerLabel: AI_PROVIDERS[args.provider].label,
+        providerLabel: describeEndpoint(args.provider, args.baseUrl),
         model: args.model,
         instruction,
         screenshotCount: screenshots.length,
@@ -316,7 +316,16 @@ export function AgentStartScreen({
       let status: OperationStatus = 'error';
       try {
         recorder.message('app-to-provider', 'Request sent', {
-          detail: `provider: ${args.provider}\nmodel: ${args.model}\nscreenshots: ${screenshots.length}\n\n${instruction}`,
+          detail: [
+            `provider: ${args.provider}`,
+            args.baseUrl ? `endpoint: ${args.baseUrl}` : null,
+            `model: ${args.model}`,
+            `screenshots: ${screenshots.length}`,
+            '',
+            instruction,
+          ]
+            .filter((line): line is string => line !== null)
+            .join('\n'),
         });
         const plan = await generatePlan({
           ...args,
@@ -670,6 +679,7 @@ export function AgentStartScreen({
             <ApiKeyModePanel
               busy={busy}
               disabled={screenshots.length === 0 && !instruction.trim()}
+              screenshotCount={screenshots.length}
               onGenerate={(args) => void runApiMode(args)}
               onCancel={cancel}
             />

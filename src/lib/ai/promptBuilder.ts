@@ -87,6 +87,19 @@ const PLAN_SHAPE = `{
   }
 }`;
 
+/**
+ * The plan shape spelled out for a model with no schema channel. Used by the
+ * relay prompts, and by API mode when the endpoint turned out to reject the
+ * JSON Schema the SDK sends (see the text fallback in generatePlan.ts).
+ */
+export function buildJsonReplyInstruction(): string {
+  return `Reply with ONE json code block and nothing else, matching exactly this shape (the comments are for you, do not include them):
+
+\`\`\`json
+${PLAN_SHAPE}
+\`\`\``;
+}
+
 export function buildRelayPrompt(
   catalogText: string,
   instruction: string,
@@ -115,11 +128,7 @@ For a brand new design you may only use:
 
 ${RULES}
 
-Reply with ONE json code block and nothing else, matching exactly this shape (the comments are for you, do not include them):
-
-\`\`\`json
-${PLAN_SHAPE}
-\`\`\``;
+${buildJsonReplyInstruction()}`;
 }
 
 /**

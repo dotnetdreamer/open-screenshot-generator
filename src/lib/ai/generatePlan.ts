@@ -1,4 +1,4 @@
-import { APICallError, NoObjectGeneratedError, generateObject } from 'ai';
+import { APICallError, NoObjectGeneratedError, generateObject, generateText } from 'ai';
 import type { Project } from '@/types/artboard';
 import {
   AgentPlanObjectSchema,
@@ -13,9 +13,16 @@ import {
   type AliasMap,
 } from './aliasCatalog';
 import type { UploadedScreenshot } from './imageUtils';
-import { buildSystemPrompt, buildUserPrompt } from './promptBuilder';
+import { extractJsonCandidates } from './jsonExtract';
+import { buildJsonReplyInstruction, buildSystemPrompt, buildUserPrompt } from './promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from './templateCatalog';
-import { createModel, type AiProviderId } from './providers';
+import {
+  createModel,
+  normalizeBaseUrl,
+  readReplyMode,
+  rememberReplyMode,
+  type AiProviderId,
+} from './providers';
 
 export type AgentErrorKind =
   | 'auth'
@@ -23,6 +30,7 @@ export type AgentErrorKind =
   | 'network'
   | 'invalid-output'
   | 'bad-request'
+  | 'not-found'
   | 'unknown';
 
 export class AgentError extends Error {
@@ -38,10 +46,34 @@ export interface GeneratePlanArgs {
   provider: AiProviderId;
   model: string;
   apiKey: string;
+  /**
+   * The endpoint the user named, when they named one. Empty for a provider
+   * running on its own default host.
+   */
+  baseUrl?: string;
   instruction: string;
   screenshots: UploadedScreenshot[];
   templates: Project[];
   signal?: AbortSignal;
+}
+
+type PlanOutcome = { plan: AgentPlan; issues: null } | { plan: null; issues: string };
+
+/**
+ * Aliases are resolved even on the no-alias fallback below: resolveAliases also
+ * fills in the nullable fields a provider left out, and losing a whole plan
+ * over a key the model had nothing to say about is not worth the strictness.
+ */
+function validatePlan(raw: unknown, aliasMap: AliasMap | null): PlanOutcome {
+  const parsed = AgentPlanSchema.safeParse(resolveAliases(raw, aliasMap ?? EMPTY_ALIAS_MAP));
+  if (parsed.success) return { plan: parsed.data, issues: null };
+  return { plan: null, issues: formatPlanIssues(parsed.error, 2).join('; ') };
+}
+
+function invalidOutputMessage(issues: string | null): string {
+  return issues
+    ? `The model returned a plan we could not use (${issues}). Try again, or switch to a stronger model.`
+    : 'The model replied with something that was not a valid design plan. Try again, or switch to a stronger model.';
 }
 
 export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
@@ -60,41 +92,104 @@ export async function generatePlan(args: GeneratePlanArgs): Promise<AgentPlan> {
     catalog = serializeCatalog(buildTemplateCatalog(args.templates));
   }
 
-  let raw: unknown;
+  const endpoint = normalizeBaseUrl(args.baseUrl);
+  const model = createModel({
+    provider: args.provider,
+    model: args.model,
+    apiKey: args.apiKey,
+    baseUrl: endpoint,
+  });
+  // Only an endpoint the user named is an unknown quantity. The four hosts we
+  // ship against all honour the schema, so a failure there is a real failure
+  // and asking again in prose would hide it rather than fix it.
+  const mayFallBack = endpoint.length > 0;
+
+  const system = buildSystemPrompt(catalog);
+  const images = args.screenshots.map((shot) => ({ type: 'image' as const, image: shot.aiDataUrl }));
+  const userText = buildUserPrompt(args.instruction, args.screenshots.length);
+
+  let issues: string | null = null;
+  // Only a rejection of the schema itself is worth remembering. A 502 or a
+  // model that simply wrote a bad plan says nothing about what this endpoint
+  // supports, and pinning it to the weaker path over one bad day is worse
+  // than paying for one more probe next time.
+  let schemaRejected = false;
+
+  if (!mayFallBack || readReplyMode(endpoint, args.model) !== 'text') {
+    try {
+      const result = await generateObject({
+        model,
+        // The plain object schema goes to the provider; the refined schema in
+        // validatePlan enforces the cross-field rules JSON Schema cannot.
+        schema: AgentPlanObjectSchema,
+        abortSignal: args.signal,
+        // The system turn goes in `instructions`, never in `messages`: the SDK
+        // rejects a system message inside `messages` before it sends anything.
+        instructions: system,
+        messages: [{ role: 'user', content: [{ type: 'text', text: userText }, ...images] }],
+      });
+      const outcome = validatePlan(result.object, aliasMap);
+      if (outcome.plan) {
+        if (mayFallBack) rememberReplyMode(endpoint, args.model, 'schema');
+        return outcome.plan;
+      }
+      issues = outcome.issues;
+      if (!mayFallBack) throw new AgentError('invalid-output', invalidOutputMessage(issues));
+    } catch (error) {
+      const failure = error instanceof AgentError ? error : toAgentError(error);
+      if (!mayFallBack || !worthRetryingAsText(failure, args.signal)) throw failure;
+      schemaRejected = failure.kind === 'bad-request';
+    }
+  }
+
+  // Text fallback: the same contract the relay and free-provider modes use,
+  // spelled out in the prompt instead of in a schema, with the reply mined for
+  // JSON afterwards. Nothing about the plan changes, only how it was asked for.
+  let reply: string;
   try {
-    const result = await generateObject({
-      model: createModel(args.provider, args.model, args.apiKey),
-      // The plain object schema goes to the provider; the refined schema below
-      // enforces the cross-field rules the JSON Schema cannot express.
-      schema: AgentPlanObjectSchema,
+    const result = await generateText({
+      model,
       abortSignal: args.signal,
+      instructions: system,
       messages: [
-        { role: 'system', content: buildSystemPrompt(catalog) },
         {
           role: 'user',
           content: [
-            { type: 'text', text: buildUserPrompt(args.instruction, args.screenshots.length) },
-            ...args.screenshots.map((shot) => ({ type: 'image' as const, image: shot.aiDataUrl })),
+            { type: 'text', text: `${userText}\n\n${buildJsonReplyInstruction()}` },
+            ...images,
           ],
         },
       ],
     });
-    raw = result.object;
+    reply = result.text;
   } catch (error) {
     throw toAgentError(error);
   }
 
-  // Always resolved, even on the no-alias fallback above: resolveAliases also
-  // fills in the nullable fields a provider left out, and losing a whole plan
-  // over a key the model had nothing to say about is not worth the strictness.
-  const parsed = AgentPlanSchema.safeParse(resolveAliases(raw, aliasMap ?? EMPTY_ALIAS_MAP));
-  if (!parsed.success) {
-    throw new AgentError(
-      'invalid-output',
-      `The model returned a plan we could not use (${formatPlanIssues(parsed.error, 2).join('; ')}). Try again, or switch to a stronger model.`
-    );
+  // Chatty models lead with an example object and reasoning models emit an
+  // empty skeleton first, so every candidate gets a turn and the first one
+  // that validates wins.
+  for (const candidate of extractJsonCandidates(reply)) {
+    const outcome = validatePlan(candidate, aliasMap);
+    if (outcome.plan) {
+      if (schemaRejected) rememberReplyMode(endpoint, args.model, 'text');
+      return outcome.plan;
+    }
+    issues = issues ?? outcome.issues;
   }
-  return parsed.data;
+  throw new AgentError('invalid-output', invalidOutputMessage(issues));
+}
+
+/**
+ * Is this failure the endpoint saying "not like that" rather than "no"? A
+ * rejected key, a rate limit or a dead network say nothing about the reply
+ * format, so asking again would only burn another request.
+ */
+function worthRetryingAsText(failure: AgentError, signal: AbortSignal | undefined): boolean {
+  if (signal?.aborted) return false;
+  return (
+    failure.kind === 'bad-request' || failure.kind === 'invalid-output' || failure.kind === 'unknown'
+  );
 }
 
 function toAgentError(error: unknown): AgentError {
@@ -115,13 +210,19 @@ function toAgentError(error: unknown): AgentError {
         'That API key was rejected. Check the key and make sure it matches the provider you picked.'
       );
     }
+    if (status === 404) {
+      return new AgentError(
+        'not-found',
+        'The endpoint answered 404. Check the base URL (it ends where /chat/completions would start) and the model id.'
+      );
+    }
     if (status === 429) {
       return new AgentError(
         'rate-limit',
         'The provider rate limited this key. Wait a moment and try again.'
       );
     }
-    if (status === 400) {
+    if (status === 400 || status === 422) {
       return new AgentError('bad-request', error.message || 'The provider rejected the request.');
     }
     if (!status) {

@@ -153,10 +153,14 @@ prompt when its fetch fails.
 | [src/lib/ai/promptBuilder.ts](../src/lib/ai/promptBuilder.ts) | All prompt variants: full relay, compact (budgeted), URL mode, API system prompt |
 | [scripts/gen-ai-catalog.mjs](../scripts/gen-ai-catalog.mjs) | Writes `public/data/ai/catalog.txt` at build time; must mirror `projectService.loadProjectTemplates` exactly |
 | [src/components/open-screenshot-generator/start/AgentStartScreen.tsx](../src/components/open-screenshot-generator/start/AgentStartScreen.tsx) | Chooses the strategy per run: URL first, inline fallback, budgets |
-| [src/lib/ai/generatePlan.ts](../src/lib/ai/generatePlan.ts) | API key mode; inline compact catalog + alias resolution |
+| [src/lib/ai/generatePlan.ts](../src/lib/ai/generatePlan.ts) | API key mode; inline compact catalog + alias resolution, plus the text fallback for endpoints that reject a JSON Schema |
+| [src/lib/ai/providers.ts](../src/lib/ai/providers.ts) | The four named providers, plus any OpenAI-compatible endpoint the user names: presets, URL normalization, `<base>/models` discovery |
+| [src/lib/ai/httpBridge.ts](../src/lib/ai/httpBridge.ts) | The fetch that is not subject to CORS (`tauri-plugin-http` on desktop), shared by the free providers and every custom endpoint |
 
 ## Troubleshooting
 
+- **A custom endpoint returns 400 on the first run, then works**: that is by design. The first request offers a JSON Schema; an endpoint that rejects it is retried as a plain text turn and the verdict is cached in `localStorage` under `agent-endpoint-json:<baseUrl>|<model>` for 7 days. Delete that key, or use Settings > clear stored keys, to make it probe again.
+- **A custom endpoint fails with a network error on desktop**: check that `src-tauri/capabilities/default.json` still allows `https://*` in the `http:default` scope. Without it the Tauri bridge refuses the host and the retry through the webview hits CORS. Plain http is only allowed for `localhost` and `127.0.0.1`.
 - **"The message you submitted was too long"**: that provider needs an entry (or a lower
   number) in `PROMPT_BUDGETS`.
 - **Provider keeps using the inline prompt**: open the devtools console. The preflight

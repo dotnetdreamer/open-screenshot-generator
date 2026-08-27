@@ -18,8 +18,8 @@
  * offers free mode on desktop.
  */
 
-import { isTauri } from '@/lib/desktop';
 import { readWithLegacyFallback } from '@/lib/legacyStorage';
+import { combineSignal, resolveBridgeFetch } from './httpBridge';
 
 export type FreeProviderId = 'pollinations' | 'ollama' | 'lmstudio';
 
@@ -97,40 +97,6 @@ export class FreeProviderError extends Error {
 
 // --- transport --------------------------------------------------------------
 
-/**
- * The Tauri HTTP bridge ignores CORS, which localhost runtimes need (they do
- * not send CORS headers for our origin). Dynamic import keeps the plugin out
- * of the web bundle, mirroring src/lib/desktop.ts.
- */
-async function bridgeFetch(): Promise<typeof fetch> {
-  if (isTauri()) {
-    const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
-    return tauriFetch as typeof fetch;
-  }
-  return window.fetch.bind(window);
-}
-
-/** AbortSignal.any is too new for every WebView; combine signal + timeout by hand. */
-function combineSignal(
-  signal: AbortSignal | undefined,
-  timeoutMs: number
-): { signal: AbortSignal; dispose: () => void } {
-  const controller = new AbortController();
-  const onAbort = () => controller.abort(signal?.reason);
-  const timer = setTimeout(() => controller.abort(new DOMException('Timed out', 'TimeoutError')), timeoutMs);
-  if (signal) {
-    if (signal.aborted) onAbort();
-    else signal.addEventListener('abort', onAbort);
-  }
-  return {
-    signal: controller.signal,
-    dispose: () => {
-      clearTimeout(timer);
-      signal?.removeEventListener('abort', onAbort);
-    },
-  };
-}
-
 function notRunningMessage(info: FreeProviderInfo): string {
   return info.kind === 'local'
     ? `${info.label.replace(/ \(local\)$/, '')} is not running on this machine. Start it, load a model, then press Refresh.`
@@ -140,11 +106,30 @@ function notRunningMessage(info: FreeProviderInfo): string {
 // --- model discovery --------------------------------------------------------
 
 /** Local model names that are known to accept images. Heuristic on purpose. */
-const VISION_NAME_HINT = /llava|vision|vl\b|qwen2\.5vl|qwen3-vl|gemma3|moondream|pixtral|minicpm/i;
+const VISION_NAME_HINT =
+  /llava|vision|vl\b|qwen2\.5vl|qwen3-vl|gemma3|moondream|pixtral|minicpm|internvl|glm-4\.?[0-9]*v|step-1v|gpt-4o|gpt-4\.1|gpt-5|claude|gemini|grok-[2-9]/i;
+
+/**
+ * ...except when the same family name is worn by a model that does something
+ * else entirely. A full endpoint listing is full of these (gpt-4o-transcribe,
+ * gpt-4o-mini-tts), and badging one "sees images" would send it screenshots it
+ * cannot read.
+ */
+const NOT_A_CHAT_MODEL =
+  /transcribe|\btts\b|audio|realtime|whisper|embed|moderation|rerank|\bdall-e|\bimage-|search-preview|guard/i;
+
+/**
+ * Does this model id look like it can read an image? Shared with the
+ * OpenAI-compatible endpoints in providers.ts, whose /models listing is as
+ * anonymous as a local runtime's: the name is all either of them gives us.
+ */
+export function looksLikeVisionModel(modelId: string): boolean {
+  return VISION_NAME_HINT.test(modelId) && !NOT_A_CHAT_MODEL.test(modelId);
+}
 
 function toFreeModel(raw: unknown): FreeModel | null {
   if (typeof raw === 'string') {
-    return { id: raw, label: raw, vision: VISION_NAME_HINT.test(raw) || undefined };
+    return { id: raw, label: raw, vision: looksLikeVisionModel(raw) || undefined };
   }
   if (typeof raw === 'object' && raw !== null) {
     const record = raw as { name?: unknown; id?: unknown; vision?: unknown; description?: unknown };
@@ -153,7 +138,7 @@ function toFreeModel(raw: unknown): FreeModel | null {
     const vision =
       typeof record.vision === 'boolean'
         ? record.vision
-        : VISION_NAME_HINT.test(id) || undefined;
+        : looksLikeVisionModel(id) || undefined;
     const label =
       typeof record.description === 'string' && record.description && record.description !== id
         ? `${id} (${record.description})`
@@ -181,7 +166,7 @@ export async function detectFreeProvider(
   signal?: AbortSignal
 ): Promise<FreeProviderStatus> {
   const info = FREE_PROVIDERS[provider];
-  const doFetch = await bridgeFetch();
+  const doFetch = await resolveBridgeFetch();
   const { signal: combined, dispose } = combineSignal(signal, info.kind === 'local' ? 2_500 : 8_000);
 
   let payload: unknown;
@@ -239,7 +224,7 @@ export interface FreeGenerateArgs {
 /** Send one prompt (plus screenshots) and resolve with the raw reply text. */
 export async function runFreeProvider(args: FreeGenerateArgs): Promise<string> {
   const info = FREE_PROVIDERS[args.provider];
-  const doFetch = await bridgeFetch();
+  const doFetch = await resolveBridgeFetch();
   const { signal, dispose } = combineSignal(args.signal, args.timeoutMs ?? 5 * 60_000);
 
   const content =

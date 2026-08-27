@@ -128,7 +128,7 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 | --- | :---: | :---: |
 | All editor features: artboards, device mockups, 3D poses, templates, store-size PNG export, store listing preview, versions, per language boards, live collaboration | ✅ | ✅ |
 | App preview videos: styled MP4 export, plus store-ready recording conversion (886x1920, 30fps, H.264) | ✅ ¹ | ✅ |
-| AI agent with your own API key (Anthropic, OpenAI, Google) | ✅ | ✅ |
+| AI agent with your own API key (Anthropic, OpenAI, Google, OpenRouter, or any OpenAI-compatible endpoint you point it at) | ✅ ⁶ | ✅ |
 | AI agent on the Claude, ChatGPT or Gemini account you already have (beta: Copilot, DeepSeek, Qwen, Perplexity) | ✅ ² | ✅ |
 | AI agent with free built-in providers (Pollinations, or local Ollama / LM Studio), no key and no account | ➖ | ✅ |
 | MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor | ✅ ⁵ | ✅ |
@@ -144,6 +144,8 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 ⁴ Not a product decision: App Store Connect serves no CORS headers, so no browser tab can call it. The desktop app makes these requests outside the webview. See [docs/STORE-UPLOAD.md](docs/STORE-UPLOAD.md).
 
 ⁵ Same 49 tools either way, and they run in the app either way. The desktop app hosts the server itself on `127.0.0.1`, because a native process can open a socket; a browser tab cannot, so the web build connects out to a small relay that passes messages between your AI client and your tab ([infra/vps/mcp-relay](infra/vps/mcp-relay/README.md), free to run, no database and no account). Set `NEXT_PUBLIC_MCP_RELAY_URL` to switch it on. The one thing only the desktop app can do is write exported PNGs straight into a folder you name.
+
+⁶ The four named providers work in both. A base URL of your own is where they differ: the desktop app makes those calls outside the webview, so an endpoint that serves no CORS headers (most of them) and a server on `localhost` both work. In a browser tab, only an endpoint that allows direct calls from a web page will answer.
 
 ## Running it locally
 
@@ -248,10 +250,17 @@ into a project deterministically. The model only fills slots (which template, wh
 which frame, what the text says, or a constrained new-design spec). It never emits coordinates or
 element trees, so a bad plan produces an odd project rather than a broken canvas.
 
-**Use my API key.** Calls go straight from your browser to Anthropic, OpenAI or Google through the
-Vercel AI SDK ([providers.ts](src/lib/ai/providers.ts)). The app is a static export with no server, so
-there is nowhere else for them to go: your key stays on your machine, and it is only written to
-localStorage if you tick "remember on this device".
+**Use my API key.** Calls go straight from your browser to Anthropic, OpenAI, Google or OpenRouter
+through the Vercel AI SDK ([providers.ts](src/lib/ai/providers.ts)). The app is a static export with
+no server, so there is nowhere else for them to go: your key stays on your machine, and it is only
+written to localStorage if you tick "remember on this device".
+
+The last entry in that picker is **any OpenAI-compatible endpoint**, which is most of the rest of the
+industry: a MiniMax, DeepSeek, Groq, Together, Mistral, xAI, Moonshot, Z.ai or Qwen subscription, a
+gateway, or a server running on your own machine. Pick one of the ready-made services or paste the
+base URL, press Load to see what models it serves, and the run works like any other. The desktop app
+sends those calls through its own HTTP layer rather than the browser, so an endpoint that does not
+allow direct calls from a web page (most of them) still works, and so does one on localhost.
 
 **Free, use my account.** Uses whatever Claude, ChatGPT, Gemini (and beta: Copilot, DeepSeek, Qwen,
 Perplexity) session you are already signed into. In the desktop app this drives the provider in an

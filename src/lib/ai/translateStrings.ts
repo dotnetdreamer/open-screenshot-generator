@@ -20,7 +20,11 @@ import {
   AI_PROVIDERS,
   AI_PROVIDER_IDS,
   createModel,
+  describeEndpoint,
+  isProviderConfigured,
   loadAiSettings,
+  providerApiKey,
+  resolvedBaseUrl,
   type AiProviderId,
 } from './providers';
 import {
@@ -55,7 +59,14 @@ const MAX_CHUNK_CHARS = 2500;
 // --- transport selection -----------------------------------------------------
 
 type Transport =
-  | { kind: 'api'; provider: AiProviderId; model: string; apiKey: string }
+  | {
+      kind: 'api';
+      provider: AiProviderId;
+      model: string;
+      apiKey: string;
+      /** The endpoint the user named, or empty for the provider default. */
+      baseUrl: string;
+    }
   | { kind: 'free'; provider: FreeProviderId; model: string }
   | { kind: 'web'; provider: WebProviderId };
 
@@ -89,18 +100,26 @@ export function setAiTranslateWebProvider(provider: WebProviderId | null): void 
 
 function resolveTransport(): Transport | null {
   const settings = loadAiSettings();
-  // The selected provider first, then any other one that still holds a key, so
+  // The selected provider first, then any other one that is still set up, so
   // a user who switched the picker to try a provider they never keyed does not
-  // lose the path they already set up.
-  const withKey = [settings.provider, ...AI_PROVIDER_IDS].find(
-    (id) => (settings.keys[id] || '').trim().length > 0
+  // lose the path they already had. "Set up" is more than a key for a custom
+  // endpoint: it needs the URL and a model id too, and a local one needs no key.
+  const ready = [settings.provider, ...AI_PROVIDER_IDS].find(
+    (id) =>
+      isProviderConfigured(settings, id) &&
+      // Pasting a key is an explicit act; a keyless local endpoint is not. So a
+      // custom endpoint with no key is only the engine while it is the one the
+      // user has picked, or one experiment with Ollama would quietly own every
+      // translation from then on.
+      (id === settings.provider || providerApiKey(settings, id).length > 0)
   );
-  if (withKey) {
+  if (ready) {
     return {
       kind: 'api',
-      provider: withKey,
-      model: settings.models[withKey] || AI_PROVIDERS[withKey].defaultModel,
-      apiKey: (settings.keys[withKey] || '').trim(),
+      provider: ready,
+      model: settings.models[ready] || AI_PROVIDERS[ready].defaultModel,
+      apiKey: providerApiKey(settings, ready),
+      baseUrl: resolvedBaseUrl(settings, ready),
     };
   }
 
@@ -128,7 +147,9 @@ export function isAiTranslateAvailable(): boolean {
 export function aiTranslateTransportLabel(): string | null {
   const transport = resolveTransport();
   if (!transport) return null;
-  if (transport.kind === 'api') return `${AI_PROVIDERS[transport.provider].label} (${transport.model})`;
+  if (transport.kind === 'api') {
+    return `${describeEndpoint(transport.provider, transport.baseUrl)} (${transport.model})`;
+  }
   if (transport.kind === 'free') return FREE_PROVIDERS[transport.provider].label;
   return WEB_PROVIDERS[transport.provider].label;
 }
@@ -216,8 +237,15 @@ async function runChunk(
 
   if (transport.kind === 'api') {
     const result = await generateText({
-      model: createModel(transport.provider, transport.model, transport.apiKey),
-      system,
+      model: createModel({
+        provider: transport.provider,
+        model: transport.model,
+        apiKey: transport.apiKey,
+        baseUrl: transport.baseUrl,
+      }),
+      // `system` as a message field is rejected by the SDK; this is the
+      // supported channel for it.
+      instructions: system,
       prompt: user,
       abortSignal: request.signal,
     });
