@@ -1,0 +1,93 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    # Both projects run on one runner: they are the same bundle, and the
+    # desktop project is a WebKit page with the Tauri IPC mocked, not a real
+    # Tauri build. Nothing here needs Rust or a desktop session.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # web  = Chromium, what a browser user gets.
+        # desktop = WebKit + the injected Tauri runtime, which is the macOS
+        #           WKWebView shell. WebView2 (Windows) is covered by
+        #           desktop-chromium, run on demand rather than on every push.
+        project: [web, desktop]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Only the engine this shard needs. --with-deps pulls the system
+      # libraries WebKit wants on a bare runner.
+      - name: Install the browser for this project
+        run: |
+          if [ "${{ matrix.project }}" = "desktop" ]; then
+            npx playwright install --with-deps webkit
+          else
+            npx playwright install --with-deps chromium
+          fi
+
+      # The suite starts its own dev server (playwright.config.ts webServer),
+      # and on CI it never reuses an existing one. The app is a static export
+      # with no server of its own, so no backend is needed here: the `hermetic`
+      # fixture aborts every request that leaves the origin, which is what makes
+      # the run independent of the community feed and the translation service.
+      - name: Run the E2E suite
+        run: npx playwright test --project ${{ matrix.project }}
+        env:
+          CI: 'true'
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: |
+            tests/e2e/.report
+            tests/e2e/.artifacts
+          retention-days: 7
+
+  # The static export is what a desktop release actually loads
+  # (tauri.conf.json frontendDist: "../out"), so it is worth proving the suite
+  # passes against the built bundle and not only against Turbopack's dev server.
+  # Manual, because a full `next build` is slow.
+  e2e-static:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run test:e2e:static
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-static
+          path: tests/e2e/.report
+          retention-days: 7
