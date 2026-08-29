@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "open-screenshot-generator": {
+      "command": "npx",
+      "args": ["-y", "open-screenshot-generator@0", "mcp", "--stdio"]
+    }
+  }
+}

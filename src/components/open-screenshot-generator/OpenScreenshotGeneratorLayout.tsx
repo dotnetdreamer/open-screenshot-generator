@@ -79,6 +79,7 @@ import {
 } from '@/lib/mcp/localeTools';
 import type { LocaleOverrideState } from './LayersPanel';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
+import { installHeadlessBridge, type HeadlessHost } from '@/lib/headless/bridge';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
@@ -849,6 +850,25 @@ export function OpenScreenshotGeneratorLayout() {
     pastePoint: Point | null;
   } | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
+
+  // The headless bridge the npm CLI drives (window.__osg). The host object is
+  // rebuilt on every render because it closes over the handlers, so the effect
+  // installs a delegate that always reads the latest one through this ref.
+  // Nothing is installed unless the driver set window.__OSG_HEADLESS before
+  // navigation, so an ordinary browser session never grows a global.
+  const headlessHostRef = useRef<HeadlessHost | null>(null);
+  useEffect(
+    () =>
+      installHeadlessBridge({
+        getMcpApi: () => headlessHostRef.current?.getMcpApi() ?? null,
+        exportImages: (selection) => headlessHostRef.current!.exportImages(selection),
+        exportVideo: (request) => headlessHostRef.current!.exportVideo(request),
+        capture: (ids, formatId, locale) => headlessHostRef.current!.capture(ids, formatId, locale),
+        loadProject: (data, name, id) => headlessHostRef.current!.loadProject(data, name, id),
+        getStatus: () => headlessHostRef.current!.getStatus(),
+      }),
+    []
+  );
 
   // Start the desktop MCP bridge (desktop only): handle requests the Rust
   // transport forwards, and surface the connection URL when the user toggles
@@ -3963,7 +3983,7 @@ export function OpenScreenshotGeneratorLayout() {
           : "Add an artboard first.",
         variant: "destructive",
       });
-      return;
+      return [];
     }
 
     // null means "leave the canvas on whatever language it is showing", which
@@ -3981,7 +4001,7 @@ export function OpenScreenshotGeneratorLayout() {
     const totalFiles = filesPerLocale * localesToExport.length;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
-      if (exportDir === null) return;
+      if (exportDir === null) return [];
     }
 
     // A picked folder gets a subfolder per language (the screenshots/<locale>/
@@ -4153,6 +4173,12 @@ export function OpenScreenshotGeneratorLayout() {
         toast({ title: "Export Cancelled" });
       }
     }
+
+    // The filename manifest, for callers that are not a person watching a
+    // toast. The headless bridge hands this to the CLI so it can wait for
+    // exactly these files to land instead of counting downloads, and so
+    // `osg manifest` can name every file the run produced.
+    return saved;
   };
 
   // --- direct-to-store upload ----------------------------------------------
@@ -4312,13 +4338,13 @@ export function OpenScreenshotGeneratorLayout() {
             : 'Add a screen recording, gesture or animation first.',
         variant: 'destructive',
       });
-      return;
+      return [];
     }
 
     let exportDir: string | null | undefined;
     if (isTauri() && boards.length > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported videos');
-      if (exportDir === null) return;
+      if (exportDir === null) return [];
     }
 
     trackExportVideo({
@@ -4332,6 +4358,9 @@ export function OpenScreenshotGeneratorLayout() {
     videoExportAbortRef.current = abort;
     setIsVideoExporting(true);
     const orderPadWidth = Math.max(2, String(artboards.length).length);
+    // Same manifest contract as handleConfirmExport: the headless bridge needs
+    // the names, not a toast.
+    const saved: { filename: string; path?: string }[] = [];
     try {
       for (const [index, board] of boards.entries()) {
         const size =
@@ -4380,6 +4409,7 @@ export function OpenScreenshotGeneratorLayout() {
           ? await saveBlobToPath(blob, exportDir, filename)
           : await saveBlobToDisk(blob, filename);
         if (savedPath === null) continue; // user cancelled this file's save dialog
+        saved.push(savedPath ? { filename, path: savedPath } : { filename });
         toast({
           title: 'Video Exported',
           description: savedPath ? `Saved to ${savedPath}` : `"${filename}" has been downloaded.`,
@@ -4401,6 +4431,8 @@ export function OpenScreenshotGeneratorLayout() {
       setVideoProgress(null);
       videoExportAbortRef.current = null;
     }
+
+    return saved;
   };
 
   const handleCancelVideoExport = () => {
@@ -7129,6 +7161,39 @@ const generateRandomProjectName = (): string => {
     },
   };
   mcpApiRef.current = mcpApi;
+
+  // Same pattern as mcpApiRef above: assigned during render so the bridge never
+  // answers with a stale closure over a previous render's artboards.
+  headlessHostRef.current = {
+    getMcpApi: () => mcpApiRef.current,
+    exportImages: (selection) =>
+      handleConfirmExport({
+        asIs: selection.asIs,
+        generateFormats: selection.generateFormats,
+        currentArtboardOnly: selection.currentArtboardOnly,
+        locales: selection.locales,
+      }),
+    exportVideo: (request) => handleExportVideo(request as VideoExportRequest),
+    capture: (ids, formatId, locale) => handlePublishCapture(ids, formatId, locale),
+    loadProject: (data, name, id) => loadProjectFromData(data, name, id),
+    getStatus: () => {
+      const boards = artboardsRef.current;
+      return {
+        projectId: activeProjectId,
+        projectName: currentProjectName,
+        artboards: boards.map((board) => ({
+          id: board.id,
+          name: board.name,
+          width: board.size.width,
+          height: board.size.height,
+          elements: board.elements.length,
+        })),
+        locales: getProjectLocales(boards).map((entry) => entry.code),
+        baseLocale: hasLocales(boards) ? getBaseLocale(boards) : null,
+        activeArtboardId,
+      };
+    },
+  };
 
   return (
     <ClipboardProvider>

@@ -1,0 +1,28 @@
+{
+  "name": "open-screenshot-generator",
+  "description": "Store screenshots, app preview videos and the design tools behind them, for coding agents.",
+  "owner": {
+    "name": "Idrees Khan"
+  },
+  "plugins": [
+    {
+      "name": "open-screenshot-generator",
+      "source": "./",
+      "description": "Turn app screenshots into finished App Store and Play Store sets: 101 templates, per device and per locale renders, MP4 previews, store rule checks, and 49 design tools over MCP.",
+      "author": {
+        "name": "Idrees Khan"
+      },
+      "category": "design",
+      "homepage": "https://openscrgen.app",
+      "keywords": [
+        "app-store",
+        "google-play",
+        "screenshots",
+        "app-preview",
+        "design",
+        "localization",
+        "mcp"
+      ]
+    }
+  ]
+}

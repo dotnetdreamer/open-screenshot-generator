@@ -1,6 +1,13 @@
 ---
 name: stock-image-assets
 description: Add properly licensed Adobe Stock photos to the Images palette library (e.g. the Touch hand group) via the Adobe MCP — search free-tier Stock, license through the user's account, remove backgrounds, install as trimmed PNGs, update imageLibrary.ts and the license record. Use when asked to add more stock images/photos to the image library, expand the Touch group, or add a new photographic asset group.
+metadata:
+  # Contributor tooling for this repository, not a skill anyone installs.
+  # `npx skills add` walks .claude/skills as a priority container, so without
+  # this flag every person installing the published skills would be offered
+  # our internal harnesses too, including scripts that shell a hardcoded
+  # Windows Edge path. Set INSTALL_INTERNAL_SKILLS=1 to see them anyway.
+  internal: true
 ---
 
 # Licensed Stock Images for the Images Palette

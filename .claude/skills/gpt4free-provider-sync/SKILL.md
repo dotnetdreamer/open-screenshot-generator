@@ -1,6 +1,13 @@
 ---
 name: gpt4free-provider-sync
 description: Check the latest xtekky/gpt4free releases for provider additions/changes and decide whether Open Screenshot Generator's AI providers need the same. Use when asked to "check gpt4free", "see what providers gpt4free added/changed", sync/compare our providers against gpt4free, or add a new web AI provider. Also holds the full checklist for wiring a new browser (webview) provider end to end.
+metadata:
+  # Contributor tooling for this repository, not a skill anyone installs.
+  # `npx skills add` walks .claude/skills as a priority container, so without
+  # this flag every person installing the published skills would be offered
+  # our internal harnesses too, including scripts that shell a hardcoded
+  # Windows Edge path. Set INSTALL_INTERNAL_SKILLS=1 to see them anyway.
+  internal: true
 ---
 
 # gpt4free provider sync

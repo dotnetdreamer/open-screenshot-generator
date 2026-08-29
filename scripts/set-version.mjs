@@ -1,6 +1,8 @@
 // Sets the app version across every file that carries it, so a release can
-// never ship with the four of them disagreeing (the desktop workflow's release
-// name comes from tauri.conf.json, while the binary metadata comes from Cargo).
+// never ship with the five of them disagreeing (the desktop workflow's release
+// name comes from tauri.conf.json, the binary metadata comes from Cargo, and
+// the npm CLI ships the editor bundle so it must never be a different version
+// from the app it drives).
 //
 //   node scripts/set-version.mjs 1.2.3     set an exact version
 //   node scripts/set-version.mjs patch     bump the last component
@@ -65,6 +67,9 @@ const edits = [
   // Top-level "version" in the JSON files. It is the first such key in both,
   // and neither has a nested one above it.
   ['package.json', /^(\s*"version":\s*")[^"]+(")/m],
+  // The npm CLI. It packs the editor bundle into its own tarball, so a version
+  // that drifted from the app's would ship a CLI driving a different editor.
+  ['cli/package.json', /^(\s*"version":\s*")[^"]+(")/m],
   ['src-tauri/tauri.conf.json', /^(\s*"version":\s*")[^"]+(")/m],
   // Cargo.toml: the [package] version is the first line-initial `version = `.
   // Dependency versions are indented or inline, so they cannot match.

@@ -1,0 +1,61 @@
+{
+  "name": "open-screenshot-generator",
+  "version": "0.1.27",
+  "description": "App Store and Play Store screenshots, preview videos and 49 design tools for coding agents. Drives the real Open Screenshot Generator editor headlessly.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "osg": "dist/cli.js",
+    "open-screenshot-generator": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "files": [
+    "dist/",
+    "editor/",
+    "skills/",
+    "assets.manifest.json",
+    "tools.json",
+    "README.md",
+    "LICENSE",
+    "THIRD-PARTY-ASSETS.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dotnetdreamer/open-screenshot-generator.git",
+    "directory": "cli"
+  },
+  "homepage": "https://openscrgen.app",
+  "bugs": {
+    "url": "https://github.com/dotnetdreamer/open-screenshot-generator/issues"
+  },
+  "keywords": [
+    "app-store",
+    "google-play",
+    "screenshots",
+    "app-preview",
+    "mcp",
+    "mcp-server",
+    "claude-skill",
+    "agent-skills",
+    "ios",
+    "android",
+    "localization",
+    "store-assets"
+  ],
+  "dependencies": {
+    "@puppeteer/browsers": "^2.4.0",
+    "jiti": "^2.6.0",
+    "puppeteer-core": "^24.10.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "pack:editor": "node scripts/pack-editor.mjs",
+    "prepublishOnly": "node scripts/build.mjs && node scripts/pack-editor.mjs"
+  }
+}

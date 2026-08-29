@@ -66,6 +66,7 @@ Before that:
 - 101 bundled templates across App Screenshots, Apple Watch, Mac, App Preview Videos and Google Feature Graphic, to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
 - An MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor with 49 tools while you watch it happen on the canvas
+- A command line: `npx open-screenshot-generator` renders the whole set from a terminal or from CI, and five agent skills teach a coding agent to do it for you without leaving your app's repository
 - Optional account saving to your own Google Drive or GitHub, so projects follow you between machines without us storing anything (see below)
 - Direct upload to App Store Connect and Google Play from the desktop app, using your own developer credentials (see below)
 
@@ -147,6 +148,52 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 
 ⁶ The four named providers work in both. A base URL of your own is where they differ: the desktop app makes those calls outside the webview, so an endpoint that serves no CORS headers (most of them) and a server on `localhost` both work. In a browser tab, only an endpoint that allows direct calls from a web page will answer.
 
+## Command line and coding agents
+
+Everything above is also a command line, so store assets can be built from your app's repository, from
+a script, or from CI, and a coding agent can do the whole thing for you.
+
+```bash
+npx open-screenshot-generator@0 import "My App"   # pull your current listing's screenshots
+npx open-screenshot-generator@0 fill              # rank 101 templates against them and build a project
+npx open-screenshot-generator@0 render            # store ready PNGs at every required size
+npx open-screenshot-generator@0 verify            # audit them against the store's own rules
+```
+
+It is not a second renderer. The package carries the real editor and drives it, so a PNG it writes is
+the PNG the editor writes, down to the 3D device frames and the font fallbacks. Twenty one commands,
+including `design` (the AI agent), `video`, `localize`, `studio`, `upload` and `all`.
+[Full reference](docs/CLI.md).
+
+**Your agent can drive it too.** The same package is an MCP server, so Claude Code, Cursor, VS Code,
+Claude Desktop or anything else that speaks MCP gets all 49 design tools with no desktop app and no
+hosted relay:
+
+```bash
+npx open-screenshot-generator@0 install     # writes the entry into the agent configs it finds
+```
+
+**Agent skills.** Five skills teach an agent the whole job, from choosing a template to reading a store
+rejection: `store-screenshots`, `app-preview-video`, `store-localization`, `editor-tools` and
+`store-compliance`. Three ways to install them:
+
+```bash
+npx skills add dotnetdreamer/open-screenshot-generator     # any of 70+ coding agents
+```
+
+```
+/plugin marketplace add dotnetdreamer/open-screenshot-generator
+/plugin install open-screenshot-generator@open-screenshot-generator
+```
+
+The Claude Code plugin installs the skills and the MCP server together. [What each skill covers](skills/README.md).
+
+You need Node 20.12 or newer and a Chrome, Edge or Chromium. MP4 export needs a **branded** Chrome or
+Edge, because open Chromium builds ship no H.264 encoder; `osg doctor` tells you which you have. The
+npm package is 1.6 MB and carries the editor itself, not the artwork: template artwork is fetched from
+this project's own deployment the first time a template asks for it, and cached per machine. Nothing is
+sent anywhere, and a CLI run reports no analytics.
+
 ## Running it locally
 
 You'll need Node 18.18 or newer (that's Next.js 15's minimum).
@@ -160,7 +207,7 @@ npm run dev
 
 The dev server runs on http://localhost:9002 with Turbopack. When the app opens, pick one of the bundled templates or start blank, and you're in the editor.
 
-Everything works without any further setup. The Discover feed and cloud projects are the parts that need a backend, and both are off unless you point at one — with `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Save to cloud, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
+Everything works without any further setup. The Discover feed and cloud projects are the parts that need a backend, and both are off unless you point at one. With `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Save to cloud, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
 
 ```bash
 cd infra/vps
@@ -304,4 +351,10 @@ Issues and pull requests are welcome. If you're planning something bigger than a
 
 ## License
 
-Open Screenshot Generator is released under the [MIT License](LICENSE).
+The **code** is released under the [MIT License](LICENSE).
+
+The **assets** that ship with it are licensed separately and are not covered by that grant. The
+photographs in the Images palette are Adobe Stock under a standard licence held by this project, which
+does not permit redistributing them on a standalone basis. [THIRD-PARTY-ASSETS.md](THIRD-PARTY-ASSETS.md)
+is the provenance record, and it is why the npm package ships no artwork and fetches it at run time
+instead. Read it before forking, repackaging or mirroring anything under `public/`.

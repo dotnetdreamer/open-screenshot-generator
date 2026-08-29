@@ -1,0 +1,26 @@
+{
+  "name": "open-screenshot-generator",
+  "displayName": "Open Screenshot Generator",
+  "version": "0.1.27",
+  "description": "App Store and Play Store screenshots, preview videos and 49 design tools. Drives the real editor headlessly, so what the agent renders is what the editor renders.",
+  "author": {
+    "name": "Idrees Khan",
+    "url": "https://github.com/dotnetdreamer"
+  },
+  "homepage": "https://openscrgen.app",
+  "repository": "https://github.com/dotnetdreamer/open-screenshot-generator",
+  "license": "MIT",
+  "keywords": [
+    "app-store",
+    "google-play",
+    "screenshots",
+    "app-preview",
+    "design",
+    "localization",
+    "ios",
+    "android",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

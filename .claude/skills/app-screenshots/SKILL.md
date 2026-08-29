@@ -1,6 +1,13 @@
 ---
 name: app-screenshots
 description: Drive Open Screenshot Generator headlessly (puppeteer-core + Edge) to take UI screenshots, add palette elements, upload device screenshots, export artboard PNGs, and regenerate the 3D device thumbnails. Use when asked to visually verify UI changes, capture the palette or canvas, test PNG exports, check rendering quality, or refresh public/elements/device-3d thumbs.
+metadata:
+  # Contributor tooling for this repository, not a skill anyone installs.
+  # `npx skills add` walks .claude/skills as a priority container, so without
+  # this flag every person installing the published skills would be offered
+  # our internal harnesses too, including scripts that shell a hardcoded
+  # Windows Edge path. Set INSTALL_INTERNAL_SKILLS=1 to see them anyway.
+  internal: true
 ---
 
 # App Screenshots & Browser Verification

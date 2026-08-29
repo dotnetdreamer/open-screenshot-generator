@@ -1,0 +1,208 @@
+name: Publish CLI to npm
+
+# Ships cli/ to npm as "open-screenshot-generator", the package that provides
+# the `osg` command and the MCP server behind the Claude Code plugin.
+#
+# The tarball carries a built copy of the editor. cli/scripts/pack-editor.mjs
+# copies the same out/ that GitHub Pages deploys into cli/editor/, which is
+# what lets `osg` drive the real editor with no network and no second renderer
+# in the package. That is why this workflow builds the whole Next app before it
+# ever touches cli/.
+#
+# Two triggers, both deliberate:
+#   release: published   the normal path, so a published GitHub release puts
+#                        the same version on npm without a second decision
+#   workflow_dispatch    a manual retry, for when npm rejected the first
+#                        attempt (expired token, network) and the release
+#                        itself is fine
+#
+# Nothing here bumps a version. scripts/set-version.mjs owns every version in
+# this repo, and this workflow publishes whatever cli/package.json says.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Required by --provenance: npm verifies the publish against a GitHub OIDC
+  # token, so the job has to be able to mint one.
+  id-token: write
+
+# A manual retry racing the release-triggered run would try to publish the same
+# version twice. Queue them instead.
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  # The agent distribution channel: .claude-plugin/ plus the root .mcp.json are
+  # what `/plugin install` reads. Browser-free and quick, so it gates the ten
+  # minute build below rather than running beside it.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Three hand-written manifests that nothing else in CI parses. A trailing
+      # comma in one of them breaks /plugin install for every user and would
+      # otherwise only surface as a bug report.
+      - name: Manifests parse and agree
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const read = (p) => JSON.parse(fs.readFileSync(p, "utf8"));
+            const plugin = read(".claude-plugin/plugin.json");
+            const market = read(".claude-plugin/marketplace.json");
+            read(".mcp.json");
+
+            if (!market.plugins.some((entry) => entry.name === plugin.name)) {
+              throw new Error("marketplace.json has no entry named " + plugin.name);
+            }
+
+            // plugin.json promises this directory, and Claude Code scans
+            // skills/ at the plugin root either way, so a missing one installs
+            // a plugin with no skills in it and reports no error anywhere.
+            if (!fs.existsSync(plugin.skills)) {
+              throw new Error("plugin.json points skills at " + plugin.skills + " which does not exist. Skills live in skills/<name>/SKILL.md at the repo root.");
+            }
+
+            const app = read("package.json").version;
+            if (plugin.version !== app) {
+              // Loud, not blocking: set-version.mjs bumps the four product
+              // files and does not know about plugin.json, so the two drift on
+              // every release until somebody teaches it.
+              console.log("::warning file=.claude-plugin/plugin.json::plugin.json is " + plugin.version + " but package.json is " + app);
+            }
+          '
+
+      # Claude Code loads a SKILL.md at the plugin root as a single-skill
+      # plugin whenever skills/ is absent. Keeping the root clear means a build
+      # that lost skills/ fails the check above instead of quietly installing
+      # as one stray skill.
+      - name: No SKILL.md at the repo root
+        run: |
+          if [ -e SKILL.md ]; then
+            echo "SKILL.md at the repo root collapses the plugin to a single skill. Put skills in skills/<name>/SKILL.md." >&2
+            exit 1
+          fi
+
+      # Not every release of the Claude Code CLI carries this subcommand, and a
+      # missing validator is not a reason to hold a release. When it is there,
+      # warnings count as errors: the community marketplace review runs the
+      # same check with the same flag.
+      - name: claude plugin validate
+        run: |
+          set -uo pipefail
+          if ! npx -y @anthropic-ai/claude-code plugin --help >/dev/null 2>&1; then
+            echo "::notice::claude plugin validate is unavailable here, skipping"
+            exit 0
+          fi
+          npx -y @anthropic-ai/claude-code plugin validate . --strict
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    # A fork has no NPM_TOKEN and no business publishing this name, so the run
+    # is skipped there rather than failing at the last step.
+    if: github.repository == 'dotnetdreamer/open-screenshot-generator'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # registry-url is what writes the .npmrc that reads NODE_AUTH_TOKEN.
+          # Without it the publish step is anonymous and 404s.
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            cli/package-lock.json
+
+      - run: npm ci
+
+      # Builds out/, which pack:editor copies into cli/editor/.
+      #
+      # NEXT_PUBLIC_BASE_PATH must stay UNSET here, exactly as desktop.yml
+      # documents for the same reason: a Pages deploy can serve the editor
+      # under a sub-path, but the packed editor is served from the root of the
+      # local server the CLI runs, so a base path would carry a sub-path into
+      # every asset URL in the bundle and 404 the lot.
+      #
+      # The backend URLs that deploy.yml passes are deliberately absent. The
+      # packed editor runs on the user's machine against one local project, so
+      # Discover, the MCP relay, live editing and cloud save have nothing to
+      # talk to and are better left out of the bundle. Translation is the
+      # exception: `osg localize` goes through the same service the editor
+      # uses, and unset means it silently translates nothing.
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
+          NEXT_PUBLIC_TRANSLATION_FALLBACK_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_FALLBACK_URL }}
+
+      - run: npm ci
+        working-directory: cli
+
+      - run: npm run build
+        working-directory: cli
+
+      # Copies out/ plus the fonts and artwork the templates reference into
+      # cli/editor/, and writes assets.manifest.json. package.json ships both.
+      - run: npm run pack:editor
+        working-directory: cli
+
+      # `templates` is the only command that needs no browser and no editor
+      # session, so it is the one thing a runner with no Chrome can prove.
+      # Reading its output checks three things at once: the build produced a
+      # runnable dist/cli.js, --json really is a clean machine channel with no
+      # human line leaking into stdout, and the template catalog survived
+      # pack:editor. Written to RUNNER_TEMP so nothing lands in the package.
+      - name: Smoke test the built CLI
+        working-directory: cli
+        run: |
+          node dist/cli.js --version
+          node dist/cli.js templates --json > "$RUNNER_TEMP/templates.json"
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const parsed = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/templates.json", "utf8"));
+            const list = Array.isArray(parsed) ? parsed : parsed.templates;
+            if (!Array.isArray(list) || list.length === 0) {
+              throw new Error("osg templates --json listed nothing");
+            }
+            console.log("templates listed: " + list.length);
+          '
+
+      # --provenance needs three things, and all three hold here: a public
+      # repository, a GitHub hosted runner, and id-token: write above. npm
+      # publishes a signed attestation tying the tarball to this run.
+      #
+      # NODE_AUTH_TOKEN has to be an npm *automation* token. A publish token
+      # from an account with 2FA asks for a one time password, which no CI run
+      # can answer, and the failure reads as a generic 401.
+      #
+      # cli/package.json has a prepublishOnly that reruns build and
+      # pack:editor. The explicit steps above are the redundancy on purpose: a
+      # failure shows up as its own red step instead of inside npm publish.
+      #
+      # A 403 here is almost always "this version is already on npm". Bump with
+      # scripts/set-version.mjs and cut a new release rather than retrying.
+      - name: Publish
+        working-directory: cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public
+
+      - name: Summary
+        run: |
+          version=$(node -p "require('./cli/package.json').version")
+          {
+            echo "Published open-screenshot-generator@${version} to npm"
+            echo
+            echo "    npx open-screenshot-generator@${version} doctor"
+          } >> "$GITHUB_STEP_SUMMARY"
