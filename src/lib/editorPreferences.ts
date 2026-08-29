@@ -1,6 +1,6 @@
 "use client";
 
-// The two editor switches that are read from more than one place.
+// The editor switches that are read from more than one place.
 //
 // A preference here has to be readable by a plain module (the cloud auto saver),
 // by a component that renders on every wheel event (CanvasArea), and by the
@@ -21,24 +21,37 @@ import { useCallback, useSyncExternalStore } from 'react';
 export type EditorPreference =
   /** Keep the open project in our cloud without anybody clicking Save. */
   | 'cloudAutoSave'
+  /**
+   * Keep projects already saved to the user's OWN storage up to date there:
+   * their Google Drive folder, their gists. A different destination from
+   * `cloudAutoSave`, with a different default, for the reason in DEFAULTS.
+   */
+  | 'accountAutoSync'
   /** Turn a mouse wheel over the canvas into zoom rather than scroll. */
   | 'wheelZoom';
 
 const KEYS: Record<EditorPreference, string> = {
   cloudAutoSave: 'open-screenshot-generator.cloud-auto-save',
+  accountAutoSync: 'open-screenshot-generator.account-auto-sync',
   wheelZoom: 'open-screenshot-generator.wheel-zoom',
 };
 
 /**
  * What each switch does before anybody has an opinion.
  *
- * Both default ON. Auto save is the whole point of the feature: a copy in the
+ * Cloud auto save is ON, and is the whole point of that feature: a copy in the
  * cloud that only exists once somebody remembers to ask for one is a copy most
  * people never have. Wheel zoom is on because a wheel is the control people
  * reach for to zoom, and a trackpad is never treated as one (see CanvasArea).
+ *
+ * Syncing to the user's own storage is OFF, and the asymmetry is deliberate
+ * rather than cautious. Our cloud is ours to fill; a person's Drive quota,
+ * their bandwidth and their permanent gist commit history are theirs, and
+ * writing to them unattended is a thing to be asked for rather than assumed.
  */
 const DEFAULTS: Record<EditorPreference, boolean> = {
   cloudAutoSave: true,
+  accountAutoSync: false,
   wheelZoom: true,
 };
 

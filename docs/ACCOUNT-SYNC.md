@@ -20,6 +20,65 @@ explains what is missing, and everything else in the app works as before.
 Saving a project that contains recordings to GitHub is refused with a message
 pointing at Drive, rather than silently dropping the video.
 
+## Keeping a project up to date, on its own
+
+Off until you turn it on: **Settings > Your own storage > Keep saved projects up
+to date**. With it on, a project you have already put in your Drive or your
+gists is written again shortly after each round of edits, with no clicking.
+
+The rules it follows are worth knowing, because they are the reason it is safe
+to leave on:
+
+- **It only ever updates.** It will never create a folder or a gist for you.
+  Something is synced only after you saved it there by hand once, or opened it
+  from there, and that is recorded in a local table (`accountLinks`). Open fifty
+  templates with the switch on and nothing at all reaches your account.
+- **It never deletes.** A save you click tidies up files a project has stopped
+  using; an automatic one leaves them alone. That decision is made from what
+  this device currently has, and a browser that has cleared its site data would
+  otherwise take the only copies with it.
+- **It checks before it writes.** Every push first asks the provider where the
+  copy stands, and stops if it has moved since this device last wrote it. It
+  never picks a winner: you get the choice of replacing it, keeping both, or
+  stopping syncing for that project. Neither Drive nor gists offer a
+  conditional write, so this catches the case that actually happens, a second
+  machine that saved hours ago, rather than two saves in the same second.
+- **It stops rather than guessing.** A gist cannot hold a screen recording or an
+  uploaded screenshot, and a project whose files this device has lost cannot be
+  sent whole. Both stop with a message rather than sending something incomplete.
+- **It never signs you out.** If the sign-in expires while the app is idle, the
+  mark next to the project name says so and one click reconnects.
+- **It pauses while you edit together.** During a live session everyone's
+  keystrokes land in your document, and none of those people is the one paying
+  for your Drive quota. Everything accumulated goes up when the session ends.
+
+How often: Drive settles about 8 seconds after you stop typing, never more than
+90 seconds into continuous editing, and never more than once every 20 seconds.
+
+GitHub is slower, and for one specific reason rather than caution: a gist write
+counts against GitHub's limit of 500 content-creating requests an hour, and that
+budget is yours, shared with everything else you do on github.com. Spending it
+on background saves could get your own pushes throttled. So GitHub settles after
+15 seconds and writes at most once a minute, which is about 12 per cent of it.
+Every write is also a permanent commit, so that rate keeps the gist's own
+history readable.
+
+The gap counts from the **last** write, and saving by hand counts as one. So
+right after a manual save the first automatic one waits out that gap: on GitHub
+that is a minute and a half of no requests at all, which is working as intended
+even though it does not look like it. The mark next to the project name is the
+thing to watch: three walking dots mean a push is queued.
+
+Two things to know before switching it on:
+
+- **On the web with Google**, the access token lasts about an hour and renewing
+  it in the background can need a popup a timer has no permission to open. When
+  that happens the mark says reconnect and one click fixes it. The desktop build
+  holds a refresh token and does not have the problem.
+- **While the Google OAuth consent screen is in Testing**, Google issues refresh
+  tokens that expire after 7 days, so desktop syncing will stop every week until
+  the app is published (see Audience, step 5 below).
+
 ## Configuration
 
 The client ids are **public**, safe to commit to a build. No *confidential*
@@ -143,15 +202,19 @@ adding a provider means adding its hosts there.
 
 ```
 src/lib/account/
-  types.ts              CloudProvider interface, session + bundle types
+  types.ts              CloudProvider interface, session + bundle types, errors
   store.ts              the signed-in session (localStorage) + useAccount()
   transport.ts          CORS-free fetch, PKCE, the desktop loopback call
   projectBundle.ts      project row + media blobs <-> portable bundle
+  links.ts              the Dexie accountLinks table: where a project was saved
+  autoSync.ts           the state machine behind the switch (timing, refusals)
   providers/
     googleDrive.ts      GIS (web) / loopback PKCE (desktop) + Drive REST
     github.ts           token (web) / device flow (desktop) + Gist REST
-  index.ts              registry + save/load/list/delete
+  index.ts              registry + save/load/list/delete + syncProjectToAccount
+src/hooks/use-account-auto-sync.ts        binds one syncer to the open project
 src/components/open-screenshot-generator/account/AccountDialog.tsx
+src/components/open-screenshot-generator/account/AccountSyncChip.tsx
 src-tauri/src/oauth.rs  the one-shot loopback listener
 workers/github-oauth/   Cloudflare Worker: the GitHub token exchange, nothing else
 ```

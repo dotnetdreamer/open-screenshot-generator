@@ -19,10 +19,10 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Video export | [src/lib/video/](../src/lib/video/) |
 | Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
 | Panels out of the window, and displays | [src/lib/panels/](../src/lib/panels/) + [panels/](../src/components/open-screenshot-generator/panels/) + [panels.rs](../src-tauri/src/panels.rs) |
-| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, the only one that yields a share link, and the one that saves itself: [autoSave.ts](../src/lib/cloud/autoSave.ts)) |
+| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists; keeps itself up to date once saved, off by default: [autoSync.ts](../src/lib/account/autoSync.ts)), [src/lib/cloud/](../src/lib/cloud) (ours, the only one that yields a share link, and on by default: [autoSave.ts](../src/lib/cloud/autoSave.ts)) |
 | Editing together, live | [src/lib/collab/](../src/lib/collab) (Yjs over WebRTC), signalling in [mcp-relay/src/collab.js](../infra/vps/mcp-relay/src/collab.js) |
 | Versions of a project | [src/lib/versions/store.ts](../src/lib/versions/store.ts) + the Dexie `projectVersions` table |
-| Dexie, 7 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks`, `projectVersions` |
+| Dexie, 8 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks`, `accountLinks`, `projectVersions` |
 
 ## Rules
 
@@ -68,6 +68,10 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 23. The canvas scroll extents are stated in pixels in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx), because the board layer is sized by a CSS transform and a transform contributes nothing to a scroll extent. Change how boards are laid out and `contentExtent` has to follow, or the canvas silently stops scrolling to the last board.
 24. **A wheel is not a trackpad.** The canvas zooms on a mouse wheel and lets two fingers scroll, told apart by `isMouseWheel` in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx) (`deltaMode`, then the legacy `wheelDeltaY` ratio). Ctrl or Cmd with a wheel always zooms, and the listener is registered by hand with `passive: false`, because React attaches wheel listeners passively and a passive listener cannot stop the browser zooming the page.
 25. A user-facing switch that more than one place reads goes in [editorPreferences.ts](../src/lib/editorPreferences.ts): one cache, one listener set, live across the app. localStorage alone would leave an already mounted canvas on the old value until reload.
+
+**Writing to storage the user owns**
+
+25a. Two auto savers, and they are not symmetrical. Ours ([cloud/autoSave.ts](../src/lib/cloud/autoSave.ts)) defaults **on** and will create a cloud copy that does not exist yet. The one that writes to a person's own Drive or gists ([account/autoSync.ts](../src/lib/account/autoSync.ts)) defaults **off** and only ever **updates**: a row in the `accountLinks` table is its permission slip, minted only by a manual save or by opening that project from the account, so it can never create folders in somebody's Drive. It also never sweeps orphaned remote blobs, never resolves a conflict (neither provider has a conditional write, so it stops and asks), never clears the session on an expired token, and is held entirely while a live collab session is running. Adding a third destination copies those rules, not the cloud saver's.
 
 **Live editing**
 

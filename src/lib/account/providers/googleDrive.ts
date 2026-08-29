@@ -30,6 +30,7 @@ import {
   AccountAuthError,
   AccountCancelledError,
   type Account,
+  type AccountSaveOptions,
   type AccountSession,
   type CloudProvider,
   type CloudProjectSummary,
@@ -350,7 +351,18 @@ function escapeQuery(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-/** Upload (or replace) one file via a multipart request. */
+/**
+ * Upload (or replace) one file via a multipart request.
+ *
+ * Asks for `version` back as well as the id, because that is the stamp an
+ * unattended push compares against next time. Google documents it as
+ * monotonically increasing and moving on "every change made to the file on the
+ * server, even those not visible to the user", which is exactly the property
+ * wanted: it is allowed to be pessimistic (a spurious bump costs one prompt) and
+ * must never be optimistic (a missed bump loses somebody's work). It is an
+ * int64 in a string, so it is only ever compared for equality here, never parsed
+ * and never ordered.
+ */
 async function uploadFile(
   session: AccountSession,
   options: {
@@ -361,7 +373,7 @@ async function uploadFile(
     existingId?: string;
     appProperties?: Record<string, string>;
   }
-): Promise<string> {
+): Promise<{ id: string; version?: string }> {
   const metadata: Record<string, unknown> = { name: options.name };
   if (!options.existingId) metadata.parents = [options.parentId];
   if (options.appProperties) metadata.appProperties = options.appProperties;
@@ -375,33 +387,67 @@ async function uploadFile(
     `\r\n--${boundary}--\r\n`,
   ]);
 
+  const fields = 'fields=id,version';
   const url = options.existingId
-    ? `${DRIVE_UPLOAD}/${options.existingId}?uploadType=multipart&fields=id`
-    : `${DRIVE_UPLOAD}?uploadType=multipart&fields=id`;
+    ? `${DRIVE_UPLOAD}/${options.existingId}?uploadType=multipart&${fields}`
+    : `${DRIVE_UPLOAD}?uploadType=multipart&${fields}`;
 
-  const result = await driveJson<{ id: string }>(session, url, {
+  const result = await driveJson<{ id: string; version?: string }>(session, url, {
     method: options.existingId ? 'PATCH' : 'POST',
     headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
     body,
   });
-  return result.id;
+  return { id: result.id, version: result.version };
 }
 
+/** The file's current version stamp, when an upload response did not carry one. */
+async function readVersion(session: AccountSession, fileId: string): Promise<string | undefined> {
+  const file = await driveJson<{ version?: string }>(
+    session,
+    `${DRIVE_API}/files/${fileId}?fields=version`
+  );
+  return file.version;
+}
+
+/**
+ * Every file in a project folder, following Drive's paging to the end.
+ *
+ * The paging is not an optimisation. This listing is what tells `saveProject`
+ * which blobs are already up there, and Drive allows two files with the same
+ * name in one folder, so a listing that stops early does not error: it silently
+ * re-creates a file that already exists. The first casualty is not a recording
+ * but `project.json` itself, because a miss there means the manifest is POSTed
+ * as a second file and `loadProject`, which takes the first match by name, can
+ * then reopen the project at whichever copy Drive hands back. `pageSize` is a
+ * ceiling and not a promise, so this can happen at any folder size, not only
+ * past 200 files.
+ */
 async function listChildren(
   session: AccountSession,
   parentId: string
 ): Promise<{ id: string; name: string; size?: string }[]> {
   const query = encodeURIComponent(`'${parentId}' in parents and trashed = false`);
-  const result = await driveJson<{ files: { id: string; name: string; size?: string }[] }>(
-    session,
-    `${DRIVE_API}/files?q=${query}&fields=files(id,name,size)&pageSize=200`
-  );
-  return result.files ?? [];
+  const files: { id: string; name: string; size?: string }[] = [];
+  let pageToken: string | undefined;
+  do {
+    const page: string = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+    const result = await driveJson<{
+      files?: { id: string; name: string; size?: string }[];
+      nextPageToken?: string;
+    }>(
+      session,
+      `${DRIVE_API}/files?q=${query}&fields=files(id,name,size),nextPageToken&pageSize=200${page}`
+    );
+    files.push(...(result.files ?? []));
+    pageToken = result.nextPageToken;
+  } while (pageToken);
+  return files;
 }
 
 async function downloadBlob(session: AccountSession, fileId: string): Promise<Blob> {
   const doFetch = await bridgeFetch();
   const response = await doFetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
+    cache: 'no-store',
     headers: authHeaders(session),
   });
   if (!response.ok) {
@@ -490,11 +536,24 @@ export const googleDriveProvider: CloudProvider = {
     const query = encodeURIComponent(
       `'${rootId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`
     );
-    const result = await driveJson<{
-      files: { id: string; name: string; modifiedTime: string; appProperties?: Record<string, string> }[];
-    }>(session, `${DRIVE_API}/files?q=${query}&fields=files(id,name,modifiedTime,appProperties)&orderBy=modifiedTime desc&pageSize=100`);
+    // Paged to the end for the same reason listChildren is, with a different
+    // casualty: a truncated list makes `findAccountProject` answer "not saved"
+    // for a project that IS saved, and the overwrite prompt is then skipped on
+    // the very copy it exists to protect.
+    type Folder = { id: string; name: string; modifiedTime: string; appProperties?: Record<string, string> };
+    const folders: Folder[] = [];
+    let pageToken: string | undefined;
+    do {
+      const page: string = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+      const result = await driveJson<{ files?: Folder[]; nextPageToken?: string }>(
+        session,
+        `${DRIVE_API}/files?q=${query}&fields=files(id,name,modifiedTime,appProperties),nextPageToken&orderBy=modifiedTime desc&pageSize=100${page}`
+      );
+      folders.push(...(result.files ?? []));
+      pageToken = result.nextPageToken;
+    } while (pageToken);
 
-    return (result.files ?? []).map((file) => ({
+    return folders.map((file) => ({
       remoteId: file.id,
       projectId: file.appProperties?.absProjectId ?? file.id,
       name: file.name,
@@ -505,48 +564,66 @@ export const googleDriveProvider: CloudProvider = {
   async saveProject(
     session: AccountSession,
     bundle: ProjectBundle,
-    onProgress?: ProgressFn
+    onProgress?: ProgressFn,
+    options: AccountSaveOptions = {}
   ): Promise<CloudProjectSummary> {
-    onProgress?.('Opening your Drive folder', 0);
-    const rootId = await findOrCreateFolder(session, ROOT_FOLDER_NAME);
+    const { sweepOrphans = true, renameTo = bundle.manifest.name, knownRemoteId } = options;
 
-    // Match on our project id, not the folder name, so renaming a project in
-    // the app updates the same folder instead of orphaning it.
-    const query = encodeURIComponent(
-      `'${rootId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false and appProperties has { key='absProjectId' and value='${escapeQuery(bundle.manifest.id)}' }`
-    );
-    const existing = await driveJson<{ files: { id: string }[] }>(
-      session,
-      `${DRIVE_API}/files?q=${query}&fields=files(id)&pageSize=1`
-    );
+    // A caller that already knows the folder skips the search entirely, which
+    // is two requests: the root lookup and the appProperties query. That is the
+    // difference between a five request push and a three request one, and it is
+    // the whole reason the link row exists.
+    let folderId = knownRemoteId;
+    let folderIsNew = false;
+    if (!folderId) {
+      onProgress?.('Opening your Drive folder', 0);
+      const rootId = await findOrCreateFolder(session, ROOT_FOLDER_NAME);
 
-    let folderId = existing.files?.[0]?.id;
-    if (folderId) {
+      // Match on our project id, not the folder name, so renaming a project in
+      // the app updates the same folder instead of orphaning it.
+      const query = encodeURIComponent(
+        `'${rootId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false and appProperties has { key='absProjectId' and value='${escapeQuery(bundle.manifest.id)}' }`
+      );
+      const existing = await driveJson<{ files: { id: string }[] }>(
+        session,
+        `${DRIVE_API}/files?q=${query}&fields=files(id)&pageSize=1`
+      );
+      folderId = existing.files?.[0]?.id;
+
+      if (!folderId) {
+        const created = await driveJson<{ id: string }>(session, `${DRIVE_API}/files?fields=id`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: bundle.manifest.name,
+            mimeType: FOLDER_MIME,
+            parents: [rootId],
+            appProperties: { absProjectId: bundle.manifest.id },
+          }),
+        });
+        folderId = created.id;
+        folderIsNew = true;
+      }
+    }
+
+    // The rename used to fire on every save whether or not the name had moved.
+    // A wasted write is the small cost; the real one is that it bumps the
+    // FOLDER's modifiedTime, so the folder cannot be used to tell whether the
+    // document changed. A folder just created already carries the right name.
+    if (renameTo && !folderIsNew) {
       await driveJson(session, `${DRIVE_API}/files/${folderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: bundle.manifest.name }),
+        body: JSON.stringify({ name: renameTo }),
       });
-    } else {
-      const created = await driveJson<{ id: string }>(session, `${DRIVE_API}/files?fields=id`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: bundle.manifest.name,
-          mimeType: FOLDER_MIME,
-          parents: [rootId],
-          appProperties: { absProjectId: bundle.manifest.id },
-        }),
-      });
-      folderId = created.id;
     }
 
-    const children = await listChildren(session, folderId);
+    const children = folderIsNew ? [] : await listChildren(session, folderId);
     const byName = new Map(children.map((child) => [child.name, child.id]));
 
     const total = bundle.media.length + bundle.fonts.length + 1;
     onProgress?.('Uploading project', 1 / total);
-    await uploadFile(session, {
+    const manifestFile = await uploadFile(session, {
       name: 'project.json',
       parentId: folderId,
       blob: new Blob([JSON.stringify(bundle.manifest)], { type: 'application/json' }),
@@ -583,25 +660,86 @@ export const googleDriveProvider: CloudProvider = {
     }
 
     // Drop blobs the project no longer references so Drive does not accumulate
-    // dead recordings and fonts across saves.
-    const keep = new Set([
-      ...bundle.media.map((item) => `${MEDIA_PREFIX}${item.meta.id}`),
-      ...bundle.fonts.map((font) => `${FONT_PREFIX}${font.meta.id}`),
-    ]);
-    for (const child of children) {
-      const owned = child.name.startsWith(MEDIA_PREFIX) || child.name.startsWith(FONT_PREFIX);
-      if (owned && !keep.has(child.name)) {
-        await driveJson(session, `${DRIVE_API}/files/${child.id}`, { method: 'DELETE' }).catch(() => {});
+    // dead recordings and fonts across saves. Skipped for an unattended push:
+    // the decision is made from a local IndexedDB read, and a browser that
+    // evicted its media table would have this delete the only copies left.
+    if (sweepOrphans) {
+      const keep = new Set([
+        ...bundle.media.map((item) => `${MEDIA_PREFIX}${item.meta.id}`),
+        ...bundle.fonts.map((font) => `${FONT_PREFIX}${font.meta.id}`),
+      ]);
+      for (const child of children) {
+        const owned = child.name.startsWith(MEDIA_PREFIX) || child.name.startsWith(FONT_PREFIX);
+        if (owned && !keep.has(child.name)) {
+          await driveJson(session, `${DRIVE_API}/files/${child.id}`, { method: 'DELETE' }).catch(() => {});
+        }
       }
     }
 
     onProgress?.('Saved', 1);
+    // The upload response is asked for `version` and normally carries it. The
+    // follow up read is the fallback, and it is a slightly weaker stamp: a write
+    // from another device landing in the gap would be read back as ours and go
+    // unnoticed until the one after it. Better than storing no stamp at all,
+    // which would make the very next push report a conflict with itself.
+    const stamp = manifestFile.version ?? (await readVersion(session, manifestFile.id).catch(() => undefined));
     return {
       remoteId: folderId,
       projectId: bundle.manifest.id,
       name: bundle.manifest.name,
       modifiedAt: new Date(),
+      documentId: manifestFile.id,
+      stamp: stamp ?? null,
     };
+  },
+
+  /**
+   * project.json's version, in one request when the link row knows its id.
+   *
+   * Deliberately the document and never the folder: every save that renames
+   * moves the folder's timestamp, so a folder based stamp would report a
+   * conflict with the last thing this very device did.
+   */
+  async readRemoteStamp(
+    session: AccountSession,
+    remote: { remoteId: string; documentId?: string }
+  ): Promise<{ stamp: string; modifiedAt: Date; documentId?: string } | null> {
+    try {
+      let documentId = remote.documentId;
+      if (!documentId) {
+        const children = await listChildren(session, remote.remoteId);
+        documentId = children.find((child) => child.name === 'project.json')?.id;
+        if (!documentId) return null;
+      }
+      const file = await driveJson<{ version?: string; modifiedTime?: string; trashed?: boolean }>(
+        session,
+        `${DRIVE_API}/files/${documentId}?fields=version,modifiedTime,trashed`
+      );
+      // A trashed copy is not a copy. Drive keeps a trashed file readable by id
+      // until it is purged, so files.get answers 200 for something the user
+      // deleted, and without this the syncer would keep pushing into the trash:
+      // every other lookup here filters `trashed = false`, so listChildren
+      // would come back empty, project.json would be POSTed as a NEW file
+      // rather than PATCHed, and every blob would be re-uploaded on every tick.
+      // `trashed` is true for a file inside a trashed parent too, which is the
+      // case that actually happens (somebody deletes the project folder).
+      if (file.trashed) return null;
+      // No version means the answer cannot be trusted, and an unverifiable
+      // remote is treated exactly like a missing one: stop, do not push.
+      if (!file.version) return null;
+      // Handed back so a caller that had to resolve it once can store it and
+      // skip the folder listing on every push after this one.
+      return {
+        stamp: file.version,
+        modifiedAt: file.modifiedTime ? new Date(file.modifiedTime) : new Date(),
+        documentId,
+      };
+    } catch (error) {
+      if (error instanceof AccountAuthError) throw error;
+      // Gone, or trashed, or no longer ours to see. All the same answer.
+      if (/HTTP 404/.test(error instanceof Error ? error.message : String(error))) return null;
+      throw error;
+    }
   },
 
   async loadProject(
@@ -637,7 +775,7 @@ export const googleDriveProvider: CloudProvider = {
     }
 
     onProgress?.('Loaded', 1);
-    return { manifest, media, fonts };
+    return { manifest, media, fonts, missingMedia: [] };
   },
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {

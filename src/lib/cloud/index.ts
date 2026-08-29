@@ -299,7 +299,10 @@ async function fetchBundle(
     }
   }
 
-  return { manifest, media, fonts };
+  // Empty because nothing local was dropped here: this bundle is being read
+  // back off the wire, and the two `continue`s above are the server's copy
+  // being incomplete rather than this device's. See ProjectBundle.missingMedia.
+  return { manifest, media, fonts, missingMedia: [] };
 }
 
 /**

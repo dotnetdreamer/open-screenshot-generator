@@ -21,7 +21,9 @@
 import { isTauri } from '@/lib/desktop';
 import {
   AccountAuthError,
+  AccountBlockedError,
   AccountCancelledError,
+  type AccountSaveOptions,
   type Account,
   type AccountSession,
   type CloudProvider,
@@ -55,7 +57,16 @@ const MANIFEST_FILE = 'project.json';
  */
 const FONTS_FILE = 'fonts.json';
 /** Past this, a gist is the wrong home for the payload. */
+/**
+ * Ceiling on imported fonts, measured on the RAW blobs.
+ *
+ * A gist carries them base64 encoded, which is four bytes on the wire for every
+ * three of font, so the raw figure the user is shown has to be compared against
+ * three quarters of the real limit or the guard passes a payload GitHub then
+ * refuses.
+ */
 const MAX_GIST_FONT_BYTES = 10 * 1024 * 1024;
+const MAX_GIST_RAW_FONT_BYTES = Math.floor((MAX_GIST_FONT_BYTES * 3) / 4);
 /** Marks a gist as ours, and carries the project id so re-saves overwrite. */
 const DESCRIPTION_TAG = '[open-screenshot-generator]';
 const API_VERSION_HEADERS = {
@@ -301,6 +312,12 @@ interface Gist {
   description?: string;
   updated_at: string;
   files: Record<string, GistFile>;
+  /**
+   * Revisions, newest first, on a single gist read. Absent from the list
+   * endpoint, so it is only ever there after `GET /gists/{id}`, and it is the
+   * fallback for the stamp when the commits endpoint cannot be reached.
+   */
+  history?: { version: string; committed_at?: string }[];
 }
 
 function describe(manifest: ProjectManifest): string {
@@ -323,11 +340,37 @@ function nameOf(gist: Gist): string {
  * Gist responses truncate files over ~1MB, and a project with inlined images
  * clears that easily, so fall back to the raw URL when GitHub says so.
  */
+/**
+ * Every gist on the account, following GitHub's paging to the end.
+ *
+ * The same correctness point the Drive listing makes, and it is not about
+ * speed: a truncated list makes `findAccountProject` answer "not saved" for a
+ * project that IS saved, so the overwrite prompt is skipped, and the lookup
+ * inside `saveProject` then POSTs a SECOND gist on top of the first. The user
+ * who is most exposed is the one with the most gists.
+ *
+ * `githubJson` hands back only the parsed body, so there is no Link header to
+ * follow: stop on a short page. The upper bound is a backstop, not a limit
+ * anybody should reach.
+ */
+async function listOwnGists(session: AccountSession): Promise<Gist[]> {
+  const all: Gist[] = [];
+  for (let page = 1; page <= 30; page += 1) {
+    const batch = await githubJson<Gist[]>(session, `/gists?per_page=100&page=${page}`);
+    if (!batch?.length) break;
+    all.push(...batch);
+    if (batch.length < 100) break;
+  }
+  return all;
+}
+
 async function readGistFile(file: GistFile): Promise<string> {
   if (file.content && !file.truncated) return file.content;
   if (!file.raw_url) throw new Error('This gist is missing its project data.');
   const doFetch = await bridgeFetch();
-  const response = await doFetch(file.raw_url);
+  // Same reason requestJson sets it: a raw gist URL is served cacheable, and a
+  // stale one here means opening the document as it was, not as it is.
+  const response = await doFetch(file.raw_url, { cache: 'no-store' });
   if (!response.ok) throw new Error(`Could not read the gist contents (HTTP ${response.status}).`);
   return response.text();
 }
@@ -371,7 +414,7 @@ export const githubProvider: CloudProvider = {
   },
 
   async listProjects(session: AccountSession): Promise<CloudProjectSummary[]> {
-    const gists = await githubJson<Gist[]>(session, '/gists?per_page=100');
+    const gists = await listOwnGists(session);
     return gists
       .filter((gist) => gist.description?.includes(DESCRIPTION_TAG))
       .map((gist) => ({
@@ -386,25 +429,47 @@ export const githubProvider: CloudProvider = {
   async saveProject(
     session: AccountSession,
     bundle: ProjectBundle,
-    onProgress?: ProgressFn
+    onProgress?: ProgressFn,
+    options: AccountSaveOptions = {}
   ): Promise<CloudProjectSummary> {
+    // A gist holds text and nothing else, so this refusal is the feature: it is
+    // the difference between telling somebody their recording cannot go here
+    // and silently saving a project whose video elements are dead on the other
+    // side. Worded by what is actually in the bundle, because a media row is as
+    // often an uploaded screenshot as it is a recording, and being told to move
+    // to Drive because of "video" you never added reads as a bug.
     if (bundle.media.length) {
-      throw new Error(
-        `This project has ${bundle.media.length} recording${bundle.media.length > 1 ? 's' : ''} ` +
-          `(${formatBytes(mediaBytes(bundle))}). Gists cannot store video. Connect Google Drive to save it with its media.`
+      const videos = bundle.media.filter((item) => item.meta.mimeType.startsWith('video/')).length;
+      const what =
+        videos === bundle.media.length
+          ? `${videos} recording${videos > 1 ? 's' : ''}`
+          : videos === 0
+            ? `${bundle.media.length} uploaded image${bundle.media.length > 1 ? 's' : ''}`
+            : `${bundle.media.length} uploaded file${bundle.media.length > 1 ? 's' : ''}`;
+      throw new AccountBlockedError(
+        `This project has ${what} (${formatBytes(mediaBytes(bundle))}). Gists hold text only. ` +
+          'Connect Google Drive to save it with them'
       );
     }
 
-    if (fontBytes(bundle) > MAX_GIST_FONT_BYTES) {
-      throw new Error(
+    if (fontBytes(bundle) > MAX_GIST_RAW_FONT_BYTES) {
+      throw new AccountBlockedError(
         `This project's imported fonts come to ${formatBytes(fontBytes(bundle))}. ` +
-          'That is too much for a gist. Connect Google Drive to save it with its fonts.'
+          'That is too much for a gist. Connect Google Drive to save it with its fonts'
       );
     }
 
-    onProgress?.('Looking for an existing gist', 0.1);
-    const gists = await githubJson<Gist[]>(session, '/gists?per_page=100');
-    const existing = gists.find((gist) => projectIdOf(gist) === bundle.manifest.id);
+    // With the gist already known there is nothing to look up, which also
+    // removes the case where a user with more than 100 gists falls off the end
+    // of this listing and a second copy of their project is created instead.
+    let existing: Gist | undefined;
+    if (options.knownRemoteId) {
+      existing = { id: options.knownRemoteId, updated_at: '', files: {} };
+    } else {
+      onProgress?.('Looking for an existing gist', 0.1);
+      const gists = await listOwnGists(session);
+      existing = gists.find((gist) => projectIdOf(gist) === bundle.manifest.id);
+    }
 
     const files: Record<string, { content: string } | null> = {
       [MANIFEST_FILE]: { content: JSON.stringify(bundle.manifest) },
@@ -416,6 +481,9 @@ export const githubProvider: CloudProvider = {
       };
     } else if (existing?.files?.[FONTS_FILE]) {
       // The project dropped its last imported font; null deletes the file.
+      // Only reachable when the gist was actually read: the knownRemoteId fast
+      // path carries no file list, so a font removal is tidied up by the next
+      // save that goes the long way rather than by an unattended one.
       files[FONTS_FILE] = null;
     }
 
@@ -435,12 +503,69 @@ export const githubProvider: CloudProvider = {
         });
 
     onProgress?.('Saved', 1);
+    // Every gist write is a git commit, so the sha of the one just made is the
+    // stamp. The write response normally carries it at the front of `history`
+    // and it costs nothing; the follow up read is the fallback for when it does
+    // not, and it is worth the extra request because a null stamp here is not a
+    // small loss: it would leave `link.stamp` null forever, and the conflict
+    // check is written to skip a null rather than block on one, so GitHub would
+    // silently degrade to last writer wins.
+    let stamp = saved.history?.[0]?.version ?? null;
+    if (!stamp) {
+      stamp =
+        (await githubJson<{ version: string }[]>(session, `/gists/${saved.id}/commits?per_page=1`)
+          .then((commits) => commits?.[0]?.version ?? null)
+          .catch(() => null));
+    }
     return {
       remoteId: saved.id,
       projectId: bundle.manifest.id,
       name: bundle.manifest.name,
       modifiedAt: new Date(saved.updated_at ?? Date.now()),
+      stamp,
     };
+  },
+
+  /**
+   * The gist's HEAD revision sha.
+   *
+   * Two ways to the same answer, and the commits endpoint is asked first
+   * because it is the one that stays small: a gist edited all day has a long
+   * history, and `GET /gists/{id}` would carry the whole document back with it
+   * every time this is called. GitHub does not document the ordering of
+   * /commits, so this was checked against a live gist rather than read out of
+   * the docs: `per_page=1` returns the newest, matching `history[0]`.
+   *
+   * Like Drive, this can only notice a clobber, never prevent one. A gist PATCH
+   * accepts no precondition, so read-then-write is a race with a real window.
+   */
+  async readRemoteStamp(
+    session: AccountSession,
+    remote: { remoteId: string }
+  ): Promise<{ stamp: string; modifiedAt: Date } | null> {
+    try {
+      const commits = await githubJson<{ version: string; committed_at?: string }[]>(
+        session,
+        `/gists/${remote.remoteId}/commits?per_page=1`
+      );
+      const head = commits?.[0];
+      if (head?.version) {
+        return {
+          stamp: head.version,
+          modifiedAt: head.committed_at ? new Date(head.committed_at) : new Date(),
+        };
+      }
+      const gist = await githubJson<Gist>(session, `/gists/${remote.remoteId}`);
+      const first = gist.history?.[0];
+      if (!first?.version) return null;
+      return { stamp: first.version, modifiedAt: new Date(gist.updated_at || Date.now()) };
+    } catch (error) {
+      if (error instanceof AccountAuthError) throw error;
+      // githubJson turns a 404 into its own sentence, so match on that too.
+      const message = error instanceof Error ? error.message : String(error);
+      if (/HTTP 404|no longer exists/.test(message)) return null;
+      throw error;
+    }
   },
 
   async loadProject(
@@ -474,7 +599,7 @@ export const githubProvider: CloudProvider = {
     }
 
     onProgress?.('Loaded', 1);
-    return { manifest, media: [], fonts };
+    return { manifest, media: [], fonts, missingMedia: [] };
   },
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {

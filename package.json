@@ -12,6 +12,14 @@
     "start": "npm run dev",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test --project web --project desktop",
+    "test:e2e:web": "playwright test --project web",
+    "test:e2e:desktop": "playwright test --project desktop",
+    "test:e2e:matrix": "playwright test --project web --project web-webkit --project web-mobile --project desktop --project desktop-chromium",
+    "test:e2e:static": "E2E_TARGET=static playwright test --project web --project desktop",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report tests/e2e/.report",
+    "test:e2e:inspect": "node tests/e2e/tools/inspect.mjs",
     "build:extension": "esbuild extension/src/background.ts extension/src/bridge.ts extension/src/adapters/claude.ts extension/src/adapters/chatgpt.ts extension/src/adapters/gemini.ts extension/src/adapters/copilot.ts extension/src/adapters/deepseek.ts extension/src/adapters/qwen.ts extension/src/adapters/perplexity.ts extension/src/adapters/glm.ts --bundle --format=iife --target=chrome110 --outbase=extension/src --outdir=extension/dist",
     "build:assistant-agent": "esbuild src/lib/ai/webAssistantAgent.ts --bundle --format=iife --target=chrome110 --outfile=src-tauri/assistant/agent.js",
     "tauri": "tauri",
@@ -80,6 +88,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tauri-apps/cli": "^2.11.4",
     "@types/node": "^20",
     "@types/react": "^18",
