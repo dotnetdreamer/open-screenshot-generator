@@ -6,6 +6,12 @@
 // save replaced the first with no way back (cloud storage keeps no version
 // history we read). This asks first, and only when there is genuinely
 // something to overwrite. A first save never sees this dialog.
+//
+// It answers two questions now, because they have the same three answers. The
+// second is the one auto syncing raises: the copy up there moved since this
+// device last wrote it, so which one survives? `changedElsewhere` swaps the
+// wording for that case, and `onStopSyncing` adds the answer only it has, which
+// is to leave both copies alone and stop pushing this project.
 
 import React, { useEffect, useState } from 'react';
 import { CloudUploadIcon, Loader2Icon } from 'lucide-react';
@@ -38,6 +44,18 @@ interface SaveToAccountDialogProps {
   isSaving: boolean;
   onReplace: () => void;
   onSaveCopy: (name: string) => void;
+  /**
+   * True when this is a conflict rather than an ordinary second save: the
+   * remote copy moved, and nothing here knows what changed in it.
+   */
+  changedElsewhere?: boolean;
+  /**
+   * Stop pushing this project on its own, leaving both copies as they are.
+   *
+   * Only supplied for a conflict, because it is only an answer to one: with
+   * auto syncing off there is nothing to stop.
+   */
+  onStopSyncing?: () => void;
 }
 
 export function SaveToAccountDialog({
@@ -50,6 +68,8 @@ export function SaveToAccountDialog({
   isSaving,
   onReplace,
   onSaveCopy,
+  changedElsewhere,
+  onStopSyncing,
 }: SaveToAccountDialogProps) {
   const [mode, setMode] = useState<SaveMode>('replace');
   const [name, setName] = useState(suggestedName);
@@ -77,11 +97,12 @@ export function SaveToAccountDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CloudUploadIcon className="h-5 w-5" />
-            Save to your {storageLabel}
+            {changedElsewhere ? 'This project changed somewhere else' : `Save to your ${storageLabel}`}
           </DialogTitle>
           <DialogDescription>
-            This project is already saved there. Replace that copy, or keep both by
-            saving this one under a new name.
+            {changedElsewhere
+              ? `The copy in your ${storageLabel} was changed since this device last saved it, so the two have drifted apart. Replace it with what is on screen, or keep both by saving this one under a new name.`
+              : 'This project is already saved there. Replace that copy, or keep both by saving this one under a new name.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -95,9 +116,21 @@ export function SaveToAccountDialog({
             <div className="grid gap-0.5 leading-none">
               <Label htmlFor="save-replace">Replace the saved copy</Label>
               <p className="text-xs text-muted-foreground">
-                Overwrites &quot;{existingName}&quot;
-                {existingModifiedAt ? `, last saved ${existingModifiedAt.toLocaleString()}` : ''}. The
-                older version is gone for good
+                {/* A conflict is raised precisely because the remote moved, and
+                    renaming it on the other device is one of the commonest ways
+                    for that to happen. The name this device last pushed is
+                    therefore the one thing here that may already be wrong, so
+                    the conflict wording does not claim one: it would be a
+                    destructive confirmation against a name that no longer
+                    exists. Naming the storage instead costs nothing and is
+                    always true. */}
+                {changedElsewhere
+                  ? `Overwrites the copy in your ${storageLabel}`
+                  : `Overwrites "${existingName}"`}
+                {existingModifiedAt
+                  ? `, ${changedElsewhere ? 'changed' : 'last saved'} ${existingModifiedAt.toLocaleString()}`
+                  : ''}
+                . The older version is gone for good
               </p>
             </div>
           </div>
@@ -128,7 +161,22 @@ export function SaveToAccountDialog({
           </div>
         </RadioGroup>
 
+        {/* No justify override: DialogFooter's own sm:justify-end keeps Cancel
+            and Replace grouped on the right, and the sm:mr-auto on the ghost
+            button below pushes the third answer to the left edge when it is
+            there. Overriding to space-between spread the ordinary two button
+            footer apart as well. */}
         <DialogFooter>
+          {onStopSyncing ? (
+            <Button
+              variant="ghost"
+              className="text-muted-foreground sm:mr-auto"
+              onClick={onStopSyncing}
+              disabled={isSaving}
+            >
+              Stop syncing this project
+            </Button>
+          ) : null}
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
             Cancel
           </Button>

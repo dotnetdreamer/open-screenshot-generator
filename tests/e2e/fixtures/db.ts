@@ -17,7 +17,7 @@ import type { Page } from '@playwright/test';
 
 export const DB_NAME = 'ProjectDatabase';
 
-/** The seven tables in src/database.ts. */
+/** The eight tables in src/database.ts. */
 export type StoreName =
   | 'projects'
   | 'operations'
@@ -25,7 +25,8 @@ export type StoreName =
   | 'fonts'
   | 'discoverPosts'
   | 'cloudLinks'
-  | 'projectVersions';
+  | 'projectVersions'
+  | 'accountLinks';
 
 /** A project row, narrowed to the fields a test cares about. */
 export interface StoredProject {

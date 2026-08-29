@@ -47,6 +47,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
@@ -65,6 +67,7 @@ import {
   type CloudProviderId,
 } from '@/lib/account';
 import { hasGithubLogin } from '@/lib/account/providers/github';
+import { useEditorPreference } from '@/lib/editorPreferences';
 
 const TOKEN_HELP_URL = 'https://github.com/settings/tokens?type=beta';
 
@@ -103,6 +106,11 @@ export function AccountDialog({
   initialTab = 'cloud',
 }: AccountDialogProps) {
   const { session, isSignedIn, signOut } = useAccount();
+  // Lives here rather than in Settings because it is a fact about this storage,
+  // not about the editor: it belongs next to the list of what is in there and
+  // the account it belongs to. The value itself is still a shared preference
+  // (AGENTS.md rule 25), because the syncer reads it from outside React.
+  const [autoSync, setAutoSync] = useEditorPreference('accountAutoSync');
   const { toast } = useToast();
   const [tab, setTab] = useState<AccountTab>(initialTab);
 
@@ -291,6 +299,32 @@ export function AccountDialog({
                 <LogOutIcon className="mr-1.5 h-4 w-4" />
                 Sign out
               </Button>
+            </div>
+
+            {/* Directly under the account and above the tabs, because it is a
+                fact about the connection rather than about whichever list is
+                showing: it applies to the projects in that storage no matter
+                which tab somebody happens to be on. It is also the only place
+                that answers "why has nothing synced", so burying it under a
+                scrolling list would be the wrong half of the dialog. */}
+            <div className="flex items-start justify-between gap-3 rounded-md border p-3">
+              <div className="min-w-0">
+                <Label htmlFor="account-auto-sync" className="text-sm font-medium">
+                  Keep saved projects up to date
+                </Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Later edits go to your {providerLabel} on their own, shortly after you stop
+                  typing. Only projects already saved there are touched, nothing new is ever
+                  created for you, and files a project stopped using are cleaned up only when you
+                  save by hand
+                </p>
+              </div>
+              <Switch
+                id="account-auto-sync"
+                checked={autoSync}
+                onCheckedChange={setAutoSync}
+                aria-label="Keep saved projects up to date"
+              />
             </div>
 
             {/* Tabs only when there are two lists to choose between. With no

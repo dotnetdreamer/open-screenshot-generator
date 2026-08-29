@@ -115,13 +115,21 @@ export async function serializeProject(
 ): Promise<ProjectBundle> {
   const mediaIds = collectMediaIds(project.projectData);
   const media: BundledMedia[] = [];
+  const missingMedia: string[] = [];
 
   for (const [index, id] of mediaIds.entries()) {
     onProgress?.(`Reading media ${index + 1} of ${mediaIds.length}`, index / mediaIds.length);
     const asset = await db.media.get(id);
     // A missing row means the blob was cleared (site data wiped) while the
-    // element kept pointing at it. Skip rather than fail the whole save.
-    if (!asset) continue;
+    // element kept pointing at it. Skip rather than fail the whole save, but
+    // say so: a bundle that quietly forgets a recording looks identical to one
+    // whose project never had it, and a provider that sweeps what the bundle
+    // omits would then delete the remote copy this device can no longer
+    // replace. `syncProjectToAccount` refuses on a non-empty list.
+    if (!asset) {
+      missingMedia.push(id);
+      continue;
+    }
     media.push({
       meta: {
         id: asset.id,
@@ -165,7 +173,7 @@ export async function serializeProject(
     ...(fonts.length ? { fonts: fonts.map((f) => f.meta) } : {}),
   };
 
-  return { manifest, media, fonts };
+  return { manifest, media, fonts, missingMedia };
 }
 
 /**
@@ -334,9 +342,15 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
 
   const metas = Array.isArray(file.media) ? file.media : [];
   const media: BundledMedia[] = [];
+  const missingMedia: string[] = [];
   for (const meta of metas) {
     const encoded = file.mediaData?.[meta.id];
-    if (!encoded) continue; // metadata without payload: nothing to restore
+    // Metadata without payload: nothing to restore, and the same hazard the
+    // serialize side has, so it is reported the same way.
+    if (!encoded) {
+      missingMedia.push(meta.id);
+      continue;
+    }
     media.push({ meta, blob: base64ToBlob(encoded, meta.mimeType) });
   }
 
@@ -355,6 +369,7 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
     },
     media,
     fonts,
+    missingMedia,
   };
 }
 

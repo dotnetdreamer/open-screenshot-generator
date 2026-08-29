@@ -125,6 +125,7 @@ import type { DiscoverPost } from '@/types/discover';
 import { CloudSaveConflictDialog } from './cloud/CloudSaveConflictDialog';
 import { CloudAutoSaveChip } from './cloud/CloudAutoSaveChip';
 import { useCloudAutoSave } from '@/hooks/use-cloud-auto-save';
+import { useAccountAutoSync } from '@/hooks/use-account-auto-sync';
 import { CollabBar } from './collab/CollabBar';
 import { CollabDialog } from './collab/CollabDialog';
 import { useCollab } from '@/hooks/use-collab';
@@ -159,6 +160,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronDownIcon, ChevronLeftIcon, CompassIcon, CopyIcon, ExternalLinkIcon, HandIcon, InfoIcon, Loader2Icon, MonitorIcon, MoreHorizontalIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, PictureInPicture2Icon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
+import { AccountSyncChip } from './account/AccountSyncChip';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -171,6 +173,7 @@ import {
   loadProjectFromAccount,
   newCloudProjectId,
   saveProjectToAccount,
+  setAccountLinkAutoSync,
   serializeProject,
   splitProgress,
   useAccount,
@@ -931,6 +934,12 @@ export function OpenScreenshotGeneratorLayout() {
   // Set when a save would land on top of a copy already in the account: holds
   // that copy while the user picks replace or save-as-new.
   const [saveConflict, setSaveConflict] = useState<CloudProjectSummary | null>(null);
+  /**
+   * True when the dialog above is answering a SYNC conflict rather than an
+   * ordinary second save. The two have the same three answers, so they share a
+   * dialog; only the wording and the "stop syncing this one" way out differ.
+   */
+  const [conflictFromSync, setConflictFromSync] = useState(false);
   const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
 
   // Our own cloud (src/lib/cloud). Distinct from the account above, which is
@@ -1485,13 +1494,40 @@ export function OpenScreenshotGeneratorLayout() {
   });
   const collabPublish = collab.publish;
 
+  /*
+   * The same project, kept up to date in the user's OWN storage.
+   *
+   * The sibling of the cloud auto saver above, and the differences are all in
+   * src/lib/account/autoSync.ts. The two the editor has to supply are here: it
+   * is off unless somebody turned it on, and it is HELD while a live session is
+   * running, because in a room the edit rate is set by however many people are
+   * typing and none of them is the person whose Drive quota pays for it.
+   *
+   * It only ever updates a copy somebody already saved or opened, so an editor
+   * full of templates pushes nothing anywhere.
+   */
+  const accountSync = useAccountAutoSync({
+    projectId: activeProjectId,
+    provider: accountSession?.provider ?? null,
+    accountId: accountSession?.account?.id ?? null,
+    connected: isAccountConnected,
+    collabActive: !!collab.room,
+    openToken: projectOpenToken,
+    flushLocal: flushProjectSave,
+  });
+  const noteAccountChange = accountSync.noteChange;
+
   const scheduleProjectSave = useCallback((id: string, name: string, artboardsToSave: ArtboardState[]) => {
     if (pendingSaveRef.current) clearTimeout(pendingSaveRef.current.timer);
     const timer = setTimeout(() => flushProjectSave(), 600);
     pendingSaveRef.current = { timer, id, name, artboards: artboardsToSave };
     // Cheap by design: this runs once per commit, and a drag commits per pixel.
+    // The single funnel every commit path goes through, which is why one line
+    // here covers handleArtboardsUpdate, applyRemoteArtboards and the history
+    // stack without any of them knowing either saver exists.
     noteCloudChange(id);
-  }, [flushProjectSave, noteCloudChange]);
+    noteAccountChange(id);
+  }, [flushProjectSave, noteCloudChange, noteAccountChange]);
   // Unload must not lose the last half-second of edits. `pagehide` covers the
   // web; a Tauri window close destroys the webview WITHOUT any unload events,
   // so the desktop shell needs the window's close-requested hook, where the
@@ -2429,9 +2465,10 @@ export function OpenScreenshotGeneratorLayout() {
             name: trimmedName,
           });
           // A rename writes the row without going through handleArtboardsUpdate,
-          // so the cloud copy has to be told about it here or it would keep the
+          // so both savers have to be told about it here or they would keep the
           // old name until the next edit to the design itself.
           noteCloudChange(activeProjectId);
+          noteAccountChange(activeProjectId);
           toast({ title: "Project Renamed", description: `Project renamed to "${trimmedName}".` });
         }
       } catch (error) {
@@ -3140,6 +3177,11 @@ export function OpenScreenshotGeneratorLayout() {
         saveAsCopy: copyName ? { id: newCloudProjectId(), name: copyName } : undefined,
       });
       setSaveConflict(null);
+      setConflictFromSync(false);
+      // Same row, same document: without this the syncer would push a duplicate
+      // of what was just uploaded a minute later. A copy is a separate file and
+      // leaves the open project's link where it was, so it says nothing here.
+      if (!copyName) accountSync.noteSaved();
       toast({
         title: copyName ? "Saved as a new project" : "Saved to your account",
         description: copyName
@@ -3151,6 +3193,26 @@ export function OpenScreenshotGeneratorLayout() {
     } finally {
       setIsSavingToAccount(false);
     }
+  };
+
+  /**
+   * The third answer to a sync conflict: leave both copies exactly as they are.
+   *
+   * Per project rather than the Settings switch, because "these two have
+   * drifted and I will sort it out later" is not the same as "stop syncing
+   * everything". Saving this project by hand later turns it back on, which is
+   * the same act that turned it on in the first place.
+   */
+  const handleStopSyncingProject = async () => {
+    if (!activeProjectId) return;
+    await setAccountLinkAutoSync(activeProjectId, false);
+    accountSync.noteUnlinked();
+    setSaveConflict(null);
+    setConflictFromSync(false);
+    toast({
+      title: "Syncing stopped for this project",
+      description: `Both copies are left as they are. Saving to your ${accountStorageLabel} by hand starts it again.`,
+    });
   };
 
   /**
@@ -3185,6 +3247,7 @@ export function OpenScreenshotGeneratorLayout() {
     setIsSavingToAccount(false);
 
     if (existing) {
+      setConflictFromSync(false);
       setSaveConflict(existing);
       return;
     }
@@ -7341,14 +7404,33 @@ const generateRandomProjectName = (): string => {
                   // nothing at all with no backend, or with auto save off.
                   trailing={
                     activeProjectId ? (
-                      <CloudAutoSaveChip
-                        status={cloudAutoSave.status}
-                        onSignIn={() =>
-                          requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')
-                        }
-                        onSaveNow={cloudAutoSave.saveNow}
-                        onResolveConflict={(remote) => setCloudConflict(remote)}
-                      />
+                      <>
+                        <CloudAutoSaveChip
+                          status={cloudAutoSave.status}
+                          onSignIn={() =>
+                            requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')
+                          }
+                          onSaveNow={cloudAutoSave.saveNow}
+                          onResolveConflict={(remote) => setCloudConflict(remote)}
+                        />
+                        {/* The second destination. Renders nothing at all until
+                            somebody turns syncing on AND has saved this project
+                            to their own storage, which is most of the time. */}
+                        <AccountSyncChip
+                          status={accountSync.status}
+                          onConnect={() =>
+                            openAccountDialog(
+                              'Connect your storage again to keep this project up to date there.',
+                              'storage'
+                            )
+                          }
+                          onSyncNow={accountSync.syncNow}
+                          onResolveConflict={(remote) => {
+                            setConflictFromSync(true);
+                            setSaveConflict(remote);
+                          }}
+                        />
+                      </>
                     ) : undefined
                   }
                 />
@@ -7859,13 +7941,18 @@ const generateRandomProjectName = (): string => {
           <SaveToAccountDialog
             open={!!saveConflict}
             onOpenChange={(open) => {
-              if (!open) setSaveConflict(null);
+              if (!open) {
+                setSaveConflict(null);
+                setConflictFromSync(false);
+              }
             }}
             existingName={saveConflict?.name ?? ''}
             existingModifiedAt={saveConflict?.modifiedAt}
             suggestedName={`${currentProjectName} copy`}
             storageLabel={accountStorageLabel}
             isSaving={isSavingToAccount}
+            changedElsewhere={conflictFromSync}
+            onStopSyncing={conflictFromSync ? handleStopSyncingProject : undefined}
             onReplace={() => void runAccountSave()}
             onSaveCopy={(name) => void runAccountSave(name)}
           />

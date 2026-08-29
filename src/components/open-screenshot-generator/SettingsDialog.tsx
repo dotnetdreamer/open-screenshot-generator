@@ -241,6 +241,13 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
             </SettingsSection>
           )}
 
+          {/* Syncing to the user's OWN storage is deliberately NOT a row here.
+              It is a fact about that storage rather than about the editor, so it
+              lives in the account dialog next to the list of what is in there:
+              see AccountDialog.tsx. Two switches side by side both reading
+              "save automatically", for two destinations with opposite defaults,
+              is the likeliest way this gets misread. */}
+
           <SettingsSection title="Tips">
             <SettingsRow
               label="Show tips at startup"

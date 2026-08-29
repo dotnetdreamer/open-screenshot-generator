@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures/test';
 import type { Page } from '@playwright/test';
 import { mouseWheelZoom } from '../helpers/canvas';
-import { waitForProject } from '../fixtures/db';
+import { readAll, waitForProject } from '../fixtures/db';
 import { Editor } from '../helpers/editor';
 
 /**
@@ -25,6 +25,8 @@ import { Editor } from '../helpers/editor';
 const THEME_KEY = 'open-screenshot-generator.theme';
 const TIPS_KEY = 'open-screenshot-generator.show-startup-tips';
 const WHEEL_ZOOM_KEY = 'open-screenshot-generator.wheel-zoom';
+const ACCOUNT_SYNC_KEY = 'open-screenshot-generator.account-auto-sync';
+const ACCOUNT_SESSION_KEY = 'open-screenshot-generator.account';
 
 // Straight out of globals.css. Asserting the token rather than the rendered
 // rgb() keeps the expectation readable and still fails loudly if the palette
@@ -346,6 +348,66 @@ test.describe('settings persistence', () => {
     await expect(app.zoomResetButton).toHaveText('100%');
     await mouseWheelZoom(page, app.board(0), WHEEL_LINES);
     await expect(app.zoomResetButton).toHaveText('100%');
+  });
+
+  test('syncing to your own storage is off until asked for, and the choice sticks', async ({ app, page }) => {
+    await app.startBlankProject();
+    await waitForProject(page, (project) => Boolean(project.id));
+
+    // The half that matters. This switch writes to storage somebody else owns,
+    // so an install that has never been asked about it must be OFF, and off
+    // because nothing was ever written rather than because a default was read
+    // back.
+    expect(await page.evaluate((key) => localStorage.getItem(key), ACCOUNT_SYNC_KEY)).toBeNull();
+
+    // And it must not have been left behind in Settings as well: two switches
+    // for two destinations with opposite defaults is the misread that moving it
+    // into the account dialog was meant to prevent.
+    await app.openSettings();
+    await expect(page.locator('#settings-account-auto-sync')).toHaveCount(0);
+    await app.closeDialog();
+    await expect(app.settingsDialog).toBeHidden();
+
+    // The switch lives on the account dialog's storage tab, which only renders
+    // its signed-in face. Signing in for real is off limits here (the suite
+    // aborts every off-origin request, fixtures/test.ts), so a session goes
+    // straight into the key store.ts reads and the page is reloaded onto it.
+    // The project list behind the switch will fail to load, which is fine.
+    await page.evaluate((key) => {
+      window.localStorage.setItem(
+        key,
+        JSON.stringify({
+          provider: 'github',
+          accessToken: 'e2e-not-a-real-token',
+          account: { id: 'e2e-user', name: 'E2E User' },
+        })
+      );
+    }, ACCOUNT_SESSION_KEY);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await app.waitForBoot();
+    await expect(app.artboards.first()).toBeVisible();
+
+    await page.getByRole('button', { name: /E2E User/ }).first().click();
+    const autoSync = page.locator('#account-auto-sync');
+    await expect(autoSync).toBeVisible();
+    await expect(autoSync).toHaveAttribute('aria-checked', 'false');
+
+    await autoSync.click();
+    await expect(autoSync).toHaveAttribute('aria-checked', 'true');
+    expect(await page.evaluate((key) => localStorage.getItem(key), ACCOUNT_SYNC_KEY)).toBe('1');
+    await app.closeDialog();
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await app.waitForBoot();
+    await expect(app.artboards.first()).toBeVisible();
+
+    await page.getByRole('button', { name: /E2E User/ }).first().click();
+    await expect(autoSync).toHaveAttribute('aria-checked', 'true');
+    await app.closeDialog();
+
+    // Turned on is not the same as pushing: nothing has been saved to any
+    // account, so there is no link row and nothing for the syncer to update.
+    expect(await readAll(page, 'accountLinks')).toEqual([]);
   });
 
   test('View tips hands the modal over to the wizard, which walks and closes', async ({ app, page }) => {

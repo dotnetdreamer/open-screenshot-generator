@@ -5,6 +5,7 @@ import type { MediaAsset } from './lib/mediaStore';
 import type { CustomFontRow } from './services/customFonts';
 import type { DiscoverPostRow } from './lib/discover/localPosts';
 import type { CloudProjectLink } from './lib/cloud/links';
+import type { AccountProjectLink } from './lib/account/links';
 import type { ProjectVersion } from './lib/versions/store';
 
 export class ProjectDatabase extends Dexie {
@@ -43,6 +44,15 @@ export class ProjectDatabase extends Dexie {
   // row, for the same reason media does (issue #19).
   // See src/lib/versions/store.ts.
   projectVersions!: Table<ProjectVersion, string>;
+  // Which local project corresponds to which copy in the user's OWN storage
+  // (their Drive folder, their gist), and where that copy stood when this
+  // device last wrote it. The sibling of `cloudLinks` for the other
+  // destination, and for the same reason it is a table rather than a field:
+  // `handleArtboardsUpdate` would wipe it on the next keystroke.
+  // A row here is also the permission slip for unattended syncing: no row means
+  // nobody ever saved this project there by hand, so nothing is pushed.
+  // See src/lib/account/links.ts.
+  accountLinks!: Table<AccountProjectLink, string>;
 
   constructor() {
     super('ProjectDatabase');
@@ -92,6 +102,19 @@ export class ProjectDatabase extends Dexie {
       // Compound index because every read is "this project's versions, newest
       // first": one index answers the list, the thinning pass and the delete.
       projectVersions: 'id, [projectId+createdAt], projectId, createdAt',
+    });
+    this.version(8).stores({
+      projects: 'id, name, timestamp',
+      operations: 'id, startedAt, status, provider',
+      media: 'id, createdAt',
+      fonts: 'id, family, createdAt',
+      discoverPosts: 'id, createdAt',
+      cloudLinks: 'projectId, recordId, savedAt',
+      projectVersions: 'id, [projectId+createdAt], projectId, createdAt',
+      // Keyed by the LOCAL project id, because every read is "may I sync the
+      // project that is open". `remoteId` is indexed for the other direction,
+      // which is what deleting a copy from the account dialog uses.
+      accountLinks: 'projectId, remoteId, savedAt',
     });
   }
 }
