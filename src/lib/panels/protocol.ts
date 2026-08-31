@@ -121,7 +121,7 @@ export type DockIntent =
   | { name: 'updateSelectedElement'; updates: Partial<ArtboardElement> }
   | { name: 'updateElementById'; elementId: string; updates: Partial<ArtboardElement> }
   | { name: 'translateElement'; elementId: string }
-  | { name: 'updateArtboardDetails'; updates: Partial<ArtboardState> }
+  | { name: 'updateArtboardDetails'; updates: Partial<ArtboardState>; scope?: 'board' | 'all' }
   | { name: 'resetLocaleField'; field: LocalizableField }
   | { name: 'toggleLocaleDetach'; keys: DetachableKey[]; detach: boolean }
   | { name: 'resetLocaleOverrides'; scope: 'element' | 'artboard' | 'project' }
@@ -202,7 +202,7 @@ const INLINE_SRC_LIMIT = 512;
  * sliders are worth showing. Deleting the key would flip both of those the
  * wrong way, so a short stand-in goes in its place.
  */
-const ELIDED_SRC = 'osg:elided';
+export const ELIDED_SRC = 'osg:elided';
 
 /** Elide anything on an element that is carrying bytes rather than a reference. */
 function elideHeavySources(element: ArtboardElement): ArtboardElement {
@@ -246,14 +246,23 @@ export function slimSelectedElement<T extends ArtboardElement | null | undefined
 /**
  * The active board without its elements or its override map.
  *
- * The properties form reads name, backgroundColor, backgroundType and
- * backgroundGradient from it. `elements` would repeat the whole layers
- * projection and `localized` grows with every language.
+ * The properties form reads name, backgroundColor, backgroundType,
+ * backgroundGradient and the background picture from it. `elements` would
+ * repeat the whole layers projection and `localized` grows with every language.
+ *
+ * A background picture is normally an `asset:<id>`, which is a few dozen bytes
+ * and travels as itself. A project old enough to still hold one inline gets the
+ * same treatment as a screenshot: the form reads the field for truthiness only,
+ * so a stand-in keeps the buttons right without putting a megabyte on the wire.
  */
 export function slimArtboard(board: ArtboardState | null | undefined): ArtboardState | null {
   if (!board) return null;
   const { localized: _localized, ...rest } = board;
-  return { ...rest, elements: [] };
+  const backgroundImage =
+    typeof rest.backgroundImage === 'string' && rest.backgroundImage.length > INLINE_SRC_LIMIT
+      ? ELIDED_SRC
+      : rest.backgroundImage;
+  return { ...rest, backgroundImage, elements: [] };
 }
 
 /**

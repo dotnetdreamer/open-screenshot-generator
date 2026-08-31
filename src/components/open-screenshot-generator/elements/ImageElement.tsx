@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import { useImageSrc } from '@/lib/mediaStore';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
+import { imageTint, imageTintFilter } from '@/lib/elementStyle';
+import { ImageTintFilter } from './ImageTintFilter';
 
 interface ImageElementComponentProps {
   element: ImageElementProps;
@@ -108,6 +110,10 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
   // through. undefined while a reference is still loading from Dexie.
   const resolvedSrc = useImageSrc(element.imageSrc);
 
+  // A colour over the painted pixels only, so a contained picture's empty bars
+  // and a cut-out PNG's transparent ground are left alone (see imageTint).
+  const tint = imageTint(element.tintColor, element.tintOpacity);
+
   return (
     <div
       className="w-full h-full relative flex items-center justify-center"
@@ -120,6 +126,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
           className="w-full h-full relative"
           style={transformStyle}
         >
+          {tint && <ImageTintFilter tint={tint} />}
           <Image
             src={withBasePath(resolvedSrc)}
             alt={element.imageAlt || 'Uploaded image'}
@@ -129,7 +136,8 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
               // opacity is NOT applied here: it lives on BaseElement now and is
               // applied once around the whole element (src/lib/elementStyle.ts).
               // Setting it in both places multiplied it — 0.5 rendered as 0.25.
-              borderRadius: element.borderRadius ? `${element.borderRadius}px` : '0px'
+              borderRadius: element.borderRadius ? `${element.borderRadius}px` : '0px',
+              filter: imageTintFilter(tint)
             }}
             className="transition-opacity duration-200"
             onLoadingComplete={() => setIsLoading(false)}

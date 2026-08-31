@@ -83,7 +83,7 @@ import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
 import { ALL_CANVAS_SIZE_PRESETS, canvasSizeSlug } from '@/lib/sizePresets';
-import { artboardBackground } from '@/lib/artboardBackground';
+import { artboardBackground, normalizeBackgroundImage } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
   getMcpStatus,
@@ -318,11 +318,14 @@ async function fetchRecentProjectMetas(): Promise<Project[]> {
   return rows.map((row) => ({ ...row, projectData: [] }));
 }
 
-// Update the function with reduced margin
+// Update the function with reduced margin.
+// Also the one place a board's slice of a spanned background picture is
+// derived, because that slice is read off the board order exactly like the
+// position is, and this runs on every commit (see normalizeBackgroundImage).
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
   console.log("Calculating positions for artboards:", artboards.length);
-  return artboards.map((ab, index) => {
+  return normalizeBackgroundImage(artboards).map((ab, index) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
     console.log(`Artboard ${index}: size=${ab.size.width}x${ab.size.height}, position=${newPosition.x},${newPosition.y}`);
     
@@ -1835,10 +1838,20 @@ export function OpenScreenshotGeneratorLayout() {
   // its own db.projects.put and skip repositioning; folding it into the door
   // above is what makes "handleArtboardsUpdate is the only door" true, which is
   // the invariant the locale overlay rests on.
-  const handleUpdateArtboardDetails = useCallback((updates: Partial<ArtboardState>) => {
-    if (!activeArtboardId) return;
+  //
+  // `scope: 'all'` writes every board instead of the active one, in ONE commit:
+  // a background picture shared across the strip done board by board would be
+  // one undo entry per board. Nothing else uses it, and it stays on this
+  // handler rather than becoming a second door.
+  const handleUpdateArtboardDetails = useCallback((
+    updates: Partial<ArtboardState>,
+    scope: 'board' | 'all' = 'board'
+  ) => {
+    if (scope !== 'all' && !activeArtboardId) return;
     handleArtboardsUpdate(
-      artboardsRef.current.map((ab) => (ab.id === activeArtboardId ? { ...ab, ...updates } : ab))
+      artboardsRef.current.map((ab) =>
+        scope === 'all' || ab.id === activeArtboardId ? { ...ab, ...updates } : ab
+      )
     );
   }, [activeArtboardId, handleArtboardsUpdate]);
 

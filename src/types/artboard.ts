@@ -244,6 +244,18 @@ export interface ImageElementProps extends BaseElement {
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
   opacity?: number;
   borderRadius?: number;
+  /**
+   * A colour laid over the picture, for legibility behind text (issue #33).
+   * Any CSS colour; unset means no tint.
+   *
+   * Applied to the PAINTED PIXELS only, through an SVG filter, so it follows
+   * whatever objectFit draws and leaves a cut-out PNG's transparent ground
+   * alone instead of turning it into a coloured rectangle. See imageTintFilter
+   * in src/lib/elementStyle.ts.
+   */
+  tintColor?: string;
+  /** How strongly the tint covers the picture. 0..1; 0 or unset is no tint. */
+  tintOpacity?: number;
   // Transform properties
   skewX?: number; // Skew along X-axis in degrees
   skewY?: number; // Skew along Y-axis in degrees
@@ -401,6 +413,61 @@ export interface ArtboardState {
     color2: string;
     angle: number;
   };
+  /**
+   * A picture drawn behind the elements and over backgroundColor /
+   * backgroundGradient, so a board can have both a ground colour and art.
+   *
+   * Deliberately NOT another backgroundType: it renders as a real <img> layer
+   * inside the board, never as a CSS background-image. WebKit paints an
+   * SVG-as-image without waiting for a CSS background to decode, so a board
+   * whose art came through CSS would export a PNG with the picture missing and
+   * nothing reporting it (see the header of src/lib/exportRaster.ts).
+   *
+   * Same source shapes an image element takes: `asset:<id>`, a public path, an
+   * http(s) URL or a data: URL.
+   */
+  backgroundImage?: string;
+  /** How the picture fills its box. Defaults to 'cover'. */
+  backgroundImageFit?: 'cover' | 'contain' | 'fill';
+  /**
+   * A colour laid over the background picture, the usual way to hold a photo
+   * back so text on top of it stays readable (issue #33). Same rules as an
+   * image element's tintColor: painted pixels only, unset means none.
+   */
+  backgroundImageTintColor?: string;
+  /** How strongly the tint covers the picture. 0..1; 0 or unset is no tint. */
+  backgroundImageTintOpacity?: number;
+  /**
+   * How far the picture reaches (issue #32).
+   *
+   *   'board' (or absent) only this artboard
+   *   'all'              every artboard, each showing the whole picture
+   *   'span'             every artboard, each showing its own SLICE, so the
+   *                      set reads as sections of one larger image
+   *
+   * Both shared modes are sticky: normalizeBackgroundImage puts any board that
+   * has no picture of its own onto the shared one, which is how an artboard
+   * added later joins without the code that made it knowing this exists.
+   * Slice geometry is derived, see backgroundImageSlice.
+   */
+  backgroundImageApply?: 'board' | 'all' | 'span';
+  /**
+   * Where this board sits inside a spanned picture, in artboard pixels.
+   *
+   * DERIVED and overwritten on every update, exactly like `position`:
+   * normalizeBackgroundImage() re-stamps it from the board order, which is what
+   * keeps a span correct after a board is added, deleted, duplicated, reordered
+   * or resized. Authoring it does nothing.
+   *
+   * Canvas gaps are not part of it. The width it measures is the sum of the
+   * boards' own widths, so the exported PNGs laid edge to edge rebuild the
+   * picture, which is how a store listing shows them. `totalHeight` is the
+   * tallest board in the group, and it is there so that every board resolves
+   * the SAME cover/contain scale: sized against its own height instead, two
+   * boards of different heights would crop the picture differently and the
+   * slices would not line up.
+   */
+  backgroundImageSlice?: { offsetX: number; totalWidth: number; totalHeight: number };
   zoom: number; // Zoom level for the artboard's content itself
   exportScale?: number; // Optional export scale for higher resolution exports
   // App Preview boards: how long the timeline runs, in seconds. Unset means

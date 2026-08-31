@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DockHandlers } from '@/components/open-screenshot-generator/panels/RightDockPanels';
 import { joinPanelBus, PANEL_WINDOW_ID, type PanelBus } from './bus';
 import {
+  ELIDED_SRC,
   toWireSnapshot,
   type DockData,
   type DockIntent,
@@ -150,7 +151,13 @@ export function useDockHost(options: DockHostOptions): DockHost {
         // copy home would empty the board. Nothing in the properties form sends
         // them today, and this is what keeps that true.
         const { elements: _elements, localized: _localized, ...safe } = intent.updates;
-        h.onUpdateArtboardDetails(safe);
+        // Same rule for the background picture, which the form does send back
+        // when it spreads one across every board: a source too big to travel
+        // arrives as the stand-in, and writing THAT home would replace the real
+        // picture on every artboard with a string that resolves to nothing.
+        // Dropping the key leaves each board on the source it already has.
+        if (safe.backgroundImage === ELIDED_SRC) delete safe.backgroundImage;
+        h.onUpdateArtboardDetails(safe, intent.scope);
         break;
       }
       case 'resetLocaleField':

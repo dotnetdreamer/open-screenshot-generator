@@ -13,6 +13,7 @@ import { GestureElement } from './elements/GestureElement';
 import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { artboardBackground } from '@/lib/artboardBackground';
+import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
 import { measureTextHeight } from '@/lib/textFit';
 import { cn } from '@/lib/utils';
 import { artboardTimeline } from '@/lib/video/timeline';
@@ -619,6 +620,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           }}
           suppressHydrationWarning
         >
+          <ArtboardBackgroundImage artboard={artboard} />
           {elements.map(element => {
             // Selection chrome (outlines, handles, upload overlays) is editing
             // furniture; while the timeline runs the board shows only what will

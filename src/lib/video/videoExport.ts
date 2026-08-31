@@ -24,7 +24,8 @@ import type {
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { assetIdFromRef, getMediaAsset, getMediaUrl, isAssetRef } from '@/lib/mediaStore';
-import { normalizeGradient } from '@/lib/artboardBackground';
+import { artboardBackgroundImageBox, normalizeGradient } from '@/lib/artboardBackground';
+import { imageTint, type ImageTint } from '@/lib/elementStyle';
 import { withBasePath } from '@/lib/basePath';
 import { animationStateAt, animationEndTime } from './animation';
 import { drawGesture, gesturePhaseAt, gestureEndTime } from './gestures';
@@ -153,6 +154,49 @@ async function loadPosterImage(posterSrc: string): Promise<HTMLImageElement | nu
   } catch {
     return null;
   }
+}
+
+/**
+ * The picture with its tint baked in, once.
+ *
+ * A 2D canvas has no equivalent of the DOM's SVG filter, and the frame loop
+ * runs this 450 times for a 15 second export, so the composite happens here
+ * instead: `source-atop` mixes the colour in where the picture is painted and
+ * leaves its alpha alone. That is what the filter's arithmetic composite does
+ * (see ImageTintFilter), and the two were measured pixel-identical at every
+ * alpha from 0 to 1 — which is the only reason the MP4 can be trusted to match
+ * the PNG. Returns the image untouched if a canvas cannot be had, so a failure
+ * costs the tint rather than the whole export.
+ */
+function tintImage(
+  image: HTMLImageElement,
+  tint: ImageTint,
+  /** How big the picture will be drawn, so a vector is not baked at 300x150. */
+  box: { width: number; height: number }
+): HTMLImageElement | HTMLCanvasElement {
+  const nw = image.naturalWidth;
+  const nh = image.naturalHeight;
+  if (!nw || !nh) return image;
+  // Untinted, the browser rasterizes the source straight into the destination,
+  // so an SVG is as sharp as the board. Baking has to keep that: an SVG with
+  // only a viewBox reports 300x150, and rasterizing at that would leave the
+  // picture visibly soft the moment a tint was set. Scaled UP only, and with
+  // the natural aspect kept, because drawFitted reads its cover/contain maths
+  // off this canvas's own proportions.
+  const k = Math.max(1, box.width / nw, box.height / nh);
+  const w = Math.round(nw * k);
+  const h = Math.round(nh * k);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return image;
+  ctx.drawImage(image, 0, 0, w, h);
+  ctx.globalCompositeOperation = 'source-atop';
+  ctx.globalAlpha = tint.opacity;
+  ctx.fillStyle = tint.color;
+  ctx.fillRect(0, 0, w, h);
+  return canvas;
 }
 
 // ---------------------------------------------------------------------------
@@ -475,9 +519,18 @@ function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
   ctx.closePath();
 }
 
+/** A drawable's own pixel size. An <img>'s `width` is its layout box, not this. */
+function sourceSize(source: DrawableSource): { w: number; h: number } {
+  if (source instanceof HTMLVideoElement) return { w: source.videoWidth, h: source.videoHeight };
+  if (source instanceof HTMLCanvasElement) return { w: source.width, h: source.height };
+  return { w: source.naturalWidth, h: source.naturalHeight };
+}
+
+type DrawableSource = HTMLVideoElement | HTMLImageElement | HTMLCanvasElement;
+
 function drawFitted(
   ctx: CanvasRenderingContext2D,
-  video: HTMLVideoElement | HTMLImageElement,
+  video: DrawableSource,
   x: number,
   y: number,
   w: number,
@@ -488,9 +541,7 @@ function drawFitted(
   ctx.save();
   roundRectPath(ctx, x, y, w, h, radius);
   ctx.clip();
-  const isVideo = video instanceof HTMLVideoElement;
-  const vw = isVideo ? video.videoWidth : video.naturalWidth;
-  const vh = isVideo ? video.videoHeight : video.naturalHeight;
+  const { w: vw, h: vh } = sourceSize(video);
   if (!vw || !vh || fit === 'fill') {
     ctx.drawImage(video, x, y, w, h);
   } else {
@@ -502,7 +553,11 @@ function drawFitted(
   ctx.restore();
 }
 
-function drawArtboardBackground(ctx: CanvasRenderingContext2D, ab: ArtboardState) {
+function drawArtboardBackground(
+  ctx: CanvasRenderingContext2D,
+  ab: ArtboardState,
+  backgroundImage: HTMLImageElement | HTMLCanvasElement | null
+) {
   ctx.save();
   if (ab.backgroundType === 'gradient') {
     // Normalised, so a half-filled gradient paints here exactly as it does on
@@ -531,6 +586,28 @@ function drawArtboardBackground(ctx: CanvasRenderingContext2D, ab: ArtboardState
       : bg;
   }
   ctx.fillRect(0, 0, ab.size.width, ab.size.height);
+  // The picture goes OVER the ground, exactly as CSS paints background-image
+  // over background-color, so a contained fit letterboxes onto the colour
+  // instead of onto black. Mirrors ArtboardBackgroundImage: the box is the
+  // whole span when the board is one slice of it, and the canvas clips.
+  if (backgroundImage) {
+    const { left, width, height } = artboardBackgroundImageBox(ab);
+    // Clipped to the board the way the DOM clips it, so a slice cannot paint
+    // past its own board's edge.
+    ctx.beginPath();
+    ctx.rect(0, 0, ab.size.width, ab.size.height);
+    ctx.clip();
+    drawFitted(
+      ctx,
+      backgroundImage,
+      left,
+      0,
+      width,
+      height,
+      ab.backgroundImageFit || 'cover',
+      0
+    );
+  }
   ctx.restore();
 }
 
@@ -647,7 +724,18 @@ export async function exportArtboardVideo(
   window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
   await new Promise((resolve) => setTimeout(resolve, 100));
   if (root) await primeFontEmbedCSS(root);
+  let backgroundImage: HTMLImageElement | HTMLCanvasElement | null = null;
   try {
+    // Decoded once for the whole export: drawArtboardBackground runs per frame,
+    // and an asset:<id> is a Dexie read. Inside the try because the media read
+    // can reject, and the finally below is what takes the 3D renderers back out
+    // of supersampled mode. A failure degrades to the board's ground colour.
+    if (!settings.rawRecordingOnly && artboard.backgroundImage) {
+      const loaded = await loadPosterImage(artboard.backgroundImage);
+      const tint = imageTint(artboard.backgroundImageTintColor, artboard.backgroundImageTintOpacity);
+      backgroundImage =
+        loaded && tint ? tintImage(loaded, tint, artboardBackgroundImageBox(artboard)) : loaded;
+    }
     if (settings.rawRecordingOnly) {
       // First recording only, full-bleed. Guideline-2.3.4-safe output.
       for (const el of artboard.elements) {
@@ -816,7 +904,7 @@ export async function exportArtboardVideo(
       ctx.fillRect(0, 0, outW, outH);
       ctx.setTransform(coverScale, 0, 0, coverScale, offsetX, offsetY);
 
-      if (!settings.rawRecordingOnly) drawArtboardBackground(ctx, artboard);
+      if (!settings.rawRecordingOnly) drawArtboardBackground(ctx, artboard, backgroundImage);
 
       for (const layer of layers) {
         switch (layer.kind) {

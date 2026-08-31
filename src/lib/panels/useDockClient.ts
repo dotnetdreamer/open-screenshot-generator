@@ -210,7 +210,7 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
       onUpdateElementById: (elementId, updates) =>
         send({ name: 'updateElementById', elementId, updates }),
       onTranslateElement: (elementId) => send({ name: 'translateElement', elementId }),
-      onUpdateArtboardDetails: (updates) => send({ name: 'updateArtboardDetails', updates }),
+      onUpdateArtboardDetails: (updates, scope) => send({ name: 'updateArtboardDetails', updates, scope }),
       onResetLocaleField: (field) => send({ name: 'resetLocaleField', field }),
       onToggleLocaleDetach: (keys, detach) => send({ name: 'toggleLocaleDetach', keys, detach }),
       onResetLocaleOverrides: (scope) => send({ name: 'resetLocaleOverrides', scope }),

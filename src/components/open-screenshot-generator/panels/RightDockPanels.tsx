@@ -47,7 +47,7 @@ export interface DockHandlers {
   onUpdateElement: (updates: Partial<ArtboardElement>) => void;
   onUpdateElementById: (elementId: string, updates: Partial<ArtboardElement>) => void;
   onTranslateElement: (elementId: string) => void;
-  onUpdateArtboardDetails: (updates: Partial<ArtboardState>) => void;
+  onUpdateArtboardDetails: (updates: Partial<ArtboardState>, scope?: 'board' | 'all') => void;
   onResetLocaleField: (field: LocalizableField) => void;
   onToggleLocaleDetach: (keys: DetachableKey[], detach: boolean) => void;
   onResetLocaleOverrides: (scope: 'element' | 'artboard' | 'project') => void;

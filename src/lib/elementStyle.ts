@@ -14,6 +14,7 @@
 
 import type React from 'react';
 import type { ArtboardElement, LinearGradient } from '@/types/artboard';
+import { hash32 } from '@/lib/i18n/hash';
 
 /** CSS for the element's shared shadow/blur/opacity, or {} when it has none. */
 export function elementVisualStyle(element: ArtboardElement): React.CSSProperties {
@@ -47,4 +48,51 @@ export function linearGradientCss(gradient?: LinearGradient | null): string | un
     return undefined;
   }
   return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+}
+
+/**
+ * A colour tint over a picture, as an SVG filter (issue #33).
+ *
+ * The obvious implementation, a coloured div over the image, is wrong in three
+ * ways: it paints over the empty bars an `objectFit: contain` leaves, it turns
+ * a cut-out PNG into a coloured rectangle, and it changes the silhouette the
+ * element's own drop-shadow is computed from. Flooding the tint colour and
+ * compositing it `in` SourceAlpha tints exactly the pixels the browser actually
+ * painted, so every objectFit and every alpha channel is handled for free and
+ * nothing needs the image's natural size.
+ *
+ * It stays a filter on the `<img>` rather than a CSS background or a mask,
+ * because those carry no `decoding` attribute and WebKit would drop them from
+ * the exported PNG (see the header of src/lib/exportRaster.ts). Verified
+ * through the repo's html-to-image in both Chromium and WebKit.
+ */
+export interface ImageTint {
+  id: string;
+  color: string;
+  /** 0..1 */
+  opacity: number;
+}
+
+/**
+ * The tint for a pair of values, or null when there is none.
+ *
+ * The id is derived from the VALUES, never from an element id: two layers
+ * carrying the same tint then share one `<filter>` definition, and the id is
+ * identical on the server, on the client and inside an export clone, which a
+ * `useId` would not be.
+ */
+export function imageTint(color?: string, opacity?: number): ImageTint | null {
+  if (typeof color !== 'string' || !color.trim()) return null;
+  if (typeof opacity !== 'number' || !(opacity > 0)) return null;
+  const strength = Math.min(1, opacity);
+  return {
+    id: `osg-tint-${hash32(`${color.trim()}|${strength}`)}`,
+    color: color.trim(),
+    opacity: strength,
+  };
+}
+
+/** `filter: url(#id)` for a tint, or undefined so the property is left off. */
+export function imageTintFilter(tint: ImageTint | null): string | undefined {
+  return tint ? `url(#${tint.id})` : undefined;
 }

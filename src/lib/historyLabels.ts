@@ -162,6 +162,7 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
     label: 'Corner Radius',
     icon: 'edit',
   },
+  { keys: ['tintColor', 'tintOpacity'], label: 'Tint', icon: 'color' },
   { keys: ['objectFit', 'screenshotObjectFit', 'screenshotRect'], label: 'Screen Fit', icon: 'resize' },
   { keys: ['trimStart', 'trimEnd'], label: 'Trim Recording', icon: 'edit' },
   { keys: ['triggerTime', 'gestureDuration', 'gestureRepeat'], label: 'Gesture Timing', icon: 'edit' },
@@ -170,7 +171,20 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
 ];
 
 const ARTBOARD_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }> = [
-  { keys: ['backgroundColor', 'backgroundType', 'backgroundGradient'], label: 'Artboard Background', icon: 'color' },
+  {
+    keys: [
+      'backgroundColor',
+      'backgroundType',
+      'backgroundGradient',
+      'backgroundImage',
+      'backgroundImageFit',
+      'backgroundImageApply',
+      'backgroundImageTintColor',
+      'backgroundImageTintOpacity',
+    ],
+    label: 'Artboard Background',
+    icon: 'color',
+  },
   { keys: ['size'], label: 'Canvas Size', icon: 'resize' },
   { keys: ['name'], label: 'Rename Artboard', icon: 'edit' },
   { keys: ['language'], label: 'Translate', icon: 'translate' },
@@ -179,7 +193,7 @@ const ARTBOARD_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }
 ];
 
 // Derived every update from the artboard order, so it never signals an edit.
-const ARTBOARD_IGNORED = new Set(['position', 'elements']);
+const ARTBOARD_IGNORED = new Set(['position', 'elements', 'backgroundImageSlice']);
 
 function matchRule(
   rules: Array<{ keys: string[]; label: string; icon: HistoryIcon }>,

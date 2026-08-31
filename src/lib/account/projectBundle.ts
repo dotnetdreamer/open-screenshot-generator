@@ -41,7 +41,15 @@ const MEDIA_ID_KEYS = ['mediaId', 'screenVideoMediaId'] as const;
  * blobs live in the same media table, so the bundle must carry them exactly
  * like recordings or a moved project opens with empty frames.
  */
-const ASSET_SRC_KEYS = ['imageSrc', 'screenshotSrc', 'customFrameSrc', 'posterSrc'] as const;
+const ASSET_SRC_KEYS = [
+  'imageSrc',
+  'screenshotSrc',
+  'customFrameSrc',
+  'posterSrc',
+  // Board-level, not an element prop: the artboard's own background picture
+  // (see the walk below, which visits the board as well as its elements).
+  'backgroundImage',
+] as const;
 
 /**
  * Every locale override row on a board, flattened. The locale overlay stores a
@@ -79,6 +87,11 @@ export function collectMediaIds(projectData: ArtboardState[]): string[] {
     }
   };
   for (const artboard of projectData ?? []) {
+    // The board itself first: its background picture is an asset reference like
+    // any element's, and a manifest that misses it does not merely fail to
+    // upload the blob, it tells the server and Drive to DELETE the one already
+    // there (the manifest is the whole list, never a diff).
+    take(artboard as unknown as Record<string, unknown>);
     for (const element of artboard.elements ?? []) {
       take(element as unknown as Record<string, unknown>);
     }

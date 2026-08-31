@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { artboardBackground } from '@/lib/artboardBackground';
+import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
 import { elementVisualStyle } from '@/lib/elementStyle';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
@@ -77,6 +78,7 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
           ...getArtboardBackgroundStyle(artboard),
         }}
       >
+        <ArtboardBackgroundImage artboard={artboard} />
         {artboard.elements.map(element => (
           <div
             key={element.id}
