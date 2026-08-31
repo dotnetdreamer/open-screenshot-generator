@@ -461,7 +461,7 @@
         {
           "id": "tpl_zx_ab3_pill1",
           "type": "shape",
-          "name": "Pill – Stylish",
+          "name": "Pill: Stylish",
           "position": {
             "x": 20,
             "y": 900
@@ -481,7 +481,7 @@
         {
           "id": "tpl_zx_ab3_pill1_text",
           "type": "text",
-          "name": "Pill Text – Stylish",
+          "name": "Pill Text: Stylish",
           "position": {
             "x": 20,
             "y": 900
@@ -503,7 +503,7 @@
         {
           "id": "tpl_zx_ab3_pill2",
           "type": "shape",
-          "name": "Pill – Luxury",
+          "name": "Pill: Luxury",
           "position": {
             "x": 420,
             "y": 900
@@ -523,7 +523,7 @@
         {
           "id": "tpl_zx_ab3_pill2_text",
           "type": "text",
-          "name": "Pill Text – Luxury",
+          "name": "Pill Text: Luxury",
           "position": {
             "x": 420,
             "y": 900
@@ -545,7 +545,7 @@
         {
           "id": "tpl_zx_ab3_pill3",
           "type": "shape",
-          "name": "Pill – Styling",
+          "name": "Pill: Styling",
           "position": {
             "x": 840,
             "y": 900
@@ -565,7 +565,7 @@
         {
           "id": "tpl_zx_ab3_pill3_text",
           "type": "text",
-          "name": "Pill Text – Styling",
+          "name": "Pill Text: Styling",
           "position": {
             "x": 840,
             "y": 900
@@ -587,7 +587,7 @@
         {
           "id": "tpl_zx_ab3_pill4",
           "type": "shape",
-          "name": "Pill – Trending",
+          "name": "Pill: Trending",
           "position": {
             "x": -260,
             "y": 1130
@@ -607,7 +607,7 @@
         {
           "id": "tpl_zx_ab3_pill4_text",
           "type": "text",
-          "name": "Pill Text – Trending",
+          "name": "Pill Text: Trending",
           "position": {
             "x": -260,
             "y": 1130
@@ -629,7 +629,7 @@
         {
           "id": "tpl_zx_ab3_pill5",
           "type": "shape",
-          "name": "Pill – Unique",
+          "name": "Pill: Unique",
           "position": {
             "x": 220,
             "y": 1130
@@ -649,7 +649,7 @@
         {
           "id": "tpl_zx_ab3_pill5_text",
           "type": "text",
-          "name": "Pill Text – Unique",
+          "name": "Pill Text: Unique",
           "position": {
             "x": 220,
             "y": 1130
@@ -671,7 +671,7 @@
         {
           "id": "tpl_zx_ab3_pill6",
           "type": "shape",
-          "name": "Pill – Popular",
+          "name": "Pill: Popular",
           "position": {
             "x": 630,
             "y": 1130
@@ -691,7 +691,7 @@
         {
           "id": "tpl_zx_ab3_pill6_text",
           "type": "text",
-          "name": "Pill Text – Popular",
+          "name": "Pill Text: Popular",
           "position": {
             "x": 630,
             "y": 1130

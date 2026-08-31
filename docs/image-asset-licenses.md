@@ -137,7 +137,7 @@ availability; each vendor's guidelines govern their use:
 Note: vendor badge guidelines generally require the badge to be used
 unmodified, with clear space, to indicate actual availability of an app on
 that store. The palette provides them for users composing store screenshots /
-promo art for their own apps — which is the badges' intended purpose.
+promo art for their own apps, which is the badges' intended purpose.
 
 ## 3. License scope notes
 

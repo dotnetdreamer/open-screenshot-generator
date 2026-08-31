@@ -160,7 +160,7 @@ npm run dev
 
 The dev server runs on http://localhost:9002 with Turbopack. When the app opens, pick one of the bundled templates or start blank, and you're in the editor.
 
-Everything works without any further setup. The Discover feed and cloud projects are the parts that need a backend, and both are off unless you point at one — with `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Save to cloud, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
+Everything works without any further setup. The Discover feed and cloud projects are the parts that need a backend, and both are off unless you point at one. With `NEXT_PUBLIC_DISCOVER_URL` unset there is no rail button, no Community tab and no Save to cloud, and nothing else changes. To run it too, `infra/vps` brings the whole thing up in Docker in one command:
 
 ```bash
 cd infra/vps
