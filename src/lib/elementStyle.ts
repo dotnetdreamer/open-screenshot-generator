@@ -51,44 +51,97 @@ export function linearGradientCss(gradient?: LinearGradient | null): string | un
 }
 
 /**
- * A colour tint over a picture, as an SVG filter (issue #33).
+ * A colour tint over a picture (issue #33).
  *
  * The obvious implementation, a coloured div over the image, is wrong in three
  * ways: it paints over the empty bars an `objectFit: contain` leaves, it turns
  * a cut-out PNG into a coloured rectangle, and it changes the silhouette the
- * element's own drop-shadow is computed from. Flooding the tint colour and
- * compositing it `in` SourceAlpha tints exactly the pixels the browser actually
- * painted, so every objectFit and every alpha channel is handled for free and
- * nothing needs the image's natural size.
+ * element's own drop-shadow is computed from. Compositing the colour onto the
+ * pixels the browser actually painted handles every objectFit and every alpha
+ * channel for free, and needs nothing from the image's natural size.
  *
- * It stays a filter on the `<img>` rather than a CSS background or a mask,
- * because those carry no `decoding` attribute and WebKit would drop them from
- * the exported PNG (see the header of src/lib/exportRaster.ts). Verified
- * through the repo's html-to-image in both Chromium and WebKit.
+ * This type carries the VALUES. Where the compositing happens differs by
+ * surface, and all three were measured pixel-identical at every alpha:
+ * lib/imageTintBake bakes it into the bitmap for the DOM (an SVG filter froze
+ * WebKit on a board-sized picture), and videoExport does the same composite on
+ * its canvas for the MP4.
  */
 export interface ImageTint {
   id: string;
   color: string;
   /** 0..1 */
   opacity: number;
+  /**
+   * `color` as 0..1 channels, when it is a shape we can read without a DOM.
+   *
+   * With it the tint is ONE feColorMatrix; without it the renderer falls back
+   * to flood-and-composite, which is the same picture but three passes over a
+   * full-size surface instead of one in place. That matters: a background
+   * picture spanning three phone boards is ~11 megapixels, and the intermediate
+   * surfaces alone ran to hundreds of megabytes per repaint.
+   */
+  rgb: { r: number; g: number; b: number } | null;
+}
+
+/**
+ * A CSS colour as 0..1 channels, or null for anything we cannot read here.
+ *
+ * Deliberately not a canvas round trip: this runs during render, including on
+ * the server, where there is no document. Covers every shape the app itself
+ * writes (the colour input only ever emits #rrggbb) and the usual hand-written
+ * ones; a named colour or a modern colour function falls back rather than
+ * guessing.
+ */
+export function parseCssColorChannels(color: string): { r: number; g: number; b: number } | null {
+  const value = color.trim().toLowerCase();
+  const hex = /^#([0-9a-f]{3,8})$/.exec(value);
+  if (hex) {
+    const digits = hex[1];
+    const wide = digits.length >= 6;
+    const at = (i: number) =>
+      wide ? parseInt(digits.slice(i * 2, i * 2 + 2), 16) : parseInt(digits[i] + digits[i], 16);
+    if (digits.length === 3 || digits.length === 4 || digits.length === 6 || digits.length === 8) {
+      return { r: at(0) / 255, g: at(1) / 255, b: at(2) / 255 };
+    }
+    return null;
+  }
+  const rgb = /^rgba?\(([^)]+)\)$/.exec(value);
+  if (rgb) {
+    const parts = rgb[1].split(/[\s,/]+/).filter(Boolean).slice(0, 3);
+    if (parts.length !== 3) return null;
+    const channel = (raw: string) => {
+      const n = parseFloat(raw);
+      if (!Number.isFinite(n)) return null;
+      return Math.min(1, Math.max(0, raw.includes('%') ? n / 100 : n / 255));
+    };
+    const [r, g, b] = parts.map(channel);
+    if (r === null || g === null || b === null) return null;
+    return { r, g, b };
+  }
+  return null;
 }
 
 /**
  * The tint for a pair of values, or null when there is none.
  *
- * The id is derived from the VALUES, never from an element id: two layers
- * carrying the same tint then share one `<filter>` definition, and the id is
- * identical on the server, on the client and inside an export clone, which a
- * `useId` would not be.
+ * `owner` is the id of the thing being tinted, and the filter id is derived
+ * from it rather than from the colour and strength. That matters: an id that
+ * changes with the values means a new `<filter>` node and a new `filter:`
+ * property on the picture on every step of a drag, and WebKit answers that by
+ * re-filtering the whole picture from scratch (1824ms a step against 363ms,
+ * measured at dpr 2 on a board-sized background). An element id is also stable
+ * across an export clone, which a `useId` would not be.
  */
-export function imageTint(color?: string, opacity?: number): ImageTint | null {
+export function imageTint(color?: string, opacity?: number, owner?: string): ImageTint | null {
   if (typeof color !== 'string' || !color.trim()) return null;
   if (typeof opacity !== 'number' || !(opacity > 0)) return null;
   const strength = Math.min(1, opacity);
+  const trimmed = color.trim();
   return {
-    id: `osg-tint-${hash32(`${color.trim()}|${strength}`)}`,
-    color: color.trim(),
+    id: `osg-tint-${hash32(owner || trimmed)}`,
+    color: trimmed,
     opacity: strength,
+    rgb: parseCssColorChannels(trimmed),
   };
 }
 

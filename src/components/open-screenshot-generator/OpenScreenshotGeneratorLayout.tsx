@@ -324,11 +324,8 @@ async function fetchRecentProjectMetas(): Promise<Project[]> {
 // position is, and this runs on every commit (see normalizeBackgroundImage).
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
-  console.log("Calculating positions for artboards:", artboards.length);
-  return normalizeBackgroundImage(artboards).map((ab, index) => {
+  return normalizeBackgroundImage(artboards).map((ab) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
-    console.log(`Artboard ${index}: size=${ab.size.width}x${ab.size.height}, position=${newPosition.x},${newPosition.y}`);
-    
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
     
@@ -1656,7 +1653,6 @@ export function OpenScreenshotGeneratorLayout() {
   );
 
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
-    console.log("handleArtboardsUpdate called", activeProjectId);
     // An export has a converted or re-projected list on the canvas. A commit
     // arriving now (an MCP tool, a drag settling on mouseup) would be measured
     // against that temporary render and persist it as the project.

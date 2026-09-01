@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,18 +22,6 @@ interface ImageElementComponentProps {
 export function ImageElement({ element, onUpdate, isSelected }: ImageElementComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Debug: Log the element properties
-  useEffect(() => {
-    console.log('ImageElement props changed:', {
-      id: element.id,
-      skewX: element.skewX,
-      skewY: element.skewY,
-      perspectiveX: element.perspectiveX,
-      perspectiveY: element.perspectiveY,
-      matrix3d: element.matrix3d
-    });
-  }, [element.id, element.skewX, element.skewY, element.perspectiveX, element.perspectiveY, element.matrix3d]);
 
   // Uploads land in the Dexie media table and the element keeps only an
   // asset:<id> reference — inlining the file as a data URL made every undo
@@ -93,7 +81,6 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
     
     if (transforms.length > 0) {
       const transformString = transforms.join(' ');
-      console.log('ImageElement transform:', transformString, 'Element:', element.id);
       return {
         transform: transformString,
         transformOrigin: 'center center',
@@ -111,8 +98,10 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
   const resolvedSrc = useImageSrc(element.imageSrc);
 
   // A colour over the painted pixels only, so a contained picture's empty bars
-  // and a cut-out PNG's transparent ground are left alone (see imageTint).
-  const tint = imageTint(element.tintColor, element.tintOpacity);
+  // and a cut-out PNG's transparent ground are left alone. A layer is small
+  // enough for a filter to be the right tool here; the BOARD background, which
+  // can be several megapixels, uses a plain scrim instead.
+  const tint = imageTint(element.tintColor, element.tintOpacity, element.id);
 
   return (
     <div

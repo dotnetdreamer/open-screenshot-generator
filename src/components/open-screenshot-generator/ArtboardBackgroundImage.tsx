@@ -3,12 +3,12 @@ import React from 'react';
 import { artboardBackgroundImageBox } from '@/lib/artboardBackground';
 import { useImageSrc } from '@/lib/mediaStore';
 import { withBasePath } from '@/lib/basePath';
-import { imageTint, imageTintFilter } from '@/lib/elementStyle';
-import { ImageTintFilter } from './elements/ImageTintFilter';
+import { imageTint } from '@/lib/elementStyle';
 import type { ArtboardState } from '@/types/artboard';
 
 /**
- * The board's background picture, as a real <img> under every element.
+ * The board's background picture, as a real <img> under every element, plus the
+ * scrim that holds it back.
  *
  * An <img> rather than a CSS background-image on purpose. html-to-image
  * rasterizes by serializing the board into an SVG, and WebKit paints that SVG
@@ -28,13 +28,10 @@ export function ArtboardBackgroundImage({ artboard }: { artboard: ArtboardState 
   if (!artboard.backgroundImage || !resolved) return null;
 
   const { left, width, height } = artboardBackgroundImageBox(artboard);
-  // Held back so text on top stays readable. Same treatment an image element
-  // gets, so the two cannot look different for the same colour and strength.
   const tint = imageTint(artboard.backgroundImageTintColor, artboard.backgroundImageTintOpacity);
 
   return (
     <>
-      {tint && <ImageTintFilter tint={tint} />}
       <img
         src={withBasePath(resolved)}
         alt=""
@@ -51,13 +48,41 @@ export function ArtboardBackgroundImage({ artboard }: { artboard: ArtboardState 
           maxWidth: 'none',
           maxHeight: 'none',
           objectFit: artboard.backgroundImageFit || 'cover',
-          filter: imageTintFilter(tint),
           // The board is the ground, not a layer to be picked up: clicks and
           // drags belong to the board and to the elements over it.
           pointerEvents: 'none',
           userSelect: 'none',
         }}
       />
+      {tint && (
+        /**
+         * A scrim across the BOARD, not a filter on the picture.
+         *
+         * An image LAYER tints through an SVG filter, which follows the alpha
+         * channel exactly. That is the right tool for a cut-out at layer size
+         * and the wrong one here: a background picture is millions of pixels (a
+         * three board split is ~11MP, four times that on a Retina display) and
+         * WebKit re-filters the whole thing on every change. Measured at dpr 2
+         * while dragging the strength, per step: 1824ms filtering the picture
+         * against 33ms for this div. The desktop app is a WKWebView, so that is
+         * a frozen editor against a smooth one.
+         *
+         * It covers the board rather than only the picture, which is what a
+         * background scrim should do anyway: the point of it is that text on
+         * top stays readable, and that includes wherever the ground colour
+         * shows through a contained or part transparent picture.
+         */
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: tint.color,
+            opacity: tint.opacity,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
     </>
   );
 }

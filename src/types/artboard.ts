@@ -250,8 +250,8 @@ export interface ImageElementProps extends BaseElement {
    *
    * Applied to the PAINTED PIXELS only, through an SVG filter, so it follows
    * whatever objectFit draws and leaves a cut-out PNG's transparent ground
-   * alone instead of turning it into a coloured rectangle. See imageTintFilter
-   * in src/lib/elementStyle.ts.
+   * alone instead of turning it into a coloured rectangle. See imageTint in
+   * src/lib/elementStyle.ts.
    */
   tintColor?: string;
   /** How strongly the tint covers the picture. 0..1; 0 or unset is no tint. */

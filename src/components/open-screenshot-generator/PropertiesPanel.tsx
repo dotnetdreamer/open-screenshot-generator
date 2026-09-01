@@ -2792,8 +2792,6 @@ export function PropertiesPanel({
 
   // Function to render image properties
   const renderImageProperties = (element: ImageElementProps) => {
-    console.log('Rendering image properties for element:', element.id, 'skewX:', element.skewX, 'skewY:', element.skewY);
-    
     return (
     <div className="space-y-4">
       {/* Image Upload and Basic Properties */}
@@ -2976,7 +2974,6 @@ export function PropertiesPanel({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  console.log('Applying transform preset:', preset.name, preset.values);
                   onUpdateElement(preset.values);
                 }}
                 className="text-xs h-8 justify-start"
@@ -3001,7 +2998,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.skewX || 0]}
               onValueChange={(value) => {
-                console.log('Updating skewX to:', value[0]);
                 onUpdateElement({ skewX: value[0] });
               }}
               className="my-2"
@@ -3019,7 +3015,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.skewY || 0]}
               onValueChange={(value) => {
-                console.log('Updating skewY to:', value[0]);
                 onUpdateElement({ skewY: value[0] });
               }}
               className="my-2"
@@ -3040,7 +3035,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.perspectiveX || 0]}
               onValueChange={(value) => {
-                console.log('Updating perspectiveX to:', value[0]);
                 onUpdateElement({ perspectiveX: value[0] });
               }}
               className="my-2"
@@ -3058,7 +3052,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.perspectiveY || 0]}
               onValueChange={(value) => {
-                console.log('Updating perspectiveY to:', value[0]);
                 onUpdateElement({ perspectiveY: value[0] });
               }}
               className="my-2"
@@ -3107,9 +3100,6 @@ export function PropertiesPanel({
 
   // Function to render shape-specific controls
   const renderShapeProperties = (element: ShapeElementProps) => {
-    console.log('renderShapeProperties called with element:', element);
-    console.log('element.shapeType:', element.shapeType);
-    console.log('element.innerRadius:', element.innerRadius);
     
     return (
     <div className="space-y-4">
