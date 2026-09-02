@@ -270,8 +270,12 @@ export function QuickStartScreen({
 
   const palette = useMemo(() => mergePalettes(shots.map((shot) => shot.analysis), 6), [shots]);
 
+  // The app name is a hint, not a search. Feeding it into `query` put a field
+  // labelled "names the project" onto the 60-point term meant for words the user
+  // typed to find something, so naming an app re-ranked the catalog and badged
+  // the winner "Matches your words".
   const profile = useMemo(
-    () => buildIntakeProfile(shots, { query: query.trim() || appName.trim() }),
+    () => buildIntakeProfile(shots, { query: query.trim(), nameHint: appName.trim() }),
     [shots, query, appName]
   );
 

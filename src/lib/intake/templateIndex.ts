@@ -229,9 +229,40 @@ export interface IntakeProfile {
   isDark: boolean;
   /** Colours pulled out of the shots, best first. */
   palette: string[];
+  /**
+   * How sure detectDevice was, 0 to 1, averaged over the set.
+   *
+   * 1 means the pixel dimensions hit EXACT_SIZES and the device is a fact; 0.15
+   * means nothing matched and the family was picked off an aspect ratio. The
+   * device term scales with this, because handing out the full reward (and, far
+   * worse, the full wrong-product penalty) on a guess pushes the right
+   * templates below the wrong ones for anyone whose capture was resized.
+   */
+  deviceConfidence: number;
+  /** Mean luminance of the shots, 0 to 1. Falls back to isDark when absent. */
+  luminance: number;
   /** Free-text the user typed, if any. Matched against template keywords. */
   query?: string;
+  /**
+   * The app's name, which is NOT the same thing as a search.
+   *
+   * It arrives from a field labelled "names the project" and from a store
+   * import, so it is a hint, not an instruction: "Calm" should nudge the calm
+   * layouts without letting a name outrank every derived signal, and it must
+   * never claim the "Matches your words" badge, because the user did not type
+   * words to match.
+   */
+  nameHint?: string;
 }
+
+/**
+ * Words that mean the user is asking for a Play banner rather than a deck.
+ *
+ * Kept as whole terms because they are matched against searchTerms output, and
+ * "graphic" is deliberately absent: it appears in ordinary design language often
+ * enough that it would cancel the demotion by accident.
+ */
+const FEATURE_GRAPHIC_WORDS = ['feature', 'banner', 'play', 'header', 'cover'];
 
 /** Enough colour in it to be worth matching on. */
 function isVivid(hex: string): boolean {
@@ -243,6 +274,39 @@ function isVivid(hex: string): boolean {
   if (max - min < 40) return false; // grey, white, black
   const light = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
   return light > 0.08 && light < 0.94;
+}
+
+/**
+ * Split free text into the terms worth matching on.
+ *
+ * Two-letter fragments are dropped, and so are the stop words the index itself
+ * strips, because both of them match half the catalog and mean nothing. "Search
+ * It" must not score on "it".
+ */
+function searchTerms(text: string): string[] {
+  const words = text.toLowerCase().match(/[a-z][a-z0-9+]{2,}/g) ?? [];
+  return words.filter((word) => !STOP_WORDS.has(word));
+}
+
+/**
+ * How well one term matches a template, 0 to 2.
+ *
+ * The match is on whole words, not substrings, and that is the whole point of
+ * this function existing. `name.includes(term)` scored "list" against Listenly
+ * Audiobooks, "vault" against Cinevault, and "it" against Zenfit, so a task-list
+ * app was offered an audiobook layout and told its words matched. A name hit
+ * still counts double: template names are chosen, descriptions are prose.
+ */
+function termScore(term: string, entry: TemplateIndexEntry): number {
+  if (entry.name.toLowerCase().split(/[^a-z0-9+]+/).some((word) => word === term)) return 2;
+  // A prefix hit absorbs the plural and the participle ("habit" for "habits",
+  // "track" for "tracker") without letting a short term ride on a longer word.
+  // The three-character ceiling is what stops "list" reaching Listenly: an
+  // inflection adds an ending, it does not add half a brand name.
+  if (entry.keywords.some((word) => word === term || (term.length >= 4 && word.startsWith(term) && word.length - term.length <= 3))) {
+    return 1;
+  }
+  return 0;
 }
 
 /** Distance between two colours in plain RGB, normalised to 0 to 1. */
@@ -295,21 +359,33 @@ export function scoreTemplate(entry: TemplateIndexEntry, profile: IntakeProfile)
     reasons.push(`Fits ${slotCount} of ${profile.count}`);
   }
 
-  // 2. Device match, worth up to 30.
+  // 2. Device match, worth up to 30, scaled by how sure the detection was.
+  //
+  //    Confidence is the difference between "this file is 1290 x 2796, so it is
+  //    a 6.9-inch iPhone capture and nothing else" and "this is roughly phone
+  //    shaped". Both used to be worth the same 30, and both used to spend the
+  //    same -25 against every other category, so one resized screenshot could
+  //    bury the layouts the user actually wanted. The exact-match confidence is
+  //    1, so the tuned weights are unchanged for the common case.
+  const sure = Math.max(0, Math.min(1, profile.deviceConfidence));
+  // The label is only honest when we are actually sure, so the badge and the
+  // score come off the same threshold rather than the badge always showing.
+  const named = DEVICE_REGISTRY[profile.device]?.label ?? profile.device;
   if (entry.deviceTypes.includes(profile.device)) {
-    score += 30;
-    reasons.push(`Built for ${DEVICE_REGISTRY[profile.device]?.label ?? profile.device}`);
+    score += 30 * sure;
+    if (sure >= 0.85) reasons.push(`Built for ${named}`);
   } else if (entry.deviceCategory === profile.category) {
-    score += 20;
-    reasons.push(`${profile.category === 'phone' ? 'Phone' : DEVICE_REGISTRY[profile.device]?.label ?? 'Device'} sized`);
+    score += 20 * sure;
+    if (sure >= 0.5) reasons.push(`${profile.category === 'phone' ? 'Phone' : named} sized`);
   } else if (entry.deviceCategory === 'mixed') {
-    score += 10;
+    score += 10 * sure;
   } else {
-    // A watch template holding phone screenshots is a different product.
-    score -= 25;
+    // A watch template holding phone screenshots is a different product. The
+    // floor keeps a low-confidence guess from erasing a template outright.
+    score -= 25 * Math.max(0.4, sure);
   }
   if (entry.platform !== 'mixed' && entry.platform !== 'neutral' && entry.platform === profile.platform) {
-    score += 5;
+    score += 5 * sure;
   }
 
   // 3. Mood, worth up to 12. A dark app in a dark layout reads as one design;
@@ -329,6 +405,13 @@ export function scoreTemplate(entry: TemplateIndexEntry, profile: IntakeProfile)
   //    yields a near-white and a near-black, and those two match every light
   //    and every dark template in the catalog, so leaving them in ranks the
   //    entire library at once and says nothing.
+  //
+  //    When nothing in the upload is vivid, tone stands in for hue. A greyscale
+  //    app still has a light or a dark character, and without this fallback the
+  //    whole term pays zero to everybody: a muted five-shot set used to leave 19
+  //    templates tied at exactly 82.00, with only 6 distinct scores across the
+  //    36 cards on screen, so the grid was ordering by Map insertion and calling
+  //    it a ranking.
   const vividPalette = profile.palette.filter(isVivid).slice(0, 3);
   if (vividPalette.length > 0 && entry.backgroundColors.length > 0) {
     let best = 1;
@@ -339,6 +422,9 @@ export function scoreTemplate(entry: TemplateIndexEntry, profile: IntakeProfile)
     }
     score += (1 - best) * 13;
     if (best < 0.22) reasons.push('Colours match');
+  } else {
+    // Tone is a weaker signal than hue, so it is worth less than the full 13.
+    score += (1 - Math.abs(entry.luminance - profile.luminance)) * 8;
   }
 
   // 5. Typed query, worth up to 60, which is deliberately more than device and
@@ -346,19 +432,44 @@ export function scoreTemplate(entry: TemplateIndexEntry, profile: IntakeProfile)
   //    about what they want than every derived signal here, and a ranking that
   //    answers with the best-fitting banking layout has ignored them. A name
   //    hit counts double: template names are chosen, descriptions are prose.
-  const query = profile.query?.trim().toLowerCase();
-  if (query) {
-    const terms = query.match(/[a-z][a-z0-9+]{1,}/g) ?? [];
-    let hits = 0;
-    for (const term of terms) {
-      if (entry.name.toLowerCase().includes(term)) hits += 2;
-      else if (entry.keywords.some((word) => word.startsWith(term))) hits += 1;
-    }
-    if (terms.length > 0) {
-      const ratio = Math.min(1, hits / (terms.length * 1.5));
-      score += ratio * 60;
-      if (ratio >= 0.45) reasons.unshift('Matches your words');
-    }
+  const queryTerms = searchTerms(profile.query ?? '');
+  if (queryTerms.length > 0) {
+    const hits = queryTerms.reduce((sum, term) => sum + termScore(term, entry), 0);
+    const ratio = Math.min(1, hits / (queryTerms.length * 1.5));
+    score += ratio * 60;
+    if (ratio >= 0.45) reasons.unshift('Matches your words');
+  }
+
+  // 6. The app name, worth up to 18 and never a badge.
+  //
+  //    This used to be poured into the query channel above, so naming a project
+  //    silently re-ranked the catalog on a 60-point term: across 40 realistic
+  //    app names, 25 changed the top result and 23 stamped an unrelated template
+  //    "Matches your words" for words the user never typed. The signal in a name
+  //    is real but weak, so it now nudges from its own smaller term.
+  const hintTerms = searchTerms(profile.nameHint ?? '');
+  if (hintTerms.length > 0) {
+    const hits = hintTerms.reduce((sum, term) => sum + termScore(term, entry), 0);
+    score += Math.min(1, hits / (hintTerms.length * 1.5)) * 18;
+  }
+
+  // 7. Surface, worth -22. The one distinction the device signal cannot make.
+  //
+  //    A Play feature graphic is a single 1024 x 500 store banner, a different
+  //    deliverable from a screenshot deck, but it holds a phone frame like every
+  //    other template, so device and platform score it identically. Because it
+  //    has exactly one slot it also collected a perfect 45 for capacity from a
+  //    one-shot upload, which put feature graphics at ranks 1, 2, 3, 5, 6, 8 and
+  //    10 for somebody who had simply only dropped their first screenshot so
+  //    far. buildIntakeProfile already guards the nothing-uploaded case for this
+  //    exact reason; this is the same guard for the case where a file landed.
+  //
+  //    The demotion lifts the moment the user types one of the banner's own
+  //    words, so the category stays reachable rather than hidden, and it is a
+  //    demotion rather than a filter so a one-shot upload still sees banners
+  //    further down the grid.
+  if (entry.category === 'play-feature-graphic' && !FEATURE_GRAPHIC_WORDS.some((word) => queryTerms.includes(word))) {
+    score -= 22;
   }
 
   return { entry, score: Math.max(0, score), reasons: reasons.slice(0, 3), fits };
@@ -366,7 +477,12 @@ export function scoreTemplate(entry: TemplateIndexEntry, profile: IntakeProfile)
 
 /**
  * Every template that can hold at least one screenshot, best first.
- * Ties break on the shorter template, so the tightest fit wins a coin toss.
+ *
+ * Ties break on the shorter template, so the tightest fit wins a coin toss, and
+ * then on the id, so a genuine tie is at least the same order every render.
+ * Without that last step the survivors of a tie came out in Map insertion order,
+ * which is catalog order, which meant the grid silently re-ordered whenever a
+ * template was added upstream.
  */
 export function rankTemplates(
   index: Map<string, TemplateIndexEntry> | TemplateIndexEntry[],
@@ -376,7 +492,12 @@ export function rankTemplates(
   return entries
     .map((entry) => scoreTemplate(entry, profile))
     .filter((scored) => scored.score > 0)
-    .sort((a, b) => b.score - a.score || a.entry.slots.length - b.entry.slots.length);
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        a.entry.slots.length - b.entry.slots.length ||
+        (a.entry.id < b.entry.id ? -1 : a.entry.id > b.entry.id ? 1 : 0)
+    );
 }
 
 /**
@@ -388,24 +509,50 @@ export function rankTemplates(
  * stray tablet shot is still a phone project.
  */
 export function buildIntakeProfile(
-  shots: Array<{ analysis: { device: DeviceType; isDark: boolean; palette: string[] } }>,
-  options: { query?: string; fallbackCount?: number } = {}
+  shots: Array<{
+    analysis: {
+      device: DeviceType;
+      isDark: boolean;
+      palette: string[];
+      deviceConfidence?: number;
+      luminance?: number;
+    };
+  }>,
+  options: { query?: string; fallbackCount?: number; nameHint?: string } = {}
 ): IntakeProfile {
+  // The vote is weighted by confidence, not a headcount. One capture whose
+  // dimensions hit EXACT_SIZES is worth more than three that merely landed in
+  // the same aspect family, and an unweighted majority let the guesses win.
   const votes = new Map<DeviceType, number>();
   let dark = 0;
+  let lumTotal = 0;
+  let lumCount = 0;
   for (const shot of shots) {
-    votes.set(shot.analysis.device, (votes.get(shot.analysis.device) ?? 0) + 1);
+    const weight = shot.analysis.deviceConfidence ?? 1;
+    votes.set(shot.analysis.device, (votes.get(shot.analysis.device) ?? 0) + weight);
     if (shot.analysis.isDark) dark++;
+    if (typeof shot.analysis.luminance === 'number') {
+      lumTotal += shot.analysis.luminance;
+      lumCount++;
+    }
   }
 
   let device: DeviceType = shots[0]?.analysis.device ?? 'iphone-15';
   let best = 0;
-  for (const [id, count] of votes) {
-    if (count > best) {
-      best = count;
+  for (const [id, weight] of votes) {
+    if (weight > best) {
+      best = weight;
       device = id;
     }
   }
+
+  // Confidence in the winner is the mean over the shots that actually voted for
+  // it, so a set that agrees on a guess is still reported as a guess.
+  const backing = shots.filter((shot) => shot.analysis.device === device);
+  const deviceConfidence =
+    backing.length > 0
+      ? backing.reduce((sum, shot) => sum + (shot.analysis.deviceConfidence ?? 1), 0) / backing.length
+      : 1;
 
   const descriptor = DEVICE_REGISTRY[device];
   const palette: string[] = [];
@@ -432,6 +579,11 @@ export function buildIntakeProfile(
     platform: descriptor?.platform ?? 'neutral',
     isDark: shots.length > 0 && dark * 2 > shots.length,
     palette,
+    deviceConfidence: shots.length > 0 ? deviceConfidence : 1,
+    // With nothing measured, sit at the midpoint so the tone fallback is neutral
+    // rather than quietly ranking the whole catalog as light.
+    luminance: lumCount > 0 ? lumTotal / lumCount : 0.5,
     query: options.query?.trim() || undefined,
+    nameHint: options.nameHint?.trim() || undefined,
   };
 }

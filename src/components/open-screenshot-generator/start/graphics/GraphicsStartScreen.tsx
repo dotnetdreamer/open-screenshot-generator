@@ -208,7 +208,7 @@ export function GraphicsStartScreen({
 
   const format = getSocialFormat(formatId);
   const palette = useMemo(() => mergePalettes(shots.map((shot) => shot.analysis), 6), [shots]);
-  const profile = useMemo(() => buildIntakeProfile(shots, { query: appName.trim() }), [shots, appName]);
+  const profile = useMemo(() => buildIntakeProfile(shots, { nameHint: appName.trim() }), [shots, appName]);
 
   const brand = useMemo<SocialBrand>(
     () => ({
