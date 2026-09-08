@@ -444,10 +444,21 @@ export function AccountDialog({
                       <ProviderMark id={id} />
                     )}
                     Continue with {provider.label}
-                    {!provider.supportsMedia && (
+                    {!provider.supportsVideo && (
                       <span className="ml-auto text-xs text-muted-foreground">no video</span>
                     )}
                   </Button>
+
+                  {/* Said here rather than only at the point of failure. The
+                      limit is invisible until you have already picked GitHub,
+                      saved a project with a recording in it and been turned
+                      away, and by then the choice feels like a bug. */}
+                  {!provider.supportsVideo && (
+                    <p className="text-xs text-muted-foreground">
+                      Projects and screenshots are saved to a secret gist. Screen recordings
+                      cannot go in a gist, so projects with video need Google Drive.
+                    </p>
+                  )}
 
                   {/* With a sign-in Worker the popup is the normal path, but a
                       token still works for anyone who prefers it. */}

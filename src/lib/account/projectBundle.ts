@@ -75,15 +75,46 @@ function localeOverridesOf(artboard: ArtboardState): Record<string, unknown>[] {
  * src/lib/video/migrateVideoDevices.ts) are picked up too.
  */
 export function collectMediaIds(projectData: ArtboardState[]): string[] {
+  return walkMediaIds(projectData, { videos: true, images: true });
+}
+
+/**
+ * Just the recordings, without reading a single blob.
+ *
+ * The split falls out of how elements reference things rather than out of the
+ * media rows: a recording is pointed at by a `mediaId` field, a picture by an
+ * `asset:<id>` string in a src prop (see src/lib/mediaStore.ts). So "does this
+ * project contain video" is answerable from the document alone, which is what
+ * lets the gist path refuse recordings without paying to load every blob in
+ * IndexedDB first. The provider still checks the real mimeType on the bundle it
+ * is handed, so a row that does not match its reference is caught there.
+ */
+export function collectVideoMediaIds(projectData: ArtboardState[]): string[] {
+  return walkMediaIds(projectData, { videos: true, images: false });
+}
+
+/** Just the pictures: uploaded screenshots, frames, posters, board backgrounds. */
+export function collectImageAssetIds(projectData: ArtboardState[]): string[] {
+  return walkMediaIds(projectData, { videos: false, images: true });
+}
+
+function walkMediaIds(
+  projectData: ArtboardState[],
+  { videos, images }: { videos: boolean; images: boolean }
+): string[] {
   const ids = new Set<string>();
   const take = (record: Record<string, unknown>) => {
-    for (const key of MEDIA_ID_KEYS) {
-      const value = record[key];
-      if (typeof value === 'string' && value) ids.add(value);
+    if (videos) {
+      for (const key of MEDIA_ID_KEYS) {
+        const value = record[key];
+        if (typeof value === 'string' && value) ids.add(value);
+      }
     }
-    for (const key of ASSET_SRC_KEYS) {
-      const value = record[key];
-      if (isAssetRef(value)) ids.add(assetIdFromRef(value));
+    if (images) {
+      for (const key of ASSET_SRC_KEYS) {
+        const value = record[key];
+        if (isAssetRef(value)) ids.add(assetIdFromRef(value));
+      }
     }
   };
   for (const artboard of projectData ?? []) {

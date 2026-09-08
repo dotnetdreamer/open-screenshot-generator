@@ -1,9 +1,18 @@
 // GitHub: one secret gist per project.
 //
-// Gists hold text, not binaries, so this provider stores the manifest only.
-// Projects whose artwork is inline (the normal case) round-trip perfectly;
-// projects carrying screen recordings are refused with a pointer at Drive,
-// because silently dropping a 40MB recording would be worse than not saving.
+// Gists hold text, not binaries, so everything that is not the manifest travels
+// base64 encoded in a file of its own: imported fonts, and since images were
+// allowed here, uploaded screenshots too. Recordings are still refused with a
+// pointer at Drive, because silently dropping a 40MB recording would be worse
+// than not saving.
+//
+// The line between the two is GitHub's, not ours. A gist file past ten
+// megabytes cannot be read back through the API at all -- the docs say clone
+// the gist instead -- and base64 spends four bytes for every three, so anything
+// over ~7.5MB raw would upload and then be unopenable. Screenshots sit far
+// under that; recordings sit far over it. Per FILE, which is why each image
+// gets its own rather than sharing one media.json: a project with forty
+// screenshots is fine, and nothing caps the total but GitHub's 300 files.
 //
 // Auth differs by build for a reason unrelated to the webview engine:
 //   web     - a popup sign-in brokered by the Cloudflare Worker in
@@ -35,11 +44,12 @@ import {
 } from '../types';
 import { bridgeFetch, formEncode, randomState, requestJson } from '../transport';
 import {
+  base64ToBlob,
+  blobToBase64,
   decodeFontPayloads,
   encodeFontPayloads,
   fontBytes,
   formatBytes,
-  mediaBytes,
 } from '../projectBundle';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ?? '';
@@ -56,17 +66,50 @@ const MANIFEST_FILE = 'project.json';
  * viewer. Absent unless the project uses an imported family.
  */
 const FONTS_FILE = 'fonts.json';
-/** Past this, a gist is the wrong home for the payload. */
 /**
- * Ceiling on imported fonts, measured on the RAW blobs.
+ * One uploaded image per file, base64, named by its media id.
  *
- * A gist carries them base64 encoded, which is four bytes on the wire for every
- * three of font, so the raw figure the user is shown has to be compared against
- * three quarters of the real limit or the guard passes a payload GitHub then
- * refuses.
+ * A file each rather than one bundle for two reasons. The ten megabyte ceiling
+ * below is per FILE, so sharing one would make a project's tenth screenshot
+ * fail because of the nine before it. And a save only rewrites the images that
+ * changed, which a single blob-of-everything cannot do.
  */
-const MAX_GIST_FONT_BYTES = 10 * 1024 * 1024;
-const MAX_GIST_RAW_FONT_BYTES = Math.floor((MAX_GIST_FONT_BYTES * 3) / 4);
+const MEDIA_PREFIX = 'media-';
+/** What a media file is called in the gist. `.b64` so GitHub shows it as text. */
+function mediaFileName(id: string): string {
+  return `${MEDIA_PREFIX}${id}.b64`;
+}
+/** The media id back out of a gist file name, or null for somebody else's file. */
+function mediaIdFromFileName(name: string): string | null {
+  if (!name.startsWith(MEDIA_PREFIX) || !name.endsWith('.b64')) return null;
+  return name.slice(MEDIA_PREFIX.length, -'.b64'.length) || null;
+}
+
+/**
+ * Ceiling on a single gist file, and the reason both caps below exist.
+ *
+ * GitHub truncates a file over 1MB in API responses, which `readGistFile`
+ * already handles by following `raw_url`. Ten is the one that cannot be worked
+ * around: past it the docs say the contents are not retrievable through the API
+ * at all and the gist has to be cloned. A payload over this would upload
+ * happily and then never open again, so it is refused before it goes up.
+ */
+const MAX_GIST_FILE_BYTES = 10 * 1024 * 1024;
+/**
+ * The same ceiling expressed in RAW bytes, which is what the user is shown.
+ *
+ * A gist carries blobs base64 encoded, four bytes on the wire for every three
+ * of payload, so the raw figure has to be compared against three quarters of
+ * the real limit or the guard passes something GitHub then refuses.
+ */
+const MAX_GIST_RAW_BYTES = Math.floor((MAX_GIST_FILE_BYTES * 3) / 4);
+/**
+ * GitHub returns at most 300 files per gist and tells you to clone for the
+ * rest, so a project past that would come back missing its later screenshots.
+ * The manifest and fonts.json take two of them.
+ */
+const MAX_GIST_FILES = 300;
+const MAX_GIST_MEDIA_FILES = MAX_GIST_FILES - 2;
 /** Marks a gist as ours, and carries the project id so re-saves overwrite. */
 const DESCRIPTION_TAG = '[open-screenshot-generator]';
 const API_VERSION_HEADERS = {
@@ -380,7 +423,7 @@ async function readGistFile(file: GistFile): Promise<string> {
 export const githubProvider: CloudProvider = {
   id: 'github',
   label: 'GitHub',
-  supportsMedia: false,
+  supportsVideo: false,
   configHint: 'GitHub device sign-in needs NEXT_PUBLIC_GITHUB_CLIENT_ID. See docs/ACCOUNT-SYNC.md.',
 
   isConfigured() {
@@ -432,40 +475,79 @@ export const githubProvider: CloudProvider = {
     onProgress?: ProgressFn,
     options: AccountSaveOptions = {}
   ): Promise<CloudProjectSummary> {
-    // A gist holds text and nothing else, so this refusal is the feature: it is
-    // the difference between telling somebody their recording cannot go here
-    // and silently saving a project whose video elements are dead on the other
-    // side. Worded by what is actually in the bundle, because a media row is as
-    // often an uploaded screenshot as it is a recording, and being told to move
-    // to Drive because of "video" you never added reads as a bug.
-    if (bundle.media.length) {
-      const videos = bundle.media.filter((item) => item.meta.mimeType.startsWith('video/')).length;
-      const what =
-        videos === bundle.media.length
-          ? `${videos} recording${videos > 1 ? 's' : ''}`
-          : videos === 0
-            ? `${bundle.media.length} uploaded image${bundle.media.length > 1 ? 's' : ''}`
-            : `${bundle.media.length} uploaded file${bundle.media.length > 1 ? 's' : ''}`;
+    // Defaults match what the Save button has always done, so the manual path
+    // reads as it did before an unattended one existed.
+    const { sweepOrphans = true } = options;
+
+    // Recordings, and only recordings. This refusal is the feature: it is the
+    // difference between telling somebody their video cannot go here and
+    // silently saving a project whose video elements are dead on the other
+    // side. Images used to share it, which was wrong -- a 200KB screenshot was
+    // being turned away for a limit only a 40MB recording reaches.
+    const videos = bundle.media.filter((item) => item.meta.mimeType.startsWith('video/'));
+    if (videos.length) {
+      const size = videos.reduce((sum, item) => sum + item.blob.size, 0);
       throw new AccountBlockedError(
-        `This project has ${what} (${formatBytes(mediaBytes(bundle))}). Gists hold text only. ` +
+        `This project has ${videos.length} screen recording${videos.length > 1 ? 's' : ''} ` +
+          `(${formatBytes(size)}). A gist cannot hold video. ` +
           'Connect Google Drive to save it with them'
       );
     }
 
-    if (fontBytes(bundle) > MAX_GIST_RAW_FONT_BYTES) {
+    const images = bundle.media.filter((item) => !item.meta.mimeType.startsWith('video/'));
+
+    // Named rather than counted, because "one of your images is too big" sends
+    // the user hunting through forty of them.
+    const tooBig = images.find((item) => item.blob.size > MAX_GIST_RAW_BYTES);
+    if (tooBig) {
+      throw new AccountBlockedError(
+        `"${tooBig.meta.name}" is ${formatBytes(tooBig.blob.size)}, over the ` +
+          `${formatBytes(MAX_GIST_RAW_BYTES)} a gist can hold in one file. ` +
+          'Connect Google Drive to save it, or replace that image with a smaller one'
+      );
+    }
+
+    if (images.length > MAX_GIST_MEDIA_FILES) {
+      throw new AccountBlockedError(
+        `This project has ${images.length} images, and a gist holds ${MAX_GIST_MEDIA_FILES}. ` +
+          'Connect Google Drive to save it whole'
+      );
+    }
+
+    if (fontBytes(bundle) > MAX_GIST_RAW_BYTES) {
       throw new AccountBlockedError(
         `This project's imported fonts come to ${formatBytes(fontBytes(bundle))}. ` +
           'That is too much for a gist. Connect Google Drive to save it with its fonts'
       );
     }
 
-    // With the gist already known there is nothing to look up, which also
-    // removes the case where a user with more than 100 gists falls off the end
-    // of this listing and a second copy of their project is created instead.
+    // A known gist id is never re-derived from a listing, which is what removes
+    // the case where a user with more than 100 gists falls off the end of it and
+    // a second copy of their project gets created instead. Whether the gist is
+    // then READ is a separate question, answered just below.
     let existing: Gist | undefined;
+    // Whether `existing.files` is the gist's real file list or an empty stand
+    // in. Only a real one can sweep dead files or notice a missing image, so
+    // the two paths below differ in whether they pay to get one.
+    let knowsRemoteFiles = false;
     if (options.knownRemoteId) {
       existing = { id: options.knownRemoteId, updated_at: '', files: {} };
+      // A save somebody clicked reads the gist first, and pays for it: this
+      // response carries every file's content, so an image heavy project pulls
+      // its own screenshots back down to learn their names. That buys the two
+      // things only a real file list can do -- sweeping images the project
+      // stopped using, and re-sending one that has gone missing upstream -- and
+      // it is one request against the hundred item listing the other branch
+      // runs. An unattended push never comes through here: it sets
+      // sweepOrphans false precisely so a timer stays cheap and touches
+      // nothing it was not told about.
+      if (sweepOrphans) {
+        onProgress?.('Checking the gist', 0.1);
+        existing = await githubJson<Gist>(session, `/gists/${options.knownRemoteId}`);
+        knowsRemoteFiles = true;
+      }
     } else {
+      knowsRemoteFiles = true;
       onProgress?.('Looking for an existing gist', 0.1);
       const gists = await listOwnGists(session);
       existing = gists.find((gist) => projectIdOf(gist) === bundle.manifest.id);
@@ -481,10 +563,56 @@ export const githubProvider: CloudProvider = {
       };
     } else if (existing?.files?.[FONTS_FILE]) {
       // The project dropped its last imported font; null deletes the file.
-      // Only reachable when the gist was actually read: the knownRemoteId fast
-      // path carries no file list, so a font removal is tidied up by the next
-      // save that goes the long way rather than by an unattended one.
+      // Only reachable when the gist was actually read, so a font removal is
+      // tidied up by a save somebody clicked and never by an unattended one.
       files[FONTS_FILE] = null;
+    }
+
+    // What is already up there.
+    //
+    // The two sources are not equal and are deliberately not merged. A real
+    // file list is the truth, so a manual save REPAIRS: an image the link row
+    // claims was pushed but which is no longer in the gist gets sent again.
+    // Merging the hint in would suppress exactly that upload and leave the
+    // manifest pointing at a file nobody will ever find. The hint is only
+    // trusted where there is nothing better, and there the cost of it being
+    // stale is one blank image until the next save by hand puts it right.
+    const alreadyThere = new Set<string>();
+    if (knowsRemoteFiles) {
+      for (const name of Object.keys(existing?.files ?? {})) {
+        const id = mediaIdFromFileName(name);
+        if (id) alreadyThere.add(id);
+      }
+    } else {
+      for (const id of options.knownMediaIds ?? []) alreadyThere.add(id);
+    }
+
+    // Skipping what is already up is the same call Drive makes, and for a
+    // stronger reason here: a blob is immutable under its id (an edited image
+    // is a new asset row, not new bytes under the old id), so a file already
+    // present is by definition the right one. Without this an unattended push
+    // would base64 and re-upload every screenshot in the project every minute.
+    const toEncode = images.filter((item) => !alreadyThere.has(item.meta.id));
+    for (const [index, item] of toEncode.entries()) {
+      onProgress?.(
+        `Encoding image ${index + 1} of ${toEncode.length}`,
+        0.3 + 0.2 * ((index + 1) / toEncode.length)
+      );
+      files[mediaFileName(item.meta.id)] = { content: await blobToBase64(item.blob) };
+    }
+
+    // Drop images the project stopped using, so a gist does not accumulate dead
+    // screenshots. Skipped unattended for the reason sweepOrphans exists: the
+    // list is decided from a local IndexedDB read, a gist file delete does not
+    // go to a trash, and a browser that evicted its media table would have this
+    // remove the last copies. Only reachable on the slow path anyway, which is
+    // the only one that knows what files the gist actually has.
+    if (sweepOrphans && knowsRemoteFiles) {
+      const keep = new Set(images.map((item) => item.meta.id));
+      for (const name of Object.keys(existing?.files ?? {})) {
+        const id = mediaIdFromFileName(name);
+        if (id && !keep.has(id)) files[name] = null;
+      }
     }
 
     const payload = { description: describe(bundle.manifest), files };
@@ -580,12 +708,30 @@ export const githubProvider: CloudProvider = {
 
     const manifest = JSON.parse(await readGistFile(file)) as ProjectManifest;
 
+    // Absent on every gist written before images travelled, where the manifest
+    // carries an empty media list anyway because the save refused to run at
+    // all. A meta whose file is missing is skipped rather than failing the
+    // open, the same way Drive handles a folder saved by an older build: the
+    // element renders empty, which beats not opening the project.
+    const media: ProjectBundle['media'] = [];
+    const metas = manifest.media ?? [];
+    for (const [index, meta] of metas.entries()) {
+      const mediaFile = gist.files?.[mediaFileName(meta.id)];
+      if (!mediaFile) continue;
+      onProgress?.(`Downloading image ${index + 1} of ${metas.length}`, 0.3 + 0.3 * ((index + 1) / metas.length));
+      try {
+        media.push({ meta, blob: base64ToBlob(await readGistFile(mediaFile), meta.mimeType) });
+      } catch (error) {
+        console.error(`Could not read "${meta.name}" from this gist`, error);
+      }
+    }
+
     // Absent on gists written before fonts travelled, and on projects that only
     // use built-in families.
     let fonts: ProjectBundle['fonts'] = [];
     const fontsFile = gist.files?.[FONTS_FILE];
     if (fontsFile && manifest.fonts?.length) {
-      onProgress?.('Downloading fonts', 0.6);
+      onProgress?.('Downloading fonts', 0.7);
       try {
         const parsed = JSON.parse(await readGistFile(fontsFile)) as {
           fontData?: Record<string, string>;
@@ -599,7 +745,7 @@ export const githubProvider: CloudProvider = {
     }
 
     onProgress?.('Loaded', 1);
-    return { manifest, media: [], fonts, missingMedia: [] };
+    return { manifest, media, fonts, missingMedia: [] };
   },
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {

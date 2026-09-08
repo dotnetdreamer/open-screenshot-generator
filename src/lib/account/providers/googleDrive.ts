@@ -462,7 +462,7 @@ async function downloadBlob(session: AccountSession, fileId: string): Promise<Bl
 export const googleDriveProvider: CloudProvider = {
   id: 'google',
   label: 'Google',
-  supportsMedia: true,
+  supportsVideo: true,
   get configHint() {
     if (!isTauri()) {
       return 'Google sign-in needs NEXT_PUBLIC_GOOGLE_CLIENT_ID to be set at build time. See docs/ACCOUNT-SYNC.md.';

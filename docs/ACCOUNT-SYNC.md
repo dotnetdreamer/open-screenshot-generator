@@ -13,12 +13,36 @@ explains what is missing, and everything else in the app works as before.
 | | Google Drive | GitHub |
 |---|---|---|
 | Project JSON | yes | yes (one secret gist) |
-| Screen recordings (video) | yes | **no**, gists are text only |
+| Uploaded screenshots and images | yes | yes, base64 in a file each |
+| Imported fonts | yes | yes, base64 in `fonts.json` |
+| Screen recordings (video) | yes | **no** |
 | Where | `Open Screenshot Generator/<project name>/` | a secret gist per project |
 | Scope requested | `drive.file` (only files this app creates) | `gist` |
 
 Saving a project that contains recordings to GitHub is refused with a message
-pointing at Drive, rather than silently dropping the video.
+pointing at Drive, rather than silently dropping the video. The sign-in screen
+says so before you pick GitHub, so the limit is not a surprise you meet after
+the fact.
+
+### Why images fit in a gist and video does not
+
+A gist holds text, so everything that is not the manifest travels base64
+encoded, four bytes on the wire for every three of payload. The ceiling is
+GitHub's: a gist file past **10MB cannot be read back through the API at all**
+(the docs say clone the gist instead), which puts the real limit at about
+**7.5MB of raw bytes per file**. A screenshot is comfortably under that. A
+screen recording is comfortably over it, and would upload happily and then never
+open again, so it is refused before it goes up.
+
+That ceiling is **per file**, which is why each image gets its own
+`media-<id>.b64` rather than sharing one bundle: a project with forty
+screenshots is fine, and nothing caps the total but GitHub's limit of 300 files
+per gist.
+
+A save only encodes images the gist does not already have. Blobs are immutable
+under their id -- editing an image makes a new one rather than new bytes under
+the old id -- so a file already up there is by definition the right one. Without
+that, every automatic push would re-upload every screenshot in the project.
 
 ## Keeping a project up to date, on its own
 
@@ -43,9 +67,14 @@ to leave on:
   stopping syncing for that project. Neither Drive nor gists offer a
   conditional write, so this catches the case that actually happens, a second
   machine that saved hours ago, rather than two saves in the same second.
-- **It stops rather than guessing.** A gist cannot hold a screen recording or an
-  uploaded screenshot, and a project whose files this device has lost cannot be
-  sent whole. Both stop with a message rather than sending something incomplete.
+- **It stops rather than guessing.** A gist cannot hold a screen recording, and
+  a project whose files this device has lost cannot be sent whole. Both stop
+  with a message rather than sending something incomplete.
+- **It never tidies up.** An automatic push adds and updates; only a save you
+  click removes images the project has stopped using. That is the same rule the
+  Drive sweep follows, and for the same reason: the list of what to drop comes
+  from this device's own database, and a browser that cleared its site data
+  would otherwise take the only copies with it.
 - **It never signs you out.** If the sign-in expires while the app is idle, the
   mark next to the project name says so and one click reconnects.
 - **It pauses while you edit together.** During a live session everyone's

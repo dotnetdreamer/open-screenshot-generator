@@ -70,6 +70,15 @@ export interface AccountProjectLink {
    * would keep paying for pushes that write the same bytes.
    */
   docHash: string | null;
+  /**
+   * GitHub only: the blob ids this device has already pushed into the gist.
+   *
+   * Feeds `AccountSaveOptions.knownMediaIds`, which is where the reasoning is.
+   * Undefined on rows written before images travelled to gists, and that reads
+   * as "nothing known", so the first save after upgrading sends everything once
+   * and every save after it sends only what changed.
+   */
+  pushedMediaIds?: string[];
   /** When this device last pushed. */
   savedAt: Date;
   /** The name that went up with it, so a push can skip an unchanged rename. */

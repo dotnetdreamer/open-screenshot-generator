@@ -10,7 +10,7 @@ import type { Project } from '@/types/artboard';
 import { googleDriveProvider } from './providers/googleDrive';
 import { githubProvider } from './providers/github';
 import {
-  collectMediaIds,
+  collectVideoMediaIds,
   importBundle,
   serializeProject,
   splitProgress,
@@ -125,7 +125,7 @@ export async function saveProjectToAccount(
     try {
       saved = await provider.saveProject(session, outgoing, onProgress, {
         ...options,
-        ...(known ? { knownRemoteId: known.remoteId } : {}),
+        ...(known ? { knownRemoteId: known.remoteId, knownMediaIds: known.pushedMediaIds } : {}),
       });
     } catch (error) {
       // The recorded copy is gone, deleted from Drive or github.com since this
@@ -148,6 +148,10 @@ export async function saveProjectToAccount(
         documentId: saved.documentId,
         stamp: saved.stamp ?? null,
         docHash: await hashDocument(documentKey(project.name, project.projectData)),
+        // Everything the bundle carried is upstream now, whether this save sent
+        // it or a previous one did. Recorded so the next push only encodes what
+        // is genuinely new.
+        pushedMediaIds: outgoing.media.map((item) => item.meta.id),
         savedAt: new Date(),
         lastPushedName: saved.name,
         // Clicking Save is also how somebody says yes again after answering a
@@ -216,11 +220,12 @@ export async function syncProjectToAccount(projectId: string): Promise<AccountSy
 
   // Decided locally, before a token is touched or a request is made, because
   // the answer cannot change by waiting and a backoff loop against it would be
-  // noise. Media ids come off the document rather than a built bundle for the
-  // same reason the hash does: building one reads every blob.
-  if (!provider.supportsMedia && collectMediaIds(project.projectData).length > 0) {
+  // noise. Recordings are counted off the document rather than a built bundle
+  // for the same reason the hash is: building one reads every blob, and which
+  // reference names a video is answerable from the document alone.
+  if (!provider.supportsVideo && collectVideoMediaIds(project.projectData).length > 0) {
     throw new AccountBlockedError(
-      `${provider.label} holds text only, and this project has images or recordings of its own. ` +
+      `${provider.label} cannot hold screen recordings, and this project has one. ` +
         'Connect Google Drive to keep it up to date automatically'
     );
   }
@@ -277,6 +282,7 @@ export async function syncProjectToAccount(projectId: string): Promise<AccountSy
   const saved = await provider.saveProject(session, bundle, undefined, {
     sweepOrphans: false,
     knownRemoteId: link.remoteId,
+    knownMediaIds: link.pushedMediaIds,
     renameTo: project.name === link.lastPushedName ? null : project.name,
   });
 
@@ -286,6 +292,7 @@ export async function syncProjectToAccount(projectId: string): Promise<AccountSy
     documentId: saved.documentId ?? link.documentId,
     stamp: saved.stamp ?? null,
     docHash: hash,
+    pushedMediaIds: bundle.media.map((item) => item.meta.id),
     savedAt: new Date(),
     lastPushedName: saved.name,
   });
@@ -359,6 +366,10 @@ export async function loadProjectFromAccount(
       documentId: head?.documentId,
       stamp: head?.stamp ?? null,
       docHash: await hashDocument(documentKey(project.name, project.projectData)),
+      // These blobs came OUT of the remote copy a moment ago, so they are
+      // demonstrably in it. Without this the first push from a second machine
+      // would re-upload every screenshot it just finished downloading.
+      pushedMediaIds: bundle.media.map((item) => item.meta.id),
       savedAt: new Date(),
       lastPushedName: project.name,
       autoSync: true,

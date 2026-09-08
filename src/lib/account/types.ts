@@ -187,6 +187,22 @@ export interface AccountSaveOptions {
    * silently truncates.
    */
   knownRemoteId?: string;
+  /**
+   * Blob ids this device has already put in that remote object.
+   *
+   * Only gists need it, and only because a gist carries its blobs base64 in
+   * files whose names come back nowhere cheap: `readRemoteStamp` reads the
+   * commit list, which has no file list in it, and `GET /gists/{id}` would drag
+   * every image back down to find out what is already up there. Without this an
+   * unattended push re-uploads every screenshot in the project every time.
+   *
+   * Only ever consulted where there is nothing better. A save somebody clicked
+   * reads the gist and uses its real file list instead, which is what repairs a
+   * stale entry here: an id this claims was pushed but which is no longer
+   * upstream is re-sent by that save. An id missing from here is simply sent
+   * again. Absent on links written before images travelled.
+   */
+  knownMediaIds?: string[];
 }
 
 export interface SignInOptions {
@@ -209,8 +225,19 @@ export interface CloudProvider {
   isConfigured(): boolean;
   /** Why it is unavailable, shown in the dialog when isConfigured() is false. */
   configHint: string;
-  /** True when this provider can store binary media (GitHub gists cannot). */
-  supportsMedia: boolean;
+  /**
+   * True when screen recordings can travel to this storage.
+   *
+   * There is no companion flag for images or fonts because both providers carry
+   * both: a gist holds text, so they travel base64 encoded there.
+   *
+   * False for gists, and the split is not fussiness. A gist file over ten
+   * megabytes cannot be read back through the API at all (GitHub says clone it
+   * instead), and base64 spends four bytes for every three, so the ceiling on
+   * a recording is about 7.5MB raw. Recordings are not that. Screenshots are
+   * comfortably under it, which is why they no longer share the refusal.
+   */
+  supportsVideo: boolean;
 
   signIn(options?: SignInOptions): Promise<AccountSession>;
   signOut(session: AccountSession): Promise<void>;
