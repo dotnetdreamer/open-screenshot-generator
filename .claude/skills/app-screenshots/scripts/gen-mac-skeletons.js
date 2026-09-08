@@ -22,7 +22,8 @@ const puppeteer = require('puppeteer-core');
 const path = require('path');
 const fs = require('fs');
 
-const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+// Whichever Chromium this machine has. lib.js does the per-platform lookup.
+const { EDGE } = require('./lib');
 const W = 1280;
 const H = 800;
 const OUT_DIR = path.resolve(__dirname, '../../../../public/data/projects/mac-screens');

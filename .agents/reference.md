@@ -1303,6 +1303,7 @@ in the commit error; the client retries with `changesNotSentForReview=true` and 
 | [website/](../website/) | Static marketing site for openscrgen.app. No build step, no deps, Vercel root dir `website` |
 | [promo/](../promo/) | Remotion promo videos. Separate `package.json` and `node_modules`, run `npm install` inside `promo/` |
 | [workers/github-oauth/](../workers/github-oauth/) | Cloudflare Worker doing the GitHub OAuth token exchange for the web build |
+| [claude-openai-endpoint/](../claude-openai-endpoint/) | Dev only. Serves an OpenAI-compatible API on 127.0.0.1 from the Claude subscription logged in on this machine, so the AI agent can be driven with no API key |
 | [scripts/](../scripts/) | [gen-ai-catalog.mjs](../scripts/gen-ai-catalog.mjs), [set-version.mjs](../scripts/set-version.mjs) |
 | `out/` | `next build` static export output (gitignored) |
 
@@ -1384,7 +1385,7 @@ Version lives in four files and [scripts/set-version.mjs](../scripts/set-version
 
 ### Satellite toolchains
 
-A root `npm install` only covers the Next app. Five sibling projects live in this repo with their own `package.json` and `node_modules`, and none are built, linted or CI-checked by the root scripts:
+A root `npm install` only covers the Next app. Six sibling projects live in this repo with their own `package.json` and `node_modules`, and none are built, linted or CI-checked by the root scripts:
 
 | Path | Toolchain | Notes |
 | --- | --- | --- |
@@ -1393,6 +1394,7 @@ A root `npm install` only covers the Next app. Five sibling projects live in thi
 | [workers/github-oauth/](../workers/github-oauth/) | Cloudflare Worker | Deployed by hand: `wrangler deploy` plus `wrangler secret put GITHUB_CLIENT_SECRET`. Wired in through `NEXT_PUBLIC_GITHUB_OAUTH_PROXY` |
 | [extension/](../extension/) | MV3 companion extension | Built from the root with `npm run build:extension` into the gitignored `extension/dist/`. Excluded from the root tsconfig, carries its own `chrome.d.ts` |
 | [.claude/skills/app-screenshots/scripts/](../.claude/skills/app-screenshots/scripts/) | puppeteer-core harness | Needs a one-time `npm install` inside that folder |
+| [claude-openai-endpoint/](../claude-openai-endpoint/) | Claude subscription as an OpenAI-compatible endpoint | Dev only, never shipped. `npm install` then `npm start` inside the folder, then paste `http://127.0.0.1:8787/v1` into the "Use my API key" tab with no key. Plain ESM `.js`, so it stays out of the root typecheck. `npm run check` drives it with the editor's own AI SDK client |
 
 ### Dexie schema changes
 

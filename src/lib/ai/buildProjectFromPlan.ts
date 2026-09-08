@@ -9,6 +9,7 @@ import type {
   TextElementProps,
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
+import { contrastRatio, mix, readableOn } from '@/lib/graphics/color';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { hash32 } from '@/lib/i18n/hash';
 import { DEFAULT_BASE_LOCALE, LOCALES } from '@/lib/i18n/locales';
@@ -530,8 +531,14 @@ function buildNewArtboard(args: {
 
   const color1 = safeHex(board.backgroundColor1, '#101820');
   const color2 = safeHex(board.backgroundColor2, color1);
-  const textColor = safeHex(board.textColor, '#FFFFFF');
   const gradient = board.backgroundType === 'gradient';
+  const textColor = readableTextColor({
+    asked: board.textColor,
+    color1,
+    color2: gradient ? color2 : color1,
+    index,
+    warnings,
+  });
 
   // TextElement renders glyphs at fontSize / 0.3 px, so a template headline of
   // 42 on a 1290px board draws at 140px. Keeping the same ratio makes generated
@@ -683,6 +690,51 @@ function clampText(value: string): string {
 
 function clampName(value: string): string {
   return value.trim().slice(0, 60);
+}
+
+/**
+ * Type that can actually be seen on the board it was asked for.
+ *
+ * The colours arrive as two independent strings, and `safeHex` rejects every
+ * form but hex, which models emit constantly ("white", `rgb(0,0,0)`, an
+ * 8-digit hex with alpha). One of the two falling back was enough to make a
+ * board that builds cleanly, reports "3 artboards, 3 screenshots placed", and
+ * shows nothing at all: white type on a white ground, present in the layer list
+ * and invisible on the canvas. That is issue #35.
+ *
+ * So the ground decides the type rather than a constant. A colour the model
+ * asked for is kept whenever it can be read; anything below the threshold, and
+ * anything unparseable, is replaced with `readableOn` the ground and reported.
+ *
+ * The check runs against both gradient stops, because type that clears the
+ * blend can still vanish at one end of a long sweep. The repair is taken from
+ * the midpoint, which clears both ends for anything short of a gradient that
+ * spans white to black. That case cannot be fixed by picking a text colour and
+ * is not worth a second one.
+ */
+const MIN_TEXT_CONTRAST = 3;
+
+function readableTextColor(args: {
+  asked: string | null;
+  color1: string;
+  color2: string;
+  index: number;
+  warnings: string[];
+}): string {
+  const { asked, color1, color2, index, warnings } = args;
+  const ground = color1 === color2 ? color1 : mix(color1, color2, 0.5);
+  const repaired = readableOn(ground);
+
+  const wanted = safeHex(asked, '');
+  if (!wanted) return repaired;
+
+  const worst = Math.min(contrastRatio(wanted, color1), contrastRatio(wanted, color2));
+  if (worst >= MIN_TEXT_CONTRAST) return wanted;
+
+  warnings.push(
+    `Artboard ${index + 1} asked for ${wanted} text on ${ground}, which cannot be read. Using ${repaired}.`
+  );
+  return repaired;
 }
 
 /** Accepts #RGB and #RRGGBB, with or without the hash. Anything else falls back. */
