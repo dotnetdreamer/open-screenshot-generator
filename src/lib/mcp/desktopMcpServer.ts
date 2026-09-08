@@ -513,7 +513,9 @@ type ToolContent =
 
 interface ToolResult {
   content: ToolContent[];
-  structuredContent?: unknown;
+  // An object, never an array or a bare value. See textResult below for why the
+  // compiler is the thing holding that line.
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
 }
 
@@ -535,9 +537,33 @@ const DEVICE_TYPES = [
   'macbook', 'imac',
 ];
 
+/**
+ * A tool's answer, as text and again as structured data.
+ *
+ * `structuredContent` has to be a JSON object. The spec says so (MCP 2025-06-18
+ * 4.5.2) and the reference SDK enforces it with `z.record()`, which rejects an
+ * array outright, so a strict client refuses the whole response while a lenient
+ * one reads the text block and never notices. Every list tool here returns an
+ * array, so the wrapper is not an edge case: `list_templates`, `list_projects`,
+ * `list_locales` and `list_artboards` all went out malformed.
+ *
+ * The text block keeps the bare value, because that is the part a model reads
+ * and wrapping it would only add a level to walk down. `exportResultContent`
+ * below has always wrapped its array this way; this is the same rule applied to
+ * the other ninety-odd tools.
+ */
 function textResult(value: unknown): ToolResult {
   const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
-  return { content: [{ type: 'text', text }], structuredContent: typeof value === 'string' ? undefined : value };
+  return { content: [{ type: 'text', text }], structuredContent: asStructured(value) };
+}
+
+/** The value as an object, or nothing when there is no object to be had. */
+function asStructured(value: unknown): Record<string, unknown> | undefined {
+  if (Array.isArray(value)) return { items: value };
+  // A string, number, boolean or null carries nothing the text block does not
+  // already say, and none of them is a legal structuredContent.
+  if (typeof value !== 'object' || value === null) return undefined;
+  return value as Record<string, unknown>;
 }
 
 /**

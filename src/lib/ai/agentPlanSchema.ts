@@ -36,6 +36,30 @@ export const NEW_DESIGN_DEVICE_TYPES = [
 
 export type NewDesignDeviceType = (typeof NEW_DESIGN_DEVICE_TYPES)[number];
 
+/**
+ * Decoration a generated board can carry, named rather than drawn.
+ *
+ * A board built from the fields below alone is a headline, a subheadline and a
+ * phone on a flat colour, which is why generated designs read as plain next to
+ * the templates: a template board averages eight elements and the richest have
+ * thirty. The gap is entirely decorative, and none of it was expressible here.
+ *
+ * These stay slot names for the same reason everything else in this file does.
+ * The builder owns every coordinate, size and opacity, so the worst a wrong
+ * pick can do is look odd; a model handing over shapes and paths could hand
+ * over a broken canvas instead.
+ */
+export const DECORATION_STYLES = [
+  'none', // flat colour, which is still right for a stark design
+  'glow', // a soft coloured halo behind the device, the "shiny" look
+  'blobs', // two large organic shapes bleeding off opposite corners
+  'sparkles', // a scatter of small stars, good over a dark gradient
+  'rings', // concentric outlined circles behind the device
+  'arc', // a wide band sweeping across the lower third
+] as const;
+
+export type DecorationStyle = (typeof DECORATION_STYLES)[number];
+
 export const LAYOUT_VARIANTS = [
   'device-bottom', // headline up top, device rising from the bottom edge
   'device-top', // device up top, copy below it
@@ -122,6 +146,13 @@ const newDesignArtboardSchema = z.object({
   backgroundColor2: z.string().nullable(),
   backgroundAngle: z.number().nullable(),
   textColor: z.string(),
+  decoration: z.enum(DECORATION_STYLES),
+  /**
+   * The colour the decoration is drawn in. 6-digit hex, or null to let the
+   * builder pick one off the background, which is the safer answer whenever the
+   * model has no strong opinion.
+   */
+  decorationColor: z.string().nullable(),
 });
 
 const newDesignSchema = z.object({

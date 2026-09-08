@@ -2,6 +2,7 @@ import {
   AGENT_CANVASES,
   AGENT_FONTS,
   AGENT_LIMITS,
+  DECORATION_STYLES,
   LAYOUT_VARIANTS,
   NEW_DESIGN_DEVICE_TYPES,
 } from './agentPlanSchema';
@@ -28,6 +29,7 @@ const RULES = `Rules:
 - Do not rewrite decorative text such as star ratings, press logos, or review counts unless the user asks.
 - Keep every text value under ${AGENT_LIMITS.maxTextLength} characters.
 - Colors are 6 digit hex strings such as "#1A2B3C".
+- A brand new board is a headline, a subheadline and a device on a colour, so its background and decoration are the whole design. Prefer "gradient" over "solid", and pick a decoration rather than "none" unless the user asked for something stark. "glow" puts a soft halo behind the device and suits most app screens, "blobs" and "arc" are softer and work on light grounds, "sparkles" and "rings" read best on a dark one. Vary it across the artboards instead of repeating one style, and leave "decorationColor" null whenever you have no strong reason, which lets the app tone it to the background.
 - A project holds ONE design that every language shares, so never duplicate artboards to add a language. Leave "locale" null for the language the design is written in (English), and add one extra textOverrides entry per text slot per language, with "locale" set to that language's code: "de-DE", "fr-FR", "es-ES", "pt-BR", "ja", "ko", "zh-Hans". Only do this when the user asked for other languages, and at most ${AGENT_LIMITS.maxLocales} of them.`;
 
 /**
@@ -47,6 +49,7 @@ For a brand new design you may only use:
 - deviceType: ${NEW_DESIGN_DEVICE_TYPES.join(', ')}
 - layout: ${LAYOUT_VARIANTS.join(', ')}
 - fontFamily: ${AGENT_FONTS.join(', ')}
+- decoration: ${DECORATION_STYLES.join(', ')}
 - at most ${AGENT_LIMITS.maxNewDesignArtboards} artboards
 
 ${RULES}`;
@@ -81,7 +84,9 @@ const PLAN_SHAPE = `{
         "backgroundColor1": "#101820",
         "backgroundColor2": "#2A4B7C", // null when solid
         "backgroundAngle": 135,        // null when solid
-        "textColor": "#FFFFFF"
+        "textColor": "#FFFFFF",
+        "decoration": "${DECORATION_STYLES.join('" | "')}",
+        "decorationColor": "#8B5CF6"   // or null to let the app pick
       }
     ]
   }
@@ -124,6 +129,7 @@ For a brand new design you may only use:
 - deviceType: ${NEW_DESIGN_DEVICE_TYPES.join(', ')}
 - layout: ${LAYOUT_VARIANTS.join(', ')}
 - fontFamily: ${AGENT_FONTS.join(', ')}
+- decoration: ${DECORATION_STYLES.join(', ')}
 - at most ${AGENT_LIMITS.maxNewDesignArtboards} artboards
 
 ${RULES}
@@ -167,11 +173,11 @@ Rules:
 - Pick the template whose device slot count and category best match the screenshots.
 - Place every screenshot (screenshotIndex from 0).
 ${textRule}
-- "generate-new" only if nothing fits or the user asked for it. canvas: ${AGENT_CANVASES.join('|')}; deviceType: ${NEW_DESIGN_DEVICE_TYPES.join('|')}; layout: ${LAYOUT_VARIANTS.join('|')}; fontFamily: ${AGENT_FONTS.join('|')}; max ${AGENT_LIMITS.maxNewDesignArtboards} artboards.
+- "generate-new" only if nothing fits or the user asked for it. canvas: ${AGENT_CANVASES.join('|')}; deviceType: ${NEW_DESIGN_DEVICE_TYPES.join('|')}; layout: ${LAYOUT_VARIANTS.join('|')}; fontFamily: ${AGENT_FONTS.join('|')}; decoration: ${DECORATION_STYLES.join('|')}; max ${AGENT_LIMITS.maxNewDesignArtboards} artboards.
 - Text values under ${AGENT_LIMITS.maxTextLength} chars. Colors are 6-digit hex.
 
 Reply with ONE json code block, nothing else:
-{"action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"...","locale":null|"de-DE"}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF"}]}}`;
+{"action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"...","locale":null|"de-DE"}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF","decoration":"...","decorationColor":"#8B5CF6"|null}]}}`;
 }
 
 /** Sentinel a provider must reply with when it cannot fetch the catalog URL. */
@@ -209,11 +215,11 @@ Rules:
 - Pick the template whose device slot count and category best match the screenshots; place every screenshot (screenshotIndex from 0).
 - textOverrides rewrite template copy using what you see in the screenshots; do not touch decorative text (star ratings, review counts).
 - "locale" is null for the design's own language. For another language, repeat the same slot with its code ("de-DE", "ja"); one design serves every language, so never duplicate artboards for one. Max ${AGENT_LIMITS.maxLocales} languages, and only if asked.
-- "generate-new" only if nothing fits or the user asked for it. canvas: ${AGENT_CANVASES.join('|')}; deviceType: ${NEW_DESIGN_DEVICE_TYPES.join('|')}; layout: ${LAYOUT_VARIANTS.join('|')}; fontFamily: ${AGENT_FONTS.join('|')}; max ${AGENT_LIMITS.maxNewDesignArtboards} artboards.
+- "generate-new" only if nothing fits or the user asked for it. canvas: ${AGENT_CANVASES.join('|')}; deviceType: ${NEW_DESIGN_DEVICE_TYPES.join('|')}; layout: ${LAYOUT_VARIANTS.join('|')}; fontFamily: ${AGENT_FONTS.join('|')}; decoration: ${DECORATION_STYLES.join('|')}; max ${AGENT_LIMITS.maxNewDesignArtboards} artboards.
 - Text values under ${AGENT_LIMITS.maxTextLength} chars. Colors are 6-digit hex.
 
 Reply with ONE json code block, nothing else:
-{"sourceToken":"<the VERIFICATION-TOKEN value from the file>","action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"...","locale":null|"de-DE"}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF"}]}}`;
+{"sourceToken":"<the VERIFICATION-TOKEN value from the file>","action":"use-template"|"generate-new","projectName":"...","reasoning":"one sentence","templateId":"t12"|null,"screenshotPlacements":[{"screenshotIndex":0,"artboardIndex":0,"deviceElementId":"d0"|null}],"textOverrides":[{"artboardIndex":0,"elementId":"x1","text":"...","locale":null|"de-DE"}],"newDesign":null|{"themeName":"...","canvas":"...","deviceType":"...","fontFamily":"...","artboards":[{"name":"...","headline":"...","subheadline":"..."|null,"layout":"...","screenshotIndex":0|null,"backgroundType":"solid"|"gradient","backgroundColor1":"#101820","backgroundColor2":"#2A4B7C"|null,"backgroundAngle":135|null,"textColor":"#FFFFFF","decoration":"...","decorationColor":"#8B5CF6"|null}]}}`;
 }
 
 /** The user turn for API mode. The screenshots ride alongside as image parts. */
