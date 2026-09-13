@@ -4007,7 +4007,10 @@ export function OpenScreenshotGeneratorLayout() {
   // is missing, once per language the dialog asked for. Every pass renders
   // through exportCanvasArtboards, a temporary canvas list that never touches
   // history or Dexie, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly, locales }: ExportSelection) => {
+  const handleConfirmExport = async (
+    { asIs, generateFormats, currentArtboardOnly, locales }: ExportSelection,
+    { skipAppPreviewBoards = false }: { skipAppPreviewBoards?: boolean } = {}
+  ) => {
     setIsExportDialogOpen(false);
     // Both exports rasterize the live canvas, so a timeline left running would
     // bake a mid-animation frame into the output.
@@ -4023,16 +4026,26 @@ export function OpenScreenshotGeneratorLayout() {
       currentArtboardOnly && activeArtboardId && original.some((ab) => ab.id === activeArtboardId)
         ? activeArtboardId
         : null;
+    // The screenshot dialog leaves App Preview boards out: their output is a
+    // video, and a PNG of one is a frozen timeline nobody asked for. The App
+    // Preview dialog's stills still capture them, so this is opt-in.
+    const skippedIds = new Set(
+      skipAppPreviewBoards
+        ? original.filter((ab) => projectHasVideoContent([ab])).map((ab) => ab.id)
+        : []
+    );
     const scope = (list: ArtboardState[]) =>
-      scopedId ? list.filter((ab) => ab.id === scopedId) : list;
+      list.filter((ab) => !skippedIds.has(ab.id) && (!scopedId || ab.id === scopedId));
 
     const targets = scope(original);
     if (targets.length === 0) {
       toast({
         title: "Nothing to export",
-        description: currentArtboardOnly
-          ? "Select an artboard on the canvas first."
-          : "Add an artboard first.",
+        description: skippedIds.size > 0 && (!scopedId || skippedIds.has(scopedId))
+          ? "App Preview artboards export as a video. Select one, then export again."
+          : currentArtboardOnly
+            ? "Select an artboard on the canvas first."
+            : "Add an artboard first.",
         variant: "destructive",
       });
       return;
@@ -4133,9 +4146,12 @@ export function OpenScreenshotGeneratorLayout() {
         const projected = projectArtboards(original, locale);
         // Rebuilt per language, or the German set would be numbered 13..18
         // instead of 01..06 and every fastlane-style convention expects 1..N.
+        // Skipped App Preview boards are left out of the count too, so the
+        // exported screenshots still run 1..N without gaps.
+        const numbered = projected.filter((ab) => !skippedIds.has(ab.id));
         const order = {
-          indexById: Object.fromEntries(projected.map((ab, i) => [ab.id, i + 1])),
-          total: projected.length,
+          indexById: Object.fromEntries(numbered.map((ab, i) => [ab.id, i + 1])),
+          total: numbered.length,
         };
         report({
           fileIndex: nextFileIndex,
@@ -4343,7 +4359,12 @@ export function OpenScreenshotGeneratorLayout() {
 
   // An App Preview project is one that carries recording mockups, recordings,
   // gesture hints or animations — it gets the video export dialog.
-  const isAppPreviewProject = useMemo(() => projectHasVideoContent(artboards), [artboards]);
+  // The screenshot export skips these boards, so its dialog counts without them.
+  const appPreviewBoardCount = useMemo(
+    () => artboards.filter((ab) => projectHasVideoContent([ab])).length,
+    [artboards]
+  );
+  const isAppPreviewProject = appPreviewBoardCount > 0;
 
   const videoBoards = artboards.filter((ab) => {
     const info = videoInfos[ab.id];
@@ -7871,7 +7892,9 @@ const generateRandomProjectName = (): string => {
             <ExportDialog
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
-              onConfirmExport={handleConfirmExport}
+              onConfirmExport={(selection) =>
+                handleConfirmExport(selection, { skipAppPreviewBoards: true })
+              }
               onPublishToStore={() => {
                 setIsExportDialogOpen(false);
                 setIsPublishDialogOpen(true);
@@ -7879,7 +7902,8 @@ const generateRandomProjectName = (): string => {
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
               activeArtboard={activeArtboardSummary}
-              artboardCount={artboards.length}
+              artboardCount={artboards.length - appPreviewBoardCount}
+              appPreviewBoardCount={appPreviewBoardCount}
               defaultCurrentArtboardOnly={exportScopedToArtboard}
               artboards={artboards}
               activeLocale={activeLocale}

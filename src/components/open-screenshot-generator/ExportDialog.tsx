@@ -93,6 +93,9 @@ interface ExportDialogProps {
   currentSize?: Size;
   activeArtboard?: ActiveArtboardSummary | null;
   artboardCount?: number;
+  // App Preview artboards in the project. They are skipped here (their export
+  // is the video dialog), and artboardCount already leaves them out.
+  appPreviewBoardCount?: number;
   // Set when the dialog is opened from an artboard's own toolbar, where
   // "export this board" is the whole intent.
   defaultCurrentArtboardOnly?: boolean;
@@ -134,6 +137,7 @@ export function ExportDialog({
   currentSize,
   activeArtboard,
   artboardCount = 0,
+  appPreviewBoardCount = 0,
   defaultCurrentArtboardOnly = false,
   artboards = NO_ARTBOARDS,
   activeLocale = null,
@@ -251,9 +255,11 @@ export function ExportDialog({
     ? 'Select an artboard on the canvas first'
     : currentArtboardOnly
       ? `Only "${activeArtboard!.name}" is exported`
-      : artboardCount > 1
-        ? `Leave off to export all ${artboardCount} artboards`
-        : 'This project has one artboard';
+      : appPreviewBoardCount > 0
+        ? `${artboardCount === 1 ? 'This project has one screenshot artboard' : `Leave off to export all ${artboardCount} screenshot artboards`}. App Preview artboards are skipped`
+        : artboardCount > 1
+          ? `Leave off to export all ${artboardCount} artboards`
+          : 'This project has one artboard';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
