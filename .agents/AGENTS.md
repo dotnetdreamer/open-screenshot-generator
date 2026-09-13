@@ -61,7 +61,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 16. Inactive tab panels stay **mounted**. Scope any `querySelector` to `[role="tabpanel"][data-state="active"]`.
 17. shadcn/Radix + Tailwind, `lucide-react` icons, semantic tokens from [globals.css](../src/app/globals.css), not raw colors.
 18. Dark mode is **live**, and it stops at the artboard edge. The preference is system/light/dark ([theme.ts](../src/lib/theme.ts), [ThemeContext.tsx](../src/contexts/ThemeContext.tsx), picked in [SettingsDialog.tsx](../src/components/open-screenshot-generator/SettingsDialog.tsx)); a blocking script in [layout.tsx](../src/app/layout.tsx) puts the class on `<html>` before first paint. `globals.css` re-declares the **light** palette on `.artboard` and `[data-artboard-surface]`, so nothing inside a board ever sees a dark token and an export is byte-identical in either theme. A new artboard render site needs one of those two markers or it will go dark. A raw colour that only reads on one ground needs a `dark:` variant.
-19. **No em dashes and no en dashes** in anything a user reads. Use a comma, a period, a colon, or "to". No trailing period on short UI copy.
+19. **No em dashes and no en dashes** in anything a user reads. Use a comma, a period, a colon, or "to". No trailing period on short UI copy. Load the `ui-text` skill before writing any, see [Writing comments and user-facing copy](#writing-comments-and-user-facing-copy).
 
 **Input**
 
@@ -98,6 +98,19 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 34. Duplicate screenshots are matched on the analysis **fingerprint** plus dimensions plus byte length, never on byte length alone: two different screens of one app routinely compress to the same size, and the user's set silently arrives short.
 35. Every device frame in the catalog ships with placeholder art, so "is this frame empty" is never `!screenshotSrc`. A shipped placeholder is a public path; the user's own content is `asset:`, `data:` or `blob:`.
 36. A card that would overspend the WebGL budget renders **flattened** (`flattenBoard3d`), never as the shipped preview PNG: the whole point of the deck is that the boards hold the user's screenshots.
+
+## Writing comments and user-facing copy
+
+Two skills are mandatory here, not optional polish.
+
+**Any string a user reads**: a toast, dialog, button, tooltip (`title`), `aria-label`, placeholder, settings hint, empty state, start screen or tour card, store listing copy, or an error message that can reach a toast. Load the **`ui-text`** skill ([.claude/skills/ui-text/SKILL.md](../.claude/skills/ui-text/SKILL.md)) **before** writing it. It has the house patterns with real before/after strings, the vocabulary (artboard, project, element, export), and the traps. Then:
+
+- `node .claude/skills/ui-text/copy.mjs locked "<old text>"` before rewording anything. Playwright specs and the `app-screenshots` scripts locate controls by their text, `title` and `aria-label`, so a LOCKED string changes together with its matcher in the same commit.
+- `node .claude/skills/ui-text/copy.mjs check` on the diff before you finish.
+- Do not sweep old strings. The early toasts in the layout break most of the patterns; fix one only when you are already in that code path.
+- Editor copy is hardcoded in components. `src/lib/i18n/` translates the text **inside artboards**, never the editor UI.
+
+**Any code comment or docstring** you write or edit: run it past the **`humanizer`** skill ([.claude/skills/humanizer/SKILL.md](../.claude/skills/humanizer/SKILL.md)). The patterns that come up most in this repo: §30 (writing about the previous version: a comment describes the code as it is, the history goes in the commit), §23 (filler), §1 (inflated claims), §28 (announcing the next point), and §14 (dashes). For UI copy the ones `ui-text` builds on are §4 (sales language), §7 (overused AI words), §13 (passive voice), §14 (dashes), §17 (title case), §19 (curly quotes), §23 (filler) and §24 (qualifiers).
 
 ## Commands
 

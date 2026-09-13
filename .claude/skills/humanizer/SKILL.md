@@ -6,9 +6,9 @@ description: |
   sales language, vague sources, repetitive structure, stock AI words, passive
   voice, filler, or chatbot artifacts. Based on Wikipedia's "Signs of AI writing."
   In this repo it is mandatory for two things: any code comment or docstring you
-  write or edit, and any string a player reads in the app or on the website
+  write or edit, and any string a user reads in the app or on the website
   (toasts, hints, buttons, dialogs, tour cards, store copy, thrown error
-  messages). See "Writing comments and player-facing copy" in .agents/AGENTS.md.
+  messages). See "Writing comments and user-facing copy" in .agents/AGENTS.md.
 license: MIT
 metadata:
   version: "2.11.2"

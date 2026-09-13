@@ -11,7 +11,7 @@ Vendored from <https://github.com/blader/humanizer> (MIT, by blader).
 ## The one local change
 
 The `description` in the frontmatter has four extra lines naming the two places
-this repo requires the skill: code comments, and any string a player reads. The
+this repo requires the skill: code comments, and any string a user reads. The
 upstream description only talks about prose in general, so without those lines
 the skill never surfaces when the job is "write a comment" or "word this toast",
 which is most of what we use it for.
@@ -28,8 +28,8 @@ cp /tmp/humanizer/LICENSE  .claude/skills/humanizer/LICENSE
 ```
 
 Then re-apply the description lines above, bump the version and commit here, and
-re-read `.agents/AGENTS.md` § "Writing comments and player-facing copy" to check
+re-read `.agents/AGENTS.md` § "Writing comments and user-facing copy" to check
 the pattern numbers it cites still point at the same patterns. That section names
-§7, §14, §15, §16, §18, §19, §23 and §25. Upstream renumbers patterns when it
+§1, §4, §7, §13, §14, §17, §19, §23, §24, §28 and §30. Upstream renumbers patterns when it
 adds or removes one, and a stale number is worse than none: it sends the reader
 to a rule about something else.
