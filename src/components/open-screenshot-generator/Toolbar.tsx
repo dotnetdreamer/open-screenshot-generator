@@ -66,7 +66,8 @@ interface ToolbarProps {
   canCompareLanguages?: boolean;
   onExport: () => void;
   /**
-   * True for App Preview projects, where that first item opens the video
+   * True when the selected artboard is an App Preview board (or, with none
+   * selected, the project has one), where that first item opens the video
    * dialog rather than the screenshot one. The label has to say so: "Artboards
    * as images" is a lie on a board whose output is an MP4.
    */

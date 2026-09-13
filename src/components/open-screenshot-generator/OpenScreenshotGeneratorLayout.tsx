@@ -5105,6 +5105,13 @@ export function OpenScreenshotGeneratorLayout() {
   const activeArtboard = viewArtboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
+  // A project can hold App Preview boards next to plain screenshot boards, so
+  // the selected board picks the export dialog. With nothing selected, any
+  // video content in the project makes it the video one.
+  const exportsAppPreview = useMemo(
+    () => (activeArtboard ? projectHasVideoContent([activeArtboard]) : isAppPreviewProject),
+    [activeArtboard, isAppPreviewProject]
+  );
 
   // --- locale-derived props for the panels and dialogs ----------------------
 
@@ -7346,7 +7353,7 @@ const generateRandomProjectName = (): string => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
             }}
-            isAppPreviewProject={isAppPreviewProject}
+            isAppPreviewProject={exportsAppPreview}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             // The account dialog is where the projects in storage are listed,
@@ -7838,11 +7845,11 @@ const generateRandomProjectName = (): string => {
             />
           )}
 
-          {/* App Preview video projects get their own dialog: video first, no
-              App Store screenshot-size generation (meaningless for a video
-              board), PNG demoted to a still. Screenshot projects keep the
-              original dialog untouched. */}
-          {isAppPreviewProject ? (
+          {/* App Preview boards get their own dialog: video first, no App
+              Store screenshot-size generation (meaningless for a video board),
+              PNG demoted to a still. The selected board decides, so a screenshot
+              board in the same project still opens the original dialog. */}
+          {exportsAppPreview ? (
             <AppPreviewExportDialog
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
