@@ -113,7 +113,7 @@ test.describe('the export dialog', () => {
 
     await page.locator('#gen-ipad-pro-13').click();
     await expect(fileCount(page)).toHaveText('0 PNG files');
-    await expect(app.exportDialog.getByText('Nothing selected yet')).toBeVisible();
+    await expect(app.exportDialog.getByText('Select the current sizes or an additional App Store size')).toBeVisible();
     await expect(exportButton).toBeDisabled();
 
     // Reopening is a fresh decision: the dialog resets rather than remembering

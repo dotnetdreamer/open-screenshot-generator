@@ -251,7 +251,7 @@ export class Editor {
   // ----------------------------------------------------------------- dialogs
 
   get exportDialog(): Locator {
-    return this.page.getByRole('dialog').filter({ hasText: 'Export Screenshots' });
+    return this.page.getByRole('dialog').filter({ hasText: 'Export screenshots' });
   }
 
   /** Toolbar Export, then "Artboards as images". */

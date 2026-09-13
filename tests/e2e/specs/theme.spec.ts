@@ -304,12 +304,12 @@ test.describe('the theme preference', () => {
     // matchMedia listener in ThemeContext rather than anything read at boot.
     await page.emulateMedia({ colorScheme: 'dark' });
     await expect(page.locator('html')).toHaveClass(/dark/);
-    await expect(app.settingsDialog).toContainText('Following your system, which is dark right now');
+    await expect(app.settingsDialog).toContainText('Matches your system theme, currently dark');
     expect((await themeSnapshot(page)).chrome.backgroundToken).toBe(DARK_BACKGROUND);
 
     await page.emulateMedia({ colorScheme: 'light' });
     await expect(page.locator('html')).not.toHaveClass(/dark/);
-    await expect(app.settingsDialog).toContainText('Following your system, which is light right now');
+    await expect(app.settingsDialog).toContainText('Matches your system theme, currently light');
 
     // An explicit choice has to win over the OS from then on.
     await chooseTheme(app, 'Dark');

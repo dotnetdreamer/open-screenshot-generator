@@ -266,7 +266,7 @@ async function uploadScreenshotToSelected(page, filePath) {
  * Trigger the app's PNG export and wait for the files to download.
  *
  * The toolbar button opens ONE OF TWO dialogs, depending on the project:
- * - Screenshot projects get "Export Screenshots" (#export-as-is + optional
+ * - Screenshot projects get "Export screenshots" (#export-as-is + optional
  *   App Store size checkboxes). extraFormats ('gen-ios', 'gen-ipad-pro-13',
  *   'gen-ipad-11') tick those; each adds one download per artboard.
  * - App Preview VIDEO projects get "Export App Preview Video" (#apv-styled),

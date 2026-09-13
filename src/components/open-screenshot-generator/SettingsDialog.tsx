@@ -203,8 +203,8 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
               label="Theme"
               description={
                 theme === 'system'
-                  ? `Following your system, which is ${resolvedTheme} right now`
-                  : 'Applies to the app only. Artboards stay light in both themes so a design looks the same on screen as it does in the exported image'
+                  ? `Matches your system theme, currently ${resolvedTheme}`
+                  : 'Changes the editor appearance. Artboard colours and exported images stay the same'
               }
               control={<ThemeToggle />}
               stacked
@@ -214,7 +214,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
           <SettingsSection title="Canvas">
             <SettingsRow
               label="Zoom with the mouse wheel"
-              description="A wheel over the canvas zooms instead of scrolling. A trackpad is left alone, so two fingers still scroll, and Ctrl or Cmd with the wheel zooms either way"
+              description="Scroll the mouse wheel to zoom. Trackpad scrolling stays the same. Ctrl or Cmd with the wheel always zooms"
               htmlFor="settings-wheel-zoom"
               control={
                 <Switch id="settings-wheel-zoom" checked={wheelZoom} onCheckedChange={setWheelZoom} />
@@ -228,7 +228,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
             <SettingsSection title="Cloud">
               <SettingsRow
                 label="Save to your cloud automatically"
-                description="Keeps the open project in your cloud on its own, shortly after each round of edits. Sign in to use it, and watch the corner of the canvas to see where it got to"
+                description="Saves the open project to your cloud a few seconds after you stop editing. Requires sign in"
                 htmlFor="settings-cloud-auto-save"
                 control={
                   <Switch
@@ -251,7 +251,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
           <SettingsSection title="Tips">
             <SettingsRow
               label="Show tips at startup"
-              description="Opens the tips wizard when you open the app"
+              description="Shows editing tips when you open the app"
               htmlFor="settings-tips-on-startup"
               control={
                 <Switch
@@ -263,7 +263,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
             />
             <SettingsRow
               label="Tips"
-              description="How to organise projects per store size, and how to keep a copy of your work"
+              description="Learn how to organise projects by store size and save a copy of your work"
               control={
                 <Button variant="outline" size="sm" onClick={onOpenTips}>
                   <LightbulbIcon className="mr-1.5 h-3.5 w-3.5" />

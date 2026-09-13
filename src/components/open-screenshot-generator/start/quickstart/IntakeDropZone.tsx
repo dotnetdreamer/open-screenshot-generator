@@ -213,7 +213,7 @@ export function IntakeDropZone({
           {dragging ? 'Let go to add them' : 'Drop your screenshots here'}
         </p>
         <p className="text-sm text-muted-foreground">
-          A folder works too. Any number from one to {INTAKE_MAX}, and you can reorder them after
+          Add 1 to {INTAKE_MAX} screenshots or a folder of images. You can reorder the screenshots after adding them
         </p>
       </div>
 
@@ -238,7 +238,7 @@ export function IntakeDropZone({
       {!coarse && (
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clipboard className="h-3.5 w-3.5" />
-          Or just paste a screenshot you copied
+          Or paste a copied screenshot
         </p>
       )}
 

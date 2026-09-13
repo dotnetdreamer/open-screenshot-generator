@@ -261,11 +261,11 @@ export function ExportDialog({
           laptop screen, so it scrolls inside itself rather than clipping. */}
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Export Screenshots</DialogTitle>
+          <DialogTitle>Export screenshots</DialogTitle>
           <DialogDescription>
-            Download the artboards as PNGs, and optionally generate the App
-            Store sizes this project is missing. Generated formats convert the
-            canvas and mockups on the fly, your project stays untouched.
+            Export artboards as PNG images at their current sizes or additional App Store
+            sizes. Additional sizes resize the artboards and device frames for
+            export without changing your project.
           </DialogDescription>
         </DialogHeader>
 
@@ -277,7 +277,7 @@ export function ExportDialog({
               onCheckedChange={(v) => setAsIs(v === true)}
             />
             <div className="grid gap-0.5 leading-none">
-              <Label htmlFor="export-as-is">Export current canvas</Label>
+              <Label htmlFor="export-as-is">Export at current sizes</Label>
               <p className="text-xs text-muted-foreground">{asIsDescription}</p>
             </div>
           </div>
@@ -304,7 +304,7 @@ export function ExportDialog({
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-0.5">Also generate for the App Store</p>
+            <p className="text-sm font-medium mb-0.5">Additional App Store sizes</p>
             <p className="text-xs text-muted-foreground mb-3">
               Apple accepts 1 to 10 JPG/PNG screenshots per display size.
             </p>
@@ -328,7 +328,7 @@ export function ExportDialog({
                       </Label>
                       <p className="text-xs text-muted-foreground">
                         {covered
-                          ? 'Already covered by the current canvas'
+                          ? 'Matches the current size. Select "Export at current sizes" to include it'
                           : APP_STORE_TIER_NOTES[preset.id]}
                       </p>
                     </div>
@@ -345,7 +345,7 @@ export function ExportDialog({
             <div>
               <p className="text-sm font-medium mb-0.5">Languages</p>
               <p className="text-xs text-muted-foreground mb-3">
-                Each language renders the whole selection again, with its own
+                Export a separate set of images for each selected language, using its
                 text and screenshots. Filenames start with the language code.
               </p>
               <RadioGroup
@@ -389,8 +389,8 @@ export function ExportDialog({
                     <Label htmlFor="export-locale-custom">Pick languages</Label>
                     <p className="text-xs text-muted-foreground">
                       {localeMode === 'custom' && noLocaleSelected
-                        ? 'Tick at least one language'
-                        : 'Export a subset, for a partial store update'}
+                        ? 'Select at least one language'
+                        : 'Choose which languages to export'}
                     </p>
                   </div>
                 </div>
@@ -426,16 +426,15 @@ export function ExportDialog({
             </p>
             <p className="text-xs text-muted-foreground">
               {noLocaleSelected
-                ? 'Pick at least one language'
+                ? 'Select at least one language'
                 : nothingSelected
-                  ? 'Nothing selected yet'
+                  ? 'Select the current sizes or an additional App Store size'
                   : fileCountBreakdown}
             </p>
             {warnAboutWebDownloads && !nothingSelected && (
               <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-500">
-                In the browser each file is its own download, so your browser
-                will ask to allow {fileCount} of them. The desktop app saves the
-                whole run into one folder you pick.
+                Your browser may ask you to allow multiple downloads for these {fileCount} files.
+                The desktop app saves all files to a folder you choose.
               </p>
             )}
           </div>
