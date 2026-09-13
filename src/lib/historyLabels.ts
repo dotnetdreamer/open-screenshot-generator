@@ -99,6 +99,8 @@ export function getElementDisplayName(element: ArtboardElement, maxLength = 20):
       return 'Recording';
     case 'gesture':
       return `${capitalize(element.gestureType)} Hint`;
+    case 'audio':
+      return 'Sound';
     default:
       return capitalize((element as ArtboardElement).type);
   }
@@ -165,6 +167,8 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
   { keys: ['tintColor', 'tintOpacity'], label: 'Tint', icon: 'color' },
   { keys: ['objectFit', 'screenshotObjectFit', 'screenshotRect'], label: 'Screen Fit', icon: 'resize' },
   { keys: ['trimStart', 'trimEnd'], label: 'Trim Recording', icon: 'edit' },
+  { keys: ['startTime'], label: 'Retime', icon: 'edit' },
+  { keys: ['volume'], label: 'Volume', icon: 'edit' },
   { keys: ['triggerTime', 'gestureDuration', 'gestureRepeat'], label: 'Gesture Timing', icon: 'edit' },
   { keys: ['animation'], label: 'Animation', icon: 'edit' },
   { keys: ['groupId'], label: 'Group', icon: 'edit' },

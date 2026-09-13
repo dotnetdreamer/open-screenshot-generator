@@ -31,6 +31,7 @@ import {
   SearchIcon,
   XIcon,
   FilmIcon,
+  MusicIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
@@ -402,6 +403,7 @@ const PREVIEW_TILES: IconTileDef[] = [
   { id: 'iphone-recording', label: 'iPhone + Recording', type: 'video-device', subType: 'iphone-15-pro', icon: <SmartphoneIcon className="w-6 h-6 text-primary" />, styleProps: { name: 'iPhone Recording' }, keywords: 'video mockup screen capture apple' },
   { id: 'android-recording', label: 'Android + Recording', type: 'video-device', subType: 'android-punch-hole', icon: <SmartphoneIcon className="w-6 h-6 text-primary" />, styleProps: { name: 'Android Recording', defaultSize: { width: 520, height: 1073 } }, keywords: 'video mockup screen capture google' },
   { id: 'recording', label: 'Recording (no frame)', type: 'video', icon: <ClapperboardIcon className="w-6 h-6 text-primary" />, keywords: 'video clip movie mp4 frameless' },
+  { id: 'sound', label: 'Sound', type: 'audio', icon: <MusicIcon className="w-6 h-6 text-primary" />, keywords: 'audio music voiceover narration sfx mp3 wav' },
   { id: 'tap', label: 'Tap', type: 'gesture', icon: <PointerIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'tap', name: 'Tap hint' }, keywords: 'gesture touch press click hint' },
   { id: 'double-tap', label: 'Double Tap', type: 'gesture', icon: <PointerIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'double-tap', name: 'Double tap hint' }, keywords: 'gesture touch press click hint' },
   { id: 'swipe-left', label: 'Swipe Left', type: 'gesture', icon: <MoveHorizontalIcon className="w-6 h-6 text-primary" />, styleProps: { gestureType: 'swipe-left', name: 'Swipe left hint', defaultSize: { width: 320, height: 160 } }, keywords: 'gesture drag scroll hint' },

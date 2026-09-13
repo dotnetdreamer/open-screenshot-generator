@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ArtboardElement } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon, MusicIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getElementDisplayName } from '@/lib/historyLabels';
 import { localeName } from '@/lib/i18n/locales';
@@ -94,6 +94,8 @@ const getElementIcon = (element: ArtboardElement) => {
       return <SmartphoneIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
     case 'gesture':
       return <PointerIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
+    case 'audio':
+      return <MusicIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
     default:
       return <ImagePlusIcon className="w-4 h-4 mr-2 shrink-0 text-primary" />;
   }

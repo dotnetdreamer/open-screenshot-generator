@@ -5,7 +5,9 @@ import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
-import { stopPlayback } from '@/lib/video/playback';
+import { getPlayback, stopPlayback } from '@/lib/video/playback';
+import { AUDIO_ACCEPT, saveAudio } from '@/lib/mediaStore';
+import { soundLayerName } from '@/lib/video/audio';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
 import { externalizeInlineMedia } from '@/lib/externalizeInlineMedia';
 import {
@@ -2518,16 +2520,56 @@ export function OpenScreenshotGeneratorLayout() {
     }
   }, [toast]);
 
+  // Sound layers are added with their file, so both doors (the timeline's
+  // "+ Sound" and the palette tile) open the file picker first and add the
+  // layer once a file is chosen. Cancelling the picker adds nothing.
+  const soundFileInputRef = useRef<HTMLInputElement>(null);
+  const pendingSoundRef = useRef<{ artboardId: string; atSeconds: number; libraryId?: string } | null>(null);
+  const handleAddSound = useCallback((artboardId: string, atSeconds: number, libraryId?: string) => {
+    pendingSoundRef.current = { artboardId, atSeconds, libraryId };
+    soundFileInputRef.current?.click();
+  }, []);
+  const handleSoundFileChosen = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    const target = pendingSoundRef.current;
+    pendingSoundRef.current = null;
+    if (!file || !target) return;
+    try {
+      const { id, duration } = await saveAudio(file, file.name);
+      handleAddElementToArtboard(target.artboardId, 'audio', undefined, undefined, {
+        mediaId: id,
+        durationSeconds: duration,
+        startTime: target.atSeconds,
+        name: soundLayerName(file.name),
+        ...(target.libraryId ? { libraryId: target.libraryId } : {}),
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not load sound',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Stable identity so the memoized ElementPalette does not re-render on every
   // layout state change. The palette can hold hundreds of tiles, and rebuilding
   // them per slider tick is what made scale drags stutter.
   const handlePaletteAddElement = useCallback((type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
+    if (activeArtboardId && type === 'audio') {
+      // At the playhead when this board is previewing, from the start otherwise.
+      const playback = getPlayback();
+      const at = playback.artboardId === activeArtboardId ? playback.time : 0;
+      handleAddSound(activeArtboardId, at, typeof styleProps?.libraryId === 'string' ? styleProps.libraryId : undefined);
+      return;
+    }
     if (activeArtboardId) {
       handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
     } else {
       toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
     }
-  }, [activeArtboardId, handleAddElementToArtboard, toast]);
+  }, [activeArtboardId, handleAddElementToArtboard, handleAddSound, toast]);
 
   /**
    * A palette tile dragged with a finger and released over the canvas. The
@@ -7479,6 +7521,14 @@ const generateRandomProjectName = (): string => {
                 onUpdateElement={handleUpdateElementById}
                 onReorderElement={handleReorderElementNextTo}
                 onSetDuration={handleSetPreviewDuration}
+                onAddSound={handleAddSound}
+              />
+              <Input
+                type="file"
+                ref={soundFileInputRef}
+                className="hidden"
+                accept={AUDIO_ACCEPT}
+                onChange={handleSoundFileChosen}
               />
 
               {/* Floating bar (bottom-left of canvas): the project name, which

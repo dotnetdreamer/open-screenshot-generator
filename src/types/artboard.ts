@@ -12,7 +12,9 @@ export interface Size {
 // that plays a screen recording inside the same frame (see VideoDeviceElement).
 // They share the frame chrome (elements/deviceChrome.tsx) but nothing else:
 // a video device has no screenshot rect, no 3D pose, and its own properties.
-export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture';
+// 'audio' is a sound layer on an App Preview board: it has a place on the
+// timeline and in the Layers panel, but nothing on the canvas.
+export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture' | 'audio';
 
 // Enter/exit animation presets for App Preview video exports. On the canvas
 // elements render static; the presets only play in the exported MP4 (and the
@@ -300,6 +302,22 @@ export interface GestureElementProps extends BaseElement {
   gestureRepeat?: boolean; // loop for the whole video instead of playing once
 }
 
+// A sound on an App Preview board: music, a voiceover, a tap click. It plays
+// with the editor preview and is mixed into the exported MP4's audio track.
+// Like a recording, the file lives in the Dexie `media` table and the element
+// keeps only the row id, which is also what carries it through project.json
+// and every storage provider (see lib/account/projectBundle.ts). Position and
+// size are unused; the element is never drawn.
+export interface AudioElementProps extends BaseElement {
+  type: 'audio';
+  mediaId?: string; // Dexie media row id of the uploaded sound
+  startTime?: number; // second of the preview the sound comes in at; default 0
+  trimStart?: number; // seconds into the file playback starts
+  trimEnd?: number; // seconds into the file playback stops
+  volume?: number; // 0..1; unset is 1
+  durationSeconds?: number; // source duration, probed on upload
+}
+
 export type ArtboardElement =
   | TextElementProps
   | ShapeElementProps
@@ -307,7 +325,8 @@ export type ArtboardElement =
   | ImageElementProps
   | VideoElementProps
   | VideoDeviceElementProps
-  | GestureElementProps;
+  | GestureElementProps
+  | AudioElementProps;
 
 /**
  * One locale's overrides for one element. Every field is optional and anything

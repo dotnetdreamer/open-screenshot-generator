@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useCallback, useEffect, useState, useRef } from 'react';
-import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, ElementAnimation, ElementAnimationPreset, ElementLocaleOverride, Point, Size } from '@/types/artboard';
+import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState, VideoElementProps, VideoDeviceElementProps, GestureElementProps, AudioElementProps, GestureType, ElementAnimation, ElementAnimationPreset, ElementLocaleOverride, Point, Size } from '@/types/artboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -26,12 +26,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { saveMedia, useImageSrc } from '@/lib/mediaStore';
+import { AUDIO_ACCEPT, saveAudio, saveMedia, useImageSrc, useMediaUrl } from '@/lib/mediaStore';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
 import { withBasePath } from '@/lib/basePath';
 import { fitTextBox } from '@/lib/textFit';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
+import { soundLayerName } from '@/lib/video/audio';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -52,12 +53,25 @@ import { trackScreenshotUploaded } from '@/lib/analytics';
 import { DEFAULT_BASE_LOCALE, localeLabel, localeName } from '@/lib/i18n/locales';
 import type { DetachableKey } from '@/lib/i18n/project';
 
+/** Length of the uploaded sound, or a note when its file is missing here. */
+function SoundFileStatus({ element }: { element: AudioElementProps }) {
+  const url = useMediaUrl(element.mediaId);
+  if (!element.mediaId) return null;
+  if (url === null) {
+    return <p className="text-xs text-destructive">This sound file is missing from this browser. Upload it again</p>;
+  }
+  return element.durationSeconds ? (
+    <p className="text-xs text-muted-foreground">{element.durationSeconds.toFixed(1)}s long</p>
+  ) : null;
+}
+
 // Panel headings. Derived names read badly for the compound types
 // ("Video-device Properties"), so the user-facing ones are spelled out.
 const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
   'video-device': 'Recording Mockup',
   video: 'Recording Properties',
   gesture: 'Gesture Hint',
+  audio: 'Sound',
 };
 
 /**
@@ -405,6 +419,8 @@ const BASE_GROUPS_WITH_A_CONTROL: Record<ArtboardElement['type'], BaseDetachGrou
   'video-device': ['scale', 'rotation'],
   image: ['scale', 'opacity'],
   video: ['scale', 'opacity'],
+  // Never drawn, so none of the visual properties mean anything for a sound.
+  audio: ['position', 'size', 'scale', 'rotation', 'opacity', 'shadow', 'blur'],
 };
 
 /**
@@ -1432,6 +1448,33 @@ export function PropertiesPanel({
     }
   };
 
+  // Sound layers. Same media table as recordings, probed as audio.
+  const audioFileInputRef = useRef<HTMLInputElement>(null);
+  const handleSoundSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+    if (!file || selectedElement?.type !== 'audio') return;
+    try {
+      const { id, duration } = await saveAudio(file, file.name);
+      onUpdateElement({
+        mediaId: id,
+        durationSeconds: duration,
+        trimStart: undefined,
+        trimEnd: undefined,
+        // A layer still on its default name takes the file's.
+        ...(!selectedElement.name || selectedElement.name === 'Sound'
+          ? { name: soundLayerName(file.name) }
+          : {}),
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not load sound',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const secondsInput = (value: number | undefined, onChange: (v: number | undefined) => void, id: string, placeholder: string) => (
     <Input
       id={id}
@@ -2223,6 +2266,54 @@ export function PropertiesPanel({
           className="my-2"
         />
       </div>
+    </>
+  );
+
+  const renderAudioProperties = (element: AudioElementProps) => (
+    <>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => audioFileInputRef.current?.click()}
+          className="text-xs h-8"
+        >
+          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+          {element.mediaId ? 'Replace sound' : 'Upload sound'}
+        </Button>
+      </div>
+      <SoundFileStatus element={element} />
+      <div className="grid gap-1">
+        <Label htmlFor="soundStart" className="text-xs">Starts at (s)</Label>
+        {secondsInput(element.startTime, (v) => onUpdateElement({ startTime: v }), 'soundStart', '0')}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="soundTrimStart" className="text-xs">Trim start (s)</Label>
+          {secondsInput(element.trimStart, (v) => onUpdateElement({ trimStart: v }), 'soundTrimStart', '0')}
+        </div>
+        <div className="grid gap-1">
+          <Label htmlFor="soundTrimEnd" className="text-xs">Trim end (s)</Label>
+          {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'soundTrimEnd', 'full length')}
+        </div>
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="soundVolume" className="text-xs">
+          Volume: {Math.round((element.volume ?? 1) * 100)}%
+        </Label>
+        <Slider
+          id="soundVolume"
+          min={0}
+          max={100}
+          step={1}
+          value={[(element.volume ?? 1) * 100]}
+          onValueChange={(value) => onUpdateElement({ volume: value[0] / 100 })}
+          className="my-2"
+        />
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Plays with the preview and is mixed into the exported video
+      </p>
     </>
   );
 
@@ -3703,11 +3794,12 @@ export function PropertiesPanel({
           {selectedElement.type === 'video' && renderVideoProperties(selectedElement as VideoElementProps)}
           {selectedElement.type === 'video-device' && renderVideoDeviceProperties(selectedElement as VideoDeviceElementProps)}
           {selectedElement.type === 'gesture' && renderGestureProperties(selectedElement as GestureElementProps)}
+          {selectedElement.type === 'audio' && renderAudioProperties(selectedElement as AudioElementProps)}
           {/* "Other properties" belongs with the rest of the element's
               properties, above the video timeline block: it is the per-language
               detach list for base properties, not part of the animation. */}
           {renderLocaleBaseProperties(selectedElement)}
-          {selectedElement.type !== 'gesture' && renderAnimationProperties(selectedElement)}
+          {selectedElement.type !== 'gesture' && selectedElement.type !== 'audio' && renderAnimationProperties(selectedElement)}
           {renderLocaleResetControls(selectedHasLocaleOverrides)}
         </div>
 
@@ -3725,6 +3817,13 @@ export function PropertiesPanel({
           onChange={handleRecordingSelected}
           className="hidden"
           accept={VIDEO_ACCEPT}
+        />
+        <Input
+          type="file"
+          ref={audioFileInputRef}
+          onChange={handleSoundSelected}
+          className="hidden"
+          accept={AUDIO_ACCEPT}
         />
       </div>
     );

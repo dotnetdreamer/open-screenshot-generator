@@ -79,7 +79,8 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
         }}
       >
         <ArtboardBackgroundImage artboard={artboard} />
-        {artboard.elements.map(element => (
+        {/* Sound layers have nothing to show. */}
+        {artboard.elements.filter((element) => element.type !== 'audio').map(element => (
           <div
             key={element.id}
             style={{

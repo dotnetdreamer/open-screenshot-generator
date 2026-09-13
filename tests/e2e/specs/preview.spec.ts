@@ -1,5 +1,6 @@
 import { test, expect } from '../fixtures/test';
-import { waitForProject } from '../fixtures/db';
+import { promises as fs } from 'node:fs';
+import { readAll, waitForProject } from '../fixtures/db';
 import type { Locator } from '@playwright/test';
 import type { Editor } from '../helpers/editor';
 
@@ -255,5 +256,81 @@ test.describe('preview timeline bar', () => {
     await page.getByTitle('Collapse timeline').click();
     await expect(page.getByTitle('Expand timeline')).toBeVisible();
     await expect(page.getByTitle('Collapse timeline')).toHaveCount(0);
+  });
+});
+
+/** A short 16-bit mono WAV tone, so the test needs no fixture file on disk. */
+function wavTone(seconds: number, sampleRate = 8000): Buffer {
+  const frames = Math.round(seconds * sampleRate);
+  const buffer = Buffer.alloc(44 + frames * 2);
+  buffer.write('RIFF', 0);
+  buffer.writeUInt32LE(36 + frames * 2, 4);
+  buffer.write('WAVE', 8);
+  buffer.write('fmt ', 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20); // PCM
+  buffer.writeUInt16LE(1, 22); // mono
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36);
+  buffer.writeUInt32LE(frames * 2, 40);
+  for (let i = 0; i < frames; i++) {
+    buffer.writeInt16LE(Math.round(Math.sin((2 * Math.PI * 440 * i) / sampleRate) * 8000), 44 + i * 2);
+  }
+  return buffer;
+}
+
+interface StoredElement {
+  type: string;
+  name?: string;
+  mediaId?: string;
+  durationSeconds?: number;
+}
+
+test.describe('sound layers', () => {
+  test('the Sound tile adds the chosen file as a layer that travels with the project file', async ({ app, page, isDesktop }) => {
+    await blankWithPalette(app);
+    await app.openPaletteCategory('App Preview');
+
+    // The tile opens the file picker first; the layer only exists once a file
+    // is chosen.
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Add Sound (preview:sound)', exact: true }).click();
+    await (await chooser).setFiles({ name: 'tap-click.wav', mimeType: 'audio/wav', buffer: wavTone(1) });
+
+    const stored = await waitForProject(page, (project) =>
+      ((project.projectData as { elements?: StoredElement[] }[])[0]?.elements ?? []).some(
+        (el) => el.type === 'audio' && !!el.mediaId
+      )
+    );
+    const sound = (stored.projectData as { elements: StoredElement[] }[])[0].elements.find(
+      (el) => el.type === 'audio'
+    )!;
+    expect(sound.name).toBe('tap-click');
+    expect(sound.durationSeconds).toBeCloseTo(1, 1);
+    const media = await readAll<{ id: string; mimeType: string }>(page, 'media');
+    expect(media.find((row) => row.id === sound.mediaId)?.mimeType).toBe('audio/wav');
+
+    // Heard, not drawn: no canvas element, one <audio>, and the board is now a
+    // preview board with its timeline (and its own "+ Sound").
+    await expect(app.elementsOn(0)).toHaveCount(0);
+    await expect(app.board(0).locator('audio[data-audio-layer]')).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Add sound', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Replace sound', exact: true })).toBeVisible();
+
+    // WKWebView writes the file through the fs plugin (covered in
+    // project-lifecycle.spec.ts); the bundle contents are the same code.
+    if (isDesktop) return;
+    const downloadPromise = page.waitForEvent('download');
+    await app.chooseFromMenu(app.exportButton, /Project file/i);
+    const saved = await (await downloadPromise).path();
+    const parsed = JSON.parse(await fs.readFile(saved as string, 'utf8'));
+    expect(parsed.media.map((row: { id: string; mimeType: string }) => [row.id, row.mimeType])).toContainEqual([
+      sound.mediaId,
+      'audio/wav',
+    ]);
+    expect(typeof parsed.mediaData[sound.mediaId!]).toBe('string');
   });
 });

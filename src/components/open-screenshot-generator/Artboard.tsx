@@ -10,7 +10,8 @@ import { ImageElement } from './elements/ImageElement';
 import { VideoElement } from './elements/VideoElement';
 import { VideoDeviceElement } from './elements/VideoDeviceElement';
 import { GestureElement } from './elements/GestureElement';
-import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType } from '@/types/artboard';
+import { AudioElement } from './elements/AudioElement';
+import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, AudioElementProps } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
@@ -312,6 +313,20 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           gestureProps.size = { width: styleProps.defaultSize.width, height: styleProps.defaultSize.height };
         }
         newElementToAdd = gestureProps;
+      } else if (type === 'audio') {
+        // Nothing is drawn, so there is no box to place. The file, when the
+        // caller already has one, rides in with styleProps.
+        const audioProps: AudioElementProps = {
+          ...newElementBase,
+          type: 'audio',
+          position: { x: 0, y: 0 },
+          size: { width: 0, height: 0 },
+          name: typeof styleProps?.name === 'string' && styleProps.name ? styleProps.name : 'Sound',
+        };
+        if (typeof styleProps?.mediaId === 'string') audioProps.mediaId = styleProps.mediaId;
+        if (typeof styleProps?.durationSeconds === 'number') audioProps.durationSeconds = styleProps.durationSeconds;
+        if (typeof styleProps?.startTime === 'number' && styleProps.startTime > 0) audioProps.startTime = styleProps.startTime;
+        newElementToAdd = audioProps;
       } else if (type === 'shape' && subType) {
         const shapeProps: Partial<ShapeElementProps> = {
           type: 'shape',
@@ -622,6 +637,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         >
           <ArtboardBackgroundImage artboard={artboard} />
           {elements.map(element => {
+            // A sound layer has nothing to draw or drag: just its <audio>,
+            // following the board's timeline.
+            if (element.type === 'audio') {
+              return <AudioElement key={element.id} element={element} artboardId={artboard.id} />;
+            }
             // Selection chrome (outlines, handles, upload overlays) is editing
             // furniture; while the timeline runs the board shows only what will
             // be in the exported video.

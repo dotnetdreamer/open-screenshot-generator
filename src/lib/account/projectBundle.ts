@@ -75,7 +75,7 @@ function localeOverridesOf(artboard: ArtboardState): Record<string, unknown>[] {
  * src/lib/video/migrateVideoDevices.ts) are picked up too.
  */
 export function collectMediaIds(projectData: ArtboardState[]): string[] {
-  return walkMediaIds(projectData, { videos: true, images: true });
+  return walkMediaIds(projectData, { videos: true, images: true, sounds: true });
 }
 
 /**
@@ -88,23 +88,26 @@ export function collectMediaIds(projectData: ArtboardState[]): string[] {
  * lets the gist path refuse recordings without paying to load every blob in
  * IndexedDB first. The provider still checks the real mimeType on the bundle it
  * is handed, so a row that does not match its reference is caught there.
+ *
+ * Sound layers use the same `mediaId` field but are left out: a sound is small
+ * enough for a gist, and counting it here would block GitHub sync for nothing.
  */
 export function collectVideoMediaIds(projectData: ArtboardState[]): string[] {
-  return walkMediaIds(projectData, { videos: true, images: false });
+  return walkMediaIds(projectData, { videos: true, images: false, sounds: false });
 }
 
 /** Just the pictures: uploaded screenshots, frames, posters, board backgrounds. */
 export function collectImageAssetIds(projectData: ArtboardState[]): string[] {
-  return walkMediaIds(projectData, { videos: false, images: true });
+  return walkMediaIds(projectData, { videos: false, images: true, sounds: false });
 }
 
 function walkMediaIds(
   projectData: ArtboardState[],
-  { videos, images }: { videos: boolean; images: boolean }
+  { videos, images, sounds }: { videos: boolean; images: boolean; sounds: boolean }
 ): string[] {
   const ids = new Set<string>();
   const take = (record: Record<string, unknown>) => {
-    if (videos) {
+    if (record.type === 'audio' ? sounds : videos) {
       for (const key of MEDIA_ID_KEYS) {
         const value = record[key];
         if (typeof value === 'string' && value) ids.add(value);

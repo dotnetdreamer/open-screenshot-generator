@@ -503,7 +503,7 @@ export const githubProvider: CloudProvider = {
       throw new AccountBlockedError(
         `"${tooBig.meta.name}" is ${formatBytes(tooBig.blob.size)}, over the ` +
           `${formatBytes(MAX_GIST_RAW_BYTES)} a gist can hold in one file. ` +
-          'Connect Google Drive to save it, or replace that image with a smaller one'
+          'Connect Google Drive to save it, or replace that file with a smaller one'
       );
     }
 
