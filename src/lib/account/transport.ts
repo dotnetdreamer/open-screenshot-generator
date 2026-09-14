@@ -26,14 +26,40 @@ export async function bridgeFetch(): Promise<typeof fetch> {
   return window.fetch.bind(window);
 }
 
-/** JSON request with the error body surfaced, since these APIs explain failures well. */
+/**
+ * JSON request with the error body surfaced, since these APIs explain failures
+ * well.
+ *
+ * `no-store` by default, and it is not a micro optimisation in reverse: GitHub
+ * serves its REST API with `Cache-Control: private, max-age=60`, so without
+ * this the browser answers a GET from its own cache for a minute and the app
+ * reads a version of the world that is up to a minute out of date. Three things
+ * go wrong with that, in rising order of seriousness:
+ *
+ *   - the account dialog does not list a project that was just saved, which is
+ *     the visible symptom, and "it appears once I open devtools with Disable
+ *     cache ticked" is the fingerprint
+ *   - a sync reads a stale HEAD sha, which is the same sha it stored, so it
+ *     concludes nothing has changed remotely and pushes over a copy that did
+ *   - worst: the gist save decides "update or create" from a listing. A second
+ *     save inside that minute cannot see the gist the first one created, so it
+ *     creates a SECOND gist for the same project
+ *
+ * Drive is less exposed (its API sends no-store style headers already) but the
+ * same rule is right for it, and one place to say so beats two. The cost is a
+ * real request every time instead of a possible 304; at the handful of calls
+ * this app makes, against a 5000 an hour budget, that is not a cost.
+ *
+ * The desktop build goes through tauri-plugin-http, which has no browser cache
+ * at all, so there it is simply inert.
+ */
 export async function requestJson<T>(
   url: string,
   init: RequestInit & { fetchImpl?: typeof fetch } = {}
 ): Promise<T> {
   const { fetchImpl, ...rest } = init;
   const doFetch = fetchImpl ?? (await bridgeFetch());
-  const response = await doFetch(url, rest);
+  const response = await doFetch(url, { cache: 'no-store', ...rest });
   const text = await response.text();
   if (!response.ok) {
     throw new Error(describeHttpError(response.status, text));

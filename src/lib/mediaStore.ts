@@ -64,6 +64,11 @@ export function notifyMediaChanged(): void {
   mediaListeners.forEach((listener) => listener());
 }
 
+/** Bumped whenever rows land from somewhere other than a user action. */
+export function getMediaRevision(): number {
+  return mediaRevision;
+}
+
 export function subscribeMedia(listener: () => void): () => void {
   mediaListeners.add(listener);
   return () => {
@@ -98,6 +103,52 @@ export function probeVideoBlob(blob: Blob): Promise<VideoProbeResult> {
     };
     video.src = url;
   });
+}
+
+/** Accepted sound files. WAV, MP3, AAC/M4A and OGG decode in every engine we ship. */
+export const AUDIO_ACCEPT = 'audio/*,.mp3,.m4a,.aac,.wav,.ogg';
+
+/** Read a sound file's duration via a throwaway <audio>. */
+export function probeAudioBlob(blob: Blob): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const audio = document.createElement('audio');
+    audio.preload = 'metadata';
+    const cleanup = () => {
+      audio.removeAttribute('src');
+      audio.load();
+      URL.revokeObjectURL(url);
+    };
+    audio.onloadedmetadata = () => {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      cleanup();
+      resolve(duration);
+    };
+    audio.onerror = () => {
+      cleanup();
+      reject(new Error('Could not read this sound file. Use an MP3, M4A or WAV file.'));
+    };
+    audio.src = url;
+  });
+}
+
+/** Store a sound file and return its media id and duration. */
+export async function saveAudio(
+  file: Blob,
+  name: string
+): Promise<{ id: string; duration: number }> {
+  const duration = await probeAudioBlob(file);
+  const id = `media_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const asset: MediaAsset = {
+    id,
+    blob: file,
+    name,
+    mimeType: file.type || 'audio/mpeg',
+    duration,
+    createdAt: new Date(),
+  };
+  await db.media.put(asset);
+  return { id, duration };
 }
 
 /** Store a recording and return its media id (plus the probed metadata). */

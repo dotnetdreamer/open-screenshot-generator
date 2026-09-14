@@ -19,10 +19,10 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Video export | [src/lib/video/](../src/lib/video/) |
 | Store upload (desktop only) | [src/lib/publish/](../src/lib/publish/) + [publish/PublishDialog.tsx](../src/components/open-screenshot-generator/publish/PublishDialog.tsx) |
 | Panels out of the window, and displays | [src/lib/panels/](../src/lib/panels/) + [panels/](../src/components/open-screenshot-generator/panels/) + [panels.rs](../src-tauri/src/panels.rs) |
-| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists), [src/lib/cloud/](../src/lib/cloud) (ours, the only one that yields a share link, and the one that saves itself: [autoSave.ts](../src/lib/cloud/autoSave.ts)) |
+| Where a project can be saved | [src/lib/account/](../src/lib/account) (the user's own Drive/gists; keeps itself up to date once saved, off by default: [autoSync.ts](../src/lib/account/autoSync.ts)), [src/lib/cloud/](../src/lib/cloud) (ours, the only one that yields a share link, and on by default: [autoSave.ts](../src/lib/cloud/autoSave.ts)) |
 | Editing together, live | [src/lib/collab/](../src/lib/collab) (Yjs over WebRTC), signalling in [mcp-relay/src/collab.js](../infra/vps/mcp-relay/src/collab.js) |
 | Versions of a project | [src/lib/versions/store.ts](../src/lib/versions/store.ts) + the Dexie `projectVersions` table |
-| Dexie, 7 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks`, `projectVersions` |
+| Dexie, 8 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks`, `accountLinks`, `projectVersions` |
 
 ## Rules
 
@@ -31,7 +31,10 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 1. `handleArtboardsUpdate(next)` is the only door. It repositions boards, writes Dexie, pushes undo. A raw `setArtboards` skips persistence and history. It writes **only** `{ id, name, timestamp, projectData }`, so a new top-level field on `Project` survives until the next keystroke and then vanishes: that is why `ProjectLocalization` is mirrored onto every artboard, and why the cloud-save link lives in its own Dexie table ([src/lib/cloud/links.ts](../src/lib/cloud/links.ts)).
 2. Elements render in **two** places: [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx) and `StaticArtboard` in [PreviewDialog.tsx](../src/components/open-screenshot-generator/PreviewDialog.tsx). Miss one and the element vanishes there.
 3. Text renders at `fontSize / 0.3` px and ignores `element.scale`. Resize text via `fontSize`. The box clips, so every place a **user** edits text content, family, size, weight or line height folds `fitTextBox` ([textFit.ts](../src/lib/textFit.ts)) into the same update. Template data is never re-fitted.
-4. `ArtboardState.position` is derived and overwritten every update. Authoring it does nothing.
+4. `ArtboardState.position` is derived and overwritten every update. Authoring it does nothing. So is `backgroundImageSlice`. Both are re-derived by `calculateArtboardPositions`, which also puts a board that has no background picture onto the shared one when `backgroundImageApply` is `all` or `span`. That is what makes a shared background stick: an artboard added later, a dropped preview scene and an agent-made board all join it, and a split re-slices itself after any add, delete, duplicate, reorder or resize, without one of those writers knowing the feature exists.
+4a. A board's background **picture** (`backgroundImage`) renders as an `<img>` layer, never as a CSS `background-image`. `exportRaster.ts` explains why: WebKit paints the capture's SVG without waiting for a CSS background to decode, so the PNG would come out without it and nothing would report the loss. Its geometry lives in `artboardBackgroundImageBox`, shared by the canvas, the previews and the video compositor. Give it `max-width: none`, or Tailwind preflight clamps a slice back to one board.
+4c. A colour **tint** is applied two different ways on purpose, and the split is about SIZE. An image **layer** gets an SVG filter on its `<img>` (`imageTint` in [elementStyle.ts](../src/lib/elementStyle.ts) + `ImageTintFilter`): one `feColorMatrix` that mixes each channel toward the tint and leaves alpha alone, so `objectFit` and cut-out PNGs are right for free. A **board background** gets a plain scrim div instead. Filtering something board-sized is what WebKit cannot do: measured at dpr 2 while dragging the strength on one 3870x2796 background, per step, **1824ms filtering the picture against 33ms for a div** (the desktop app is a WKWebView, so that is a frozen editor). Two rules follow. The filter id must be derived from the OWNER, never from the tint's values: a value-derived id mints a new `<filter>` and rewrites the `filter:` property every step, which is the 1824ms case; keeping it stable is 363ms. And the filter def must live INSIDE the node being captured, or it is missing from every export. The video compositor mirrors both: `source-atop` for a layer sprite, a board-wide `fillRect` for the background.
+4b. A value the properties form reads out of a board and writes back has to survive `slimArtboard`, which swaps anything oversized for `ELIDED_SRC`. `useDockHost` drops that stand-in on the way home, because a detached panel writing it back would replace the real picture on every board with a string that resolves to nothing.
 
 **Verifying**
 
@@ -58,7 +61,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 16. Inactive tab panels stay **mounted**. Scope any `querySelector` to `[role="tabpanel"][data-state="active"]`.
 17. shadcn/Radix + Tailwind, `lucide-react` icons, semantic tokens from [globals.css](../src/app/globals.css), not raw colors.
 18. Dark mode is **live**, and it stops at the artboard edge. The preference is system/light/dark ([theme.ts](../src/lib/theme.ts), [ThemeContext.tsx](../src/contexts/ThemeContext.tsx), picked in [SettingsDialog.tsx](../src/components/open-screenshot-generator/SettingsDialog.tsx)); a blocking script in [layout.tsx](../src/app/layout.tsx) puts the class on `<html>` before first paint. `globals.css` re-declares the **light** palette on `.artboard` and `[data-artboard-surface]`, so nothing inside a board ever sees a dark token and an export is byte-identical in either theme. A new artboard render site needs one of those two markers or it will go dark. A raw colour that only reads on one ground needs a `dark:` variant.
-19. **No em dashes and no en dashes** in anything a user reads. Use a comma, a period, a colon, or "to". No trailing period on short UI copy.
+19. **No em dashes and no en dashes** in anything a user reads. Use a comma, a period, a colon, or "to". No trailing period on short UI copy. Load the `ui-text` skill before writing any, see [Writing comments and user-facing copy](#writing-comments-and-user-facing-copy).
 
 **Input**
 
@@ -68,6 +71,10 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 23. The canvas scroll extents are stated in pixels in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx), because the board layer is sized by a CSS transform and a transform contributes nothing to a scroll extent. Change how boards are laid out and `contentExtent` has to follow, or the canvas silently stops scrolling to the last board.
 24. **A wheel is not a trackpad.** The canvas zooms on a mouse wheel and lets two fingers scroll, told apart by `isMouseWheel` in [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx) (`deltaMode`, then the legacy `wheelDeltaY` ratio). Ctrl or Cmd with a wheel always zooms, and the listener is registered by hand with `passive: false`, because React attaches wheel listeners passively and a passive listener cannot stop the browser zooming the page.
 25. A user-facing switch that more than one place reads goes in [editorPreferences.ts](../src/lib/editorPreferences.ts): one cache, one listener set, live across the app. localStorage alone would leave an already mounted canvas on the old value until reload.
+
+**Writing to storage the user owns**
+
+25a. Two auto savers, and they are not symmetrical. Ours ([cloud/autoSave.ts](../src/lib/cloud/autoSave.ts)) defaults **on** and will create a cloud copy that does not exist yet. The one that writes to a person's own Drive or gists ([account/autoSync.ts](../src/lib/account/autoSync.ts)) defaults **off** and only ever **updates**: a row in the `accountLinks` table is its permission slip, minted only by a manual save or by opening that project from the account, so it can never create folders in somebody's Drive. It also never sweeps orphaned remote blobs, never resolves a conflict (neither provider has a conditional write, so it stops and asks), never clears the session on an expired token, and is held entirely while a live collab session is running. Adding a third destination copies those rules, not the cloud saver's.
 
 **Live editing**
 
@@ -91,6 +98,19 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 34. Duplicate screenshots are matched on the analysis **fingerprint** plus dimensions plus byte length, never on byte length alone: two different screens of one app routinely compress to the same size, and the user's set silently arrives short.
 35. Every device frame in the catalog ships with placeholder art, so "is this frame empty" is never `!screenshotSrc`. A shipped placeholder is a public path; the user's own content is `asset:`, `data:` or `blob:`.
 36. A card that would overspend the WebGL budget renders **flattened** (`flattenBoard3d`), never as the shipped preview PNG: the whole point of the deck is that the boards hold the user's screenshots.
+
+## Writing comments and user-facing copy
+
+Two skills are mandatory here, not optional polish.
+
+**Any string a user reads**: a toast, dialog, button, tooltip (`title`), `aria-label`, placeholder, settings hint, empty state, start screen or tour card, store listing copy, or an error message that can reach a toast. Load the **`ui-text`** skill ([.claude/skills/ui-text/SKILL.md](../.claude/skills/ui-text/SKILL.md)) **before** writing it. It has the house patterns with real before/after strings, the vocabulary (artboard, project, element, export), and the traps. Then:
+
+- `node .claude/skills/ui-text/copy.mjs locked "<old text>"` before rewording anything. Playwright specs and the `app-screenshots` scripts locate controls by their text, `title` and `aria-label`, so a LOCKED string changes together with its matcher in the same commit.
+- `node .claude/skills/ui-text/copy.mjs check` on the diff before you finish.
+- Do not sweep old strings. The early toasts in the layout break most of the patterns; fix one only when you are already in that code path.
+- Editor copy is hardcoded in components. `src/lib/i18n/` translates the text **inside artboards**, never the editor UI.
+
+**Any code comment or docstring** you write or edit: run it past the **`humanizer`** skill ([.claude/skills/humanizer/SKILL.md](../.claude/skills/humanizer/SKILL.md)). The patterns that come up most in this repo: §30 (writing about the previous version: a comment describes the code as it is, the history goes in the commit), §23 (filler), §1 (inflated claims), §28 (announcing the next point), and §14 (dashes). For UI copy the ones `ui-text` builds on are §4 (sales language), §7 (overused AI words), §13 (passive voice), §14 (dashes), §17 (title case), §19 (curly quotes), §23 (filler) and §24 (qualifiers).
 
 ## Commands
 

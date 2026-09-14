@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import { useImageSrc } from '@/lib/mediaStore';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
+import { imageTint, imageTintFilter } from '@/lib/elementStyle';
+import { ImageTintFilter } from './ImageTintFilter';
 
 interface ImageElementComponentProps {
   element: ImageElementProps;
@@ -20,18 +22,6 @@ interface ImageElementComponentProps {
 export function ImageElement({ element, onUpdate, isSelected }: ImageElementComponentProps) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Debug: Log the element properties
-  useEffect(() => {
-    console.log('ImageElement props changed:', {
-      id: element.id,
-      skewX: element.skewX,
-      skewY: element.skewY,
-      perspectiveX: element.perspectiveX,
-      perspectiveY: element.perspectiveY,
-      matrix3d: element.matrix3d
-    });
-  }, [element.id, element.skewX, element.skewY, element.perspectiveX, element.perspectiveY, element.matrix3d]);
 
   // Uploads land in the Dexie media table and the element keeps only an
   // asset:<id> reference — inlining the file as a data URL made every undo
@@ -91,7 +81,6 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
     
     if (transforms.length > 0) {
       const transformString = transforms.join(' ');
-      console.log('ImageElement transform:', transformString, 'Element:', element.id);
       return {
         transform: transformString,
         transformOrigin: 'center center',
@@ -108,6 +97,12 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
   // through. undefined while a reference is still loading from Dexie.
   const resolvedSrc = useImageSrc(element.imageSrc);
 
+  // A colour over the painted pixels only, so a contained picture's empty bars
+  // and a cut-out PNG's transparent ground are left alone. A layer is small
+  // enough for a filter to be the right tool here; the BOARD background, which
+  // can be several megapixels, uses a plain scrim instead.
+  const tint = imageTint(element.tintColor, element.tintOpacity, element.id);
+
   return (
     <div
       className="w-full h-full relative flex items-center justify-center"
@@ -120,6 +115,7 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
           className="w-full h-full relative"
           style={transformStyle}
         >
+          {tint && <ImageTintFilter tint={tint} />}
           <Image
             src={withBasePath(resolvedSrc)}
             alt={element.imageAlt || 'Uploaded image'}
@@ -129,7 +125,8 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
               // opacity is NOT applied here: it lives on BaseElement now and is
               // applied once around the whole element (src/lib/elementStyle.ts).
               // Setting it in both places multiplied it — 0.5 rendered as 0.25.
-              borderRadius: element.borderRadius ? `${element.borderRadius}px` : '0px'
+              borderRadius: element.borderRadius ? `${element.borderRadius}px` : '0px',
+              filter: imageTintFilter(tint)
             }}
             className="transition-opacity duration-200"
             onLoadingComplete={() => setIsLoading(false)}

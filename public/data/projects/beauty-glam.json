@@ -65,7 +65,7 @@
         {
           "id": "tpl_bg_ab1_press1",
           "type": "text",
-          "name": "Press – GQ",
+          "name": "Press: GQ",
           "position": { "x": 85, "y": 2280 },
           "size": { "width": 220, "height": 100 },
           "rotation": 0,
@@ -81,7 +81,7 @@
         {
           "id": "tpl_bg_ab1_press2",
           "type": "text",
-          "name": "Press – Forbes",
+          "name": "Press: Forbes",
           "position": { "x": 85, "y": 2395 },
           "size": { "width": 320, "height": 95 },
           "rotation": 0,
@@ -97,7 +97,7 @@
         {
           "id": "tpl_bg_ab1_press3",
           "type": "text",
-          "name": "Press – ELLE",
+          "name": "Press: ELLE",
           "position": { "x": 85, "y": 2505 },
           "size": { "width": 280, "height": 85 },
           "rotation": 0,
@@ -113,7 +113,7 @@
         {
           "id": "tpl_bg_ab1_press4",
           "type": "text",
-          "name": "Press – Cosmopolitan",
+          "name": "Press: Cosmopolitan",
           "position": { "x": 85, "y": 2610 },
           "size": { "width": 500, "height": 70 },
           "rotation": 0,

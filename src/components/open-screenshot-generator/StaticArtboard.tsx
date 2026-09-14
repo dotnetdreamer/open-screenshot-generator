@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { artboardBackground } from '@/lib/artboardBackground';
+import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
 import { elementVisualStyle } from '@/lib/elementStyle';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
@@ -77,7 +78,9 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
           ...getArtboardBackgroundStyle(artboard),
         }}
       >
-        {artboard.elements.map(element => (
+        <ArtboardBackgroundImage artboard={artboard} />
+        {/* Sound layers have nothing to show. */}
+        {artboard.elements.filter((element) => element.type !== 'audio').map(element => (
           <div
             key={element.id}
             style={{

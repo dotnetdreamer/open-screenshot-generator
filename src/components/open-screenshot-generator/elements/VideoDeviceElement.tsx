@@ -9,6 +9,7 @@ import { saveMedia, useMediaUrl, useImageSrc } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
 import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
+import { uploadKeepsAudio } from '@/lib/video/recordingAudio';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 import { VIDEO_ACCEPT } from './VideoElement';
 
@@ -42,7 +43,13 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
   const posterUrl = useImageSrc(element.posterSrc);
   useTimelineVideo(
     videoRef,
-    { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
+    {
+      trimStart: element.trimStart,
+      trimEnd: element.trimEnd,
+      durationSeconds: element.durationSeconds,
+      keepAudio: element.keepAudio,
+      volume: element.volume,
+    },
     artboardId,
     screenVideoSrc
   );
@@ -75,6 +82,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
         durationSeconds: probe.duration,
         trimStart: undefined,
         trimEnd: undefined,
+        keepAudio: uploadKeepsAudio(element),
       });
     } catch (error) {
       toast({

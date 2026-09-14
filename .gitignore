@@ -13,6 +13,15 @@ node_modules/
 # testing
 /coverage
 
+# playwright e2e (tests/e2e). The suite itself is committed; its output is not.
+/tests/e2e/.artifacts/
+/tests/e2e/.report/
+/tests/e2e/.tmp/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # next.js
 /.next/
 /out/

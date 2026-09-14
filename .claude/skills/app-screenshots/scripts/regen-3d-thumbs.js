@@ -16,7 +16,8 @@ const puppeteer = require('puppeteer-core');
 
 const REPO = path.resolve(__dirname, '../../../..'); // scripts -> app-screenshots -> skills -> .claude -> repo root
 const OUT_DIR = path.join(REPO, 'public/elements/device-3d');
-const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+// Whichever Chromium this machine has. lib.js does the per-platform lookup.
+const { EDGE } = require('./lib');
 const FFMPEG = 'C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/ffmpeg.exe';
 const THUMB_MAX = 1280; // max output dimension in px
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

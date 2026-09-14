@@ -88,6 +88,15 @@ export function pausePlayback() {
   setSnapshot({ playing: false });
 }
 
+// A hidden tab or a minimised window stops requestAnimationFrame, which
+// freezes this clock while a recording or sound keeps playing on its own,
+// past its trim. Pausing keeps what you hear tied to the timeline.
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') pausePlayback();
+  });
+}
+
 /** Pause if this board is running, otherwise start it from where it stands. */
 export function togglePlayback(artboardId: string, duration: number) {
   if (snapshot.artboardId === artboardId && snapshot.playing) {

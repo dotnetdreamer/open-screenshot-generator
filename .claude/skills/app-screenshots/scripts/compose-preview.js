@@ -11,7 +11,8 @@ const puppeteer = require('puppeteer-core');
 const path = require('path');
 const fs = require('fs');
 
-const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+// Whichever Chromium this machine has. lib.js does the per-platform lookup.
+const { EDGE } = require('./lib');
 const CW = 1500, CH = 500, PAD = 46, GAP = 26, RATIO = 1290 / 2796;
 
 // `ratio` is the artboard aspect (width/height): phones ~0.46, Apple Watch

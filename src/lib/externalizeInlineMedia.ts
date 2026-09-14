@@ -20,6 +20,9 @@ import { saveMedia } from '@/lib/mediaStore';
 /** Element/override props that can carry an inline image. */
 const IMAGE_KEYS = ['imageSrc', 'screenshotSrc', 'customFrameSrc', 'posterSrc'] as const;
 
+/** The board's own props that can carry one. */
+const BOARD_IMAGE_KEYS = ['backgroundImage'] as const;
+
 /**
  * Data URLs at or under this length stay inline: a tiny SVG icon costs less
  * as a string than as a blob row plus an object URL, and history duplicating
@@ -42,10 +45,11 @@ async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
  */
 async function externalizeImageKeys(
   record: Record<string, unknown>,
-  name: string
+  name: string,
+  keys: readonly string[] = IMAGE_KEYS
 ): Promise<Record<string, unknown> | null> {
   let out: Record<string, unknown> | null = null;
-  for (const key of IMAGE_KEYS) {
+  for (const key of keys) {
     const value = record[key];
     if (!isInlineImage(value)) continue;
     try {
@@ -102,6 +106,14 @@ export async function externalizeInlineMedia(artboards: ArtboardState[]): Promis
   for (const artboard of artboards ?? []) {
     let boardChanged = false;
 
+    // The board's own background picture, which is not on any element.
+    const board = await externalizeImageKeys(
+      artboard as unknown as Record<string, unknown>,
+      `${artboard.id}-board`,
+      BOARD_IMAGE_KEYS
+    );
+    if (board) boardChanged = true;
+
     const elements: ArtboardElement[] = [];
     for (const el of artboard.elements ?? []) {
       const migrated = await externalizeElement(el);
@@ -136,7 +148,11 @@ export async function externalizeInlineMedia(artboards: ArtboardState[]): Promis
       }
     }
 
-    next.push(boardChanged ? { ...artboard, elements, localized } : artboard);
+    next.push(
+      boardChanged
+        ? ({ ...artboard, ...(board ?? {}), elements, localized } as ArtboardState)
+        : artboard
+    );
     if (boardChanged) changed = true;
   }
 

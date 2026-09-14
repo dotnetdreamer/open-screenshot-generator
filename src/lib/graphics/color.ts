@@ -56,6 +56,21 @@ export function isDark(value: string): boolean {
   return luminance(value) < 0.5;
 }
 
+/**
+ * How far apart two colours are, on WCAG's 1 to 21 scale. 1 is the same colour
+ * twice, 21 is black on white.
+ *
+ * WCAG's own figure gamma-corrects each channel first; `luminance` above does
+ * not, so this reads a little high in the midtones. That is fine for what it is
+ * used for, which is catching type that has collapsed into its own background,
+ * not grading a palette for an audit.
+ */
+export function contrastRatio(a: string, b: string): number {
+  const first = luminance(a);
+  const second = luminance(b);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
 /** `amount` 0 keeps `a`, 1 gives `b`. */
 export function mix(a: string, b: string, amount: number): string {
   const x = hexToRgb(a);

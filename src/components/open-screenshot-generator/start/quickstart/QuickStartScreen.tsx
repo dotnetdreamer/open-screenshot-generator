@@ -420,13 +420,13 @@ export function QuickStartScreen({
         if (result.trimmed > 0) {
           toast({
             title: 'Project created',
-            description: `${result.placed} screenshots placed, ${result.trimmed} unused boards removed`,
+            description: `${result.placed} screenshots placed, ${result.trimmed} unused artboards removed`,
           });
         }
       } catch (error) {
         toast({
           title: 'That design could not be opened',
-          description: error instanceof Error ? error.message : 'Try another one',
+          description: error instanceof Error ? error.message : 'Try another design',
           variant: 'destructive',
         });
       } finally {
@@ -491,7 +491,7 @@ export function QuickStartScreen({
                 <p className="text-sm font-medium">
                   {shots.length} {shots.length === 1 ? 'screenshot' : 'screenshots'}
                   <span className="ml-2 font-normal text-muted-foreground">
-                    {`in board order, from ${deviceLabel(majorityDevice)}`}
+                    {`in artboard order, from ${deviceLabel(majorityDevice)}`}
                   </span>
                 </p>
                 <Button type="button" variant="ghost" size="sm" onClick={clearAll}>
@@ -561,14 +561,14 @@ export function QuickStartScreen({
               id="quickstart-name"
               value={appName}
               onChange={(event) => setAppName(event.target.value)}
-              placeholder="Optional, names the project"
+              placeholder="Optional, used as the project name"
               className="h-9"
             />
           </div>
 
           <div className="min-w-[12rem] flex-1 space-y-1">
             <Label htmlFor="quickstart-query" className="text-xs">
-              What is it about
+              App category or keywords
             </Label>
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -605,7 +605,7 @@ export function QuickStartScreen({
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="z-[60] text-sm">
-                    Keep each design its own colours
+                    Keep each design's original colours
                   </TooltipContent>
                 </Tooltip>
                 {palette.slice(0, 5).map((hex) => (
@@ -621,11 +621,11 @@ export function QuickStartScreen({
                             ? 'ring-2 ring-primary ring-offset-1 ring-offset-background'
                             : 'hover:scale-110'
                         )}
-                        aria-label={`Theme everything around ${hex}`}
+                        aria-label={`Use ${hex} as the accent colour`}
                       />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="z-[60] text-sm">
-                      Pull every board toward {hex}, taken from your screenshots
+                      Use {hex} from your screenshots as the accent colour in each design
                     </TooltipContent>
                   </Tooltip>
                 ))}
@@ -648,7 +648,7 @@ export function QuickStartScreen({
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2 text-sm">
             <Layers className="h-4 w-4 shrink-0 text-primary" />
             <span className="min-w-0 flex-1">
-              {`Your screenshots are ${deviceLabel(majorityDevice)}. These designs are built for another size, so whichever you pick is converted to ${formatSuggestion.label} at ${formatSuggestion.artboard.width} x ${formatSuggestion.artboard.height}, the size that store accepts`}
+              {`Your screenshots use ${deviceLabel(majorityDevice)} dimensions. Turn on "Convert on open" to resize the design you choose to ${formatSuggestion.label} (${formatSuggestion.artboard.width} x ${formatSuggestion.artboard.height})`}
             </span>
             <div className="flex items-center gap-2">
               <Switch
@@ -743,7 +743,7 @@ export function QuickStartScreen({
         {!hasShots && !isLoadingTemplates && (
           <p className="flex items-center justify-center gap-1.5 pb-2 text-xs text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5" />
-            Add screenshots above and every design here fills with them, instantly
+            Add screenshots above to preview them in each design
           </p>
         )}
       </div>

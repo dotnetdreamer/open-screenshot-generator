@@ -17,7 +17,7 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 ## Prerequisites
 
 - Dev server on **http://localhost:9002** — usually already running (`npm run dev`; `EADDRINUSE` means reuse it, Next.js hot-reloads your edits).
-- Edge at `C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe` — headless Edge via puppeteer uses the **real GPU** (verified: ANGLE D3D11), so WebGL renders match what the user sees. No swiftshader flags needed.
+- A Chromium browser. `lib.js` finds it per platform (Edge first, then Chrome/Chromium/Brave; `C:/Program Files...` on Windows, `/Applications/...` on macOS, `/usr/bin/...` on Linux) and every script imports `EDGE` from there. Set `APP_BROWSER` to override. Headless Edge via puppeteer uses the **real GPU** (verified: ANGLE D3D11), so WebGL renders match what the user sees. No swiftshader flags needed.
 - ffmpeg/ffprobe at `C:/ffmpeg-2026-02-04-git-627da1111c-essentials_build/bin/`.
 - One-time: `cd .claude/skills/app-screenshots/scripts && npm install` (installs puppeteer-core).
 

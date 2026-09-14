@@ -5,7 +5,9 @@ import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
-import { stopPlayback } from '@/lib/video/playback';
+import { getPlayback, stopPlayback } from '@/lib/video/playback';
+import { AUDIO_ACCEPT, saveAudio } from '@/lib/mediaStore';
+import { soundLayerName } from '@/lib/video/audio';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
 import { externalizeInlineMedia } from '@/lib/externalizeInlineMedia';
 import {
@@ -84,7 +86,7 @@ import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
 import { ALL_CANVAS_SIZE_PRESETS, canvasSizeSlug } from '@/lib/sizePresets';
-import { artboardBackground } from '@/lib/artboardBackground';
+import { artboardBackground, normalizeBackgroundImage } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
   getMcpStatus,
@@ -128,6 +130,7 @@ import type { DiscoverPost } from '@/types/discover';
 import { CloudSaveConflictDialog } from './cloud/CloudSaveConflictDialog';
 import { CloudAutoSaveChip } from './cloud/CloudAutoSaveChip';
 import { useCloudAutoSave } from '@/hooks/use-cloud-auto-save';
+import { useAccountAutoSync } from '@/hooks/use-account-auto-sync';
 import { CollabBar } from './collab/CollabBar';
 import { CollabDialog } from './collab/CollabDialog';
 import { useCollab } from '@/hooks/use-collab';
@@ -162,6 +165,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronDownIcon, ChevronLeftIcon, CompassIcon, CopyIcon, ExternalLinkIcon, HandIcon, InfoIcon, Loader2Icon, MonitorIcon, MoreHorizontalIcon, MousePointerIcon, PanelRightCloseIcon, PanelRightOpenIcon, PictureInPicture2Icon, RedoIcon, SearchIcon, SettingsIcon, SlidersHorizontalIcon, UndoIcon, UserIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
 import { AccountDialog } from './account/AccountDialog';
+import { AccountSyncChip } from './account/AccountSyncChip';
 import { SaveToAccountDialog } from './account/SaveToAccountDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -174,6 +178,7 @@ import {
   loadProjectFromAccount,
   newCloudProjectId,
   saveProjectToAccount,
+  setAccountLinkAutoSync,
   serializeProject,
   splitProgress,
   useAccount,
@@ -316,14 +321,14 @@ async function fetchRecentProjectMetas(): Promise<Project[]> {
   return rows.map((row) => ({ ...row, projectData: [] }));
 }
 
-// Update the function with reduced margin
+// Update the function with reduced margin.
+// Also the one place a board's slice of a spanned background picture is
+// derived, because that slice is read off the board order exactly like the
+// position is, and this runs on every commit (see normalizeBackgroundImage).
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
-  console.log("Calculating positions for artboards:", artboards.length);
-  return artboards.map((ab, index) => {
+  return normalizeBackgroundImage(artboards).map((ab) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
-    console.log(`Artboard ${index}: size=${ab.size.width}x${ab.size.height}, position=${newPosition.x},${newPosition.y}`);
-    
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
     
@@ -969,6 +974,12 @@ export function OpenScreenshotGeneratorLayout() {
   // Set when a save would land on top of a copy already in the account: holds
   // that copy while the user picks replace or save-as-new.
   const [saveConflict, setSaveConflict] = useState<CloudProjectSummary | null>(null);
+  /**
+   * True when the dialog above is answering a SYNC conflict rather than an
+   * ordinary second save. The two have the same three answers, so they share a
+   * dialog; only the wording and the "stop syncing this one" way out differ.
+   */
+  const [conflictFromSync, setConflictFromSync] = useState(false);
   const { session: accountSession, isSignedIn: isAccountConnected } = useAccount();
 
   // Our own cloud (src/lib/cloud). Distinct from the account above, which is
@@ -1523,13 +1534,40 @@ export function OpenScreenshotGeneratorLayout() {
   });
   const collabPublish = collab.publish;
 
+  /*
+   * The same project, kept up to date in the user's OWN storage.
+   *
+   * The sibling of the cloud auto saver above, and the differences are all in
+   * src/lib/account/autoSync.ts. The two the editor has to supply are here: it
+   * is off unless somebody turned it on, and it is HELD while a live session is
+   * running, because in a room the edit rate is set by however many people are
+   * typing and none of them is the person whose Drive quota pays for it.
+   *
+   * It only ever updates a copy somebody already saved or opened, so an editor
+   * full of templates pushes nothing anywhere.
+   */
+  const accountSync = useAccountAutoSync({
+    projectId: activeProjectId,
+    provider: accountSession?.provider ?? null,
+    accountId: accountSession?.account?.id ?? null,
+    connected: isAccountConnected,
+    collabActive: !!collab.room,
+    openToken: projectOpenToken,
+    flushLocal: flushProjectSave,
+  });
+  const noteAccountChange = accountSync.noteChange;
+
   const scheduleProjectSave = useCallback((id: string, name: string, artboardsToSave: ArtboardState[]) => {
     if (pendingSaveRef.current) clearTimeout(pendingSaveRef.current.timer);
     const timer = setTimeout(() => flushProjectSave(), 600);
     pendingSaveRef.current = { timer, id, name, artboards: artboardsToSave };
     // Cheap by design: this runs once per commit, and a drag commits per pixel.
+    // The single funnel every commit path goes through, which is why one line
+    // here covers handleArtboardsUpdate, applyRemoteArtboards and the history
+    // stack without any of them knowing either saver exists.
     noteCloudChange(id);
-  }, [flushProjectSave, noteCloudChange]);
+    noteAccountChange(id);
+  }, [flushProjectSave, noteCloudChange, noteAccountChange]);
   // Unload must not lose the last half-second of edits. `pagehide` covers the
   // web; a Tauri window close destroys the webview WITHOUT any unload events,
   // so the desktop shell needs the window's close-requested hook, where the
@@ -1637,7 +1675,6 @@ export function OpenScreenshotGeneratorLayout() {
   );
 
   const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
-    console.log("handleArtboardsUpdate called", activeProjectId);
     // An export has a converted or re-projected list on the canvas. A commit
     // arriving now (an MCP tool, a drag settling on mouseup) would be measured
     // against that temporary render and persist it as the project.
@@ -1819,10 +1856,20 @@ export function OpenScreenshotGeneratorLayout() {
   // its own db.projects.put and skip repositioning; folding it into the door
   // above is what makes "handleArtboardsUpdate is the only door" true, which is
   // the invariant the locale overlay rests on.
-  const handleUpdateArtboardDetails = useCallback((updates: Partial<ArtboardState>) => {
-    if (!activeArtboardId) return;
+  //
+  // `scope: 'all'` writes every board instead of the active one, in ONE commit:
+  // a background picture shared across the strip done board by board would be
+  // one undo entry per board. Nothing else uses it, and it stays on this
+  // handler rather than becoming a second door.
+  const handleUpdateArtboardDetails = useCallback((
+    updates: Partial<ArtboardState>,
+    scope: 'board' | 'all' = 'board'
+  ) => {
+    if (scope !== 'all' && !activeArtboardId) return;
     handleArtboardsUpdate(
-      artboardsRef.current.map((ab) => (ab.id === activeArtboardId ? { ...ab, ...updates } : ab))
+      artboardsRef.current.map((ab) =>
+        scope === 'all' || ab.id === activeArtboardId ? { ...ab, ...updates } : ab
+      )
     );
   }, [activeArtboardId, handleArtboardsUpdate]);
 
@@ -2467,9 +2514,10 @@ export function OpenScreenshotGeneratorLayout() {
             name: trimmedName,
           });
           // A rename writes the row without going through handleArtboardsUpdate,
-          // so the cloud copy has to be told about it here or it would keep the
+          // so both savers have to be told about it here or they would keep the
           // old name until the next edit to the design itself.
           noteCloudChange(activeProjectId);
+          noteAccountChange(activeProjectId);
           toast({ title: "Project Renamed", description: `Project renamed to "${trimmedName}".` });
         }
       } catch (error) {
@@ -2492,16 +2540,56 @@ export function OpenScreenshotGeneratorLayout() {
     }
   }, [toast]);
 
+  // Sound layers are added with their file, so both doors (the timeline's
+  // "+ Sound" and the palette tile) open the file picker first and add the
+  // layer once a file is chosen. Cancelling the picker adds nothing.
+  const soundFileInputRef = useRef<HTMLInputElement>(null);
+  const pendingSoundRef = useRef<{ artboardId: string; atSeconds: number; libraryId?: string } | null>(null);
+  const handleAddSound = useCallback((artboardId: string, atSeconds: number, libraryId?: string) => {
+    pendingSoundRef.current = { artboardId, atSeconds, libraryId };
+    soundFileInputRef.current?.click();
+  }, []);
+  const handleSoundFileChosen = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    const target = pendingSoundRef.current;
+    pendingSoundRef.current = null;
+    if (!file || !target) return;
+    try {
+      const { id, duration } = await saveAudio(file, file.name);
+      handleAddElementToArtboard(target.artboardId, 'audio', undefined, undefined, {
+        mediaId: id,
+        durationSeconds: duration,
+        startTime: target.atSeconds,
+        name: soundLayerName(file.name),
+        ...(target.libraryId ? { libraryId: target.libraryId } : {}),
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not load sound',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Stable identity so the memoized ElementPalette does not re-render on every
   // layout state change. The palette can hold hundreds of tiles, and rebuilding
   // them per slider tick is what made scale drags stutter.
   const handlePaletteAddElement = useCallback((type: ElementType, subType?: ShapeType | DeviceType, styleProps?: Record<string, any>) => {
+    if (activeArtboardId && type === 'audio') {
+      // At the playhead when this board is previewing, from the start otherwise.
+      const playback = getPlayback();
+      const at = playback.artboardId === activeArtboardId ? playback.time : 0;
+      handleAddSound(activeArtboardId, at, typeof styleProps?.libraryId === 'string' ? styleProps.libraryId : undefined);
+      return;
+    }
     if (activeArtboardId) {
       handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
     } else {
       toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
     }
-  }, [activeArtboardId, handleAddElementToArtboard, toast]);
+  }, [activeArtboardId, handleAddElementToArtboard, handleAddSound, toast]);
 
   /**
    * A palette tile dragged with a finger and released over the canvas. The
@@ -3178,6 +3266,11 @@ export function OpenScreenshotGeneratorLayout() {
         saveAsCopy: copyName ? { id: newCloudProjectId(), name: copyName } : undefined,
       });
       setSaveConflict(null);
+      setConflictFromSync(false);
+      // Same row, same document: without this the syncer would push a duplicate
+      // of what was just uploaded a minute later. A copy is a separate file and
+      // leaves the open project's link where it was, so it says nothing here.
+      if (!copyName) accountSync.noteSaved();
       toast({
         title: copyName ? "Saved as a new project" : "Saved to your account",
         description: copyName
@@ -3189,6 +3282,26 @@ export function OpenScreenshotGeneratorLayout() {
     } finally {
       setIsSavingToAccount(false);
     }
+  };
+
+  /**
+   * The third answer to a sync conflict: leave both copies exactly as they are.
+   *
+   * Per project rather than the Settings switch, because "these two have
+   * drifted and I will sort it out later" is not the same as "stop syncing
+   * everything". Saving this project by hand later turns it back on, which is
+   * the same act that turned it on in the first place.
+   */
+  const handleStopSyncingProject = async () => {
+    if (!activeProjectId) return;
+    await setAccountLinkAutoSync(activeProjectId, false);
+    accountSync.noteUnlinked();
+    setSaveConflict(null);
+    setConflictFromSync(false);
+    toast({
+      title: "Syncing stopped for this project",
+      description: `Both copies are left as they are. Saving to your ${accountStorageLabel} by hand starts it again.`,
+    });
   };
 
   /**
@@ -3223,6 +3336,7 @@ export function OpenScreenshotGeneratorLayout() {
     setIsSavingToAccount(false);
 
     if (existing) {
+      setConflictFromSync(false);
       setSaveConflict(existing);
       return;
     }
@@ -3955,7 +4069,10 @@ export function OpenScreenshotGeneratorLayout() {
   // is missing, once per language the dialog asked for. Every pass renders
   // through exportCanvasArtboards, a temporary canvas list that never touches
   // history or Dexie, so this can never corrupt the user's work.
-  const handleConfirmExport = async ({ asIs, generateFormats, currentArtboardOnly, locales }: ExportSelection) => {
+  const handleConfirmExport = async (
+    { asIs, generateFormats, currentArtboardOnly, locales }: ExportSelection,
+    { skipAppPreviewBoards = false }: { skipAppPreviewBoards?: boolean } = {}
+  ) => {
     setIsExportDialogOpen(false);
     // Both exports rasterize the live canvas, so a timeline left running would
     // bake a mid-animation frame into the output.
@@ -3971,16 +4088,26 @@ export function OpenScreenshotGeneratorLayout() {
       currentArtboardOnly && activeArtboardId && original.some((ab) => ab.id === activeArtboardId)
         ? activeArtboardId
         : null;
+    // The screenshot dialog leaves App Preview boards out: their output is a
+    // video, and a PNG of one is a frozen timeline nobody asked for. The App
+    // Preview dialog's stills still capture them, so this is opt-in.
+    const skippedIds = new Set(
+      skipAppPreviewBoards
+        ? original.filter((ab) => projectHasVideoContent([ab])).map((ab) => ab.id)
+        : []
+    );
     const scope = (list: ArtboardState[]) =>
-      scopedId ? list.filter((ab) => ab.id === scopedId) : list;
+      list.filter((ab) => !skippedIds.has(ab.id) && (!scopedId || ab.id === scopedId));
 
     const targets = scope(original);
     if (targets.length === 0) {
       toast({
         title: "Nothing to export",
-        description: currentArtboardOnly
-          ? "Select an artboard on the canvas first."
-          : "Add an artboard first.",
+        description: skippedIds.size > 0 && (!scopedId || skippedIds.has(scopedId))
+          ? "App Preview artboards export as a video. Select one, then export again."
+          : currentArtboardOnly
+            ? "Select an artboard on the canvas first."
+            : "Add an artboard first.",
         variant: "destructive",
       });
       return [];
@@ -4081,9 +4208,12 @@ export function OpenScreenshotGeneratorLayout() {
         const projected = projectArtboards(original, locale);
         // Rebuilt per language, or the German set would be numbered 13..18
         // instead of 01..06 and every fastlane-style convention expects 1..N.
+        // Skipped App Preview boards are left out of the count too, so the
+        // exported screenshots still run 1..N without gaps.
+        const numbered = projected.filter((ab) => !skippedIds.has(ab.id));
         const order = {
-          indexById: Object.fromEntries(projected.map((ab, i) => [ab.id, i + 1])),
-          total: projected.length,
+          indexById: Object.fromEntries(numbered.map((ab, i) => [ab.id, i + 1])),
+          total: numbered.length,
         };
         report({
           fileIndex: nextFileIndex,
@@ -4297,7 +4427,12 @@ export function OpenScreenshotGeneratorLayout() {
 
   // An App Preview project is one that carries recording mockups, recordings,
   // gesture hints or animations — it gets the video export dialog.
-  const isAppPreviewProject = useMemo(() => projectHasVideoContent(artboards), [artboards]);
+  // The screenshot export skips these boards, so its dialog counts without them.
+  const appPreviewBoardCount = useMemo(
+    () => artboards.filter((ab) => projectHasVideoContent([ab])).length,
+    [artboards]
+  );
+  const isAppPreviewProject = appPreviewBoardCount > 0;
 
   const videoBoards = artboards.filter((ab) => {
     const info = videoInfos[ab.id];
@@ -5065,6 +5200,13 @@ export function OpenScreenshotGeneratorLayout() {
   const activeArtboard = viewArtboards.find(ab => ab.id === activeArtboardId);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
+  // A project can hold App Preview boards next to plain screenshot boards, so
+  // the selected board picks the export dialog. With nothing selected, any
+  // video content in the project makes it the video one.
+  const exportsAppPreview = useMemo(
+    () => (activeArtboard ? projectHasVideoContent([activeArtboard]) : isAppPreviewProject),
+    [activeArtboard, isAppPreviewProject]
+  );
 
   // --- locale-derived props for the panels and dialogs ----------------------
 
@@ -7339,7 +7481,7 @@ const generateRandomProjectName = (): string => {
               setExportScopedToArtboard(false);
               setIsExportDialogOpen(true);
             }}
-            isAppPreviewProject={isAppPreviewProject}
+            isAppPreviewProject={exportsAppPreview}
             onExportJSON={handleExportProjectAsJSON}
             onImportJSON={handleImportProjectFromJSON}
             // The account dialog is where the projects in storage are listed,
@@ -7444,6 +7586,14 @@ const generateRandomProjectName = (): string => {
                 onUpdateElement={handleUpdateElementById}
                 onReorderElement={handleReorderElementNextTo}
                 onSetDuration={handleSetPreviewDuration}
+                onAddSound={handleAddSound}
+              />
+              <Input
+                type="file"
+                ref={soundFileInputRef}
+                className="hidden"
+                accept={AUDIO_ACCEPT}
+                onChange={handleSoundFileChosen}
               />
 
               {/* Floating bar (bottom-left of canvas): the project name, which
@@ -7460,14 +7610,33 @@ const generateRandomProjectName = (): string => {
                   // nothing at all with no backend, or with auto save off.
                   trailing={
                     activeProjectId ? (
-                      <CloudAutoSaveChip
-                        status={cloudAutoSave.status}
-                        onSignIn={() =>
-                          requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')
-                        }
-                        onSaveNow={cloudAutoSave.saveNow}
-                        onResolveConflict={(remote) => setCloudConflict(remote)}
-                      />
+                      <>
+                        <CloudAutoSaveChip
+                          status={cloudAutoSave.status}
+                          onSignIn={() =>
+                            requireCloudSignIn('Sign in and this project is kept in your cloud on its own.')
+                          }
+                          onSaveNow={cloudAutoSave.saveNow}
+                          onResolveConflict={(remote) => setCloudConflict(remote)}
+                        />
+                        {/* The second destination. Renders nothing at all until
+                            somebody turns syncing on AND has saved this project
+                            to their own storage, which is most of the time. */}
+                        <AccountSyncChip
+                          status={accountSync.status}
+                          onConnect={() =>
+                            openAccountDialog(
+                              'Connect your storage again to keep this project up to date there.',
+                              'storage'
+                            )
+                          }
+                          onSyncNow={accountSync.syncNow}
+                          onResolveConflict={(remote) => {
+                            setConflictFromSync(true);
+                            setSaveConflict(remote);
+                          }}
+                        />
+                      </>
                     ) : undefined
                   }
                 />
@@ -7812,11 +7981,11 @@ const generateRandomProjectName = (): string => {
             />
           )}
 
-          {/* App Preview video projects get their own dialog: video first, no
-              App Store screenshot-size generation (meaningless for a video
-              board), PNG demoted to a still. Screenshot projects keep the
-              original dialog untouched. */}
-          {isAppPreviewProject ? (
+          {/* App Preview boards get their own dialog: video first, no App
+              Store screenshot-size generation (meaningless for a video board),
+              PNG demoted to a still. The selected board decides, so a screenshot
+              board in the same project still opens the original dialog. */}
+          {exportsAppPreview ? (
             <AppPreviewExportDialog
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
@@ -7838,7 +8007,9 @@ const generateRandomProjectName = (): string => {
             <ExportDialog
               isOpen={isExportDialogOpen}
               onOpenChange={setIsExportDialogOpen}
-              onConfirmExport={handleConfirmExport}
+              onConfirmExport={(selection) =>
+                handleConfirmExport(selection, { skipAppPreviewBoards: true })
+              }
               onPublishToStore={() => {
                 setIsExportDialogOpen(false);
                 setIsPublishDialogOpen(true);
@@ -7846,7 +8017,8 @@ const generateRandomProjectName = (): string => {
               currentFormat={activeDeviceFormat}
               currentSize={artboards[0]?.size}
               activeArtboard={activeArtboardSummary}
-              artboardCount={artboards.length}
+              artboardCount={artboards.length - appPreviewBoardCount}
+              appPreviewBoardCount={appPreviewBoardCount}
               defaultCurrentArtboardOnly={exportScopedToArtboard}
               artboards={artboards}
               activeLocale={activeLocale}
@@ -7978,13 +8150,18 @@ const generateRandomProjectName = (): string => {
           <SaveToAccountDialog
             open={!!saveConflict}
             onOpenChange={(open) => {
-              if (!open) setSaveConflict(null);
+              if (!open) {
+                setSaveConflict(null);
+                setConflictFromSync(false);
+              }
             }}
             existingName={saveConflict?.name ?? ''}
             existingModifiedAt={saveConflict?.modifiedAt}
             suggestedName={`${currentProjectName} copy`}
             storageLabel={accountStorageLabel}
             isSaving={isSavingToAccount}
+            changedElsewhere={conflictFromSync}
+            onStopSyncing={conflictFromSync ? handleStopSyncingProject : undefined}
             onReplace={() => void runAccountSave()}
             onSaveCopy={(name) => void runAccountSave(name)}
           />

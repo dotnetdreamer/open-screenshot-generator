@@ -107,8 +107,7 @@ export function StoreImportPanel({ onImportFiles, onAdoptDetails, onClose }: Sto
         <div className="min-w-0">
           <h3 className="text-sm font-semibold">Import from the App Store</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Paste your App Store link or search by name. Your listing already has the name, the
-            category, the icon and the screenshots
+            Find your app to import its screenshots or use its name and category
           </p>
         </div>
         <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={onClose} aria-label="Close">
@@ -121,7 +120,7 @@ export function StoreImportPanel({ onImportFiles, onAdoptDetails, onClose }: Sto
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="App name, or an apps.apple.com link"
+          placeholder="App name or apps.apple.com link"
           className="pl-9"
           autoFocus
         />
@@ -200,7 +199,7 @@ export function StoreImportPanel({ onImportFiles, onAdoptDetails, onClose }: Sto
                         ) : (
                           <Download className="h-3.5 w-3.5" />
                         )}
-                        {`Use these ${phone.length} screenshots`}
+                        {`Import ${phone.length} iPhone screenshots`}
                       </Button>
                       {tablet.length > 0 && (
                         <Button
@@ -210,7 +209,7 @@ export function StoreImportPanel({ onImportFiles, onAdoptDetails, onClose }: Sto
                           disabled={pulling === listing.id}
                           onClick={() => void pull(listing, tablet)}
                         >
-                          {`iPad set (${tablet.length})`}
+                          {`Import ${tablet.length} iPad screenshots`}
                         </Button>
                       )}
                       <Button
@@ -222,7 +221,7 @@ export function StoreImportPanel({ onImportFiles, onAdoptDetails, onClose }: Sto
                           onClose();
                         }}
                       >
-                        Just take the name and category
+                        Use name and category
                       </Button>
                     </div>
                   </div>

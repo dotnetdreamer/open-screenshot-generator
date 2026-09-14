@@ -9,7 +9,59 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const EDGE = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
+/**
+ * Where the browser is, on whichever machine this is running on.
+ *
+ * The harness was written against Edge on Windows and hardcoded its install
+ * path, which meant it could not start at all anywhere else. Edge still goes
+ * first on every platform, because the golden rules in SKILL.md were measured
+ * against its quirks (deferred image loads, backgrounded-tab throttling) and
+ * Chrome does not share all of them. The rest are fallbacks so the harness runs
+ * on a machine without Edge rather than failing on a missing file.
+ *
+ * APP_BROWSER overrides the lot, for a Chromium in a place nobody guessed.
+ */
+const BROWSERS = {
+  win32: [
+    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+    'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+    'C:/Program Files/Google/Chrome/Application/chrome.exe',
+    'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  ],
+  darwin: [
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+  ],
+  linux: [
+    '/usr/bin/microsoft-edge',
+    '/usr/bin/microsoft-edge-stable',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ],
+};
+
+function findBrowser() {
+  if (process.env.APP_BROWSER) return process.env.APP_BROWSER;
+  const candidates = BROWSERS[process.platform] ?? [];
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
+  if (found) return found;
+  // Not thrown. Puppeteer's own "Failed to launch" names the path it tried,
+  // which is the more useful message, and a script that only imports this file
+  // without launching anything should not die on a missing browser.
+  console.warn(
+    `[app-screenshots] No Edge or Chrome found on ${process.platform}. Looked in:\n  ` +
+      `${candidates.join('\n  ')}\nSet APP_BROWSER to the executable if it lives somewhere else.`
+  );
+  return candidates[0] ?? '';
+}
+
+// Kept under the old name because four sibling scripts and SKILL.md refer to it
+// that way. It is whichever Chromium this machine has, not necessarily Edge.
+const EDGE = findBrowser();
 const APP_URL = 'http://localhost:9002';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -214,7 +266,7 @@ async function uploadScreenshotToSelected(page, filePath) {
  * Trigger the app's PNG export and wait for the files to download.
  *
  * The toolbar button opens ONE OF TWO dialogs, depending on the project:
- * - Screenshot projects get "Export Screenshots" (#export-as-is + optional
+ * - Screenshot projects get "Export screenshots" (#export-as-is + optional
  *   App Store size checkboxes). extraFormats ('gen-ios', 'gen-ipad-pro-13',
  *   'gen-ipad-11') tick those; each adds one download per artboard.
  * - App Preview VIDEO projects get "Export App Preview Video" (#apv-styled),

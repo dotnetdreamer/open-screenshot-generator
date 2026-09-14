@@ -1,8 +1,8 @@
 "use client";
 
 import type React from 'react';
-import { useEffect, useState, useRef } from 'react';
-import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, ElementAnimation, ElementAnimationPreset, ElementLocaleOverride, Point, Size } from '@/types/artboard';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import type { ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, DeviceType, DeviceStyleType, ArtboardState, VideoElementProps, VideoDeviceElementProps, GestureElementProps, AudioElementProps, GestureType, ElementAnimation, ElementAnimationPreset, ElementLocaleOverride, Point, Size } from '@/types/artboard';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -26,11 +26,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { saveMedia } from '@/lib/mediaStore';
+import { AUDIO_ACCEPT, saveAudio, saveMedia, useImageSrc, useMediaUrl } from '@/lib/mediaStore';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import { DEFAULT_GRADIENT, normalizeGradient } from '@/lib/artboardBackground';
+import { withBasePath } from '@/lib/basePath';
 import { fitTextBox } from '@/lib/textFit';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
+import { soundLayerName } from '@/lib/video/audio';
+import { uploadKeepsAudio, useRecordingHasSound } from '@/lib/video/recordingAudio';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -51,12 +54,32 @@ import { trackScreenshotUploaded } from '@/lib/analytics';
 import { DEFAULT_BASE_LOCALE, localeLabel, localeName } from '@/lib/i18n/locales';
 import type { DetachableKey } from '@/lib/i18n/project';
 
+/** Length of the uploaded sound, or a note when its file is missing here. */
+function SoundFileStatus({ element }: { element: AudioElementProps }) {
+  const url = useMediaUrl(element.mediaId);
+  if (!element.mediaId) return null;
+  if (url === null) {
+    return <p className="text-xs text-destructive">This sound file is missing from this browser. Upload it again</p>;
+  }
+  return element.durationSeconds ? (
+    <p className="text-xs text-muted-foreground">{element.durationSeconds.toFixed(1)}s long</p>
+  ) : null;
+}
+
+/** A note when the recording has no sound track to keep. */
+function RecordingSoundStatus({ mediaId }: { mediaId: string | undefined }) {
+  const hasSound = useRecordingHasSound(mediaId);
+  if (hasSound !== false) return null;
+  return <p className="text-[11px] text-muted-foreground">This recording has no sound</p>;
+}
+
 // Panel headings. Derived names read badly for the compound types
 // ("Video-device Properties"), so the user-facing ones are spelled out.
 const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
   'video-device': 'Recording Mockup',
   video: 'Recording Properties',
   gesture: 'Gesture Hint',
+  audio: 'Sound',
 };
 
 /**
@@ -347,6 +370,9 @@ const DEVICE_PERSPECTIVE_KEYS: DetachableKey[] = ['styleType', 'matrix3d'];
 /** Start and end are one trim. */
 const TRIM_KEYS: DetachableKey[] = ['trimStart', 'trimEnd'];
 
+/** The volume means nothing while the recording's sound is off. */
+const RECORDING_SOUND_KEYS: DetachableKey[] = ['keepAudio', 'volume'];
+
 /** Looping decides whether the trigger time means anything, so it goes with it. */
 const GESTURE_TIMING_KEYS: DetachableKey[] = ['gestureRepeat', 'triggerTime', 'gestureDuration'];
 
@@ -404,6 +430,8 @@ const BASE_GROUPS_WITH_A_CONTROL: Record<ArtboardElement['type'], BaseDetachGrou
   'video-device': ['scale', 'rotation'],
   image: ['scale', 'opacity'],
   video: ['scale', 'opacity'],
+  // Never drawn, so none of the visual properties mean anything for a sound.
+  audio: ['position', 'size', 'scale', 'rotation', 'opacity', 'shadow', 'blur'],
 };
 
 /**
@@ -571,7 +599,11 @@ interface PropertiesPanelProps {
    */
   onTranslateElement?: (elementId: string) => void;
   activeArtboardDetails?: ArtboardState | null;
-  onUpdateArtboardDetails?: (updates: Partial<ArtboardState>) => void;
+  /**
+   * Board-level form edits. `scope: 'all'` writes every board in one commit,
+   * which is what a background picture shared across the strip needs.
+   */
+  onUpdateArtboardDetails?: (updates: Partial<ArtboardState>, scope?: 'board' | 'all') => void;
   /**
    * The language on screen, or null for the base language. Only text, fonts
    * and screenshots can ever differ per language, so when this is set the
@@ -711,6 +743,137 @@ const gradientPresets = [
   { color1: '#1e3c72', color2: '#2a5298', angle: 180 }, // Navy Blue shades
   { color1: '#5D4157', color2: '#A8CABA', angle: 135 }, // Mauve to Pastel Green
 ];
+
+/**
+ * How often a control being dragged is allowed to reach the project.
+ *
+ * A colour panel and a slider both fire an event per animation frame, and every
+ * one of those is a whole commit: an undo entry, a re-render of every board and
+ * a scheduled save. Committing all of them made dragging crawl. ~8 a second is
+ * still live to the eye and roughly an eighth of the work.
+ */
+const DRAG_COMMIT_MS = 120;
+
+/**
+ * Show every change immediately, commit at most one per DRAG_COMMIT_MS.
+ *
+ * The control renders from `draft` while a drag is in flight and goes back to
+ * the committed prop the moment the two agree, so there is no mirror to go
+ * stale when the selection changes underneath it. The last value always lands:
+ * every change with no timer pending schedules one.
+ */
+function useThrottledCommit<T>(value: T, commit: (next: T) => void) {
+  const [draft, setDraft] = useState<T | null>(null);
+  const latest = useRef(value);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const commitRef = useRef(commit);
+  commitRef.current = commit;
+
+  useEffect(() => {
+    if (draft !== null && Object.is(draft, value)) setDraft(null);
+  }, [draft, value]);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const push = useCallback((next: T) => {
+    latest.current = next;
+    setDraft(next);
+    if (timer.current) return;
+    timer.current = setTimeout(() => {
+      timer.current = null;
+      commitRef.current(latest.current);
+    }, DRAG_COMMIT_MS);
+  }, []);
+
+  return [draft === null ? value : draft, push] as const;
+}
+
+/** Colour swatch plus hex field, throttled. `''` means "not set". */
+function ColorField({
+  id,
+  value,
+  placeholder,
+  onCommit,
+}: {
+  id?: string;
+  value: string;
+  placeholder?: string;
+  onCommit: (next: string) => void;
+}) {
+  const [shown, push] = useThrottledCommit(value, onCommit);
+  // A colour input rejects anything that is not #rrggbb, and rejecting it
+  // silently resets the swatch to black, so an empty or half-typed value gets a
+  // stand-in rather than being handed over.
+  const swatch = /^#[0-9a-fA-F]{6}$/.test(shown) ? shown : '#000000';
+  return (
+    <div className="flex items-center">
+      <Input
+        id={id}
+        type="color"
+        className="w-8 h-8 p-1 cursor-pointer"
+        value={swatch}
+        onChange={(e) => push(e.target.value)}
+      />
+      <Input
+        type="text"
+        className="flex-1 h-8 ml-2 text-xs font-mono"
+        value={shown}
+        placeholder={placeholder}
+        onChange={(e) => push(e.target.value)}
+      />
+    </div>
+  );
+}
+
+/** A slider whose drag does not commit on every frame. */
+function ThrottledSlider({
+  id,
+  value,
+  min,
+  max,
+  step,
+  disabled,
+  className,
+  onCommit,
+}: {
+  id?: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  disabled?: boolean;
+  className?: string;
+  onCommit: (next: number) => void;
+}) {
+  const [shown, push] = useThrottledCommit(value, onCommit);
+  return (
+    <Slider
+      id={id}
+      min={min}
+      max={max}
+      step={step}
+      value={[shown]}
+      disabled={disabled}
+      className={className}
+      onValueChange={(next) => push(next[0])}
+    />
+  );
+}
+
+/**
+ * The board's background picture, small. Its own component because the artboard
+ * form is a conditional return inside PropertiesPanel and a hook cannot live
+ * there. Resolves an `asset:<id>` the same way every other surface does.
+ */
+function BackgroundImageThumb({ src }: { src: string }) {
+  const resolved = useImageSrc(src);
+  return (
+    <div className="h-12 w-12 shrink-0 overflow-hidden rounded border border-border bg-muted">
+      {resolved ? (
+        <img src={withBasePath(resolved)} alt="" className="h-full w-full object-cover" draggable={false} />
+      ) : null}
+    </div>
+  );
+}
 
 // DEFAULT_GRADIENT / normalizeGradient live in @/lib/artboardBackground so the
 // panel, the canvas renderer and the PNG export all repair a half-filled
@@ -1090,6 +1253,109 @@ export function PropertiesPanel({
     });
   };
 
+  // --- board background picture (issue #32) --------------------------------
+  // The picture is a layer over the colour or gradient, not a third background
+  // type, so switching the ground colour never throws the artwork away.
+
+  const backgroundImage = activeArtboardDetails?.backgroundImage;
+  const backgroundImageApply = activeArtboardDetails?.backgroundImageApply || 'board';
+  // Both shared modes write every board, so every board is one commit and one
+  // undo, and none of them is left holding a picture the others dropped.
+  const backgroundImageScope = backgroundImageApply === 'board' ? 'board' : 'all';
+
+  const handleBackgroundImageFitChange = (fit: 'cover' | 'contain' | 'fill') => {
+    onUpdateArtboardDetails?.({ backgroundImageFit: fit }, backgroundImageScope);
+  };
+
+  // Through the same scope as the picture itself: a shared picture tinted on
+  // one board only would leave the rest of the strip untinted for good, since
+  // normalizeBackgroundImage fills an empty board but never overwrites one.
+  const handleBackgroundImageTintChange = (updates: Partial<ArtboardState>) => {
+    onUpdateArtboardDetails?.(updates, backgroundImageScope);
+  };
+
+  /**
+   * How far the picture reaches: this board, every board, or every board with
+   * its own slice. The two shared modes are written to all boards at once, and
+   * normalizeBackgroundImage keeps artboards made later on the same picture.
+   */
+  const handleBackgroundImageApplyChange = (apply: 'board' | 'all' | 'span') => {
+    if (!backgroundImage) return;
+    if (apply === 'board') {
+      // Unlink, rather than delete: every board keeps the picture it already
+      // has and simply stops following the others, so stepping back from a
+      // shared background can never throw somebody's artwork away. Removing it
+      // board by board is one click each, and it is undoable.
+      onUpdateArtboardDetails?.({ backgroundImageApply: 'board' }, 'all');
+      return;
+    }
+    onUpdateArtboardDetails?.(
+      {
+        backgroundImage,
+        backgroundImageFit: activeArtboardDetails?.backgroundImageFit || 'cover',
+        // The tint rides along, or the boards that pick the picture up here
+        // would show it untinted next to the one that has it. Defaulted rather
+        // than passed through: undefined does not survive the JSON hop to the
+        // editor window, so an untinted board would leave the others' tints in
+        // place and the strip would come out half tinted.
+        backgroundImageTintColor: activeArtboardDetails?.backgroundImageTintColor ?? '',
+        backgroundImageTintOpacity: activeArtboardDetails?.backgroundImageTintOpacity ?? 0,
+        backgroundImageApply: apply,
+      },
+      'all'
+    );
+  };
+
+  /**
+   * Its own file input, deliberately. `hiddenFileInputRef` is attached at three
+   * render sites (the element branch, the device form inside it, and this
+   * form), and React nulls a shared ref whenever any one of them unmounts, so
+   * sharing it left this button dead after a device had ever been selected.
+   */
+  const boardBackgroundInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBoardBackgroundFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (boardBackgroundInputRef.current) boardBackgroundInputRef.current.value = '';
+    if (!file) return;
+    try {
+      // Stored once and referenced, like every other upload: every board of a
+      // shared picture holds the same asset:<id>, so the media table keeps one
+      // row and the browser one decoded copy (see mediaStore's url cache).
+      const asset = await saveImageBlobAsset(file, { name: file.name });
+      onUpdateArtboardDetails?.(
+        {
+          backgroundImage: asset.ref,
+          backgroundImageFit: activeArtboardDetails?.backgroundImageFit || 'cover',
+          backgroundImageTintColor: activeArtboardDetails?.backgroundImageTintColor ?? '',
+          backgroundImageTintOpacity: activeArtboardDetails?.backgroundImageTintOpacity ?? 0,
+          backgroundImageApply,
+        },
+        backgroundImageScope
+      );
+    } catch (error) {
+      toast({
+        title: 'Could not load image',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveBackgroundImage = () => {
+    // Cleared with an empty string, never by leaving the key out: an intent
+    // from a detached panel travels as JSON and JSON drops undefined.
+    onUpdateArtboardDetails?.(
+      {
+        backgroundImage: '',
+        backgroundImageApply: 'board',
+        backgroundImageTintColor: '',
+        backgroundImageTintOpacity: 0,
+      },
+      backgroundImageScope
+    );
+  };
+
   // Text lays out from more than its content: the family, the size, the weight
   // and the line height all change how much room it needs, and the box clips.
   // Anything that moves one of those goes through here, which folds the box fix
@@ -1164,6 +1430,9 @@ export function PropertiesPanel({
     if (!file || !selectedElement) return;
     try {
       const { id, probe } = await saveMedia(file, file.name);
+      const keepAudio = selectedElement.type === 'video-device' || selectedElement.type === 'video'
+        ? uploadKeepsAudio(selectedElement)
+        : undefined;
       if (selectedElement.type === 'video-device') {
         onUpdateElement({
           mediaId: id,
@@ -1172,6 +1441,7 @@ export function PropertiesPanel({
           durationSeconds: probe.duration,
           trimStart: undefined,
           trimEnd: undefined,
+          keepAudio,
         });
       } else if (selectedElement.type === 'video') {
         onUpdateElement({
@@ -1182,11 +1452,39 @@ export function PropertiesPanel({
           durationSeconds: probe.duration,
           trimStart: undefined,
           trimEnd: undefined,
+          keepAudio,
         });
       }
     } catch (error) {
       toast({
         title: 'Could not load recording',
+        description: error instanceof Error ? error.message : 'The file could not be read.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Sound layers. Same media table as recordings, probed as audio.
+  const audioFileInputRef = useRef<HTMLInputElement>(null);
+  const handleSoundSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+    if (!file || selectedElement?.type !== 'audio') return;
+    try {
+      const { id, duration } = await saveAudio(file, file.name);
+      onUpdateElement({
+        mediaId: id,
+        durationSeconds: duration,
+        trimStart: undefined,
+        trimEnd: undefined,
+        // A layer still on its default name takes the file's.
+        ...(!selectedElement.name || selectedElement.name === 'Sound'
+          ? { name: soundLayerName(file.name) }
+          : {}),
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not load sound',
         description: error instanceof Error ? error.message : 'The file could not be read.',
         variant: 'destructive',
       });
@@ -1633,6 +1931,51 @@ export function PropertiesPanel({
   // Phone/tablet mockup playing a screen recording. Deliberately NOT the
   // screenshot device panel: no screenshot upload, no screenshot rect sliders,
   // no 3D pose or perspective (a recording only composites into a flat frame).
+  // The recording's own sound. Shared by the mockup and the frameless recording.
+  const renderRecordingSound = (element: VideoElementProps | VideoDeviceElementProps, idPrefix: string) => {
+    const soundSwitch = (
+      <div className="flex items-center gap-2">
+        <input
+          id={`${idPrefix}KeepAudio`}
+          type="checkbox"
+          className="h-4 w-4 accent-primary"
+          checked={element.keepAudio ?? false}
+          onChange={(e) => onUpdateElement({ keepAudio: e.target.checked })}
+        />
+        <Label htmlFor={`${idPrefix}KeepAudio`} className="text-xs">Play the recording's sound</Label>
+      </div>
+    );
+    return (
+      <>
+        {localeActive ? (
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
+            {soundSwitch}
+            {detachToggle(RECORDING_SOUND_KEYS, 'Sound')}
+          </div>
+        ) : (
+          <div className="pt-1">{soundSwitch}</div>
+        )}
+        <RecordingSoundStatus mediaId={element.mediaId} />
+        {element.keepAudio && (
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor={`${idPrefix}Volume`} className="text-xs">
+              Volume: {Math.round((element.volume ?? 1) * 100)}%
+            </Label>
+            <Slider
+              id={`${idPrefix}Volume`}
+              min={0}
+              max={100}
+              step={1}
+              value={[(element.volume ?? 1) * 100]}
+              onValueChange={(value) => onUpdateElement({ volume: value[0] / 100 })}
+              className="my-2"
+            />
+          </div>
+        )}
+      </>
+    );
+  };
+
   const renderVideoDeviceProperties = (element: VideoDeviceElementProps) => (
     <>
       <div className="flex flex-col space-y-1 min-w-[150px]">
@@ -1733,6 +2076,7 @@ export function PropertiesPanel({
             plays inside the screen and renders into the exported video.
           </p>
         )}
+        {(element.mediaId || element.videoSrc) && renderRecordingSound(element, 'vd')}
       </div>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
@@ -1910,6 +2254,7 @@ export function PropertiesPanel({
           {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vTrimEnd', 'full length')}
         </div>
       </div>
+      {(element.mediaId || element.videoSrc) && renderRecordingSound(element, 'v')}
       <div className="flex flex-col space-y-1 min-w-[150px]">
         {detachLabelRow(
           <Label htmlFor="videoObjectFit" className="text-xs">Fit</Label>,
@@ -1984,6 +2329,54 @@ export function PropertiesPanel({
           className="my-2"
         />
       </div>
+    </>
+  );
+
+  const renderAudioProperties = (element: AudioElementProps) => (
+    <>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => audioFileInputRef.current?.click()}
+          className="text-xs h-8"
+        >
+          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+          {element.mediaId ? 'Replace sound' : 'Upload sound'}
+        </Button>
+      </div>
+      <SoundFileStatus element={element} />
+      <div className="grid gap-1">
+        <Label htmlFor="soundStart" className="text-xs">Starts at (s)</Label>
+        {secondsInput(element.startTime, (v) => onUpdateElement({ startTime: v }), 'soundStart', '0')}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-1">
+          <Label htmlFor="soundTrimStart" className="text-xs">Trim start (s)</Label>
+          {secondsInput(element.trimStart, (v) => onUpdateElement({ trimStart: v }), 'soundTrimStart', '0')}
+        </div>
+        <div className="grid gap-1">
+          <Label htmlFor="soundTrimEnd" className="text-xs">Trim end (s)</Label>
+          {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'soundTrimEnd', 'full length')}
+        </div>
+      </div>
+      <div className="flex flex-col space-y-1 min-w-[150px]">
+        <Label htmlFor="soundVolume" className="text-xs">
+          Volume: {Math.round((element.volume ?? 1) * 100)}%
+        </Label>
+        <Slider
+          id="soundVolume"
+          min={0}
+          max={100}
+          step={1}
+          value={[(element.volume ?? 1) * 100]}
+          onValueChange={(value) => onUpdateElement({ volume: value[0] / 100 })}
+          className="my-2"
+        />
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Plays with the preview and is mixed into the exported video
+      </p>
     </>
   );
 
@@ -2553,8 +2946,6 @@ export function PropertiesPanel({
 
   // Function to render image properties
   const renderImageProperties = (element: ImageElementProps) => {
-    console.log('Rendering image properties for element:', element.id, 'skewX:', element.skewX, 'skewY:', element.skewY);
-    
     return (
     <div className="space-y-4">
       {/* Image Upload and Basic Properties */}
@@ -2654,6 +3045,54 @@ export function PropertiesPanel({
           />
         </div>
 
+        {/* Tint. Sits over the painted pixels only, so a contained picture's
+            empty bars and a cut-out PNG's transparent ground stay clear. */}
+        <div className="w-[172px]">
+          {/* One toggle for both keys: a language editing the tint auto-detaches
+              whichever key changed (isDetachableKey is a deny list), and without
+              a control beside it there would be no way to hand it back. */}
+          {detachLabelRow(
+            <Label htmlFor="imageTint" className="text-xs mb-1 block">Tint</Label>,
+            ['tintColor', 'tintOpacity'],
+            'Tint'
+          )}
+          <ColorField
+            id="imageTint"
+            value={element.tintColor || ''}
+            placeholder="none"
+            onCommit={(next) =>
+              onUpdateElement({
+                // Cleared with '' and 0, never by leaving the keys out: a
+                // detached panel's intent travels as JSON over the Tauri bus,
+                // and JSON drops an undefined value, so the clear would arrive
+                // as an empty update and the tint would stay on.
+                tintColor: next || '',
+                // A colour with no strength would do nothing at all, so picking
+                // one turns the tint on at a visible default. `||` not `??`:
+                // switching the tint off stores a real 0, and `??` would keep
+                // that 0 and make the next colour pick look like it did nothing.
+                tintOpacity: next ? element.tintOpacity || 0.35 : 0,
+              })
+            }
+          />
+        </div>
+
+        <div className="w-[120px]">
+          <Label htmlFor="imageTintStrength" className="text-xs mb-1 block">
+            Tint Strength: {Math.round((element.tintOpacity ?? 0) * 100)}%
+          </Label>
+          <ThrottledSlider
+            id="imageTintStrength"
+            min={0}
+            max={100}
+            step={1}
+            value={(element.tintOpacity ?? 0) * 100}
+            onCommit={(next) => onUpdateElement({ tintOpacity: next / 100 })}
+            disabled={!element.tintColor}
+            className="my-2"
+          />
+        </div>
+
         {/* Image Alt Text */}
         <div className="flex-1 min-w-[150px]">
           {detachLabelRow(
@@ -2689,7 +3128,6 @@ export function PropertiesPanel({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  console.log('Applying transform preset:', preset.name, preset.values);
                   onUpdateElement(preset.values);
                 }}
                 className="text-xs h-8 justify-start"
@@ -2714,7 +3152,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.skewX || 0]}
               onValueChange={(value) => {
-                console.log('Updating skewX to:', value[0]);
                 onUpdateElement({ skewX: value[0] });
               }}
               className="my-2"
@@ -2732,7 +3169,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.skewY || 0]}
               onValueChange={(value) => {
-                console.log('Updating skewY to:', value[0]);
                 onUpdateElement({ skewY: value[0] });
               }}
               className="my-2"
@@ -2753,7 +3189,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.perspectiveX || 0]}
               onValueChange={(value) => {
-                console.log('Updating perspectiveX to:', value[0]);
                 onUpdateElement({ perspectiveX: value[0] });
               }}
               className="my-2"
@@ -2771,7 +3206,6 @@ export function PropertiesPanel({
               step={1}
               value={[element.perspectiveY || 0]}
               onValueChange={(value) => {
-                console.log('Updating perspectiveY to:', value[0]);
                 onUpdateElement({ perspectiveY: value[0] });
               }}
               className="my-2"
@@ -2820,9 +3254,6 @@ export function PropertiesPanel({
 
   // Function to render shape-specific controls
   const renderShapeProperties = (element: ShapeElementProps) => {
-    console.log('renderShapeProperties called with element:', element);
-    console.log('element.shapeType:', element.shapeType);
-    console.log('element.innerRadius:', element.innerRadius);
     
     return (
     <div className="space-y-4">
@@ -3181,78 +3612,171 @@ export function PropertiesPanel({
           {activeBackgroundTab === 'solid' ? (
             <div className="space-y-2">
               <Label htmlFor="bgColor" className="text-xs font-medium">Background Color</Label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Input
-                    id="bgColor"
-                    type="color"
-                    value={displayColor}
-                    onChange={(e) => handleSolidColorChange(e.target.value)}
-                    className="w-10 h-10 p-1"
-                  />
-                  <Input
-                    type="text"
-                    value={displayColor.toUpperCase()}
-                    onChange={(e) => handleSolidColorChange(e.target.value)}
-                    className="flex-1 font-mono text-xs"
-                  />
-                </div>
-              </div>
+              <ColorField id="bgColor" value={displayColor} onCommit={handleSolidColorChange} />
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">First Color</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="color"
-                    value={displayGradient.color1}
-                    onChange={(e) => handleGradientChange('color1', e.target.value)}
-                    className="w-10 h-10 p-1"
-                  />
-                  <Input
-                    type="text"
-                    value={displayGradient.color1.toUpperCase()}
-                    onChange={(e) => handleGradientChange('color1', e.target.value)}
-                    className="flex-1 font-mono text-xs"
-                  />
-                </div>
+                <ColorField
+                  value={displayGradient.color1}
+                  onCommit={(next) => handleGradientChange('color1', next)}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label className="text-xs font-medium">Second Color</Label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="color"
-                    value={displayGradient.color2}
-                    onChange={(e) => handleGradientChange('color2', e.target.value)}
-                    className="w-10 h-10 p-1"
-                  />
-                  <Input
-                    type="text"
-                    value={displayGradient.color2.toUpperCase()}
-                    onChange={(e) => handleGradientChange('color2', e.target.value)}
-                    className="flex-1 font-mono text-xs"
-                  />
-                </div>
+                <ColorField
+                  value={displayGradient.color2}
+                  onCommit={(next) => handleGradientChange('color2', next)}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="gradientAngle" className="text-xs font-medium">
                   Angle: {displayGradient.angle}°
                 </Label>
-                <Slider
+                <ThrottledSlider
                   id="gradientAngle"
                   min={0}
                   max={360}
                   step={1}
-                  value={[displayGradient.angle]}
-                  onValueChange={(value) => handleGradientChange('angle', value[0])}
+                  value={displayGradient.angle}
+                  onCommit={(next) => handleGradientChange('angle', next)}
                   className="w-full"
                 />
               </div>
             </div>
           )}
+
+          {/* A picture behind the elements, over whichever ground is set
+              above. Kept separate from the type radio on purpose: the colour
+              still shows through a transparent PNG and around a contained fit. */}
+          <div className="space-y-2 border-t pt-3">
+            <Label className="text-xs font-medium">Background Image</Label>
+            {backgroundImage ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <BackgroundImageThumb src={backgroundImage} />
+                  <div className="flex flex-1 flex-col gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => boardBackgroundInputRef.current?.click()}
+                    >
+                      <UploadCloudIcon className="w-3 h-3 mr-1" />
+                      Replace
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-destructive hover:text-destructive"
+                      onClick={handleRemoveBackgroundImage}
+                    >
+                      <Trash2Icon className="w-3 h-3 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="bgImageFit" className="text-xs font-medium">Fit</Label>
+                  <Select
+                    value={activeArtboardDetails.backgroundImageFit || 'cover'}
+                    onValueChange={(value) =>
+                      handleBackgroundImageFitChange(value as 'cover' | 'contain' | 'fill')
+                    }
+                  >
+                    <SelectTrigger id="bgImageFit" className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cover">Cover</SelectItem>
+                      <SelectItem value="contain">Contain</SelectItem>
+                      <SelectItem value="fill">Stretch</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="bgImageTint" className="text-xs font-medium">Tint</Label>
+                  <ColorField
+                    id="bgImageTint"
+                    value={activeArtboardDetails.backgroundImageTintColor || ''}
+                    placeholder="none"
+                    onCommit={(next) =>
+                      handleBackgroundImageTintChange({
+                        // Emptied with '' rather than a missing key, because an
+                        // intent from a detached panel travels as JSON.
+                        backgroundImageTintColor: next || '',
+                        // `||` not `??`: switching the tint off stores a real
+                        // 0, and `??` would keep it, so picking a colour again
+                        // would look like it did nothing.
+                        backgroundImageTintOpacity: next
+                          ? activeArtboardDetails.backgroundImageTintOpacity || 0.35
+                          : 0,
+                      })
+                    }
+                  />
+                  <Label htmlFor="bgImageTintStrength" className="text-xs font-medium">
+                    Strength: {Math.round((activeArtboardDetails.backgroundImageTintOpacity ?? 0) * 100)}%
+                  </Label>
+                  <ThrottledSlider
+                    id="bgImageTintStrength"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={(activeArtboardDetails.backgroundImageTintOpacity ?? 0) * 100}
+                    onCommit={(next) =>
+                      handleBackgroundImageTintChange({ backgroundImageTintOpacity: next / 100 })
+                    }
+                    disabled={!activeArtboardDetails.backgroundImageTintColor}
+                    className="my-2"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Hold the picture back so text on top of it stays readable
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="bgImageApply" className="text-xs font-medium">Use on</Label>
+                  <Select
+                    value={backgroundImageApply}
+                    onValueChange={(value) =>
+                      handleBackgroundImageApplyChange(value as 'board' | 'all' | 'span')
+                    }
+                  >
+                    <SelectTrigger id="bgImageApply" className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="board">This artboard</SelectItem>
+                      <SelectItem value="all">All artboards</SelectItem>
+                      <SelectItem value="span">All artboards, split</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    {backgroundImageApply === 'span'
+                      ? 'Each artboard shows its own slice, so the set reads as one picture. Artboards you add later join it'
+                      : backgroundImageApply === 'all'
+                        ? 'Every artboard shows the whole picture, the ones you add later too'
+                        : 'Other artboards keep whatever they already have'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => boardBackgroundInputRef.current?.click()}
+              >
+                <UploadCloudIcon className="w-3 h-3 mr-1" />
+                Upload Image
+              </Button>
+            )}
+          </div>
 
           <Popover>
             <PopoverTrigger asChild>
@@ -3302,6 +3826,14 @@ export function PropertiesPanel({
               an element first. */}
           {renderLocaleResetControls(false)}
         </div>
+
+        <Input
+          type="file"
+          ref={boardBackgroundInputRef}
+          onChange={handleBoardBackgroundFileSelected}
+          className="hidden"
+          accept="image/*"
+        />
       </div>
     );
   }
@@ -3325,11 +3857,12 @@ export function PropertiesPanel({
           {selectedElement.type === 'video' && renderVideoProperties(selectedElement as VideoElementProps)}
           {selectedElement.type === 'video-device' && renderVideoDeviceProperties(selectedElement as VideoDeviceElementProps)}
           {selectedElement.type === 'gesture' && renderGestureProperties(selectedElement as GestureElementProps)}
+          {selectedElement.type === 'audio' && renderAudioProperties(selectedElement as AudioElementProps)}
           {/* "Other properties" belongs with the rest of the element's
               properties, above the video timeline block: it is the per-language
               detach list for base properties, not part of the animation. */}
           {renderLocaleBaseProperties(selectedElement)}
-          {selectedElement.type !== 'gesture' && renderAnimationProperties(selectedElement)}
+          {selectedElement.type !== 'gesture' && selectedElement.type !== 'audio' && renderAnimationProperties(selectedElement)}
           {renderLocaleResetControls(selectedHasLocaleOverrides)}
         </div>
 
@@ -3347,6 +3880,13 @@ export function PropertiesPanel({
           onChange={handleRecordingSelected}
           className="hidden"
           accept={VIDEO_ACCEPT}
+        />
+        <Input
+          type="file"
+          ref={audioFileInputRef}
+          onChange={handleSoundSelected}
+          className="hidden"
+          accept={AUDIO_ACCEPT}
         />
       </div>
     );

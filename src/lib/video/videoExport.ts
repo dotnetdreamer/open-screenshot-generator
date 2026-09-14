@@ -7,10 +7,10 @@
 // Deliberate limits, matching what the canvas renders:
 // - Screen recordings composite into FLAT device frames only. 3D / perspective
 //   devices export as static sprites (their screenshot, or an empty screen).
-// - Output carries a SILENT AAC track. The picture is what matters (previews
-//   are watched muted almost always), but App Store Connect rejects a preview
-//   with no audio track at all: "Your app preview contains unsupported or
-//   corrupted audio." So we mux 48kHz stereo silence alongside the video.
+// - Output always carries an AAC track: the board's sound layers and the sound
+//   of every recording with keepAudio, mixed down, or silence when there is
+//   none. App Store Connect rejects a preview with no audio track at all: "Your
+//   app preview contains unsupported or corrupted audio."
 
 import { captureNodeToPng } from '@/lib/exportRaster';
 import { resolveFontEmbedCss } from '@/lib/fontEmbed';
@@ -18,16 +18,21 @@ import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 import type {
   ArtboardState,
   ArtboardElement,
+  AudioElementProps,
   GestureElementProps,
   VideoElementProps,
   VideoDeviceElementProps,
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { assetIdFromRef, getMediaAsset, getMediaUrl, isAssetRef } from '@/lib/mediaStore';
-import { normalizeGradient } from '@/lib/artboardBackground';
+import { artboardBackgroundImageBox, normalizeGradient } from '@/lib/artboardBackground';
+import { imageTint } from '@/lib/elementStyle';
 import { withBasePath } from '@/lib/basePath';
 import { animationStateAt, animationEndTime } from './animation';
 import { drawGesture, gesturePhaseAt, gestureEndTime } from './gestures';
+import { audioClipRange } from './audio';
+import { decodeRecordingAudio, loadRecordingBlob } from './recordingAudio';
+import { normalizeAacDescription } from './mp4Audio';
 
 export interface VideoExportSettings {
   fps: number; // 30 or 60
@@ -56,7 +61,7 @@ export interface VideoExportSettings {
 
 export interface ArtboardVideoInfo {
   hasVideo: boolean; // any recording present (video element or device screen)
-  hasMotion: boolean; // gestures or enter/exit animations
+  hasMotion: boolean; // gestures, enter/exit animations or sound layers
   contentEndSeconds: number; // when the last recording/animation finishes
   suggestedDuration: number; // contentEnd rounded up, clamped to 1..30
 }
@@ -84,6 +89,12 @@ export async function analyzeArtboardForVideo(ab: ArtboardState): Promise<Artboa
     } else if (el.type === 'gesture') {
       hasMotion = true;
       if (!el.gestureRepeat) end = Math.max(end, gestureEndTime(el));
+    } else if (el.type === 'audio') {
+      const range = audioClipRange(el);
+      if (range) {
+        hasMotion = true;
+        end = Math.max(end, range.end);
+      }
     }
     if (el.animation) {
       hasMotion = true;
@@ -100,8 +111,8 @@ export async function analyzeArtboardForVideo(ab: ArtboardState): Promise<Artboa
 
 /**
  * True when the project is an App Preview video project: it carries a
- * recording mockup, a raw recording, a gesture hint or an animation. Drives
- * which export dialog the toolbar opens.
+ * recording mockup, a raw recording, a gesture hint, an animation or a sound
+ * layer. Drives which export dialog the toolbar opens.
  */
 export function projectHasVideoContent(artboards: ArtboardState[]): boolean {
   return artboards.some((ab) =>
@@ -110,6 +121,7 @@ export function projectHasVideoContent(artboards: ArtboardState[]): boolean {
         el.type === 'video-device' ||
         (el.type === 'video' && (el.mediaId || el.videoSrc)) ||
         el.type === 'gesture' ||
+        el.type === 'audio' ||
         !!el.animation
     )
   );
@@ -156,27 +168,107 @@ async function loadPosterImage(posterSrc: string): Promise<HTMLImageElement | nu
 }
 
 // ---------------------------------------------------------------------------
-// Silent audio track.
+// Audio track.
 //
 // Apple's spec asks for AAC, and App Store Connect treats a MISSING audio track
 // as a broken one ("unsupported or corrupted audio"), so every export carries
-// 48kHz stereo silence. AAC-LC is 'mp4a.40.2'; 1024 frames is its native
-// packet size, so encoding in 1024-frame chunks avoids any resampling.
+// 48kHz stereo: the board's sound layers and recording sound mixed down, or
+// silence. AAC-LC is
+// 'mp4a.40.2'; 1024 frames is its native packet size, so encoding in
+// 1024-frame chunks avoids any resampling.
 
 const AUDIO_SAMPLE_RATE = 48000;
 const AUDIO_CHANNELS = 2;
 const AUDIO_FRAMES_PER_CHUNK = 1024;
 
-interface SilentAudioTrack {
+interface AudioTrack {
   encodeInto(muxer: Muxer<ArrayBufferTarget>): Promise<void>;
 }
 
 /**
- * A silent AAC track `seconds` long, or null when this browser cannot encode
- * one. Never throws: a missing track is worth far less than a failed export,
- * and the caller simply muxes video only.
+ * A recording whose own sound goes into the mix. It always starts the board,
+ * so its sound runs from second 0 over the same trim as its picture, and stops
+ * where the picture freezes on its last frame.
  */
-async function createSilentAudioTrack(seconds: number): Promise<SilentAudioTrack | null> {
+interface RecordingSound {
+  el: VideoElementProps | VideoDeviceElementProps;
+  trimStart: number;
+  trimEnd: number;
+}
+
+/**
+ * Every sound layer and recording sound mixed into `seconds` of planar PCM, one
+ * Float32Array per channel, or null when there is nothing to mix. Rendered
+ * offline, so a 30 second preview mixes in well under a second instead of
+ * playing in real time.
+ *
+ * A file that will not decode throws with its name, rather than exporting a
+ * video that is quietly missing its soundtrack. A recording that simply has no
+ * sound adds nothing.
+ */
+async function mixAudio(
+  layers: AudioElementProps[],
+  recordings: RecordingSound[],
+  seconds: number
+): Promise<Float32Array[] | null> {
+  const clips = layers.flatMap((el) => {
+    const range = audioClipRange(el);
+    return range && range.start < seconds ? [{ el, range }] : [];
+  });
+  if ((clips.length === 0 && recordings.length === 0) || typeof OfflineAudioContext === 'undefined') return null;
+
+  const length = Math.max(1, Math.ceil(seconds * AUDIO_SAMPLE_RATE));
+  const context = new OfflineAudioContext(AUDIO_CHANNELS, length, AUDIO_SAMPLE_RATE);
+  const play = (buffer: AudioBuffer, volume: number | undefined, when: number, offset: number, duration: number | null) => {
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    const gain = context.createGain();
+    gain.gain.value = Math.max(0, Math.min(1, volume ?? 1));
+    source.connect(gain).connect(context.destination);
+    if (duration === null) source.start(when, offset);
+    else if (duration > 0) source.start(when, offset, duration);
+  };
+  for (const { el, range } of clips) {
+    const asset = await getMediaAsset(el.mediaId!);
+    if (!asset) {
+      throw new Error(`The sound "${el.name || 'Sound'}" is missing from this browser. Upload it again.`);
+    }
+    let buffer: AudioBuffer;
+    try {
+      buffer = await context.decodeAudioData(await asset.blob.arrayBuffer());
+    } catch {
+      throw new Error(`The sound "${asset.name}" could not be read. Use an MP3, M4A or WAV file.`);
+    }
+    play(buffer, el.volume, range.start, range.sourceStart, range.end - range.start);
+  }
+  for (const { el, trimStart, trimEnd } of recordings) {
+    // Nothing past the end of the export is decoded, however long the file is.
+    const end = Math.min(trimEnd > trimStart ? trimEnd : Infinity, trimStart + seconds);
+    const name = el.name || 'Recording';
+    const blob = await loadRecordingBlob(el);
+    if (!blob) continue; // the picture already fell back to a placeholder
+    let audio;
+    try {
+      audio = await decodeRecordingAudio(blob, context, trimStart, end);
+    } catch (error) {
+      console.error('Recording sound could not be decoded', error);
+      throw new Error(`The sound in "${name}" could not be read. Turn off its sound in Properties to export without it.`);
+    }
+    if (!audio) continue;
+    play(audio.buffer, el.volume, audio.lead, audio.offset, audio.duration);
+  }
+  const rendered = await context.startRendering();
+  return Array.from({ length: AUDIO_CHANNELS }, (_, i) =>
+    rendered.getChannelData(Math.min(i, rendered.numberOfChannels - 1))
+  );
+}
+
+/**
+ * An AAC track `seconds` long carrying `mix` (silence when null), or null when
+ * this browser cannot encode one. Never throws: a missing track is worth far
+ * less than a failed export, and the caller simply muxes video only.
+ */
+async function createAudioTrack(seconds: number, mix: Float32Array[] | null): Promise<AudioTrack | null> {
   if (typeof AudioEncoder === 'undefined' || typeof AudioData === 'undefined') return null;
   const config: AudioEncoderConfig = {
     codec: 'mp4a.40.2',
@@ -196,7 +288,17 @@ async function createSilentAudioTrack(seconds: number): Promise<SilentAudioTrack
       let failed = false;
       const encoder = new AudioEncoder({
         output: (chunk, meta) => {
-          if (!failed) muxer.addAudioChunk(chunk, meta);
+          if (failed) return;
+          // mp4-muxer writes the description into the esds as it is. WebKit's
+          // is a whole ES_Descriptor, not the AudioSpecificConfig, and the MP4
+          // it makes has an audio track nothing can read.
+          const description = meta?.decoderConfig?.description;
+          muxer.addAudioChunk(
+            chunk,
+            description && meta?.decoderConfig
+              ? { ...meta, decoderConfig: { ...meta.decoderConfig, description: normalizeAacDescription(description) } }
+              : meta
+          );
         },
         error: () => {
           // A dead audio encoder must not take the video down with it.
@@ -206,19 +308,22 @@ async function createSilentAudioTrack(seconds: number): Promise<SilentAudioTrack
       try {
         encoder.configure(config);
         const total = Math.ceil(seconds * AUDIO_SAMPLE_RATE);
-        // One reused buffer of zeros: AudioData copies it on construction.
-        const silence = new Float32Array(AUDIO_FRAMES_PER_CHUNK * AUDIO_CHANNELS);
+        // One reused chunk buffer: AudioData copies it on construction. Planar
+        // layout, so channel c starts at c * count.
+        const chunk = new Float32Array(AUDIO_FRAMES_PER_CHUNK * AUDIO_CHANNELS);
         for (let frame = 0; frame < total && !failed; frame += AUDIO_FRAMES_PER_CHUNK) {
           const count = Math.min(AUDIO_FRAMES_PER_CHUNK, total - frame);
+          const samples = count === AUDIO_FRAMES_PER_CHUNK ? chunk : new Float32Array(count * AUDIO_CHANNELS);
+          if (mix) {
+            mix.forEach((channel, c) => samples.set(channel.subarray(frame, frame + count), c * count));
+          }
           const data = new AudioData({
             format: 'f32-planar',
             sampleRate: AUDIO_SAMPLE_RATE,
             numberOfFrames: count,
             numberOfChannels: AUDIO_CHANNELS,
             timestamp: Math.round((frame / AUDIO_SAMPLE_RATE) * 1_000_000),
-            data: count === AUDIO_FRAMES_PER_CHUNK
-              ? silence
-              : new Float32Array(count * AUDIO_CHANNELS),
+            data: samples,
           });
           encoder.encode(data);
           data.close();
@@ -502,7 +607,11 @@ function drawFitted(
   ctx.restore();
 }
 
-function drawArtboardBackground(ctx: CanvasRenderingContext2D, ab: ArtboardState) {
+function drawArtboardBackground(
+  ctx: CanvasRenderingContext2D,
+  ab: ArtboardState,
+  backgroundImage: HTMLImageElement | null
+) {
   ctx.save();
   if (ab.backgroundType === 'gradient') {
     // Normalised, so a half-filled gradient paints here exactly as it does on
@@ -531,6 +640,39 @@ function drawArtboardBackground(ctx: CanvasRenderingContext2D, ab: ArtboardState
       : bg;
   }
   ctx.fillRect(0, 0, ab.size.width, ab.size.height);
+  // The picture goes OVER the ground, exactly as CSS paints background-image
+  // over background-color, so a contained fit letterboxes onto the colour
+  // instead of onto black. Mirrors ArtboardBackgroundImage: the box is the
+  // whole span when the board is one slice of it, and the canvas clips.
+  if (backgroundImage) {
+    const { left, width, height } = artboardBackgroundImageBox(ab);
+    // Clipped to the board the way the DOM clips it, so a slice cannot paint
+    // past its own board's edge.
+    ctx.beginPath();
+    ctx.rect(0, 0, ab.size.width, ab.size.height);
+    ctx.clip();
+    drawFitted(
+      ctx,
+      backgroundImage,
+      left,
+      0,
+      width,
+      height,
+      ab.backgroundImageFit || 'cover',
+      0
+    );
+    // The scrim, over the picture and under every element: the same board wide
+    // fill ArtboardBackgroundImage lays down, so the MP4 matches the canvas.
+    const tint = imageTint(ab.backgroundImageTintColor, ab.backgroundImageTintOpacity);
+    if (tint) {
+      // globalAlpha, not an rgba() string: CSS opacity MULTIPLIES whatever
+      // alpha the colour already carries, and this does the same without
+      // having to parse every colour syntax.
+      ctx.globalAlpha *= tint.opacity;
+      ctx.fillStyle = tint.color;
+      ctx.fillRect(0, 0, ab.size.width, ab.size.height);
+    }
+  }
   ctx.restore();
 }
 
@@ -643,11 +785,25 @@ export async function exportArtboardVideo(
 
   // ---- Build the layer plan ----
   const layers: Layer[] = [];
+  // Recordings whose own sound is kept, read from the ORIGINAL element: the
+  // store-safe layers below are synthetic copies without keepAudio.
+  const recordingSounds: RecordingSound[] = [];
+  const keepSound = (el: VideoElementProps | VideoDeviceElementProps, source: VideoSource) => {
+    if (el.keepAudio) recordingSounds.push({ el, trimStart: source.trimStart, trimEnd: source.trimEnd });
+  };
   // Let the 3D device renderers re-render supersampled, same as PNG export.
   window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
   await new Promise((resolve) => setTimeout(resolve, 100));
   if (root) await primeFontEmbedCSS(root);
+  let backgroundImage: HTMLImageElement | null = null;
   try {
+    // Decoded once for the whole export: drawArtboardBackground runs per frame,
+    // and an asset:<id> is a Dexie read. Inside the try because the media read
+    // can reject, and the finally below is what takes the 3D renderers back out
+    // of supersampled mode. A failure degrades to the board's ground colour.
+    if (!settings.rawRecordingOnly && artboard.backgroundImage) {
+      backgroundImage = await loadPosterImage(artboard.backgroundImage);
+    }
     if (settings.rawRecordingOnly) {
       // First recording only, full-bleed. Guideline-2.3.4-safe output.
       for (const el of artboard.elements) {
@@ -655,6 +811,7 @@ export async function exportArtboardVideo(
           const source = await loadVideoSource(el, el.trimStart, el.trimEnd);
           if (source) {
             layers.push({ kind: 'video', el: { ...el, position: { x: 0, y: 0 }, size: artboard.size, scale: 1, rotation: 0, borderRadius: 0, objectFit: 'cover', animation: undefined }, source });
+            keepSound(el, source);
             break;
           }
         }
@@ -670,6 +827,7 @@ export async function exportArtboardVideo(
               rotation: 0, scale: 1, objectFit: 'cover',
             };
             layers.push({ kind: 'video', el: full, source });
+            keepSound(el, source);
             break;
           }
         }
@@ -722,6 +880,7 @@ export async function exportArtboardVideo(
           const source = await loadVideoSource(el, el.trimStart, el.trimEnd);
           if (source) {
             layers.push({ kind: 'video', el, source });
+            keepSound(el, source);
             continue;
           }
           // Missing media row: fall through to a static sprite (placeholder).
@@ -737,6 +896,7 @@ export async function exportArtboardVideo(
             if (chrome) {
               const notch = await captureNotchOverlay(root!, el);
               layers.push({ kind: 'device-video', el, source, chrome, notch, screen: deviceScreenRectLocal(el) });
+              keepSound(el, source);
               continue;
             }
           }
@@ -747,6 +907,8 @@ export async function exportArtboardVideo(
           layers.push({ kind: 'gesture', el });
           continue;
         }
+        // Heard, not seen: mixed into the audio track below.
+        if (el.type === 'audio') continue;
         const sprite = await captureSprite(root!, el);
         if (sprite) layers.push({ kind: 'sprite', el, sprite });
       }
@@ -758,10 +920,14 @@ export async function exportArtboardVideo(
   // ---- Encoder + muxer ----
   const config = await pickEncoderConfig(outW, outH, fps, bitrate);
   // App Store Connect refuses a preview with no audio track, so the file gets
-  // one made of silence. Everything about it is best-effort: if this browser
-  // has no AudioEncoder (older WebViews), the export still produces a valid
-  // video-only MP4 rather than failing.
-  const audio = await createSilentAudioTrack(durationSeconds);
+  // one: the sound layers and kept recording sound mixed down, or silence.
+  // Encoding is best-effort: if
+  // this browser has no AudioEncoder (older WebViews), the export still
+  // produces a valid video-only MP4 rather than failing. A sound that will not
+  // decode does fail it, with the file's name.
+  const soundLayers = artboard.elements.filter((el): el is AudioElementProps => el.type === 'audio');
+  const mix = await mixAudio(soundLayers, recordingSounds, durationSeconds);
+  const audio = await createAudioTrack(durationSeconds, mix);
   const muxer = new Muxer({
     target: new ArrayBufferTarget(),
     video: { codec: 'avc', width: outW, height: outH },
@@ -780,8 +946,8 @@ export async function exportArtboardVideo(
   });
   encoder.configure(config);
 
-  // Encode the silence up front: it is a few hundred KB and keeps the frame
-  // loop below untouched.
+  // Encode the audio up front: it is a few hundred KB and keeps the frame loop
+  // below untouched.
   const audioDone = audio ? audio.encodeInto(muxer) : Promise.resolve();
 
   const canvas = document.createElement('canvas');
@@ -816,7 +982,7 @@ export async function exportArtboardVideo(
       ctx.fillRect(0, 0, outW, outH);
       ctx.setTransform(coverScale, 0, 0, coverScale, offsetX, offsetY);
 
-      if (!settings.rawRecordingOnly) drawArtboardBackground(ctx, artboard);
+      if (!settings.rawRecordingOnly) drawArtboardBackground(ctx, artboard, backgroundImage);
 
       for (const layer of layers) {
         switch (layer.kind) {

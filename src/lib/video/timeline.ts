@@ -10,12 +10,13 @@
 import type { ArtboardState } from '@/types/artboard';
 import { animationEndTime } from './animation';
 import { gestureEndTime } from './gestures';
+import { audioClipRange } from './audio';
 
 /** Longest preview the UI will let a board run for. */
 export const PREVIEW_DURATION_MAX = 60;
 
 export interface ArtboardTimeline {
-  /** Anything with motion: an animation, a gesture hint or a recording. */
+  /** Anything with motion: an animation, a gesture hint, a recording or a sound. */
   hasMotion: boolean;
   /** Seconds until the last recording/animation/gesture finishes. */
   contentEndSeconds: number;
@@ -44,6 +45,12 @@ export function artboardTimeline(ab: ArtboardState | null | undefined): Artboard
         const stop = el.trimEnd ?? duration;
         end = Math.max(end, Math.max(0, stop - start));
       }
+    } else if (el.type === 'audio') {
+      // Like an empty recording mockup, a sound layer waiting for its file
+      // still makes this a preview board.
+      hasMotion = true;
+      const range = audioClipRange(el);
+      if (range) end = Math.max(end, range.end);
     } else if (el.type === 'gesture') {
       hasMotion = true;
       // A looping gesture plays for as long as the board does, so it never

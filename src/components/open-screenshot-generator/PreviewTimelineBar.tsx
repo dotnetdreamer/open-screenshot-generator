@@ -1,12 +1,13 @@
 "use client";
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon, PauseIcon, PlayIcon, RotateCcwIcon, XIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, MusicIcon, PauseIcon, PlayIcon, RotateCcwIcon, XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ArtboardElement, ArtboardState, ElementAnimationPreset } from '@/types/artboard';
 import { ENTER_DURATION_DEFAULT, EXIT_DURATION_DEFAULT } from '@/lib/video/animation';
 import { GESTURE_DURATION_DEFAULT, GESTURE_TRIGGER_DEFAULT } from '@/lib/video/gestures';
 import { PREVIEW_DURATION_MAX, artboardTimeline } from '@/lib/video/timeline';
+import { audioClipRange } from '@/lib/video/audio';
 import {
   getPlayback,
   pausePlayback,
@@ -32,6 +33,8 @@ interface PreviewTimelineBarProps {
   onReorderElement?: (elementId: string, targetElementId: string, after: boolean) => void;
   /** Sets an explicit preview length on the board (null clears the override). */
   onSetDuration?: (artboardId: string, seconds: number | null) => void;
+  /** Pick a sound file and add it to the board, starting at `atSeconds`. */
+  onAddSound?: (artboardId: string, atSeconds: number) => void;
   selectedElementId?: string | null;
 }
 
@@ -72,7 +75,7 @@ interface Track {
   end: number;
   /** Where the enter animation finishes, for the ramp cap. */
   enterEnd: number;
-  kind: 'recording' | 'gesture' | 'text' | 'shape' | 'image' | 'device' | 'other';
+  kind: 'recording' | 'sound' | 'gesture' | 'text' | 'shape' | 'image' | 'device' | 'other';
   repeats: boolean;
   /**
    * False for a layer that is simply on screen the whole time. It still gets a
@@ -88,6 +91,7 @@ const DEFAULT_ENTER_DURATION = 0.6;
 
 const KIND_CLASS: Record<Track['kind'], string> = {
   recording: 'bg-sky-500/70 border-sky-300/60',
+  sound: 'bg-rose-500/65 border-rose-300/60',
   gesture: 'bg-amber-500/70 border-amber-300/60',
   text: 'bg-violet-500/60 border-violet-300/50',
   shape: 'bg-emerald-500/55 border-emerald-300/50',
@@ -103,6 +107,8 @@ function elementKind(el: ArtboardElement): Track['kind'] {
       return 'recording';
     case 'gesture':
       return 'gesture';
+    case 'audio':
+      return 'sound';
     case 'text':
       return 'text';
     case 'shape':
@@ -131,6 +137,23 @@ function buildTracks(ab: ArtboardState, duration: number): Track[] {
         end: Math.min(duration, Math.max(0.1, stop - start)),
         enterEnd: 0,
         kind: 'recording',
+        repeats: false,
+        animated: true,
+      });
+      continue;
+    }
+    if (el.type === 'audio') {
+      // Placed by its start time and trimmed to its file. One still waiting
+      // for a file runs from its start to the end, so it can be moved already.
+      const range = audioClipRange(el);
+      const start = Math.min(range?.start ?? el.startTime ?? 0, Math.max(0, duration - MIN_CLIP_SECONDS));
+      tracks.push({
+        id: el.id,
+        label,
+        start,
+        end: Math.min(duration, Math.max(start + 0.1, range?.end ?? duration)),
+        enterEnd: start,
+        kind: 'sound',
         repeats: false,
         animated: true,
       });
@@ -201,6 +224,23 @@ function clipUpdates(
     return { triggerTime: Math.max(0, next.start), gestureDuration: length } as Partial<ArtboardElement>;
   }
 
+  if (el.type === 'audio') {
+    const range = audioClipRange(el);
+    const startShift = next.start - track.start;
+    const endShift = next.end - track.end;
+    // No file yet, or the whole clip slid: only where it comes in changes.
+    if (!range || Math.abs(startShift - endShift) < 1e-6) {
+      return { startTime: Math.max(0, next.start) || undefined } as Partial<ArtboardElement>;
+    }
+    // An edge moved, which trims the file. The left edge cannot reach past
+    // the start of the file, so the clip stops there instead.
+    const trimStart = Math.max(0, range.sourceStart + startShift);
+    const startTime = Math.max(0, track.start + (trimStart - range.sourceStart));
+    const length = Math.max(MIN_CLIP_SECONDS, next.end - startTime);
+    const trimEnd = Math.min(el.durationSeconds ?? Infinity, trimStart + length);
+    return { startTime: startTime || undefined, trimStart: trimStart || undefined, trimEnd } as Partial<ArtboardElement>;
+  }
+
   if (el.type === 'video' || el.type === 'video-device') {
     // The recording always starts the board, so its bar edits the trim.
     const trimStart = Math.max(0, (el.trimStart ?? 0) + (next.start - track.start));
@@ -239,6 +279,7 @@ export function PreviewTimelineBar({
   onUpdateElement,
   onReorderElement,
   onSetDuration,
+  onAddSound,
   selectedElementId,
 }: PreviewTimelineBarProps) {
   const [open, setOpen] = useState(true);
@@ -361,6 +402,11 @@ export function PreviewTimelineBar({
       return;
     }
     if (el.type === 'video' || el.type === 'video-device') return; // a recording starts the board
+    if (el.type === 'audio') {
+      onUpdateElement(elementId, { startTime: start || undefined } as Partial<ArtboardElement>);
+      onSelectElement?.(elementId);
+      return;
+    }
     onUpdateElement(elementId, {
       animation: {
         ...(el.animation ?? {}),
@@ -631,6 +677,19 @@ export function PreviewTimelineBar({
             </span>
           ) : (
             <span className="tabular-nums text-xs text-muted-foreground">{duration.toFixed(1)}s</span>
+          )}
+          {onAddSound && (
+            <button
+              type="button"
+              title="Add a sound at the playhead"
+              aria-label="Add sound"
+              className="flex h-7 shrink-0 items-center gap-1 rounded-full border border-border px-2 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+              onClick={() => onAddSound(artboard.id, snap(time))}
+            >
+              <span aria-hidden className="text-sm leading-none">+</span>
+              <MusicIcon className="h-3.5 w-3.5" />
+              Sound
+            </button>
           )}
           <span className="truncate text-xs text-muted-foreground">{artboard.name}</span>
           <span className="ml-auto text-[11px] text-muted-foreground max-sm:hidden">

@@ -6,9 +6,11 @@ import type {
   ElementLocaleOverride,
   LocaleEntry,
   Project,
+  ShapeElementProps,
   TextElementProps,
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
+import { contrastRatio, darken, isDark, lighten, mix, readableOn } from '@/lib/graphics/color';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { hash32 } from '@/lib/i18n/hash';
 import { DEFAULT_BASE_LOCALE, LOCALES } from '@/lib/i18n/locales';
@@ -16,10 +18,12 @@ import { setLocalization } from '@/lib/i18n/localization';
 import {
   AGENT_FONTS,
   AGENT_LIMITS,
+  DECORATION_STYLES,
   LAYOUT_VARIANTS,
   NEW_DESIGN_DEVICE_TYPES,
   type AgentCanvas,
   type AgentPlan,
+  type DecorationStyle,
   type LayoutVariant,
   type NewDesignArtboardSpec,
   type NewDesignSpec,
@@ -530,8 +534,14 @@ function buildNewArtboard(args: {
 
   const color1 = safeHex(board.backgroundColor1, '#101820');
   const color2 = safeHex(board.backgroundColor2, color1);
-  const textColor = safeHex(board.textColor, '#FFFFFF');
   const gradient = board.backgroundType === 'gradient';
+  const textColor = readableTextColor({
+    asked: board.textColor,
+    color1,
+    color2: gradient ? color2 : color1,
+    index,
+    warnings,
+  });
 
   // TextElement renders glyphs at fontSize / 0.3 px, so a template headline of
   // 42 on a 1290px board draws at 140px. Keeping the same ratio makes generated
@@ -541,6 +551,18 @@ function buildNewArtboard(args: {
 
   const elements: ArtboardElement[] = [];
   const id = (suffix: string) => `agent-b${index + 1}-${suffix}`;
+
+  // First in, first drawn. Decoration has to be pushed before the headline and
+  // the device or it covers them: the canvas paints `elements` in order and the
+  // last one wins.
+  elements.push(
+    ...buildDecoration({
+      style: DECORATION_STYLES.includes(board.decoration) ? board.decoration : 'none',
+      color: decorationColor(board.decorationColor, color1, color2, gradient),
+      size,
+      id,
+    })
+  );
 
   elements.push({
     id: id('headline'),
@@ -685,6 +707,171 @@ function clampName(value: string): string {
   return value.trim().slice(0, 60);
 }
 
+/**
+ * The colour decoration is drawn in.
+ *
+ * A model that names one gets it, as long as it reads as hex. Otherwise the
+ * board picks its own: a step away from the background rather than a contrast
+ * to it, because decoration is meant to sit behind the copy and give the flat
+ * colour some depth, not compete with the headline for attention.
+ */
+function decorationColor(
+  asked: string | null,
+  color1: string,
+  color2: string,
+  gradient: boolean
+): string {
+  const wanted = safeHex(asked, '');
+  if (wanted) return wanted;
+  const ground = gradient && color1 !== color2 ? mix(color1, color2, 0.5) : color1;
+  return isDark(ground) ? lighten(ground, 0.42) : darken(ground, 0.24);
+}
+
+/**
+ * One named decoration style, as real elements.
+ *
+ * Every box here is a fraction of the canvas, so a style that looks right on a
+ * 1290x2796 phone board still looks right on the 1024x500 Play banner and on
+ * the watch. Shapes are the built-in kinds only: reaching into the vector
+ * library would mean the plan naming an id, and an id the model invented is a
+ * missing element rather than a plain one.
+ *
+ * Opacities are low on purpose. This runs underneath a headline whose colour
+ * was chosen against the background, not against whatever lands here, so
+ * decoration that reads strongly is decoration that eats the copy.
+ */
+function buildDecoration(args: {
+  style: DecorationStyle;
+  color: string;
+  size: { width: number; height: number };
+  id: (suffix: string) => string;
+}): ArtboardElement[] {
+  const { style, color, size, id } = args;
+  if (style === 'none') return [];
+
+  const { width: w, height: h } = size;
+  const shape = (
+    suffix: string,
+    shapeType: 'circle' | 'rectangle' | 'star',
+    box: Box,
+    extra: Partial<ShapeElementProps> = {}
+  ): ShapeElementProps => ({
+    id: id(suffix),
+    type: 'shape',
+    name: 'Decoration',
+    ...boxToFrame(box, size),
+    rotation: 0,
+    scale: 1,
+    shapeType,
+    fillColor: color,
+    strokeColor: 'transparent',
+    strokeWidth: 0,
+    ...extra,
+  });
+
+  switch (style) {
+    case 'glow':
+      // One big soft disc behind the device. The blur is what sells it, and it
+      // scales with the board so it stays a halo rather than a hard circle.
+      // The boxes are fractions of two different edges, so a round shape needs
+      // its height scaled by the aspect. Sparkles and rings below do the same.
+      return [
+        shape('glow', 'circle', { x: 0.1, y: 0.3, w: 0.8, h: 0.8 * (w / h) }, {
+          blur: Math.round(w * 0.14),
+          opacity: 0.55,
+        }),
+      ];
+    case 'blobs':
+      // Two circles bleeding off opposite corners. Off-canvas edges are what
+      // keep them reading as shapes rather than as two dots.
+      return [
+        shape('blob1', 'circle', { x: -0.28, y: -0.12, w: 0.78, h: 0.36 }, { opacity: 0.22 }),
+        shape('blob2', 'circle', { x: 0.55, y: 0.72, w: 0.85, h: 0.4 }, { opacity: 0.16 }),
+      ];
+    case 'sparkles':
+      // Scattered rather than spaced: an even row reads as a list, not a sky.
+      return [
+        [0.12, 0.24, 0.075],
+        [0.82, 0.15, 0.05],
+        [0.68, 0.34, 0.035],
+        [0.2, 0.66, 0.045],
+        [0.88, 0.74, 0.065],
+      ].map(([x, y, s], n) =>
+        shape(`sparkle${n + 1}`, 'star', { x, y, w: s, h: s * (w / h) }, {
+          opacity: 0.5,
+          customPoints: 4,
+        })
+      );
+    case 'rings':
+      // Outlined, not filled, so the device still reads through them.
+      return [0.86, 0.62, 0.4].map((d, n) =>
+        shape(`ring${n + 1}`, 'circle', { x: (1 - d) / 2, y: 0.34, w: d, h: d * (w / h) }, {
+          fillColor: 'transparent',
+          fillOpacity: 0,
+          strokeColor: color,
+          strokeWidth: Math.max(2, Math.round(w * 0.004)),
+          opacity: 0.3,
+        })
+      );
+    case 'arc':
+      // A wide rounded band across the lower third, wider than the board so its
+      // ends never show as corners.
+      return [
+        shape('arc', 'rectangle', { x: -0.15, y: 0.62, w: 1.3, h: 0.5 }, {
+          borderRadius: '50%',
+          opacity: 0.2,
+        }),
+      ];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Type that can actually be seen on the board it was asked for.
+ *
+ * The colours arrive as two independent strings, and `safeHex` rejects every
+ * form but hex, which models emit constantly ("white", `rgb(0,0,0)`, an
+ * 8-digit hex with alpha). One of the two falling back was enough to make a
+ * board that builds cleanly, reports "3 artboards, 3 screenshots placed", and
+ * shows nothing at all: white type on a white ground, present in the layer list
+ * and invisible on the canvas. That is issue #35.
+ *
+ * So the ground decides the type rather than a constant. A colour the model
+ * asked for is kept whenever it can be read; anything below the threshold, and
+ * anything unparseable, is replaced with `readableOn` the ground and reported.
+ *
+ * The check runs against both gradient stops, because type that clears the
+ * blend can still vanish at one end of a long sweep. The repair is taken from
+ * the midpoint, which clears both ends for anything short of a gradient that
+ * spans white to black. That case cannot be fixed by picking a text colour and
+ * is not worth a second one.
+ */
+const MIN_TEXT_CONTRAST = 3;
+
+function readableTextColor(args: {
+  asked: string | null;
+  color1: string;
+  color2: string;
+  index: number;
+  warnings: string[];
+}): string {
+  const { asked, color1, color2, index, warnings } = args;
+  const ground = color1 === color2 ? color1 : mix(color1, color2, 0.5);
+  const repaired = readableOn(ground);
+
+  const wanted = safeHex(asked, '');
+  if (!wanted) return repaired;
+
+  const worst = Math.min(contrastRatio(wanted, color1), contrastRatio(wanted, color2));
+  if (worst >= MIN_TEXT_CONTRAST) return wanted;
+
+  warnings.push(
+    `Artboard ${index + 1} asked for ${wanted} text on ${ground}, which cannot be read. Using ${repaired}.`
+  );
+  return repaired;
+}
+
 /** Accepts #RGB and #RRGGBB, with or without the hash. Anything else falls back. */
 function safeHex(value: string | null, fallback: string): string {
   if (!value) return fallback;
@@ -737,6 +924,8 @@ export function mockPlan(action: AgentPlan['action'], templateId?: string): Agen
           backgroundColor2: '#2A4B7C',
           backgroundAngle: 135,
           textColor: '#FFFFFF',
+          decoration: 'glow',
+          decorationColor: null,
         },
         {
           name: 'Feature',
@@ -749,6 +938,8 @@ export function mockPlan(action: AgentPlan['action'], templateId?: string): Agen
           backgroundColor2: null,
           backgroundAngle: null,
           textColor: '#101820',
+          decoration: 'glow',
+          decorationColor: null,
         },
         {
           name: 'Close',
@@ -761,6 +952,8 @@ export function mockPlan(action: AgentPlan['action'], templateId?: string): Agen
           backgroundColor2: '#7C1418',
           backgroundAngle: 160,
           textColor: '#FFFFFF',
+          decoration: 'glow',
+          decorationColor: null,
         },
       ],
     } satisfies NewDesignSpec,

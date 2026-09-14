@@ -327,8 +327,8 @@ restarts automatically at startup if it was left on. A **status pill** floats at
 the bottom-right of the canvas (`McpServerStatus.tsx`, desktop only): green + the
 port while running, muted "off" otherwise. Clicking it opens a dialog with the
 server URL (copyable) and a collapsible accordion of per-client setup
-instructions — **Claude Code**, **Claude Desktop**, **VS Code (Copilot)**,
-**Cursor** — plus the list of exposed tools with their parameters.
+instructions for **Claude Code**, **Claude Desktop**, **VS Code (Copilot)**
+and **Cursor**, plus the list of exposed tools with their parameters.
 
 **Connecting a client.** The server speaks MCP over **Streamable HTTP** at
 `http://127.0.0.1:8722/mcp` (localhost only; the port scans upward from 8722 if
@@ -340,14 +340,14 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
 
 **Tools.**
 
-- *Canvas* — `list_artboards`, `get_artboard`, `create_artboard`,
+- *Canvas*: `list_artboards`, `get_artboard`, `create_artboard`,
   `set_active_artboard`, `update_artboard` (rename / resize / reorder; a resize
   scales the elements with the canvas unless `scaleContent:false`),
-  `delete_artboard` (refused on the last one — a project with zero artboards is
+  `delete_artboard` (refused on the last one: a project with zero artboards is
   a state the UI cannot produce and the canvas would read as stuck loading),
-  `duplicate_artboard` (deep copy with fresh element ids — the way to build a
+  `duplicate_artboard` (deep copy with fresh element ids, the way to build a
   set of screenshots that share a base), `set_background`.
-- *Elements* — `add_element`, `add_elements` (a whole board in one atomic
+- *Elements*: `add_element`, `add_elements` (a whole board in one atomic
   update: one round trip, one undo step, and a rejected entry adds nothing),
   `update_element`, `delete_element`, `reorder_element` (z-order is array
   order, so this is how a background slides behind existing work instead of
@@ -355,47 +355,47 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   `transform_elements` (move or scale a set about its shared bounding box).
   Beyond position/size/colour, elements take `opacity`, `shadow`
   (`{x, y, blur, color}`, cast by the real silhouette), `blur`, plus
-  `fillGradient` on shapes and `letterSpacing` / `lineHeight` on text — passing
+  `fillGradient` on shapes and `letterSpacing` / `lineHeight` on text. Passing
   `null` clears one. See `src/lib/elementStyle.ts`.
-- *Measuring* — `measure_element` returns the rendered box in artboard pixels,
+- *Measuring*: `measure_element` returns the rendered box in artboard pixels,
   and for text the actual glyph bounds (`textBox`) plus a `clipped` flag.
   Necessary because text lays out at `fontSize / 0.3` and wraps inside its box,
   so nothing about the real bounds is predictable from the stored props.
-- *Fonts* — `list_fonts` returns the families the app actually loads (from
+- *Fonts*: `list_fonts` returns the families the app actually loads (from
   `src/services/fontService.ts`). `add_element` / `update_element` now **reject**
   an unknown `fontFamily` with the nearest matches, instead of letting the
   browser fall back to a default serif and silently ship the wrong typeface.
-- *Images* — `upload_asset` stores an image once (Dexie `media` table) and
+- *Images*: `upload_asset` stores an image once (Dexie `media` table) and
   returns an `asset:<id>` reference accepted by `imageSrc` / `screenshotSrc`,
   so an icon reused across five boards is sent once rather than five times;
   `list_assets` / `delete_asset` manage them. The reference is expanded to the
   bytes when the element is built, so the saved project is identical to a
-  hand-made one — the saving is on the wire, not on disk.
-- *Export* — `export_png` takes a `scale` (0.1–4; `0.25` gives a readable proof
+  hand-made one: the saving is on the wire, not on disk.
+- *Export*: `export_png` takes a `scale` (0.1 to 4; `0.25` gives a readable proof
   for a sixteenth of the base64) and `save:true` to write the file and return
   its **path** instead of the image. `export_all` renders every board in canvas
   order into one folder as `01_<name>.png`. Files are written by the
   `abs_mcp_write_png` Rust command, defaulting to
   *Downloads/Open Screenshot Generator*, because the JS `fs` plugin only unlocks
   paths the user picked in a dialog and an MCP export is unattended.
-- *Templates and projects* — `list_templates`, `get_template` (the fillable
+- *Templates and projects*: `list_templates`, `get_template` (the fillable
   device/text slots and their stable element ids), `create_project_from_template`
   (copies the template, applies optional text/screenshot fills, opens it and
   lands it in **Recent projects**), `list_projects`, `open_project`.
-- *Palette assets* — `list_library` browses the Elements, Devices and Images
+- *Palette assets*: `list_library` browses the Elements, Devices and Images
   libraries the same way the palette does (groups first, then items). Every
   entry has a `libraryId` that `add_element` accepts in place of `type`/`subType`
   and expands into exactly what clicking that tile would drop:
   `element:shape-octagon`, `image:app-store`, `device:iphone-15-pro`,
   `device3d:iphone-tilted-left-black`, `devicecolor:iphone-outline-sky`.
-- *App Preview videos* — `list_preview_scenes` / `add_preview_scene` drop a
+- *App Preview videos*: `list_preview_scenes` / `add_preview_scene` drop a
   whole finished preview **board** (background, phone mockup, timed copy,
   gesture hints, call to action), already animated and 18 seconds long, inside
   the 15 to 30 second window App Store Connect accepts. That is the cheap path;
   the parts are there too: `add_element` builds `video-device` (a phone playing
   a recording), `video` and `gesture` layers, `set_animation` gives any other
   layer an enter/exit, and `set_preview_duration` sets the board length.
-  `upload_recording` is what puts real footage in — `upload_asset` refuses a
+  `upload_recording` is what puts real footage in. `upload_asset` refuses a
   video, and its `asset:` refs expand into data URLs, which would inline tens of
   megabytes into the project; a recording stays a blob and the element holds
   only its `mediaId`. `list_recordings` lists what is stored.
@@ -408,14 +408,14 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   is drawn at rest, all at once, so two layers must never share a position and
   take turns in time. It looks right in the MP4 and like a smear everywhere
   else. Use time to bring layers IN.
-- *Languages, the set-up* — `list_supported_locales` is the catalog (the store
+- *Languages, the set-up*: `list_supported_locales` is the catalog (the store
   locale to add a language by, whether a machine engine covers it, what App
   Store Connect and Google Play call it, and the font its script needs);
   `add_locales` / `remove_locales` / `set_base_locale` manage the project's own
   list, `list_locales` reads it, and `set_locale` chooses what the canvas shows.
   A language is an **overlay**, not a copy: one set of artboards and one layout,
   with per-language overrides on top, so a design fix reaches every language.
-- *Languages, the copy* — `list_translations` returns the translation table as
+- *Languages, the copy*: `list_translations` returns the translation table as
   data, including where each string came from (`inherited` / `manual` / `auto`,
   and a `stale-` prefix once the base copy has been edited under it), and
   `set_localized_texts` writes a whole batch back in one commit, one undo step.
@@ -423,15 +423,15 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   beats the built-in engine's. `translate_locales` runs that engine anyway for a
   first draft or a `stale` refresh, and `export_translations_csv` /
   `import_translations_csv` are the round trip for a human translation agency.
-- *Languages, the design* — `set_locale_override` gives one element its own
+- *Languages, the design*: `set_locale_override` gives one element its own
   screenshot, typeface, box, position or colour in ONE language, or hides it
   there (`hidden: true`); `reset_locale_overrides` hands an element, an artboard
   or a whole language back to the shared design. `export_png` / `export_all`
   take a `locale`, so a per-language delivery is one call each and the editor is
   left on the language the user had it on.
 
-A model should normally *start from a template* — `list_templates` →
-`get_template` → `create_project_from_template` — and only build from bare
+A model should normally *start from a template* (`list_templates` →
+`get_template` → `create_project_from_template`) and only build from bare
 artboards when nothing fits. Building from scratch, the cheap path is
 `add_elements` for the first board, `duplicate_artboard` per screen, then
 `update_element` for the copy that differs; `upload_asset` for anything reused;
@@ -458,7 +458,7 @@ frontend, where the design state is.
 - **Timeouts are what keep the server self-healing.** A client keeps one HTTP
   connection alive and tiny_http will not read the next request on a connection
   until the current one has been answered, so a single tool call the webview
-  never answers stalls everything queued behind it — `initialize` included. The
+  never answers stalls everything queued behind it, `initialize` included. The
   budget is therefore 12s for ordinary calls and 180s only for the handful that
   render, write a file or rebuild the project (`SLOW_TOOLS` in `mcp_server.rs`,
   mirrored in `desktopMcpServer.ts`). On expiry the pending entry is dropped, a
@@ -467,8 +467,8 @@ frontend, where the design state is.
   the error names the tool that hung rather than just reporting silence.
 - The tool implementations are the `McpDesignApi` built in
   `OpenScreenshotGeneratorLayout.tsx` (assigned to a ref each render so the
-  bridge always sees fresh state). They mutate through `handleArtboardsUpdate` —
-  the same path `CanvasArea` uses — so history, DB persistence and the
+  bridge always sees fresh state). They mutate through `handleArtboardsUpdate`,
+  the same path `CanvasArea` uses, so history, DB persistence and the
   per-artboard element sync all keep working. `export_png` reuses the Export
   dialog's `html-to-image` capture recipe, through the shared
   `artboardCaptureBackground` helper: `html-to-image`'s `backgroundColor` option
@@ -483,7 +483,7 @@ frontend, where the design state is.
   so a follow-up `export_png` finds the artboards in the DOM.
 - The `McpDesignApi` closes over the state of the render that built it, which is
   fine because a client sends its next tool call only after the previous
-  response has travelled back through Rust — React has re-rendered by then and
+  response has travelled back through Rust. React has re-rendered by then and
   the bridge re-reads the ref. Two mutations dispatched inside a *single* tick
   would both start from the same artboard array and the second would win, so
   don't "optimise" the bridge into batching them. `list_projects` sidesteps this

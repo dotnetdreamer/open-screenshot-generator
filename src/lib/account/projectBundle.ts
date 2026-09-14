@@ -41,7 +41,15 @@ const MEDIA_ID_KEYS = ['mediaId', 'screenVideoMediaId'] as const;
  * blobs live in the same media table, so the bundle must carry them exactly
  * like recordings or a moved project opens with empty frames.
  */
-const ASSET_SRC_KEYS = ['imageSrc', 'screenshotSrc', 'customFrameSrc', 'posterSrc'] as const;
+const ASSET_SRC_KEYS = [
+  'imageSrc',
+  'screenshotSrc',
+  'customFrameSrc',
+  'posterSrc',
+  // Board-level, not an element prop: the artboard's own background picture
+  // (see the walk below, which visits the board as well as its elements).
+  'backgroundImage',
+] as const;
 
 /**
  * Every locale override row on a board, flattened. The locale overlay stores a
@@ -67,18 +75,57 @@ function localeOverridesOf(artboard: ArtboardState): Record<string, unknown>[] {
  * src/lib/video/migrateVideoDevices.ts) are picked up too.
  */
 export function collectMediaIds(projectData: ArtboardState[]): string[] {
+  return walkMediaIds(projectData, { videos: true, images: true, sounds: true });
+}
+
+/**
+ * Just the recordings, without reading a single blob.
+ *
+ * The split falls out of how elements reference things rather than out of the
+ * media rows: a recording is pointed at by a `mediaId` field, a picture by an
+ * `asset:<id>` string in a src prop (see src/lib/mediaStore.ts). So "does this
+ * project contain video" is answerable from the document alone, which is what
+ * lets the gist path refuse recordings without paying to load every blob in
+ * IndexedDB first. The provider still checks the real mimeType on the bundle it
+ * is handed, so a row that does not match its reference is caught there.
+ *
+ * Sound layers use the same `mediaId` field but are left out: a sound is small
+ * enough for a gist, and counting it here would block GitHub sync for nothing.
+ */
+export function collectVideoMediaIds(projectData: ArtboardState[]): string[] {
+  return walkMediaIds(projectData, { videos: true, images: false, sounds: false });
+}
+
+/** Just the pictures: uploaded screenshots, frames, posters, board backgrounds. */
+export function collectImageAssetIds(projectData: ArtboardState[]): string[] {
+  return walkMediaIds(projectData, { videos: false, images: true, sounds: false });
+}
+
+function walkMediaIds(
+  projectData: ArtboardState[],
+  { videos, images, sounds }: { videos: boolean; images: boolean; sounds: boolean }
+): string[] {
   const ids = new Set<string>();
   const take = (record: Record<string, unknown>) => {
-    for (const key of MEDIA_ID_KEYS) {
-      const value = record[key];
-      if (typeof value === 'string' && value) ids.add(value);
+    if (record.type === 'audio' ? sounds : videos) {
+      for (const key of MEDIA_ID_KEYS) {
+        const value = record[key];
+        if (typeof value === 'string' && value) ids.add(value);
+      }
     }
-    for (const key of ASSET_SRC_KEYS) {
-      const value = record[key];
-      if (isAssetRef(value)) ids.add(assetIdFromRef(value));
+    if (images) {
+      for (const key of ASSET_SRC_KEYS) {
+        const value = record[key];
+        if (isAssetRef(value)) ids.add(assetIdFromRef(value));
+      }
     }
   };
   for (const artboard of projectData ?? []) {
+    // The board itself first: its background picture is an asset reference like
+    // any element's, and a manifest that misses it does not merely fail to
+    // upload the blob, it tells the server and Drive to DELETE the one already
+    // there (the manifest is the whole list, never a diff).
+    take(artboard as unknown as Record<string, unknown>);
     for (const element of artboard.elements ?? []) {
       take(element as unknown as Record<string, unknown>);
     }
@@ -115,13 +162,21 @@ export async function serializeProject(
 ): Promise<ProjectBundle> {
   const mediaIds = collectMediaIds(project.projectData);
   const media: BundledMedia[] = [];
+  const missingMedia: string[] = [];
 
   for (const [index, id] of mediaIds.entries()) {
     onProgress?.(`Reading media ${index + 1} of ${mediaIds.length}`, index / mediaIds.length);
     const asset = await db.media.get(id);
     // A missing row means the blob was cleared (site data wiped) while the
-    // element kept pointing at it. Skip rather than fail the whole save.
-    if (!asset) continue;
+    // element kept pointing at it. Skip rather than fail the whole save, but
+    // say so: a bundle that quietly forgets a recording looks identical to one
+    // whose project never had it, and a provider that sweeps what the bundle
+    // omits would then delete the remote copy this device can no longer
+    // replace. `syncProjectToAccount` refuses on a non-empty list.
+    if (!asset) {
+      missingMedia.push(id);
+      continue;
+    }
     media.push({
       meta: {
         id: asset.id,
@@ -165,7 +220,7 @@ export async function serializeProject(
     ...(fonts.length ? { fonts: fonts.map((f) => f.meta) } : {}),
   };
 
-  return { manifest, media, fonts };
+  return { manifest, media, fonts, missingMedia };
 }
 
 /**
@@ -334,9 +389,15 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
 
   const metas = Array.isArray(file.media) ? file.media : [];
   const media: BundledMedia[] = [];
+  const missingMedia: string[] = [];
   for (const meta of metas) {
     const encoded = file.mediaData?.[meta.id];
-    if (!encoded) continue; // metadata without payload: nothing to restore
+    // Metadata without payload: nothing to restore, and the same hazard the
+    // serialize side has, so it is reported the same way.
+    if (!encoded) {
+      missingMedia.push(meta.id);
+      continue;
+    }
     media.push({ meta, blob: base64ToBlob(encoded, meta.mimeType) });
   }
 
@@ -355,6 +416,7 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
     },
     media,
     fonts,
+    missingMedia,
   };
 }
 

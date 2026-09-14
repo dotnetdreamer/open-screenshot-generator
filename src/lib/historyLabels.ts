@@ -99,6 +99,8 @@ export function getElementDisplayName(element: ArtboardElement, maxLength = 20):
       return 'Recording';
     case 'gesture':
       return `${capitalize(element.gestureType)} Hint`;
+    case 'audio':
+      return 'Sound';
     default:
       return capitalize((element as ArtboardElement).type);
   }
@@ -162,15 +164,32 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
     label: 'Corner Radius',
     icon: 'edit',
   },
+  { keys: ['tintColor', 'tintOpacity'], label: 'Tint', icon: 'color' },
   { keys: ['objectFit', 'screenshotObjectFit', 'screenshotRect'], label: 'Screen Fit', icon: 'resize' },
   { keys: ['trimStart', 'trimEnd'], label: 'Trim Recording', icon: 'edit' },
+  { keys: ['startTime'], label: 'Retime', icon: 'edit' },
+  { keys: ['keepAudio'], label: 'Recording Sound', icon: 'edit' },
+  { keys: ['volume'], label: 'Volume', icon: 'edit' },
   { keys: ['triggerTime', 'gestureDuration', 'gestureRepeat'], label: 'Gesture Timing', icon: 'edit' },
   { keys: ['animation'], label: 'Animation', icon: 'edit' },
   { keys: ['groupId'], label: 'Group', icon: 'edit' },
 ];
 
 const ARTBOARD_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }> = [
-  { keys: ['backgroundColor', 'backgroundType', 'backgroundGradient'], label: 'Artboard Background', icon: 'color' },
+  {
+    keys: [
+      'backgroundColor',
+      'backgroundType',
+      'backgroundGradient',
+      'backgroundImage',
+      'backgroundImageFit',
+      'backgroundImageApply',
+      'backgroundImageTintColor',
+      'backgroundImageTintOpacity',
+    ],
+    label: 'Artboard Background',
+    icon: 'color',
+  },
   { keys: ['size'], label: 'Canvas Size', icon: 'resize' },
   { keys: ['name'], label: 'Rename Artboard', icon: 'edit' },
   { keys: ['language'], label: 'Translate', icon: 'translate' },
@@ -179,7 +198,7 @@ const ARTBOARD_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }
 ];
 
 // Derived every update from the artboard order, so it never signals an edit.
-const ARTBOARD_IGNORED = new Set(['position', 'elements']);
+const ARTBOARD_IGNORED = new Set(['position', 'elements', 'backgroundImageSlice']);
 
 function matchRule(
   rules: Array<{ keys: string[]; label: string; icon: HistoryIcon }>,

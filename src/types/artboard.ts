@@ -12,7 +12,9 @@ export interface Size {
 // that plays a screen recording inside the same frame (see VideoDeviceElement).
 // They share the frame chrome (elements/deviceChrome.tsx) but nothing else:
 // a video device has no screenshot rect, no 3D pose, and its own properties.
-export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture';
+// 'audio' is a sound layer on an App Preview board: it has a place on the
+// timeline and in the Layers panel, but nothing on the canvas.
+export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture' | 'audio';
 
 // Enter/exit animation presets for App Preview video exports. On the canvas
 // elements render static; the presets only play in the exported MP4 (and the
@@ -223,6 +225,11 @@ export interface VideoDeviceElementProps extends BaseElement {
   videoSrc?: string;
   trimStart?: number; // seconds into the recording playback starts
   trimEnd?: number; // seconds into the recording playback stops
+  // The recording's own sound, heard while the board previews and mixed into
+  // the export. Unset is silent: every recording made before this existed was
+  // exported without it. An upload turns it on.
+  keepAudio?: boolean;
+  volume?: number; // 0..1 of the recording's sound; unset is 1
   objectFit?: 'contain' | 'cover' | 'fill'; // how the recording fills the screen
   // Placeholder shown on the canvas (and in exports) until a recording is
   // uploaded, so templates read as designs instead of black rectangles.
@@ -244,6 +251,18 @@ export interface ImageElementProps extends BaseElement {
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
   opacity?: number;
   borderRadius?: number;
+  /**
+   * A colour laid over the picture, for legibility behind text (issue #33).
+   * Any CSS colour; unset means no tint.
+   *
+   * Applied to the PAINTED PIXELS only, through an SVG filter, so it follows
+   * whatever objectFit draws and leaves a cut-out PNG's transparent ground
+   * alone instead of turning it into a coloured rectangle. See imageTint in
+   * src/lib/elementStyle.ts.
+   */
+  tintColor?: string;
+  /** How strongly the tint covers the picture. 0..1; 0 or unset is no tint. */
+  tintOpacity?: number;
   // Transform properties
   skewX?: number; // Skew along X-axis in degrees
   skewY?: number; // Skew along Y-axis in degrees
@@ -263,6 +282,8 @@ export interface VideoElementProps extends BaseElement {
   opacity?: number;
   trimStart?: number; // seconds into the recording playback starts
   trimEnd?: number; // seconds into the recording playback stops
+  keepAudio?: boolean; // play and export the recording's own sound; unset is silent
+  volume?: number; // 0..1 of the recording's sound; unset is 1
   naturalVideoWidth?: number;
   naturalVideoHeight?: number;
   durationSeconds?: number; // source duration, probed on upload
@@ -288,6 +309,22 @@ export interface GestureElementProps extends BaseElement {
   gestureRepeat?: boolean; // loop for the whole video instead of playing once
 }
 
+// A sound on an App Preview board: music, a voiceover, a tap click. It plays
+// with the editor preview and is mixed into the exported MP4's audio track.
+// Like a recording, the file lives in the Dexie `media` table and the element
+// keeps only the row id, which is also what carries it through project.json
+// and every storage provider (see lib/account/projectBundle.ts). Position and
+// size are unused; the element is never drawn.
+export interface AudioElementProps extends BaseElement {
+  type: 'audio';
+  mediaId?: string; // Dexie media row id of the uploaded sound
+  startTime?: number; // second of the preview the sound comes in at; default 0
+  trimStart?: number; // seconds into the file playback starts
+  trimEnd?: number; // seconds into the file playback stops
+  volume?: number; // 0..1; unset is 1
+  durationSeconds?: number; // source duration, probed on upload
+}
+
 export type ArtboardElement =
   | TextElementProps
   | ShapeElementProps
@@ -295,7 +332,8 @@ export type ArtboardElement =
   | ImageElementProps
   | VideoElementProps
   | VideoDeviceElementProps
-  | GestureElementProps;
+  | GestureElementProps
+  | AudioElementProps;
 
 /**
  * One locale's overrides for one element. Every field is optional and anything
@@ -401,6 +439,61 @@ export interface ArtboardState {
     color2: string;
     angle: number;
   };
+  /**
+   * A picture drawn behind the elements and over backgroundColor /
+   * backgroundGradient, so a board can have both a ground colour and art.
+   *
+   * Deliberately NOT another backgroundType: it renders as a real <img> layer
+   * inside the board, never as a CSS background-image. WebKit paints an
+   * SVG-as-image without waiting for a CSS background to decode, so a board
+   * whose art came through CSS would export a PNG with the picture missing and
+   * nothing reporting it (see the header of src/lib/exportRaster.ts).
+   *
+   * Same source shapes an image element takes: `asset:<id>`, a public path, an
+   * http(s) URL or a data: URL.
+   */
+  backgroundImage?: string;
+  /** How the picture fills its box. Defaults to 'cover'. */
+  backgroundImageFit?: 'cover' | 'contain' | 'fill';
+  /**
+   * A colour laid over the background picture, the usual way to hold a photo
+   * back so text on top of it stays readable (issue #33). Same rules as an
+   * image element's tintColor: painted pixels only, unset means none.
+   */
+  backgroundImageTintColor?: string;
+  /** How strongly the tint covers the picture. 0..1; 0 or unset is no tint. */
+  backgroundImageTintOpacity?: number;
+  /**
+   * How far the picture reaches (issue #32).
+   *
+   *   'board' (or absent) only this artboard
+   *   'all'              every artboard, each showing the whole picture
+   *   'span'             every artboard, each showing its own SLICE, so the
+   *                      set reads as sections of one larger image
+   *
+   * Both shared modes are sticky: normalizeBackgroundImage puts any board that
+   * has no picture of its own onto the shared one, which is how an artboard
+   * added later joins without the code that made it knowing this exists.
+   * Slice geometry is derived, see backgroundImageSlice.
+   */
+  backgroundImageApply?: 'board' | 'all' | 'span';
+  /**
+   * Where this board sits inside a spanned picture, in artboard pixels.
+   *
+   * DERIVED and overwritten on every update, exactly like `position`:
+   * normalizeBackgroundImage() re-stamps it from the board order, which is what
+   * keeps a span correct after a board is added, deleted, duplicated, reordered
+   * or resized. Authoring it does nothing.
+   *
+   * Canvas gaps are not part of it. The width it measures is the sum of the
+   * boards' own widths, so the exported PNGs laid edge to edge rebuild the
+   * picture, which is how a store listing shows them. `totalHeight` is the
+   * tallest board in the group, and it is there so that every board resolves
+   * the SAME cover/contain scale: sized against its own height instead, two
+   * boards of different heights would crop the picture differently and the
+   * slices would not line up.
+   */
+  backgroundImageSlice?: { offsetX: number; totalWidth: number; totalHeight: number };
   zoom: number; // Zoom level for the artboard's content itself
   exportScale?: number; // Optional export scale for higher resolution exports
   // App Preview boards: how long the timeline runs, in seconds. Unset means
