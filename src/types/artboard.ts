@@ -225,6 +225,11 @@ export interface VideoDeviceElementProps extends BaseElement {
   videoSrc?: string;
   trimStart?: number; // seconds into the recording playback starts
   trimEnd?: number; // seconds into the recording playback stops
+  // The recording's own sound, heard while the board previews and mixed into
+  // the export. Unset is silent: every recording made before this existed was
+  // exported without it. An upload turns it on.
+  keepAudio?: boolean;
+  volume?: number; // 0..1 of the recording's sound; unset is 1
   objectFit?: 'contain' | 'cover' | 'fill'; // how the recording fills the screen
   // Placeholder shown on the canvas (and in exports) until a recording is
   // uploaded, so templates read as designs instead of black rectangles.
@@ -277,6 +282,8 @@ export interface VideoElementProps extends BaseElement {
   opacity?: number;
   trimStart?: number; // seconds into the recording playback starts
   trimEnd?: number; // seconds into the recording playback stops
+  keepAudio?: boolean; // play and export the recording's own sound; unset is silent
+  volume?: number; // 0..1 of the recording's sound; unset is 1
   naturalVideoWidth?: number;
   naturalVideoHeight?: number;
   durationSeconds?: number; // source duration, probed on upload

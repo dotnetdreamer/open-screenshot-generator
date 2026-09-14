@@ -789,6 +789,12 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   },
   trimStart: { type: 'number', description: 'Seconds into the recording playback starts (video-device / video).' },
   trimEnd: { type: 'number', description: 'Seconds into the recording playback stops (video-device / video).' },
+  keepAudio: {
+    type: 'boolean',
+    description:
+      "Play the recording's own sound in the preview and mix it into the exported MP4, over the same trim as the picture (video-device / video). Unset or false is silent. Changing mediaId leaves this flag as it was, so pass true when the new recording's sound should be heard and false when it should not.",
+  },
+  volume: { type: 'number', description: "0..1 loudness of a recording's sound (with keepAudio) or of a sound layer. Default 1." },
   gestureType: {
     type: 'string',
     enum: GESTURE_TYPES,
@@ -1134,7 +1140,7 @@ const TOOLS: ToolDef[] = [
         const stored = await saveRecordingAsset(String(args.source ?? ''), { name: args.name, mimeType: args.mimeType });
         return textResult({
           ...stored,
-          next: `Put it in the phone with update_element { elementId: "<the video-device layer>", mediaId: "${stored.mediaId}" }.`,
+          next: `Put it in the phone with update_element { elementId: "<the video-device layer>", mediaId: "${stored.mediaId}", keepAudio: true }. Pass keepAudio: false instead for a silent recording, since a layer that already plays sound keeps it otherwise.`,
         });
       } catch (error) {
         return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };

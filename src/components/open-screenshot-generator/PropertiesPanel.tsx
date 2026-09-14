@@ -33,6 +33,7 @@ import { withBasePath } from '@/lib/basePath';
 import { fitTextBox } from '@/lib/textFit';
 import { VIDEO_ACCEPT } from './elements/VideoElement';
 import { soundLayerName } from '@/lib/video/audio';
+import { uploadKeepsAudio, useRecordingHasSound } from '@/lib/video/recordingAudio';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -63,6 +64,13 @@ function SoundFileStatus({ element }: { element: AudioElementProps }) {
   return element.durationSeconds ? (
     <p className="text-xs text-muted-foreground">{element.durationSeconds.toFixed(1)}s long</p>
   ) : null;
+}
+
+/** A note when the recording has no sound track to keep. */
+function RecordingSoundStatus({ mediaId }: { mediaId: string | undefined }) {
+  const hasSound = useRecordingHasSound(mediaId);
+  if (hasSound !== false) return null;
+  return <p className="text-[11px] text-muted-foreground">This recording has no sound</p>;
 }
 
 // Panel headings. Derived names read badly for the compound types
@@ -361,6 +369,9 @@ const DEVICE_PERSPECTIVE_KEYS: DetachableKey[] = ['styleType', 'matrix3d'];
 
 /** Start and end are one trim. */
 const TRIM_KEYS: DetachableKey[] = ['trimStart', 'trimEnd'];
+
+/** The volume means nothing while the recording's sound is off. */
+const RECORDING_SOUND_KEYS: DetachableKey[] = ['keepAudio', 'volume'];
 
 /** Looping decides whether the trigger time means anything, so it goes with it. */
 const GESTURE_TIMING_KEYS: DetachableKey[] = ['gestureRepeat', 'triggerTime', 'gestureDuration'];
@@ -1419,6 +1430,9 @@ export function PropertiesPanel({
     if (!file || !selectedElement) return;
     try {
       const { id, probe } = await saveMedia(file, file.name);
+      const keepAudio = selectedElement.type === 'video-device' || selectedElement.type === 'video'
+        ? uploadKeepsAudio(selectedElement)
+        : undefined;
       if (selectedElement.type === 'video-device') {
         onUpdateElement({
           mediaId: id,
@@ -1427,6 +1441,7 @@ export function PropertiesPanel({
           durationSeconds: probe.duration,
           trimStart: undefined,
           trimEnd: undefined,
+          keepAudio,
         });
       } else if (selectedElement.type === 'video') {
         onUpdateElement({
@@ -1437,6 +1452,7 @@ export function PropertiesPanel({
           durationSeconds: probe.duration,
           trimStart: undefined,
           trimEnd: undefined,
+          keepAudio,
         });
       }
     } catch (error) {
@@ -1915,6 +1931,51 @@ export function PropertiesPanel({
   // Phone/tablet mockup playing a screen recording. Deliberately NOT the
   // screenshot device panel: no screenshot upload, no screenshot rect sliders,
   // no 3D pose or perspective (a recording only composites into a flat frame).
+  // The recording's own sound. Shared by the mockup and the frameless recording.
+  const renderRecordingSound = (element: VideoElementProps | VideoDeviceElementProps, idPrefix: string) => {
+    const soundSwitch = (
+      <div className="flex items-center gap-2">
+        <input
+          id={`${idPrefix}KeepAudio`}
+          type="checkbox"
+          className="h-4 w-4 accent-primary"
+          checked={element.keepAudio ?? false}
+          onChange={(e) => onUpdateElement({ keepAudio: e.target.checked })}
+        />
+        <Label htmlFor={`${idPrefix}KeepAudio`} className="text-xs">Play the recording's sound</Label>
+      </div>
+    );
+    return (
+      <>
+        {localeActive ? (
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-1">
+            {soundSwitch}
+            {detachToggle(RECORDING_SOUND_KEYS, 'Sound')}
+          </div>
+        ) : (
+          <div className="pt-1">{soundSwitch}</div>
+        )}
+        <RecordingSoundStatus mediaId={element.mediaId} />
+        {element.keepAudio && (
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor={`${idPrefix}Volume`} className="text-xs">
+              Volume: {Math.round((element.volume ?? 1) * 100)}%
+            </Label>
+            <Slider
+              id={`${idPrefix}Volume`}
+              min={0}
+              max={100}
+              step={1}
+              value={[(element.volume ?? 1) * 100]}
+              onValueChange={(value) => onUpdateElement({ volume: value[0] / 100 })}
+              className="my-2"
+            />
+          </div>
+        )}
+      </>
+    );
+  };
+
   const renderVideoDeviceProperties = (element: VideoDeviceElementProps) => (
     <>
       <div className="flex flex-col space-y-1 min-w-[150px]">
@@ -2015,6 +2076,7 @@ export function PropertiesPanel({
             plays inside the screen and renders into the exported video.
           </p>
         )}
+        {(element.mediaId || element.videoSrc) && renderRecordingSound(element, 'vd')}
       </div>
 
       <div className="flex flex-col space-y-1 min-w-[150px]">
@@ -2192,6 +2254,7 @@ export function PropertiesPanel({
           {secondsInput(element.trimEnd, (v) => onUpdateElement({ trimEnd: v }), 'vTrimEnd', 'full length')}
         </div>
       </div>
+      {(element.mediaId || element.videoSrc) && renderRecordingSound(element, 'v')}
       <div className="flex flex-col space-y-1 min-w-[150px]">
         {detachLabelRow(
           <Label htmlFor="videoObjectFit" className="text-xs">Fit</Label>,

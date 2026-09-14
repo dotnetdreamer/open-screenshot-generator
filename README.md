@@ -226,8 +226,11 @@ composited on a canvas and fed to the hardware H.264 encoder, then muxed to MP4.
 anywhere. The recording itself is stored as a blob in IndexedDB rather than inside the project, so an
 exported project file stays small and does not carry your footage.
 
-Two things it does not do yet: audio (the MP4 is video only, and the canvas player is silent too), and
-3D or tilted poses for recording mockups (they render flat).
+Sound comes from two places: the recording's own sound, kept when you upload it (switch it off in
+Properties), and sound layers added with "+ Sound" on the timeline. Both play when you press play and
+are mixed into the MP4's AAC track.
+
+One thing it does not do yet: 3D or tilted poses for recording mockups (they render flat).
 
 ## The AI agent
 

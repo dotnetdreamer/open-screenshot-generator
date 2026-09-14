@@ -64,6 +64,11 @@ export function notifyMediaChanged(): void {
   mediaListeners.forEach((listener) => listener());
 }
 
+/** Bumped whenever rows land from somewhere other than a user action. */
+export function getMediaRevision(): number {
+  return mediaRevision;
+}
+
 export function subscribeMedia(listener: () => void): () => void {
   mediaListeners.add(listener);
   return () => {

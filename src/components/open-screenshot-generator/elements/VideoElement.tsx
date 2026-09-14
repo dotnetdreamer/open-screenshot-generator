@@ -8,6 +8,7 @@ import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
 import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
+import { uploadKeepsAudio } from '@/lib/video/recordingAudio';
 
 interface VideoElementComponentProps {
   element: VideoElementProps;
@@ -35,7 +36,13 @@ export function VideoElement({ element, onUpdate, isSelected, artboardId }: Vide
       : undefined;
   useTimelineVideo(
     videoRef,
-    { trimStart: element.trimStart, trimEnd: element.trimEnd, durationSeconds: element.durationSeconds },
+    {
+      trimStart: element.trimStart,
+      trimEnd: element.trimEnd,
+      durationSeconds: element.durationSeconds,
+      keepAudio: element.keepAudio,
+      volume: element.volume,
+    },
     artboardId,
     src
   );
@@ -55,6 +62,7 @@ export function VideoElement({ element, onUpdate, isSelected, artboardId }: Vide
         durationSeconds: probe.duration,
         trimStart: undefined,
         trimEnd: undefined,
+        keepAudio: uploadKeepsAudio(element),
       });
     } catch (error) {
       toast({
