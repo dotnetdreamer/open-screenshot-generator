@@ -24,7 +24,11 @@
     "build:assistant-agent": "esbuild src/lib/ai/webAssistantAgent.ts --bundle --format=iife --target=chrome110 --outfile=src-tauri/assistant/agent.js",
     "tauri": "tauri",
     "tauri:dev": "npm run build:assistant-agent && tauri dev",
-    "tauri:build": "npm run build:assistant-agent && tauri build"
+    "tauri:build": "npm run build:assistant-agent && tauri build",
+    "osg": "node cli/dist/cli.js",
+    "cli:build": "npm run build && cd cli && npm ci && npm run build && npm run pack:editor",
+    "cli:pack": "npm run cli:build && cd cli && npm pack --dry-run",
+    "cli:publish": "npm run build && cd cli && npm ci && npm publish --access public --provenance=false"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.11",

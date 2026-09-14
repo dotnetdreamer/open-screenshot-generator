@@ -1,6 +1,6 @@
 {
   "name": "open-screenshot-generator",
-  "version": "0.1.27",
+  "version": "0.1.31",
   "description": "App Store and Play Store screenshots, preview videos and 49 design tools for coding agents. Drives the real Open Screenshot Generator editor headlessly.",
   "license": "MIT",
   "type": "module",

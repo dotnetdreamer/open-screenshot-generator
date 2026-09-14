@@ -2,7 +2,7 @@
 # from the repository's own out/ and src/, so it is a build product, not source.
 node_modules/
 dist/
-editor/
+/editor/
 assets.manifest.json
 tools.json
 skills/
