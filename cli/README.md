@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/cli/LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20.12-informational)](https://nodejs.org)
 
-App Store and Play Store screenshots, preview videos and 49 design tools, driven from your terminal or from your coding agent.
+App Store and Play Store screenshots, preview videos and 49 design tools, run from your terminal or your coding agent.
 
 ```
 $ npx -y open-screenshot-generator@0 all
@@ -29,7 +29,7 @@ ok osg/manifest.json                                          36 files, 14.7 MB
 ok verify: 36 files, 0 problems
 ```
 
-Those are the real sizes. `ios-6-9` is 1290 x 2796, the tier App Store Connect requires for iPhone. `ipad-13` is 2064 x 2752, required if your app runs on iPad. `play-phone` is 1080 x 1920, `play-feature-graphic` is exactly 1024 x 500, and an App Store preview video is 886 x 1920 at 30 fps H.264, between 15 and 30 seconds, which is what App Review accepts.
+Each file comes out at the size the store asks for. `ios-6-9` is 1290 x 2796, which App Store Connect requires for iPhone. `ipad-13` is 2064 x 2752, required if your app runs on iPad. `play-phone` is 1080 x 1920 and `play-feature-graphic` is 1024 x 500. An App Store preview video is 886 x 1920 at 30 fps in H.264, 15 to 30 seconds long, which is what App Review accepts.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/dotnetdreamer/open-screenshot-generator/main/docs/demo.gif" alt="Placing device mockups on artboards and exporting store-ready screenshots" width="900">
@@ -37,20 +37,20 @@ Those are the real sizes. `ios-6-9` is 1290 x 2796, the tier App Store Connect r
 
 ## What this is
 
-[Open Screenshot Generator](https://openscrgen.app) is a free, open source editor for store graphics: artboards on a canvas, device mockups on the artboards, your screenshots inside the frames, text and shapes around them, exported at the sizes both stores ask for.
+[Open Screenshot Generator](https://openscrgen.app) is a free, open source editor for store graphics. You lay out artboards on a canvas, put device mockups on them, drop your screenshots into the frames, add text and shapes, and export at the sizes both stores ask for.
 
-This package is that editor with no window. It starts a loopback HTTP server, loads the real editor bundle in a headless Chrome or Edge, and drives it through `window.__osg`. There is no second renderer in here and no reimplementation of the layout engine, so a PNG the CLI writes is byte for byte the PNG the app writes, and a project the CLI builds opens in the app with nothing missing.
+This package is the same editor without a window. It starts a local HTTP server, opens the real editor bundle in a headless Chrome or Edge, and drives it through `window.__osg`. Nothing is reimplemented, so a PNG from the CLI matches the app's export byte for byte, and a project built with the CLI opens in the app with nothing missing.
 
-That is also why an agent gets the whole product and not a subset: the same 49 design tools the desktop MCP server exposes, the same 101 templates, the same 57 languages, the same video encoder.
+Your coding agent gets the whole product, not a subset: the same 49 design tools as the desktop MCP server, the same 101 templates, the same 57 languages and the same video encoder.
 
 ## Before you start
 
-- **Node 20.12 or newer.** `node --version` to check.
-- **A Chrome, Edge or Chromium on this machine.** The CLI finds it. `osg doctor --install-browser` fetches one if there is none.
-- **A branded Chrome or Edge for MP4 export.** Open Chromium builds ship no H.264 encoder, so `osg video` cannot run on them. PNG export, the 49 tools and the AI agent work on any of them. `osg doctor` tells you which you have.
-- **Your app screenshots**, in a folder, in the order you want them. Or run `osg import` and it pulls the name, the icon and the screenshots off your current App Store listing.
+- **Node 20.12 or newer.** Run `node --version` to check.
+- **Chrome, Edge or Chromium.** The CLI finds the one you have. If there is none, `osg doctor --install-browser` downloads one.
+- **Chrome or Edge for MP4 export.** Chromium builds do not include an H.264 encoder, so `osg video` does not work with them. PNG export, the 49 tools and the AI agent work in all three. `osg doctor` tells you which one you have.
+- **Your app screenshots** in a folder, in the order you want them. Or run `osg import` to pull the name, icon and screenshots from your current App Store listing.
 
-Nothing else. No account, no API key unless you use `osg design`, no watermark, no export cap.
+You do not need an account, and there is no watermark or export limit. An API key is needed only for `osg design`.
 
 ## Install
 
@@ -60,78 +60,78 @@ Run it without installing:
 npx -y open-screenshot-generator@0 doctor
 ```
 
-Or put `osg` on your PATH:
+Or install it globally to put `osg` on your PATH:
 
 ```sh
 npm i -g open-screenshot-generator
 osg doctor
 ```
 
-Both bins are the same program: `osg` and `open-screenshot-generator`.
+`osg` and `open-screenshot-generator` are two names for the same command.
 
-## Sixty seconds
+## Quick start
 
 ```sh
 mkdir store-assets && cd store-assets
 
 npx -y open-screenshot-generator@0 init                          # writes osg/osg.config.ts
-npx -y open-screenshot-generator@0 fill --screenshots ./shots    # ranks 101 templates, places, fits the copy
-npx -y open-screenshot-generator@0 render                        # PNGs at store sizes
+npx -y open-screenshot-generator@0 fill --screenshots ./shots    # picks a template, places your screenshots, fits the text
+npx -y open-screenshot-generator@0 render                        # exports PNGs at store sizes
 ```
 
-`fill` is deterministic and model free. It reads the aspect ratio and content of your screenshots, ranks the bundled templates against them, places each shot in a device frame in the order you gave, and re-fits the headline boxes so nothing clips. No key, no network beyond the first artwork fetch.
+`fill` needs no AI and gives the same result every time. It looks at the shape and content of your screenshots, ranks the bundled templates against them, puts each screenshot in a device frame in your order, and resizes the headlines so none of them get cut off. It needs no API key, and it goes online only to download artwork the first time.
 
-When you would rather describe it than pick it:
+To describe the design in your own words instead:
 
 ```sh
 npx -y open-screenshot-generator@0 design ./shots "clean dark theme, the app is a running tracker, headline the streaks"
 ```
 
-And once the project exists, `osg all` is the whole pipeline: doctor, build, render, video, manifest, verify.
+Once the project exists, `osg all` runs the whole pipeline: doctor, build, render, video, manifest and verify.
 
 ## Commands
 
 | Command | What it does |
 | --- | --- |
-| `osg init` | Scaffold `osg/osg.config.ts` and `osg/.gitignore`, print the next steps |
-| `osg doctor` | Preflight the machine: node, browser, H.264, cache, editor bundle. `--json`, `--install-browser` |
-| `osg templates` | List and search the 101 bundled templates. Browser free, instant |
-| `osg new` | Create a project from a template, place screenshots, write the project file |
-| `osg import` | Pull an app's existing App Store listing: name, icon, current screenshots |
-| `osg fill` | Deterministic auto fill: rank templates, place shots, fit copy. No model |
-| `osg design` | The AI agent: screenshots plus one instruction become a finished project |
-| `osg edit` | Run design tool calls against the open project. `--tool`/`--args`, `--script`, `--stdin` |
-| `osg call` | One tool call, raw JSON result on stdout |
-| `osg render` | The store PNG run, per format and per locale |
-| `osg video` | The MP4 app preview run |
-| `osg localize` | Add languages, machine translate, CSV round trip |
-| `osg verify` | Audit the produced files against store rules. Exits 3 on failure |
-| `osg manifest` | Write `osg.manifest.json` describing everything that exists |
-| `osg studio` | Open the real editor, headed, on the current project |
-| `osg upload` | Push the rendered set to App Store Connect or Google Play |
-| `osg mcp` | Run an MCP server exposing all 49 design tools. `--stdio` or `--http` |
-| `osg install` | Write the MCP entry into a detected agent config |
-| `osg cache` | `warm`, `info`, `prune` the artwork and font caches |
-| `osg editor` | `status`, `use <dir>`, `reset` |
-| `osg all` | doctor, then build, render, video, manifest, verify |
+| `osg init` | Create `osg/osg.config.ts` and `osg/.gitignore`, then print the next steps |
+| `osg doctor` | Check that this machine has everything it needs: Node, a browser, H.264, the cache and the editor bundle. `--json`, `--install-browser` |
+| `osg templates` | List and search the 101 bundled templates. Fast, and opens no browser |
+| `osg new` | Create a project from a template, place your screenshots and save the project file |
+| `osg import` | Pull an app's current App Store listing: name, icon and screenshots |
+| `osg fill` | Pick the best template for your screenshots, place them and fit the text. No AI |
+| `osg design` | The AI agent: your screenshots and one instruction become a finished project |
+| `osg edit` | Run design tool calls on the open project. `--tool`/`--args`, `--script`, `--stdin` |
+| `osg call` | Run one tool call and print the raw JSON result on stdout |
+| `osg render` | Export the store PNGs for each format and language |
+| `osg video` | Export the App Store preview video |
+| `osg localize` | Add languages, machine translate the text, and round trip it through CSV |
+| `osg verify` | Check the exported files against the store rules. Exits 3 when a file fails |
+| `osg manifest` | Write `osg.manifest.json`, a record of everything the project has produced |
+| `osg studio` | Open the editor in a visible browser window on the current project |
+| `osg upload` | Upload the exported set to App Store Connect or Google Play |
+| `osg mcp` | Run an MCP server with all 49 design tools. `--stdio` or `--http` |
+| `osg install` | Add the MCP server to a coding agent config it finds on this machine |
+| `osg cache` | Manage the artwork and font caches: `warm`, `info`, `prune` |
+| `osg editor` | Manage which editor bundle the CLI uses: `status`, `use <dir>`, `reset` |
+| `osg all` | Run doctor, then build, render, video, manifest and verify |
 
-Global flags, on every command: `--config` `--project` `--out` `--editor-url` `--browser` `--headed` `--offline` `--json` `--verbose` `--quiet` `--assets-base-url` `--timeout`.
+These flags work on every command: `--config` `--project` `--out` `--editor-url` `--browser` `--headed` `--offline` `--json` `--verbose` `--quiet` `--assets-base-url` `--timeout`.
 
-Every command that answers a question answers it as JSON too:
+Every command that reports something can report it as JSON:
 
 ```sh
 npx -y open-screenshot-generator@0 templates --search dark --json | jq '.templates[].id'
 ```
 
-In `--json` mode stdout carries one object and nothing else. Progress, warnings and errors go to stderr, so a pipe stays clean.
+With `--json`, stdout carries one JSON object and nothing else. Progress, warnings and errors go to stderr, so you can pipe the output safely.
 
-Exit codes are contractual, because agents and CI read them: `0` ok, `1` usage or config, `2` driver or render failure, `3` verify failure. A `3` means the files exist and a store rule rejects them. A `2` means nothing was produced.
+Exit codes stay stable, because agents and CI scripts depend on them. `0` means success. `1` means a usage or config error. `2` means the browser or the export failed and no files were produced. `3` means the files exist, but a store rule rejects at least one of them.
 
-## Give it to your coding agent
+## Use it from your coding agent
 
-### MCP, one line
+### MCP server
 
-The same 49 tools the desktop app exposes, hosted by the CLI, with no app window to keep open.
+The CLI serves the same 49 tools as the desktop app, so no app window has to stay open.
 
 **Claude Code**
 
@@ -139,7 +139,7 @@ The same 49 tools the desktop app exposes, hosted by the CLI, with no app window
 claude mcp add open-screenshot-generator -- npx -y open-screenshot-generator@0 mcp --stdio
 ```
 
-**Cursor** (`~/.cursor/mcp.json`), **Claude Desktop** (`claude_desktop_config.json`):
+**Cursor** (`~/.cursor/mcp.json`) and **Claude Desktop** (`claude_desktop_config.json`):
 
 ```json
 {
@@ -166,27 +166,27 @@ claude mcp add open-screenshot-generator -- npx -y open-screenshot-generator@0 m
 }
 ```
 
-Or let the CLI find the config for you:
+Or let the CLI add the entry for you:
 
 ```sh
 npx -y open-screenshot-generator@0 install
 ```
 
-It detects Claude Code, Claude Desktop, Cursor and VS Code, shows what it will write, and writes it.
+`osg install` finds Claude Code, Claude Desktop, Cursor and VS Code, shows the entry it will add, and writes it.
 
 ### Skills
 
-The package ships agent skills that teach a model the doctrine, not just the tool names: start from a template, measure text before you trust it, export at `scale: 0.25` while iterating, never let two layers share a position and take turns in time. Three ways in:
+The package includes agent skills that teach a model how to design with these tools, not only what the tools are called. For example: start from a template, measure text before trusting it, export at `scale: 0.25` while iterating, and never stack two layers in one spot and swap them over time. Install them one of three ways:
 
 ```sh
-npx -y open-screenshot-generator@0 install --skills     # copies them into the agent it detects
-npx skills add dotnetdreamer/open-screenshot-generator  # the skills registry
+npx -y open-screenshot-generator@0 install --skills     # copies them into the agent it finds
+npx skills add dotnetdreamer/open-screenshot-generator  # from the skills registry
 cp -r node_modules/open-screenshot-generator/skills/* .claude/skills/   # by hand
 ```
 
 ## The config file
 
-One committed file is the source of truth for every visible choice, so "make it darker" is a one line edit and one cheap re-render rather than a re-run of the pipeline. A one run flag is a try. A config edit is a decision.
+Every choice that changes how the screenshots look lives in one file you commit. "Make it darker" becomes a one line edit and a quick render, not a full rerun. Use a flag to try something once. Put it in the config when you decide to keep it.
 
 ```ts
 // osg/osg.config.ts
@@ -211,29 +211,30 @@ export default {
 };
 ```
 
-TypeScript, JavaScript, JSON, or an `osg` key in `package.json`. A missing config is not an error: every field has a default, so `osg all` works in a bare directory. Full schema in [the reference](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/CLI.md#the-config-file).
+The config can be TypeScript, JavaScript, JSON, or an `osg` key in `package.json`. You can also skip it. Every field has a default, so `osg all` works in an empty folder. Every field is described in [the reference](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/CLI.md#the-config-file).
 
 ## What it does on your machine
 
-Worth stating plainly, because it launches a browser.
+The CLI launches a browser, so here is everything it touches.
 
-- **Opens a loopback HTTP port.** `127.0.0.1` on an OS assigned port, serving the editor bundle to the page it just launched. Loopback rather than `file://` because the editor needs a secure context for `crypto.subtle`, IndexedDB and the `VideoEncoder`, and loopback http is the one plain-http origin browsers treat as trustworthy. It is bound to loopback, never to an interface, and it dies with the run.
-- **Launches a browser.** Yours if you have one, otherwise the one `--install-browser` fetched, in a scratch profile. Headless unless you pass `--headed`.
-- **Writes files.** Into `osg/out` and the project file, both of which you name. Nowhere else, except the cache below.
-- **Fetches artwork on first use, then never again.** The tarball carries the program, not the artwork: the shell, the 101 template JSONs and the AI catalog. The photographs, device art and template imagery are fetched from the project's own deployment the first time a template asks for one, which is exactly the request a browser visiting the site makes, checked against a sha256 in the packaged manifest, and cached per machine under your OS cache directory. Content addressed, so a file downloaded by one version is still the right file for the next and nobody pays for it twice. Google Fonts responses are cached the same way, which is what lets a warm machine render Noto Nastaliq Urdu with no network at all. `osg cache warm` does the whole set up front, `osg cache info` shows the size, `osg cache prune` clears it.
-- **Sends no analytics.** No telemetry, no phone home, no usage ping, in this package or in the bundle it drives. The editor's own analytics are switched off before navigation, along with cloud auto save, the Discover feed and the collab session, because a machine driven run should be a machine driven run.
-- **Talks to an AI provider only if you ask it to**, in `osg design`, with your key or your endpoint, direct from this machine.
+- **Opens a local port.** The server listens on `127.0.0.1` on a free port and serves the editor to the browser the CLI launched. It is never reachable from other machines, and it stops when the run ends. It uses `127.0.0.1` instead of `file://` because browsers give `crypto.subtle`, IndexedDB and `VideoEncoder` only to secure origins, and `127.0.0.1` counts as one.
+- **Launches a browser.** Your own if you have one, otherwise the one `--install-browser` downloaded, with a temporary profile. It runs headless unless you pass `--headed`.
+- **Writes files** only to `osg/out` and the project file, both of which you choose, plus the cache below.
+- **Downloads artwork once.** The package holds the program, the 101 template files and the AI catalog, but no artwork. The first time a template needs a photo or device image, the CLI downloads it from the project's own website, the same request your browser makes when you visit. Each file is checked against a sha256 in the package and cached under your OS cache folder. Files are cached by content, so a new version of the CLI does not download them again.
+- **Caches fonts.** Google Fonts responses are cached the same way, so a machine that has run before can render fonts such as Noto Nastaliq Urdu offline. `osg cache warm` downloads everything up front, `osg cache info` shows the cache size, and `osg cache prune` clears it.
+- **Sends no analytics.** No telemetry and no usage pings, from this package or from the editor it runs. Before loading the editor, the CLI turns off its analytics, cloud auto save, the Discover feed and live collaboration.
+- **Contacts an AI provider only in `osg design`**, with your key or your endpoint, directly from this machine.
 
-`--offline` refuses every request that is not to the local origin, so a run either works from cache or fails loudly. It never silently ships a design with a hole in it.
+`--offline` blocks every request except to the local server. The run uses the cache or stops with an error, so an export never goes out with missing artwork.
 
 ## Full documentation
 
-[docs/CLI.md](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/CLI.md) is the complete reference: every command, every flag, the config schema field by field, the cache model and its path on each OS, the editor resolution order, how the MCP server differs from the desktop and relay transports, offline use, CI, Windows notes, and troubleshooting.
+[docs/CLI.md](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/CLI.md) covers every command and flag, the config fields one by one, where the cache lives on each OS, how the CLI picks an editor bundle, how its MCP server differs from the desktop and relay servers, offline use, CI, Windows notes and troubleshooting.
 
-The editor itself, the desktop app and the AI agent are documented in the [main repository](https://github.com/dotnetdreamer/open-screenshot-generator).
+The editor, the desktop app and the AI agent are documented in the [main repository](https://github.com/dotnetdreamer/open-screenshot-generator).
 
-## Licence
+## License
 
-The code in this package is MIT. See [cli/LICENSE](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/cli/LICENSE).
+The code in this package is MIT licensed. See [cli/LICENSE](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/cli/LICENSE).
 
-The artwork the editor paints is licensed separately and is **not** covered by the MIT licence. No artwork is published in this tarball or as a downloadable archive. See [THIRD-PARTY-ASSETS.md](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/THIRD-PARTY-ASSETS.md) before you fork, mirror or repackage anything.
+The artwork in the templates has its own licenses and is **not** covered by MIT. No artwork is included in this package or offered as a downloadable archive. Read [THIRD-PARTY-ASSETS.md](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/THIRD-PARTY-ASSETS.md) before you fork, mirror or repackage anything.
