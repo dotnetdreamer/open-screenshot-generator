@@ -24,6 +24,31 @@ interface DraggableElementProps {
   screenScale?: number;
   boundary: { width: number; height: number };
   /**
+   * Report a live move, in artboard pixels, while several layers are selected.
+   *
+   * The artboard offsets the other members imperatively from this, rather than
+   * holding the drag in React state: nothing above this component re-renders
+   * during a drag today, and a board carrying 3D devices cannot afford to start.
+   * Only the `move` interaction reports; rotate, scale and resize stay
+   * single-layer.
+   */
+  onDragDelta?: (dx: number, dy: number) => void;
+  /**
+   * Commit a finished multi-layer move. Supplied INSTEAD of this element
+   * committing itself, so the whole selection lands in one array and one
+   * history entry.
+   */
+  onDragCommit?: (dx: number, dy: number) => void;
+  /**
+   * Draw the resize, rotate and delete grips.
+   *
+   * False while several layers are selected: those grips act on ONE layer, so a
+   * corner drag would resize the layer under the cursor and leave the rest of
+   * the selection behind, and the delete grip would appear once per member. The
+   * outline still marks what is selected, and the whole set still drags.
+   */
+  showHandles?: boolean;
+  /**
    * Board this element belongs to. Only used to follow the App Preview
    * playback clock: while this board is previewing, the element's enter/exit
    * animation is evaluated per frame and folded into the transform below.
@@ -152,6 +177,9 @@ export function DraggableElement({
   screenScale = 0,
   boundary,
   artboardId,
+  onDragDelta,
+  onDragCommit,
+  showHandles = true,
   children
 }: DraggableElementProps) {
   const coarsePointer = useCoarsePointer();
@@ -410,6 +438,10 @@ export function DraggableElement({
       if (interactionMode === 'move') {
         newPos = { x: initialPosition.x + dxScreen, y: initialPosition.y + dyScreen };
         // No clamping on position, artboard's overflow:hidden will clip.
+        // dxScreen and dyScreen are already artboard pixels despite the name:
+        // getMousePositionInArtboardSpace divides by the measured composite
+        // scale, so the other members of the selection can take them as they are.
+        onDragDelta?.(dxScreen, dyScreen);
       } else if (interactionMode === 'rotate') {
         const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
         const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
@@ -524,7 +556,15 @@ export function DraggableElement({
       const hasRotationChanged = live.rotation !== element.rotation;
       const hasScaleChanged = live.scale !== element.scale;
 
-      if (hasPositionChanged || hasSizeChanged || hasRotationChanged || hasScaleChanged) {
+      if (onDragCommit && interactionMode === 'move') {
+        // The whole selection moved, so the artboard writes one array for all
+        // of them. Committing here as well would land this layer twice and
+        // leave the followers behind on the first of the two commits.
+        onDragCommit(
+          live.position.x - interactionStart.initialPosition.x,
+          live.position.y - interactionStart.initialPosition.y
+        );
+      } else if (hasPositionChanged || hasSizeChanged || hasRotationChanged || hasScaleChanged) {
         onUpdateElement({
           ...element,
           position: live.position,
@@ -581,7 +621,7 @@ export function DraggableElement({
     // Deliberately not depending on position/size/rotation/scale: the handlers
     // read those from latestRef, so listing them here would only tear down and
     // re-register the document listeners on every frame of a drag.
-  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, onSelect]);
+  }, [interactionMode, interactionStart, element, onUpdateElement, artboardZoom, boundary, onSelect, onDragDelta, onDragCommit]);
 
 
   const displaySize = {
@@ -672,6 +712,13 @@ export function DraggableElement({
           if (isInsideInlineEditor(e.target as HTMLElement)) return;
           e.stopPropagation(); // Prevent event from bubbling to artboard
           pressOnSelectedRef.current = isSelected;
+          // Shift and Alt are selection gestures, never the start of a drag.
+          // Without this arm, shift-clicking a layer that was already selected
+          // would pick it up instead of taking it back out of the selection.
+          if (e.shiftKey || e.altKey) {
+            onSelect(element.id, e);
+            return;
+          }
           if (isSelected) {
             handleInteractionStart(e, 'move');
           } else {
@@ -743,7 +790,7 @@ export function DraggableElement({
         {children}
       </div>
 
-      {isSelected && (
+      {isSelected && showHandles && (
         <>
           {(['tl', 'tr', 'bl', 'br'] as HandleType[]).map(corner => {
             let posStyle: React.CSSProperties = {};

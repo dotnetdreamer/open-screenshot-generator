@@ -16,7 +16,15 @@ export interface CollabPeer {
   clientId: number;
   user: CollabUser;
   /** What they have selected, which is what the ring on the canvas follows. */
-  selection: { artboardId: string | null; elementId: string | null } | null;
+  /**
+   * What this peer has picked.
+   *
+   * `elementIds` was added when selection became a set. `elementId` stays, and
+   * stays populated with the first of them: awareness state is free-form JSON
+   * with no version handshake, so a peer on an older build both writes only
+   * `elementId` and reads only `elementId`, and has to keep seeing one ring.
+   */
+  selection: { artboardId: string | null; elementId: string | null; elementIds?: string[] } | null;
   /** Their pointer, in the board's own coordinates. */
   cursor: { artboardId: string; x: number; y: number } | null;
 }

@@ -219,7 +219,16 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
       onRestoreVersion: (version) => send({ name: 'restoreVersion', versionId: version.id }),
       onOpenVersionCopy: (version) => send({ name: 'openVersionCopy', versionId: version.id }),
       onDeleteVersion: (version) => send({ name: 'deleteVersion', versionId: version.id }),
-      onSelectElement: (elementId) => send({ name: 'selectElement', elementId }),
+      onSelectElement: (elementId, modifiers) => send({ name: 'selectElement', elementId, modifiers }),
+      onAlignElements: (edge) => send({ name: 'alignElements', edge }),
+      onDistributeElements: (axis) => send({ name: 'distributeElements', axis }),
+      onGroupElements: () => send({ name: 'groupElements' }),
+      onUngroupElements: () => send({ name: 'ungroupElements' }),
+      onUngroupById: (groupId) => send({ name: 'ungroupById', groupId }),
+      onRenameGroup: (groupId, newName) => send({ name: 'renameGroup', groupId, newName }),
+      onDropLayer: (elementId, anchorId, side, groupId) =>
+        send({ name: 'dropLayer', elementId, anchorId, side, groupId }),
+      onMoveSelectionTo: (x, y) => send({ name: 'moveSelectionTo', x, y }),
       onMoveElementLayer: (elementId, direction) =>
         send({ name: 'moveElementLayer', elementId, direction }),
       onDeleteElement: (elementId) => send({ name: 'deleteElement', elementId }),

@@ -352,7 +352,12 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   `update_element`, `delete_element`, `reorder_element` (z-order is array
   order, so this is how a background slides behind existing work instead of
   rebuilding the board), `measure_element`, `group_elements` +
-  `transform_elements` (move or scale a set about its shared bounding box).
+  `transform_elements` (move or scale a set about its shared bounding box),
+  `align_elements` (left, center-h, right, top, middle-v, bottom) and
+  `distribute_elements` (even the gaps along one axis, three or more elements).
+  The last four share their maths with the editor's own Group, Align and
+  Distribute controls, and measure each element from what it covers once
+  rotated, so an agent and a person arranging the same board agree.
   Beyond position/size/colour, elements take `opacity`, `shadow`
   (`{x, y, blur, color}`, cast by the real silhouette), `blur`, plus
   `fillGradient` on shapes and `letterSpacing` / `lineHeight` on text. Passing

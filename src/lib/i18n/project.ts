@@ -45,15 +45,16 @@ export const ALWAYS_LOCAL_KEYS = [
  * predictable. An Arabic layout wants the icon on the right, so `position` has
  * to be as detachable as `fontSize`.
  *
- * `name`, `groupId` and `libraryId` stay out because they identify the layer
- * rather than draw it, and `animation` because a video timeline that differed
- * per language would desynchronise the export.
+ * `name`, `groupId`, `groupName` and `libraryId` stay out because they identify
+ * the layer rather than draw it, and `animation` because a video timeline that
+ * differed per language would desynchronise the export.
  */
 const NEVER_DETACHABLE = new Set<string>([
   'id',
   'type',
   'name',
   'groupId',
+  'groupName',
   'libraryId',
   'animation',
   ...ALWAYS_LOCAL_KEYS,

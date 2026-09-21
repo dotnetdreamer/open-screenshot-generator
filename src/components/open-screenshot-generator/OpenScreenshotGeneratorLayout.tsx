@@ -34,7 +34,7 @@ import { TranslationTableDialog } from './TranslationTableDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import { GithubMark, REPO_URL } from './GithubLink';
-import type { ArtboardState, ElementLocaleOverride, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
+import type { ArtboardState, ElementLocaleOverride, ElementSelectModifiers, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
 // The locale overlay. `artboards` always means the whole base document; one
 // language is a projection of it, derived per render and never stored.
 import { getLocaleDef, localeLabel, localeName } from '@/lib/i18n/locales';
@@ -222,6 +222,20 @@ import {
   type HistoryChange,
   type HistoryEntry,
 } from '@/lib/historyLabels';
+import {
+  alignElements,
+  distributeElements,
+  dropLayer,
+  expandGroups,
+  groupCommandState,
+  hasCanvasBox,
+  makeGroupId,
+  moveElements,
+  nextGroupName,
+  unionBounds,
+  type AlignEdge,
+  type DistributeAxis,
+} from '@/lib/elementGeometry';
 import { LoadStatusBar, type ProjectLoadStep } from './LoadStatusBar';
 import { LocalFontNotice } from './LocalFontNotice';
 import { ProjectLoadOverlay } from './ProjectLoadOverlay';
@@ -285,6 +299,34 @@ const MOBILE_LAYERS_SECTION_DEFAULT = 170; // px
 // Long enough not to fire on every nudge of a drag, short enough that a user who
 // keeps making shared edits keeps being told.
 const SHARED_EDIT_NOTICE_INTERVAL_MS = 30_000;
+/**
+ * How an align reads in the History panel. Title Case, like every other label
+ * in historyLabels.ts, and never a button title: the text-alignment buttons in
+ * the Properties panel already answer to "Align Left".
+ */
+const ALIGN_HISTORY_LABELS: Record<AlignEdge, string> = {
+  left: 'Align Left',
+  'center-h': 'Align Center',
+  right: 'Align Right',
+  top: 'Align Top',
+  'middle-v': 'Align Middle',
+  bottom: 'Align Bottom',
+};
+/**
+ * How far one arrow key moves the selection, in artboard pixels.
+ *
+ * A store screenshot is around 1290 pixels across, so a single pixel is a
+ * hairline and Shift is what makes the key useful for real spacing.
+ */
+const NUDGE_STEP = 1;
+const NUDGE_STEP_LARGE = 10;
+/** Which way each arrow key moves the selection. */
+const NUDGE_DIRECTIONS: Record<string, { x: number; y: number }> = {
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+  ArrowUp: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+};
 // How much editing there has to be between two automatic versions. Ten minutes
 // is the number that makes the list readable: a version per commit would be
 // hundreds a day and a version per hour would miss the mistake you are looking
@@ -843,7 +885,34 @@ export function OpenScreenshotGeneratorLayout() {
   // Latest design-tool API for the desktop MCP server; assigned each render and
   // read per request by the bridge (see the block above the render return).
   const mcpApiRef = useRef<McpDesignApi | null>(null);
-  const [selectedElementIdOnActiveArtboard, setSelectedElementIdOnActiveArtboard] = useState<string | null>(null);
+  /**
+   * Which layers are selected on the active artboard, in the order they were
+   * picked. Always board-scoped: CanvasArea hands it only to the board whose id
+   * is active, so a selection cannot straddle two boards, which is just as well
+   * because two boards share no coordinate space to align across.
+   */
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
+  /**
+   * The selection when it holds exactly one layer.
+   *
+   * Everything that edits or describes "the selected element" reads this, so a
+   * form, a translate action or a device swap aimed at one layer can never fire
+   * against several without saying which. Code asking whether ANYTHING is
+   * selected has to test `selectedElementIds.length` instead: this is null both
+   * for an empty selection and for a selection of five.
+   */
+  const selectedElementIdOnActiveArtboard = useMemo(
+    () => (selectedElementIds.length === 1 ? selectedElementIds[0] : null),
+    [selectedElementIds]
+  );
+  /** The layer a single-select write means. Keeps the existing call sites honest. */
+  const setSelectedElementIdOnActiveArtboard = useCallback((elementId: string | null) => {
+    setSelectedElementIds(elementId ? [elementId] : []);
+  }, []);
+  // Read by the keyboard listener and the canvas drag, neither of which may
+  // re-subscribe every time the selection changes.
+  const selectedElementIdsRef = useRef(selectedElementIds);
+  selectedElementIdsRef.current = selectedElementIds;
   // Custom right-click menu over the canvas. pastePoint is the click location
   // in artboard coordinates so Paste can drop the element under the cursor.
   const [contextMenu, setContextMenu] = useState<{
@@ -1095,7 +1164,7 @@ export function OpenScreenshotGeneratorLayout() {
     setRightDockTab(tab);
     try { window.localStorage.setItem(RIGHT_DOCK_TAB_KEY, tab); } catch {}
   };
-  const { clipboardItem, copyToClipboard } = useClipboard();
+  const { clipboardItem, clipboardItems, copyManyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -1688,15 +1757,19 @@ export function OpenScreenshotGeneratorLayout() {
         setActiveArtboardId(null);
         setSelectedElementIdOnActiveArtboard(null);
     }
-    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+    if (activeArtboardId && selectedElementIds.length > 0) {
         const currentAb = repositionedArtboards.find(ab => ab.id === activeArtboardId);
-        if (currentAb && !currentAb.elements.find(el => el.id === selectedElementIdOnActiveArtboard)) {
-            setSelectedElementIdOnActiveArtboard(null);
+        if (currentAb) {
+            // Every id, not just the first: deleting three of a five-layer
+            // selection has to leave the other two selected.
+            const alive = new Set(currentAb.elements.map(el => el.id));
+            const kept = selectedElementIds.filter(id => alive.has(id));
+            if (kept.length !== selectedElementIds.length) setSelectedElementIds(kept);
         }
     }
     saveProject(); // Call the async save function
     pushToHistory(repositionedArtboards, change);
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId, collabPublish, scheduleProjectSave, noteVersionCheckpoint]);
+  }, [activeArtboardId, selectedElementIds, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId, collabPublish, scheduleProjectSave, noteVersionCheckpoint]);
 
   /**
    * A change from somebody else in the room.
@@ -2388,6 +2461,294 @@ export function OpenScreenshotGeneratorLayout() {
     });
     if (found) commitView(updatedArtboards);
   };
+
+  // --- arranging several layers at once -------------------------------------
+  //
+  // Align, distribute and nudge are PROPERTY edits (they write `position`, and
+  // position is one of the keys a language can hold its own copy of), so they
+  // go through commitView like a drag does. Grouping does not: `groupId` names
+  // the layer rather than draws it and is in NEVER_DETACHABLE, so it is written
+  // against the base document and never asks the language question.
+
+  /** Rewrite the elements of the active board, through the locale projection. */
+  const commitActiveBoardElements = useCallback(
+    (rewrite: (elements: ArtboardElement[]) => ArtboardElement[], change?: HistoryChange) => {
+      if (!activeArtboardId) return;
+      let touched = false;
+      const next = viewArtboards.map((ab) => {
+        if (ab.id !== activeArtboardId) return ab;
+        const elements = rewrite(ab.elements);
+        if (elements === ab.elements) return ab;
+        touched = true;
+        return { ...ab, elements };
+      });
+      if (touched) commitView(next, change);
+    },
+    [activeArtboardId, viewArtboards, commitView]
+  );
+
+  /** Line the selection up on one edge of the box it already spans. */
+  const handleAlignSelection = useCallback(
+    (edge: AlignEdge) => {
+      if (selectedElementIds.length < 2) return;
+      const members = new Set(selectedElementIds);
+      commitActiveBoardElements(
+        (elements) => alignElements(elements, members, edge),
+        namedChange(ALIGN_HISTORY_LABELS[edge], 'move', `${selectedElementIds.length} layers`)
+      );
+    },
+    [selectedElementIds, commitActiveBoardElements]
+  );
+
+  /** Even out the gaps between three or more selected layers. */
+  const handleDistributeSelection = useCallback(
+    (axis: DistributeAxis) => {
+      if (selectedElementIds.length < 3) return;
+      const members = new Set(selectedElementIds);
+      commitActiveBoardElements(
+        (elements) => distributeElements(elements, members, axis),
+        namedChange(
+          axis === 'horizontal' ? 'Distribute horizontally' : 'Distribute vertically',
+          'move',
+          `${selectedElementIds.length} layers`
+        )
+      );
+    },
+    [selectedElementIds, commitActiveBoardElements]
+  );
+
+  /**
+   * Tag the selection so it travels as one arrangement.
+   *
+   * Straight to the base array rather than through commitView: `groupId` is
+   * never per-language, and a commitView write would class it as an edit that
+   * reached every language and say so in a toast on every grouping.
+   */
+  const handleGroupSelection = useCallback(() => {
+    if (!activeArtboardId || selectedElementIds.length < 2) return;
+    const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
+    if (!board) return;
+    // Already exactly one group, so a second id would change nothing anyone
+    // can see. The panel and the menu grey the command out for the same case.
+    if (!groupCommandState(board.elements, selectedElementIds).canGroup) return;
+    const wanted = new Set(selectedElementIds);
+    const groupId = makeGroupId(Date.now());
+    const groupName = nextGroupName(board.elements);
+    handleArtboardsUpdate(
+      artboardsRef.current.map((ab) =>
+        ab.id === activeArtboardId
+          ? {
+              ...ab,
+              elements: ab.elements.map((el) =>
+                wanted.has(el.id) ? ({ ...el, groupId, groupName } as ArtboardElement) : el
+              ),
+            }
+          : ab
+      ),
+      namedChange('Group', 'edit', `${selectedElementIds.length} layers`)
+    );
+  }, [activeArtboardId, selectedElementIds, handleArtboardsUpdate]);
+
+  /** What the two group commands can do with what is selected right now. */
+  const selectionGroupState = useMemo(() => {
+    const board = artboards.find((ab) => ab.id === activeArtboardId);
+    if (!board || selectedElementIds.length === 0) {
+      return { canGroup: false, canUngroup: false, wholeGroupId: null };
+    }
+    return groupCommandState(board.elements, selectedElementIds);
+  }, [artboards, activeArtboardId, selectedElementIds]);
+
+  /**
+   * Drop the group tag, so each member moves on its own again.
+   *
+   * Every member of a touched group is freed, including any that were not in
+   * the selection: a group half dissolved is not a state a user can see or
+   * reason about, and selecting one member already brings the rest anyway.
+   */
+  const handleUngroupSelection = useCallback(() => {
+    if (!activeArtboardId || selectedElementIds.length === 0) return;
+    const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
+    if (!board) return;
+    const wanted = new Set(selectedElementIds);
+    const groups = new Set(
+      board.elements.filter((el) => wanted.has(el.id) && el.groupId).map((el) => el.groupId)
+    );
+    if (groups.size === 0) return;
+    let freed = 0;
+    handleArtboardsUpdate(
+      artboardsRef.current.map((ab) =>
+        ab.id === activeArtboardId
+          ? {
+              ...ab,
+              elements: ab.elements.map((el) => {
+                if (!el.groupId || !groups.has(el.groupId)) return el;
+                freed += 1;
+                const { groupId: _dropped, groupName: _unnamed, ...rest } = el;
+                return rest as ArtboardElement;
+              }),
+            }
+          : ab
+      ),
+      namedChange('Ungroup', 'edit', `${freed} layers`)
+    );
+  }, [activeArtboardId, selectedElementIds, handleArtboardsUpdate]);
+
+  /**
+   * Free one group, named by the Layers panel rather than by the selection.
+   *
+   * The panel can point at a group nobody has selected, so this takes the id
+   * instead of reading the selection; what it does to the members is what
+   * Ungroup does.
+   */
+  const handleUngroupById = useCallback(
+    (groupId: string) => {
+      if (!activeArtboardId) return;
+      let freed = 0;
+      handleArtboardsUpdate(
+        artboardsRef.current.map((ab) =>
+          ab.id === activeArtboardId
+            ? {
+                ...ab,
+                elements: ab.elements.map((el) => {
+                  if (el.groupId !== groupId) return el;
+                  freed += 1;
+                  const { groupId: _dropped, groupName: _unnamed, ...rest } = el;
+                  return rest as ArtboardElement;
+                }),
+              }
+            : ab
+        ),
+        namedChange('Ungroup', 'edit', `${freed} layers`)
+      );
+    },
+    [activeArtboardId, handleArtboardsUpdate]
+  );
+
+  /**
+   * A layer dropped somewhere else in the Layers list.
+   *
+   * One write for both halves of the gesture: the drop line says where the
+   * layer lands in the z-order AND which group it lands in, so moving it and
+   * retagging it in two commits would put a state on the undo stack that the
+   * list never drew.
+   */
+  const handleDropLayer = useCallback(
+    (
+      elementId: string,
+      anchorId: string,
+      side: 'above' | 'below',
+      groupId: string | null
+    ) => {
+      if (!activeArtboardId) return;
+      const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
+      const before = board?.elements.find((el) => el.id === elementId);
+      if (!board || !before) return;
+      const elements = dropLayer(board.elements, elementId, anchorId, side, groupId);
+      if (elements === board.elements) return;
+      const label =
+        groupId && before.groupId !== groupId
+          ? 'Group'
+          : !groupId && before.groupId
+            ? 'Ungroup'
+            : 'Reorder Layer';
+      handleArtboardsUpdate(
+        artboardsRef.current.map((ab) => (ab.id === activeArtboardId ? { ...ab, elements } : ab)),
+        namedChange(label, 'edit', getElementDisplayName(before))
+      );
+    },
+    [activeArtboardId, handleArtboardsUpdate]
+  );
+
+  /** Rename a group, which writes the name onto every member of it. */
+  const handleRenameGroup = useCallback(
+    (groupId: string, name: string) => {
+      if (!activeArtboardId) return;
+      const groupName = name.trim();
+      if (!groupName) return;
+      handleArtboardsUpdate(
+        artboardsRef.current.map((ab) =>
+          ab.id === activeArtboardId
+            ? {
+                ...ab,
+                elements: ab.elements.map((el) =>
+                  el.groupId === groupId ? ({ ...el, groupName } as ArtboardElement) : el
+                ),
+              }
+            : ab
+        ),
+        namedChange('Rename group', 'edit', groupName)
+      );
+    },
+    [activeArtboardId, handleArtboardsUpdate]
+  );
+
+  /**
+   * Put the selection's bounding box at an exact spot on the board.
+   *
+   * The whole arrangement travels: every member keeps its place relative to the
+   * others, which is the only reading of "set X" that means anything once more
+   * than one layer is selected.
+   */
+  const handleMoveSelectionTo = useCallback(
+    (x: number | null, y: number | null) => {
+      if (selectedElementIds.length === 0) return;
+      const board = viewArtboards.find((ab) => ab.id === activeArtboardId);
+      if (!board) return;
+      const members = new Set(selectedElementIds);
+      const span = unionBounds(board.elements.filter((el) => members.has(el.id)));
+      if (!span) return;
+      const dx = typeof x === 'number' ? x - span.x : 0;
+      const dy = typeof y === 'number' ? y - span.y : 0;
+      commitActiveBoardElements((elements) => moveElements(elements, members, dx, dy));
+    },
+    [selectedElementIds, activeArtboardId, viewArtboards, commitActiveBoardElements]
+  );
+
+  /**
+   * Shift the selection by a whole number of artboard pixels.
+   *
+   * Deliberately unclamped, the same as a drag: a layer half off the board
+   * stays half off, and the board's overflow does the clipping.
+   *
+   * A held arrow key autorepeats, so the presses are added up and applied once
+   * a frame. Undo needs no help here, since consecutive moves of the same
+   * layers share a mergeKey and collapse on their own, but every commit costs a
+   * whole-project copy for the history entry whether it merges or not. Building
+   * the view inside the flush, from refs, is what lets the keyboard listener
+   * stay subscribed across edits.
+   */
+  const nudgeRef = useRef({ dx: 0, dy: 0, frame: 0 });
+  const flushNudgeRef = useRef<() => void>(() => {});
+  flushNudgeRef.current = () => {
+    const { dx, dy } = nudgeRef.current;
+    nudgeRef.current = { dx: 0, dy: 0, frame: 0 };
+    const ids = selectedElementIdsRef.current;
+    if (!activeArtboardId || ids.length === 0 || (dx === 0 && dy === 0)) return;
+    const view = projectArtboards(artboardsRef.current, activeLocaleRef.current);
+    const board = view.find((ab) => ab.id === activeArtboardId);
+    if (!board) return;
+    // The ids as they stand, NOT expanded through their groups: selecting a
+    // layer already brings the rest of its group, and alt-click exists
+    // precisely to opt out of that. Expanding again here would move a layer
+    // that is not selected and shows no outline, and would make the arrow keys
+    // disagree with dragging, aligning and the X field.
+    const members = new Set(ids);
+    commitView(
+      view.map((ab) =>
+        ab.id === activeArtboardId
+          ? { ...ab, elements: moveElements(ab.elements, members, dx, dy) }
+          : ab
+      )
+    );
+  };
+  const queueNudge = useCallback((dx: number, dy: number) => {
+    nudgeRef.current.dx += dx;
+    nudgeRef.current.dy += dy;
+    if (nudgeRef.current.frame) return;
+    nudgeRef.current.frame = requestAnimationFrame(() => flushNudgeRef.current());
+  }, []);
+  // A frame still pending when the editor goes away has nothing left to write.
+  useEffect(() => () => cancelAnimationFrame(nudgeRef.current.frame), []);
 
   // Restack one element next to another (the timeline bar's vertical drag).
   // Array order IS z-order, so this is a splice, and it moves the layer in the
@@ -3737,8 +4098,11 @@ export function OpenScreenshotGeneratorLayout() {
   // around it in their colour.
   useEffect(() => {
     if (collab.status === 'off') return;
-    collab.setSelection(activeArtboardId, selectedElementIdOnActiveArtboard);
-  }, [collab.status, collab.setSelection, activeArtboardId, selectedElementIdOnActiveArtboard]);
+    // The first id as well as the whole set: a peer on a build from before
+    // multi-select reads only `elementId`, and should still see one ring rather
+    // than none the moment somebody picks two layers.
+    collab.setSelection(activeArtboardId, selectedElementIds[0] ?? null, selectedElementIds);
+  }, [collab.status, collab.setSelection, activeArtboardId, selectedElementIds]);
 
   // Opening another project leaves the room. Staying in would publish the new
   // project's boards into the old project's session.
@@ -4574,37 +4938,47 @@ export function OpenScreenshotGeneratorLayout() {
     applyHistoryIndex(historyIndex + 1);
   }, [applyHistoryIndex, historyIndex]);
 
-  // Fix the handleDeleteSelected function to properly handle deletion
-  const handleDeleteSelected = useCallback(() => { 
-    if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-      // Find the active artboard
+  // Delete what is selected: the whole selection in one commit, so removing
+  // five layers is one undo step rather than five. With nothing selected the
+  // Delete key still means the artboard itself.
+  const handleDeleteSelected = useCallback(() => {
+    if (activeArtboardId && selectedElementIds.length > 0) {
       const activeArtboard = artboards.find(ab => ab.id === activeArtboardId);
-      if (activeArtboard) {
-        // Find the element to delete
-        const elementExists = activeArtboard.elements.some(
-          el => el.id === selectedElementIdOnActiveArtboard
-        );
-
-        // If element exists, delete it
-        if (elementExists) {
-          const artboardComponent = artboardRefs.current[activeArtboardId];
-          if(artboardComponent && artboardComponent.deleteElementByIdG) {
-            artboardComponent.deleteElementByIdG(selectedElementIdOnActiveArtboard);
-            setSelectedElementIdOnActiveArtboard(null);
-            toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
-          } else {
-            toast({title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive"});
-          }
-        } else {
-          toast({title: "Cannot Delete Element", description: "Selected element not found in artboard.", variant: "destructive"});
-        }
+      if (!activeArtboard) return;
+      const doomed = new Set(selectedElementIds);
+      const remaining = activeArtboard.elements.filter(el => !doomed.has(el.id));
+      const removedCount = activeArtboard.elements.length - remaining.length;
+      if (removedCount === 0) {
+        toast({ title: "Nothing to delete", description: "Those layers are no longer on the artboard.", variant: "destructive" });
+        return;
       }
-    } else if (activeArtboardId) { 
-      handleDeleteArtboard(activeArtboardId); 
+      // Straight to the base array: removing a layer is structural, and a
+      // projection cannot express "this element does not exist" apart from
+      // "this element is hidden in this one language".
+      //
+      // dropElementOverrides in the same pass, the way every other delete path
+      // does it: a translation left behind under a dead id is what a re-minted
+      // id would later inherit.
+      handleArtboardsUpdate(
+        artboards.map(ab =>
+          ab.id === activeArtboardId
+            ? dropElementOverrides({ ...ab, elements: remaining }, [...doomed])
+            : ab
+        )
+      );
+      setSelectedElementIds([]);
+      toast({
+        title: removedCount === 1 ? "Element deleted" : `${removedCount} elements deleted`,
+        description: removedCount === 1
+          ? "Element was removed from the artboard."
+          : "They were removed from the artboard.",
+      });
+    } else if (activeArtboardId) {
+      handleDeleteArtboard(activeArtboardId);
     } else {
       toast({title: "Cannot Delete", description: "No artboard or element selected.", variant: "destructive"});
     }
-  }, [activeArtboardId, selectedElementIdOnActiveArtboard, artboards, toast]);
+  }, [activeArtboardId, selectedElementIds, artboards, toast, handleArtboardsUpdate]);
 
   // Add keyboard event handlers for delete, undo, and redo
   useEffect(() => {
@@ -4630,7 +5004,7 @@ export function OpenScreenshotGeneratorLayout() {
       // Copy: Ctrl+C or Cmd+C
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
         e.preventDefault();
-        if (activeArtboardId && selectedElementIdOnActiveArtboard) {
+        if (activeArtboardId && selectedElementIds.length > 0) {
           handleCopyElement();
         }
       }
@@ -4668,6 +5042,41 @@ export function OpenScreenshotGeneratorLayout() {
         }
       }
 
+      // Escape drops the selection, so there is a way back to the board's own
+      // form without hunting for bare canvas to click.
+      if (e.key === 'Escape') {
+        if (
+          e.target instanceof HTMLElement &&
+          e.target.closest('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]')
+        ) {
+          return;
+        }
+        // The right-click menu closes on Escape itself, and it is in front.
+        if (contextMenu) return;
+        if (selectedElementIdsRef.current.length > 0) setSelectedElementIds([]);
+        return;
+      }
+
+      // Select every layer on the active artboard.
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+        if (activeArtboardId) {
+          e.preventDefault();
+          const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
+          // A sound is never on the canvas, so Select all leaves it out rather
+          // than handing back a selection that cannot be aligned or moved.
+          if (board) setSelectedElementIds(board.elements.filter(hasCanvasBox).map((el) => el.id));
+        }
+        return;
+      }
+
+      // Group: Ctrl+G or Cmd+G. Ungroup adds Shift.
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'g' || e.key === 'G')) {
+        e.preventDefault();
+        if (e.shiftKey) handleUngroupSelection();
+        else handleGroupSelection();
+        return;
+      }
+
       // Tool shortcuts: H for hand/pan tool, V for selection tool
       if (e.key === 'h' || e.key === 'H') {
         e.preventDefault();
@@ -4678,6 +5087,28 @@ export function OpenScreenshotGeneratorLayout() {
         e.preventDefault();
         setActiveTool('select');
       }
+
+      // Arrow keys nudge the selection. Shift takes the bigger step, which is
+      // what makes the key usable on a board 1290 pixels across.
+      const nudge = NUDGE_DIRECTIONS[e.key];
+      if (nudge && selectedElementIdsRef.current.length > 0) {
+        // A Radix select, menu or dialog has focus on a plain div, so the
+        // input test above lets an arrow key through: without this, arrowing
+        // down the font list would walk the artwork across the board.
+        if (
+          e.target instanceof HTMLElement &&
+          e.target.closest('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="switch"], [role="checkbox"], [role="radio"]')
+        ) {
+          return;
+        }
+        // handleArtboardsUpdate refuses to commit while an export holds the
+        // canvas, and a keystroke is far easier to fire mid-export than a drag.
+        if (isExportingRef.current) return;
+        // Stop the canvas scrolling out from under the layer being moved.
+        e.preventDefault();
+        const step = e.shiftKey ? NUDGE_STEP_LARGE : NUDGE_STEP;
+        queueNudge(nudge.x * step, nudge.y * step);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -4685,7 +5116,7 @@ export function OpenScreenshotGeneratorLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, setActiveTool, isPreviewOpen]);
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIds, clipboardItem, setActiveTool, isPreviewOpen, queueNudge, handleGroupSelection, handleUngroupSelection, contextMenu]);
 
   // The live tool, readable from a listener that must not re-subscribe on every
   // tool change (the Space-to-pan effect below).
@@ -4798,17 +5229,76 @@ export function OpenScreenshotGeneratorLayout() {
 
   const handleArtboardSelection = (artboardId: string | null) => {
     setActiveArtboardId(artboardId);
-    if (artboardId !== activeProjectId) {
+    // Only when the board actually changes. Compared against the project id,
+    // this never matched, so selecting the board an element was already on
+    // cleared the selection.
+    if (artboardId !== activeArtboardId) {
         setSelectedElementIdOnActiveArtboard(null);
     }
   }
 
-  const handleElementSelectionOnArtboard = (elementId: string | null) => {
-    setSelectedElementIdOnActiveArtboard(elementId);
-  }
+  /**
+   * The one place a canvas click turns into a selection.
+   *
+   * Group membership is resolved here rather than in Artboard so that the
+   * canvas, the Layers panel and a detached panel all answer a click on a
+   * grouped layer the same way. `modifiers.toggle` is shift-click, which adds
+   * or removes; `modifiers.single` is alt-click, the way to reach one member of
+   * a group without bringing the rest.
+   */
+  /**
+   * Drop anything the active board does not hold.
+   *
+   * A selection belongs to one board, but nothing rewrites it when the active
+   * board changes underneath it: duplicating a board activates the copy, whose
+   * elements carry fresh ids, and the properties form would go on offering to
+   * align and group layers that are no longer on screen.
+   */
+  useEffect(() => {
+    setSelectedElementIds((ids) => {
+      if (ids.length === 0) return ids;
+      const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
+      const live = board ? ids.filter((id) => board.elements.some((el) => el.id === id)) : [];
+      return live.length === ids.length ? ids : live;
+    });
+  }, [activeArtboardId]);
 
-  const handleSelectElementFromLayerPanel = (elementId: string) => {
-    setSelectedElementIdOnActiveArtboard(elementId);
+  const handleElementSelectionOnArtboard = useCallback((
+    elementId: string | null,
+    modifiers?: ElementSelectModifiers
+  ) => {
+    if (!elementId) {
+      setSelectedElementIds([]);
+      return;
+    }
+    const board = artboardsRef.current.find((ab) => ab.elements.some((el) => el.id === elementId));
+    const wanted = board && !modifiers?.single
+      ? [...expandGroups(board.elements, [elementId])]
+      : [elementId];
+    if (!modifiers?.toggle) {
+      setSelectedElementIds(wanted);
+      return;
+    }
+    setSelectedElementIds((current) => {
+      const next = new Set(current);
+      // A shift-click on a layer already in the selection takes it (and the
+      // rest of its group) out again.
+      const alreadyIn = wanted.every((id) => next.has(id));
+      for (const id of wanted) {
+        if (alreadyIn) next.delete(id);
+        else next.add(id);
+      }
+      return [...next];
+    });
+  }, []);
+
+  /** Replace the selection with exactly these layers, as a marquee does. */
+  const handleSelectElementIds = useCallback((ids: string[]) => {
+    setSelectedElementIds(ids);
+  }, []);
+
+  const handleSelectElementFromLayerPanel = (elementId: string, modifiers?: ElementSelectModifiers) => {
+    handleElementSelectionOnArtboard(elementId, modifiers);
   };
 
   // Add handler for deleting element from layers panel
@@ -4817,7 +5307,9 @@ export function OpenScreenshotGeneratorLayout() {
       const artboardComponent = artboardRefs.current[activeArtboardId];
       if (artboardComponent && artboardComponent.deleteElementByIdG) {
         artboardComponent.deleteElementByIdG(elementId);
-        setSelectedElementIdOnActiveArtboard(null);
+        // Only the layer that went. Clearing outright would drop the rest of a
+        // multi-selection because one of its members was deleted.
+        setSelectedElementIds((ids) => ids.filter((id) => id !== elementId));
         toast({ title: "Element Deleted", description: "Element was removed from the artboard." });
       } else {
         toast({ title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive" });
@@ -5225,9 +5717,11 @@ export function OpenScreenshotGeneratorLayout() {
       projectName: currentProjectName,
       selectedElement: selectedElementDetails,
       // The board-level form only when nothing is selected, which is the rule
-      // the docked panel has always followed.
+      // the docked panel has always followed. Counted rather than read off the
+      // single-selection id, which is null for a selection of five as well as
+      // for an empty one.
       activeArtboardDetails:
-        activeArtboardId && !selectedElementIdOnActiveArtboard ? (activeArtboard ?? null) : null,
+        activeArtboardId && selectedElementIds.length === 0 ? (activeArtboard ?? null) : null,
       activeLocale,
       baseLocale: baseLocaleCode,
       localeOverride: selectedLocaleOverride,
@@ -5235,6 +5729,7 @@ export function OpenScreenshotGeneratorLayout() {
       localeDetached: selectedLocaleDetached,
       layerElements: activeArtboardElements,
       selectedElementId: selectedElementIdOnActiveArtboard,
+      selectedElementIds,
       activeArtboardName,
       layerLocaleStates,
       history,
@@ -5253,6 +5748,7 @@ export function OpenScreenshotGeneratorLayout() {
       selectedElementDetails,
       activeArtboardId,
       selectedElementIdOnActiveArtboard,
+      selectedElementIds,
       activeArtboard,
       activeLocale,
       baseLocaleCode,
@@ -5288,6 +5784,14 @@ export function OpenScreenshotGeneratorLayout() {
     onOpenVersionCopy: (version) => void handleOpenVersionCopy(version),
     onDeleteVersion: (version) => void handleDeleteVersion(version),
     onSelectElement: handleSelectElementFromLayerPanel,
+    onAlignElements: handleAlignSelection,
+    onDistributeElements: handleDistributeSelection,
+    onGroupElements: handleGroupSelection,
+    onUngroupElements: handleUngroupSelection,
+    onUngroupById: handleUngroupById,
+    onRenameGroup: handleRenameGroup,
+    onDropLayer: handleDropLayer,
+    onMoveSelectionTo: handleMoveSelectionTo,
     onMoveElementLayer: handleMoveElementLayer,
     onDeleteElement: handleDeleteElementFromLayerPanel,
     onRenameElement: handleRenameElementFromLayerPanel,
@@ -5383,18 +5887,21 @@ export function OpenScreenshotGeneratorLayout() {
   // and falls back to the current selection.
   const handleCopyElement = (targetArtboardId?: string | null, targetElementId?: string | null) => {
     const artboardId = targetArtboardId ?? activeArtboardId;
-    const elementId = targetElementId ?? selectedElementIdOnActiveArtboard;
-    if (artboardId && elementId) {
-      const activeAb = artboards.find(ab => ab.id === artboardId);
-      if (activeAb) {
-        const elementToCopy = activeAb.elements.find(el => el.id === elementId);
-
-        if (elementToCopy) {
-          copyToClipboard(elementToCopy);
-          toast({ title: "Copied", description: `${elementToCopy.type} element copied to clipboard.` });
-        }
-      }
-    }
+    const board = artboards.find(ab => ab.id === artboardId);
+    if (!board) return;
+    // An explicit id is the right-clicked layer and means only that one. The
+    // keyboard shortcut passes none and takes the whole selection, so copying
+    // five layers and pasting them keeps the arrangement.
+    const wanted = targetElementId ? [targetElementId] : selectedElementIds;
+    const elementsToCopy = board.elements.filter(el => wanted.includes(el.id));
+    if (elementsToCopy.length === 0) return;
+    copyManyToClipboard(elementsToCopy);
+    toast({
+      title: "Copied",
+      description: elementsToCopy.length === 1
+        ? `${elementsToCopy[0].type} element copied to clipboard.`
+        : `${elementsToCopy.length} elements copied to clipboard.`,
+    });
   };
 
   // Delete for the context menu. Takes its target the same way Copy does,
@@ -5418,7 +5925,9 @@ export function OpenScreenshotGeneratorLayout() {
     }
     const name = getElementDisplayName(element);
     artboardComponent.deleteElementByIdG(elementId);
-    if (artboardId === activeArtboardId) setSelectedElementIdOnActiveArtboard(null);
+    if (artboardId === activeArtboardId) {
+      setSelectedElementIds((ids) => ids.filter((id) => id !== elementId));
+    }
     toast({ title: "Element Deleted", description: `${name} was removed from the artboard.` });
   };
 
@@ -5427,41 +5936,68 @@ export function OpenScreenshotGeneratorLayout() {
   // under the cursor; the keyboard shortcut offsets from the original instead.
   const handlePasteElement = (targetArtboardId?: string | null, pastePoint?: Point | null) => {
     const artboardId = targetArtboardId ?? activeArtboardId;
-    if (artboardId && clipboardItem) {
+    if (artboardId && clipboardItems.length > 0) {
       const targetArtboard = artboards.find(ab => ab.id === artboardId);
-      const elementWidth = clipboardItem.size?.width ?? 0;
-      const elementHeight = clipboardItem.size?.height ?? 0;
-      const position = pastePoint && targetArtboard
+      // One offset for the whole set, measured off the bounding box, so several
+      // layers pasted together keep the arrangement they were copied in.
+      const span = unionBounds(clipboardItems);
+      const spanX = span?.x ?? clipboardItems[0].position.x;
+      const spanY = span?.y ?? clipboardItems[0].position.y;
+      const spanWidth = span?.width ?? 0;
+      const spanHeight = span?.height ?? 0;
+      const origin = pastePoint && targetArtboard
         ? {
-            x: Math.max(0, Math.min(pastePoint.x - elementWidth / 2, targetArtboard.size.width - elementWidth)),
-            y: Math.max(0, Math.min(pastePoint.y - elementHeight / 2, targetArtboard.size.height - elementHeight)),
+            x: Math.max(0, Math.min(pastePoint.x - spanWidth / 2, targetArtboard.size.width - spanWidth)),
+            y: Math.max(0, Math.min(pastePoint.y - spanHeight / 2, targetArtboard.size.height - spanHeight)),
           }
-        : {
-            x: clipboardItem.position.x + 20, // Offset position slightly
-            y: clipboardItem.position.y + 20
-          };
-      const newElement = {
-        ...JSON.parse(JSON.stringify(clipboardItem)),
-        id: `el_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, // New unique ID
-        position
-      };
+        : { x: spanX + 20, y: spanY + 20 }; // Offset position slightly
+      const shiftX = origin.x - spanX;
+      const shiftY = origin.y - spanY;
+
+      const stamp = Date.now();
+      const newElements = clipboardItems.map((item, index) => {
+        // The copies are their own layers, so the group tag is dropped rather
+        // than set to undefined: Dexie stores a structured clone, which keeps a
+        // key whose value is undefined, and that would put a groupId on every
+        // pasted element in the saved project.
+        const { groupId: _ungrouped, groupName: _unnamed, ...copy } = JSON.parse(
+          JSON.stringify(item)
+        );
+        return {
+          ...copy,
+          id: `el_${stamp}_${index}_${Math.random().toString(36).substr(2, 5)}`, // New unique ID
+          position: { x: item.position.x + shiftX, y: item.position.y + shiftY },
+        } as ArtboardElement;
+      });
 
       const updatedArtboards = artboards.map(ab => {
         if (ab.id === artboardId) {
           return {
             ...ab,
-            elements: [...ab.elements, newElement]
+            elements: [...ab.elements, ...newElements]
           };
         }
         return ab;
       });
 
-      handleArtboardsUpdate(updatedArtboards, namedChange('Paste', 'copy', getElementDisplayName(newElement)));
+      handleArtboardsUpdate(
+        updatedArtboards,
+        namedChange(
+          'Paste',
+          'copy',
+          newElements.length === 1 ? getElementDisplayName(newElements[0]) : `${newElements.length} layers`
+        )
+      );
       if (artboardId !== activeArtboardId) {
         setActiveArtboardId(artboardId);
       }
-      setSelectedElementIdOnActiveArtboard(newElement.id);
-      toast({ title: "Pasted", description: `${newElement.type} element pasted to artboard.` });
+      setSelectedElementIds(newElements.map((el) => el.id));
+      toast({
+        title: "Pasted",
+        description: newElements.length === 1
+          ? `${newElements[0].type} element pasted to artboard.`
+          : `${newElements.length} elements pasted to artboard.`,
+      });
     } else if (!artboardId) {
       toast({
         title: "Cannot Paste",
@@ -5504,10 +6040,15 @@ export function OpenScreenshotGeneratorLayout() {
 
     if (artboardId) {
       setActiveArtboardId(artboardId);
-      setSelectedElementIdOnActiveArtboard(elementId);
+      // A right-click INSIDE an existing selection leaves it alone, so the
+      // menu's Group can act on what is already picked. Anywhere else it
+      // selects what was clicked, which is what every other design tool does.
+      if (!elementId || !selectedElementIdsRef.current.includes(elementId)) {
+        handleElementSelectionOnArtboard(elementId);
+      }
     }
     setContextMenu({ x: clientX, y: clientY, elementId, artboardId, pastePoint });
-  }, [isPreviewOpen]);
+  }, [isPreviewOpen, handleElementSelectionOnArtboard]);
 
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
@@ -5586,86 +6127,6 @@ export function OpenScreenshotGeneratorLayout() {
     };
   }, [openCanvasContextMenu]);
   
-  // Add keyboard shortcuts for copy and paste
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Preview mode has its own keyboard handling
-      if (isPreviewOpen) return;
-      // The start dialog owns the keyboard while it is up. Read through a ref so
-      // neither of these effects gains a dependency and re-subscribes. Without
-      // this the editor shortcuts fire underneath the dialog: Cmd+V is
-      // preventDefault'ed before the browser can raise a `paste` event, so
-      // pasting a screenshot into the intake could never work, and a bare `h`
-      // or `v` silently retargets the canvas tool.
-      if (isTemplateSelectorOpenRef.current) return;
-      // Skip if we're typing in an input, textarea, etc.
-      if (
-        e.target instanceof HTMLInputElement || 
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) {
-        return;
-      }
-
-      // Copy: Ctrl+C or Cmd+C
-      if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-        e.preventDefault();
-        if (activeArtboardId && selectedElementIdOnActiveArtboard) {
-          handleCopyElement();
-        }
-      }
-
-      // Paste: Ctrl+V or Cmd+V. preventDefault ONLY when there is actually an
-      // element on the internal clipboard. Calling it unconditionally also
-      // suppressed the browser's own `paste` event, so nothing in the app could
-      // ever receive an image off the system clipboard: that is what the quick
-      // start's paste-a-screenshot intake listens for.
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardItem) {
-        e.preventDefault();
-        handlePasteElement();
-      }
-
-      // Delete key for element or artboard deletion
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault(); // Prevent browser navigation
-        handleDeleteSelected();
-      }
-
-      // Undo: Ctrl+Z or Cmd+Z
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        if (historyIndex > 0) {
-          handleUndo();
-        }
-      }
-
-      // Redo: Ctrl+Shift+Z or Cmd+Shift+Z or Ctrl+Y or Cmd+Y
-      if (((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) || 
-          ((e.ctrlKey || e.metaKey) && e.key === 'y')) {
-        e.preventDefault();
-        if (historyIndex < history.length - 1) {
-          handleRedo();
-        }
-      }
-
-      // Tool shortcuts: H for hand/pan tool, V for selection tool
-      if (e.key === 'h' || e.key === 'H') {
-        e.preventDefault();
-        setActiveTool('pan');
-      }
-
-      if (e.key === 'v' || e.key === 'V') {
-        e.preventDefault();
-        setActiveTool('select');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIdOnActiveArtboard, clipboardItem, isPreviewOpen]);
 
   // Common function to load project data and apply positioning
   const loadProjectFromData = async (projectData: ArtboardState[], projectName: string, projectId: string) => {
@@ -6805,7 +7266,7 @@ const generateRandomProjectName = (): string => {
             : ab
         )
       );
-      if (selectedElementIdOnActiveArtboard === elementId) setSelectedElementIdOnActiveArtboard(null);
+      setSelectedElementIds((ids) => ids.filter((id) => id !== elementId));
       return true;
     },
     reorderElement: ({ artboardId, elementId, action, index }) => {
@@ -6892,15 +7353,27 @@ const generateRandomProjectName = (): string => {
       const wanted = new Set(elementIds);
       const hit = board.elements.filter((el) => wanted.has(el.id)).map((el) => el.id);
       if (hit.length === 0) return null;
-      const nextGroupId = clear ? undefined : groupId?.trim() || `group_${Date.now().toString(36)}`;
+      const nextGroupId = clear ? undefined : groupId?.trim() || makeGroupId(Date.now());
+      // A group made from here is a group the Layers panel lists, so it gets
+      // the same kind of name the editor's Group command gives one. Tagging
+      // elements into a group that already has a name keeps that name.
+      const groupName = nextGroupId
+        ? board.elements.find((el) => el.groupId === nextGroupId && el.groupName)?.groupName ??
+          nextGroupName(board.elements)
+        : undefined;
       handleArtboardsUpdate(
         artboards.map((ab) =>
           ab.id === boardId
             ? {
                 ...ab,
-                elements: ab.elements.map((el) =>
-                  wanted.has(el.id) ? ({ ...el, groupId: nextGroupId } as ArtboardElement) : el
-                ),
+                elements: ab.elements.map((el) => {
+                  if (!wanted.has(el.id)) return el;
+                  if (!nextGroupId) {
+                    const { groupId: _dropped, groupName: _unnamed, ...rest } = el;
+                    return rest as ArtboardElement;
+                  }
+                  return { ...el, groupId: nextGroupId, groupName } as ArtboardElement;
+                }),
               }
             : ab
         )
@@ -6918,11 +7391,16 @@ const generateRandomProjectName = (): string => {
       if (members.length === 0) return null;
 
       // Bounding box of the set, in artboard px, so a scale keeps the
-      // arrangement's centre and a move can be expressed as a corner.
-      const left = Math.min(...members.map((el) => el.position.x));
-      const top = Math.min(...members.map((el) => el.position.y));
-      const right = Math.max(...members.map((el) => el.position.x + el.size.width * (el.scale || 1)));
-      const bottom = Math.max(...members.map((el) => el.position.y + el.size.height * (el.scale || 1)));
+      // arrangement's centre and a move can be expressed as a corner. The same
+      // helper the editor's align uses, so a group is in one place whichever
+      // of the two moved it: it takes rotation into account, and it leaves out
+      // a sound layer, which carries a position it never draws.
+      const span = unionBounds(members);
+      if (!span) return null;
+      const left = span.x;
+      const top = span.y;
+      const right = span.x + span.width;
+      const bottom = span.y + span.height;
       const centerX = (left + right) / 2;
       const centerY = (top + bottom) / 2;
       const factor = typeof scale === 'number' && scale > 0 ? scale : 1;
@@ -6965,6 +7443,64 @@ const generateRandomProjectName = (): string => {
           width: Math.round((right - left) * factor),
           height: Math.round((bottom - top) * factor),
         },
+      };
+    },
+    /**
+     * Align and distribute, over the same pure helpers the editor's own
+     * controls use, so an agent and a person arranging the same board get the
+     * same answer. Written against the base document like the other MCP
+     * writers: an agent is not looking at a language overlay.
+     */
+    alignElements: ({ artboardId, elementIds, groupId, edge }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboardsRef.current.find((ab) => ab.id === boardId);
+      if (!board) return null;
+      const wanted = new Set(elementIds ?? []);
+      const members = board.elements.filter(
+        (el) => ((groupId && el.groupId === groupId) || wanted.has(el.id)) && hasCanvasBox(el)
+      );
+      if (members.length < 2) return null;
+      const ids = new Set(members.map((el) => el.id));
+      const elements = alignElements(board.elements, ids, edge);
+      handleArtboardsUpdate(
+        artboardsRef.current.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)),
+        namedChange(ALIGN_HISTORY_LABELS[edge], 'move', `${members.length} layers`)
+      );
+      const span = unionBounds(elements.filter((el) => ids.has(el.id)));
+      return {
+        elementIds: [...ids],
+        bounds: span
+          ? { x: Math.round(span.x), y: Math.round(span.y), width: Math.round(span.width), height: Math.round(span.height) }
+          : { x: 0, y: 0, width: 0, height: 0 },
+      };
+    },
+    distributeElements: ({ artboardId, elementIds, groupId, axis }) => {
+      const boardId = resolveBoardId(artboardId);
+      const board = artboardsRef.current.find((ab) => ab.id === boardId);
+      if (!board) return null;
+      const wanted = new Set(elementIds ?? []);
+      const members = board.elements.filter(
+        (el) => ((groupId && el.groupId === groupId) || wanted.has(el.id)) && hasCanvasBox(el)
+      );
+      // Under three there is no gap to even out, so say so rather than
+      // reporting a move that did not happen.
+      if (members.length < 3) return null;
+      const ids = new Set(members.map((el) => el.id));
+      const elements = distributeElements(board.elements, ids, axis);
+      handleArtboardsUpdate(
+        artboardsRef.current.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)),
+        namedChange(
+          axis === 'horizontal' ? 'Distribute Horizontally' : 'Distribute Vertically',
+          'move',
+          `${members.length} layers`
+        )
+      );
+      const span = unionBounds(elements.filter((el) => ids.has(el.id)));
+      return {
+        elementIds: [...ids],
+        bounds: span
+          ? { x: Math.round(span.x), y: Math.round(span.y), width: Math.round(span.width), height: Math.round(span.height) }
+          : { x: 0, y: 0, width: 0, height: 0 },
       };
     },
     setBackground: ({ artboardId, backgroundColor, gradient }) => {
@@ -7488,6 +8024,8 @@ const generateRandomProjectName = (): string => {
                 setActiveArtboardId={handleArtboardSelection}
                 selectedElementIdOnActiveArtboard={selectedElementIdOnActiveArtboard}
                 setSelectedElementIdOnActiveArtboard={handleElementSelectionOnArtboard}
+                selectedElementIds={selectedElementIds}
+                onSetSelectedElementIds={handleSelectElementIds}
                 canvasZoom={canvasZoom}
                 onZoomChange={setCanvasZoom}
                 collabPeers={collab.peers}
@@ -7684,6 +8222,10 @@ const generateRandomProjectName = (): string => {
                   onCopy={() => handleCopyElement(contextMenu.artboardId, contextMenu.elementId)}
                   onPaste={() => handlePasteElement(contextMenu.artboardId, contextMenu.pastePoint)}
                   onDelete={() => handleDeleteElement(contextMenu.artboardId, contextMenu.elementId)}
+                  canGroup={selectionGroupState.canGroup}
+                  canUngroup={selectionGroupState.canUngroup}
+                  onGroup={handleGroupSelection}
+                  onUngroup={handleUngroupSelection}
                   onClose={() => setContextMenu(null)}
                 />
               )}
