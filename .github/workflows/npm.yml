@@ -202,9 +202,12 @@ jobs:
 
       # --ignore-scripts because build and pack:editor already ran above as
       # their own steps, and prepublishOnly does not run on a pack anyway.
+      # npm pack does not create --pack-destination, hence the mkdir.
       - name: Pack
         working-directory: cli
-        run: npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/package"
+        run: |
+          mkdir -p "$RUNNER_TEMP/package"
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/package"
 
       - name: Check the tarball for anything that must not be public
         working-directory: cli
