@@ -256,12 +256,15 @@ jobs:
       # NODE_AUTH_TOKEN is only for the very first publish (see the top of this
       # file). Once the secret is deleted it is empty and OIDC does the auth.
       #
+      # The ./ matters: npm reads a bare `package/x.tgz` as a GitHub owner/repo
+      # shorthand and tries to clone it.
+      #
       # A 403 here is almost always "this version is already on npm". Bump with
       # scripts/set-version.mjs and cut a new release rather than retrying.
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish package/*.tgz --provenance --access public
+        run: npm publish ./package/*.tgz --provenance --access public
 
       - name: Summary
         run: |
