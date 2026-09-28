@@ -173,6 +173,7 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
   { keys: ['triggerTime', 'gestureDuration', 'gestureRepeat'], label: 'Gesture Timing', icon: 'edit' },
   { keys: ['animation'], label: 'Animation', icon: 'edit' },
   { keys: ['groupId'], label: 'Group', icon: 'edit' },
+  { keys: ['groupName'], label: 'Rename group', icon: 'edit' },
 ];
 
 const ARTBOARD_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }> = [

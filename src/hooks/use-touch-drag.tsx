@@ -37,10 +37,19 @@ export interface TouchDragBinding {
 interface UseTouchDragOptions<T> {
   /** Where the finger let go, in client coordinates. */
   onDrop: (payload: T, point: { x: number; y: number }) => void;
+  /** Where the finger is, once the drag is armed. For drawing a drop hint. */
+  onMove?: (payload: T, point: { x: number; y: number }) => void;
   /** How long the press has to hold still before it becomes a drag. */
   longPressMs?: number;
   /** Movement over this many pixels before the press arms is a scroll. */
   slopPx?: number;
+  /**
+   * Fade the sheets out of the way while the drag is in flight.
+   *
+   * On for a drag that has to reach the canvas under the palette. Off for one
+   * that stays inside the panel it started in, which has no sheet in its way.
+   */
+  dimSheets?: boolean;
 }
 
 interface DragState<T> {
@@ -54,8 +63,10 @@ interface DragState<T> {
 
 export function useTouchDrag<T extends { label: string }>({
   onDrop,
+  onMove,
   longPressMs = 320,
   slopPx = 10,
+  dimSheets = true,
 }: UseTouchDragOptions<T>) {
   // Only set once the press has become a drag; drives the ghost that follows
   // the finger.
@@ -74,6 +85,13 @@ export function useTouchDrag<T extends { label: string }>({
     document.documentElement.classList.remove(DRAGGING_CLASS);
   }, []);
 
+  // Held in refs so a caller that rebuilds these per render does not
+  // resubscribe the document listeners on every pointermove it causes.
+  const onMoveRef = useRef(onMove);
+  onMoveRef.current = onMove;
+  const onDropRef = useRef(onDrop);
+  onDropRef.current = onDrop;
+
   useEffect(() => {
     const handleMove = (event: PointerEvent) => {
       const state = stateRef.current;
@@ -89,6 +107,7 @@ export function useTouchDrag<T extends { label: string }>({
         return;
       }
       setGhost((current) => (current ? { ...current, x: event.clientX, y: event.clientY } : current));
+      onMoveRef.current?.(state.payload, { x: event.clientX, y: event.clientY });
     };
 
     const handleUp = (event: PointerEvent) => {
@@ -101,7 +120,7 @@ export function useTouchDrag<T extends { label: string }>({
       setGhost(null);
       if (wasArmed) {
         suppressClickRef.current = true;
-        onDrop(payload, { x: event.clientX, y: event.clientY });
+        onDropRef.current(payload, { x: event.clientX, y: event.clientY });
       }
       // Only now: the drop reads what is under the finger, and putting the
       // sheet back before that would have it answer "the sheet".
@@ -124,7 +143,7 @@ export function useTouchDrag<T extends { label: string }>({
       document.removeEventListener('pointercancel', cancel);
       document.removeEventListener('touchmove', blockScroll);
     };
-  }, [cancel, onDrop, slopPx]);
+  }, [cancel, slopPx]);
 
   const bind = useCallback(
     (payload: T): TouchDragBinding => ({
@@ -138,7 +157,7 @@ export function useTouchDrag<T extends { label: string }>({
           const state = stateRef.current;
           if (!state) return;
           state.armed = true;
-          document.documentElement.classList.add(DRAGGING_CLASS);
+          if (dimSheets) document.documentElement.classList.add(DRAGGING_CLASS);
           setGhost({ label: payload.label, x: state.startX, y: state.startY });
         }, longPressMs);
         stateRef.current = { payload, pointerId, startX: clientX, startY: clientY, armed: false, timer };
@@ -150,7 +169,7 @@ export function useTouchDrag<T extends { label: string }>({
         event.stopPropagation();
       },
     }),
-    [cancel, longPressMs]
+    [cancel, longPressMs, dimSheets]
   );
 
   const ghostNode =

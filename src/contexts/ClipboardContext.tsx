@@ -2,17 +2,26 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ArtboardElement } from '@/types/artboard';
 
-// Define the shape of our clipboard context
+// The editor's own clipboard, for elements. Separate from the system
+// clipboard, which carries images into the screenshot intake instead.
+//
+// It holds a LIST, because a selection can be several layers. `clipboardItem`
+// is the first of them and stays the handle for everything that only deals
+// with one, so widening this did not have to touch those call sites.
 interface ClipboardContextType {
   clipboardItem: ArtboardElement | null;
+  clipboardItems: ArtboardElement[];
   copyToClipboard: (element: ArtboardElement) => void;
+  copyManyToClipboard: (elements: ArtboardElement[]) => void;
   clearClipboard: () => void;
 }
 
 // Create the context with default values
 const ClipboardContext = createContext<ClipboardContextType>({
   clipboardItem: null,
+  clipboardItems: [],
   copyToClipboard: () => {},
+  copyManyToClipboard: () => {},
   clearClipboard: () => {},
 });
 
@@ -20,21 +29,32 @@ const ClipboardContext = createContext<ClipboardContextType>({
 export const useClipboard = () => useContext(ClipboardContext);
 
 export const ClipboardProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [clipboardItem, setClipboardItem] = useState<ArtboardElement | null>(null);
+  const [clipboardItems, setClipboardItems] = useState<ArtboardElement[]>([]);
 
-  // Function to copy an element to clipboard
-  const copyToClipboard = (element: ArtboardElement) => {
-    // Create a deep copy to avoid reference issues
-    setClipboardItem(JSON.parse(JSON.stringify(element)));
+  // Deep copied on the way in, so a later edit to the element on the board
+  // cannot reach back into what was copied.
+  const copyManyToClipboard = (elements: ArtboardElement[]) => {
+    setClipboardItems(JSON.parse(JSON.stringify(elements)));
   };
 
-  // Function to clear the clipboard
+  const copyToClipboard = (element: ArtboardElement) => {
+    copyManyToClipboard([element]);
+  };
+
   const clearClipboard = () => {
-    setClipboardItem(null);
+    setClipboardItems([]);
   };
 
   return (
-    <ClipboardContext.Provider value={{ clipboardItem, copyToClipboard, clearClipboard }}>
+    <ClipboardContext.Provider
+      value={{
+        clipboardItem: clipboardItems[0] ?? null,
+        clipboardItems,
+        copyToClipboard,
+        copyManyToClipboard,
+        clearClipboard,
+      }}
+    >
       {children}
     </ClipboardContext.Provider>
   );

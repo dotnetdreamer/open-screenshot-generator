@@ -47,7 +47,7 @@ export interface CollabHandle {
   start: (slug: string, key: string) => Promise<void>;
   stop: () => void;
   publish: (boards: ArtboardState[], projectName?: string) => void;
-  setSelection: (artboardId: string | null, elementId: string | null) => void;
+  setSelection: (artboardId: string | null, elementId: string | null, elementIds?: string[]) => void;
   setCursor: (cursor: { artboardId: string; x: number; y: number } | null) => void;
   /** Set when the last attempt failed, ready to put in front of somebody. */
   error: string | null;
@@ -130,8 +130,8 @@ export function useCollab({
     sessionRef.current?.publish(boards, projectName);
   }, []);
 
-  const setSelection = useCallback((artboardId: string | null, elementId: string | null) => {
-    sessionRef.current?.setSelection({ artboardId, elementId });
+  const setSelection = useCallback((artboardId: string | null, elementId: string | null, elementIds?: string[]) => {
+    sessionRef.current?.setSelection({ artboardId, elementId, elementIds });
   }, []);
 
   const setCursor = useCallback((cursor: { artboardId: string; x: number; y: number } | null) => {

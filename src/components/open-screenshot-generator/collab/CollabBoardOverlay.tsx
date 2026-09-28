@@ -49,17 +49,23 @@ export function CollabBoardOverlay({ artboard, peers, screenScale }: CollabBoard
         zIndex: 60,
       }}
     >
-      {peers.map((peer) => {
-        const selectedId =
-          peer.selection?.artboardId === artboard.id ? peer.selection?.elementId : null;
-        const element = selectedId ? elementsById.get(selectedId) : undefined;
-        if (!element) return null;
+      {peers.flatMap((peer) => {
+        if (peer.selection?.artboardId !== artboard.id) return [];
+        // `elementIds` where the peer sends it, falling back to the single id
+        // that a peer on a build from before multi-select is the only thing
+        // writing.
+        const selectedIds =
+          peer.selection.elementIds ??
+          (peer.selection.elementId ? [peer.selection.elementId] : []);
+        return selectedIds.flatMap((selectedId, index) => {
+        const element = elementsById.get(selectedId);
+        if (!element) return [];
         const scale = element.scale || 1;
         const width = element.size.width * scale;
         const height = element.size.height * scale;
         return (
           <div
-            key={`sel-${peer.clientId}`}
+            key={`sel-${peer.clientId}-${selectedId}`}
             data-collab-selection={peer.user.id}
             style={{
               position: 'absolute',
@@ -76,7 +82,10 @@ export function CollabBoardOverlay({ artboard, peers, screenScale }: CollabBoard
           >
             {/* The name sits above the ring, and flips inside it when the
                 element is at the very top of the board, so a selection on a
-                headline is not labelled off the canvas. */}
+                headline is not labelled off the canvas. Drawn once per peer
+                rather than once per ring: somebody holding five layers wants
+                one label, not five. */}
+            {index === 0 ? (
             <span
               style={{
                 position: 'absolute',
@@ -95,8 +104,10 @@ export function CollabBoardOverlay({ artboard, peers, screenScale }: CollabBoard
             >
               {peer.user.name}
             </span>
+            ) : null}
           </div>
         );
+        });
       })}
 
       {peers.map((peer) => {

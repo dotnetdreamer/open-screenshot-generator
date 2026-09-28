@@ -193,7 +193,31 @@ export function useDockHost(options: DockHostOptions): DockHost {
         break;
       }
       case 'selectElement':
-        h.onSelectElement(intent.elementId);
+        h.onSelectElement(intent.elementId, intent.modifiers);
+        break;
+      case 'alignElements':
+        h.onAlignElements(intent.edge);
+        break;
+      case 'distributeElements':
+        h.onDistributeElements(intent.axis);
+        break;
+      case 'groupElements':
+        h.onGroupElements();
+        break;
+      case 'ungroupElements':
+        h.onUngroupElements();
+        break;
+      case 'ungroupById':
+        h.onUngroupById(intent.groupId);
+        break;
+      case 'renameGroup':
+        h.onRenameGroup(intent.groupId, intent.newName);
+        break;
+      case 'dropLayer':
+        h.onDropLayer(intent.elementId, intent.anchorId, intent.side, intent.groupId);
+        break;
+      case 'moveSelectionTo':
+        h.onMoveSelectionTo(intent.x, intent.y);
         break;
       case 'moveElementLayer':
         h.onMoveElementLayer(intent.elementId, intent.direction);

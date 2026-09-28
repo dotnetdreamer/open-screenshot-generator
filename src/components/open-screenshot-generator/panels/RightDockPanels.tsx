@@ -21,7 +21,8 @@ import { PropertiesPanel } from '../PropertiesPanel';
 import { HistoryPanel } from '../HistoryPanel';
 import { VersionsPanel } from '../VersionsPanel';
 import { LayersPanel } from '../LayersPanel';
-import type { ArtboardElement, ArtboardState } from '@/types/artboard';
+import type { ArtboardElement, ArtboardState, ElementSelectModifiers } from '@/types/artboard';
+import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
@@ -56,7 +57,22 @@ export interface DockHandlers {
   onRestoreVersion: (version: ProjectVersionMeta) => void;
   onOpenVersionCopy: (version: ProjectVersionMeta) => void;
   onDeleteVersion: (version: ProjectVersionMeta) => void;
-  onSelectElement: (elementId: string) => void;
+  onSelectElement: (elementId: string, modifiers?: ElementSelectModifiers) => void;
+  onAlignElements: (edge: AlignEdge) => void;
+  onDistributeElements: (axis: DistributeAxis) => void;
+  onGroupElements: () => void;
+  onUngroupElements: () => void;
+  /** Free one group the Layers panel points at, selected or not. */
+  onUngroupById: (groupId: string) => void;
+  onRenameGroup: (groupId: string, name: string) => void;
+  /** A layer dragged to a new place in the Layers list, and into or out of a group. */
+  onDropLayer: (
+    elementId: string,
+    anchorId: string,
+    side: 'above' | 'below',
+    groupId: string | null
+  ) => void;
+  onMoveSelectionTo: (x: number | null, y: number | null) => void;
   onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   onDeleteElement: (elementId: string) => void;
   onRenameElement: (elementId: string, newName: string) => void;
@@ -152,6 +168,14 @@ export function RightDockPanels({
           >
             <PropertiesPanel
               selectedElement={data.selectedElement}
+              selectedElementIds={data.selectedElementIds}
+              layerElements={data.layerElements}
+              onAlignElements={handlers.onAlignElements}
+              onDistributeElements={handlers.onDistributeElements}
+              onGroupElements={handlers.onGroupElements}
+              onUngroupElements={handlers.onUngroupElements}
+              onRenameGroup={handlers.onRenameGroup}
+              onMoveSelectionTo={handlers.onMoveSelectionTo}
               onUpdateElement={handlers.onUpdateElement}
               onUpdateElementById={handlers.onUpdateElementById}
               onTranslateElement={handlers.onTranslateElement}
@@ -266,10 +290,16 @@ export function RightDockPanels({
             <LayersPanel
               elements={data.layerElements}
               selectedElementId={data.selectedElementId}
+              selectedElementIds={data.selectedElementIds}
               onSelectElement={handlers.onSelectElement}
               onMoveElementLayer={handlers.onMoveElementLayer}
               onDeleteElement={handlers.onDeleteElement}
               onRenameElement={handlers.onRenameElement}
+              onGroupElements={handlers.onGroupElements}
+              onUngroupElements={handlers.onUngroupElements}
+              onUngroupById={handlers.onUngroupById}
+              onRenameGroup={handlers.onRenameGroup}
+              onDropLayer={handlers.onDropLayer}
               activeArtboardName={data.activeArtboardName}
               activeLocale={data.activeLocale}
               localeStates={data.layerLocaleStates}

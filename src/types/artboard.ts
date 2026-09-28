@@ -72,10 +72,19 @@ export interface BaseElement {
   opacity?: number; // 0..1; 1 (or unset) is fully opaque
   shadow?: ElementShadow;
   blur?: number; // gaussian blur radius in artboard px
-  // Free-form tag shared by elements that move together (see the MCP
-  // group_elements / transform_elements tools). Purely an id: the elements
-  // stay independent layers, nothing nests.
+  // Tag shared by elements that move together: picking one of them up on the
+  // canvas brings the rest, and the editor's Group command and the MCP
+  // group_elements tool write the same thing. Purely an id: the elements stay
+  // independent layers and nothing nests. Membership is resolved WITHIN one
+  // artboard, because duplicating a board copies the tag verbatim while
+  // re-minting element ids, so the same string legitimately appears on two
+  // boards that have nothing to do with each other.
   groupId?: string;
+  // What the Layers panel calls that group, on every member of it, so a board
+  // carries its own names and a duplicated board keeps them. Renaming writes
+  // the string to each member; an unnamed group (one the MCP tool made) reads
+  // as "Group" in the panel.
+  groupName?: string;
   // The palette tile this element came from, e.g. 'image:touch-as451105828'
   // (see lib/libraryIds.ts). Stamped by the palette and by MCP add_element,
   // shown at the top of the Properties panel so a layer traces back to the
@@ -86,7 +95,10 @@ export interface BaseElement {
 export interface TextElementProps extends BaseElement {
   type: 'text';
   content: string;
-  fontSize: number; // Base font size, actual display is fontSize * element.scale
+  // Drawn at fontSize / 0.3, the display scale, and NOT multiplied by
+  // element.scale: the box follows scale, the glyphs do not. Resize type by
+  // this number.
+  fontSize: number;
   color: string;
   fontFamily: string;
   fontWeight?: string; // 'normal', 'bold', etc.
@@ -540,3 +552,12 @@ export interface Project {
    */
   sourceId?: string;
 }
+
+/**
+ * How a click asked for the selection to change.
+ *
+ * `toggle` is shift-click, which adds the layer to the selection or takes it
+ * out again. `single` is alt-click, the way to reach one member of a group
+ * without bringing the rest of it along.
+ */
+export type ElementSelectModifiers = { toggle?: boolean; single?: boolean };

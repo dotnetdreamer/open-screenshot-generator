@@ -16,6 +16,7 @@
 // transport line — the protocol, the tool table and runMcpRequest().
 
 import { isTauri } from '@/lib/desktop';
+import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import {
   LIBRARY_KINDS,
   device3dOptions,
@@ -378,6 +379,20 @@ export interface McpDesignApi {
     x?: number;
     y?: number;
     scale?: number;
+  }): { elementIds: string[]; bounds: McpBox } | null;
+  /** Line a set of elements up on one edge of the box they span. */
+  alignElements(input: {
+    artboardId?: string;
+    elementIds?: string[];
+    groupId?: string;
+    edge: AlignEdge;
+  }): { elementIds: string[]; bounds: McpBox } | null;
+  /** Even out the gaps between three or more elements along one axis. */
+  distributeElements(input: {
+    artboardId?: string;
+    elementIds?: string[];
+    groupId?: string;
+    axis: DistributeAxis;
   }): { elementIds: string[]; bounds: McpBox } | null;
   /** Set an artboard's solid colour or gradient background. */
   setBackground(input: {
@@ -855,6 +870,16 @@ async function buildElementSpec(
   return { ok: true, spec: { type, subType, props } };
 }
 
+/**
+ * The values align_elements and distribute_elements accept.
+ *
+ * The input schemas name them too, but a schema is documentation here: the
+ * transport hands `run` whatever JSON arrived, so an unchecked string would
+ * reach the geometry helpers and move layers to a coordinate nobody asked for.
+ */
+const ALIGN_EDGES = ['left', 'center-h', 'right', 'top', 'middle-v', 'bottom'] as const;
+const DISTRIBUTE_AXES = ['horizontal', 'vertical'] as const;
+
 const TOOLS: ToolDef[] = [
   {
     name: 'list_artboards',
@@ -1322,7 +1347,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'group_elements',
     description:
-      'Tag elements with a shared groupId so transform_elements can move them together later. They stay separate layers; this only records that they belong to one arrangement (a hero scene, a badge row). Pass clear:true to untag them.',
+      'Tag elements with a shared groupId so they move together: the same group the editor\'s Group command makes, so picking one member up on the canvas now brings the rest. They stay separate layers; this only records that they belong to one arrangement (a hero scene, a badge row). Membership is scoped to one artboard. Pass clear:true to untag them.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1348,7 +1373,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'transform_elements',
     description:
-      'Move or scale several elements as one unit, about their shared bounding box: one call instead of a coordinated update per element. Target them by elementIds or by a groupId from group_elements. dx/dy nudge; x/y place the group\'s top-left corner; scale grows or shrinks the whole arrangement around its centre, keeping the elements\' relative layout.',
+      'Move or scale several elements as one unit, about their shared bounding box: one call instead of a coordinated update per element. Target them by elementIds or by a groupId from group_elements. dx/dy nudge; x/y place the group\'s top-left corner; scale grows or shrinks the whole arrangement around its centre, keeping the elements\' relative layout. The bounding box takes rotation into account and leaves out sound layers, so it matches what the editor\'s align controls use.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1376,6 +1401,82 @@ const TOOLS: ToolDef[] = [
         scale: args.scale,
       });
       return moved ? textResult(moved) : { ...textResult('No such artboard, or none of those elements exist.'), isError: true };
+    },
+  },
+  {
+    name: 'align_elements',
+    description:
+      "Line several elements up on one edge of the box they already span, the same command the editor's Align controls run. Edges: left, center-h and right move along x; top, middle-v and bottom move along y. The box is measured from what each element actually covers once rotated, so a tilted layer lands on the edge you can see, and sound layers are ignored because they are never drawn. Needs two or more elements. Use transform_elements to move the whole arrangement instead, and distribute_elements to even out the gaps inside it.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementIds: { type: 'array', items: { type: 'string' }, description: 'Explicit members. Omit when using groupId.' },
+        groupId: { type: 'string', description: 'Every element carrying this groupId.' },
+        edge: {
+          type: 'string',
+          enum: ['left', 'center-h', 'right', 'top', 'middle-v', 'bottom'],
+          description: 'Which edge of the spanned box every member moves onto.',
+        },
+      },
+      required: ['edge'],
+    },
+    run: (args, api) => {
+      const hasTarget = (Array.isArray(args.elementIds) && args.elementIds.length > 0) || !!args.groupId;
+      if (!hasTarget) return { ...textResult('Pass elementIds or a groupId.'), isError: true };
+      if (!ALIGN_EDGES.includes(args.edge)) {
+        return {
+          ...textResult(`edge must be one of: ${ALIGN_EDGES.join(', ')}.`),
+          isError: true,
+        };
+      }
+      const aligned = api.alignElements({
+        artboardId: args.artboardId,
+        elementIds: args.elementIds,
+        groupId: args.groupId,
+        edge: args.edge,
+      });
+      return aligned
+        ? textResult(aligned)
+        : { ...textResult('No such artboard, or fewer than two of those elements exist.'), isError: true };
+    },
+  },
+  {
+    name: 'distribute_elements',
+    description:
+      "Even out the gaps between three or more elements along one axis, the same command the editor's Distribute controls run. The two outermost stay where they are and the rest are spread so the SPACE between them is equal, which is what keeps a row mixing a wide mockup with narrow badges looking regular. Sound layers are ignored. Fewer than three elements with a box on the canvas is a no-op.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        artboardId: { type: 'string', description: 'Defaults to the active artboard.' },
+        elementIds: { type: 'array', items: { type: 'string' }, description: 'Explicit members. Omit when using groupId.' },
+        groupId: { type: 'string', description: 'Every element carrying this groupId.' },
+        axis: {
+          type: 'string',
+          enum: ['horizontal', 'vertical'],
+          description: 'horizontal evens out the gaps left to right, vertical top to bottom.',
+        },
+      },
+      required: ['axis'],
+    },
+    run: (args, api) => {
+      const hasTarget = (Array.isArray(args.elementIds) && args.elementIds.length > 0) || !!args.groupId;
+      if (!hasTarget) return { ...textResult('Pass elementIds or a groupId.'), isError: true };
+      if (!DISTRIBUTE_AXES.includes(args.axis)) {
+        return {
+          ...textResult(`axis must be one of: ${DISTRIBUTE_AXES.join(', ')}.`),
+          isError: true,
+        };
+      }
+      const spread = api.distributeElements({
+        artboardId: args.artboardId,
+        elementIds: args.elementIds,
+        groupId: args.groupId,
+        axis: args.axis,
+      });
+      return spread
+        ? textResult(spread)
+        : { ...textResult('No such artboard, or fewer than three of those elements exist.'), isError: true };
     },
   },
   {

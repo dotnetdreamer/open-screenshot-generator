@@ -2,7 +2,7 @@
 import type React from 'react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Artboard } from './Artboard';
-import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement } from '@/types/artboard';
+import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement, ElementSelectModifiers } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -138,7 +138,11 @@ interface CanvasAreaProps {
   activeArtboardId: string | null;
   setActiveArtboardId: (id: string | null) => void;
   selectedElementIdOnActiveArtboard: string | null;
-  setSelectedElementIdOnActiveArtboard: (elementId: string | null) => void;
+  setSelectedElementIdOnActiveArtboard: (elementId: string | null, modifiers?: ElementSelectModifiers) => void;
+  /** Every selected layer on the active board, in the order they were picked. */
+  selectedElementIds: string[];
+  /** Replace the selection outright, which is what a marquee reports. */
+  onSetSelectedElementIds: (ids: string[]) => void;
   canvasZoom: number;
   artboardRefs: React.MutableRefObject<Record<string, any>>;
   onAddNewArtboardFromToolbar: (currentArtboardId: string) => void;
@@ -175,6 +179,9 @@ interface CanvasAreaProps {
   activeLocale?: string | null;
 }
 
+/** Shared so a board that is not active keeps a stable prop identity. */
+const EMPTY_SELECTION: string[] = [];
+
 export function CanvasArea({
     artboards: externalArtboards,
     onUpdateArtboards,
@@ -186,6 +193,8 @@ export function CanvasArea({
     setActiveArtboardId,
     selectedElementIdOnActiveArtboard,
     setSelectedElementIdOnActiveArtboard,
+    selectedElementIds,
+    onSetSelectedElementIds,
     canvasZoom,
     collabPeers,
     onCollabCursor,
@@ -803,12 +812,21 @@ export function CanvasArea({
                 onSelectArtboard={() => handleSelectArtboard(artboard.id)}
                 globalZoom={canvasZoom}
                 selectedElementId={activeArtboardId === artboard.id ? selectedElementIdOnActiveArtboard : null}
-                setSelectedElementId={(elementId) => {
+                selectedElementIds={activeArtboardId === artboard.id ? selectedElementIds : EMPTY_SELECTION}
+                setSelectedElementId={(elementId, modifiers) => {
                   // Always set the active artboard when selecting an element
                   if (elementId && activeArtboardId !== artboard.id) {
                     setActiveArtboardId(artboard.id);
                   }
-                  setSelectedElementIdOnActiveArtboard(elementId);
+                  setSelectedElementIdOnActiveArtboard(elementId, modifiers);
+                }}
+                onSetSelection={(ids) => {
+                  // A marquee on a board that was not active moves the focus to
+                  // it first, the same way picking one layer there does.
+                  if (ids.length > 0 && activeArtboardId !== artboard.id) {
+                    setActiveArtboardId(artboard.id);
+                  }
+                  onSetSelectedElementIds(ids);
                 }}
                 onAddNewArtboard={() => onAddNewArtboardFromToolbar(artboard.id)}
                 onDuplicateArtboard={onDuplicateArtboardFromToolbar}

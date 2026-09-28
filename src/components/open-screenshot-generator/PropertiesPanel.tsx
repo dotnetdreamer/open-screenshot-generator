@@ -53,6 +53,28 @@ import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 import { trackScreenshotUploaded } from '@/lib/analytics';
 import { DEFAULT_BASE_LOCALE, localeLabel, localeName } from '@/lib/i18n/locales';
 import type { DetachableKey } from '@/lib/i18n/project';
+import {
+  groupCommandState,
+  groupLabel,
+  groupMembers,
+  hasCanvasBox,
+  resizeElementBox,
+  unionBounds,
+  type AlignEdge,
+  type DistributeAxis,
+} from '@/lib/elementGeometry';
+import {
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  AlignStartHorizontal,
+  AlignCenterHorizontal,
+  AlignEndHorizontal,
+  AlignHorizontalDistributeCenter,
+  AlignVerticalDistributeCenter,
+  Group as GroupIcon,
+  Ungroup as UngroupIcon,
+} from 'lucide-react';
 
 /** Length of the uploaded sound, or a note when its file is missing here. */
 function SoundFileStatus({ element }: { element: AudioElementProps }) {
@@ -97,6 +119,119 @@ const ELEMENT_PANEL_TITLES: Partial<Record<ArtboardElement['type'], string>> = {
  * grows down and right. `center` compensates by moving the position half the
  * size delta, so the element grows evenly around its middle instead.
  */
+/**
+ * One number in the geometry row, in artboard pixels.
+ *
+ * A text input rather than `type="number"`, for the reason the preview length
+ * field already records: the spinners are unclickable at this size and a
+ * clamped controlled value fights every keystroke, so clearing the box to
+ * retype it snaps straight back. The draft is a string while it is being typed
+ * and commits on blur or Enter; Escape puts the committed value back.
+ *
+ * Committing per keystroke would be one whole-project write and one undo entry
+ * per character, so nothing leaves here until the edit is finished.
+ */
+const GeometryField: React.FC<{
+  id: string;
+  label: string;
+  ariaLabel: string;
+  value: number;
+  /** Drops a half-typed number when the selection moves to another layer. */
+  elementId: string;
+  onCommit: (next: number) => void;
+}> = ({ id, label, ariaLabel, value, elementId, onCommit }) => {
+  const [draft, setDraft] = useState<string | null>(null);
+  useEffect(() => { setDraft(null); }, [elementId]);
+
+  const commit = (raw: string | null) => {
+    setDraft(null);
+    if (raw === null) return;
+    const next = Number.parseFloat(raw);
+    // A field left empty or holding only a minus sign means "no change", not 0.
+    if (!Number.isFinite(next) || next === Math.round(value)) return;
+    onCommit(next);
+  };
+
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id} className="text-[11px] text-muted-foreground">{label}</Label>
+      <Input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        aria-label={ariaLabel}
+        // Negatives are allowed on purpose: a layer can sit off the edge of the
+        // board, and dragging has never clamped it back.
+        value={draft ?? String(Math.round(value))}
+        onChange={(e) => setDraft(e.target.value.replace(/[^\d.-]/g, ''))}
+        onBlur={() => commit(draft)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            // Blur and nothing else. Blurring commits, so committing here too
+            // would write the same number twice: two project copies, two
+            // history entries and, in a live session, two published edits.
+            (e.target as HTMLInputElement).blur();
+          } else if (e.key === 'Escape') {
+            setDraft(null);
+          } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            const base = draft !== null ? Number.parseFloat(draft) : value;
+            if (!Number.isFinite(base)) return;
+            const step = e.shiftKey ? 10 : 1;
+            onCommit(Math.round(base) + (e.key === 'ArrowUp' ? step : -step));
+            setDraft(null);
+          }
+        }}
+        className="h-8 text-xs tabular-nums"
+      />
+    </div>
+  );
+};
+
+/**
+ * What the group is called, shown whenever the selection is one whole group.
+ *
+ * Drafted while it is typed and committed on blur or Enter, for the reason the
+ * geometry fields give: a commit is a whole-project write and an undo entry, so
+ * one per keystroke would fill the history with half-typed names. Remounted per
+ * group by its key, which is what drops a draft when the selection moves on.
+ */
+const GroupNameField: React.FC<{
+  name: string;
+  onCommit: (next: string) => void;
+}> = ({ name, onCommit }) => {
+  const [draft, setDraft] = useState<string>(name);
+
+  const commit = () => {
+    const next = draft.trim();
+    if (!next || next === name) {
+      setDraft(name);
+      return;
+    }
+    onCommit(next);
+  };
+
+  return (
+    <Input
+      id="groupName"
+      aria-label="Group name"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          // The blur handler is what commits; see GeometryField.
+          (e.target as HTMLInputElement).blur();
+        } else if (e.key === 'Escape') {
+          setDraft(name);
+        }
+      }}
+      className="h-8 text-xs"
+      placeholder="Group name"
+    />
+  );
+};
+
 const SCALE_MIN = 10;
 const SCALE_MAX = 500;
 
@@ -419,17 +554,17 @@ const EXTRA_DETACH_GROUPS: Partial<
  * the same keys are not offered twice, two inches apart, in the same panel.
  */
 const BASE_GROUPS_WITH_A_CONTROL: Record<ArtboardElement['type'], BaseDetachGroupId[]> = {
-  text: [],
-  shape: [],
-  gesture: [],
-  // Only `scale` is claimed by the Scale field. Position and size have no field
-  // on any type (they come from dragging on the canvas), so they always come
-  // from the catch-all section, which is what makes "hand back just the
-  // position of this one mockup" reachable.
-  device: ['scale', 'rotation'],
-  'video-device': ['scale', 'rotation'],
-  image: ['scale', 'opacity'],
-  video: ['scale', 'opacity'],
+  // Position and size are claimed on every drawn type by the X/Y/W/H row,
+  // which carries its own pair of toggles. They stay two groups rather than
+  // one: a drag in a translated language detaches `position` on its own, so a
+  // combined row would claim the size was detached too.
+  text: ['position', 'size'],
+  shape: ['position', 'size'],
+  gesture: ['position', 'size'],
+  device: ['position', 'size', 'scale', 'rotation'],
+  'video-device': ['position', 'size', 'scale', 'rotation'],
+  image: ['position', 'size', 'scale', 'opacity'],
+  video: ['position', 'size', 'scale', 'opacity'],
   // Never drawn, so none of the visual properties mean anything for a sound.
   audio: ['position', 'size', 'scale', 'rotation', 'opacity', 'shadow', 'blur'],
 };
@@ -640,6 +775,24 @@ interface PropertiesPanelProps {
    * the controls rather than offering a button that does nothing.
    */
   onResetLocaleOverrides?: (scope: 'element' | 'artboard' | 'project') => void;
+  /**
+   * Every selected layer. With two or more the panel shows the arrange section
+   * instead of a single element's form, because none of the per-element
+   * controls could say which of them it was about.
+   */
+  selectedElementIds?: string[];
+  /** Line the selection up on one edge of the box it already spans. */
+  onAlignElements?: (edge: AlignEdge) => void;
+  /** Even out the gaps between three or more selected layers. */
+  onDistributeElements?: (axis: DistributeAxis) => void;
+  onGroupElements?: () => void;
+  onUngroupElements?: () => void;
+  /** Name the group the selection is, which writes the name to every member. */
+  onRenameGroup?: (groupId: string, name: string) => void;
+  /** Put the selection's bounding box at an exact spot on the board. */
+  onMoveSelectionTo?: (x: number | null, y: number | null) => void;
+  /** Every layer on the active board, used to tell whether Ungroup has work to do. */
+  layerElements?: ArtboardElement[];
   className?: string;
 }
 
@@ -883,6 +1036,14 @@ export function PropertiesPanel({
   selectedElement, 
   onUpdateElement, 
   onUpdateElementById,
+  selectedElementIds,
+  onAlignElements,
+  onDistributeElements,
+  onGroupElements,
+  onUngroupElements,
+  onRenameGroup,
+  onMoveSelectionTo,
+  layerElements,
   onTranslateElement,
   activeArtboardDetails,
   onUpdateArtboardDetails,
@@ -993,6 +1154,77 @@ export function PropertiesPanel({
    * say so beforehand. Nothing here without a translated language on screen, and
    * nothing here without a host to take the toggle.
    */
+  /**
+   * Position and size, in artboard pixels, measured from the board's top left.
+   *
+   * X and Y are `position` exactly as the data holds it, so the field round
+   * trips what a drag writes. W and H are the RENDERED size, `size * scale`,
+   * which is what a pixel on the board measures; the commit writes `size` and
+   * leaves `scale` alone, matching the edge resize handles, so the Scale slider
+   * beside it does not jump to a number that means nothing.
+   *
+   * For a rotated layer these are its upright box, which is why X can disagree
+   * with where "Align to left edges" puts it.
+   */
+  const renderGeometryProperties = (element: ArtboardElement) => {
+    const scale = element.scale || 1;
+    const commit = (next: Partial<{ x: number; y: number; width: number; height: number }>) => {
+      // No fitting while a translated language is on screen: fitTextBox
+      // measures what is rendered and writes a shared size, so a long headline
+      // in one language would resize every other language's box with it.
+      onUpdateElement(resizeElementBox(element, next, !localeActive));
+    };
+    return (
+      <div className="space-y-2">
+        <Label className="text-xs font-medium">Position and size</Label>
+        <div className="grid grid-cols-4 gap-2">
+          <GeometryField
+            id="elementX"
+            label="X"
+            ariaLabel="X position in pixels"
+            elementId={element.id}
+            value={element.position.x}
+            onCommit={(x) => commit({ x })}
+          />
+          <GeometryField
+            id="elementY"
+            label="Y"
+            ariaLabel="Y position in pixels"
+            elementId={element.id}
+            value={element.position.y}
+            onCommit={(y) => commit({ y })}
+          />
+          <GeometryField
+            id="elementWidth"
+            label="W"
+            ariaLabel="Width in pixels"
+            elementId={element.id}
+            value={element.size.width * scale}
+            onCommit={(width) => commit({ width })}
+          />
+          <GeometryField
+            id="elementHeight"
+            label="H"
+            ariaLabel="Height in pixels"
+            elementId={element.id}
+            value={element.size.height * scale}
+            onCommit={(height) => commit({ height })}
+          />
+        </div>
+        {/* Two toggles, not one. A drag in a translated language detaches
+            `position` on its own, so a single control would claim the size was
+            per-language too. */}
+        {localeActive ? (
+          <div className="space-y-1">
+            {detachLabelRow(<span className="text-[11px] text-muted-foreground">Position</span>, ['position'], 'Position')}
+            {detachLabelRow(<span className="text-[11px] text-muted-foreground">Size</span>, ['size'], 'Size')}
+          </div>
+        ) : null}
+        <p className="text-[10px] text-muted-foreground">Measured from the top left of the artboard</p>
+      </div>
+    );
+  };
+
   const renderLocaleBaseProperties = (element: ArtboardElement) => {
     if (!localeActive || !onToggleLocaleDetach) return null;
     const covered = BASE_GROUPS_WITH_A_CONTROL[element.type] || [];
@@ -3546,6 +3778,171 @@ export function PropertiesPanel({
     );
   };
 
+  // Several layers at once. Exclusive with the board form below, because the
+  // editor sends activeArtboardDetails only when nothing at all is selected.
+  const multiSelectionCount = selectedElementIds?.length ?? 0;
+  if (!selectedElement && multiSelectionCount >= 2) {
+    const chosen = new Set(selectedElementIds);
+    const boardLayers = layerElements ?? [];
+    // Group goes dead once the selection is already exactly one group, where
+    // pressing it would mint a second id for the same set of layers. The whole
+    // group is also what the name field needs to know about.
+    const { canGroup, canUngroup, wholeGroupId } = groupCommandState(boardLayers, chosen);
+    const selectedLayers = boardLayers.filter((el) => chosen.has(el.id));
+    const selectionBounds = unionBounds(selectedLayers);
+    // Only layers with a box on the canvas can be spread out. Counting a sound
+    // towards the three would leave the button enabled on a selection
+    // distributeElements then declines to touch, which reads as a dead control.
+    const distributableCount = selectedLayers.filter(hasCanvasBox).length;
+    // Re-keys the draft in the geometry fields whenever the selection changes,
+    // so a half-typed number does not carry over to a different arrangement.
+    const selectionKey = (selectedElementIds ?? []).join(',');
+    const alignButtons: { edge: AlignEdge; title: string; Icon: typeof AlignStartVertical }[] = [
+      { edge: 'left', title: 'Align to left edges', Icon: AlignStartVertical },
+      { edge: 'center-h', title: 'Align to horizontal centers', Icon: AlignCenterVertical },
+      { edge: 'right', title: 'Align to right edges', Icon: AlignEndVertical },
+      { edge: 'top', title: 'Align to top edges', Icon: AlignStartHorizontal },
+      { edge: 'middle-v', title: 'Align to vertical centers', Icon: AlignCenterHorizontal },
+      { edge: 'bottom', title: 'Align to bottom edges', Icon: AlignEndHorizontal },
+    ];
+    return (
+      <div className={cn("w-full h-full bg-card border-l shadow-md flex flex-col overflow-hidden", className)} suppressHydrationWarning>
+        <div className="px-4 py-3 border-b bg-card">
+          <div className="font-medium text-foreground">{multiSelectionCount} elements selected</div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          {selectionBounds ? (
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Position and size</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {/* X and Y move the whole arrangement, keeping every layer
+                    where it sits relative to the others. W and H are a readout:
+                    resizing several layers at once is not the same question as
+                    moving them, and there is no one answer for a row that mixes
+                    a device mockup with a badge. */}
+                <GeometryField
+                  id="selectionX"
+                  label="X"
+                  ariaLabel="X position in pixels"
+                  elementId={selectionKey}
+                  value={selectionBounds.x}
+                  onCommit={(x) => onMoveSelectionTo?.(x, null)}
+                />
+                <GeometryField
+                  id="selectionY"
+                  label="Y"
+                  ariaLabel="Y position in pixels"
+                  elementId={selectionKey}
+                  value={selectionBounds.y}
+                  onCommit={(y) => onMoveSelectionTo?.(null, y)}
+                />
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">W</Label>
+                  <div className="flex h-8 items-center px-1 text-xs tabular-nums text-muted-foreground">
+                    {Math.round(selectionBounds.width)}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px] text-muted-foreground">H</Label>
+                  <div className="flex h-8 items-center px-1 text-xs tabular-nums text-muted-foreground">
+                    {Math.round(selectionBounds.height)}
+                  </div>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Moves everything selected together</p>
+            </div>
+          ) : null}
+
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Align</Label>
+            <div className="grid grid-cols-6 gap-1">
+              {alignButtons.map(({ edge, title, Icon }) => (
+                <Button
+                  key={edge}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  title={title}
+                  onClick={() => onAlignElements?.(edge)}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Distribute</Label>
+            <div className="flex gap-1">
+              {/* Under three layers there is no gap to even out. */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                title="Distribute horizontally"
+                disabled={distributableCount < 3}
+                onClick={() => onDistributeElements?.('horizontal')}
+              >
+                <AlignHorizontalDistributeCenter className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                title="Distribute vertically"
+                disabled={distributableCount < 3}
+                onClick={() => onDistributeElements?.('vertical')}
+              >
+                <AlignVerticalDistributeCenter className="h-4 w-4" />
+              </Button>
+            </div>
+            {distributableCount < 3 ? (
+              <p className="text-[10px] text-muted-foreground">Select three or more to spread them out</p>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Group</Label>
+            {wholeGroupId ? (
+              <GroupNameField
+                key={wholeGroupId}
+                name={groupLabel(groupMembers(boardLayers, wholeGroupId))}
+                onCommit={(next) => onRenameGroup?.(wholeGroupId, next)}
+              />
+            ) : null}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                title="Group elements (Ctrl+G)"
+                disabled={!canGroup}
+                onClick={() => onGroupElements?.()}
+              >
+                <GroupIcon className="mr-1 h-3.5 w-3.5" />
+                Group
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                title="Ungroup elements (Ctrl+Shift+G)"
+                disabled={!canUngroup}
+                onClick={() => onUngroupElements?.()}
+              >
+                <UngroupIcon className="mr-1 h-3.5 w-3.5" />
+                Ungroup
+              </Button>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {wholeGroupId ? 'These layers move together. Rename the group above' : 'Grouped elements move together'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // No element or artboard selected
   if (!selectedElement && !activeArtboardDetails) {
     return (
@@ -3850,6 +4247,9 @@ export function PropertiesPanel({
           <ElementIdRow element={selectedElement} />
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm">
+          {/* A sound has a place on the timeline and none on the canvas, so it
+              is the one type with no box to give numbers for. */}
+          {selectedElement.type !== 'audio' && renderGeometryProperties(selectedElement)}
           {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
           {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
           {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}

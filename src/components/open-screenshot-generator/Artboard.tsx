@@ -11,7 +11,7 @@ import { VideoElement } from './elements/VideoElement';
 import { VideoDeviceElement } from './elements/VideoDeviceElement';
 import { GestureElement } from './elements/GestureElement';
 import { AudioElement } from './elements/AudioElement';
-import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, AudioElementProps } from '@/types/artboard';
+import type { ArtboardState as ArtboardType, ArtboardElement, Point, ElementType, ShapeType, DeviceType, DeviceFrameElementProps, ImageElementProps, ShapeElementProps, TextElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, AudioElementProps, ElementSelectModifiers } from '@/types/artboard';
 import { useToast } from '@/hooks/use-toast';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
@@ -23,6 +23,20 @@ import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning } from '@
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { Input } from '@/components/ui/input';
 import { EditIcon } from 'lucide-react';
+import {
+  boundsIntersect,
+  elementVisualBounds,
+  expandGroups,
+  hasCanvasBox,
+  moveElements,
+} from '@/lib/elementGeometry';
+
+/**
+ * How far a press has to travel before it is a marquee rather than a click on
+ * empty board. Matches the drag threshold DraggableElement uses, so the two
+ * gestures arm at the same distance.
+ */
+const MARQUEE_THRESHOLD_PX = 3;
 
 interface ArtboardProps {
   artboard: ArtboardType;
@@ -32,7 +46,11 @@ interface ArtboardProps {
   onSelectArtboard: () => void;
   globalZoom: number;
   selectedElementId: string | null;
-  setSelectedElementId: (id: string | null) => void;
+  setSelectedElementId: (id: string | null, modifiers?: ElementSelectModifiers) => void;
+  /** Every selected layer on this board, when it is the active one. */
+  selectedElementIds: string[];
+  /** Replace the selection with exactly these layers, which is what a marquee reports. */
+  onSetSelection: (ids: string[]) => void;
   // Props for the ArtboardToolbar
   onAddNewArtboard: () => void;
   onDuplicateArtboard: (artboardId: string) => void;
@@ -68,6 +86,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   globalZoom,
   selectedElementId,
   setSelectedElementId,
+  selectedElementIds,
+  onSetSelection,
   onAddNewArtboard,
   onDuplicateArtboard,
   onDeleteArtboard,
@@ -90,6 +110,21 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
   // Use a ref to track client-side initialization
   const isClientInitialized = useRef(false);
+
+  /**
+   * The rubber band, in artboard pixels, while one is being dragged.
+   *
+   * Mouse and pen only. The board deliberately sets no `touch-action`, because
+   * that is what lets one finger scroll the canvas over a board, and claiming
+   * the gesture here would cost that everywhere. The Layers panel is the way to
+   * pick several layers with a finger.
+   */
+  const [marquee, setMarquee] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  // Set once a band has travelled far enough to count, and read by the click
+  // that follows the release.
+  const suppressNextClickRef = useRef(false);
+  const selectedIdsRef = useRef(selectedElementIds);
+  selectedIdsRef.current = selectedElementIds;
   
   // Focus input when editing starts
   useEffect(() => {
@@ -440,7 +475,12 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         const newElements = elements.filter(el => el.id !== elementId);
         setElements(newElements);
         onUpdateArtboardElements(newElements);
-        setSelectedElementId(null);
+        // The selection is NOT cleared here. handleArtboardsUpdate drops ids
+        // that no longer exist, which leaves the rest of a multi-selection
+        // alone; clearing outright would queue an empty selection that lands
+        // before the caller's own filter and take the other layers with it.
+        // It would also reach across boards, since this can be called for a
+        // board that is not the active one.
         console.log(`Element deleted: ${elementId}`);
         return true;
       }
@@ -459,6 +499,85 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     onUpdateArtboardElements(newElements);
   };
   
+  /**
+   * Offset the rest of the selection while one of its members is being dragged.
+   *
+   * Written straight onto the DOM rather than through state: no element
+   * renderer is memoized and a 3D device holds a live WebGL context, so putting
+   * the live delta in React state would re-render every layer on the board on
+   * every pointermove. `translate` rather than `transform`, because the
+   * wrapper's transform already carries the element's rotation and, during App
+   * Preview playback, its animation; the separate property composes with them
+   * instead of replacing them.
+   */
+  const applyFollowerOffset = useRef((dx: number, dy: number, leaderId: string) => {});
+  applyFollowerOffset.current = (dx, dy, leaderId) => {
+    const root = artboardDivRef.current;
+    if (!root) return;
+    for (const id of selectedIdsRef.current) {
+      if (id === leaderId) continue;
+      const node = root.querySelector<HTMLElement>(`[data-element-id="${CSS.escape(id)}"]`);
+      if (node) node.style.translate = dx === 0 && dy === 0 ? '' : `${dx}px ${dy}px`;
+    }
+  };
+
+  /**
+   * Wipe any live drag offset whenever the selection changes.
+   *
+   * The offsets above are written straight onto the DOM, so React will not
+   * clear them. If the selection is emptied while a drag is in flight (Escape
+   * is the reflex for cancelling one), the leader stops reporting and the
+   * followers would otherwise keep the offset they had reached, drawn somewhere
+   * their data does not put them until something else happened to re-create
+   * those nodes.
+   */
+  useEffect(() => {
+    const root = artboardDivRef.current;
+    if (!root) return;
+    for (const node of root.querySelectorAll<HTMLElement>('[data-element-id]')) {
+      if (node.style.translate) node.style.translate = '';
+    }
+  }, [selectedElementIds]);
+
+  /** Move every selected layer by the same offset, in one commit. */
+  const commitSelectionMove = useRef((dx: number, dy: number, leaderId: string) => {});
+  commitSelectionMove.current = (dx, dy, leaderId) => {
+    applyFollowerOffset.current(0, 0, leaderId);
+    if (dx === 0 && dy === 0) return;
+    const members = new Set(selectedIdsRef.current);
+    const newElements = moveElements(elements, members, dx, dy);
+    if (newElements === elements) return;
+    // Both together, the way every other writer here does it: the local mirror
+    // is what the board paints until the props come back round.
+    setElements(newElements);
+    onUpdateArtboardElements(newElements);
+  };
+
+  /**
+   * One stable pair of drag callbacks per layer.
+   *
+   * DraggableElement lists these in the dep array of the effect that registers
+   * its document listeners, and that array deliberately leaves out the live
+   * transform so the listeners survive a whole drag. A fresh closure per render
+   * would put the teardown back.
+   */
+  const dragCallbacks = useRef(
+    new Map<string, { delta: (dx: number, dy: number) => void; commit: (dx: number, dy: number) => void }>()
+  );
+  const dragCallbacksFor = (id: string) => {
+    let entry = dragCallbacks.current.get(id);
+    if (!entry) {
+      entry = {
+        delta: (dx, dy) => applyFollowerOffset.current(dx, dy, id),
+        commit: (dx, dy) => commitSelectionMove.current(dx, dy, id),
+      };
+      dragCallbacks.current.set(id, entry);
+    }
+    return entry;
+  };
+  const makeDragDelta = (id: string) => dragCallbacksFor(id).delta;
+  const makeDragCommit = (id: string) => dragCallbacksFor(id).commit;
+
   const partialUpdateElement = (elementId: string, updates: Partial<ArtboardElement>) => {
     const newElements = elements.map(el =>
       el.id === elementId ? { ...el, ...updates } as ArtboardElement : el
@@ -478,21 +597,121 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
 
   const handleSelectElement = (elementId: string, e: React.PointerEvent) => {
     e.stopPropagation();
-    setSelectedElementId(elementId);
+    setSelectedElementId(elementId, { toggle: e.shiftKey, single: e.altKey });
+  };
+
+  /**
+   * Drag a band across bare board to pick everything it touches.
+   *
+   * The press has to land on the board itself: DraggableElement stops the
+   * propagation of a press on a layer, and the background picture takes no
+   * pointer events, so anything reaching here with the board as its target is
+   * on empty space. The pan tool never gets this far either, because
+   * CanvasArea claims the press in the capture phase while the hand is up.
+   */
+  const handleArtboardPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    if (e.pointerType === 'touch') return;
+    if (e.target !== artboardDivRef.current) return;
+
+    const node = artboardDivRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    // Measured, never the 0.3 constant: the canvas zoom stacks another
+    // transform above this board and a fixed divisor would be wrong the moment
+    // anybody touched the zoom control.
+    const scale = node.offsetWidth > 0 ? rect.width / node.offsetWidth : 1;
+    const toBoard = (clientX: number, clientY: number) => ({
+      x: (clientX - rect.left) / (scale || 1),
+      y: (clientY - rect.top) / (scale || 1),
+    });
+
+    const origin = toBoard(e.clientX, e.clientY);
+    const pointerId = e.pointerId;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const additive = e.shiftKey;
+    let armed = false;
+
+    const handleMove = (move: PointerEvent) => {
+      if (move.pointerId !== pointerId) return;
+      if (!armed) {
+        if (
+          Math.abs(move.clientX - startX) < MARQUEE_THRESHOLD_PX &&
+          Math.abs(move.clientY - startY) < MARQUEE_THRESHOLD_PX
+        ) {
+          return;
+        }
+        armed = true;
+      }
+      const current = toBoard(move.clientX, move.clientY);
+      setMarquee({ x0: origin.x, y0: origin.y, x1: current.x, y1: current.y });
+    };
+
+    const finish = (up: PointerEvent) => {
+      if (up.pointerId !== pointerId) return;
+      document.removeEventListener('pointermove', handleMove);
+      document.removeEventListener('pointerup', finish);
+      document.removeEventListener('pointercancel', finish);
+      setMarquee(null);
+      // Never travelled: leave it to the click handler, which deselects.
+      if (!armed) return;
+      // Swallow the click this release is about to produce, and only that one.
+      // A band let go past the edge of the board lands its click on the canvas
+      // instead, where handleArtboardClick never runs, so the flag is cleared
+      // here rather than left for a handler that may not be called: otherwise
+      // it stays set and eats an unrelated click much later.
+      suppressNextClickRef.current = true;
+      // Bubble phase, not capture: React dispatches onClick from its root
+      // container, so a capture listener on window would clear the flag before
+      // handleArtboardClick ever read it, and the marquee's own trailing click
+      // would go on to wipe the selection it had just made.
+      window.addEventListener(
+        'click',
+        () => { suppressNextClickRef.current = false; },
+        { once: true }
+      );
+
+      const end = toBoard(up.clientX, up.clientY);
+      const band = {
+        x: Math.min(origin.x, end.x),
+        y: Math.min(origin.y, end.y),
+        width: Math.abs(end.x - origin.x),
+        height: Math.abs(end.y - origin.y),
+      };
+      const hits = elements
+        .filter(hasCanvasBox)
+        .filter((element) => boundsIntersect(band, elementVisualBounds(element)))
+        .map((element) => element.id);
+      const withGroups = [...expandGroups(elements, hits)];
+      onSetSelection(
+        additive ? [...new Set([...selectedIdsRef.current, ...withGroups])] : withGroups
+      );
+    };
+
+    document.addEventListener('pointermove', handleMove);
+    document.addEventListener('pointerup', finish);
+    document.addEventListener('pointercancel', finish);
   };
 
   const handleArtboardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // The click that ends a marquee lands here. Without this it would wipe the
+    // selection the band had just made.
+    if (suppressNextClickRef.current) {
+      suppressNextClickRef.current = false;
+      return;
+    }
     // Only deselect element if the click is directly on the artboard background,
     // not on the toolbar or other child elements within the artboard wrapper.
     // Also check if the target is a DraggableElement or its children
     const target = e.target as HTMLElement;
     const isDraggableElement = target.closest('[data-element-id]');
     const isHandle = target.closest('[data-interaction-handle]');
-    
+
     if (e.target === artboardDivRef.current && !isDraggableElement && !isHandle) {
       setSelectedElementId(null);
     }
-    
+
     // Only select artboard if we're not clicking on an element
     if (!isDraggableElement && !isHandle) {
       onSelectArtboard();
@@ -600,6 +819,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             ...backgroundStyle,
           }}
           onClick={handleArtboardClick}
+          onPointerDown={handleArtboardPointerDown}
           onDrop={(e) => {
             e.preventDefault();
             // A preview scene becomes its own artboard, not a layer on this
@@ -645,7 +865,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             // Selection chrome (outlines, handles, upload overlays) is editing
             // furniture; while the timeline runs the board shows only what will
             // be in the exported video.
-            const isElementSelected = selectedElementId === element.id && !isPlaying;
+            const isElementSelected = selectedElementIds.includes(element.id) && !isPlaying;
+            // Only a real multi-selection takes the group-drag path, so a
+            // single layer keeps committing exactly as it always has.
+            const dragsTogether = isElementSelected && selectedElementIds.length > 1;
             return (
             <DraggableElement
               key={element.id}
@@ -658,6 +881,9 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
               screenScale={screenScale}
               boundary={{width: artboard.size.width, height: artboard.size.height}}
               artboardId={artboard.id}
+              onDragDelta={dragsTogether ? makeDragDelta(element.id) : undefined}
+              onDragCommit={dragsTogether ? makeDragCommit(element.id) : undefined}
+              showHandles={!dragsTogether}
             >
               {element.type === 'text' && (
                 <TextElement
@@ -731,6 +957,42 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             }}
           >
             {renderCollabOverlay({ screenScale })}
+          </div>
+        )}
+
+        {/* The rubber band. A sibling of the board for the same reason the
+            collab marks are, so it can never reach an exported PNG, and drawn
+            in artboard pixels with a stroke divided by the screen scale so it
+            stays one pixel wide at any zoom. The colour is literal: out here
+            the forced light palette of .artboard does not apply, and a
+            semantic token would shift between themes. */}
+        {marquee && (
+          <div
+            data-export-exclude
+            aria-hidden
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: `${artboard.size.width}px`,
+              height: `${artboard.size.height}px`,
+              transform: `scale(${displayScaleFactor})`,
+              transformOrigin: 'top left',
+              pointerEvents: 'none',
+              zIndex: 6,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                left: `${Math.min(marquee.x0, marquee.x1)}px`,
+                top: `${Math.min(marquee.y0, marquee.y1)}px`,
+                width: `${Math.abs(marquee.x1 - marquee.x0)}px`,
+                height: `${Math.abs(marquee.y1 - marquee.y0)}px`,
+                border: `${1 / (screenScale || displayScaleFactor)}px solid #2563eb`,
+                backgroundColor: 'rgba(37, 99, 235, 0.12)',
+              }}
+            />
           </div>
         )}
       </div>

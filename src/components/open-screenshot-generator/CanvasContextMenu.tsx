@@ -1,7 +1,7 @@
 "use client";
 import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CopyIcon, ClipboardPasteIcon, Trash2Icon } from 'lucide-react';
+import { CopyIcon, ClipboardPasteIcon, Trash2Icon, Group as GroupIcon, Ungroup as UngroupIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CanvasContextMenuProps {
@@ -10,9 +10,15 @@ interface CanvasContextMenuProps {
   canCopy: boolean;
   canPaste: boolean;
   canDelete: boolean;
+  /** Two or more layers are selected, so there is an arrangement to make. */
+  canGroup: boolean;
+  /** At least one selected layer is in a group. */
+  canUngroup: boolean;
   onCopy: () => void;
   onPaste: () => void;
   onDelete: () => void;
+  onGroup: () => void;
+  onUngroup: () => void;
   onClose: () => void;
 }
 
@@ -29,9 +35,13 @@ export function CanvasContextMenu({
   canCopy,
   canPaste,
   canDelete,
+  canGroup,
+  canUngroup,
   onCopy,
   onPaste,
   onDelete,
+  onGroup,
+  onUngroup,
   onClose,
 }: CanvasContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -74,6 +84,7 @@ export function CanvasContextMenu({
   return createPortal(
     <div
       ref={menuRef}
+      data-canvas-context-menu
       className={cn(
         "fixed z-[100] min-w-[10rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
         "animate-in fade-in-0 zoom-in-95"
@@ -107,6 +118,37 @@ export function CanvasContextMenu({
         Paste
         <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+V</span>
       </button>
+      {(canGroup || canUngroup) && (
+        <>
+          <div className="-mx-1 my-1 h-px bg-border" />
+          <button
+            type="button"
+            className={itemClass}
+            disabled={!canGroup}
+            onClick={() => {
+              onGroup();
+              onClose();
+            }}
+          >
+            <GroupIcon />
+            Group
+            <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+G</span>
+          </button>
+          <button
+            type="button"
+            className={itemClass}
+            disabled={!canUngroup}
+            onClick={() => {
+              onUngroup();
+              onClose();
+            }}
+          >
+            <UngroupIcon />
+            Ungroup
+            <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+Shift+G</span>
+          </button>
+        </>
+      )}
       {/* Separated and tinted: the destructive item sits directly under Paste,
           and these rows are one fingertip apart on a touch screen. */}
       <div className="-mx-1 my-1 h-px bg-border" />

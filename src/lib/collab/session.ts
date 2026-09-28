@@ -385,7 +385,7 @@ export class CollabSession {
   }
 
   /** What this person has selected, so the room can draw a ring around it. */
-  setSelection(selection: { artboardId: string | null; elementId: string | null } | null): void {
+  setSelection(selection: { artboardId: string | null; elementId: string | null; elementIds?: string[] } | null): void {
     if (this.destroyed || !this.awareness) return;
     this.awareness.setLocalStateField('selection', selection);
   }

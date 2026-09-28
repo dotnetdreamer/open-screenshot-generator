@@ -24,7 +24,9 @@ import type {
   ArtboardElement,
   ArtboardState,
   ElementLocaleOverride,
+  ElementSelectModifiers,
 } from '@/types/artboard';
+import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import type { HistoryEntry } from '@/lib/historyLabels';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { LocaleOverrideState } from '@/components/open-screenshot-generator/LayersPanel';
@@ -69,6 +71,13 @@ export interface DockData {
   // --- Layers -------------------------------------------------------------
   layerElements: ArtboardElement[];
   selectedElementId: string | null;
+  /**
+   * Every selected layer, in the order they were picked. `selectedElementId` is
+   * the one-layer case of this, and stays the handle for anything that edits a
+   * single element. An array rather than a Set: this is JSON on the wire, and a
+   * Set stringifies to {}.
+   */
+  selectedElementIds: string[];
   activeArtboardName?: string;
   layerLocaleStates?: Record<string, LocaleOverrideState>;
 
@@ -130,7 +139,21 @@ export type DockIntent =
   | { name: 'restoreVersion'; versionId: string }
   | { name: 'openVersionCopy'; versionId: string }
   | { name: 'deleteVersion'; versionId: string }
-  | { name: 'selectElement'; elementId: string }
+  | { name: 'selectElement'; elementId: string; modifiers?: ElementSelectModifiers }
+  | { name: 'alignElements'; edge: AlignEdge }
+  | { name: 'distributeElements'; axis: DistributeAxis }
+  | { name: 'groupElements' }
+  | { name: 'ungroupElements' }
+  | { name: 'ungroupById'; groupId: string }
+  | { name: 'renameGroup'; groupId: string; newName: string }
+  | {
+      name: 'dropLayer';
+      elementId: string;
+      anchorId: string;
+      side: 'above' | 'below';
+      groupId: string | null;
+    }
+  | { name: 'moveSelectionTo'; x: number | null; y: number | null }
   | { name: 'moveElementLayer'; elementId: string; direction: 'up' | 'down' }
   | { name: 'deleteElement'; elementId: string }
   | { name: 'renameElement'; elementId: string; newName: string }
