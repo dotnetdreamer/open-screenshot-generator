@@ -8,6 +8,7 @@ import { saveMedia, useMediaUrl } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
 import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
+import { RECORDING_FAILURE_MESSAGE, useRecordingFailure } from '@/lib/video/useRecordingFailure';
 import { uploadKeepsAudio } from '@/lib/video/recordingAudio';
 
 interface VideoElementComponentProps {
@@ -46,6 +47,7 @@ export function VideoElement({ element, onUpdate, isSelected, artboardId }: Vide
     artboardId,
     src
   );
+  const failed = useRecordingFailure(videoRef, src);
 
   const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -99,6 +101,16 @@ export function VideoElement({ element, onUpdate, isSelected, artboardId }: Vide
             }}
             draggable={false}
           />
+          {failed && (
+            <div
+              data-export-exclude
+              className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-muted px-2 text-center text-muted-foreground"
+            >
+              <ClapperboardIcon className="w-1/4 h-1/4 opacity-25 mb-2" />
+              <p className="text-xs opacity-70">{RECORDING_FAILURE_MESSAGE}</p>
+            </div>
+          )}
+
           {/* data-touch-reveal: a finger never hovers, so this overlay shows as
               soon as the element is selected (globals.css). */}
           {isSelected && (

@@ -94,7 +94,7 @@ jobs:
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
+          git add package.json cli/package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
           git commit -m "release: v${version}"
           git tag -a "v${version}" -m "Open Screenshot Generator v${version}"
 
@@ -367,3 +367,20 @@ jobs:
             src-tauri/target/**/release/bundle/appimage/*.AppImage
             src-tauri/target/**/release/bundle/deb/*.deb
             Open.Screenshot.Generator_*_portable.zip
+
+  # Puts the same version of the CLI on npm. GitHub never starts a workflow
+  # from an event made with the GITHUB_TOKEN, so the release published above
+  # cannot trigger npm.yml by itself; a dispatch is the one exception. It runs
+  # on the release tag, so npm gets exactly the tagged code, and it still
+  # waits for approval on the `npm` environment before anything is published.
+  npm:
+    needs: [version, build]
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Start the npm publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run npm.yml --repo "$GITHUB_REPOSITORY" --ref 'v${{ needs.version.outputs.version }}'

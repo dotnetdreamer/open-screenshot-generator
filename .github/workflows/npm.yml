@@ -9,29 +9,44 @@ name: Publish CLI to npm
 # in the package. That is why this workflow builds the whole Next app before it
 # ever touches cli/.
 #
-# Two triggers, both deliberate:
-#   release: published   the normal path, so a published GitHub release puts
-#                        the same version on npm without a second decision
-#   workflow_dispatch    a manual retry, for when npm rejected the first
-#                        attempt (expired token, network) and the release
-#                        itself is fine
+# How it starts: desktop.yml dispatches it on the release tag once a real
+# release is out. GitHub never starts a workflow from an event made with the
+# GITHUB_TOKEN, and a dispatch is the one exception, so a `release:` trigger
+# here would never fire for the releases desktop.yml publishes. It can also be
+# run by hand from the Actions tab, on main or a v* tag, to retry a publish npm
+# rejected.
+#
+# The repository is public, so the logs, the artifacts and the tarball are all
+# public. The jobs are split so that nothing able to publish shares a job with
+# third-party code:
+#
+#   build     npm ci, the Next build and the CLI build, which run code from
+#             thousands of packages. No secrets and no id-token. Packs the
+#             tarball, refuses it if scripts/check-tarball.mjs finds a
+#             credential, artwork or a stray file, and hands it on as a one day
+#             artifact.
+#   publish   runs npm itself on the finished tarball and nothing else. It is
+#             the only job with id-token: write, and it runs in the `npm`
+#             environment, which waits for a maintainer's approval and only
+#             accepts main and v* tags.
+#
+# Auth is npm trusted publishing (OIDC): npm trusts this repository, this file
+# and the `npm` environment, and no long-lived token exists. npm only offers
+# trusted publishing on a package that is already on the registry, so the very
+# first publish uses NPM_TOKEN, a short-lived secret on the `npm` environment.
+# npm tries OIDC first and falls back to the token. Delete the secret once
+# trusted publishing is configured.
 #
 # Nothing here bumps a version. scripts/set-version.mjs owns every version in
 # this repo, and this workflow publishes whatever cli/package.json says.
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:
   contents: read
-  # Required by --provenance: npm verifies the publish against a GitHub OIDC
-  # token, so the job has to be able to mint one.
-  id-token: write
 
-# A manual retry racing the release-triggered run would try to publish the same
-# version twice. Queue them instead.
+# Two runs racing would try to publish the same version twice. Queue them.
 concurrency:
   group: npm-publish
   cancel-in-progress: false
@@ -44,6 +59,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -74,9 +91,9 @@ jobs:
 
             const app = read("package.json").version;
             if (plugin.version !== app) {
-              // Loud, not blocking: set-version.mjs bumps the four product
-              // files and does not know about plugin.json, so the two drift on
-              // every release until somebody teaches it.
+              // Loud, not blocking: set-version.mjs bumps the product files
+              // and does not know about plugin.json, so the two drift on every
+              // release until somebody teaches it.
               console.log("::warning file=.claude-plugin/plugin.json::plugin.json is " + plugin.version + " but package.json is " + app);
             }
           '
@@ -105,25 +122,27 @@ jobs:
           fi
           npx -y @anthropic-ai/claude-code plugin validate . --strict
 
-  publish:
+  build:
     needs: validate
     runs-on: ubuntu-latest
-    # A fork has no NPM_TOKEN and no business publishing this name, so the run
-    # is skipped there rather than failing at the last step.
+    # A fork has no business publishing this name, so the run is skipped there
+    # rather than failing at the approval gate.
     if: github.repository == 'dotnetdreamer/open-screenshot-generator'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
+      # persist-credentials: false keeps the GITHUB_TOKEN out of .git/config,
+      # where every install script run by `npm ci` below could read it.
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
+      # No npm cache here or in publish. Other workflow runs can write cache
+      # entries, and whatever a poisoned entry held would end up in a
+      # published build.
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # registry-url is what writes the .npmrc that reads NODE_AUTH_TOKEN.
-          # Without it the publish step is anonymous and 404s.
-          registry-url: https://registry.npmjs.org
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            cli/package-lock.json
 
       - run: npm ci
 
@@ -135,12 +154,14 @@ jobs:
       # local server the CLI runs, so a base path would carry a sub-path into
       # every asset URL in the bundle and 404 the lot.
       #
-      # The backend URLs that deploy.yml passes are deliberately absent. The
-      # packed editor runs on the user's machine against one local project, so
-      # Discover, the MCP relay, live editing and cloud save have nothing to
-      # talk to and are better left out of the bundle. Translation is the
-      # exception: `osg localize` goes through the same service the editor
-      # uses, and unset means it silently translates nothing.
+      # Every NEXT_PUBLIC_* value is inlined into the bundle and so ends up in
+      # the public tarball. Pass repository variables that the public website
+      # already serves, never a secret. The backend URLs that deploy.yml passes
+      # are left out: the packed editor runs on the user's machine against one
+      # local project, so Discover, the MCP relay, live editing and cloud save
+      # have nothing to talk to. Translation is the exception, because `osg
+      # localize` goes through the same service the editor uses, and unset
+      # means it silently translates nothing.
       - run: npm run build
         env:
           NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
@@ -152,8 +173,9 @@ jobs:
       - run: npm run build
         working-directory: cli
 
-      # Copies out/ plus the fonts and artwork the templates reference into
-      # cli/editor/, and writes assets.manifest.json. package.json ships both.
+      # Copies the app shell, the template JSONs and the AI catalog from out/
+      # into cli/editor/, and writes assets.manifest.json for the artwork that
+      # hydrates at run time. package.json ships both.
       - run: npm run pack:editor
         working-directory: cli
 
@@ -178,31 +200,70 @@ jobs:
             console.log("templates listed: " + list.length);
           '
 
-      # --provenance needs three things, and all three hold here: a public
-      # repository, a GitHub hosted runner, and id-token: write above. npm
-      # publishes a signed attestation tying the tarball to this run.
+      # --ignore-scripts because build and pack:editor already ran above as
+      # their own steps, and prepublishOnly does not run on a pack anyway.
+      - name: Pack
+        working-directory: cli
+        run: npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/package"
+
+      - name: Check the tarball for anything that must not be public
+        working-directory: cli
+        run: node scripts/check-tarball.mjs "$RUNNER_TEMP"/package/*.tgz
+
+      - id: version
+        run: echo "version=$(node -p "require('./cli/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Anyone signed in to GitHub can download an artifact from a public
+      # repository. That is fine for a tarball that passed the check above and
+      # is about to be on npm anyway, and one day is all publish needs.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-tarball
+          path: ${{ runner.temp }}/package/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    # Required reviewers and the main / v* ref rule live on this environment
+    # (Settings > Environments > npm). The first-publish NPM_TOKEN is a secret
+    # of this environment only, so no other job can read it.
+    environment: npm
+    permissions:
+      # Trusted publishing and --provenance both need an OIDC token from
+      # GitHub, and this is the only job allowed to mint one.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-tarball
+          path: package
+
+      # Trusted publishing needs npm 11.5.1 or newer, which Node 24 ships.
+      # registry-url writes the .npmrc that reads NODE_AUTH_TOKEN.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      # Publishing a tarball rather than a folder runs no package scripts, so
+      # nothing but npm executes in the job that holds publish rights.
       #
-      # NODE_AUTH_TOKEN has to be an npm *automation* token. A publish token
-      # from an account with 2FA asks for a one time password, which no CI run
-      # can answer, and the failure reads as a generic 401.
-      #
-      # cli/package.json has a prepublishOnly that reruns build and
-      # pack:editor. The explicit steps above are the redundancy on purpose: a
-      # failure shows up as its own red step instead of inside npm publish.
+      # NODE_AUTH_TOKEN is only for the very first publish (see the top of this
+      # file). Once the secret is deleted it is empty and OIDC does the auth.
       #
       # A 403 here is almost always "this version is already on npm". Bump with
       # scripts/set-version.mjs and cut a new release rather than retrying.
       - name: Publish
-        working-directory: cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --provenance --access public
+        run: npm publish package/*.tgz --provenance --access public
 
       - name: Summary
         run: |
-          version=$(node -p "require('./cli/package.json').version")
           {
-            echo "Published open-screenshot-generator@${version} to npm"
+            echo "Published open-screenshot-generator@${{ needs.build.outputs.version }} to npm"
             echo
-            echo "    npx open-screenshot-generator@${version} doctor"
+            echo "    npx open-screenshot-generator@${{ needs.build.outputs.version }} doctor"
           } >> "$GITHUB_STEP_SUMMARY"

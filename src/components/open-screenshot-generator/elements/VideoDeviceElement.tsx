@@ -9,6 +9,7 @@ import { saveMedia, useMediaUrl, useImageSrc } from '@/lib/mediaStore';
 import { useToast } from '@/hooks/use-toast';
 import { withBasePath } from '@/lib/basePath';
 import { useTimelineVideo } from '@/lib/video/useTimelineVideo';
+import { RECORDING_FAILURE_MESSAGE, useRecordingFailure } from '@/lib/video/useRecordingFailure';
 import { uploadKeepsAudio } from '@/lib/video/recordingAudio';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
 import { VIDEO_ACCEPT } from './VideoElement';
@@ -53,6 +54,7 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
     artboardId,
     screenVideoSrc
   );
+  const failed = useRecordingFailure(videoRef, screenVideoSrc);
 
   const effectiveWidth = element.size.width * (element.scale || 1);
   const chrome = getFlatDeviceChrome(element.deviceType, effectiveWidth);
@@ -149,6 +151,19 @@ export function VideoDeviceElement({ element, onUpdate, isSelected, artboardId }
                 <ClapperboardIcon className="w-1/4 h-1/4 opacity-50 mb-2" />
                 <p style={{ fontSize: `${Math.max(14, effectiveWidth * 0.055)}px` }}>
                   {`${chrome.label}, no recording yet`}
+                </p>
+              </div>
+            )}
+
+            {failed && screenVideoSrc && (
+              <div
+                data-export-exclude
+                className="absolute inset-0 flex flex-col items-center justify-center bg-muted p-2 text-center text-muted-foreground"
+                style={{ zIndex: 4 }}
+              >
+                <ClapperboardIcon className="w-1/4 h-1/4 opacity-50 mb-2" />
+                <p style={{ fontSize: `${Math.max(14, effectiveWidth * 0.055)}px` }}>
+                  {RECORDING_FAILURE_MESSAGE}
                 </p>
               </div>
             )}
