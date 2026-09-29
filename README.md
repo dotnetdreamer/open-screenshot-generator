@@ -26,12 +26,13 @@ Everything runs client-side. Projects are saved to your browser's IndexedDB, so 
 
 ## What's new
 
-### 21 August 2026: panels on another screen, smaller exports
+### 29 September 2026: New CLI
 
-The right dock (Properties, History, Versions, Layers) can now be opened in its own window and left on a second display, and the editor can move to whichever display you pick. Exports came out better too: text renders in exactly the fonts you chose, and PNGs are written the way App Store Connect wants them, at roughly a third of the file size.
+`npx open-screenshot-generator` builds your store screenshots from a terminal, a script or CI. It is also an MCP server for coding agents, and it comes with five agent skills. [How to use it](#command-line-and-coding-agents)
 
 Before that:
 
+- **21 August.** The right dock can open in its own window on a second display. Exports use exactly the fonts you chose, and PNGs are about a third of the size.
 - **20 August.** A dashboard for anyone running their own Discover feed: moderation, accounts, posts, storage and growth in one place. [Setup](infra/vps/README.md)
 - **19 August.** **Versions** in the History tab keeps checkpoints as you work, when you open a project, every ten minutes, before a device conversion, on every export, and whenever you name one; put any of them back in a click, or **Open as a copy** to fork it. **Share > Edit together** hands out one link and everybody works on the same project at once, each with their own cursor, and the design travels straight between the browsers in the session rather than through us. Signed in, the open project also saves itself without anybody clicking Save, and a mouse wheel over the canvas zooms around the pointer.
 - **17 August.** **Save > To the cloud** keeps the editable project behind your sign-in. **Share > Get a link to share** turns it into a link that hands anyone their own copy.
@@ -66,7 +67,7 @@ Before that:
 - 101 bundled templates across App Screenshots, Apple Watch, Mac, App Preview Videos and Google Feature Graphic, to start from instead of a blank canvas
 - An AI agent that builds the project for you from your app screenshots (see below)
 - An MCP server, so Claude Code, Claude Desktop, Cursor or VS Code can drive the editor with 49 tools while you watch it happen on the canvas
-- A command line: `npx open-screenshot-generator` renders the whole set from a terminal or from CI, and five agent skills teach a coding agent to do it for you without leaving your app's repository
+- A command line, `npx open-screenshot-generator`, that renders the whole set from a terminal or CI, plus agent skills for coding agents (see below)
 - Optional account saving to your own Google Drive or GitHub, so projects follow you between machines without us storing anything (see below)
 - Direct upload to App Store Connect and Google Play from the desktop app, using your own developer credentials (see below)
 
@@ -150,49 +151,41 @@ The editor itself is identical in the browser and in the desktop app (it is the 
 
 ## Command line and coding agents
 
-Everything above is also a command line, so store assets can be built from your app's repository, from
-a script, or from CI, and a coding agent can do the whole thing for you.
+Build store assets from your app's repository, a script or CI. You need Node 20.12 or newer and Chrome,
+Edge or Chromium.
 
 ```bash
+npx open-screenshot-generator@0 doctor            # check your setup
 npx open-screenshot-generator@0 import "My App"   # pull your current listing's screenshots
-npx open-screenshot-generator@0 fill              # rank 101 templates against them and build a project
-npx open-screenshot-generator@0 render            # store ready PNGs at every required size
-npx open-screenshot-generator@0 verify            # audit them against the store's own rules
+npx open-screenshot-generator@0 fill              # pick templates and build a project
+npx open-screenshot-generator@0 render            # PNGs at every required store size
+npx open-screenshot-generator@0 verify            # check them against the store's rules
 ```
 
-It is not a second renderer. The package carries the real editor and drives it, so a PNG it writes is
-the PNG the editor writes, down to the 3D device frames and the font fallbacks. Twenty one commands,
-including `design` (the AI agent), `video`, `localize`, `studio`, `upload` and `all`.
-[Full reference](docs/CLI.md).
+It drives the real editor, so its PNGs match the app's. MP4 export needs branded Chrome or Edge.
+[All commands](docs/CLI.md)
 
-**Your agent can drive it too.** The same package is an MCP server, so Claude Code, Cursor, VS Code,
-Claude Desktop or anything else that speaks MCP gets all 49 design tools with no desktop app and no
-hosted relay:
+**MCP server.** Gives Claude Code, Cursor, VS Code or Claude Desktop the 49 design tools, with no
+desktop app needed:
 
 ```bash
-npx open-screenshot-generator@0 install     # writes the entry into the agent configs it finds
+npx open-screenshot-generator@0 install
 ```
 
-**Agent skills.** Five skills teach an agent the whole job, from choosing a template to reading a store
-rejection: `store-screenshots`, `app-preview-video`, `store-localization`, `editor-tools` and
-`store-compliance`. Three ways to install them:
+**Agent skills.** Five skills teach an agent the whole job. [What each covers](skills/README.md)
 
 ```bash
-npx skills add dotnetdreamer/open-screenshot-generator     # any of 70+ coding agents
+npx skills add dotnetdreamer/open-screenshot-generator
 ```
+
+In Claude Code, the plugin installs the skills and the MCP server together:
 
 ```
 /plugin marketplace add dotnetdreamer/open-screenshot-generator
 /plugin install open-screenshot-generator@open-screenshot-generator
 ```
 
-The Claude Code plugin installs the skills and the MCP server together. [What each skill covers](skills/README.md).
-
-You need Node 20.12 or newer and a Chrome, Edge or Chromium. MP4 export needs a **branded** Chrome or
-Edge, because open Chromium builds ship no H.264 encoder; `osg doctor` tells you which you have. The
-npm package is 1.6 MB and carries the editor itself, not the artwork: template artwork is fetched from
-this project's own deployment the first time a template asks for it, and cached per machine. Nothing is
-sent anywhere, and a CLI run reports no analytics.
+Template artwork downloads the first time it is used and is cached. The CLI sends no analytics.
 
 ## Running it locally
 

@@ -9,13 +9,22 @@
 // the live canvas DOM (and can convert the canvas to another App Store size
 // first, exactly like the export dialog does).
 //
+// An artboard carrying a recording is an App Preview, and goes up as a VIDEO
+// rather than as a still of its first frame. That takes a second capture
+// callback, because a preview is encoded rather than photographed: minutes of
+// work per board instead of milliseconds, its own accepted sizes, and Apple's
+// 15 to 30 second rule. Google Play has no video upload at all (its listing
+// takes a YouTube link, typed into the Play console), so preview boards are
+// blocked there rather than flattened.
+//
 // Desktop only. api.appstoreconnect.apple.com sends no CORS headers, so a
 // browser tab cannot call it at all; the Tauri build goes out through Rust.
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangleIcon,
   CheckCircle2Icon,
+  ClapperboardIcon,
   ExternalLinkIcon,
   KeyRoundIcon,
   LanguagesIcon,
@@ -46,6 +55,7 @@ import {
 import { openExternal } from '@/lib/desktop';
 import { DEVICE_FORMAT_PRESETS, type DeviceFormat } from '@/lib/deviceRegistry';
 import { localeLabel } from '@/lib/i18n/locales';
+import { analyzeArtboardForVideo, projectHasVideoContent } from '@/lib/video/videoExport';
 import { getBaseLocale, getProjectLocales } from '@/lib/i18n/localization';
 import type { ArtboardState, Size } from '@/types/artboard';
 import { uploadAppStoreScreenshotsForLocales } from '@/lib/publish/appStoreConnect';
@@ -57,8 +67,11 @@ import {
   playLanguageFor,
 } from '@/lib/publish/storeTargets';
 import {
+  MAX_PREVIEWS_PER_SET,
   MAX_SCREENSHOTS_PER_SET,
   PLAY_IMAGE_TARGETS,
+  PREVIEW_MAX_SECONDS,
+  PREVIEW_MIN_SECONDS,
   StoreAuthError,
   appleTargetForSize,
   isStorePublishingAvailable,
@@ -67,6 +80,7 @@ import {
   listAppStoreVersions,
   listPlayLanguages,
   nearestAppleSizes,
+  previewRenderSizeFor,
   serviceAccountEmail,
   suggestPlayImageType,
   uploadAppStoreScreenshots,
@@ -80,6 +94,7 @@ import {
   type PublishImage,
   type PublishProgress,
   type PublishResult,
+  type PublishVideo,
   type StoreId,
 } from '@/lib/publish';
 import { AppStoreCredentialsForm, PlayCredentialsForm } from './StoreCredentialsForms';
@@ -97,6 +112,16 @@ const STORE_LABELS: Record<StoreId, string> = {
   playstore: 'Google Play',
 };
 
+/** "9 screenshots and 2 App Previews", counting only what there is. */
+function uploadedSummary(result: PublishResult): string {
+  const videos = result.uploadedVideos ?? 0;
+  const images = result.uploaded - videos;
+  const parts: string[] = [];
+  if (images > 0) parts.push(`${images} screenshot${images === 1 ? '' : 's'}`);
+  if (videos > 0) parts.push(`${videos} App Preview${videos === 1 ? '' : 's'}`);
+  return parts.length > 0 ? parts.join(' and ') : 'Nothing';
+}
+
 /**
  * Both stores show the uploaded file name and nothing else, and the editor
  * names a board "01_Feature_One.png", so five languages arrive looking
@@ -111,6 +136,16 @@ function describeImage(image: PublishImage, locale: string | null): PublishImage
   if (locale && !stem.includes(locale)) parts.push(locale);
   if (!stem.includes(size)) parts.push(size);
   return { ...image, locale: locale ?? undefined, fileName: `${parts.join('_')}.png` };
+}
+
+/** The same for a preview, whose name has to survive next to its stills. */
+function describeVideo(video: PublishVideo, locale: string | null): PublishVideo {
+  const stem = video.fileName.replace(/\.mp4$/i, '');
+  const size = `${video.width}x${video.height}`;
+  const parts = [stem];
+  if (locale && !stem.includes(locale)) parts.push(locale);
+  if (!stem.includes(size)) parts.push(size);
+  return { ...video, locale: locale ?? undefined, fileName: `${parts.join('_')}.mp4` };
 }
 
 export interface PublishDialogProps {
@@ -131,6 +166,41 @@ export interface PublishDialogProps {
     formatId: DeviceFormat | null,
     locale?: string | null
   ) => Promise<PublishImage[]>;
+  /**
+   * Encode the chosen App Preview boards to MP4 bytes, in memory.
+   *
+   * Separate from onCapture because the work is different in kind: the boards
+   * have to be mounted and played through frame by frame, at the sizes Apple
+   * takes for video, which are not the screenshot sizes. Absent on a build
+   * that cannot encode, in which case preview boards are blocked with a reason.
+   */
+  onCaptureVideos?: (
+    artboardIds: string[],
+    options: {
+      locale?: string | null;
+      /** The chosen size, applied to a preview exactly as it is to a screenshot. */
+      formatId?: DeviceFormat | null;
+      platform?: string | null;
+      keepOverlays: boolean;
+      onProgress?: (progress: {
+        boardName: string;
+        boardIndex: number;
+        boardCount: number;
+        frame: number;
+        totalFrames: number;
+      }) => void;
+      /** Aborts the encode in flight. Encoding a board runs for minutes. */
+      signal?: AbortSignal;
+    }
+  ) => Promise<{ videos: PublishVideo[]; warnings: string[] }>;
+}
+
+/** What the dialog needs to know about one App Preview board before uploading. */
+interface PreviewInfo {
+  /** What the encoder will actually produce, which Apple holds to 15 to 30 seconds. */
+  durationSeconds: number;
+  /** False when the board has motion but no recording, which is not uploadable. */
+  hasVideo: boolean;
 }
 
 export function PublishDialog({
@@ -139,6 +209,7 @@ export function PublishDialog({
   artboards,
   activeLocale = null,
   onCapture,
+  onCaptureVideos,
 }: PublishDialogProps) {
   const { credentials, saveAppStore, savePlay } = useStoreCredentials();
   const [mounted, setMounted] = useState(false);
@@ -173,6 +244,18 @@ export function PublishDialog({
   // is not. The user opts into the destructive path deliberately.
   const [replaceExisting, setReplaceExisting] = useState(false);
 
+  // What each App Preview board will encode to. Null until the analysis below
+  // has run, which is async because recording lengths live in the media table.
+  const [previewInfos, setPreviewInfos] = useState<Record<string, PreviewInfo> | null>(null);
+  // On by default, matching the App Preview export dialog: guideline 2.3.4
+  // allows text and gesture hints over the footage, and a preview stripped of
+  // the words the board was designed around is rarely what the user meant.
+  const [keepOverlays, setKeepOverlays] = useState(true);
+  const [encoding, setEncoding] = useState<{ boardName: string; percent: number } | null>(null);
+  // Encoding is the only stage long enough to be worth interrupting, so it is
+  // the only one with a way out.
+  const encodeAbortRef = useRef<AbortController | null>(null);
+
   const [loadingDestination, setLoadingDestination] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<PublishProgress | null>(null);
@@ -194,8 +277,40 @@ export function PublishDialog({
     setSelectedIds(artboards.map((artboard) => artboard.id));
     setCaptureLocale(activeLocale ?? getBaseLocale(artboards));
     setUploadAllLanguages(false);
+    setEncoding(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  /**
+   * Work out how long each App Preview board runs, so the row can say whether
+   * Apple will take it BEFORE the user spends minutes encoding one that gets
+   * rejected for being 8 seconds long.
+   */
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    (async () => {
+      const infos: Record<string, PreviewInfo> = {};
+      for (const artboard of artboards) {
+        if (!projectHasVideoContent([artboard])) continue;
+        try {
+          const info = await analyzeArtboardForVideo(artboard);
+          infos[artboard.id] = {
+            durationSeconds: artboard.previewDurationSeconds ?? info.suggestedDuration,
+            hasVideo: info.hasVideo,
+          };
+        } catch {
+          // An unreadable recording should not take the dialog down; the row
+          // falls back to "no recording yet", which is the safe answer.
+          infos[artboard.id] = { durationSeconds: 0, hasVideo: false };
+        }
+      }
+      if (!cancelled) setPreviewInfos(infos);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, artboards]);
 
   useEffect(() => {
     setEditingCredentials(false);
@@ -413,33 +528,81 @@ export function PublishDialog({
     setImageType(suggestPlayImageType(size.width, size.height));
   }, [store, selected, targetSize, imageTypePicked]);
 
+  /**
+   * The version the user picked, for its platform. Previews need it and
+   * screenshots do not: 1920x1080 is a legal preview size for an iPhone in
+   * landscape, for Mac and for Apple TV, and only the version says which.
+   */
+  const selectedVersion = useMemo(
+    () => versions?.find((entry) => entry.id === versionId) ?? null,
+    [versions, versionId]
+  );
+  const platform = selectedVersion?.platform ?? null;
+
   const rows = useMemo(
     () =>
       artboards.map((artboard) => {
         const size = targetSize(artboard);
+        const info = previewInfos?.[artboard.id] ?? null;
+        // projectHasVideoContent is the cheap sync test the PNG export uses,
+        // and it says yes to a board that merely has an entrance animation. An
+        // animated still is still a screenshot, so once the measurement has
+        // come back, only a board with actual footage counts as a preview.
+        // Before it comes back, assume preview: the row says "measuring" for a
+        // moment rather than offering to upload a video board as a PNG.
+        const isPreview = projectHasVideoContent([artboard]) && (info ? info.hasVideo : true);
+        const render = isPreview ? previewRenderSizeFor(size.width, size.height, platform) : null;
+        const seconds = Math.round(info?.durationSeconds ?? 0);
+
+        const previewProblem = (): string | null => {
+          if (store !== 'appstore') {
+            return 'Google Play takes a YouTube link for a preview video, not an upload. Add it in the Play console';
+          }
+          if (!onCaptureVideos) return 'This build cannot encode an App Preview';
+          if (!render) return 'The App Store takes no App Preview for this platform';
+          if (!info) return null; // Still measuring; the row says so.
+          if (seconds < PREVIEW_MIN_SECONDS || seconds > PREVIEW_MAX_SECONDS) {
+            return `Runs ${seconds}s. Apple takes App Previews between ${PREVIEW_MIN_SECONDS} and ${PREVIEW_MAX_SECONDS} seconds`;
+          }
+          return null;
+        };
+
         const appleTarget = appleTargetForSize(size.width, size.height);
-        const playProblem = validatePlayImage(size.width, size.height, imageType);
+        const imageProblem =
+          store === 'appstore'
+            ? appleTarget
+              ? null
+              : `Not an App Store size. Closest: ${nearestAppleSizes(size.width, size.height)}`
+            : validatePlayImage(size.width, size.height, imageType);
+
         return {
           artboard,
           size,
-          slot:
-            store === 'appstore'
+          isPreview,
+          /** What a preview encodes at, which is not the board size. */
+          renderSize: render ? { width: render.width, height: render.height } : null,
+          durationSeconds: info?.durationSeconds ?? 0,
+          measured: !isPreview || !!info,
+          slot: isPreview
+            ? render
+              ? `${render.target.label} App Preview`
+              : null
+            : store === 'appstore'
               ? appleTarget?.label ?? null
               : PLAY_IMAGE_TARGETS.find((entry) => entry.imageType === imageType)?.label ?? null,
-          problem:
-            store === 'appstore'
-              ? appleTarget
-                ? null
-                : `Not an App Store size. Closest: ${nearestAppleSizes(size.width, size.height)}`
-              : playProblem,
+          problem: isPreview ? previewProblem() : imageProblem,
         };
       }),
-    [artboards, targetSize, store, imageType]
+    [artboards, targetSize, store, imageType, previewInfos, platform, onCaptureVideos]
   );
 
   const blockedCount = rows.filter(
     (row) => selectedIds.includes(row.artboard.id) && row.problem
   ).length;
+  /** Selected boards that will go up as video, which changes the copy below. */
+  const previewRows = rows.filter(
+    (row) => row.isPreview && selectedIds.includes(row.artboard.id) && !row.problem
+  );
   const readyCount = selected.length - blockedCount;
 
   const destinationReady = (() => {
@@ -472,18 +635,50 @@ export function PublishDialog({
   const handleUpload = async () => {
     setError(null);
     setResult(null);
+    encodeAbortRef.current = new AbortController();
     setIsUploading(true);
     setProgress({ stage: 'preparing', message: 'Rendering the artboards' });
     try {
-      const boardIds = rows
-        .filter((row) => selectedIds.includes(row.artboard.id) && !row.problem)
-        .map((row) => row.artboard.id);
+      const uploadable = rows.filter(
+        (row) => selectedIds.includes(row.artboard.id) && !row.problem
+      );
+      const boardIds = uploadable.filter((row) => !row.isPreview).map((row) => row.artboard.id);
+      const previewIds = uploadable.filter((row) => row.isPreview).map((row) => row.artboard.id);
       const format = formatId === 'current' ? null : formatId;
 
       /** Capture one language and label every image with what it actually is. */
       const capture = async (locale: string | null): Promise<PublishImage[]> => {
+        if (boardIds.length === 0) return [];
         const images: PublishImage[] = await onCapture(boardIds, format, locale);
         return images.map((image) => describeImage(image, image.locale ?? locale));
+      };
+
+      /**
+       * The same for the App Preview boards, which are encoded rather than
+       * photographed. Minutes per board, so this drives its own progress line
+       * instead of sitting inside the "rendering" one.
+       */
+      const encodeWarnings: string[] = [];
+      const captureVideos = async (locale: string | null): Promise<PublishVideo[]> => {
+        if (previewIds.length === 0 || !onCaptureVideos) return [];
+        try {
+          const outcome = await onCaptureVideos(previewIds, {
+            locale,
+            formatId: format,
+            platform,
+            keepOverlays,
+            signal: encodeAbortRef.current?.signal,
+            onProgress: ({ boardName, frame, totalFrames }) =>
+              setEncoding({
+                boardName,
+                percent: totalFrames > 0 ? Math.round((frame / totalFrames) * 100) : 0,
+              }),
+          });
+          encodeWarnings.push(...outcome.warnings);
+          return outcome.videos.map((video) => describeVideo(video, video.locale ?? locale));
+        } finally {
+          setEncoding(null);
+        }
       };
 
       let outcome: PublishResult;
@@ -491,7 +686,11 @@ export function PublishDialog({
       if (uploadAllLanguages) {
         // Rendering is serial because there is one canvas: each language is
         // projected onto it, photographed, and the next one takes its place.
-        const captured: Array<{ row: (typeof matchedLocales)[number]; images: PublishImage[] }> = [];
+        const captured: Array<{
+          row: (typeof matchedLocales)[number];
+          images: PublishImage[];
+          videos: PublishVideo[];
+        }> = [];
         for (const [index, row] of matchedLocales.entries()) {
           setProgress({
             stage: 'preparing',
@@ -500,7 +699,16 @@ export function PublishDialog({
             total: matchedLocales.length,
           });
           const images = await capture(row.code);
-          if (images.length > 0) captured.push({ row, images });
+          if (previewIds.length > 0) {
+            setProgress({
+              stage: 'rendering',
+              message: `Encoding the App Previews for ${row.label}`,
+              current: index + 1,
+              total: matchedLocales.length,
+            });
+          }
+          const videos = await captureVideos(row.code);
+          if (images.length > 0 || videos.length > 0) captured.push({ row, images, videos });
         }
         if (captured.length === 0) {
           throw new Error('Nothing was rendered, so there is nothing to upload.');
@@ -514,9 +722,11 @@ export function PublishDialog({
                   sets: captured.map((entry) => ({
                     localizationId: entry.row.destinationId!,
                     images: entry.images,
+                    videos: entry.videos,
                     label: entry.row.label,
                   })),
                   replaceExisting,
+                  platform,
                   appId,
                 },
                 setProgress
@@ -534,8 +744,13 @@ export function PublishDialog({
                 setProgress
               );
       } else {
-        const images = await capture(isMultiLanguage ? captureLocale : null);
-        if (images.length === 0) {
+        const captureLocaleOrBase = isMultiLanguage ? captureLocale : null;
+        const images = await capture(captureLocaleOrBase);
+        if (previewIds.length > 0) {
+          setProgress({ stage: 'rendering', message: 'Encoding the App Previews' });
+        }
+        const videos = await captureVideos(captureLocaleOrBase);
+        if (images.length === 0 && videos.length === 0) {
           throw new Error('Nothing was rendered, so there is nothing to upload.');
         }
 
@@ -543,7 +758,7 @@ export function PublishDialog({
           store === 'appstore'
             ? await uploadAppStoreScreenshots(
                 credentials.appstore!,
-                { localizationId, images, replaceExisting, appId },
+                { localizationId, images, videos, replaceExisting, platform, appId },
                 setProgress
               )
             : await uploadPlayScreenshots(
@@ -552,13 +767,22 @@ export function PublishDialog({
                 setProgress
               );
       }
-      setResult(outcome);
+      setResult(
+        encodeWarnings.length > 0
+          ? { ...outcome, warnings: [...encodeWarnings, ...outcome.warnings] }
+          : outcome
+      );
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'The upload failed.');
-      if (uploadError instanceof StoreAuthError) setEditingCredentials(true);
+      // Stopping an encode is a choice, not a failure, so it leaves no error.
+      const stopped = uploadError instanceof DOMException && uploadError.name === 'AbortError';
+      if (!stopped) {
+        setError(uploadError instanceof Error ? uploadError.message : 'The upload failed.');
+        if (uploadError instanceof StoreAuthError) setEditingCredentials(true);
+      }
     } finally {
       setIsUploading(false);
       setProgress(null);
+      setEncoding(null);
     }
   };
 
@@ -580,10 +804,18 @@ export function PublishDialog({
     }
     if (readyCount === 0) {
       return blockedCount > 0
-        ? 'Nothing selected that this store accepts at this size'
+        ? 'Nothing selected that this store accepts'
         : 'Tick at least one artboard';
     }
-    const ready = `${readyCount} of ${artboards.length} ready${blockedCount ? `, ${blockedCount} cannot be uploaded at this size` : ''}`;
+    // A blocked screenshot is always a size problem; a blocked preview can be a
+    // length or a format one, so the reason is only named when it is the truth.
+    const anyBlockedPreview = rows.some(
+      (row) => row.isPreview && selectedIds.includes(row.artboard.id) && row.problem
+    );
+    const blocked = blockedCount
+      ? `, ${blockedCount} cannot be uploaded${anyBlockedPreview ? '' : ' at this size'}`
+      : '';
+    const ready = `${readyCount} of ${artboards.length} ready${blocked}`;
     return uploadAllLanguages ? `${ready}, in ${matchedLocales.length} languages` : ready;
   })();
   const percent =
@@ -595,11 +827,28 @@ export function PublishDialog({
   // stray Escape. The processing wait is the exception: by then every byte is
   // committed and we are only watching Apple's asset pipeline, which can take
   // a minute and a half, so walking away is allowed.
-  const canLeaveWhileBusy = progress?.stage === 'processing';
+  const canLeaveWhileBusy = progress?.stage === 'processing' || progress?.stage === 'rendering';
+
+  /**
+   * Leaving the dialog. An encode is the one stage that is still doing work the
+   * user can call off, so closing stops it rather than leaving it running
+   * against a canvas nobody is watching.
+   */
+  const dismiss = () => {
+    encodeAbortRef.current?.abort();
+    onOpenChange(false);
+  };
   const locked = isUploading && !canLeaveWhileBusy;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(next) => (locked ? undefined : onOpenChange(next))}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (locked) return;
+        if (!next) dismiss();
+        else onOpenChange(next);
+      }}
+    >
       <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -946,13 +1195,31 @@ export function PublishDialog({
                           <div className="min-w-0 flex-1">
                             <Label
                               htmlFor={`publish-${row.artboard.id}`}
-                              className="block truncate font-normal"
+                              className="flex items-center gap-1.5 truncate font-normal"
                             >
-                              {row.artboard.name}
+                              {row.isPreview && (
+                                <ClapperboardIcon className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                              )}
+                              <span className="truncate">{row.artboard.name}</span>
                             </Label>
+                            {/* A preview does not go up at the board's size:
+                                it is encoded at one of Apple's video sizes, so
+                                that is the number worth showing. */}
                             <p className="truncate text-xs text-muted-foreground">
-                              {row.size.width}x{row.size.height}
-                              {row.slot ? `, ${row.slot}` : ''}
+                              {(row.isPreview
+                                ? [
+                                    row.renderSize
+                                      ? `${row.renderSize.width}x${row.renderSize.height}`
+                                      : null,
+                                    row.slot,
+                                    row.measured && row.durationSeconds
+                                      ? `${Math.round(row.durationSeconds)}s`
+                                      : null,
+                                  ]
+                                : [`${row.size.width}x${row.size.height}`, row.slot]
+                              )
+                                .filter(Boolean)
+                                .join(', ')}
                             </p>
                             {checked && row.problem && (
                               <p className="mt-0.5 flex items-start gap-1 text-xs text-destructive">
@@ -965,6 +1232,30 @@ export function PublishDialog({
                       );
                     })}
                   </ul>
+
+                  {previewRows.length > 0 && (
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        id="publish-keep-overlays"
+                        checked={keepOverlays}
+                        disabled={isUploading}
+                        onCheckedChange={(value) => setKeepOverlays(value === true)}
+                      />
+                      <div className="grid gap-1 leading-none">
+                        <Label htmlFor="publish-keep-overlays">
+                          Keep your text over the App Preview
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          {keepOverlays
+                            ? 'Your recording fills the frame, with the artboard text and gesture hints animating over it. Apple allows overlays that explain what the video alone does not'
+                            : 'Your recording goes up on its own, resized to the size Apple takes, with nothing over it'}
+                        </p>
+                        <p className="text-xs text-muted-foreground/70">
+                          {'The phone frame and the designed background are left out either way: an App Preview may only use a capture of the app itself'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Both outcomes are spelled out, not just the active one:
                       the question this checkbox raises is "what happens if I
@@ -988,7 +1279,9 @@ export function PublishDialog({
                       <p className={replaceExisting ? 'text-xs text-muted-foreground/60' : 'text-xs'}>
                         <span className="font-medium">Off:</span>{' '}
                         {store === 'appstore'
-                          ? `yours are added alongside the screenshots already there. The App Store holds ${MAX_SCREENSHOTS_PER_SET} per size and refuses the upload if the total would go over`
+                          ? previewRows.length > 0
+                            ? `yours are added alongside what is already there. The App Store holds ${MAX_SCREENSHOTS_PER_SET} screenshots and ${MAX_PREVIEWS_PER_SET} App Previews per size, and refuses the upload if either total would go over`
+                            : `yours are added alongside the screenshots already there. The App Store holds ${MAX_SCREENSHOTS_PER_SET} per size and refuses the upload if the total would go over`
                           : `yours are added alongside the images already there. ${playSlotLabel} holds ${playSlotMax} image${playSlotMax === 1 ? '' : 's'} in total`}
                       </p>
                     </div>
@@ -1008,8 +1301,7 @@ export function PublishDialog({
             <div className="space-y-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm">
               <p className="flex items-center gap-2 font-medium">
                 <CheckCircle2Icon className="h-4 w-4" />
-                {result.uploaded} screenshot{result.uploaded === 1 ? '' : 's'} uploaded to{' '}
-                {STORE_LABELS[store]}
+                {uploadedSummary(result)} uploaded to {STORE_LABELS[store]}
               </p>
               {result.warnings.map((warning) => (
                 <p key={warning} className="text-xs text-muted-foreground">
@@ -1037,15 +1329,36 @@ export function PublishDialog({
               {progress.message}
               {progress.total ? ` (${progress.current ?? 0} of ${progress.total})` : ''}
             </p>
-            <Progress value={percent ?? undefined} className={percent === undefined ? 'opacity-60' : ''} />
+            {/* Encoding is the one stage that runs for minutes, so it drives
+                the bar itself rather than leaving it parked on the language
+                count while nothing appears to happen. */}
+            {encoding ? (
+              <>
+                <Progress value={encoding.percent} />
+                <p className="text-xs text-muted-foreground">
+                  {`${encoding.boardName}, ${encoding.percent}%`}
+                </p>
+              </>
+            ) : (
+              <Progress
+                value={percent ?? undefined}
+                className={percent === undefined ? 'opacity-60' : ''}
+              />
+            )}
           </div>
         )}
 
         <DialogFooter className="gap-2 sm:justify-between">
           <p className="hidden text-xs text-muted-foreground sm:block">{blockedReason}</p>
           <div className="flex gap-2">
-            <Button variant="outline" disabled={locked} onClick={() => onOpenChange(false)}>
-              {canLeaveWhileBusy ? 'Stop waiting' : result ? 'Close' : 'Cancel'}
+            <Button variant="outline" disabled={locked} onClick={dismiss}>
+              {progress?.stage === 'rendering'
+                ? 'Stop encoding'
+                : canLeaveWhileBusy
+                  ? 'Stop waiting'
+                  : result
+                    ? 'Close'
+                    : 'Cancel'}
             </Button>
             <Button
               onClick={handleUpload}

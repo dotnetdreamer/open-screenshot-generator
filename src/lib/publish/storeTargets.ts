@@ -218,6 +218,260 @@ export function nearestAppleSizes(width: number, height: number): string {
     .join(' or ');
 }
 
+// --- App Store previews -----------------------------------------------------
+//
+// An App Preview is a VIDEO, and on Apple's side it is a different resource
+// from a screenshot in every way that matters here:
+//
+//   - The set is an appPreviewSet tagged with a PreviewType, and PreviewType is
+//     not ScreenshotDisplayType under another name. It drops the APP_ prefix
+//     (IPHONE_67, never APP_IPHONE_67), and the five Apple Watch types have no
+//     preview member at all, because Apple takes no previews for watchOS.
+//   - The pixel sizes are a separate, much smaller table. A 6.9-inch screenshot
+//     is 1290x2796; a 6.9-inch preview is 886x1920. Uploading a screenshot-sized
+//     video fails in processing, the same way a wrong-sized PNG does.
+//
+// Sizes are Apple's published App Preview specifications:
+// https://developer.apple.com/help/app-store-connect/reference/app-preview-specifications/
+
+export type ApplePlatform = 'IOS' | 'MAC_OS' | 'TV_OS' | 'VISION_OS';
+
+export interface ApplePreviewTarget {
+  /** PreviewType, the value the API stores on the set. */
+  previewType: string;
+  label: string;
+  /** Accepted sizes in the target's natural orientation. */
+  sizes: Array<{ width: number; height: number }>;
+  allowRotated: boolean;
+  /**
+   * The appStoreVersions.platform this type belongs to. Previews need this and
+   * screenshots do not: 1920x1080 is a legal preview size for an iPhone 5.5-inch
+   * in landscape, for Mac and for Apple TV, and nothing about the file says
+   * which. The version the user picked already knows its platform, so the
+   * ambiguity is resolved from that rather than guessed from the pixels.
+   */
+  platform: ApplePlatform;
+}
+
+/**
+ * Order matters, as in APPLE_DISPLAY_TARGETS: the first entry whose sizes match
+ * wins. Every modern iPhone takes the same 886x1920, so 6.9-inch leads, which
+ * is also what Apple wants — it reuses the 6.9-inch preview on the smaller
+ * iPhones when their own set is empty.
+ */
+export const APPLE_PREVIEW_TARGETS: ApplePreviewTarget[] = [
+  {
+    previewType: 'IPHONE_67',
+    label: 'iPhone 6.9-inch and 6.7-inch',
+    sizes: [{ width: 886, height: 1920 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPHONE_65',
+    label: 'iPhone 6.5-inch',
+    sizes: [{ width: 886, height: 1920 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPHONE_61',
+    label: 'iPhone 6.3-inch and 6.1-inch',
+    sizes: [{ width: 886, height: 1920 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPHONE_55',
+    label: 'iPhone 5.5-inch',
+    sizes: [{ width: 1080, height: 1920 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPHONE_47',
+    label: 'iPhone 4.7-inch',
+    sizes: [{ width: 750, height: 1334 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPHONE_40',
+    label: 'iPhone 4-inch',
+    sizes: [{ width: 1080, height: 1920 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPAD_PRO_3GEN_129',
+    label: 'iPad 13-inch',
+    sizes: [{ width: 1200, height: 1600 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPAD_PRO_3GEN_11',
+    label: 'iPad 11-inch',
+    sizes: [{ width: 1200, height: 1600 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPAD_PRO_129',
+    label: 'iPad Pro 12.9-inch (2nd generation)',
+    sizes: [
+      { width: 1200, height: 1600 },
+      { width: 900, height: 1200 },
+    ],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPAD_105',
+    label: 'iPad 10.5-inch',
+    sizes: [{ width: 1200, height: 1600 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'IPAD_97',
+    label: 'iPad 9.7-inch',
+    sizes: [{ width: 900, height: 1200 }],
+    allowRotated: true,
+    platform: 'IOS',
+  },
+  {
+    previewType: 'DESKTOP',
+    label: 'Mac',
+    sizes: [{ width: 1920, height: 1080 }],
+    allowRotated: false,
+    platform: 'MAC_OS',
+  },
+  {
+    previewType: 'APPLE_TV',
+    label: 'Apple TV',
+    sizes: [{ width: 1920, height: 1080 }],
+    allowRotated: false,
+    platform: 'TV_OS',
+  },
+  {
+    previewType: 'APPLE_VISION_PRO',
+    label: 'Apple Vision Pro',
+    sizes: [{ width: 3840, height: 2160 }],
+    allowRotated: false,
+    platform: 'VISION_OS',
+  },
+];
+
+/**
+ * Everything Apple states about an App Preview file itself, as opposed to its
+ * size. Enforced before a byte is uploaded, because all of it fails in
+ * processing minutes later rather than at the reservation.
+ */
+export const PREVIEW_MIN_SECONDS = 15;
+export const PREVIEW_MAX_SECONDS = 30;
+/** Apple caps previews at 30 fps, whatever the editor offers for other output. */
+export const PREVIEW_MAX_FPS = 30;
+export const PREVIEW_MAX_BYTES = 500 * 1024 * 1024;
+/** Apple's own cap per set, against 10 for screenshots. */
+export const MAX_PREVIEWS_PER_SET = 3;
+
+/**
+ * The preview type a pixel size belongs to, or null when Apple takes none.
+ *
+ * `platform` narrows the table to the version being published to. Without it
+ * the iPhone rows shadow Mac and Apple TV, which share 1920x1080.
+ */
+export function applePreviewTargetForSize(
+  width: number,
+  height: number,
+  platform?: string | null
+): ApplePreviewTarget | null {
+  for (const target of APPLE_PREVIEW_TARGETS) {
+    if (platform && target.platform !== platform) continue;
+    for (const size of target.sizes) {
+      if (size.width === width && size.height === height) return target;
+      if (target.allowRotated && size.width === height && size.height === width) return target;
+    }
+  }
+  return null;
+}
+
+/** Every size Apple would have accepted, for the "this will not upload" hint. */
+export function nearestApplePreviewSizes(
+  width: number,
+  height: number,
+  platform?: string | null
+): string {
+  const portrait = height >= width;
+  const candidates = APPLE_PREVIEW_TARGETS.filter(
+    (target) => !platform || target.platform === platform
+  ).flatMap((target) =>
+    target.sizes.map((size) => {
+      const rotate = target.allowRotated && portrait !== size.height >= size.width;
+      return rotate
+        ? { width: size.height, height: size.width, label: target.label }
+        : { width: size.width, height: size.height, label: target.label };
+    })
+  );
+  if (candidates.length === 0) return 'none for this platform';
+  const ratio = width / height;
+  // Same size can serve several types (886x1920 is every modern iPhone), and
+  // repeating it twice in a hint helps nobody.
+  const seen = new Set<string>();
+  return candidates
+    .map((candidate) => ({
+      ...candidate,
+      distance: Math.abs(candidate.width / candidate.height - ratio),
+    }))
+    .sort((a, b) => a.distance - b.distance)
+    .filter((candidate) => {
+      const key = `${candidate.width}x${candidate.height}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 2)
+    .map((candidate) => `${candidate.width}x${candidate.height} (${candidate.label})`)
+    .join(' or ');
+}
+
+/**
+ * The accepted preview size to render a board at, and the type it lands in.
+ *
+ * Preview boards are usually drawn at the project's SCREENSHOT size — a
+ * 1290x2796 board is the normal case, because that is what the rest of the
+ * project uses — and 1290x2796 is not an App Preview size at all. The encoder
+ * rescales, so this only has to answer which accepted size to rescale to: same
+ * orientation as the board, closest aspect among the sizes this platform takes.
+ */
+export function previewRenderSizeFor(
+  width: number,
+  height: number,
+  platform?: string | null
+): { width: number; height: number; target: ApplePreviewTarget } | null {
+  const portrait = height >= width;
+  const candidates = APPLE_PREVIEW_TARGETS.filter(
+    (target) => !platform || target.platform === platform
+  ).flatMap((target) =>
+    target.sizes.map((size) => {
+      const rotate = target.allowRotated && portrait !== size.height >= size.width;
+      return rotate
+        ? { width: size.height, height: size.width, target }
+        : { width: size.width, height: size.height, target };
+    })
+  );
+  if (candidates.length === 0) return null;
+
+  const ratio = width / height;
+  return candidates
+    .map((candidate) => ({
+      ...candidate,
+      distance: Math.abs(candidate.width / candidate.height - ratio),
+    }))
+    .sort((a, b) => a.distance - b.distance)[0];
+}
+
 // --- Google Play ------------------------------------------------------------
 
 export interface PlayImageTarget {

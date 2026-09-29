@@ -58,9 +58,39 @@ export interface PublishImage {
   locale?: string;
 }
 
+/**
+ * One rendered App Preview, ready to hand to App Store Connect.
+ *
+ * Kept apart from PublishImage rather than folded into it with a `kind` field,
+ * because almost nothing about the two paths is shared on Apple's side: a
+ * different resource, a different enum, a different size table, a different
+ * per-set cap, and a second delivery state to poll. A union would have every
+ * caller narrowing it again immediately.
+ */
+export interface PublishVideo {
+  /** The artboard it came from, so the UI can label progress rows. */
+  artboardId: string;
+  /** Name the store files it under, always ending in .mp4. */
+  fileName: string;
+  bytes: Uint8Array;
+  width: number;
+  height: number;
+  /** What the encoder actually produced, which Apple holds to 15-30 seconds. */
+  durationSeconds: number;
+  /**
+   * Poster frame, as Apple's HH:MM:SS;FF timecode. Left unset means Apple picks
+   * its own, which it takes from 5 seconds in.
+   */
+  previewFrameTimeCode?: string;
+  /** The project language this was rendered in. Absent on single-language projects. */
+  locale?: string;
+}
+
 export type PublishStage =
   | 'authenticating'
   | 'preparing'
+  /** Encoding an App Preview. Minutes, not seconds, so it gets its own stage. */
+  | 'rendering'
   | 'clearing'
   | 'uploading'
   | 'committing'
@@ -81,6 +111,8 @@ export type PublishProgressFn = (progress: PublishProgress) => void;
 /** What actually landed in the store, for the summary panel. */
 export interface PublishResult {
   uploaded: number;
+  /** How many of `uploaded` were App Previews rather than screenshots. */
+  uploadedVideos?: number;
   /** Non-fatal problems: an image the store rejected, a reorder that failed. */
   warnings: string[];
   /** Where the user should go to check the result. */

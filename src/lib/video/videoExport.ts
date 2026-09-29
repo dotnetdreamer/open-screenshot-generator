@@ -55,6 +55,13 @@ export interface VideoExportSettings {
   // exists. The file that comes out is a still under the overlays, so it is a
   // rehearsal, not something to upload. Ignored unless rawRecordingOnly is set.
   allowPosterFallback?: boolean;
+  // Encode to the letter of Apple's App Preview specification, for a file that
+  // goes straight to App Store Connect rather than to disk. Apple caps previews
+  // at 30 fps and asks for High Profile 4.0 and 256 kbps AAC; the editor's
+  // ordinary output is free to be nicer than that, and a rejected upload is a
+  // worse outcome than a slightly smaller file.
+  // https://developer.apple.com/help/app-store-connect/reference/app-preview-specifications/
+  forStoreUpload?: boolean;
   onProgress?: (done: number, total: number) => void;
   signal?: AbortSignal;
 }
@@ -268,13 +275,17 @@ async function mixAudio(
  * this browser cannot encode one. Never throws: a missing track is worth far
  * less than a failed export, and the caller simply muxes video only.
  */
-async function createAudioTrack(seconds: number, mix: Float32Array[] | null): Promise<AudioTrack | null> {
+async function createAudioTrack(
+  seconds: number,
+  mix: Float32Array[] | null,
+  bitrate = 128_000
+): Promise<AudioTrack | null> {
   if (typeof AudioEncoder === 'undefined' || typeof AudioData === 'undefined') return null;
   const config: AudioEncoderConfig = {
     codec: 'mp4a.40.2',
     sampleRate: AUDIO_SAMPLE_RATE,
     numberOfChannels: AUDIO_CHANNELS,
-    bitrate: 128_000,
+    bitrate,
   };
   try {
     const support = await AudioEncoder.isConfigSupported(config);
@@ -727,16 +738,42 @@ const H264_CODEC_CANDIDATES = [
   'avc1.42E01F', // Constrained Baseline 3.1
 ];
 
+/**
+ * Apple names High Profile 4.0 for App Previews, so a store upload asks for
+ * that first and falls back down, not up.
+ */
+const H264_STORE_CODEC_CANDIDATES = [
+  'avc1.640028', // High 4.0
+  'avc1.4D0028', // Main 4.0
+  'avc1.42E01F', // Constrained Baseline 3.1
+];
+
+/**
+ * Level 4.0 holds 8192 macroblocks per frame, which covers every preview size
+ * except the Apple Vision Pro's 3840x2160 (32400 of them). Apple's profile line
+ * is a floor on quality, not a reason to refuse to encode, so an output that
+ * does not fit leads with 5.1 instead.
+ */
+const H264_LEVEL_40_MACROBLOCKS = 8192;
+
+function storeCodecCandidatesFor(width: number, height: number): string[] {
+  const macroblocks = Math.ceil(width / 16) * Math.ceil(height / 16);
+  return macroblocks > H264_LEVEL_40_MACROBLOCKS
+    ? ['avc1.640033', ...H264_STORE_CODEC_CANDIDATES] // High 5.1 first
+    : H264_STORE_CODEC_CANDIDATES;
+}
+
 async function pickEncoderConfig(
   width: number,
   height: number,
   fps: number,
-  bitrate: number
+  bitrate: number,
+  candidates: string[] = H264_CODEC_CANDIDATES
 ): Promise<VideoEncoderConfig> {
   if (typeof VideoEncoder === 'undefined') {
     throw new Error('This browser has no WebCodecs video encoder. Use the desktop app, Chrome or Edge.');
   }
-  for (const codec of H264_CODEC_CANDIDATES) {
+  for (const codec of candidates) {
     const config: VideoEncoderConfig = {
       codec,
       width,
@@ -770,7 +807,13 @@ export async function exportArtboardVideo(
   artboard: ArtboardState,
   settings: VideoExportSettings
 ): Promise<Blob> {
-  const { fps, durationSeconds, onProgress, signal } = settings;
+  const { durationSeconds, onProgress, signal } = settings;
+  // Apple's ceiling for an App Preview. Clamping beats encoding at 60 and
+  // having the transcode reject it four minutes after the upload.
+  const fps = settings.forStoreUpload ? Math.min(settings.fps, 30) : settings.fps;
+  // Apple asks for 256 kbps AAC on a preview; everything else keeps the
+  // smaller track, which is plenty for an ad or a website loop.
+  const audioBitrate = settings.forStoreUpload ? 256_000 : 128_000;
   const outW = Math.max(2, Math.floor(settings.width / 2) * 2);
   const outH = Math.max(2, Math.floor(settings.height / 2) * 2);
   const bitrate = settings.bitrate ?? 12_000_000;
@@ -918,7 +961,13 @@ export async function exportArtboardVideo(
   }
 
   // ---- Encoder + muxer ----
-  const config = await pickEncoderConfig(outW, outH, fps, bitrate);
+  const config = await pickEncoderConfig(
+    outW,
+    outH,
+    fps,
+    bitrate,
+    settings.forStoreUpload ? storeCodecCandidatesFor(outW, outH) : undefined
+  );
   // App Store Connect refuses a preview with no audio track, so the file gets
   // one: the sound layers and kept recording sound mixed down, or silence.
   // Encoding is best-effort: if
@@ -927,7 +976,7 @@ export async function exportArtboardVideo(
   // decode does fail it, with the file's name.
   const soundLayers = artboard.elements.filter((el): el is AudioElementProps => el.type === 'audio');
   const mix = await mixAudio(soundLayers, recordingSounds, durationSeconds);
-  const audio = await createAudioTrack(durationSeconds, mix);
+  const audio = await createAudioTrack(durationSeconds, mix, audioBitrate);
   const muxer = new Muxer({
     target: new ArrayBufferTarget(),
     video: { codec: 'avc', width: outW, height: outH },

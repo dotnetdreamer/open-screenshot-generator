@@ -11,10 +11,18 @@ import { isTauri } from '@/lib/desktop';
 export * from './types';
 export {
   APPLE_DISPLAY_TARGETS,
+  APPLE_PREVIEW_TARGETS,
   PLAY_IMAGE_TARGETS,
   LOCALE_TARGETS,
+  MAX_PREVIEWS_PER_SET,
+  PREVIEW_MAX_FPS,
+  PREVIEW_MAX_SECONDS,
+  PREVIEW_MIN_SECONDS,
   appleTargetForSize,
+  applePreviewTargetForSize,
   nearestAppleSizes,
+  nearestApplePreviewSizes,
+  previewRenderSizeFor,
   suggestPlayImageType,
   validatePlayImage,
   appleLocaleFor,
@@ -23,6 +31,8 @@ export {
   localeForPlayLanguage,
   localeTargetFor,
   type AppleDisplayTarget,
+  type ApplePreviewTarget,
+  type ApplePlatform,
   type PlayImageTarget,
   type LocaleTarget,
 } from './storeTargets';

@@ -108,7 +108,12 @@ import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { PublishDialog } from './publish/PublishDialog';
 import { ProjectNameField } from './ProjectNameField';
-import { decodeDataUrl, type PublishImage } from '@/lib/publish';
+import {
+  decodeDataUrl,
+  previewRenderSizeFor,
+  type PublishImage,
+  type PublishVideo,
+} from '@/lib/publish';
 import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
@@ -4756,6 +4761,142 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
+  /**
+   * Render the App Preview boards the publish dialog picked, as MP4 bytes in
+   * memory.
+   *
+   * The video counterpart of handlePublishCapture, and it mounts the boards for
+   * the same reason that one does: exportArtboardVideo takes its sprites from
+   * the live DOM, so the board has to be on the canvas in the language being
+   * uploaded, converted to the size the dialog picked. Nothing is written to
+   * disk on the way past, which is the whole point: the bytes go straight to
+   * App Store Connect.
+   *
+   * Encoding runs minutes per board on the main thread, so the caller passes a
+   * per-frame progress callback and an abort signal rather than waiting on one
+   * promise that goes quiet.
+   *
+   * Always the store-legal cut (rawRecordingOnly), never the poster rehearsal:
+   * guideline 2.3.4 wants a capture of the app itself, and a still under
+   * overlays is not one.
+   *
+   * One board failing returns a warning rather than taking the run down. A
+   * recording can be hidden in one language and present in another, so a board
+   * the dialog measured as uploadable can still have nothing to encode by the
+   * time a particular language is on the canvas.
+   */
+  const handlePublishCaptureVideos = async (
+    artboardIds: string[],
+    options: {
+      locale?: string | null;
+      /** The size the dialog picked, applied exactly as the PNG path applies it. */
+      formatId?: DeviceFormat | null;
+      /** The version's platform, which decides the accepted preview sizes. */
+      platform?: string | null;
+      /** Keep the board's text and gesture hints over the footage. */
+      keepOverlays: boolean;
+      onProgress?: (progress: {
+        boardName: string;
+        boardIndex: number;
+        boardCount: number;
+        frame: number;
+        totalFrames: number;
+      }) => void;
+      signal?: AbortSignal;
+    }
+  ): Promise<{ videos: PublishVideo[]; warnings: string[] }> => {
+    const original = artboardsRef.current;
+    const orderPadWidth = Math.max(2, String(original.length).length);
+    const stamp = options.locale ?? null;
+    // A recording left playing re-seeks its own source under the encoder.
+    stopPlayback();
+
+    const preset = options.formatId
+      ? DEVICE_FORMAT_PRESETS.find((entry) => entry.id === options.formatId)
+      : undefined;
+    const projected = projectArtboards(original, stamp);
+    const list = preset
+      ? calculateArtboardPositions(convertArtboardsToFormat(projected, preset).artboards)
+      : calculateArtboardPositions(projected);
+    const chosen = list.filter((artboard) => artboardIds.includes(artboard.id));
+    if (chosen.length === 0) return { videos: [], warnings: [] };
+
+    isExportingRef.current = true;
+    setExportCanvasArtboards(list);
+    try {
+      await waitForCanvasToSettle(400);
+
+      const videos: PublishVideo[] = [];
+      const warnings: string[] = [];
+      for (const [index, board] of chosen.entries()) {
+        // The board is almost always drawn at the project's screenshot size,
+        // which is not a preview size; the encoder rescales to this one.
+        const size = previewRenderSizeFor(board.size.width, board.size.height, options.platform);
+        if (!size) continue;
+
+        try {
+          const info = await analyzeArtboardForVideo(board);
+          const durationSeconds = board.previewDurationSeconds ?? info.suggestedDuration;
+          const fps = 30;
+          const totalFrames = Math.max(1, Math.round(durationSeconds * fps));
+          options.onProgress?.({
+            boardName: board.name,
+            boardIndex: index + 1,
+            boardCount: chosen.length,
+            frame: 0,
+            totalFrames,
+          });
+
+          const blob = await exportArtboardVideo(board, {
+            fps,
+            durationSeconds,
+            width: size.width,
+            height: size.height,
+            rawRecordingOnly: true,
+            keepOverlays: options.keepOverlays,
+            forStoreUpload: true,
+            signal: options.signal,
+            onProgress: (frame, total) =>
+              options.onProgress?.({
+                boardName: board.name,
+                boardIndex: index + 1,
+                boardCount: chosen.length,
+                frame,
+                totalFrames: total,
+              }),
+          });
+
+          const orderPrefix = String(list.indexOf(board) + 1).padStart(orderPadWidth, '0');
+          videos.push({
+            artboardId: board.id,
+            fileName: sanitizeFileName(
+              `${orderPrefix}_${board.name.replace(/\s+/g, '_')}_AppPreview.mp4`
+            ),
+            bytes: new Uint8Array(await blob.arrayBuffer()),
+            width: size.width,
+            height: size.height,
+            durationSeconds,
+            locale: stamp ?? undefined,
+          });
+        } catch (error) {
+          // Cancelling is the user's decision and stops everything.
+          if (error instanceof DOMException && error.name === 'AbortError') throw error;
+          console.error('App Preview encode failed for artboard', board.name, error);
+          warnings.push(
+            `"${board.name}" could not be encoded${stamp ? ` in ${stamp}` : ''}: ${
+              error instanceof Error ? error.message : 'unknown error'
+            }`
+          );
+        }
+      }
+      return { videos, warnings };
+    } finally {
+      setExportCanvasArtboards(null);
+      isExportingRef.current = false;
+      flushPendingRemote();
+    }
+  };
+
   // Asks the running export to stop. It finishes the image already in flight
   // (see captureArtboards) rather than leaving a truncated PNG behind, so the
   // dialog stays up, disabled, until the loop actually unwinds.
@@ -8585,6 +8726,7 @@ const generateRandomProjectName = (): string => {
             artboards={artboards}
             activeLocale={activeLocale}
             onCapture={handlePublishCapture}
+            onCaptureVideos={handlePublishCaptureVideos}
           />
 
           <LanguageManagerDialog
