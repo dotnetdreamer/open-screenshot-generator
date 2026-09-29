@@ -1,9 +1,7 @@
 name: E2E
 
+# Manual only: run it from the Actions tab. No push or pull request starts it.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
