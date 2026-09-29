@@ -1,5 +1,7 @@
 # Product Hunt Launch Kit
 
+This is a dated planning document for the proposed August 2026 launch. Its dates, prices, and platform instructions have not been updated for later launches.
+
 Everything needed to launch Open Screenshot Generator on Product Hunt, built from a July 18, 2026 research pass over PH's current mechanics, this month's actual leaderboards, every comparable launch in the niche, and a live audit of the GitHub repo. Numbers below are from that research; the raw brief lives in the session research output.
 
 ## The strategy in one paragraph

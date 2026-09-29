@@ -1,19 +1,16 @@
 # The CLI (npm package `open-screenshot-generator`)
 
-Open Screenshot Generator ships as an npm package with a `osg` bin. It produces
-store screenshots, App Store preview videos, localized sets and manifests from a
-terminal, from a CI job, or from a coding agent, with no window open.
+Use the CLI to make store screenshots, preview videos, and translated image sets from a terminal or a coding agent. For a short setup guide, start with the [CLI README](../cli/README.md).
 
-It contains no renderer of its own. It starts a loopback HTTP origin, serves the
-same Next.js static export the web and desktop apps run, launches a headless
-Chrome or Edge against it, and drives the page through the `window.__osg` bridge
-in [src/lib/headless/bridge.ts](../src/lib/headless/bridge.ts). Every entry point
-on that bridge lands in the function a click in the UI lands in, so a PNG the CLI
-writes is byte for byte the PNG the app writes, and a project it builds is
-indistinguishable from a hand made one.
+```bash
+npx open-screenshot-generator doctor
+npx open-screenshot-generator init
+npx open-screenshot-generator fill --screenshots ./shots
+npx open-screenshot-generator render
+npx open-screenshot-generator verify
+```
 
-That is the whole design constraint. Anything the CLI can do, the app can do, and
-adding a feature to one is adding it to both.
+This page lists every command, flag, and configuration option. The CLI runs the same editor as the web and desktop apps in a headless browser. Its bridge is in [src/lib/headless/bridge.ts](../src/lib/headless/bridge.ts).
 
 ## Layout
 
@@ -40,7 +37,7 @@ adding a feature to one is adding it to both.
 ## Install and run
 
 ```sh
-npx -y open-screenshot-generator@0 doctor     # no install
+npx open-screenshot-generator doctor          # no install
 npm i -g open-screenshot-generator            # then: osg doctor
 ```
 

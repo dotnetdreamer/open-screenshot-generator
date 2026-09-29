@@ -1,201 +1,96 @@
 # Upload screenshots straight to the stores
 
-The editor can hand your finished artboards to App Store Connect and Google Play without
-downloading a single PNG. It uses **your own developer credentials**, talks to Apple and Google
-directly from your machine, and there is no server of ours anywhere in the path.
-
-Desktop app only. Apple's API sends no CORS headers, so a browser tab is physically unable to call
-it; the desktop build routes these requests through its native layer instead. The web build shows a
-short explanation and a download link in the same dialog.
+The desktop app can export your designs and upload them to App Store Connect or Google Play in one step. It uses your own developer credentials. In the web editor, export the PNG files and upload them through the store's website instead.
 
 ## Where to find it
 
-The storefront icon in the toolbar, next to the export button. The export dialog also has an
-"Upload to the store instead" link.
+Open the storefront icon beside **Export**, or choose **Upload to the store instead** in the export dialog.
 
 ## What it does
 
-1. Renders the artboards you tick, at the pixel size you choose, exactly as the PNG export does
-2. Works out which store slot each image belongs in, from its real dimensions
-3. Uploads them into the app, version and language you picked
-4. Reports what the store did with them, including anything it rejected
-
-Your project is never modified. Choosing a different size converts the canvas in memory, captures
-it, and puts the original back.
+Pick the artboards, app, language, and store size before you upload. The editor checks the image sizes and reports any files the store rejects. Your project stays as it was.
 
 ## App Store Connect
 
 ### Getting a key
 
-1. Open [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api)
-2. Create a **team key** with the **App Manager** or **Developer** role
-3. Copy the **Issuer ID** from the top of the page
-4. Note the **Key ID** and download the `AuthKey_XXXXXXXXXX.p8` file, which Apple lets you download
-   only once
-
-The dialog lists these steps too, so you do not need this page open while you do it. Paste all
-three values, or use "Choose file" for the .p8, in which case the key id fills itself in from the
-file name.
+1. Open [App Store Connect API settings](https://appstoreconnect.apple.com/access/integrations/api).
+2. Create a team key with the **App Manager** or **Developer** role.
+3. Copy the **Issuer ID** and **Key ID**.
+4. Download the `.p8` key file. Apple only lets you download it once.
+5. Enter those details in the upload dialog. If you choose the file, the editor can read the key ID from its filename.
 
 ### What you can upload to
 
-Screenshots live on a specific **version** in a specific **language**. The dialog lists your apps,
-then that app's versions (versions that Apple will not let you edit are greyed out), then the
-languages that version has. Pick the trio and upload.
+Choose the app, an editable version, and a language. Screenshots belong to a particular version and language.
 
 ### If the app is in review
 
-Apple freezes screenshots the moment a version is submitted. While a version is Waiting for Review
-or In Review, only a few fields stay editable (support URL, marketing URL, promotional text), and
-screenshots are not among them. So an app sitting in review will **not** have its screenshots
-replaced: the version is listed but greyed out, nothing is preselected, the Upload button stays
-disabled, and the dialog tells you why.
-
-To change them you either remove the version from review in App Store Connect, which puts it back
-in an editable state, or add a new version and upload there. A version that is already live
-(Ready for Distribution) is the same story: screenshots belong to a version, so changing them means
-a new version.
+If that version is in review or already live, you must use an editable version before you can change its screenshots.
 
 ### Sizes Apple accepts
 
-Every screenshot goes into a set tagged with a display type, and the dimensions have to match that
-type exactly. The dialog resolves the display type from the image itself and tells you before you
-upload if a board is not an accepted size.
+The dialog matches each image to an Apple display size and warns you if its dimensions do not fit. You can change an artboard's **Size** in the dialog before uploading.
 
-| Display type | Accepted sizes | Notes |
-| --- | --- | --- |
-| iPhone 6.9-inch and 6.7-inch | 1290x2796, 1320x2868 | Required for every iPhone app |
-| iPad 13-inch | 2064x2752, 2048x2732 | Required if the app runs on iPad |
-| iPad 11-inch | 1668x2420, 1668x2388 | Optional, Apple scales the 13-inch shots down when empty |
-| Mac | 2560x1600, 2880x1800, 1440x900, 1280x800 | What the Mac templates produce |
+| Display size | Accepted image dimensions |
+| --- | --- |
+| iPhone 6.9-inch or 6.7-inch | 1290x2796 or 1320x2868 |
+| iPad 13-inch | 2064x2752 or 2048x2732 |
+| iPad 11-inch | 1668x2420 or 1668x2388 |
+| Mac | 2560x1600, 2880x1800, 1440x900, or 1280x800 |
 
-Smaller iPhone and iPad tiers, Apple Watch, Apple TV and Vision Pro are supported too. Landscape
-counts as the same display type for iPhone and iPad, so a rotated board still lands correctly.
+The editor also supports smaller iPhone and iPad sizes, Apple Watch, Apple TV, and Vision Pro. Landscape images use the same display types as portrait images.
 
-If a board is the wrong size, switch the **Size** dropdown to the store size you want. It converts
-the canvas and the mockups the same way the Devices menu does.
-
-Apple keeps at most **10 screenshots per display size**. "Replace what is already there" decides
-what happens to the ones already on the version:
-
-- **Off** (the default): yours are added alongside them. If the total would pass 10 for a size, the
-  upload is refused before anything is sent
-- **On**: the screenshots currently on that version are deleted first, for each size you are
-  uploading, and yours take their place
-
-It starts off because adding is recoverable and deleting is not.
-
-The dialog spells out both, so the choice does not have to be guessed at.
+Apple allows up to 10 screenshots per display size. With **Replace what is already there** off, the editor adds your images and stops if the result would exceed 10. With it on, the editor deletes the existing screenshots for each size you upload, then adds yours. Check this setting before uploading.
 
 ### After the upload
 
-Apple processes assets asynchronously, and a bad file fails there rather than at upload time, so
-the dialog waits for the result and reports any screenshot the App Store dropped. If processing is
-still running after 90 seconds it says so instead of pretending it finished.
+Apple may take time to process the files. The dialog waits for a result and reports any image Apple rejects. If processing is still running after 90 seconds, check App Store Connect later.
 
 ## Google Play
 
 ### Getting a key
 
-Play authenticates a service account, not a person:
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com), create or select a project and enable the **Google Play Android Developer API**.
+2. Open [IAM & Admin > Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) and create a service account.
+3. On that account's **Keys** tab, choose **Add key > Create new key > JSON**. Keep the downloaded file.
+4. Copy the account email address. You can find it on its **Details** tab or as `client_email` in the JSON file.
+5. In Play Console, open **Users and permissions > Invite new users**. Invite that email address, give it access to your app and its store presence, then click **Invite user**.
+6. In the upload dialog, choose the JSON file and enter your app's package name.
 
-1. In [Google Cloud Console](https://console.cloud.google.com/apis/library/androidpublisher.googleapis.com)
-   create or pick a project and enable the **Google Play Android Developer API**
-2. Still in Google Cloud, open **IAM & Admin > Service Accounts** and create one. This is the step
-   people hunt for: service accounts are **not** under APIs & Services, where you just enabled the
-   API. Direct link: [console.cloud.google.com/iam-admin/serviceaccounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
-3. Open the new account, go to its **Keys** tab, then **Add key > Create new key > JSON**. That
-   downloads the file this dialog wants. You can skip the optional "grant this service account
-   access to the project" step, because Cloud IAM roles are not what grants Play access
-4. Copy the account's address, then in Play Console open **Users and permissions**, click
-   **Invite new users**, and paste it in. The address is the **Email** field on the account's
-   **Details** tab (not the numeric id in the breadcrumb) and looks like
-   `name@your-project.iam.gserviceaccount.com`. It is also inside the JSON as `client_email`, and
-   once you load that file the dialog shows it with a copy button, so you never have to go back
-   to Google Cloud for it
-5. Under **App permissions** add the app, tick the **store presence** permissions (that group is
-   what covers the listing), then click **Invite user** at the bottom. The invite is not applied
-   until you click that button
-6. Back in the dialog, load the JSON and enter the package name
-
-Two things that trip people up, both because older guides still describe them:
-
-- **There is no "Setup" menu any more.** API access moved, and the steps above no longer need it.
-  Everything you have to do in Play Console happens under **Users and permissions**, which is in the
-  left sidebar.
-- **You no longer link a Google Cloud project to your developer account.** Google
-  [dropped that requirement](https://developers.google.com/android-publisher/getting_started).
-  Enabling the API on any Cloud project and inviting the service account is enough.
-
-Then paste the JSON (or pick the file) and type the app's package name. Play has no list-apps API,
-which is why the package name is typed rather than chosen.
+Play Console access is granted through **Users and permissions**. You do not need to link the Cloud project to the developer account.
 
 ### Slots and sizes
 
-Play calls the destinations image types. The dialog suggests one from the board size and lets you
-change it:
+The dialog suggests a destination from each artboard's size. Check it before uploading.
 
-| Slot | Limit |
+| Image type | Limit |
 | --- | --- |
-| Phone screenshots | 8, at least 2 required to publish |
-| 7-inch tablet, 10-inch tablet, Wear OS, Android TV screenshots | 8 each |
-| Feature graphic | 1, exactly 1024x500 |
-| App icon | 1, exactly 512x512 |
-| Android TV banner | 1, exactly 1280x720 |
+| Phone screenshots | Up to 8; at least 2 to publish |
+| 7-inch tablet, 10-inch tablet, Wear OS, or Android TV screenshots | Up to 8 each |
+| Feature graphic | One, exactly 1024x500 |
+| App icon | One, exactly 512x512 |
+| Android TV banner | One, exactly 1280x720 |
 
-Play's screenshot rules are: every side between 320 px and 3840 px, the long side no more than
-twice the short side, and 8 MB per image. A 1290x2796 iPhone board is 2.17:1 and Play refuses it,
-so switch the **Size** dropdown to "Android phone 1080x1920" first. The dialog flags this on the
-board before you upload rather than letting Play reject it later.
-
-The Google Feature Graphic templates already produce 1024x500, so those upload to the feature
-graphic slot untouched.
+For Play screenshots, each side must be 320 to 3840 pixels, the long side can be at most twice the short side, and each image must be at most 8 MB. An iPhone image at 1290x2796 is too tall for Play. Choose **Android phone 1080x1920** in the **Size** menu instead.
 
 ### If the app is in review
 
-Play has no per-version screenshot lock the way Apple does. The store listing is one live document,
-editable at any time, and an upload commits an edit against it. The change then goes through Play's
-own review before it is visible, so a release already in review does not block the upload; the
-listing change queues alongside it.
-
-This is the one real difference between the two stores here: with Apple an in-review version simply
-cannot be touched, with Play the upload goes through and waits for review.
+Play lets you change the listing while an app version is in review. The change still goes through Play's review before it becomes visible.
 
 ### How the upload is applied
 
-Play stages everything in an **edit**, which is a transaction over the listing. The editor opens
-one, clears the slot if you asked it to, uploads the images, validates, and commits. Nothing is
-visible until the commit, and a failure discards the edit, so a half-finished run leaves your
-listing exactly as it was.
-
-Some accounts refuse to have changes sent for review automatically. Play says so in the error and
-the editor retries the commit with `changesNotSentForReview`, then tells you the changes are staged
-and waiting for you to submit them in Play Console.
+Play stages the upload, checks it, and commits the change. If the account does not submit changes for review automatically, the dialog tells you to finish that step in Play Console.
 
 ## Where the keys are stored
 
-In `localStorage` on that machine, unencrypted, under
-`open-screenshot-generator.store-credentials`. The same place and the same honesty as the AI
-provider keys and the account session: there is no server to hold them, and a webview has no
-keychain. Use "Change" in the dialog to replace them.
-
-An App Store Connect key can create and delete metadata on your apps, and a Play service account
-can publish to your listing. Treat both like the credentials they are, and revoke them in App Store
-Connect or Google Cloud if a machine is lost.
+The desktop app saves these credentials unencrypted in local storage on your machine under `open-screenshot-generator.store-credentials`. Use **Change** in the dialog to replace them. If you lose access to the machine, revoke the key in App Store Connect or Google Cloud.
 
 ## Troubleshooting
 
-**"Check the issuer id, the key id, the .p8 file, and that the key has the App Manager or Developer
-role"** covers every 401 and 403 from Apple, because a wrong key and a key without permission look
-identical from outside. Re-copy the issuer id first, it is the field people mistype.
-
-**Play returns 403** when the service account was never invited in Play Console, or when the Google
-Play Android Developer API is not enabled on the Cloud project. Both are one-time setup steps and
-both are easy to miss.
-
-**Play returns 404** for a package name typo, and also for an app that has never had a release:
-Play refuses API edits until the app has been published at least once.
-
-**A screenshot uploads but the App Store drops it** during processing. The dialog reports Apple's
-own reason. It is almost always a size that does not match the display type, which the pre-upload
-check catches unless the board was already an accepted size for a different tier.
+| Message or problem | What to check |
+| --- | --- |
+| Apple returns 401 or 403 | Check the Issuer ID, Key ID, `.p8` file, and the key's role. |
+| Play returns 403 | Check that the API is enabled and the service account was invited in Play Console. |
+| Play returns 404 | Check the package name. Play also requires the app to have had a release. |
+| Apple accepts a file, then rejects it | Read the reason in the dialog and check that its size matches the selected display type. |

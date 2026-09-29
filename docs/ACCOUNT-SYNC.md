@@ -1,114 +1,39 @@
 # Save to your own storage (accounts)
 
-Users can connect **their own** Google Drive or GitHub account and save projects
-there. We host nothing: there is no server in this product, no database, and no
-storage bill. A project lives in the user's Drive folder or their own secret
-gist, and they can revoke access or delete it without us.
+You can connect your own account from the editor's **Account** button. This is optional. You can still make and export designs without signing in.
 
-This is optional. With nothing configured, the Account button still appears and
-explains what is missing, and everything else in the app works as before.
+Google Drive keeps each project in an `Open Screenshot Generator` folder. GitHub keeps each project in a secret gist. You control those files in your own account. The app's separate cloud saving feature uses the optional community backend.
 
 ## What each provider stores
 
-| | Google Drive | GitHub |
-|---|---|---|
-| Project JSON | yes | yes (one secret gist) |
-| Uploaded screenshots and images | yes | yes, base64 in a file each |
-| Imported fonts | yes | yes, base64 in `fonts.json` |
-| Screen recordings (video) | yes | **no** |
-| Where | `Open Screenshot Generator/<project name>/` | a secret gist per project |
-| Scope requested | `drive.file` (only files this app creates) | `gist` |
+| What you save | Google Drive | GitHub |
+| --- | --- | --- |
+| Project design and text | Yes | Yes |
+| Screenshots, images, and imported fonts | Yes | Yes |
+| Screen recordings | Yes | No |
+| Where it goes | A folder for each project | A secret gist for each project |
 
-Saving a project that contains recordings to GitHub is refused with a message
-pointing at Drive, rather than silently dropping the video. The sign-in screen
-says so before you pick GitHub, so the limit is not a surprise you meet after
-the fact.
+Choose Google Drive if your project has a video. The editor will stop a GitHub save if it would leave a recording behind.
 
 ### Why images fit in a gist and video does not
 
-A gist holds text, so everything that is not the manifest travels base64
-encoded, four bytes on the wire for every three of payload. The ceiling is
-GitHub's: a gist file past **10MB cannot be read back through the API at all**
-(the docs say clone the gist instead), which puts the real limit at about
-**7.5MB of raw bytes per file**. A screenshot is comfortably under that. A
-screen recording is comfortably over it, and would upload happily and then never
-open again, so it is refused before it goes up.
-
-That ceiling is **per file**, which is why each image gets its own
-`media-<id>.b64` rather than sharing one bundle: a project with forty
-screenshots is fine, and nothing caps the total but GitHub's limit of 300 files
-per gist.
-
-A save only encodes images the gist does not already have. Blobs are immutable
-under their id -- editing an image makes a new one rather than new bytes under
-the old id -- so a file already up there is by definition the right one. Without
-that, every automatic push would re-upload every screenshot in the project.
+GitHub stores images as text files in the gist. A gist file over 10 MB cannot be read back through its API, so each image has its own file. The raw image limit is about 7.5 MB per file, and GitHub allows up to 300 files per gist. Recordings are usually too large for this method.
 
 ## Keeping a project up to date, on its own
 
-Off until you turn it on: **Settings > Your own storage > Keep saved projects up
-to date**. With it on, a project you have already put in your Drive or your
-gists is written again shortly after each round of edits, with no clicking.
+Turn on **Settings > Your own storage > Keep saved projects up to date** if you want the app to save later edits automatically. This setting is off by default.
 
-The rules it follows are worth knowing, because they are the reason it is safe
-to leave on:
+It only updates a project that you have already saved to that account or opened from it. It does not create a new Drive folder or gist for every template you try. Automatic saving pauses during a live editing session.
 
-- **It only ever updates.** It will never create a folder or a gist for you.
-  Something is synced only after you saved it there by hand once, or opened it
-  from there, and that is recorded in a local table (`accountLinks`). Open fifty
-  templates with the switch on and nothing at all reaches your account.
-- **It never deletes.** A save you click tidies up files a project has stopped
-  using; an automatic one leaves them alone. That decision is made from what
-  this device currently has, and a browser that has cleared its site data would
-  otherwise take the only copies with it.
-- **It checks before it writes.** Every push first asks the provider where the
-  copy stands, and stops if it has moved since this device last wrote it. It
-  never picks a winner: you get the choice of replacing it, keeping both, or
-  stopping syncing for that project. Neither Drive nor gists offer a
-  conditional write, so this catches the case that actually happens, a second
-  machine that saved hours ago, rather than two saves in the same second.
-- **It stops rather than guessing.** A gist cannot hold a screen recording, and
-  a project whose files this device has lost cannot be sent whole. Both stop
-  with a message rather than sending something incomplete.
-- **It never tidies up.** An automatic push adds and updates; only a save you
-  click removes images the project has stopped using. That is the same rule the
-  Drive sweep follows, and for the same reason: the list of what to drop comes
-  from this device's own database, and a browser that cleared its site data
-  would otherwise take the only copies with it.
-- **It never signs you out.** If the sign-in expires while the app is idle, the
-  mark next to the project name says so and one click reconnects.
-- **It pauses while you edit together.** During a live session everyone's
-  keystrokes land in your document, and none of those people is the one paying
-  for your Drive quota. Everything accumulated goes up when the session ends.
+The app checks the remote copy before writing. If it changed on another device, the app stops and asks what to do. It also stops if the current device is missing project files or if a GitHub project contains a recording. Automatic saves never remove old remote images; you can clean those up with a manual save.
 
-How often: Drive settles about 8 seconds after you stop typing, never more than
-90 seconds into continuous editing, and never more than once every 20 seconds.
+Drive waits about 8 seconds after you stop editing, with a limit during continuous editing. GitHub waits about 15 seconds and writes at most once a minute because gist changes count against GitHub's request limit. A manual save also counts toward that wait. The status beside the project name shows when a save is queued or when you need to reconnect.
 
-GitHub is slower, and for one specific reason rather than caution: a gist write
-counts against GitHub's limit of 500 content-creating requests an hour, and that
-budget is yours, shared with everything else you do on github.com. Spending it
-on background saves could get your own pushes throttled. So GitHub settles after
-15 seconds and writes at most once a minute, which is about 12 per cent of it.
-Every write is also a permanent commit, so that rate keeps the gist's own
-history readable.
-
-The gap counts from the **last** write, and saving by hand counts as one. So
-right after a manual save the first automatic one waits out that gap: on GitHub
-that is a minute and a half of no requests at all, which is working as intended
-even though it does not look like it. The mark next to the project name is the
-thing to watch: three walking dots mean a push is queued.
-
-Two things to know before switching it on:
-
-- **On the web with Google**, the access token lasts about an hour and renewing
-  it in the background can need a popup a timer has no permission to open. When
-  that happens the mark says reconnect and one click fixes it. The desktop build
-  holds a refresh token and does not have the problem.
-- **While the Google OAuth consent screen is in Testing**, Google issues refresh
-  tokens that expire after 7 days, so desktop syncing will stop every week until
-  the app is published (see Audience, step 5 below).
+On the web, Google may ask you to reconnect after an access token expires. The desktop app can refresh its token. If the Google OAuth consent screen is still in Testing, its refresh tokens expire after 7 days.
 
 ## Configuration
+
+You only need the setup below if you are running your own build of the editor.
 
 The client ids are **public**, safe to commit to a build. No *confidential*
 secret is ever shipped to a client: the web export holds none by design, and

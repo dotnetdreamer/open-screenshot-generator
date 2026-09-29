@@ -1,19 +1,18 @@
 # The AI agent's prompt architecture
 
-The agent needs the model to know every template (65 of them) well enough to pick one and
-address its device and text slots by id. Serializing all of that into the chat message is
-what the first version did, and it produced a 66,000 character prompt with three silent
-failure modes:
+The agent can start a design from screenshots of your app and a short description. You can edit everything it makes in the normal editor.
 
-- ChatGPT's free tier rejects messages past roughly 4,000 characters ("The message you
-  submitted was too long").
-- Local models (Ollama, LM Studio) default to 4k-8k token context windows; a 17k token
-  prompt truncates the catalog head and the model plans against templates it never saw.
-- Every run pays ~16k input tokens even on paid APIs.
+1. Open the editor and choose the AI agent on the start screen.
+2. Add your app screenshots and describe the result you want, such as "a dark design for a running app".
+3. Choose how to run the agent, then review the project it creates.
 
-So the catalog now reaches the model three different ways, tried in this order where they
-apply. All three produce the same `AgentPlan` JSON and go through the same zod validation
-and the same deterministic builder ([buildProjectFromPlan.ts](../src/lib/ai/buildProjectFromPlan.ts)).
+You can use your own AI API key. The browser sends requests to the provider you choose, and saves the key on this device only if you choose to remember it. You can also use a Claude, ChatGPT, or Gemini account you are signed into. The desktop app opens the assistant in its own window; the web editor uses the [companion extension](../extension/README.md) or a copy and paste flow. The desktop app also supports built-in providers and local Ollama or LM Studio.
+
+The agent picks a template, places screenshots, and suggests text. Check the text and images before exporting. You can find the steps from a past run under **Recent runs**.
+
+## How it works for developers
+
+The rest of this page explains how the app gives an AI model information about its templates. The catalog is too large for some chat message limits, so the app sends a link to it or a shortened version. Each method produces an `AgentPlan`, which [buildProjectFromPlan.ts](../src/lib/ai/buildProjectFromPlan.ts) turns into an editable project.
 
 ## 1. URL mode: the repository hosts the catalog
 
@@ -105,7 +104,7 @@ working copy.
 ## 2. Inline mode: the compact aliased catalog
 
 Used as the URL-mode fallback, and always used by the free built-in and API key modes.
-Instead of all 65 templates, the prompt carries two tiers, built by
+Instead of the full template catalog, the prompt carries two tiers, built by
 [aliasCatalog.ts](../src/lib/ai/aliasCatalog.ts):
 
 - A **shortlist of 8** templates with full per-artboard slot detail, chosen by a

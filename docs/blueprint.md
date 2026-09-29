@@ -1,20 +1,19 @@
 # **App Name**: Open Screenshot Generator
 
+This file records the basic design goals for Open Screenshot Generator. For instructions on using the current app, see the [README](../README.md).
+
 ## Core Features:
 
-- Canvas: Canvas interface for artboard design.
-- Template Selection: Options to start with a blank canvas or pre-designed templates. Pre-designed artboard arrangements with example text and shapes.
-- Artboard Management: Creation and management of multiple artboards within same canvas. ability to move them around.
-- Element Addition: Add elements like text and shapes, device frames to artobard. They shouldn't cross the artboard boundry. Add ability to drag anywhere.
-- Screenshot in Frame: Each device frame should have ability to upload screenshots which should fit inside the frame. We should drag it anywhere inside artobard, including roate, tild, scale but it should not cross the artboard boundry
-- Screenshot Export: Image output optimized for app store upload requirements.
-- Device Mockups: Add device mockup frames to the artboard and upload screenshots inside the frame.
+- Let people start with a template or a blank canvas.
+- Let people work on several screenshot designs, called artboards, in one project.
+- Let people add and move text, shapes, images, and device frames on an artboard.
+- Let people put their app screenshots inside device frames and adjust the frame's size and angle.
+- Keep elements inside the artboard's boundaries.
+- Export images at the sizes app stores need.
 
 ## Style Guidelines:
 
-- Primary color: Slate blue (#5F9EA0) to convey sophistication and creativity in design.
-- Background color: Light gray (#E0E0E0), offering a neutral backdrop that highlights the artboard designs.
-- Accent color: Warm gold (#D4AF37) to accent design choices.
-- Clean and modern typography for clarity.
-- Intuitive icons representing design elements and actions.
-- Workspace should be clean with artboard prominently displayed
+- Slate blue (`#5F9EA0`) as the main color.
+- Light gray (`#E0E0E0`) behind the artboards.
+- Warm gold (`#D4AF37`) for accents.
+- Clear type, familiar icons, and an uncluttered workspace.

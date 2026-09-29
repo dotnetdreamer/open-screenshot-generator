@@ -1,9 +1,8 @@
 # Desktop app (Tauri)
 
-Open Screenshot Generator ships as a native desktop app for Windows and macOS using
-[Tauri v2](https://v2.tauri.app). The same Next.js static export that powers the
-web app is embedded in a native shell (WebView2 on Windows, WKWebView on macOS),
-so there is one codebase for web and desktop.
+Download the desktop app from the [latest release](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest). It has the same editor as the web version and adds desktop features such as direct store uploads and local AI providers.
+
+The rest of this page is for people building or changing the desktop app. It uses [Tauri v2](https://v2.tauri.app) to package the editor for Windows and macOS.
 
 ## Layout
 

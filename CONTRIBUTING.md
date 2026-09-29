@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for wanting to improve Open Screenshot Generator. Issues and pull requests are welcome. For anything bigger than a bug fix, open an issue first so we can talk it through before you spend time on it.
+Bug reports, fixes, and new templates are welcome. For a larger feature, open an issue first so you can discuss the approach before writing code.
 
 ## Dev setup
 
@@ -13,26 +13,29 @@ npm install
 npm run dev
 ```
 
-The dev server runs at http://localhost:9002. The desktop (Tauri) shell has its own setup, see [docs/DESKTOP.md](docs/DESKTOP.md).
+Open <http://localhost:9002>. For desktop development, see the [desktop guide](docs/DESKTOP.md).
 
 ## Before you open a PR
 
-- Run `npm run typecheck`. The production build is configured to ignore TypeScript errors, so a passing build proves nothing about types.
-- Run `npm run lint`.
-- There is no test suite yet, so click through the flows your change touches in the running app.
+Run `npm run typecheck` and the end to end tests that cover your change. The test commands and setup are in [tests/e2e/README.md](tests/e2e/README.md).
+
+The production build ignores type errors. The `npm run lint` script currently opens a setup prompt because this repo has no ESLint configuration, so do not use it as a check.
 
 ## Where things live
 
-The editor lives in [src/components/open-screenshot-generator/](src/components/open-screenshot-generator/), and the whole data model is in [src/types/artboard.ts](src/types/artboard.ts). Read that file first: the rest of the codebase is mostly functions that manipulate those types.
+The editor is in [src/components/open-screenshot-generator/](src/components/open-screenshot-generator/). Its project and artboard types are in [src/types/artboard.ts](src/types/artboard.ts). Developer notes and architectural rules are in [.agents/AGENTS.md](.agents/AGENTS.md).
 
 ## Adding a template
 
-Templates are plain JSON in [public/data/projects/](public/data/projects/). Drop your file there, add its filename to the array in [src/services/projectService.ts](src/services/projectService.ts), then run `npm run gen:ai-catalog` so the AI agent's catalog stays in sync. The practical way to author one is to design it in the app and mirror the shape of an existing template file.
+1. Make the design in the editor and use an existing template as a guide for its JSON format.
+2. Put the JSON file in [public/data/projects/](public/data/projects/).
+3. Add its filename to the right category in [src/lib/templateCategories.ts](src/lib/templateCategories.ts).
+4. Run `npm run gen:ai-catalog` so the AI agent can find it.
 
 ## House style for visible copy
 
-No em or en dashes in UI strings, README prose, or website copy. Use a comma, a period, a colon, or the word "to" instead.
+Use plain language in text people see in the app or on the website. Do not use em or en dashes in that copy; use a comma, period, colon, or "to" instead.
 
 ## Questions
 
-Use [GitHub Discussions](https://github.com/dotnetdreamer/open-screenshot-generator/discussions) for questions and ideas, and reserve issues for bugs and concrete feature work.
+Use [GitHub Discussions](https://github.com/dotnetdreamer/open-screenshot-generator/discussions) for questions and ideas. Use issues for bugs and specific feature requests.
