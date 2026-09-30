@@ -837,15 +837,19 @@ fn slim_line(line: String) -> String {
     serde_json::to_string(&value).unwrap_or(line)
 }
 
-/// A line of stream-json that starts a turn or ends one. Checked on the raw
-/// text: the app writes `{"type":"user"` itself, and Claude Code prints
-/// `{"type":"result"` first on the line that closes a turn.
+/// A line of stream-json that starts a turn or ends one. The app writes
+/// `{"type":"user"` itself, so the raw text is enough there. Claude Code puts
+/// `type` wherever it likes on the line that closes a turn (2.1.285 opens it
+/// with `duration_api_ms`), so that line is parsed, and only when the text
+/// says it could be one: most lines never are, and some carry megabytes of
+/// images.
 fn starts_turn(line: &str) -> bool {
     line.starts_with(r#"{"type":"user""#)
 }
 
 fn ends_turn(line: &str) -> bool {
-    line.starts_with(r#"{"type":"result""#)
+    line.contains(r#""type":"result""#)
+        && serde_json::from_str::<Value>(line).is_ok_and(|value| value.get("type").and_then(Value::as_str) == Some("result"))
 }
 
 fn emit<R: Runtime>(app: &AppHandle<R>, mut payload: Value) {
@@ -1349,7 +1353,10 @@ mod tests {
         assert!(starts_turn(r#"{"type":"user","message":{"role":"user","content":[]},"parent_tool_use_id":null,"session_id":""}"#));
         assert!(!starts_turn(r#"{"type":"control_request","request_id":"x","request":{"subtype":"interrupt"}}"#));
         assert!(ends_turn(r#"{"type":"result","subtype":"success","is_error":false}"#));
+        // What Claude Code 2.1.285 prints.
+        assert!(ends_turn(r#"{"duration_api_ms":2391,"stop_reason":"end_turn","session_id":"s","is_error":false,"type":"result","subtype":"success"}"#));
         assert!(!ends_turn(r#"{"type":"assistant","message":{}}"#));
+        assert!(!ends_turn(r#"{"type":"assistant","message":{"content":[{"type":"result"}]}}"#));
     }
 
     #[test]
