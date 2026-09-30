@@ -41,6 +41,7 @@ const LABELS: Record<string, ToolLabel> = {
   create_project_from_template: { running: 'Creating a project...', done: 'Created a project' },
   list_projects: { running: 'Listing projects...', done: 'Listed projects' },
   open_project: { running: 'Opening a project...', done: 'Opened a project' },
+  rename_project: { running: 'Renaming the project...', done: 'Renamed the project' },
   export_png: { running: 'Looking at the result...', done: 'Looked at the result' },
   export_all: { running: 'Exporting every artboard...', done: 'Exported every artboard' },
   list_preview_scenes: { running: 'Browsing preview scenes...', done: 'Browsed preview scenes' },

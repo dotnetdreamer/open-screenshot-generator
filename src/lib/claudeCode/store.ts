@@ -7,16 +7,28 @@
 // when the dock collapses and when it is detached, and the start dialog that
 // begins a chat closes as soon as it has. The store holds the process, folds
 // its stdout into a transcript (streamReducer.ts), and keeps the transcript in
-// localStorage so a reload or a relaunch shows the chat and resumes it.
+// localStorage so a reload or a relaunch shows the chat and resumes it. Every
+// chat is also saved in Past chats (chats.ts), and the chat on screen follows
+// the project the editor has open.
 //
 // A detached panel window never touches this module. It renders the snapshot
 // the editor sends it and asks the editor to act (rule 29 in AGENTS.md).
 
 import { useSyncExternalStore } from 'react';
+import { db } from '@/database';
 import { isTauri } from '@/lib/desktop';
 import { clipText } from '@/lib/clipText';
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
 import { desktopTransport } from './desktopTransport';
+import {
+  KEEP_CHATS,
+  chatTitle,
+  chatUpdatedAt,
+  toChatSummary,
+  upsertChatSummary,
+  type AgentChatRecord,
+  type AgentChatSummary,
+} from './chats';
 import {
   appendNotice,
   appendUserTurn,
@@ -47,7 +59,21 @@ export interface ClaudeAgentSnapshot {
   model: ClaudeModelChoice;
   /** The Agent tab is in the dock. Turned on the first time Claude Code is picked. */
   panelEnabled: boolean;
+  /** Which saved chat the conversation on screen is, and the project it belongs to. */
+  chat: AgentChatMeta;
+  /** Past chats, newest first. Empty outside the desktop app. */
+  chats: AgentChatSummary[];
 }
+
+export interface AgentChatMeta {
+  /** Null until the chat's first message, which is when it is first saved. */
+  id: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  createdAt: number | null;
+}
+
+const NO_CHAT: AgentChatMeta = { id: null, projectId: null, projectName: null, createdAt: null };
 
 export interface AgentTurnInput {
   /** What the user typed. The transcript shows this and nothing else. */
@@ -84,6 +110,8 @@ const SERVER_SNAPSHOT: ClaudeAgentSnapshot = {
   detection: { status: 'unknown', result: null, error: null },
   model: 'default',
   panelEnabled: false,
+  chat: NO_CHAT,
+  chats: [],
 };
 
 let snapshot: ClaudeAgentSnapshot = SERVER_SNAPSHOT;
@@ -122,6 +150,16 @@ let turnToken = 0;
 let lastTurn: { line: string; resumedFrom: string | null } | null = null;
 /** The page load this page is (ClaudeStartArgs.pageEpoch), read once. */
 let pageEpoch: Promise<number | undefined> | null = null;
+/** Past chats as read at startup. followProject waits for it before it picks one. */
+let chatsLoaded: Promise<void> = Promise.resolve();
+/**
+ * The reload's adoption of a running process. followProject waits for it too:
+ * until it is done a turn still running looks stopped, and switching chats
+ * then would end it.
+ */
+let adopted: Promise<void> = Promise.resolve();
+/** Bumped by every followProject, so an older one that is still reading gives way. */
+let followToken = 0;
 
 function readPageEpoch(t: ClaudeTransport): Promise<number | undefined> {
   // Without it Rust judges by when the start arrives, which is still right
@@ -165,6 +203,12 @@ function setSession(session: AgentSessionState, options: { immediate?: boolean }
   if (session !== snapshot.session) set({ session }, options);
 }
 
+/** The list alone changes, so nothing about the chat on screen needs saving again. */
+function setChats(chats: AgentChatSummary[]): void {
+  snapshot = { ...snapshot, chats };
+  if (!notifyTimer) notifyTimer = setTimeout(notifyNow, NOTIFY_DELAY_MS);
+}
+
 function readStorage(key: string): string | null {
   try {
     return window.localStorage.getItem(key);
@@ -204,15 +248,20 @@ interface Persisted {
   /** The choice the running process was started on. Missing in older saves. */
   processModel?: ClaudeModelChoice | null;
   items: AgentItem[];
+  /** Which saved chat this is. Missing in saves from before Past chats. */
+  chat?: AgentChatMeta;
 }
 
 function schedulePersist(): void {
   if (!hydrated || persistTimer) return;
   persistTimer = setTimeout(() => {
     persistTimer = null;
-    const { session } = snapshot;
+    const { session, chat } = snapshot;
     if (session.status === 'idle' && session.items.length === 0 && !session.sessionId) {
-      writeStorage(STORAGE_KEY, null);
+      // An empty chat still remembers its project, so opening that project
+      // again after a relaunch does not count as a switch.
+      const empty: Persisted = { v: 1, sessionId: null, resolvedModel: null, spawnId: null, items: [], chat };
+      writeStorage(STORAGE_KEY, chat.projectId ? JSON.stringify(empty) : null);
       return;
     }
     const persisted: Persisted = {
@@ -222,9 +271,65 @@ function schedulePersist(): void {
       spawnId,
       processModel,
       items: slimForStorage(session.items),
+      chat,
     };
     writeStorage(STORAGE_KEY, JSON.stringify(persisted));
+    void saveChat();
   }, 500);
+}
+
+function newChatId(): string {
+  return `chat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** The chat on screen, into Past chats. Nothing is saved before its first message. */
+function saveChat(): Promise<void> {
+  const { session, chat, available } = snapshot;
+  const title = chatTitle(session.items);
+  if (!available || !chat.id || !title) return Promise.resolve();
+  const now = Date.now();
+  const record: AgentChatRecord = {
+    id: chat.id,
+    sessionId: session.sessionId,
+    projectId: chat.projectId,
+    projectName: chat.projectName,
+    title,
+    model: session.model,
+    createdAt: chat.createdAt ?? now,
+    updatedAt: chatUpdatedAt(session.items, now),
+    items: slimForStorage(session.items),
+  };
+  setChats(upsertChatSummary(snapshot.chats, toChatSummary(record)));
+  return db.agentChats
+    .put(record)
+    .then(pruneChats)
+    .catch((error) => console.error('Could not save the agent chat', error));
+}
+
+async function pruneChats(): Promise<void> {
+  const count = await db.agentChats.count();
+  if (count <= KEEP_CHATS) return;
+  const oldest = await db.agentChats.orderBy('updatedAt').limit(count - KEEP_CHATS).primaryKeys();
+  await db.agentChats.bulkDelete(oldest);
+}
+
+function loadChats(): Promise<void> {
+  return db.agentChats
+    .orderBy('updatedAt')
+    .reverse()
+    .limit(KEEP_CHATS)
+    .toArray()
+    .then((rows) => {
+      // A chat saved while this read was running is newer than its row here.
+      let list = rows.map(toChatSummary);
+      for (const saved of snapshot.chats) list = upsertChatSummary(list, saved);
+      setChats(list);
+    })
+    .catch((error) => console.error('Could not read the past agent chats', error));
+}
+
+function isChatMeta(value: unknown): value is AgentChatMeta {
+  return isObject(value) && (value.id === null || typeof value.id === 'string');
 }
 
 function hydrate(): void {
@@ -256,11 +361,19 @@ function hydrate(): void {
       }
     : INITIAL_AGENT_STATE;
 
-  snapshot = { ...snapshot, available, model, panelEnabled, session };
+  let chat: AgentChatMeta = persisted && isChatMeta(persisted.chat) ? { ...NO_CHAT, ...persisted.chat } : NO_CHAT;
+  // A chat saved before Past chats existed gets an id now, so it is kept like
+  // the rest. It learns its project when the editor reports the open one.
+  if (!chat.id && chatTitle(session.items)) {
+    chat = { ...chat, id: newChatId(), createdAt: session.items[0]?.at ?? Date.now() };
+  }
+
+  snapshot = { ...snapshot, available, model, panelEnabled, session, chat };
   const t = getTransport();
   if (available && t) {
     void readPageEpoch(t);
-    void adopt(persisted?.spawnId ?? null, persisted?.processModel ?? null);
+    adopted = adopt(persisted?.spawnId ?? null, persisted?.processModel ?? null);
+    chatsLoaded = loadChats();
   }
 }
 
@@ -631,12 +744,24 @@ async function send(input: AgentTurnInput): Promise<void> {
   const fullText = composeTurnText({ context, preface: input.preface, text: input.text });
   const line = encodeUserMessage(fullText, input.images ?? []);
   const now = Date.now();
-  setSession(
-    appendUserTurn(
-      snapshot.session,
-      { id: `u-${now}-${turnSeq++}`, text: input.text, attachments: input.images?.length ?? 0 },
-      now
-    ),
+  // Saved from its first message on, and it belongs to the project that
+  // message is about. A first message sent without the context has its
+  // project from newChat.
+  const { chat } = snapshot;
+  set(
+    {
+      chat: {
+        id: chat.id ?? newChatId(),
+        createdAt: chat.createdAt ?? now,
+        projectId: context?.projectId ?? chat.projectId,
+        projectName: context?.projectId ? context.projectName : chat.projectName,
+      },
+      session: appendUserTurn(
+        snapshot.session,
+        { id: `u-${now}-${turnSeq++}`, text: input.text, attachments: input.images?.length ?? 0 },
+        now
+      ),
+    },
     { immediate: true }
   );
   stopRequested = false;
@@ -696,8 +821,8 @@ async function stop(): Promise<void> {
   }
 }
 
-async function newChat(): Promise<void> {
-  hydrate();
+/** End the process of the chat on screen. Its conversation stays resumable. */
+function leaveChat(): void {
   const t = getTransport();
   const id = spawnId;
   generation += 1;
@@ -708,7 +833,109 @@ async function newChat(): Promise<void> {
   clearInterruptTimer();
   if (t && id) void t.stop(id).catch(() => {});
   finishRecorder('cancelled');
-  setSession({ ...INITIAL_AGENT_STATE }, { immediate: true });
+}
+
+/** The project open in the editor now, as the context provider reports it. */
+function openProject(): { projectId: string; projectName: string | null } | null {
+  try {
+    const context = contextProvider?.();
+    return context?.projectId ? { projectId: context.projectId, projectName: context.projectName } : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * An empty chat, for `project` or else the project open now. The chat being
+ * left is saved first, so Past chats has it.
+ */
+async function newChat(project?: { projectId: string | null; projectName: string | null }): Promise<void> {
+  hydrate();
+  void saveChat();
+  leaveChat();
+  const target = project ?? openProject();
+  set(
+    {
+      session: { ...INITIAL_AGENT_STATE },
+      chat: { ...NO_CHAT, projectId: target?.projectId ?? null, projectName: target?.projectName ?? null },
+    },
+    { immediate: true }
+  );
+}
+
+/**
+ * Put a past chat on screen. The next message resumes its conversation.
+ * False when it cannot be opened: a turn is running, or the chat is gone.
+ */
+async function openChat(id: string): Promise<boolean> {
+  hydrate();
+  const { status } = snapshot.session;
+  if (status === 'working' || status === 'starting') return false;
+  if (id === snapshot.chat.id) return true;
+  void saveChat();
+  leaveChat();
+  const gen = generation;
+  const record = await db.agentChats.get(id).catch(() => undefined);
+  if (gen !== generation) return false;
+  if (!record) {
+    setChats(snapshot.chats.filter((chat) => chat.id !== id));
+    return false;
+  }
+  const items = markExited({ ...INITIAL_AGENT_STATE, status: 'stopped', items: record.items }, Date.now()).items;
+  set(
+    {
+      session: {
+        ...INITIAL_AGENT_STATE,
+        sessionId: record.sessionId,
+        model: record.model,
+        items,
+        status: record.sessionId || items.length ? 'stopped' : 'idle',
+      },
+      chat: { id: record.id, projectId: record.projectId, projectName: record.projectName, createdAt: record.createdAt },
+    },
+    { immediate: true }
+  );
+  return true;
+}
+
+/** Forget a past chat. The one on screen stays; start a new chat to leave it first. */
+async function deleteChat(id: string): Promise<void> {
+  hydrate();
+  if (id === snapshot.chat.id) return;
+  setChats(snapshot.chats.filter((chat) => chat.id !== id));
+  await db.agentChats.delete(id).catch((error) => console.error('Could not delete the agent chat', error));
+}
+
+/**
+ * The editor opened another project, so the chat on screen follows it: that
+ * project's latest chat, or an empty one for it.
+ *
+ * Not while a turn runs: then it was the agent that opened the project, and
+ * the chat goes with it. Its next message ties it to the project it is about.
+ */
+async function followProject(projectId: string | null, projectName: string | null): Promise<void> {
+  hydrate();
+  if (!projectId || !snapshot.available) return;
+  const token = ++followToken;
+  const { chat } = snapshot;
+  if (chat.projectId === projectId) {
+    if (projectName && chat.projectName !== projectName) set({ chat: { ...chat, projectName } });
+    return;
+  }
+  // A chat that has not learned its project yet (an empty one, or one saved
+  // before chats had one) takes this one rather than giving way to it.
+  if (!chat.projectId) {
+    set({ chat: { ...chat, projectId, projectName } });
+    return;
+  }
+  await Promise.all([chatsLoaded, adopted]);
+  const { status } = snapshot.session;
+  if (token !== followToken || status === 'working' || status === 'starting') return;
+  if (snapshot.chat.projectId === projectId) return;
+  const latest = snapshot.chats.find((entry) => entry.projectId === projectId);
+  if (latest && (await openChat(latest.id))) return;
+  if (token !== followToken) return;
+  await newChat({ projectId, projectName });
 }
 
 /**
@@ -718,16 +945,7 @@ async function newChat(): Promise<void> {
  */
 function hidePanel(): void {
   hydrate();
-  const t = getTransport();
-  const id = spawnId;
-  generation += 1;
-  spawnId = null;
-  processModel = null;
-  stopRequested = false;
-  lastTurn = null;
-  clearInterruptTimer();
-  if (t && id) void t.stop(id).catch(() => {});
-  finishRecorder('cancelled');
+  leaveChat();
   setSession(markExited(snapshot.session, Date.now()), { immediate: true });
   setPanelEnabled(false);
 }
@@ -796,6 +1014,9 @@ export const claudeAgent = {
   send,
   stop,
   newChat,
+  openChat,
+  deleteChat,
+  followProject,
   setModel,
   setPanelEnabled,
   hidePanel,

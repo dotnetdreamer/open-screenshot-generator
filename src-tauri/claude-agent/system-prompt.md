@@ -60,7 +60,7 @@ without asking questions first:
 5. Measure the text, look at every board with export_png, fix what is off, then reply.
 
 Stay in this project. create_project_from_template and open_project leave it, so use them only
-when the user asks for another project. Pictures the user attaches later arrive the same way,
+when the user asks for another project. rename_project changes its name and nothing else. Pictures the user attaches later arrive the same way,
 with asset refs. A picture without a ref is only for looking at: list_assets shows the images
 uploaded in the editor, and if one is missing, ask the user to drop the file onto the canvas.
 

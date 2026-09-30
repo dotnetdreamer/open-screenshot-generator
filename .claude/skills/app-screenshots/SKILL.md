@@ -54,17 +54,21 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
   (`[role="separator"]`) between them. Collapse the dock via `button[aria-label="Collapse right panel"]`;
   collapsed it becomes a slim vertical rail — expand via `button[aria-label="Expand right panel"]` or the
   rotated `Open Properties` / `Open Layers` buttons (by `title`). Dock state persists in localStorage
-  (`abs-right-dock-open`, `abs-right-dock-layers-height`), so reset those keys if a test needs the default layout.
-- Agent dock tab (desktop only): the dock gains an `Agent` tab after Properties, History and Versions once a
+  (`abs-right-dock-open`, `abs-right-dock-layers-height`, `abs-right-dock-width`), so reset those keys if a test
+  needs the default layout. The dock's left edge is `[role="separator"][aria-orientation="vertical"]`
+  (`aria-label="Resize right panel"`): drag it left to widen the dock from 320px up to 720px, double-click to reset.
+- Agent dock tab (desktop only): the dock gains an `Agent` tab, first in the strip, once a
   first `Start with Claude Code` turns it on, and the Layers list steps aside while it is active. The panel
   root carries `data-agent-panel`. The input is `textarea[aria-label="Message the agent"]` (Enter sends,
   Shift+Enter is a new line), next to `button[aria-label="Send"]`, which becomes
   `button[title="Stop the agent"]` while a turn runs, `button[aria-label="Attach screenshots"]`,
-  `button[aria-label="Start a new chat"]` and `button[aria-label="Agent options"]` (model, Recent runs,
-  Check Claude Code again). Collapsed, the rail button is `title="Open Agent"`; on a phone it is
+  `button[aria-label="Past chats"]` (toggles the list of saved chats in place of the transcript, `aria-pressed`
+  while open; a row is a button named by the chat's first message), `button[aria-label="Start a new chat"]` and
+  `button[aria-label="Agent options"]` (model, Recent runs, Check Claude Code again). Collapsed, the rail button is `title="Open Agent"`; on a phone it is
   `aria-label="Open agent chat"`.
   localStorage keys: `osg-claude-agent-v1` (the chat), `osg-claude-agent-panel` (`1` keeps the tab) and
-  `osg-claude-agent-model`. Remove all three for a clean start.
+  `osg-claude-agent-model`. Remove all three for a clean start. Past chats live in the `agentChats`
+  IndexedDB table, and opening another project swaps the panel to that project's latest chat (or an empty one).
 - Palette categories: `button[title="Browse <Category>"]` (e.g. `Browse 3D iPhone 17 Pro Max`, `Browse Colored iPhone`, `Browse Basic`); close with the `Back` button.
 - Tiles: `button[aria-label="Add <label> (<libraryId>)"]` — they carry **no `title`** (a Radix hover card shows the label + library id instead), so match on the accessible name. `lib.js clickByTitle` handles both: pass `Add Transparent device` and it matches the `(devicecolor:iphone-transparent)` suffix for you. `button[aria-label^="Add "]` selects every tile in the open group.
 - Elements tab search: `input[aria-label="Search elements by name or id"]` filters the whole Elements tab (Basic, App Preview and the vector library) by name, library id, group or keyword; `button[aria-label="Clear search"]` restores the category overview. Results replace the category grid, so type into it *instead of* opening a category.

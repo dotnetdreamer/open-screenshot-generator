@@ -85,9 +85,8 @@ export function ClaudeCodeModePanel({ desktop, disabled, starting, onStart }: Cl
       <div className="flex items-start gap-3">
         <ClaudeCodeLogo tile className="h-9 w-9" />
         <p className="min-w-0 flex-1 text-sm text-muted-foreground">
-          The agent runs in the Claude Code on this computer, with the Claude plan you are signed in to there.
-          Nothing to sign in to here. It builds the project with the app&apos;s design tools while you watch, and
-          you keep talking to it in the Agent panel.
+          Claude Code runs on your computer using your Claude plan. It builds your project with
+          the app&apos;s design tools while you watch. Keep chatting in the Agent panel.
         </p>
       </div>
 

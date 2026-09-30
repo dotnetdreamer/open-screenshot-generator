@@ -7,6 +7,7 @@
 
 import type { ClaudeAgentSnapshot } from './store';
 import { clipText } from '@/lib/clipText';
+import { chatListItems, type AgentChatListItem } from './chats';
 import type {
   AgentDetectionState,
   AgentItem,
@@ -36,6 +37,10 @@ export interface AgentPanelView {
   resumable: boolean;
   /** What the next message is about, for the chip above the input: "Headline". */
   contextLabel: string | null;
+  /** Past chats, newest first, the one on screen marked. */
+  chats: AgentChatListItem[];
+  /** The project open in the editor, which Past chats lists first. */
+  projectId: string | null;
 }
 
 /** A picture the user attached in the panel, already stored as an asset. */
@@ -46,7 +51,11 @@ export interface AgentAttachment {
   fileName: string;
 }
 
-export function toAgentPanelView(agent: ClaudeAgentSnapshot, contextLabel: string | null): AgentPanelView {
+export function toAgentPanelView(
+  agent: ClaudeAgentSnapshot,
+  contextLabel: string | null,
+  project: { projectId: string | null; nameOf?: (projectId: string) => string | null } = { projectId: null }
+): AgentPanelView {
   const { session } = agent;
   return {
     available: agent.available,
@@ -63,6 +72,8 @@ export function toAgentPanelView(agent: ClaudeAgentSnapshot, contextLabel: strin
     turnStartedAt: session.turnStartedAt,
     resumable: !!session.sessionId,
     contextLabel,
+    chats: chatListItems(agent.chats, agent.chat.id, project.nameOf),
+    projectId: project.projectId,
   };
 }
 
@@ -79,6 +90,8 @@ const WIRE_RESULT = 200;
  * DOCK_MAX_MESSAGE_BYTES (64KB) is the guide for all of it.
  */
 const WIRE_BUDGET = 32 * 1024;
+/** Past chats a detached window lists. About 150 bytes each, on top of the budget above. */
+const WIRE_CHATS = 30;
 
 function clip(text: string | undefined, max: number): string | undefined {
   if (text === undefined) return undefined;
@@ -113,5 +126,10 @@ export function slimAgentView(view: AgentPanelView): AgentPanelView {
     ...view,
     omitted: view.omitted + (view.items.length - kept.length),
     items: kept,
+    chats: view.chats.slice(0, WIRE_CHATS).map((chat) => ({
+      ...chat,
+      title: clipText(chat.title, 60),
+      projectName: chat.projectName === null ? null : clipText(chat.projectName, 40),
+    })),
   };
 }

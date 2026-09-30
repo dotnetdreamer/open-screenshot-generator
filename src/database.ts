@@ -7,6 +7,7 @@ import type { DiscoverPostRow } from './lib/discover/localPosts';
 import type { CloudProjectLink } from './lib/cloud/links';
 import type { AccountProjectLink } from './lib/account/links';
 import type { ProjectVersion } from './lib/versions/store';
+import type { AgentChatRecord } from './lib/claudeCode/chats';
 
 export class ProjectDatabase extends Dexie {
   projects!: Table<Project, string>; // <Type, KeyType>
@@ -53,6 +54,11 @@ export class ProjectDatabase extends Dexie {
   // nobody ever saved this project there by hand, so nothing is pushed.
   // See src/lib/account/links.ts.
   accountLinks!: Table<AccountProjectLink, string>;
+  // Claude Code chats, one row each, so the Agent panel can list them and go
+  // back to one. The conversation itself is Claude Code's own file, which
+  // --resume reads; a row holds what the panel shows and the id to resume.
+  // See src/lib/claudeCode/chats.ts.
+  agentChats!: Table<AgentChatRecord, string>;
 
   constructor() {
     super('ProjectDatabase');
@@ -115,6 +121,19 @@ export class ProjectDatabase extends Dexie {
       // project that is open". `remoteId` is indexed for the other direction,
       // which is what deleting a copy from the account dialog uses.
       accountLinks: 'projectId, remoteId, savedAt',
+    });
+    this.version(9).stores({
+      projects: 'id, name, timestamp',
+      operations: 'id, startedAt, status, provider',
+      media: 'id, createdAt',
+      fonts: 'id, family, createdAt',
+      discoverPosts: 'id, createdAt',
+      cloudLinks: 'projectId, recordId, savedAt',
+      projectVersions: 'id, [projectId+createdAt], projectId, createdAt',
+      accountLinks: 'projectId, remoteId, savedAt',
+      // The Past chats list reads newest first; `projectId` finds the chat to
+      // show when a project is opened.
+      agentChats: 'id, projectId, updatedAt',
     });
   }
 }

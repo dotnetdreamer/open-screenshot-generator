@@ -114,7 +114,7 @@ export function buildFirstRunBrief(args: {
   );
   if (args.placeholderName) {
     lines.push(
-      'That name is a placeholder. Once you know what the app is called, pass projectName to apply_template (for example "Droply screenshots"). If you build from scratch instead, tell the user they can rename the project.'
+      'That name is a placeholder. Once you know what the app is called, rename the project after it (for example "Droply screenshots"): pass projectName to apply_template when you use one, or call rename_project.'
     );
   }
   if (args.screenshots.length) {

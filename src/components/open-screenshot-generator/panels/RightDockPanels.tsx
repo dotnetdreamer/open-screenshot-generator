@@ -28,7 +28,7 @@ import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
-import type { DetachablePanel } from '@/lib/panels/url';
+import { DETACHABLE_PANELS, type DetachablePanel } from '@/lib/panels/url';
 import type { ClaudeModelChoice } from '@/lib/claudeCode/types';
 import type { AgentAttachment } from '@/lib/claudeCode/view';
 
@@ -86,6 +86,8 @@ export interface DockHandlers {
   onAgentDetect: () => void;
   onAgentSetModel: (model: ClaudeModelChoice) => void;
   onAgentHide: () => void;
+  onAgentOpenChat: (chatId: string) => void;
+  onAgentDeleteChat: (chatId: string) => void;
   onAgentOpenLink: (url: string) => void;
 }
 
@@ -117,7 +119,8 @@ const TAB_LABELS: Record<RightDockTab, string> = {
   agent: 'Agent',
 };
 
-const TAB_ORDER: RightDockTab[] = ['properties', 'history', 'versions', 'agent'];
+/** The panel order minus Layers, which sits under the tabs rather than in them. */
+const TAB_ORDER = DETACHABLE_PANELS.filter((panel): panel is RightDockTab => panel !== 'layers');
 
 export function RightDockPanels({
   data,
@@ -276,6 +279,8 @@ export function RightDockPanels({
                 onDetect: handlers.onAgentDetect,
                 onSetModel: handlers.onAgentSetModel,
                 onHide: handlers.onAgentHide,
+                onOpenChat: handlers.onAgentOpenChat,
+                onDeleteChat: handlers.onAgentDeleteChat,
                 onOpenLink: handlers.onAgentOpenLink,
               }}
             />

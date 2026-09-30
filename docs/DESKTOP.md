@@ -395,7 +395,8 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   languages, and `projectName` renames it), `create_project_from_template`
   (copies the template into a new project, applies optional text/screenshot
   fills, opens it and lands it in **Recent projects**), `list_projects`,
-  `open_project`. Both template tools refuse a screenshot `src` that would not
+  `open_project`, `rename_project` (renames the open project through the same
+  handler as the name field and reads the saved row back). Both template tools refuse a screenshot `src` that would not
   load instead of leaving an empty frame: an `asset:<id>` ref has to exist
   (from `upload_asset`, or one of the screenshots the user uploaded), and
   anything else has to be a `data:image` URL, an http(s) URL or a path on the

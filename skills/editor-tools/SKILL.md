@@ -199,7 +199,7 @@ device mockups, 3D posed devices and coloured frames. Prefixes are `element:`, `
 `apply_template` (replace every board of the project that is already open with a filled copy of the
 template, as one undo step, keeping the project), `create_project_from_template` (copy it into a new
 project, open it, and optionally fill text and screenshots in the same call), `list_projects`,
-`open_project`.
+`open_project`, `rename_project` (the open project's name, nothing else).
 
 When a project is open, and the user expects the design to land in it, use `apply_template`:
 `create_project_from_template` starts a second project and leaves the open one behind. Both take the

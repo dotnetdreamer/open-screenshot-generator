@@ -458,6 +458,11 @@ export interface McpDesignApi {
   listProjects(): Promise<McpProjectSummary[]>;
   /** Open a saved project in the editor. Null when the id is unknown. */
   openProject(projectId: string): Promise<McpProjectResult | null>;
+  /**
+   * Rename the OPEN project, through the same handler as the project name
+   * field. Throws when no project is open or the new name was not saved.
+   */
+  renameProject(name: string): Promise<{ projectId: string; name: string }>;
 
   // -- Languages --------------------------------------------------------------
 
@@ -2401,6 +2406,21 @@ const TOOLS: ToolDef[] = [
       const result = await api.openProject(args.projectId);
       if (!result) return { ...textResult('No such project. Call list_projects for valid ids.'), isError: true };
       return textResult(result);
+    },
+  },
+  {
+    name: 'rename_project',
+    description:
+      'Rename the project open in the editor, as the project name field does. Only the name changes: the artboards, the project id and its place in Recent projects stay. Returns the project id and the new name.',
+    inputSchema: {
+      type: 'object',
+      properties: { name: { type: 'string', description: 'The new name, e.g. "Droply screenshots".' } },
+      required: ['name'],
+    },
+    run: async (args, api) => {
+      const name = typeof args.name === 'string' ? args.name.trim() : '';
+      if (!name) return { ...textResult('Pass the new name.'), isError: true };
+      return textResult(await api.renameProject(name));
     },
   },
   {

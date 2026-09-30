@@ -11,7 +11,7 @@
 // the editor, Dexie or the Tauri plugins in behind it.
 
 /** Panels that can live in a window of their own. Order is the tab order. */
-export const DETACHABLE_PANELS = ['properties', 'history', 'versions', 'agent', 'layers'] as const;
+export const DETACHABLE_PANELS = ['agent', 'properties', 'history', 'versions', 'layers'] as const;
 export type DetachablePanel = (typeof DETACHABLE_PANELS)[number];
 
 /** The query key that turns `/` into a panel window. */

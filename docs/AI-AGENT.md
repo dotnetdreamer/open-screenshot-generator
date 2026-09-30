@@ -158,6 +158,10 @@ asks for no key and no login. It is not a plan mode:
 - It has those tools and the Skill tool, nothing else: no shell, no files, no web.
 - The conversation goes on after the first design. The user keeps asking for changes in the
   **Agent** tab of the right dock, and the agent works on whatever project is open.
+- Every chat belongs to a project and is kept in **Past chats** (the clock button in the Agent
+  tab). Opening a project brings back its latest chat, or an empty one, so any project or
+  template can start its own. Picking a past chat opens its project too, and the next message
+  resumes that conversation with `--resume`.
 
 What the model is told:
 

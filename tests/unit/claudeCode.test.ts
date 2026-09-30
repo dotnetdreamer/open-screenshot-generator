@@ -25,6 +25,7 @@ import {
 import { INITIAL_AGENT_STATE, type AgentItem, type AgentSessionState } from '@/lib/claudeCode/types';
 import { slimAgentView, type AgentPanelView } from '@/lib/claudeCode/view';
 import { pickCanvasSize, projectNameFromInstruction } from '@/lib/claudeCode/startProject';
+import { KEEP_CHATS, chatListItems, chatTitle, chatUpdatedAt, upsertChatSummary, type AgentChatSummary } from '@/lib/claudeCode/chats';
 import { agentContextLabel, buildAgentContext } from '@/lib/claudeCode/context';
 import { toolDetail, toolLabel } from '@/lib/claudeCode/toolLabels';
 import type { ArtboardState } from '@/types/artboard';
@@ -250,10 +251,23 @@ test('the detached view is slim', () => {
     turnStartedAt: null,
     resumable: true,
     contextLabel: null,
+    chats: Array.from({ length: 50 }, (_, index) => ({
+      id: `chat-${index}`,
+      title: 't'.repeat(80),
+      projectId: `project_${index}`,
+      projectName: 'n'.repeat(120),
+      updatedAt: index,
+      current: index === 0,
+    })),
+    projectId: 'project_0',
   };
   const slim = slimAgentView(view);
   assert.equal(slim.items.length, 60);
   assert.equal(slim.omitted, 20);
+  // Past chats travel too, fewer of them and cut short.
+  assert.equal(slim.chats.length, 30);
+  assert.ok(slim.chats.every((chat) => chat.title.length <= 61 && (chat.projectName?.length ?? 0) <= 41));
+  assert.equal(slim.chats[0].current, true);
   const first = slim.items[0];
   assert.equal(first.kind === 'tool' && first.image, undefined);
   assert.deepEqual(first.kind === 'tool' && first.input, {});
@@ -276,6 +290,47 @@ test('the detached view is slim', () => {
   assert.ok(JSON.stringify(long.items).length <= 32 * 1024);
 });
 
+test('past chats are named, ordered and listed under the name the project has now', () => {
+  const items: AgentItem[] = [
+    { kind: 'notice', id: 'n', tone: 'info', text: 'x', at: 5 },
+    { kind: 'user', id: 'u', text: '  Dark   set for Droply ', attachments: 0, at: 10 },
+    { kind: 'tool', id: 't', toolUseId: 'tu', name: 'add_elements', input: {}, status: 'done', at: 20, endedAt: 40 },
+    { kind: 'text', id: 'r', text: 'Done', at: 30 },
+  ];
+  assert.equal(chatTitle(items), 'Dark set for Droply');
+  assert.equal(chatTitle([]), null);
+  assert.equal(chatTitle([{ kind: 'user', id: 'u', text: ' ', attachments: 2, at: 1 }]), 'Screenshots');
+  assert.equal(chatTitle([{ kind: 'user', id: 'u', text: 'a'.repeat(200), attachments: 0, at: 1 }])!.length, 81);
+  // The newest thing in it, a tool that ended last included.
+  assert.equal(chatUpdatedAt(items, 99), 40);
+  assert.equal(chatUpdatedAt([], 99), 99);
+
+  const summary = (id: string, updatedAt: number, projectId: string | null = 'p1'): AgentChatSummary => ({
+    id,
+    sessionId: null,
+    projectId,
+    projectName: 'Old name',
+    title: id,
+    model: null,
+    createdAt: 0,
+    updatedAt,
+  });
+  let list: AgentChatSummary[] = [summary('a', 1), summary('b', 3)];
+  list = upsertChatSummary(list, summary('a', 5));
+  assert.deepEqual(list.map((chat) => chat.id), ['a', 'b']);
+  for (let i = 0; i < KEEP_CHATS + 5; i++) list = upsertChatSummary(list, summary(`c${i}`, 10 + i));
+  assert.equal(list.length, KEEP_CHATS);
+
+  const rows = chatListItems([summary('a', 5), summary('b', 3, 'gone')], 'a', (id) => (id === 'p1' ? 'New name' : null));
+  assert.deepEqual(
+    rows.map((row) => [row.id, row.projectName, row.current]),
+    [
+      ['a', 'New name', true],
+      ['b', 'Old name', false],
+    ]
+  );
+});
+
 test('the blank project fits the screenshots', () => {
   const fallback = { width: 1024, height: 500 };
   assert.deepEqual(pickCanvasSize([], fallback), fallback);
@@ -283,6 +338,17 @@ test('the blank project fits the screenshots', () => {
   assert.deepEqual(pickCanvasSize([{ width: 2064, height: 2752 }], fallback), { width: 2064, height: 2752 });
   assert.deepEqual(pickCanvasSize([{ width: 410, height: 502 }], fallback), { width: 422, height: 514 });
   assert.deepEqual(pickCanvasSize([{ width: 2880, height: 1800 }], fallback), { width: 2560, height: 1600 });
+  // Every iPad is a tablet, the 11" and the mini included, and an older phone is still a phone.
+  for (const ipad of [{ width: 1668, height: 2388 }, { width: 1640, height: 2360 }, { width: 1488, height: 2266 }]) {
+    assert.deepEqual(pickCanvasSize([ipad], fallback), { width: 2064, height: 2752 });
+  }
+  assert.deepEqual(pickCanvasSize([{ width: 750, height: 1334 }], fallback), { width: 1290, height: 2796 });
+  // A shot shaped like no device (a window capture) leaves the default size.
+  assert.deepEqual(pickCanvasSize([{ width: 830, height: 1000 }], fallback), fallback);
+  assert.deepEqual(pickCanvasSize([{ width: 830, height: 1000 }, { width: 1668, height: 2388 }], fallback), {
+    width: 2064,
+    height: 2752,
+  });
   // A tie goes to the phone.
   assert.deepEqual(
     pickCanvasSize([{ width: 2064, height: 2752 }, { width: 1179, height: 2556 }], fallback),
@@ -328,5 +394,7 @@ test('tool rows read as what happened', () => {
   assert.equal(toolDetail('update_element', { elementId: 'e1', content: 'Hello   there' }), '"Hello there"');
   assert.equal(toolDetail('add_elements', { elements: [{}, {}, {}] }), '3 elements');
   assert.equal(toolDetail('apply_template', { templateId: 'template_droply' }), 'droply');
+  assert.equal(toolLabel('rename_project', 'done'), 'Renamed the project');
+  assert.equal(toolDetail('rename_project', { name: 'First one' }), 'First one');
   assert.equal(toolDetail('Skill', { skill: 'osg-agent:osg-design' }), null);
 });

@@ -19,6 +19,7 @@ import { Editor } from '../helpers/editor';
 /** localStorage keys the dock owns. Read straight, so a rename shows up here. */
 const DOCK_OPEN_KEY = 'abs-right-dock-open';
 const DOCK_TAB_KEY = 'abs-right-dock-tab';
+const DOCK_WIDTH_KEY = 'abs-right-dock-width';
 /** A detached window keeps its own tab, never the dock's. */
 const PANEL_TAB_KEY = 'abs-panel-window-tab-dock';
 
@@ -81,6 +82,36 @@ test.describe('right dock', () => {
     await expect(app.dockTab('Versions')).toHaveAttribute('aria-selected', 'true');
     await expect(app.activeDockPanel).toContainText('Save this state');
     expect(await readLocalStorage(page, DOCK_OPEN_KEY)).toBe('1');
+  });
+
+  test('the left edge widens the dock, the width survives a reload, and a double-click puts it back', async ({ app, page }) => {
+    await app.startBlankProject();
+    await waitForProject(page, () => true);
+
+    const handle = page.getByRole('separator', { name: 'Resize right panel' });
+    const dock = handle.locator('..');
+    const dockWidth = async () => Math.round((await dock.boundingBox())?.width ?? 0);
+    await expect.poll(dockWidth).toBe(320);
+
+    const box = await handle.boundingBox();
+    expect(box).toBeTruthy();
+    const x = box!.x + box!.width / 2;
+    const y = box!.y + box!.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x - 150, y, { steps: 5 });
+    await page.mouse.up();
+
+    await expect.poll(dockWidth).toBe(470);
+    expect(await readLocalStorage(page, DOCK_WIDTH_KEY)).toBe('470');
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await app.waitForBoot();
+    await expect.poll(dockWidth).toBe(470);
+
+    await handle.dblclick();
+    await expect.poll(dockWidth).toBe(320);
+    expect(await readLocalStorage(page, DOCK_WIDTH_KEY)).toBe('320');
   });
 
   test('an inactive panel keeps its element in the DOM, so a panel query has to say which panel', async ({ app, page }) => {

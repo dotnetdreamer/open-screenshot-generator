@@ -10,6 +10,7 @@
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
+  Activity,
   ArrowUp,
   Check,
   ChevronRight,
@@ -24,6 +25,7 @@ import {
   RefreshCw,
   Square,
   SquarePen,
+  Trash2,
   TriangleAlert,
   X,
 } from 'lucide-react';
@@ -45,6 +47,7 @@ import { useImageSrc } from '@/lib/mediaStore';
 import { toolLabel } from '@/lib/claudeCode/toolLabels';
 import { CLAUDE_MODEL_CHOICES, type AgentItem, type ClaudeModelChoice } from '@/lib/claudeCode/types';
 import type { AgentAttachment, AgentPanelView } from '@/lib/claudeCode/view';
+import type { AgentChatListItem } from '@/lib/claudeCode/chats';
 import { RunHistoryDialog } from '../start/RunHistoryDialog';
 import { AgentMarkdown } from './AgentMarkdown';
 import { ClaudeCodeLogo } from './ClaudeCodeLogo';
@@ -57,6 +60,9 @@ export interface AgentPanelHandlers {
   onDetect: () => void;
   onSetModel: (model: ClaudeModelChoice) => void;
   onHide: () => void;
+  /** Go back to a past chat, and to its project when another one is open. */
+  onOpenChat: (chatId: string) => void;
+  onDeleteChat: (chatId: string) => void;
   /** Open a web link. The editor window does it for a detached one. */
   onOpenLink: (url: string) => void;
 }
@@ -243,12 +249,130 @@ function AttachmentThumb({ attachment, onRemove }: { attachment: AgentAttachment
   );
 }
 
+/** "4 min ago", down to "just now", the way the Versions panel says it. */
+function ago(at: number): string {
+  const seconds = Math.max(0, Math.round((Date.now() - at) / 1000));
+  if (seconds < 60) return 'just now';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours} h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days} d ago`;
+  return new Date(at).toLocaleDateString();
+}
+
+function ChatGroup({
+  label,
+  chats,
+  showProject,
+  busy,
+  onOpen,
+  onDelete,
+}: {
+  label: string;
+  chats: AgentChatListItem[];
+  showProject: boolean;
+  busy: boolean;
+  onOpen: (chatId: string) => void;
+  onDelete: (chatId: string) => void;
+}) {
+  return (
+    <section>
+      <p className="mb-1 px-2 text-[11px] font-semibold text-muted-foreground">{label}</p>
+      <ul className="space-y-0.5">
+        {chats.map((chat) => (
+          <li
+            key={chat.id}
+            className={cn('group flex items-center gap-1 rounded-md pr-1', chat.current ? 'bg-primary/10' : 'hover:bg-muted/60')}
+          >
+            <button
+              type="button"
+              disabled={busy && !chat.current}
+              onClick={() => onOpen(chat.id)}
+              className="min-w-0 flex-1 px-2 py-1.5 text-left disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span className="block truncate text-xs font-medium">{chat.title}</span>
+              <span className="block truncate text-[11px] text-muted-foreground">
+                {[showProject ? (chat.projectName ?? 'Unnamed project') : null, chat.current ? 'Open now' : ago(chat.updatedAt)]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </button>
+            {/* The open chat has no delete: start a new chat to leave it first. */}
+            {!chat.current && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100 [@media(pointer:coarse)]:opacity-100"
+                onClick={() => onDelete(chat.id)}
+                title="Delete this chat"
+                aria-label="Delete this chat"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/** Every saved chat, this project's first, in place of the transcript. */
+function PastChats({
+  chats,
+  projectId,
+  busy,
+  onOpen,
+  onDelete,
+}: {
+  chats: AgentChatListItem[];
+  projectId: string | null;
+  busy: boolean;
+  onOpen: (chatId: string) => void;
+  onDelete: (chatId: string) => void;
+}) {
+  if (chats.length === 0) {
+    return (
+      <div className="flex flex-col items-center px-2 pt-6 text-center">
+        <History className="h-6 w-6 text-muted-foreground" />
+        <p className="mt-2 text-sm font-semibold">No past chats yet</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Every chat with the agent is kept here, so you can go back to it later.
+        </p>
+      </div>
+    );
+  }
+  const here = projectId ? chats.filter((chat) => chat.projectId === projectId) : [];
+  const elsewhere = chats.filter((chat) => !projectId || chat.projectId !== projectId);
+  return (
+    <div className="space-y-4">
+      {busy && <p className="px-2 text-[11px] text-muted-foreground">Stop the agent to open another chat</p>}
+      {here.length > 0 && (
+        <ChatGroup label="This project" chats={here} showProject={false} busy={busy} onOpen={onOpen} onDelete={onDelete} />
+      )}
+      {elsewhere.length > 0 && (
+        <ChatGroup
+          label={here.length > 0 ? 'Other projects' : 'Past chats'}
+          chats={elsewhere}
+          showProject
+          busy={busy}
+          onOpen={onOpen}
+          onDelete={onDelete}
+        />
+      )}
+    </div>
+  );
+}
+
 export function AgentPanel({ view, handlers, offline = false, detached = false, className }: AgentPanelProps) {
   const [text, setText] = useState(draftText);
   const [attachments, setAttachments] = useState<AgentAttachment[]>(draftAttachments);
   const [attaching, setAttaching] = useState(false);
   const [attachError, setAttachError] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [chatsOpen, setChatsOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const stickToBottom = useRef(true);
@@ -305,6 +429,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
     setText('');
     setAttachments([]);
     setAttachError(null);
+    setChatsOpen(false);
     stickToBottom.current = true;
   };
   // Stop takes the Send button's place the moment a message goes out, so the
@@ -374,8 +499,22 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
         <Button
           variant="ghost"
           size="icon"
+          className={cn('h-7 w-7', chatsOpen && 'bg-accent text-accent-foreground')}
+          onClick={() => setChatsOpen((open) => !open)}
+          aria-pressed={chatsOpen}
+          title="Past chats"
+          aria-label="Past chats"
+        >
+          <History className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-7 w-7"
-          onClick={handlers.onNewChat}
+          onClick={() => {
+            setChatsOpen(false);
+            handlers.onNewChat();
+          }}
           disabled={view.items.length === 0 && !view.resumable}
           title="Start a new chat"
           aria-label="Start a new chat"
@@ -408,7 +547,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             <DropdownMenuSeparator />
             {!detached && (
               <DropdownMenuItem className="gap-2 text-xs" onSelect={() => setHistoryOpen(true)}>
-                <History className="h-3.5 w-3.5 text-muted-foreground" />
+                <Activity className="h-3.5 w-3.5 text-muted-foreground" />
                 Recent runs
               </DropdownMenuItem>
             )}
@@ -433,82 +572,98 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
         }}
         className="min-h-0 flex-1 overflow-y-auto px-3 py-3"
       >
-        {needsSetup && (
-          <ClaudeCodeSetup
-            detection={view.detection}
-            onRetry={handlers.onDetect}
-            onOpenLink={handlers.onOpenLink}
-            className="mb-3 text-xs"
+        {chatsOpen ? (
+          <PastChats
+            chats={view.chats}
+            projectId={view.projectId}
+            busy={working}
+            onOpen={(chatId) => {
+              setChatsOpen(false);
+              stickToBottom.current = true;
+              handlers.onOpenChat(chatId);
+            }}
+            onDelete={handlers.onDeleteChat}
           />
-        )}
+        ) : (
+          <>
+            {needsSetup && (
+              <ClaudeCodeSetup
+                detection={view.detection}
+                onRetry={handlers.onDetect}
+                onOpenLink={handlers.onOpenLink}
+                className="mb-3 text-xs"
+              />
+            )}
 
-        {view.omitted > 0 && (
-          <p className="mb-2 text-center text-[11px] text-muted-foreground">
-            {view.omitted} earlier message{view.omitted === 1 ? ' is' : 's are'} not shown here
-          </p>
-        )}
+            {view.omitted > 0 && (
+              <p className="mb-2 text-center text-[11px] text-muted-foreground">
+                {view.omitted} earlier message{view.omitted === 1 ? ' is' : 's are'} not shown here
+              </p>
+            )}
 
-        {rows.length === 0 && !working ? (
-          <div className="flex flex-col items-center px-2 pt-4 text-center">
-            <ClaudeCodeLogo tile className="h-10 w-10" />
-            <p className="mt-3 text-sm font-semibold">Talk to the agent</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Ask for a change and watch the canvas. The agent edits this project with the app&apos;s design tools.
-            </p>
-            {account && <p className="mt-1 text-xs text-muted-foreground">{account}</p>}
-            {!blocked && (
-              <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-                {SUGGESTIONS.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => {
-                      setText(suggestion);
-                      textRef.current?.focus();
-                    }}
-                    className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+            {rows.length === 0 && !working ? (
+              <div className="flex flex-col items-center px-2 pt-4 text-center">
+                <ClaudeCodeLogo tile className="h-10 w-10" />
+                <p className="mt-3 text-sm font-semibold">Talk to the agent</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Ask for a change and watch the canvas. The agent edits this project with the app&apos;s design tools.
+                </p>
+                {account && <p className="mt-1 text-xs text-muted-foreground">{account}</p>}
+                {!blocked && (
+                  <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+                    {SUGGESTIONS.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => {
+                          setText(suggestion);
+                          textRef.current?.focus();
+                        }}
+                        className="rounded-full border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {rows.map((row) => {
+                  if (row.kind === 'steps') return <StepList key={row.id} items={row.items} />;
+                  const { item } = row;
+                  if (item.kind === 'user') {
+                    return (
+                      <div key={item.id} className="flex justify-end">
+                        <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-primary/10 px-3 py-2 text-[13px] leading-relaxed">
+                          {item.text}
+                          {item.attachments > 0 && (
+                            <span className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <ImagePlus className="h-3 w-3" />
+                              {item.attachments} image{item.attachments === 1 ? '' : 's'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (item.kind === 'text') {
+                    return <AgentMarkdown key={item.id} text={item.text} onOpenLink={handlers.onOpenLink} />;
+                  }
+                  if (item.kind === 'notice') return <NoticeRow key={item.id} item={item} />;
+                  return null;
+                })}
               </div>
             )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {rows.map((row) => {
-              if (row.kind === 'steps') return <StepList key={row.id} items={row.items} />;
-              const { item } = row;
-              if (item.kind === 'user') {
-                return (
-                  <div key={item.id} className="flex justify-end">
-                    <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-primary/10 px-3 py-2 text-[13px] leading-relaxed">
-                      {item.text}
-                      {item.attachments > 0 && (
-                        <span className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <ImagePlus className="h-3 w-3" />
-                          {item.attachments} image{item.attachments === 1 ? '' : 's'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-              if (item.kind === 'text') {
-                return <AgentMarkdown key={item.id} text={item.text} onOpenLink={handlers.onOpenLink} />;
-              }
-              if (item.kind === 'notice') return <NoticeRow key={item.id} item={item} />;
-              return null;
-            })}
-          </div>
-        )}
 
-        {working && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            <span>{view.status === 'starting' ? 'Starting Claude Code...' : 'Working...'}</span>
-            {view.turnStartedAt && <span className="tabular-nums">{formatElapsed(now - view.turnStartedAt)}</span>}
-          </div>
+            {working && (
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>{view.status === 'starting' ? 'Starting Claude Code...' : 'Working...'}</span>
+                {view.turnStartedAt && <span className="tabular-nums">{formatElapsed(now - view.turnStartedAt)}</span>}
+              </div>
+            )}
+          </>
         )}
       </div>
 

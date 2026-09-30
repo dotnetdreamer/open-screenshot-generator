@@ -300,6 +300,13 @@ const LONG_PRESS_SLOP_PX = 10;
 // survives an app relaunch, not just a reload.
 const RIGHT_DOCK_OPEN_KEY = 'abs-right-dock-open';
 const RIGHT_DOCK_TAB_KEY = 'abs-right-dock-tab';
+const RIGHT_DOCK_WIDTH_KEY = 'abs-right-dock-width';
+// The dock widens from its left edge, never narrows below where it starts: the
+// tab strip and the properties form are laid out for 320px. The page caps it
+// again (lg:max-w) so a width saved on a big screen cannot crush the canvas on
+// a small one.
+const RIGHT_DOCK_WIDTH_MIN = 320; // px
+const RIGHT_DOCK_WIDTH_MAX = 720; // px
 // RightDockTab, LAYERS_SECTION_MIN and PROPERTIES_SECTION_MIN now live with the
 // panel stack itself (panels/RightDockPanels), because a detached panel window
 // renders that same stack and has to agree with the dock about all three.
@@ -1131,6 +1138,8 @@ export function OpenScreenshotGeneratorLayout() {
   // subtree, so PNG, video and preview output can never include it.
   const [isRightDockOpen, setIsRightDockOpen] = useState<boolean>(true);
   const [layersSectionHeight, setLayersSectionHeight] = useState<number>(260);
+  const [rightDockWidth, setRightDockWidth] = useState<number>(RIGHT_DOCK_WIDTH_MIN);
+  const dockResizeRef = useRef<{ pointerId: number; startX: number; startWidth: number; lastWidth: number } | null>(null);
   // Which of the dock's top-section tabs is showing: the properties form, the
   // undo states, or the versions saved to disk.
   const [rightDockTab, setRightDockTab] = useState<RightDockTab>('properties');
@@ -1190,8 +1199,17 @@ export function OpenScreenshotGeneratorLayout() {
       if (Number.isFinite(stored)) {
         setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
       }
+      const storedWidth = parseInt(window.localStorage.getItem(RIGHT_DOCK_WIDTH_KEY) ?? '', 10);
+      if (Number.isFinite(storedWidth)) {
+        setRightDockWidth(Math.max(RIGHT_DOCK_WIDTH_MIN, Math.min(RIGHT_DOCK_WIDTH_MAX, storedWidth)));
+      }
     } catch {}
   }, []);
+
+  const saveRightDockWidth = (width: number) => {
+    setRightDockWidth(width);
+    try { window.localStorage.setItem(RIGHT_DOCK_WIDTH_KEY, String(width)); } catch {}
+  };
 
   const setRightDockOpen = (open: boolean) => {
     setIsRightDockOpen(open);
@@ -6019,10 +6037,63 @@ export function OpenScreenshotGeneratorLayout() {
         : null,
     [agentEnabled, activeProjectId, currentProjectName, artboards, activeArtboardId, selectedElementIds, activeLocale]
   );
+  // Past chats shows each project under the name it has now, which a chat
+  // saved before a rename does not know.
+  const projectNames = useMemo(() => {
+    const names = new Map(recentProjects.map((project) => [project.id, project.name] as const));
+    if (activeProjectId) names.set(activeProjectId, currentProjectName);
+    return names;
+  }, [recentProjects, activeProjectId, currentProjectName]);
   const agentView = useMemo(
-    () => (agentEnabled ? toAgentPanelView(claudeAgentState, agentContextLabel) : null),
-    [agentEnabled, claudeAgentState, agentContextLabel]
+    () =>
+      agentEnabled
+        ? toAgentPanelView(claudeAgentState, agentContextLabel, {
+            projectId: activeProjectId,
+            nameOf: (projectId) => projectNames.get(projectId) ?? null,
+          })
+        : null,
+    [agentEnabled, claudeAgentState, agentContextLabel, activeProjectId, projectNames]
   );
+
+  // The chat follows the project: opening one brings back its latest chat, or
+  // an empty one for it, so any project or template can start its own.
+  useEffect(() => {
+    if (!agentEnabled || !activeProjectId) return;
+    void claudeAgent.followProject(activeProjectId, currentProjectName);
+  }, [agentEnabled, activeProjectId, currentProjectName]);
+
+  /**
+   * A chat picked in Past chats, docked or detached. The chat opens first, so
+   * when its project opens after it, the chat is already on that project and
+   * followProject leaves it be.
+   */
+  const openAgentChat = async (chatId: string) => {
+    const chat = claudeAgent.getSnapshot().chats.find((entry) => entry.id === chatId);
+    if (!chat) return;
+    const status = claudeAgent.getSnapshot().session.status;
+    if (status === 'working' || status === 'starting') {
+      toast({ title: 'The agent is still working', description: 'Stop it, then open the chat again.' });
+      return;
+    }
+    if (!(await claudeAgent.openChat(chatId))) {
+      toast({ title: 'That chat is no longer saved' });
+      return;
+    }
+    if (!chat.projectId || chat.projectId === activeProjectIdRef.current) return;
+    const project = await db.projects.get(chat.projectId).catch(() => undefined);
+    if (!project) {
+      toast({
+        title: 'The project of that chat was deleted',
+        description: 'The chat is open, and your next message is about the project open now.',
+      });
+      return;
+    }
+    // The same way a row in Recent projects opens one.
+    setActiveProjectId(project.id);
+    const params = new URLSearchParams(window.location.search);
+    params.set('projectId', project.id);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+  };
 
   /** A message from the Agent panel, docked or detached. Pictures arrive as asset refs. */
   const handleAgentSend = async (text: string, attachments: AgentAttachment[]) => {
@@ -6146,6 +6217,8 @@ export function OpenScreenshotGeneratorLayout() {
       // A window holding only the Agent tab would be left with nothing in it.
       if (dockHost.detachedGroups.includes('agent')) void dockHost.reattach('agent');
     },
+    onAgentOpenChat: (chatId) => void openAgentChat(chatId),
+    onAgentDeleteChat: (chatId) => void claudeAgent.deleteChat(chatId),
     // A detached window has no opener permission of its own (panels.json), so
     // its links come here. Only web links: nothing else belongs in a browser.
     onAgentOpenLink: (url) => {
@@ -6720,7 +6793,7 @@ const generateRandomProjectName = (): string => {
     if (isMobileViewport) setIsMobileDockOpen(true);
     track('agent_claude_code_start', { screenshots: screenshots.length });
 
-    await claudeAgent.newChat();
+    await claudeAgent.newChat({ projectId: created.projectId, projectName: created.name });
     const board = created.artboards[0];
     void claudeAgent
       .send({
@@ -8155,6 +8228,18 @@ const generateRandomProjectName = (): string => {
         warnings: [],
       };
     },
+    renameProject: async (name) => {
+      if (!activeProjectId) {
+        throw new Error('No project is open, so there is nothing to rename. Open one with open_project first.');
+      }
+      const trimmed = name.trim();
+      await handleRenameProject(trimmed);
+      // A failed write is a toast in handleRenameProject, not a throw, so the
+      // saved row is what says whether the name landed.
+      const saved = await db.projects.get(activeProjectId);
+      if (saved?.name !== trimmed) throw new Error('The new name could not be saved. Try again.');
+      return { projectId: activeProjectId, name: trimmed };
+    },
 
     // -- Languages ------------------------------------------------------------
 
@@ -8775,8 +8860,9 @@ const generateRandomProjectName = (): string => {
               )}
             </div>
 
-            {/* Right dock: Properties, History and Versions as tabs on top,
-                Layers below, split by a draggable divider. Collapsed it becomes
+            {/* Right dock: Agent (once it is on), Properties, History and
+                Versions as tabs on top, Layers below, split by a draggable
+                divider. Its left edge drags to widen it. Collapsed it becomes
                 a slim vertical rail with rotated labels (Android Studio
                 tool-window style).
 
@@ -8823,12 +8909,70 @@ const generateRandomProjectName = (): string => {
             ) : dockOpen ? (
               <div
                 className={cn(
-                  "flex flex-col border-l bg-card",
-                  "h-full w-80 flex-shrink-0",
+                  "relative flex flex-col border-l bg-card",
+                  // A variable rather than an inline width, so the phone
+                  // sheet's max-lg:w-full still wins below lg. 40rem is the
+                  // sidebar plus a canvas worth working in.
+                  "h-full w-[var(--right-dock-width)] flex-shrink-0 lg:max-w-[calc(100vw-40rem)]",
                   "max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-50 max-lg:h-[70svh] max-lg:w-full max-lg:rounded-t-2xl max-lg:border max-lg:shadow-2xl"
                 )}
+                style={{ '--right-dock-width': `${rightDockWidth}px` } as React.CSSProperties}
                 data-export-exclude
               >
+                {/* The left edge widens the dock beside the canvas. The phone
+                    sheet is already full width, so it has none. */}
+                <div
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-label="Resize right panel"
+                  title="Drag to resize, double-click to reset"
+                  className="group absolute inset-y-0 -left-1 z-20 w-2 cursor-col-resize touch-none max-lg:hidden"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    dockResizeRef.current = {
+                      pointerId: e.pointerId,
+                      startX: e.clientX,
+                      startWidth: rightDockWidth,
+                      lastWidth: rightDockWidth,
+                    };
+                  }}
+                  onPointerMove={(e) => {
+                    const drag = dockResizeRef.current;
+                    if (!drag || drag.pointerId !== e.pointerId) return;
+                    const max = Math.max(RIGHT_DOCK_WIDTH_MIN, Math.min(RIGHT_DOCK_WIDTH_MAX, window.innerWidth - 640));
+                    const next = Math.round(
+                      Math.min(max, Math.max(RIGHT_DOCK_WIDTH_MIN, drag.startWidth + (drag.startX - e.clientX)))
+                    );
+                    drag.lastWidth = next;
+                    setRightDockWidth(next);
+                  }}
+                  onPointerUp={(e) => {
+                    const drag = dockResizeRef.current;
+                    if (!drag || drag.pointerId !== e.pointerId) return;
+                    dockResizeRef.current = null;
+                    saveRightDockWidth(drag.lastWidth);
+                  }}
+                  onPointerCancel={() => {
+                    dockResizeRef.current = null;
+                  }}
+                  onDoubleClick={() => saveRightDockWidth(RIGHT_DOCK_WIDTH_MIN)}
+                >
+                  <div className="mx-auto h-full w-0.5 transition-colors group-hover:bg-primary/60 group-active:bg-primary" />
+                  {/* Three dots on the border, always showing, so the edge reads
+                      as something to grab before the pointer finds it. */}
+                  <div
+                    aria-hidden="true"
+                    className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-[3px] rounded-full border bg-card px-px py-1"
+                  >
+                    {[0, 1, 2].map((dot) => (
+                      <span
+                        key={dot}
+                        className="h-[3px] w-[3px] rounded-full bg-muted-foreground/70 transition-colors group-hover:bg-primary group-active:bg-primary"
+                      />
+                    ))}
+                  </div>
+                </div>
                 <RightDockPanels
                   data={dockData}
                   handlers={dockHandlers}
@@ -8968,10 +9112,10 @@ const generateRandomProjectName = (): string => {
                   </Button>
                   <div className="mt-1 h-px w-5 bg-border" />
                   {([
+                    ...(agentEnabled ? [{ label: 'Agent', tab: 'agent' as const }] : []),
                     { label: 'Properties', tab: 'properties' as const },
                     { label: 'History', tab: 'history' as const },
                     { label: 'Versions', tab: 'versions' as const },
-                    ...(agentEnabled ? [{ label: 'Agent', tab: 'agent' as const }] : []),
                     { label: 'Layers', tab: null },
                   ] as { label: string; tab: RightDockTab | null }[]).map(({ label, tab }) => (
                     <button

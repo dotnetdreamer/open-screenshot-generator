@@ -249,6 +249,12 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'agentHide':
         h.onAgentHide();
         break;
+      case 'agentOpenChat':
+        h.onAgentOpenChat(intent.chatId);
+        break;
+      case 'agentDeleteChat':
+        h.onAgentDeleteChat(intent.chatId);
+        break;
       case 'agentOpenLink':
         h.onAgentOpenLink(intent.url);
         break;

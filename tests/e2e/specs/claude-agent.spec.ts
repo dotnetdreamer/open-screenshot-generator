@@ -113,6 +113,8 @@ test.describe('a Claude Code run', () => {
     await expect(app.artboards).toHaveCount(1);
     const agentTab = page.getByRole('tab', { name: 'Agent', exact: true });
     await expect(agentTab).toHaveAttribute('aria-selected', 'true');
+    // First in the strip, ahead of Properties.
+    await expect(agentTab.locator('..').getByRole('tab').first()).toHaveText('Agent');
     const panel = app.activeDockPanel;
 
     // The listener goes up before the process, so its first lines are not lost.
@@ -196,6 +198,76 @@ test.describe('a Claude Code run', () => {
     await panel.getByRole('button', { name: 'Start a new chat' }).click();
     await tauri.waitForCall('abs_claude_stop');
     await expect(panel.getByText('Talk to the agent')).toBeVisible();
+
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('past chats come back and resume, and every project gets a chat of its own', async ({ app, page, tauri, isDesktop }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+    const session = '6e6cdc77-0d28-43a0-955d-9cad1fb02032';
+    const turnEnd = (uuid: string) => ({
+      type: 'result',
+      subtype: 'success',
+      is_error: false,
+      result: 'done',
+      num_turns: 1,
+      duration_ms: 500,
+      session_id: session,
+      uuid,
+    });
+
+    const dialog = await openAgentScreen(page, app.startDialog);
+    await page.locator('#agent-instruction').fill('Dark set for a habit tracker called Droply');
+    await dialog.getByRole('button', { name: 'Start with Claude Code' }).click();
+    await expect(dialog).toBeHidden({ timeout: 30_000 });
+    const droplyProject = await expect
+      .poll(() => new URL(page.url()).searchParams.get('projectId'))
+      .not.toBeNull()
+      .then(() => new URL(page.url()).searchParams.get('projectId'));
+    const panel = app.activeDockPanel;
+    await waitForListener(tauri, CLAUDE_EVENT);
+    const first = (await tauri.waitForCall('abs_claude_start')).args.args as { spawnId: string };
+    await expect.poll(async () => (await sentLines(tauri)).length).toBe(1);
+    await play(tauri, first.spawnId, [
+      init('i1'),
+      { type: 'assistant', uuid: 'a1', message: { id: 'm1', content: [{ type: 'text', text: 'Droply is ready.' }] } },
+      turnEnd('r1'),
+    ]);
+    await expect(panel.getByText('Droply is ready.')).toBeVisible();
+
+    // A new chat keeps the old one, listed under this project.
+    await panel.getByRole('button', { name: 'Start a new chat' }).click();
+    await expect(panel.getByText('Talk to the agent')).toBeVisible();
+    const pastChats = panel.getByRole('button', { name: 'Past chats' });
+    await pastChats.click();
+    await expect(pastChats).toHaveAttribute('aria-pressed', 'true');
+    await expect(panel.getByText('This project')).toBeVisible();
+    const droplyChat = panel.getByRole('button', { name: /Dark set for a habit tracker called Droply/ });
+    await droplyChat.click();
+
+    // Back on screen, and the next message resumes that conversation.
+    await expect(panel.getByText('Droply is ready.')).toBeVisible();
+    await panel.getByLabel('Message the agent').fill('Make the headline bigger');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    await expect.poll(async () => (await tauri.callsTo('abs_claude_start')).length).toBe(2);
+    const second = (await tauri.callsTo('abs_claude_start'))[1].args.args as { spawnId: string; resume?: string };
+    expect(second.resume).toBe(session);
+    await play(tauri, second.spawnId, [init('i2'), turnEnd('r2')]);
+    await expect(panel.getByRole('button', { name: 'Send' })).toBeVisible();
+
+    // Another project gets an empty chat of its own...
+    await app.selectTemplateButton.click();
+    await app.startBlankProject();
+    await expect.poll(() => new URL(page.url()).searchParams.get('projectId')).not.toBe(droplyProject);
+    await expect(panel.getByText('Talk to the agent')).toBeVisible();
+
+    // ...and Past chats goes back to the Droply chat and its project.
+    await pastChats.click();
+    await expect(panel.getByText(/Droply screenshots · /)).toBeVisible();
+    await panel.getByRole('button', { name: /Dark set for a habit tracker called Droply/ }).click();
+    await expect(panel.getByText('Droply is ready.')).toBeVisible();
+    await expect.poll(() => new URL(page.url()).searchParams.get('projectId')).toBe(droplyProject);
+    await expect(panel.getByText('Make the headline bigger')).toBeVisible();
 
     expect(await tauri.unhandled()).toEqual([]);
   });
