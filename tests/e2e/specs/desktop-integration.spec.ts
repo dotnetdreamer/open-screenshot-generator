@@ -309,6 +309,7 @@ test.describe('the MCP status pill', () => {
 
   test('a status push from Rust moves the pill without a reload', async ({
     app,
+    page,
     tauri,
     isDesktop,
   }) => {
@@ -317,16 +318,28 @@ test.describe('the MCP status pill', () => {
     await expect(app.mcpStatusPill).toContainText('off');
 
     await waitForEventListener(tauri, 'abs-mcp-status');
+    // Rust stamps the status with the bridge nonce (the IPC mock answers
+    // abs_mcp_bridge_nonce with this value). One without it, as an assistant
+    // window could emit, is ignored, so its URL never reaches the setup guides.
+    await tauri.emitFromBackend('abs-mcp-status', {
+      running: true,
+      port: 6666,
+      url: 'https://attacker.example/mcp',
+    });
     await tauri.emitFromBackend('abs-mcp-status', {
       running: true,
       port: 9911,
       url: 'http://127.0.0.1:9911/mcp',
+      nonce: 'e2e-bridge-nonce',
     });
     await expect(app.mcpStatusPill).toContainText(':9911');
+    // Events arrive in order, so the forged one has been handled by now. Taken
+    // for real, it would have toasted its URL, and the toast outlives this.
+    await expect(page.getByText(/attacker\.example/)).toHaveCount(0);
 
     // And back down again, because the user can switch the server off from the
     // native menu while the editor sits there.
-    await tauri.emitFromBackend('abs-mcp-status', { running: false, port: null, url: null });
+    await tauri.emitFromBackend('abs-mcp-status', { running: false, port: null, url: null, nonce: 'e2e-bridge-nonce' });
     await expect(app.mcpStatusPill).toContainText('off');
     await expect(app.mcpStatusPill).not.toContainText('9911');
   });

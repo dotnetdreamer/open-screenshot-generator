@@ -7,3 +7,8 @@ public/data/ai/catalog.txt text eol=lf
 # hands a Windows checkout CRLF, and bash refuses a script whose shebang ends
 # in \r, so pin them the same way.
 *.sh text eol=lf
+
+# The Claude Code agent's system prompt and skills are compiled into the
+# desktop app with include_str!. Pinned so a Windows build ships the same bytes
+# as a Mac or Linux one.
+src-tauri/claude-agent/** text eol=lf

@@ -21,12 +21,16 @@ import { PropertiesPanel } from '../PropertiesPanel';
 import { HistoryPanel } from '../HistoryPanel';
 import { VersionsPanel } from '../VersionsPanel';
 import { LayersPanel } from '../LayersPanel';
+import { AgentPanel } from '../agent/AgentPanel';
+import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
 import type { ArtboardElement, ArtboardState, ElementSelectModifiers } from '@/types/artboard';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
 import type { DetachablePanel } from '@/lib/panels/url';
+import type { ClaudeModelChoice } from '@/lib/claudeCode/types';
+import type { AgentAttachment } from '@/lib/claudeCode/view';
 
 /**
  * How tall the layers list is, in the DOCK.
@@ -76,6 +80,13 @@ export interface DockHandlers {
   onMoveElementLayer: (elementId: string, direction: 'up' | 'down') => void;
   onDeleteElement: (elementId: string) => void;
   onRenameElement: (elementId: string, newName: string) => void;
+  onAgentSend: (text: string, attachments: AgentAttachment[]) => void;
+  onAgentStop: () => void;
+  onAgentNewChat: () => void;
+  onAgentDetect: () => void;
+  onAgentSetModel: (model: ClaudeModelChoice) => void;
+  onAgentHide: () => void;
+  onAgentOpenLink: (url: string) => void;
 }
 
 interface RightDockPanelsProps {
@@ -92,6 +103,10 @@ interface RightDockPanelsProps {
   onLayersHeightCommit?: (height: number) => void;
   /** Buttons at the right end of the tab strip (collapse, detach, reattach). */
   headerActions?: React.ReactNode;
+  /** A detached window that lost the editor. Panels that send work say so. */
+  offline?: boolean;
+  /** Rendering in a detached window rather than the dock. */
+  detached?: boolean;
   className?: string;
 }
 
@@ -99,9 +114,10 @@ const TAB_LABELS: Record<RightDockTab, string> = {
   properties: 'Properties',
   history: 'History',
   versions: 'Versions',
+  agent: 'Agent',
 };
 
-const TAB_ORDER: RightDockTab[] = ['properties', 'history', 'versions'];
+const TAB_ORDER: RightDockTab[] = ['properties', 'history', 'versions', 'agent'];
 
 export function RightDockPanels({
   data,
@@ -113,6 +129,8 @@ export function RightDockPanels({
   onLayersHeightChange,
   onLayersHeightCommit,
   headerActions,
+  offline = false,
+  detached = false,
   className,
 }: RightDockPanelsProps) {
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -123,11 +141,18 @@ export function RightDockPanels({
     lastHeight: number;
   } | null>(null);
 
-  const tabs = TAB_ORDER.filter((candidate) => panels.includes(candidate));
-  const showLayers = panels.includes('layers');
+  // The Agent tab exists only once the user has used Claude Code: the editor
+  // sends `agent: null` until then, in the dock and to every detached window.
+  const tabs = TAB_ORDER.filter(
+    (candidate) => panels.includes(candidate) && (candidate !== 'agent' || !!data.agent)
+  );
   // A window holding nothing but the layers list still needs a value for the
   // Tabs root, and Radix wants one it recognises.
   const activeTab = tabs.includes(tab) ? tab : (tabs[0] ?? 'properties');
+  // A chat needs the whole column, so the layers list steps aside for it
+  // while another tab is there to switch to. With Agent the only tab left,
+  // hiding the list would leave no way to reach it.
+  const showLayers = panels.includes('layers') && !(activeTab === 'agent' && tabs.length > 1);
 
   return (
     <Tabs
@@ -139,17 +164,23 @@ export function RightDockPanels({
           pill reads as a single button rather than a row of tabs. -mb-px drops
           the active underline onto the header rule so the two line up. */}
       <div className="flex h-9 shrink-0 items-stretch justify-between border-b pl-2 pr-1.5">
-        <TabsList className="-mb-px h-auto items-stretch gap-4 rounded-none bg-transparent p-0">
+        {/* gap-3 rather than 4: four tabs and the header buttons have to fit a
+            320px dock and a detached window that can be narrower still. */}
+        <TabsList className="-mb-px h-auto items-stretch gap-3 rounded-none bg-transparent p-0">
           {tabs.map((value) => (
             <TabsTrigger
               key={value}
               value={value}
-              className="rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
+              className="gap-1 rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
             >
+              {/* aria-hidden, so the tab's accessible name stays "Agent". */}
+              {value === 'agent' && <ClaudeCodeLogo className="h-3.5 w-3.5" />}
               {TAB_LABELS[value]}
             </TabsTrigger>
           ))}
-          {tabs.length === 0 && (
+          {/* Only when the list is really there: a window holding just the
+              Agent tab, before the editor says the tab is on, shows neither. */}
+          {tabs.length === 0 && showLayers && (
             <span className="self-center text-xs font-semibold text-foreground">Layers</span>
           )}
         </TabsList>
@@ -222,6 +253,31 @@ export function RightDockPanels({
               onRestore={handlers.onRestoreVersion}
               onOpenCopy={handlers.onOpenVersionCopy}
               onDelete={handlers.onDeleteVersion}
+            />
+          </TabsContent>
+        )}
+        {tabs.includes('agent') && data.agent && (
+          // data-agent-panel here as well as on the panel: Radix makes this
+          // wrapper focusable, so a click on the chat's text focuses it, and
+          // the editor's shortcuts must still treat that as the chat.
+          <TabsContent
+            value="agent"
+            data-agent-panel=""
+            className="m-0 min-h-[10rem] flex-1 overflow-hidden data-[state=active]:flex"
+          >
+            <AgentPanel
+              view={data.agent}
+              offline={offline}
+              detached={detached}
+              handlers={{
+                onSend: handlers.onAgentSend,
+                onStop: handlers.onAgentStop,
+                onNewChat: handlers.onAgentNewChat,
+                onDetect: handlers.onAgentDetect,
+                onSetModel: handlers.onAgentSetModel,
+                onHide: handlers.onAgentHide,
+                onOpenLink: handlers.onAgentOpenLink,
+              }}
             />
           </TabsContent>
         )}

@@ -233,6 +233,13 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
         send({ name: 'moveElementLayer', elementId, direction }),
       onDeleteElement: (elementId) => send({ name: 'deleteElement', elementId }),
       onRenameElement: (elementId, newName) => send({ name: 'renameElement', elementId, newName }),
+      onAgentSend: (text, attachments) => send({ name: 'agentSend', text, attachments }),
+      onAgentStop: () => send({ name: 'agentStop' }),
+      onAgentNewChat: () => send({ name: 'agentNewChat' }),
+      onAgentDetect: () => send({ name: 'agentDetect' }),
+      onAgentSetModel: (model) => send({ name: 'agentSetModel', model }),
+      onAgentHide: () => send({ name: 'agentHide' }),
+      onAgentOpenLink: (url) => send({ name: 'agentOpenLink', url }),
     }),
     [send]
   );

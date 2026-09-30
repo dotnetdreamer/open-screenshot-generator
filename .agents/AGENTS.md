@@ -1,6 +1,6 @@
 # Agent guide: Open Screenshot Generator
 
-Editor for App Store and Play Store screenshots and preview videos. Next.js 15 **static export** (no server, no API routes) plus a Tauri v2 desktop shell running the same bundle. Projects live in IndexedDB. Desktop adds the MCP server, the embedded-webview AI mode, local AI providers, and loopback OAuth.
+Editor for App Store and Play Store screenshots and preview videos. Next.js 15 **static export** (no server, no API routes) plus a Tauri v2 desktop shell running the same bundle. Projects live in IndexedDB. Desktop adds the MCP server, the Claude Code agent, the embedded-webview AI mode, local AI providers, and loopback OAuth.
 
 ## Map
 
@@ -13,6 +13,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Screenshots in, finished designs out | [src/lib/intake/](../src/lib/intake/) + [start/quickstart/](../src/components/open-screenshot-generator/start/quickstart/) |
 | AI agent | [src/lib/ai/](../src/lib/ai/) |
 | MCP server | [src/lib/mcp/](../src/lib/mcp/) + [src-tauri/src/mcp_server.rs](../src-tauri/src/mcp_server.rs) |
+| Claude Code agent (desktop) and the Agent dock tab | [src/lib/claudeCode/](../src/lib/claudeCode/) + [src-tauri/src/claude_code.rs](../src-tauri/src/claude_code.rs) + [agent/](../src/components/open-screenshot-generator/agent/) |
 | Translate and fonts | [translation.ts](../src/services/translation.ts), [fontService.ts](../src/services/fontService.ts), [customFonts.ts](../src/services/customFonts.ts), [fontLanguageMatcher.ts](../src/lib/fontLanguageMatcher.ts) |
 | Devices, palette, 3D | [deviceRegistry.ts](../src/lib/deviceRegistry.ts), [elementLibrary.ts](../src/lib/elementLibrary.ts), [device3dPresets.ts](../src/lib/device3dPresets.ts) |
 | App Preview scenes (whole boards, palette tab 4) | [previewScenes.ts](../src/lib/previewScenes.ts) |
@@ -99,6 +100,12 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 35. Every device frame in the catalog ships with placeholder art, so "is this frame empty" is never `!screenshotSrc`. A shipped placeholder is a public path; the user's own content is `asset:`, `data:` or `blob:`.
 36. A card that would overspend the WebGL budget renders **flattened** (`flattenBoard3d`), never as the shipped preview PNG: the whole point of the deck is that the boards hold the user's screenshots.
 
+**The Claude Code agent**
+
+37. What the spawned `claude` may do is fixed in [claude_code.rs](../src-tauri/src/claude_code.rs), never by the page. It gets one built-in tool, Skill (`--tools Skill`), plus the `osg-editor` MCP tools, both pre-approved with `--allowedTools`, and `--permission-mode dontAsk` refuses everything else. Never add `--bare` (it never reads the OAuth login, so the Claude plan stops working) or `--safe-mode` (it drops plugins, skills and MCP servers, so the agent loses its skill and every design tool). The frontend passes only a model and a conversation id, which Rust validates so neither can carry a flag. The system prompt and the skills are compiled in from [src-tauri/claude-agent/](../src-tauri/claude-agent/) with `include_str!`, and Rust writes every file in the workspace itself: a skill can make Claude Code run a command (hooks in its frontmatter, `!` lines in its body), and so can a settings file or a plugin manifest, so nothing the page sends may become one. `scrub_env` is what bills the user's plan: `ANTHROPIC_API_KEY` alone moves the bill to API credit without a prompt, so no spawn skips it. Output goes to the editor window only (`emit_to("main", ...)`), never to the `assistant-*` windows, which host third-party sites.
+38. Every tool and argument named in [src-tauri/claude-agent/](../src-tauri/claude-agent/) must exist in `TOOLS` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts). Rename or remove a tool and the brief changes in the same commit, or the agent reaches for something that is not there. [agentBrief.test.ts](../tests/unit/agentBrief.test.ts) fails on a tool name the server does not list; arguments it cannot check. The agent has no Read tool, so each skill has to stand on its own, and a skill's frontmatter holds `name` and `description` only (`built_in_skills_stay_plain` in claude_code.rs).
+39. Cut a string that crosses the Tauri IPC bridge (a dock snapshot, a history label, anything sent to Rust) with `clipText` ([clipText.ts](../src/lib/clipText.ts)), never with a bare `slice`. `slice` counts UTF-16 units and can keep half an emoji, Rust's JSON parser refuses a lone surrogate, and the whole message is dropped: a selected layer whose name held one froze every detached panel window.
+
 ## Writing comments and user-facing copy
 
 Two skills are mandatory here, not optional polish.
@@ -118,6 +125,7 @@ Two skills are mandatory here, not optional polish.
 | --- | --- |
 | `npm run dev` | port 9002, hard-coded in Tauri devUrl, the extension, and the harness |
 | `npm run typecheck` | the real safety net |
+| `npm run test:unit` | node tests for pure modules in `tests/unit/`, no browser; `-- <name>` runs the matching files |
 | `npm run gen:ai-catalog` | after any template change |
 | `npm run build:assistant-agent` | after any web-adapter change |
 | `npm run tauri:dev` / `tauri:build` | desktop |
@@ -137,7 +145,7 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 - **Device**: `DeviceType`, `DEVICE_REGISTRY`, `getFlatDeviceChrome`, `DEVICE_METRICS`, palette tile, MCP `DEVICE_TYPES`
 - **Web AI provider**: `WEB_ADAPTERS`, `PROVIDERS` in `web_session.rs`, extension adapter + manifest + the `build:extension` entry list, `remote.urls` in `capabilities/assistant.json`
 - **OpenAI-compatible preset** (a ready-made base URL in the "Use my API key" tab): one entry in `COMPATIBLE_PRESETS` in [providers.ts](../src/lib/ai/providers.ts). That is the only registration site. A preset is a convenience, never a gate: any endpoint works by typing its URL
-- **MCP tool**: `McpDesignApi`, the `TOOLS` array, `mcpApi` in the layout, both `SLOW_TOOLS` lists if it is slow
+- **MCP tool**: `McpDesignApi`, the `TOOLS` array, `mcpApi` in the layout, all three `SLOW_TOOLS` lists if it is slow (desktopMcpServer.ts, mcp_server.rs and the CLI's [session.ts](../cli/src/driver/session.ts)), and `READ_ONLY_TOOLS` in [desktopMcpServer.ts](../src/lib/mcp/desktopMcpServer.ts) if it only reads. The serial runner treats every tool off that list as a write, so a read left off costs each later call a wait of up to 1.5s, and a write put on it loses edits
 - **Font**: `GOOGLE_FONTS`, plus `AGENT_FONTS` and a `<SelectGroup>` in [FontFamilySelect.tsx](../src/components/open-screenshot-generator/FontFamilySelect.tsx) if it is a new script. That one component is every picker. Fonts the **user** imports are separate: Dexie `fonts` table, see [customFonts.ts](../src/services/customFonts.ts)
 - **Selection command** (anything acting on several layers at once, like align or group): the maths goes in [elementGeometry.ts](../src/lib/elementGeometry.ts) as a pure function over an element array, the handler in the layout, and the button in the multi-selection branch of [PropertiesPanel.tsx](../src/components/open-screenshot-generator/PropertiesPanel.tsx). Geometry commands commit through `commitView` (`position` and `size` are per-language keys); `groupId` and `groupName` are in `NEVER_DETACHABLE`, so grouping writes the base array through `handleArtboardsUpdate` instead, or it claims to have changed every language. Membership is a tag, not a container: [LayersPanel.tsx](../src/components/open-screenshot-generator/LayersPanel.tsx) draws the folder rows from `buildLayerRows`, and `groupCommandState` is what both panels ask whether Group and Ungroup have work to do. Dropping a row onto a group is one write through `dropLayer`, which moves the layer in the z-order and retags it together, so the line the list drew is the state that lands. The rows carry the drop target as `data-drop-*` attributes because the mouse (HTML5 drag) and the finger ([use-touch-drag.tsx](../src/hooks/use-touch-drag.tsx)) both resolve it from whatever is under the pointer. A command reachable from the panel also needs the `DockIntent` arm, see Panel prop below
 - **Panel prop**: the field on `DockData` in [protocol.ts](../src/lib/panels/protocol.ts), the value in the layout's `dockData` memo, the prop in `RightDockPanels`, and, if it is a callback, an arm in the `DockIntent` union plus `dispatch` in [useDockHost](../src/lib/panels/useDockHost.ts) and `handlers` in [useDockClient](../src/lib/panels/useDockClient.ts)
@@ -145,7 +153,7 @@ Full recipes with every registration site are in [reference.md](reference.md). T
 
 ## Deeper detail
 
-[reference.md](reference.md) has the per-subsystem breakdown: exact type fields, the AI prompt pipeline and plan schema, the MCP tool list and transport, the 3D pose tables, the video compositor, account sync, and the traps for each. Read only the section you need.
+[reference.md](reference.md) has the per-subsystem breakdown: exact type fields, the AI prompt pipeline and plan schema, the MCP tool list and transport, the Claude Code process and its stream, the 3D pose tables, the video compositor, account sync, and the traps for each. Read only the section you need.
 
 
 ## Testing

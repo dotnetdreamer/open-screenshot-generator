@@ -23,16 +23,20 @@ import { ensureDir } from '../paths.js';
 /** Must match HEADLESS_PROTOCOL in src/lib/headless/bridge.ts. */
 export const REQUIRED_PROTOCOL = 1;
 
-/** Mirrors SLOW_TOOLS in src/lib/mcp/desktopMcpServer.ts. */
+/** Mirrors SLOW_TOOLS in src/lib/mcp/desktopMcpServer.ts, in the same order. */
 const SLOW_TOOLS = new Set([
   'export_png',
   'export_all',
   'create_project_from_template',
+  'apply_template',
   'open_project',
-  'translate_locales',
-  'add_locales',
   'upload_asset',
   'upload_recording',
+  'add_elements',
+  'duplicate_artboard',
+  'update_artboard',
+  'translate_locales',
+  'add_locales',
 ]);
 
 const HANDLER_TIMEOUT_MS = 30_000;

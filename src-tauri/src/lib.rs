@@ -1,3 +1,4 @@
+mod claude_code;
 mod devtools;
 mod mcp_server;
 mod migrate;
@@ -22,8 +23,12 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(web_session::WebSessionState::default())
         .manage(mcp_server::McpState::default())
+        .manage(claude_code::ClaudeState::default())
         .manage(oauth::OauthState::default())
-        .manage(webview_crash::WebviewCrashState::default());
+        .manage(webview_crash::WebviewCrashState::default())
+        // A reload of the editor must not strand a Claude Code process that
+        // was still starting for the page it replaced (claude_code.rs).
+        .on_page_load(|webview, payload| claude_code::on_page_load(webview, payload));
 
     // On macOS, the OS kills WKWebView WebContent processes under memory
     // pressure; without a handler here Tauri's default silently reloads the
@@ -53,6 +58,14 @@ pub fn run() {
             mcp_server::abs_mcp_respond,
             mcp_server::abs_mcp_write_png,
             mcp_server::abs_write_export_png,
+            mcp_server::abs_mcp_bridge_nonce,
+            claude_code::abs_claude_detect,
+            claude_code::abs_claude_start,
+            claude_code::abs_claude_send,
+            claude_code::abs_claude_close_input,
+            claude_code::abs_claude_stop,
+            claude_code::abs_claude_list,
+            claude_code::abs_claude_page_epoch,
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,
@@ -83,8 +96,17 @@ pub fn run() {
             web_session::register(app.handle());
             // Restore the MCP server if the user left it enabled last session.
             mcp_server::register(app.handle());
+            // Claude Code processes the agent started die with the editor.
+            claude_code::register(app.handle());
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|app, event| {
+            // The editor window's own Destroyed hook usually gets there first;
+            // this covers quitting the app outright (Cmd+Q on macOS).
+            if let tauri::RunEvent::Exit = event {
+                claude_code::kill_all(app);
+            }
+        });
 }

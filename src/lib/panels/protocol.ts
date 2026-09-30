@@ -31,10 +31,15 @@ import type { HistoryEntry } from '@/lib/historyLabels';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { LocaleOverrideState } from '@/components/open-screenshot-generator/LayersPanel';
 import type { DetachableKey } from '@/lib/i18n/project';
+import type { ClaudeModelChoice } from '@/lib/claudeCode/types';
+import { slimAgentView, type AgentAttachment, type AgentPanelView } from '@/lib/claudeCode/view';
 import type { DetachablePanel } from './url';
 
-/** The dock's top section. 'history' is the undo states, 'versions' the saved ones. */
-export type RightDockTab = 'properties' | 'history' | 'versions';
+/**
+ * The dock's top section. 'history' is the undo states, 'versions' the saved
+ * ones, 'agent' the Claude Code chat (shown only once the user has used it).
+ */
+export type RightDockTab = 'properties' | 'history' | 'versions' | 'agent';
 
 /** The keys a language can hold its own copy of. Mirrors PropertiesPanel. */
 export type LocalizableField = 'content' | 'fontFamily' | 'screenshotSrc' | 'imageSrc' | 'mediaId';
@@ -89,6 +94,13 @@ export interface DockData {
   // --- Versions -----------------------------------------------------------
   versions: ProjectVersionMeta[];
   isVersionBusy: boolean;
+
+  // --- Agent --------------------------------------------------------------
+  /**
+   * The Claude Code conversation, or null while the Agent tab is off. Null is
+   * what hides the tab, in the dock and in every detached window alike.
+   */
+  agent: AgentPanelView | null;
 
   /**
    * An export is holding the canvas.
@@ -157,7 +169,16 @@ export type DockIntent =
   | { name: 'moveElementLayer'; elementId: string; direction: 'up' | 'down' }
   | { name: 'deleteElement'; elementId: string }
   | { name: 'renameElement'; elementId: string; newName: string }
-  | { name: 'selectTab'; tab: RightDockTab };
+  | { name: 'selectTab'; tab: RightDockTab }
+  /** Pictures travel as asset refs: IndexedDB is shared, the bytes never cross. */
+  | { name: 'agentSend'; text: string; attachments: AgentAttachment[] }
+  | { name: 'agentStop' }
+  | { name: 'agentNewChat' }
+  | { name: 'agentDetect' }
+  | { name: 'agentSetModel'; model: ClaudeModelChoice }
+  | { name: 'agentHide' }
+  /** A link in the chat. A panel window cannot open one itself (panels.json). */
+  | { name: 'agentOpenLink'; url: string };
 
 /**
  * Every message on the bus.
@@ -319,6 +340,7 @@ export function toWireSnapshot(data: DockData, rev: number): DockSnapshot {
     activeArtboardDetails: slimArtboard(data.activeArtboardDetails),
     layerElements: slimElementsForLayers(data.layerElements),
     history: slimHistory(data.history),
+    agent: data.agent ? slimAgentView(data.agent) : null,
   };
 
   if (process.env.NODE_ENV !== 'production') {
@@ -332,6 +354,7 @@ export function toWireSnapshot(data: DockData, rev: number): DockSnapshot {
           layerElements: snapshot.layerElements.length,
           history: snapshot.history.length,
           versions: snapshot.versions.length,
+          agentItems: snapshot.agent?.items.length ?? 0,
         }
       );
     }

@@ -67,7 +67,9 @@ export function DetachedPanelsWindow() {
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(TAB_KEY_PREFIX + group);
-      if (stored === 'properties' || stored === 'history' || stored === 'versions') setTab(stored);
+      if (stored === 'properties' || stored === 'history' || stored === 'versions' || stored === 'agent') {
+        setTab(stored);
+      }
       const height = parseInt(window.localStorage.getItem(SPLIT_KEY_PREFIX + group) ?? '', 10);
       if (Number.isFinite(height)) {
         setLayersHeight(Math.max(LAYERS_SECTION_MIN, Math.min(1400, height)));
@@ -187,6 +189,8 @@ export function DetachedPanelsWindow() {
           <RightDockPanels
             data={snapshot}
             handlers={handlers}
+            offline={connection === 'lost'}
+            detached
             panels={panels}
             tab={tab}
             onTabChange={selectTab}

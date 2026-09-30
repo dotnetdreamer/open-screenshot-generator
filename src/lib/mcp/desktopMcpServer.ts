@@ -13,8 +13,10 @@
 // The web build reaches the same tools through a second transport: a hosted
 // relay the tab connects out to, because a browser tab cannot listen on a port
 // either. That lives in relayBridge.ts and shares everything below the
-// transport line — the protocol, the tool table and runMcpRequest().
+// transport: the protocol, the tool table, the serial runner
+// (createSerialMcpRunner) and runMcpRequest().
 
+import { withBasePath } from '@/lib/basePath';
 import { isTauri } from '@/lib/desktop';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import {
@@ -27,6 +29,7 @@ import {
 } from '@/lib/mcp/assetLibrary';
 import {
   deleteImageAsset,
+  isAssetRef,
   listImageAssets,
   validateAssetProps,
   saveImageAsset,
@@ -438,6 +441,18 @@ export interface McpDesignApi {
     name?: string;
     texts?: Array<{ elementId: string; content: string }>;
     screenshots?: Array<{ elementId: string; src: string }>;
+  }): Promise<McpProjectResult>;
+  /**
+   * Swap every artboard of the OPEN project for a filled copy of a template, as
+   * one undo step. The project keeps its id, its place in Recent projects and
+   * its language list; `projectName` also renames it, through the same handler
+   * as the project name field. Throws when no project is open.
+   */
+  applyTemplate(input: {
+    templateId: string;
+    texts?: Array<{ elementId: string; content: string }>;
+    screenshots?: Array<{ elementId: string; src: string }>;
+    projectName?: string;
   }): Promise<McpProjectResult>;
   /** Saved projects, newest first (the Recent projects list). */
   listProjects(): Promise<McpProjectSummary[]>;
@@ -880,6 +895,231 @@ async function buildElementSpec(
 const ALIGN_EDGES = ['left', 'center-h', 'right', 'top', 'middle-v', 'bottom'] as const;
 const DISTRIBUTE_AXES = ['horizontal', 'vertical'] as const;
 
+/** The text and screenshots a template copy is filled with. */
+interface TemplateFills {
+  texts?: Array<{ elementId: string; content: string }>;
+  screenshots?: Array<{ elementId: string; src: string }>;
+}
+
+/**
+ * The `texts` and `screenshots` arguments, shared by create_project_from_template
+ * and apply_template so the two describe the same thing the same way.
+ */
+const TEMPLATE_FILL_SCHEMA: Record<string, unknown> = {
+  texts: {
+    type: 'array',
+    description: 'New copy for the template\'s text elements.',
+    items: {
+      type: 'object',
+      properties: {
+        elementId: { type: 'string', description: 'A text slot id from get_template.' },
+        content: { type: 'string' },
+      },
+      required: ['elementId', 'content'],
+    },
+  },
+  screenshots: {
+    type: 'array',
+    description: 'Screenshots to put inside the template\'s device frames.',
+    items: {
+      type: 'object',
+      properties: {
+        elementId: { type: 'string', description: 'A device slot id from get_template.' },
+        src: {
+          type: 'string',
+          description:
+            'An "asset:<id>" ref, from upload_asset or from the screenshots the user uploaded in the app, a data:image URL, an http(s) URL, or an image path this site serves, starting with "/". A file on this computer goes through upload_asset first. An asset ref that does not exist, a data URL that is cut short or does not decode, and a path the site does not serve are rejected, so none of them becomes an empty frame. An http(s) URL is not checked.',
+        },
+      },
+      required: ['elementId', 'src'],
+    },
+  },
+};
+
+/** Echo a caller's value in an error without pasting a whole data URL back. */
+function shortValue(value: string): string {
+  return value.length > 60 ? `${value.slice(0, 57)}...` : value;
+}
+
+/** How long one picture may take to load before the check gives up on it. */
+const IMAGE_PROBE_MS = 10_000;
+
+/**
+ * Whether the browser draws the picture at `url`. An <img> is how the 2D frame
+ * shows a screenshot, so it is asked the same way: an SVG passes, and anything
+ * that is not a picture fails, whatever its content type says. Bounded, so a
+ * load that stalls cannot hold the call past the watchdog.
+ */
+function imageLoads(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const done = (ok: boolean) => {
+      clearTimeout(timer);
+      img.onload = null;
+      img.onerror = null;
+      resolve(ok);
+    };
+    const timer = setTimeout(() => done(false), IMAGE_PROBE_MS);
+    img.onload = () => done(true);
+    img.onerror = () => done(false);
+    img.src = url;
+  });
+}
+
+function hasBytes(bytes: Uint8Array, at: number, expected: number[]): boolean {
+  return at >= 0 && at + expected.length <= bytes.length && expected.every((byte, i) => bytes[at + i] === byte);
+}
+
+/** Whether `marker` appears within the last `window` bytes. */
+function endsWithMarker(bytes: Uint8Array, marker: number[], window: number): boolean {
+  for (let at = bytes.length - marker.length; at >= Math.max(0, bytes.length - window); at--) {
+    if (hasBytes(bytes, at, marker)) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether a PNG, JPEG, GIF or WebP runs all the way to its end. Browsers draw
+ * a cut-off one without complaint, as far as its bytes go, and a model that
+ * runs out of room cuts its base64 short, so the ending is checked here. The
+ * format is read from the bytes, not the label; anything else is left to the
+ * decoder.
+ */
+export function imageBytesComplete(bytes: Uint8Array): boolean {
+  const n = bytes.length;
+  if (hasBytes(bytes, 0, [0x89, 0x50, 0x4e, 0x47])) {
+    // An IEND chunk and its 4-byte CRC close every PNG.
+    for (let at = n - 8; at >= Math.max(0, n - 1024); at--) {
+      if (hasBytes(bytes, at, [0x49, 0x45, 0x4e, 0x44])) return true;
+    }
+    return false;
+  }
+  if (hasBytes(bytes, 0, [0xff, 0xd8, 0xff])) {
+    // The end-of-image marker, allowing for padding some encoders leave after it.
+    return endsWithMarker(bytes, [0xff, 0xd9], 1024);
+  }
+  if (hasBytes(bytes, 0, [0x47, 0x49, 0x46, 0x38])) {
+    // The 0x3B trailer, allowing for trailing zeros.
+    let end = n - 1;
+    while (end > 0 && bytes[end] === 0) end--;
+    return bytes[end] === 0x3b;
+  }
+  if (hasBytes(bytes, 0, [0x52, 0x49, 0x46, 0x46]) && hasBytes(bytes, 8, [0x57, 0x45, 0x42, 0x50])) {
+    // The RIFF header counts every byte after its first eight.
+    const size = (bytes[4] | (bytes[5] << 8) | (bytes[6] << 16) | (bytes[7] << 24)) >>> 0;
+    return size + 8 <= n;
+  }
+  return true;
+}
+
+/** Whether a data: URL holds a whole picture the browser can draw. */
+async function dataUrlDecodes(dataUrl: string): Promise<boolean> {
+  let blob: Blob;
+  try {
+    blob = await (await fetch(dataUrl)).blob();
+  } catch {
+    return false;
+  }
+  if (blob.size === 0) return false;
+  if (!imageBytesComplete(new Uint8Array(await blob.arrayBuffer()))) return false;
+  const url = URL.createObjectURL(blob);
+  try {
+    return await imageLoads(url);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/**
+ * Whether a path starting with "/" is a picture this site serves. Loaded, not
+ * just asked about: the desktop build answers a path it does not have with
+ * index.html and a 200 (Tauri's single-page fallback), labelled by the path's
+ * extension, so a missing .svg even arrives as image/svg+xml. Only an actual
+ * picture loads.
+ */
+function siteServesImage(path: string): Promise<boolean> {
+  return imageLoads(withBasePath(path));
+}
+
+/**
+ * Why a screenshot src would not load, or null when it will.
+ *
+ * The template fill stores the src as given, and one that does not load draws
+ * an empty device frame without a word, so it is checked here first. An asset
+ * ref goes through validateAssetProps, the check the element tools run. A data
+ * URL has to decode, and a path has to be an image the site serves, which is
+ * what catches an agent passing a file path from its own computer. An http(s)
+ * URL is passed through unchecked.
+ */
+async function screenshotSrcProblem(src: string): Promise<string | null> {
+  // Through an unknown, because isAssetRef is a type guard and would narrow
+  // `src` itself to never for the rest of the function.
+  const ref: unknown = src;
+  if (isAssetRef(ref)) {
+    try {
+      await validateAssetProps({ screenshotSrc: ref });
+      return null;
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  }
+  if (/^https?:\/\//i.test(src)) return null;
+  if (/^data:image\//i.test(src)) {
+    if (await dataUrlDecodes(src)) return null;
+    return `"${shortValue(src)}" does not decode as a whole image, or its base64 was cut short. Send the whole file as base64, in PNG, JPEG, WebP, GIF or SVG.`;
+  }
+  if (src.startsWith('/') && !src.startsWith('//')) {
+    if (await siteServesImage(src)) return null;
+    return `"${shortValue(src)}" is not an image this app serves. A file on this computer has to go through upload_asset first: send its bytes as base64, then pass the asset:<id> ref it returns.`;
+  }
+  if (/^asset_[\w-]+$/.test(src)) {
+    return `"${src}" is an asset id without its prefix. Pass it as "asset:${src}".`;
+  }
+  return `"${shortValue(src)}" is not a source the app can load. Pass an asset:<id> ref, a data:image URL, an http(s) URL, or an image path this site serves, starting with "/". A file on this computer goes through upload_asset first.`;
+}
+
+/**
+ * Read and check the fills before any template is copied, so a bad entry
+ * refuses the whole call instead of landing half a design.
+ */
+async function readTemplateFills(args: Record<string, any>): Promise<TemplateFills | { error: string }> {
+  const { texts, screenshots } = args;
+  if (texts !== undefined && !Array.isArray(texts)) {
+    return { error: 'texts must be an array of { elementId, content }. Nothing was changed.' };
+  }
+  if (screenshots !== undefined && !Array.isArray(screenshots)) {
+    return { error: 'screenshots must be an array of { elementId, src }. Nothing was changed.' };
+  }
+  const fills: TemplateFills = {};
+  if (texts) {
+    fills.texts = [];
+    for (const [index, entry] of (texts as any[]).entries()) {
+      if (typeof entry?.elementId !== 'string' || typeof entry?.content !== 'string') {
+        return { error: `texts[${index}] needs an elementId and a content, both strings. Nothing was changed.` };
+      }
+      fills.texts.push({ elementId: entry.elementId, content: entry.content });
+    }
+  }
+  if (screenshots) {
+    const entries = screenshots as any[];
+    for (const [index, entry] of entries.entries()) {
+      if (typeof entry?.elementId !== 'string' || typeof entry?.src !== 'string' || !entry.src.trim()) {
+        return { error: `screenshots[${index}] needs an elementId and a src, both strings. Nothing was changed.` };
+      }
+    }
+    // Side by side: each check can take a moment to load its picture, and one
+    // after another they could add up past the watchdog.
+    const sources: string[] = entries.map((entry) => entry.src.trim());
+    const problems = await Promise.all(sources.map((src) => screenshotSrcProblem(src)));
+    const bad = problems.findIndex((problem) => problem !== null);
+    if (bad >= 0) {
+      return { error: `screenshots[${bad}] (${entries[bad].elementId}): ${problems[bad]} Nothing was changed.` };
+    }
+    fills.screenshots = entries.map((entry, index) => ({ elementId: entry.elementId, src: sources[index] }));
+  }
+  return fills;
+}
+
 const TOOLS: ToolDef[] = [
   {
     name: 'list_artboards',
@@ -932,7 +1172,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'create_artboard',
-    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "iphone-6-9"). Returns the new artboard.',
+    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-9" for the required iPhone size, "ipad-13" for iPad). Returns the new artboard.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -2065,7 +2305,7 @@ const TOOLS: ToolDef[] = [
     inputSchema: {
       type: 'object',
       properties: {
-        category: { type: 'string', description: 'Restrict to one gallery tab, e.g. "app-store", "play-store", "apple-watch", "mac".' },
+        category: { type: 'string', description: 'Restrict to one gallery tab: "screenshots" (iPhone App Store sets), "apple-watch", "mac" or "play-feature-graphic".' },
         query: { type: 'string', description: 'Free-text filter over name, description and category.' },
       },
     },
@@ -2074,7 +2314,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'get_template',
     description:
-      'Get one template\'s fillable slots: per artboard, the device frames (where screenshots go) and the text elements with their current copy. The element ids are stable, so pass them to create_project_from_template or update_element.',
+      'Get one template\'s fillable slots: per artboard, the device frames (where screenshots go) and the text elements with their current copy. The element ids are stable, so pass them to apply_template, create_project_from_template or update_element.',
     inputSchema: {
       type: 'object',
       properties: { templateId: { type: 'string' } },
@@ -2087,47 +2327,58 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'create_project_from_template',
+    name: 'apply_template',
     description:
-      'Copy a template into a new project, open it in the editor and add it to Recent projects. Optionally fill text and device screenshots in the same call using element ids from get_template. Returns the new project id and its artboards.',
+      'Replace every artboard of the OPEN project with a copy of a template, filled with the given texts and screenshots, as one undo step. It stays the same project: same id, same place in Recent projects, same languages, and the same name unless you pass projectName. Prefer this over create_project_from_template whenever a project is already open, such as the blank one the app opens for an agent, because that tool starts a second project and leaves this one behind. Element ids come from get_template. A fill aimed at an id the template does not have comes back as a warning, and so does every device frame still showing the template\'s sample screenshot. Returns the new artboards.',
     inputSchema: {
       type: 'object',
       properties: {
-        templateId: { type: 'string' },
-        name: { type: 'string', description: 'Project name. Defaults to "<template> Copy".' },
-        texts: {
-          type: 'array',
-          description: 'Text replacements applied to the copy.',
-          items: {
-            type: 'object',
-            properties: {
-              elementId: { type: 'string' },
-              content: { type: 'string' },
-            },
-            required: ['elementId', 'content'],
-          },
-        },
-        screenshots: {
-          type: 'array',
-          description: 'Screenshots to place inside device frames.',
-          items: {
-            type: 'object',
-            properties: {
-              elementId: { type: 'string', description: 'A device slot id from get_template.' },
-              src: { type: 'string', description: 'Image URL or data: URL.' },
-            },
-            required: ['elementId', 'src'],
-          },
+        templateId: { type: 'string', description: 'From list_templates.' },
+        ...TEMPLATE_FILL_SCHEMA,
+        projectName: {
+          type: 'string',
+          description: 'Also rename the open project, e.g. after the app. Leave it out to keep the current name.',
         },
       },
       required: ['templateId'],
     },
     run: async (args, api) => {
+      if (typeof args.templateId !== 'string' || !args.templateId.trim()) {
+        return { ...textResult('Pass a templateId from list_templates.'), isError: true };
+      }
+      const fills = await readTemplateFills(args);
+      if ('error' in fills) return { ...textResult(fills.error), isError: true };
+      const projectName = typeof args.projectName === 'string' ? args.projectName.trim() : '';
+      const result = await api.applyTemplate({
+        templateId: args.templateId.trim(),
+        texts: fills.texts,
+        screenshots: fills.screenshots,
+        projectName: projectName || undefined,
+      });
+      return textResult(result);
+    },
+  },
+  {
+    name: 'create_project_from_template',
+    description:
+      'Copy a template into a NEW project, open it in the editor and add it to Recent projects. Optionally fill text and device screenshots in the same call using element ids from get_template. When a project is already open and should become this design, use apply_template instead, which keeps that project. Returns the new project id and its artboards.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        templateId: { type: 'string' },
+        name: { type: 'string', description: 'Project name. Defaults to "<template> Copy".' },
+        ...TEMPLATE_FILL_SCHEMA,
+      },
+      required: ['templateId'],
+    },
+    run: async (args, api) => {
+      const fills = await readTemplateFills(args);
+      if ('error' in fills) return { ...textResult(fills.error), isError: true };
       const result = await api.createProjectFromTemplate({
         templateId: args.templateId,
         name: args.name,
-        texts: args.texts,
-        screenshots: args.screenshots,
+        texts: fills.texts,
+        screenshots: fills.screenshots,
       });
       return textResult(result);
     },
@@ -2411,26 +2662,36 @@ export async function handleMcpMessage(
   }
 }
 
+/** When a transport handed a request over. */
+export interface McpRequestTiming {
+  /**
+   * Date.now() at arrival. The watchdog's budget counts from here, so time
+   * spent waiting behind an earlier call comes out of the same budget the
+   * transport is counting down.
+   */
+  receivedAt?: number;
+}
+
 /**
  * Run one bridged JSON-RPC request against the live design API and always come
  * back with a response object, whatever happens.
  *
- * This is the seam between the tools and the transport, and there are two
- * transports: Rust's local socket in the desktop app (below) and the hosted
- * relay the web build talks to (src/lib/mcp/relayBridge.ts). Neither knows
- * anything about tools, and this function is the only thing either of them
- * calls.
+ * This is the seam between the tools and the transports. Rust's local socket
+ * in the desktop app (below) and the hosted relay the web build talks to
+ * (src/lib/mcp/relayBridge.ts) both reach it through createSerialMcpRunner.
+ * The npm CLI's headless bridge calls it directly and orders its own calls.
  */
 export async function runMcpRequest(
   message: JsonRpcMessage,
-  api: McpDesignApi | null
+  api: McpDesignApi | null,
+  timing: McpRequestTiming = {}
 ): Promise<unknown> {
   try {
     // Answer *something* even if a tool hangs on a promise that never settles.
     // The transport drops the call at its own (longer) deadline either way, but
     // replying here frees the client sooner and names the tool that misbehaved
     // instead of just going quiet.
-    return await withWatchdog(handleMcpMessage(message, api), message);
+    return await withWatchdog(handleMcpMessage(message, api), message, timing.receivedAt ?? Date.now());
   } catch (e) {
     return rpcError(message?.id, -32603, e instanceof Error ? e.message : String(e));
   }
@@ -2440,10 +2701,28 @@ export async function runMcpRequest(
 // The bridge: listen for Rust-forwarded requests, run them, reply.
 // ---------------------------------------------------------------------------
 
+/** What Rust emits on MCP_REQUEST_EVENT for each request. */
+interface BridgedRequest {
+  callId: string;
+  message: JsonRpcMessage;
+  /** The value abs_mcp_bridge_nonce returns. */
+  nonce: string;
+}
+
 /**
- * Start handling MCP requests bridged from the Rust transport. `getApi` is
- * called per request so it always sees the latest design state. Returns an
- * unsubscribe function. No-op (returns immediately) outside the desktop app.
+ * Start handling MCP requests bridged from the Rust transport. They run one at
+ * a time through a serial runner, which reads `getApi` as each request starts,
+ * so every call sees the design the way the call before it left it. Returns an
+ * unsubscribe function, and a call still waiting in line when it is called is
+ * answered "not ready" instead of run. No-op (returns immediately) outside the
+ * desktop app.
+ *
+ * Any window allowed to emit events can emit MCP_REQUEST_EVENT, the assistant
+ * windows that host third-party sites included. Rust stamps each real request
+ * with a nonce that only the editor window can read, and a request without it
+ * is dropped unanswered, so no other window can run a tool without passing the
+ * checks the MCP server makes on each request. When the nonce cannot be read,
+ * the bridge does not start.
  */
 export async function startDesktopMcpBridge(
   getApi: () => McpDesignApi | null
@@ -2454,20 +2733,35 @@ export async function startDesktopMcpBridge(
     import('@tauri-apps/api/core'),
   ]);
 
-  const unlisten = await listen<{ callId: string; message: JsonRpcMessage }>(
-    MCP_REQUEST_EVENT,
-    async (event) => {
-      const { callId, message } = event.payload;
-      const response = await runMcpRequest(message, getApi());
-      try {
-        await invoke('abs_mcp_respond', { callId, response });
-      } catch {
-        // The HTTP handler will time out on its own if the reply cannot be
-        // delivered; nothing more we can do here.
-      }
+  let nonce: string;
+  try {
+    nonce = await invoke<string>('abs_mcp_bridge_nonce');
+  } catch (error) {
+    console.error('The MCP bridge did not start: the request nonce could not be read.', error);
+    return () => {};
+  }
+  if (typeof nonce !== 'string' || !nonce) {
+    console.error('The MCP bridge did not start: the request nonce came back empty.');
+    return () => {};
+  }
+
+  let disposed = false;
+  const run = createSerialMcpRunner(getApi, { isOpen: () => !disposed });
+  const unlisten = await listen<Partial<BridgedRequest> | null>(MCP_REQUEST_EVENT, async (event) => {
+    const request = event.payload;
+    if (!request || request.nonce !== nonce) return;
+    const response = await run(request.message as JsonRpcMessage);
+    try {
+      await invoke('abs_mcp_respond', { callId: request.callId, response });
+    } catch {
+      // The HTTP handler will time out on its own if the reply cannot be
+      // delivered; nothing more we can do here.
     }
-  );
-  return () => unlisten();
+  });
+  return () => {
+    disposed = true;
+    unlisten();
+  };
 }
 
 // Kept just under the Rust-side budgets in mcp_server.rs (12s / 180s) so the
@@ -2478,6 +2772,9 @@ const SLOW_TOOLS = new Set([
   'export_png',
   'export_all',
   'create_project_from_template',
+  // Copies and fills a whole template, and may move data: URL screenshots into
+  // the media table on the way.
+  'apply_template',
   'open_project',
   'upload_asset',
   // Fetches and decodes a screen recording, which can be tens of megabytes.
@@ -2491,9 +2788,21 @@ const SLOW_TOOLS = new Set([
   'add_locales',
 ]);
 
-function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage): Promise<unknown> {
-  const toolName = message?.method === 'tools/call' ? (message.params?.name as string | undefined) : undefined;
-  const budget = toolName && SLOW_TOOLS.has(toolName) ? SLOW_HANDLER_TIMEOUT_MS : HANDLER_TIMEOUT_MS;
+function toolNameOf(message: JsonRpcMessage): string | undefined {
+  return message?.method === 'tools/call' ? (message.params?.name as string | undefined) : undefined;
+}
+
+/** How long a request may take, counted from when it arrived. */
+function budgetFor(message: JsonRpcMessage): number {
+  const name = toolNameOf(message);
+  return name && SLOW_TOOLS.has(name) ? SLOW_HANDLER_TIMEOUT_MS : HANDLER_TIMEOUT_MS;
+}
+
+function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage, receivedAt: number): Promise<unknown> {
+  const label = toolNameOf(message) ?? message?.method ?? 'The request';
+  const budget = budgetFor(message);
+  const queued = Math.max(0, Date.now() - receivedAt);
+  const behind = queued >= 1_000 ? ` (${Math.round(queued / 1000)}s of it waiting behind an earlier call)` : '';
   let timer: ReturnType<typeof setTimeout> | undefined;
   const expiry = new Promise<unknown>((resolve) => {
     timer = setTimeout(
@@ -2502,15 +2811,192 @@ function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage): Promise<
           rpcError(
             message?.id,
             -32001,
-            `${toolName ?? message?.method ?? 'The request'} did not finish within ${Math.round(budget / 1000)}s and was abandoned. The app is still running, check whether it is waiting on a dialog.`
+            `${label} did not finish within ${Math.round(budget / 1000)}s${behind} and was abandoned. The app is still running, check whether it is waiting on a dialog.`
           )
         ),
-      budget
+      Math.max(0, budget - queued)
     );
   });
   return Promise.race([work, expiry]).finally(() => {
     if (timer !== undefined) clearTimeout(timer);
   });
+}
+
+// ---------------------------------------------------------------------------
+// One call at a time. Every tool closes over the artboards of the render that
+// built the api, so two writes that both start before React re-renders begin
+// from the same array, and the second quietly undoes the first. Both transports
+// run their requests through a runner made here.
+// ---------------------------------------------------------------------------
+
+/**
+ * Tools that leave the project and the editor's state as they found them, so
+ * the call after one has no render to wait for. Most are plain reads.
+ * upload_asset, upload_recording and delete_asset do write, but only to the
+ * media table, which no tool reads through a render. The two exports belong
+ * here when they capture what the canvas already shows; changesEditor() counts
+ * one that was given a locale as a write, because it switches the canvas there
+ * and back.
+ *
+ * A tool missing from this list counts as a write. A read left off it costs up
+ * to SETTLE_TIMEOUT_MS of waiting; a write put on it would lose edits. When in
+ * doubt, leave a tool off.
+ */
+const READ_ONLY_TOOLS = new Set([
+  'list_artboards',
+  'get_artboard',
+  'measure_element',
+  'list_preview_scenes',
+  'get_preview_timeline',
+  'list_recordings',
+  'upload_recording',
+  'list_locales',
+  'list_supported_locales',
+  'list_translations',
+  'export_translations_csv',
+  'list_templates',
+  'get_template',
+  'list_projects',
+  'list_library',
+  'list_fonts',
+  'list_assets',
+  'upload_asset',
+  'delete_asset',
+  'export_png',
+  'export_all',
+]);
+
+/**
+ * Writes that wait for the canvas to repaint before they answer, so the render
+ * showing their change has already happened by the time they return.
+ */
+const REPAINTS_BEFORE_ANSWERING = new Set(['open_project', 'set_locale']);
+
+/** Requests that read nothing from the editor, so they never wait in line. */
+const UNQUEUED_METHODS = new Set(['initialize', 'ping', 'tools/list']);
+
+/** How long the line waits for a write to show up in a render before moving on. */
+const SETTLE_TIMEOUT_MS = 1_500;
+/**
+ * Polled with setTimeout, never requestAnimationFrame: rAF stops while the
+ * window is minimized, and an agent keeps working when the user looks away.
+ */
+const SETTLE_POLL_MS = 10;
+/**
+ * A request that has waited in line to within this much of its budget is
+ * refused instead of run. The transport has given up on it or is about to, so
+ * running it would change the design after the client was told the call failed.
+ */
+const QUEUE_GRACE_MS = 1_000;
+
+/** Whether the request after this one has to wait for a render first. */
+function changesEditor(message: JsonRpcMessage, response: unknown): boolean {
+  const name = toolNameOf(message);
+  if (!name || !TOOLS.some((tool) => tool.name === name)) return false;
+  // A tool that answered isError refused before it committed anything.
+  const result = (response as { result?: { isError?: unknown } } | null)?.result;
+  if (result?.isError === true) return false;
+  if (REPAINTS_BEFORE_ANSWERING.has(name)) return false;
+  const args = (message.params?.arguments ?? {}) as Record<string, unknown>;
+  // A dry run only reports.
+  if (name === 'import_translations_csv') return args.dryRun !== true;
+  // The switch back to the user's language is still rendering when an export
+  // that was given a locale answers.
+  if (name === 'export_png' || name === 'export_all') return args.locale !== undefined;
+  return !READ_ONLY_TOOLS.has(name);
+}
+
+/**
+ * Resolves once getApi() hands out a different object than `current`, or after
+ * SETTLE_TIMEOUT_MS. The layout builds a new api on every render, so a new
+ * object means React has rendered with every state update made before this was
+ * called. A write that changed nothing never renders, hence the timeout.
+ */
+function waitForNextApi(getApi: () => McpDesignApi | null, current: McpDesignApi): Promise<void> {
+  const deadline = Date.now() + SETTLE_TIMEOUT_MS;
+  return new Promise((resolve) => {
+    const check = () => {
+      if (getApi() !== current || Date.now() >= deadline) resolve();
+      else setTimeout(check, SETTLE_POLL_MS);
+    };
+    check();
+  });
+}
+
+export interface SerialMcpRunnerOptions {
+  /**
+   * False once the transport feeding the runner has shut down. From then on
+   * the runner hands every request a null api, so a call still waiting in line
+   * is answered "not ready" and never touches the design.
+   */
+  isOpen?: () => boolean;
+}
+
+/**
+ * Runs bridged requests through one line, strictly one at a time.
+ *
+ * - getApi() is read when a request starts, never when it is queued.
+ * - After a request that may have changed the editor, the next one waits until
+ *   the editor has rendered that change, or SETTLE_TIMEOUT_MS. The caller gets
+ *   its own response without waiting for that.
+ * - A request that waited until its budget had nearly run out is answered with
+ *   an error and never run.
+ * - Once options.isOpen() is false, a request that has not started yet is
+ *   answered "not ready" and never run.
+ * - initialize, ping and tools/list skip the line.
+ *
+ * A call the watchdog abandons frees the line while its own work may still be
+ * running. That is the price of a line that cannot wedge: the alternative is
+ * every later call stuck behind a promise that never settles.
+ */
+export function createSerialMcpRunner(
+  getApi: () => McpDesignApi | null,
+  options: SerialMcpRunnerOptions = {}
+): (message: JsonRpcMessage) => Promise<unknown> {
+  const { isOpen } = options;
+  const liveApi = () => (isOpen && !isOpen() ? null : getApi());
+  let tail: Promise<unknown> = Promise.resolve();
+  return (message) => {
+    const receivedAt = Date.now();
+    if (UNQUEUED_METHODS.has(String(message?.method))) {
+      return runMcpRequest(message, liveApi(), { receivedAt });
+    }
+    const turn = tail.then(() => takeTurn(message, receivedAt, liveApi));
+    tail = turn.then((done) => done.settled).catch(() => undefined);
+    return turn.then(
+      (done) => done.response,
+      (error) => rpcError(message?.id, -32603, error instanceof Error ? error.message : String(error))
+    );
+  };
+}
+
+async function takeTurn(
+  message: JsonRpcMessage,
+  receivedAt: number,
+  getApi: () => McpDesignApi | null
+): Promise<{ response: unknown; settled: Promise<void> }> {
+  const waited = Date.now() - receivedAt;
+  if (waited > budgetFor(message) - QUEUE_GRACE_MS) {
+    const label = toolNameOf(message) ?? message?.method ?? 'The request';
+    return {
+      response: rpcError(
+        message?.id,
+        -32001,
+        `${label} was not run. It waited ${Math.round(waited / 1000)}s behind an earlier call that was still running, which used up its time. Nothing was changed, so it is safe to send again.`
+      ),
+      settled: Promise.resolve(),
+    };
+  }
+  const api = getApi();
+  const response = await runMcpRequest(message, api, { receivedAt });
+  // Measured against the api in place now, not the one the call started with.
+  // Something else can re-render mid-call (a toast, the agent panel streaming
+  // text), and that would make the starting api look replaced before this
+  // call's own change had rendered.
+  const current = getApi();
+  const settled =
+    api && current && changesEditor(message, response) ? waitForNextApi(getApi, current) : Promise.resolve();
+  return { response, settled };
 }
 
 export interface McpServerStatus {
@@ -2526,12 +3012,31 @@ export async function getMcpStatus(): Promise<McpServerStatus> {
   return invoke<McpServerStatus>('abs_mcp_status');
 }
 
-/** Subscribe to server on/off changes (fired when the Settings toggle flips). */
+/**
+ * Subscribe to server on/off changes (fired when the Settings toggle flips).
+ *
+ * Believed only with the bridge nonce Rust stamps on it. The assistant windows
+ * host third-party sites and may emit events, and a forged status would put
+ * their URL into the setup guides the MCP dialog hands the user.
+ */
 export async function listenMcpStatus(
   cb: (status: McpServerStatus) => void
 ): Promise<() => void> {
   if (!isTauri()) return () => {};
+  const { invoke } = await import('@tauri-apps/api/core');
   const { listen } = await import('@tauri-apps/api/event');
-  const unlisten = await listen<McpServerStatus>(MCP_STATUS_EVENT, (e) => cb(e.payload));
+  let nonce: string;
+  try {
+    nonce = await invoke<string>('abs_mcp_bridge_nonce');
+  } catch (error) {
+    console.error('The MCP status listener could not read the bridge nonce', error);
+    return () => {};
+  }
+  if (!nonce) return () => {};
+  const unlisten = await listen<McpServerStatus & { nonce?: string }>(MCP_STATUS_EVENT, (e) => {
+    if (e.payload?.nonce !== nonce) return;
+    const { running, port, url } = e.payload;
+    cb({ running, port, url });
+  });
   return () => unlisten();
 }

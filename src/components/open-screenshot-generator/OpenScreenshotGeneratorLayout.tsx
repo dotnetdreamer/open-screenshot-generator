@@ -114,7 +114,7 @@ import {
   type PublishImage,
   type PublishVideo,
 } from '@/lib/publish';
-import { trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
+import { track, trackTemplateSelected, trackDeviceFormatSelected, trackExportPng, trackExportVideo, trackExportJson } from '@/lib/analytics';
 
 import { AgentPromoBanner } from './start/AgentPromoBanner';
 import { BlankCanvasCard } from './start/BlankCanvasCard';
@@ -123,8 +123,15 @@ import { QuickStartScreen } from './start/quickstart/QuickStartScreen';
 import { GraphicsPromoCard } from './start/graphics/GraphicsPromoCard';
 import { GraphicsStartScreen } from './start/graphics/GraphicsStartScreen';
 import { DialogDropLayer } from './start/quickstart/DialogDropLayer';
-import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
+import { saveImageAsset, saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
+import { claudeAgent, readAgentPanelEnabled, useClaudeAgent } from '@/lib/claudeCode/store';
+import { buildAttachmentNote, buildFirstRunBrief } from '@/lib/claudeCode/prompt';
+import { assetToImage, screenshotToImage } from '@/lib/claudeCode/images';
+import { agentContextLabel as describeAgentContext, buildAgentContext } from '@/lib/claudeCode/context';
+import { PLACEHOLDER_PROJECT_NAME, pickCanvasSize, projectNameFromInstruction } from '@/lib/claudeCode/startProject';
+import { toAgentPanelView, type AgentAttachment } from '@/lib/claudeCode/view';
+import { ClaudeCodeLogo } from './agent/ClaudeCodeLogo';
 import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
@@ -525,6 +532,30 @@ function clearPostParamFromUrl(): void {
   params.delete('post');
   const query = params.toString();
   window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+}
+
+/**
+ * Whether an event happened inside the Agent panel. That panel is a chat, not
+ * the canvas: Delete on one of its buttons must not delete a layer.
+ */
+function isInAgentPanel(target: EventTarget | null): boolean {
+  return target instanceof Element && !!target.closest('[data-agent-panel]');
+}
+
+/**
+ * Whether the words selected on the page are in the Agent panel, so Cmd+C
+ * copies them instead of the canvas selection. Asked for that one shortcut
+ * only, and a press outside the panel clears such a selection: the canvas
+ * prevents the default on pointerdown, so otherwise it would outlive the
+ * click and keep Cmd+C copying chat text.
+ */
+function hasAgentPanelSelection(): boolean {
+  if (typeof window === 'undefined') return false;
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed) return false;
+  const anchor = selection.anchorNode;
+  const element = anchor instanceof Element ? anchor : anchor?.parentElement;
+  return !!element?.closest('[data-agent-panel]');
 }
 
 // A one-artboard "Blank Canvas" project at the given size. `size` follows the
@@ -1151,6 +1182,10 @@ export function OpenScreenshotGeneratorLayout() {
       // still means the states list. Anything else falls back to Properties.
       const storedTab = window.localStorage.getItem(RIGHT_DOCK_TAB_KEY);
       if (storedTab === 'history' || storedTab === 'versions') setRightDockTab(storedTab);
+      // Only while the Agent tab is on. A stored 'agent' with no Agent tab would
+      // leave the strip on Properties with the state still saying Agent, and
+      // Radix does not report a click on the tab it already shows.
+      else if (storedTab === 'agent' && readAgentPanelEnabled()) setRightDockTab('agent');
       const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
       if (Number.isFinite(stored)) {
         setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
@@ -1189,6 +1224,23 @@ export function OpenScreenshotGeneratorLayout() {
     setRightDockTab(tab);
     try { window.localStorage.setItem(RIGHT_DOCK_TAB_KEY, tab); } catch {}
   };
+
+  // The Claude Code chat. It lives in a module store, because nothing that
+  // shows it lives long enough to own it (src/lib/claudeCode/store.ts). The
+  // layout reads it to feed the Agent tab, and to show that tab at all: only
+  // in the desktop app, and only once the user has picked Claude Code.
+  const claudeAgentState = useClaudeAgent();
+  const agentEnabled = claudeAgentState.available && claudeAgentState.panelEnabled;
+  // True while handleStartClaudeCode is storing screenshots and making the
+  // project. Dismissing the dialog then would start a second, blank project
+  // on a fresh visit (see the dialog's onOpenChange), or switch the user away
+  // from the one the agent is about to be told is open.
+  const claudeStartingRef = useRef(false);
+  // A relaunch brings the tab back with no idea whether Claude Code is still
+  // installed and signed in. Ask once; the store keeps the answer a minute.
+  useEffect(() => {
+    if (agentEnabled) void claudeAgent.detect();
+  }, [agentEnabled]);
   const { clipboardItem, clipboardItems, copyManyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1795,6 +1847,14 @@ export function OpenScreenshotGeneratorLayout() {
     saveProject(); // Call the async save function
     pushToHistory(repositionedArtboards, change);
   }, [activeArtboardId, selectedElementIds, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId, collabPublish, scheduleProjectSave, noteVersionCheckpoint]);
+  /**
+   * The newest handleArtboardsUpdate, for work that commits after an await.
+   * The one a render closed over pushes onto that render's history and saves
+   * under that render's name, so an edit made during the await would drop out
+   * of undo and a rename would be saved back to the old name.
+   */
+  const handleArtboardsUpdateRef = useRef(handleArtboardsUpdate);
+  handleArtboardsUpdateRef.current = handleArtboardsUpdate;
 
   /**
    * A change from somebody else in the room.
@@ -3352,15 +3412,72 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
 
+  // Fill a fresh template copy, in place, with an MCP caller's text and
+  // screenshots, addressed by the template's hand-authored element ids (the ones
+  // get_template lists). Unknown or wrong-typed ids come back as warnings rather
+  // than errors, so one bad id cannot lose a whole design. The
+  // create_project_from_template and apply_template tools both fill through
+  // here, so the two cannot drift apart.
+  const fillTemplateSlots = (
+    boards: ArtboardState[],
+    fills: {
+      texts?: Array<{ elementId: string; content: string }>;
+      screenshots?: Array<{ elementId: string; src: string }>;
+    }
+  ): string[] => {
+    const warnings: string[] = [];
+    const findElement = (elementId: string): ArtboardElement | null => {
+      for (const ab of boards) {
+        const el = ab.elements.find((e) => e.id === elementId);
+        if (el) return el;
+      }
+      return null;
+    };
+
+    for (const { elementId, content } of fills.texts ?? []) {
+      const el = findElement(elementId);
+      if (!el) { warnings.push(`No element "${elementId}" in this template; text skipped.`); continue; }
+      if (el.type !== 'text') { warnings.push(`"${elementId}" is a ${el.type} element, not text; skipped.`); continue; }
+      el.content = content;
+    }
+    const filled = new Set<string>();
+    for (const { elementId, src } of fills.screenshots ?? []) {
+      const el = findElement(elementId);
+      if (!el) { warnings.push(`No element "${elementId}" in this template; screenshot skipped.`); continue; }
+      if (el.type !== 'device') { warnings.push(`"${elementId}" is a ${el.type} element, not a device frame; skipped.`); continue; }
+      el.screenshotSrc = src;
+      // Match the device element's own upload handler; screenshotRect is left
+      // alone so the template author's crop survives.
+      el.screenshotObjectFit = el.screenshotObjectFit ?? 'cover';
+      filled.add(el.id);
+    }
+
+    // A frame left unfilled keeps the template's sample art, which ships as a
+    // path on this site. Naming those frames saves the caller an export to
+    // find out that a store screenshot still shows somebody else's app.
+    const samples: string[] = [];
+    for (const ab of boards) {
+      for (const el of ab.elements) {
+        if (el.type === 'device' && !filled.has(el.id) && el.screenshotSrc?.startsWith('/')) {
+          samples.push(`${el.id} on "${ab.name}"`);
+        }
+      }
+    }
+    if (samples.length > 0) {
+      warnings.push(
+        `${samples.length === 1 ? '1 device frame still shows' : `${samples.length} device frames still show`} the template's sample screenshot: ${samples.join(', ')}.`
+      );
+    }
+    return warnings;
+  };
+
   // Copy a template into a new saved project and open it. Shared by the gallery
   // (handleSelectTemplate) and the MCP create_project_from_template tool, so an
   // AI client's project is indistinguishable from a clicked one: same DB row,
   // same Recent-projects entry, same editor state.
   //
-  // `texts`/`screenshots` fill the copy BEFORE it is saved, addressed by the
-  // template's hand-authored element ids. Unknown or wrong-typed ids are
-  // collected as warnings rather than thrown, so one bad id cannot lose a
-  // whole design.
+  // `texts`/`screenshots` fill the copy BEFORE it is saved, through
+  // fillTemplateSlots above.
   const createProjectFromTemplateData = async (
     template: Project,
     options?: {
@@ -3374,37 +3491,16 @@ export function OpenScreenshotGeneratorLayout() {
     }
     const projectName = options?.nameOverride?.trim() || `${template.name} Copy`;
     const newProjectId = `project_${Date.now()}`;
-    const warnings: string[] = [];
 
     // Normalize artboard positions so templates with arbitrary stored positions
     // still lay out side by side on first load (same layout applied on add/duplicate).
     const updatedArtboards = calculateArtboardPositions(
       JSON.parse(JSON.stringify(template.projectData)) as ArtboardState[]
     );
-
-    const findElement = (elementId: string): ArtboardElement | null => {
-      for (const ab of updatedArtboards) {
-        const el = ab.elements.find((e) => e.id === elementId);
-        if (el) return el;
-      }
-      return null;
-    };
-
-    for (const { elementId, content } of options?.texts ?? []) {
-      const el = findElement(elementId);
-      if (!el) { warnings.push(`No element "${elementId}" in this template; text skipped.`); continue; }
-      if (el.type !== 'text') { warnings.push(`"${elementId}" is a ${el.type} element, not text; skipped.`); continue; }
-      el.content = content;
-    }
-    for (const { elementId, src } of options?.screenshots ?? []) {
-      const el = findElement(elementId);
-      if (!el) { warnings.push(`No element "${elementId}" in this template; screenshot skipped.`); continue; }
-      if (el.type !== 'device') { warnings.push(`"${elementId}" is a ${el.type} element, not a device frame; skipped.`); continue; }
-      el.screenshotSrc = src;
-      // Match the device element's own upload handler; screenshotRect is left
-      // alone so the template author's crop survives.
-      el.screenshotObjectFit = el.screenshotObjectFit ?? 'cover';
-    }
+    const warnings = fillTemplateSlots(updatedArtboards, {
+      texts: options?.texts,
+      screenshots: options?.screenshots,
+    });
 
     // Screenshots handed in as data URLs (the AI build path) and any inline
     // media a template carries move into the Dexie media table before the row
@@ -5173,9 +5269,21 @@ export function OpenScreenshotGeneratorLayout() {
       ) {
         return;
       }
+      // Undo and redo still reach the canvas from the Agent panel, since taking
+      // back what the agent just did is the obvious thing to want there. Every
+      // other shortcut acts on the canvas selection and stays out of the chat.
+      const isUndoRedo = (e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y');
+      if (isInAgentPanel(e.target) && !isUndoRedo) {
+        // Backspace still loses its default, as it does for the canvas below:
+        // WebKit can take it as "go back a page", which reloads the editor.
+        if (e.key === 'Backspace') e.preventDefault();
+        return;
+      }
 
       // Copy: Ctrl+C or Cmd+C
       if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+        // Words selected in the chat: let the browser copy them.
+        if (hasAgentPanelSelection()) return;
         e.preventDefault();
         if (activeArtboardId && selectedElementIds.length > 0) {
           handleCopyElement();
@@ -5339,6 +5447,7 @@ export function OpenScreenshotGeneratorLayout() {
       ) {
         return;
       }
+      if (isInAgentPanel(target)) return;
       // A dialog or menu traps focus and owns Space for the control inside it,
       // and a canvas behind a modal is not what anyone is trying to pan.
       if (
@@ -5876,6 +5985,62 @@ export function OpenScreenshotGeneratorLayout() {
     return states;
   }, [artboards, activeArtboardId, activeLocale]);
 
+  // --- the agent --------------------------------------------------------------
+  //
+  // What Claude Code is told with every message: the open project and what is
+  // selected in it. Read through a ref when a message goes out, so the store
+  // never holds a stale closure and nothing is computed while nobody chats.
+  const agentContextSourceRef = useRef<Parameters<typeof buildAgentContext>[0] | null>(null);
+  agentContextSourceRef.current = {
+    projectId: activeProjectId,
+    projectName: currentProjectName,
+    artboards,
+    activeArtboardId,
+    selectedElementIds,
+    activeLocale,
+  };
+  useEffect(() => {
+    claudeAgent.setContextProvider(() =>
+      agentContextSourceRef.current ? buildAgentContext(agentContextSourceRef.current) : null
+    );
+    return () => claudeAgent.setContextProvider(null);
+  }, []);
+  const agentContextLabel = useMemo(
+    () =>
+      agentEnabled
+        ? describeAgentContext({
+            projectId: activeProjectId,
+            projectName: currentProjectName,
+            artboards,
+            activeArtboardId,
+            selectedElementIds,
+            activeLocale,
+          })
+        : null,
+    [agentEnabled, activeProjectId, currentProjectName, artboards, activeArtboardId, selectedElementIds, activeLocale]
+  );
+  const agentView = useMemo(
+    () => (agentEnabled ? toAgentPanelView(claudeAgentState, agentContextLabel) : null),
+    [agentEnabled, claudeAgentState, agentContextLabel]
+  );
+
+  /** A message from the Agent panel, docked or detached. Pictures arrive as asset refs. */
+  const handleAgentSend = async (text: string, attachments: AgentAttachment[]) => {
+    try {
+      const images = await Promise.all(
+        attachments.map((attachment) => assetToImage(attachment.ref, attachment.fileName))
+      );
+      await claudeAgent.send({ text, preface: buildAttachmentNote(attachments) || undefined, images });
+    } catch (error) {
+      console.error('Could not send the message to Claude Code', error);
+      toast({
+        title: 'The message did not reach the agent',
+        description: error instanceof Error ? error.message : 'Try sending it again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // --- the dock, and the windows it can be torn off into --------------------
   //
   // One object holds everything the four panels render. The docked stack takes
@@ -5914,6 +6079,7 @@ export function OpenScreenshotGeneratorLayout() {
       // detached panel would offer a person a board they never made.
       isExporting: exportCanvasArtboards !== null,
       tabRequest,
+      agent: agentView,
     }),
     [
       activeProjectId,
@@ -5937,6 +6103,7 @@ export function OpenScreenshotGeneratorLayout() {
       isVersionBusy,
       exportCanvasArtboards,
       tabRequest,
+      agentView,
     ]
   );
 
@@ -5968,6 +6135,22 @@ export function OpenScreenshotGeneratorLayout() {
     onMoveElementLayer: handleMoveElementLayer,
     onDeleteElement: handleDeleteElementFromLayerPanel,
     onRenameElement: handleRenameElementFromLayerPanel,
+    onAgentSend: (text, attachments) => void handleAgentSend(text, attachments),
+    onAgentStop: () => void claudeAgent.stop(),
+    onAgentNewChat: () => void claudeAgent.newChat(),
+    onAgentDetect: () => void claudeAgent.detect(true),
+    onAgentSetModel: (model) => claudeAgent.setModel(model),
+    onAgentHide: () => {
+      claudeAgent.hidePanel();
+      if (rightDockTab === 'agent') selectRightDockTab('properties');
+      // A window holding only the Agent tab would be left with nothing in it.
+      if (dockHost.detachedGroups.includes('agent')) void dockHost.reattach('agent');
+    },
+    // A detached window has no opener permission of its own (panels.json), so
+    // its links come here. Only web links: nothing else belongs in a browser.
+    onAgentOpenLink: (url) => {
+      if (/^https?:\/\//i.test(url)) void openExternal(url);
+    },
   };
 
   const dockHost = useDockHost({
@@ -5979,7 +6162,7 @@ export function OpenScreenshotGeneratorLayout() {
 
   /** Panels still in the dock. The rest are showing in a window of their own. */
   const dockedPanels = DETACHABLE_PANELS.filter(
-    (panel) => !dockHost.detachedPanels.includes(panel)
+    (panel) => !dockHost.detachedPanels.includes(panel) && (panel !== 'agent' || agentEnabled)
   );
   /** True when there is nothing left in the dock to show. */
   const wholeDockDetached = dockedPanels.length === 0;
@@ -6223,13 +6406,30 @@ export function OpenScreenshotGeneratorLayout() {
     setContextMenu({ x: clientX, y: clientY, elementId, artboardId, pastePoint });
   }, [isPreviewOpen, handleElementSelectionOnArtboard]);
 
+  // A press anywhere outside the Agent panel hands the keyboard back to the
+  // canvas. The canvas prevents the default on pointerdown, so neither focus
+  // nor a text selection leaves the chat by itself: a chat button kept focus
+  // after a click on an element (Delete and the arrow keys then did nothing,
+  // and Space pressed that button again), and Cmd+C kept copying old chat text.
+  useEffect(() => {
+    const handBack = (e: PointerEvent) => {
+      if (isInAgentPanel(e.target)) return;
+      const focused = document.activeElement;
+      if (focused instanceof HTMLElement && isInAgentPanel(focused)) focused.blur();
+      if (hasAgentPanelSelection()) window.getSelection()?.removeAllRanges();
+    };
+    document.addEventListener('pointerdown', handBack, true);
+    return () => document.removeEventListener('pointerdown', handBack, true);
+  }, []);
+
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (
         target instanceof HTMLInputElement ||
         target instanceof HTMLTextAreaElement ||
-        target.isContentEditable
+        target.isContentEditable ||
+        isInAgentPanel(target)
       ) {
         return;
       }
@@ -6480,6 +6680,62 @@ const generateRandomProjectName = (): string => {
   // category's defaultSize (phone screenshot vs 1024×500 feature graphic).
   const activeCategory =
     TEMPLATE_CATEGORIES.find((c) => c.id === templateTab) ?? TEMPLATE_CATEGORIES[0];
+
+  /**
+   * Hand a new design to Claude Code: an empty project for it to work in, the
+   * screenshots stored as assets it can place by reference, the Agent tab open
+   * on the chat, and the first message on its way. Throws a sentence the agent
+   * screen shows when there is no project to work in.
+   */
+  const handleStartClaudeCode = async ({
+    instruction,
+    screenshots,
+  }: {
+    instruction: string;
+    screenshots: UploadedScreenshot[];
+  }) => {
+    let created: Awaited<ReturnType<typeof createProjectFromTemplateData>>;
+    let stored: { ref: string; width: number; height: number; fileName: string }[];
+    claudeStartingRef.current = true;
+    try {
+      // Stored first: if one will not decode, nothing has been made yet and the
+      // user is still on the agent screen with everything they entered.
+      stored = await Promise.all(
+        screenshots.map(async (shot) => {
+          const asset = await saveImageAsset(shot.dataUrl, { name: shot.fileName });
+          return { ref: asset.ref, width: shot.width, height: shot.height, fileName: shot.fileName };
+        })
+      );
+      created = await createProjectFromTemplateData(
+        createBlankProject(pickCanvasSize(screenshots, activeCategory.defaultSize)),
+        { nameOverride: projectNameFromInstruction(instruction) }
+      );
+    } finally {
+      claudeStartingRef.current = false;
+    }
+    if (!created) throw new Error('The new project could not be made. Try again.');
+
+    claudeAgent.setPanelEnabled(true);
+    revealDockTab('agent');
+    if (isMobileViewport) setIsMobileDockOpen(true);
+    track('agent_claude_code_start', { screenshots: screenshots.length });
+
+    await claudeAgent.newChat();
+    const board = created.artboards[0];
+    void claudeAgent
+      .send({
+        text: instruction || 'Design store screenshots for my app from these screenshots',
+        preface: buildFirstRunBrief({
+          projectName: created.name,
+          placeholderName: created.name === PLACEHOLDER_PROJECT_NAME,
+          artboard: board ? { id: board.id, width: board.size.width, height: board.size.height } : null,
+          screenshots: stored,
+        }),
+        images: screenshots.map(screenshotToImage),
+        skipContext: true,
+      })
+      .catch((error) => console.error('Could not start Claude Code', error));
+  };
   const templateCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const p of availableProjects) {
@@ -6525,6 +6781,7 @@ const generateRandomProjectName = (): string => {
             !isJoiningInvite
           }
           onOpenChange={(newOpenState) => {
+            if (!newOpenState && claudeStartingRef.current) return;
             if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
                // Create a blank project when no template is selected
                handleSelectTemplate(createBlankProject(activeCategory.defaultSize));
@@ -6609,6 +6866,7 @@ const generateRandomProjectName = (): string => {
                   onCreateProject={(project, options) => handleSelectTemplate(project, options)}
                   handoffScreenshots={agentHandoff?.shots}
                   handoffToken={agentHandoff?.token}
+                  onStartClaudeCode={handleStartClaudeCode}
                 />
               </div>
             )}
@@ -7031,10 +7289,21 @@ const generateRandomProjectName = (): string => {
   // Two frames, which is how long the canvas takes to repaint after a state
   // change. Everything an MCP tool does that the next tool call has to SEE goes
   // through this: opening a project, switching language, capturing a PNG.
+  //
+  // requestAnimationFrame does not fire while the window is minimized or fully
+  // covered, and an agent keeps working then, so a timer ends the wait after a
+  // second. React has committed the DOM by then either way, and the capture
+  // reads the DOM, not the screen.
   const mcpNextPaint = () =>
-    new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-    );
+    new Promise<void>((resolve) => {
+      const timer = setTimeout(resolve, 1_000);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          clearTimeout(timer);
+          resolve();
+        })
+      );
+    });
 
   /**
    * Run a capture with the canvas showing one language, then put it back.
@@ -7779,6 +8048,77 @@ const generateRandomProjectName = (): string => {
         warnings: created.warnings,
       };
     },
+    applyTemplate: async ({ templateId, texts, screenshots, projectName }) => {
+      if (!activeProjectId) {
+        throw new Error(
+          'No project is open, so there is nothing to apply a template to. Use create_project_from_template to start a new project from it.'
+        );
+      }
+      if (availableProjects.length === 0) {
+        throw new Error('Templates are still loading. Try again in a moment.');
+      }
+      const template = availableProjects.find((t) => t.id === templateId);
+      if (!template) throw new Error(`No template "${templateId}". Call list_templates for valid ids.`);
+      if (!template.projectData?.length) throw new Error(`Template "${templateId}" has no artboards.`);
+      // handleArtboardsUpdate ignores a commit that lands while an export has
+      // the canvas swapped, and this would then report a change that never
+      // happened.
+      if (isExportingRef.current) {
+        throw new Error('An export is running. Apply the template again once it finishes.');
+      }
+
+      // Copied, laid out and filled the way createProjectFromTemplateData does
+      // it, then given the passes loadProjectFromData runs on a project it
+      // opens, so an applied template ends up the same as a freshly started one.
+      const copy = calculateArtboardPositions(
+        JSON.parse(JSON.stringify(template.projectData)) as ArtboardState[]
+      );
+      const warnings = fillTemplateSlots(copy, { texts, screenshots });
+      let boards = normalizeLocalization(
+        ensureUniqueElementIds(await externalizeInlineMedia(migrateVideoDevices(copy)))
+      );
+
+      // The editor kept going during that await. The commit below goes
+      // through the newest handleArtboardsUpdate, so edits made meanwhile stay
+      // in undo, but an export or another project in the meantime stops the
+      // call before it touches anything.
+      if (isExportingRef.current) {
+        throw new Error(
+          'An export started while the template was being prepared, so nothing was changed. Apply the template again once the export finishes.'
+        );
+      }
+      if (activeProjectIdRef.current !== activeProjectId) {
+        throw new Error(
+          'Another project was opened while the template was being prepared, so nothing was changed. Check list_projects for the one open now before you apply the template again.'
+        );
+      }
+
+      // The language list belongs to the project, so it carries over. The old
+      // boards' translations cannot: each is keyed by an element id the
+      // template does not have. Read from the ref, since the boards this
+      // render saw may be out of date after the await.
+      const languages = artboardsRef.current.find((board) => board.localization)?.localization;
+      if (languages) boards = normalizeLocalization(setLocalization(boards, languages));
+
+      // Every board is replaced, and undo does not survive a reload, so the
+      // outgoing design is kept as a version first.
+      void writeVersion(artboardsRef.current, `Before ${template.name}`, 'safety');
+      handleArtboardsUpdateRef.current(boards, namedChange('Apply template', 'open', template.name));
+      setActiveArtboardId(boards[0].id);
+      setSelectedElementIds([]);
+
+      // Only after the commit: the rename flushes the save that commit
+      // scheduled, which still carries the old name, then writes the new one.
+      // Renaming first would let that pending save put the old name back.
+      const rename = projectName?.trim();
+      if (rename) await handleRenameProject(rename);
+      return {
+        projectId: activeProjectId,
+        name: rename || projectNameRef.current,
+        artboards: summarizeArtboards(boards),
+        warnings,
+      };
+    },
     listProjects: async () => {
       const projects = await db.projects.orderBy('timestamp').reverse().toArray();
       // Read the open project from the URL rather than the closed-over
@@ -7807,7 +8147,7 @@ const generateRandomProjectName = (): string => {
       if (!success) throw new Error('Could not open that project.');
       // Let React paint the reopened canvas before the next tool call, so an
       // export_png right after this finds the artboards in the DOM.
-      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await mcpNextPaint();
       return {
         projectId: project.id,
         name,
@@ -7826,9 +8166,7 @@ const generateRandomProjectName = (): string => {
       handleSelectLocale(next);
       // Let the canvas repaint, so an export_png straight after this renders
       // the language that was asked for. Same pattern openProject uses.
-      await new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-      );
+      await mcpNextPaint();
       return mcpLocaleState(next);
     },
     setLocalizedText: ({ artboardId, elementId, locale, text }) => {
@@ -8523,6 +8861,23 @@ const generateRandomProjectName = (): string => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-72">
+                          {/* The way to the agent for a project that is already
+                              open, without starting a new one from the dialog. */}
+                          {claudeAgentState.available && !claudeAgentState.panelEnabled && (
+                            <>
+                              <DropdownMenuItem
+                                className="gap-2"
+                                onSelect={() => {
+                                  claudeAgent.setPanelEnabled(true);
+                                  revealDockTab('agent');
+                                }}
+                              >
+                                <ClaudeCodeLogo className="h-4 w-4" />
+                                Chat with Claude Code
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
                           <DropdownMenuItem
                             className="gap-2"
                             onSelect={() => detachPanels(PANEL_GROUP_ALL)}
@@ -8616,15 +8971,20 @@ const generateRandomProjectName = (): string => {
                     { label: 'Properties', tab: 'properties' as const },
                     { label: 'History', tab: 'history' as const },
                     { label: 'Versions', tab: 'versions' as const },
+                    ...(agentEnabled ? [{ label: 'Agent', tab: 'agent' as const }] : []),
                     { label: 'Layers', tab: null },
-                  ]).map(({ label, tab }) => (
+                  ] as { label: string; tab: RightDockTab | null }[]).map(({ label, tab }) => (
                     <button
                       key={label}
                       type="button"
                       className="rounded px-0.5 py-2 text-[11px] font-medium tracking-wide text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       style={{ writingMode: 'vertical-rl' }}
                       onClick={() => {
+                        // Layers has no tab of its own. The chat hides the list
+                        // while another tab is there, so asking for Layers from
+                        // the chat moves to Properties, where the list shows.
                         if (tab) selectRightDockTab(tab);
+                        else if (rightDockTab === 'agent') selectRightDockTab('properties');
                         setDockOpen(true);
                       }}
                       title={"Open " + label}
@@ -8639,13 +8999,34 @@ const generateRandomProjectName = (): string => {
                 <Button
                   size="icon"
                   className="fixed bottom-[4.5rem] right-3 z-40 h-12 w-12 rounded-full shadow-lg lg:hidden"
-                  onClick={() => setDockOpen(true)}
+                  onClick={() => {
+                    // The chat has its own button just above; this one means
+                    // the properties, so it does not reopen onto the chat.
+                    if (rightDockTab === 'agent') selectRightDockTab('properties');
+                    setDockOpen(true);
+                  }}
                   title="Open properties"
                   aria-label="Open properties"
                   data-export-exclude
                 >
                   <SlidersHorizontalIcon className="h-5 w-5" />
                 </Button>
+                {agentEnabled && (
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="fixed bottom-[8.5rem] right-3 z-40 h-12 w-12 rounded-full bg-card shadow-lg lg:hidden"
+                    onClick={() => {
+                      selectRightDockTab('agent');
+                      setDockOpen(true);
+                    }}
+                    title="Open agent chat"
+                    aria-label="Open agent chat"
+                    data-export-exclude
+                  >
+                    <ClaudeCodeLogo className="h-5 w-5" />
+                  </Button>
+                )}
               </>
             )}
           </div>

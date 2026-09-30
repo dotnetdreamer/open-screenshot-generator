@@ -12,6 +12,7 @@
     "start": "npm run dev",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:unit": "node scripts/test-unit.mjs",
     "test:e2e": "playwright test --project web --project desktop",
     "test:e2e:web": "playwright test --project web",
     "test:e2e:desktop": "playwright test --project desktop",

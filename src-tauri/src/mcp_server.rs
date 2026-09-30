@@ -64,6 +64,8 @@ const SLOW_TOOLS: &[&str] = &[
     "export_png",
     "export_all",
     "create_project_from_template",
+    // Replaces the open project's boards with a filled template copy.
+    "apply_template",
     "open_project",
     "upload_asset",
     // Fetches and decodes a screen recording, which can be tens of megabytes.
@@ -94,6 +96,19 @@ pub struct McpState {
     server: Mutex<Option<RunningServer>>,
     pending: Pending,
     next_id: Arc<AtomicU64>,
+    /// The secret the app's own Claude Code agent sends as a bearer token.
+    /// Minted on first use and kept for the life of the process.
+    agent_token: Mutex<Option<String>>,
+    /// Proves an event came from this process. Any window allowed to emit
+    /// events (the assistant windows, which host third-party sites) could
+    /// otherwise emit a tool call in the bridge's name and the editor would run
+    /// it. Only the editor window can read it (abs_mcp_bridge_nonce).
+    bridge_nonce: Mutex<Option<String>>,
+}
+
+/// The nonce every bridged request and every agent event carries.
+pub fn bridge_nonce<R: Runtime>(app: &AppHandle<R>) -> String {
+    app.state::<McpState>().bridge_nonce.lock().unwrap().get_or_insert_with(fresh_token).clone()
 }
 
 #[derive(Serialize, Clone)]
@@ -118,8 +133,17 @@ impl McpStatus {
 
 fn status_of(state: &McpState) -> McpStatus {
     match state.server.lock().unwrap().as_ref() {
-        Some(s) => McpStatus::running(s.port),
-        None => McpStatus::stopped(),
+        Some(s) if s.accepting() => McpStatus::running(s.port),
+        _ => McpStatus::stopped(),
+    }
+}
+
+impl RunningServer {
+    /// The accept loop is still going. tiny_http stops accepting for good after
+    /// an accept error (a client that resets before it is accepted is enough),
+    /// and accept_loop then returns, leaving an entry for a port nobody serves.
+    fn accepting(&self) -> bool {
+        self.thread.as_ref().is_some_and(|thread| !thread.is_finished())
     }
 }
 
@@ -139,7 +163,13 @@ fn bind_server() -> Result<(Server, u16), String> {
 fn start<R: Runtime>(app: &AppHandle<R>, state: &McpState) -> Result<McpStatus, String> {
     let mut guard = state.server.lock().unwrap();
     if let Some(s) = guard.as_ref() {
-        return Ok(McpStatus::running(s.port));
+        if s.accepting() {
+            return Ok(McpStatus::running(s.port));
+        }
+        // Dead: start again rather than hand out a URL nobody answers.
+        if let Some(dead) = guard.take() {
+            shut_down(dead);
+        }
     }
 
     let (server, port) = bind_server()?;
@@ -160,15 +190,54 @@ fn start<R: Runtime>(app: &AppHandle<R>, state: &McpState) -> Result<McpStatus, 
     Ok(McpStatus::running(port))
 }
 
-/// Stop the server (if running) and wait for the accept thread to unwind.
-fn stop(state: &McpState) -> McpStatus {
-    if let Some(mut s) = state.server.lock().unwrap().take() {
-        s.shutdown.store(true, Ordering::Relaxed);
-        if let Some(thread) = s.thread.take() {
-            let _ = thread.join();
-        }
+/// Tell the accept thread to stop and wait for it to unwind, then for the port
+/// to come free.
+fn shut_down(mut server: RunningServer) {
+    server.shutdown.store(true, Ordering::Relaxed);
+    if let Some(thread) = server.thread.take() {
+        let _ = thread.join();
     }
-    McpStatus::stopped()
+    // Joining ours is not enough: tiny_http closes the listening socket on a
+    // thread of its own, a moment after the Server is dropped. A start right
+    // behind this one would otherwise find the port taken and move to the
+    // next, where clients set up for this one never look.
+    for _ in 0..25 {
+        if std::net::TcpListener::bind(("127.0.0.1", server.port)).is_ok() {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+}
+
+/// Stop the server unless something still needs it: the app's own agent with
+/// a process running or starting, and, when `keep_if_enabled` is set, the
+/// user's external-tools switch.
+///
+/// Decided and done under the server lock. A start counts itself
+/// (claude_code's `starting`) before ensure_running takes that lock, so it
+/// either sees the count here and keeps the server, or waits and starts a new
+/// one. The lock is held through shut_down as well, which waits for the port to
+/// come free, so that new one gets the port back instead of the next one along.
+fn stop_if_unused<R: Runtime>(app: &AppHandle<R>, state: &McpState, keep_if_enabled: bool) {
+    let mut guard = state.server.lock().unwrap();
+    if crate::claude_code::has_sessions(app) {
+        return;
+    }
+    if keep_if_enabled && crate::settings::current(app).mcp_server_enabled {
+        return;
+    }
+    if let Some(server) = guard.take() {
+        shut_down(server);
+    }
+}
+
+/// An agent process has ended. With the switch off nothing else needs the
+/// server, so it stops until the agent starts again. The switch is read under
+/// the server lock and saved before apply_enabled runs, so someone turning it
+/// on at this moment keeps a running server either way.
+pub fn release_after_agent<R: Runtime>(app: &AppHandle<R>) {
+    let state = app.state::<McpState>();
+    stop_if_unused(app, &state, true);
 }
 
 /// Accept loop: polls with a timeout so the shutdown flag is noticed promptly,
@@ -246,6 +315,50 @@ fn is_request(msg: &Value) -> bool {
         && !matches!(msg.get("id"), None | Some(Value::Null))
 }
 
+/// Who may call the tools.
+///
+/// With the Settings switch on, any local client: the user opened the tools up
+/// on purpose. With it off, the server is only running because the app's own
+/// Claude Code agent needed it, and only a request carrying that agent's token
+/// gets through. Otherwise starting the agent would quietly hand every program
+/// on the machine, and every web page the browser lets reach localhost, a way
+/// to read and rewrite the user's projects.
+fn authorized<R: Runtime>(app: &AppHandle<R>, request: &Request) -> bool {
+    if crate::settings::current(app).mcp_server_enabled {
+        return true;
+    }
+    let Some(token) = app.state::<McpState>().agent_token.lock().unwrap().clone() else {
+        return false;
+    };
+    let expected = format!("Bearer {token}");
+    request
+        .headers()
+        .iter()
+        .any(|header| header.field.equiv("Authorization") && header.value.as_str() == expected)
+}
+
+/// 128 bits of OS randomness in a 64-character string. RandomState seeds its
+/// SipHash key from the OS random source once per thread and steps it for each
+/// new instance, so the four words stretch that one 128-bit key rather than
+/// adding to it. Plenty for a local bearer token, and it saves a dependency.
+fn fresh_token() -> String {
+    use std::collections::hash_map::RandomState;
+    use std::hash::{BuildHasher, Hasher};
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or_default();
+    (0..4u64)
+        .map(|round| {
+            let mut hasher = RandomState::new().build_hasher();
+            hasher.write_u64(round);
+            hasher.write_u128(nanos);
+            hasher.write_u32(std::process::id());
+            format!("{:016x}", hasher.finish())
+        })
+        .collect()
+}
+
 fn handle_request<R: Runtime>(
     mut request: Request,
     app: AppHandle<R>,
@@ -260,6 +373,20 @@ fn handle_request<R: Runtime>(
         Method::Delete => return respond_empty(request, 200),
         Method::Post => {}
         _ => return respond_empty(request, 405),
+    }
+
+    if !authorized(&app, &request) {
+        return respond_json(
+            request,
+            401,
+            rpc_error(
+                Value::Null,
+                -32001,
+                "This server only answers the app's own agent right now. Turn on Settings > Run MCP server for external AI tools to connect other clients.",
+            )
+            .to_string(),
+            None,
+        );
     }
 
     // Buffer the body (size-capped).
@@ -342,7 +469,11 @@ fn bridge_request<R: Runtime>(
     let (tx, rx) = channel::<Value>();
     pending.lock().unwrap().insert(call_id.clone(), tx);
 
-    let emitted = app.emit_to("main", MCP_REQUEST_EVENT, json!({ "callId": call_id, "message": message }));
+    let emitted = app.emit_to(
+        "main",
+        MCP_REQUEST_EVENT,
+        json!({ "callId": call_id, "message": message, "nonce": bridge_nonce(app) }),
+    );
     if emitted.is_err() {
         pending.lock().unwrap().remove(&call_id);
         return rpc_error(id, -32000, "could not reach the app UI");
@@ -483,14 +614,34 @@ pub async fn abs_mcp_start<R: Runtime>(
     start(&app, &state)
 }
 
+/// Stops the server, except under a running agent, which would lose its tools
+/// mid-conversation.
 #[tauri::command]
-pub async fn abs_mcp_stop(state: tauri::State<'_, McpState>) -> Result<McpStatus, String> {
-    Ok(stop(&state))
+pub async fn abs_mcp_stop<R: Runtime>(app: AppHandle<R>, state: tauri::State<'_, McpState>) -> Result<McpStatus, String> {
+    stop_if_unused(&app, &state, false);
+    Ok(McpStatus::stopped())
 }
 
+/// Whether OTHER programs can reach the tools, which is what the status pill
+/// and its setup guides are about. A server kept up only for the app's own
+/// agent answers everyone else with 401, so it reports as off.
 #[tauri::command]
-pub fn abs_mcp_status(state: tauri::State<'_, McpState>) -> McpStatus {
+pub fn abs_mcp_status<R: Runtime>(app: AppHandle<R>, state: tauri::State<'_, McpState>) -> McpStatus {
+    if !crate::settings::current(&app).mcp_server_enabled {
+        return McpStatus::stopped();
+    }
     status_of(&state)
+}
+
+/// The bridge nonce, for the editor window's MCP listener and Claude Code
+/// transport. Refused anywhere else: a window that could read it could forge
+/// the events it protects.
+#[tauri::command]
+pub fn abs_mcp_bridge_nonce<R: Runtime>(app: AppHandle<R>, window: tauri::Window<R>) -> Result<String, String> {
+    if window.label() != "main" {
+        return Err("only the editor window can read this".into());
+    }
+    Ok(bridge_nonce(&app))
 }
 
 /// The frontend calls this with the JSON-RPC response for a previously bridged
@@ -510,9 +661,33 @@ pub fn apply_enabled<R: Runtime>(app: &AppHandle<R>, enabled: bool) {
     let status = if enabled {
         start(app, &state).unwrap_or_else(|_| McpStatus::stopped())
     } else {
-        stop(&state)
+        // The agent may still need the socket, and keeps it until its last
+        // process ends (release_after_agent). Switching the setting off already
+        // shut everyone else out (see `authorized`), which is what the user
+        // asked for, so it reports as off either way.
+        stop_if_unused(app, &state, false);
+        McpStatus::stopped()
     };
-    let _ = app.emit("abs-mcp-status", &status);
+    // Stamped like the bridged requests: the assistant windows may emit events
+    // too, and a forged status would put their URL into the setup guides.
+    let mut payload = serde_json::to_value(&status).unwrap_or_default();
+    payload["nonce"] = Value::String(bridge_nonce(app));
+    let _ = app.emit("abs-mcp-status", payload);
+}
+
+/// Start the server for the app's own Claude Code agent (claude_code.rs), which
+/// reaches the design tools through it like any other MCP client, and hand back
+/// the bearer token that agent has to send.
+///
+/// Leaves the user's saved on/off choice, the menu check mark and the status
+/// pill alone. Those describe whether OTHER programs may connect, and with the
+/// switch off they still may not: `authorized` turns away anything without the
+/// token.
+pub fn ensure_running<R: Runtime>(app: &AppHandle<R>) -> Result<(McpStatus, String), String> {
+    let state = app.state::<McpState>();
+    let status = start(app, &state)?;
+    let token = state.agent_token.lock().unwrap().get_or_insert_with(fresh_token).clone();
+    Ok((status, token))
 }
 
 /// Start the server at launch if the user had it enabled last session.

@@ -13,6 +13,10 @@ Open the [web editor](https://editor.openscrgen.app), download the [desktop app]
 
 ## What's new
 
+### 29 September 2026: Claude Code in the desktop app
+
+The desktop app's AI agent can now run in Claude Code on your computer, on the Claude plan you already use, with nothing to sign in to in the app. Choose **Claude Code** on the agent screen and it builds the design in a new project while you watch. Keep asking for changes in the new **Agent** tab of the right panel. [How it works](docs/AI-AGENT.md#4-claude-code-mode-the-agent-edits-the-live-project).
+
 ### 29 September 2026: New CLI
 
 You can now make store images from a terminal or a script with `npx open-screenshot-generator`. It can also connect its design tools to a coding agent. [Start with the CLI](#command-line-and-coding-agents).
@@ -62,6 +66,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |
 | Built in or local AI providers | No | Yes |
+| AI agent in Claude Code, on your Claude plan | No | Yes |
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
@@ -114,7 +119,7 @@ For App Store Connect, choose an export based on your screen recording. The styl
 
 ## The AI agent
 
-On the start screen, choose the AI agent, add screenshots, and describe the design you want. You can review and edit the project it makes. Choose your own API key, an assistant account you already use, or one of the desktop app's built in providers. The [AI agent guide](docs/AI-AGENT.md) explains these choices.
+On the start screen, choose the AI agent, add screenshots, and describe the design you want. You can review and edit the project it makes. Choose your own API key, an assistant account you already use, or one of the desktop app's built in providers. The desktop app also offers Claude Code, the first choice on that screen: if it is installed and signed in on your computer, the agent uses your Claude plan, builds the design in a new project while you watch, and stays in the **Agent** tab of the right panel for more changes. The [AI agent guide](docs/AI-AGENT.md) explains these choices.
 
 ## Storage and templates
 

@@ -238,6 +238,10 @@ export function tauriInitScript(config: TauriMockConfig): string {
         return { running: false, port: null, url: null };
       case 'abs_mcp_respond':
         return null;
+      // The bridge ignores an 'abs-mcp-request' whose payload does not carry
+      // this value as its nonce, so a spec that emits one has to include it.
+      case 'abs_mcp_bridge_nonce':
+        return 'e2e-bridge-nonce';
       case 'abs_mcp_write_png':
       case 'abs_write_export_png': {
         const dir = args.directory ?? '';
@@ -264,6 +268,22 @@ export function tauriInitScript(config: TauriMockConfig): string {
         return null;
       case 'abs_web_capture':
         return null;
+      // Claude Code (claude_code.rs). By default none is installed, which is
+      // what the agent screen's first tab finds on mount. A spec that drives
+      // the agent answers detect/start through config.responses and plays the
+      // process's output with emitFromBackend('abs-claude-event', ...).
+      case 'abs_claude_detect':
+        return { found: false };
+      case 'abs_claude_start':
+        return { pid: 4242, workspace: '/agent/session', mcpUrl: 'http://127.0.0.1:8722/mcp' };
+      case 'abs_claude_send':
+      case 'abs_claude_close_input':
+      case 'abs_claude_stop':
+        return null;
+      case 'abs_claude_list':
+        return [];
+      case 'abs_claude_page_epoch':
+        return 1;
 
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {

@@ -1,4 +1,5 @@
 import type { ArtboardElement, ArtboardState } from '@/types/artboard';
+import { clipText } from '@/lib/clipText';
 
 // Photoshop-style history states. The editor only ever hands the undo stack a
 // full project snapshot (see handleArtboardsUpdate), so the name of a state is
@@ -81,7 +82,7 @@ export function getElementDisplayName(element: ArtboardElement, maxLength = 20):
     // A headline can hold real line breaks. They have to collapse here or the
     // layer row and the history entry grow to the height of the paragraph.
     const flat = value.replace(/\s+/g, ' ').trim();
-    return flat.length > maxLength ? `${flat.substring(0, maxLength)}...` : flat;
+    return clipText(flat, maxLength, '...');
   };
 
   switch (element.type) {

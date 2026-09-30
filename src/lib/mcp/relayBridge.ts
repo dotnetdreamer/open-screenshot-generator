@@ -9,12 +9,13 @@
 //                 ◄─────── JSON ───────        ◄── POST .../reply ───
 //
 // Everything below the transport is shared with the desktop path: the same
-// protocol, the same 42 tools, the same runMcpRequest(). Only the wire differs.
+// protocol, the same tools, the same serial runner in front of runMcpRequest().
+// Only the wire differs.
 //
 // With NEXT_PUBLIC_MCP_RELAY_URL unset the whole feature is off and nothing in
 // here ever runs — same shape as NEXT_PUBLIC_DISCOVER_URL.
 
-import { runMcpRequest, type McpDesignApi } from '@/lib/mcp/desktopMcpServer';
+import { createSerialMcpRunner, type McpDesignApi } from '@/lib/mcp/desktopMcpServer';
 
 /** Base URL of the relay, e.g. https://mcp.openscrgen.app. Empty = feature off. */
 export const MCP_RELAY_URL = (process.env.NEXT_PUBLIC_MCP_RELAY_URL ?? '').trim().replace(/\/+$/, '');
@@ -86,6 +87,11 @@ export function startRelayMcpBridge(options: {
   let closed = false;
   onState?.('connecting');
 
+  // The relay lets a client have several calls in flight at once; the runner
+  // puts them in one line so two writes cannot start from the same render.
+  // Closing the connection also stops the calls still waiting in that line:
+  // they get a null api, so none of them touches the design.
+  const run = createSerialMcpRunner(getApi, { isOpen: () => !closed });
   const source = new EventSource(`${MCP_RELAY_URL}/tab/${code}`);
 
   source.onopen = () => {
@@ -110,7 +116,7 @@ export function startRelayMcpBridge(options: {
     }
     if (!callId) return;
 
-    const response = await runMcpRequest(message as any, getApi());
+    const response = await run(message as any);
     if (closed) return;
     try {
       await fetch(`${MCP_RELAY_URL}/tab/${code}/reply`, {

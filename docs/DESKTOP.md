@@ -1,6 +1,6 @@
 # Desktop app (Tauri)
 
-Download the desktop app from the [latest release](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest). It has the same editor as the web version and adds desktop features such as direct store uploads and local AI providers.
+Download the desktop app from the [latest release](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest). It has the same editor as the web version and adds desktop features such as the Claude Code agent, direct store uploads and local AI providers.
 
 The rest of this page is for people building or changing the desktop app. It uses [Tauri v2](https://v2.tauri.app) to package the editor for Windows and macOS.
 
@@ -19,6 +19,8 @@ The rest of this page is for people building or changing the desktop app. It use
 | `public/splash.html` | The splash screen itself: one self-contained file, no network and no IPC |
 | `src-tauri/src/web_session.rs` | Embedded-webview assistant sessions ("the chromium part"): open/drive/relay the provider windows |
 | `src-tauri/assistant/agent.js` | Built bundle of `src/lib/ai/webAssistantAgent.ts`, injected into the provider windows (run `build:assistant-agent`) |
+| `src-tauri/src/claude_code.rs` | The Claude Code agent: finds the `claude` CLI, runs it headless on the user's Claude plan, relays its output to the editor window |
+| `src/lib/claudeCode/` | The agent's session store, stream reducer and brief; the Agent tab in the dock renders from it |
 | `src/lib/desktop.ts` | Frontend helper: native save dialogs in Tauri, anchor downloads on the web |
 | `src/lib/ai/freeProviders.ts` | Keyless AI providers for the desktop free mode (Pollinations, Ollama, LM Studio) |
 | `src/lib/ai/webAdapters.ts` | One registry (identity + DOM selectors) shared by the desktop agent, the extension, and the UI |
@@ -327,7 +329,10 @@ the bottom-right of the canvas (`McpServerStatus.tsx`, desktop only): green + th
 port while running, muted "off" otherwise. Clicking it opens a dialog with the
 server URL (copyable) and a collapsible accordion of per-client setup
 instructions for **Claude Code**, **Claude Desktop**, **VS Code (Copilot)**
-and **Cursor**, plus the list of exposed tools with their parameters.
+and **Cursor**, plus the list of exposed tools with their parameters. The app's
+own [Claude Code agent](#claude-code-agent-desktop-only) also starts the server
+when it needs it, switch or not; with the switch off, the server answers only
+that agent.
 
 **Connecting a client.** The server speaks MCP over **Streamable HTTP** at
 `http://127.0.0.1:8722/mcp` (localhost only; the port scans upward from 8722 if
@@ -372,9 +377,10 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
 - *Images*: `upload_asset` stores an image once (Dexie `media` table) and
   returns an `asset:<id>` reference accepted by `imageSrc` / `screenshotSrc`,
   so an icon reused across five boards is sent once rather than five times;
-  `list_assets` / `delete_asset` manage them. The reference is expanded to the
-  bytes when the element is built, so the saved project is identical to a
-  hand-made one: the saving is on the wire, not on disk.
+  `list_assets` / `delete_asset` manage them. Elements keep the reference and
+  the renderers resolve it at draw time, the same as an image uploaded in the
+  editor, so the bytes stay out of the project row, the undo history and
+  autosave. A reference that does not exist is refused when the tool is called.
 - *Export*: `export_png` takes a `scale` (0.1 to 4; `0.25` gives a readable proof
   for a sixteenth of the base64) and `save:true` to write the file and return
   its **path** instead of the image. `export_all` renders every board in canvas
@@ -383,9 +389,18 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   *Downloads/Open Screenshot Generator*, because the JS `fs` plugin only unlocks
   paths the user picked in a dialog and an MCP export is unattended.
 - *Templates and projects*: `list_templates`, `get_template` (the fillable
-  device/text slots and their stable element ids), `create_project_from_template`
-  (copies the template, applies optional text/screenshot fills, opens it and
-  lands it in **Recent projects**), `list_projects`, `open_project`.
+  device/text slots and their stable element ids), `apply_template` (replaces
+  every artboard of the OPEN project with a filled copy of the template as one
+  undo step; the project keeps its id, its Recent projects entry and its
+  languages, and `projectName` renames it), `create_project_from_template`
+  (copies the template into a new project, applies optional text/screenshot
+  fills, opens it and lands it in **Recent projects**), `list_projects`,
+  `open_project`. Both template tools refuse a screenshot `src` that would not
+  load instead of leaving an empty frame: an `asset:<id>` ref has to exist
+  (from `upload_asset`, or one of the screenshots the user uploaded), and
+  anything else has to be a `data:image` URL, an http(s) URL or a path on the
+  site. Their warnings name every device frame still showing the template's
+  sample screenshot.
 - *Palette assets*: `list_library` browses the Elements, Devices and Images
   libraries the same way the palette does (groups first, then items). Every
   entry has a `libraryId` that `add_element` accepts in place of `type`/`subType`
@@ -435,7 +450,8 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   left on the language the user had it on.
 
 A model should normally *start from a template* (`list_templates` →
-`get_template` → `create_project_from_template`) and only build from bare
+`get_template` → `apply_template` when a project is open, or
+`create_project_from_template` for a new one) and only build from bare
 artboards when nothing fits. Building from scratch, the cheap path is
 `add_elements` for the first board, `duplicate_artboard` per screen, then
 `update_element` for the copy that differs; `upload_asset` for anything reused;
@@ -453,22 +469,27 @@ frontend, where the design state is.
   never opens a server→client SSE stream, so `GET /mcp` is `405`). A webview
   cannot listen on a port, so this has to be native. `abs_mcp_start` /
   `abs_mcp_stop` / `abs_mcp_status` / `abs_mcp_respond` are its commands; the
-  Settings toggle calls `apply_enabled`, and `register` handles startup restore.
+  Settings toggle calls `apply_enabled`, which broadcasts `abs-mcp-status`
+  stamped with the bridge nonce below, and `register` handles startup restore.
 - Each JSON-RPC **request** is bridged to the main window over the
-  `abs-mcp-request` event; the frontend (`src/lib/mcp/desktopMcpServer.ts`)
-  answers `initialize` / `tools/list` / `tools/call` and returns the response
-  through the `abs_mcp_respond` command, which unblocks the waiting HTTP
-  handler. Notifications (no id) are acknowledged `202` without bridging.
+  `abs-mcp-request` event as `{ callId, message, nonce }`; the frontend
+  (`src/lib/mcp/desktopMcpServer.ts`) answers `initialize` / `tools/list` /
+  `tools/call` and returns the response through the `abs_mcp_respond` command,
+  which unblocks the waiting HTTP handler. It reads the nonce through
+  `abs_mcp_bridge_nonce` before it listens and ignores a request without it,
+  because the assistant windows may emit events too. Notifications (no id) are
+  acknowledged `202` without bridging.
 - **Timeouts are what keep the server self-healing.** A client keeps one HTTP
   connection alive and tiny_http will not read the next request on a connection
   until the current one has been answered, so a single tool call the webview
   never answers stalls everything queued behind it, `initialize` included. The
   budget is therefore 12s for ordinary calls and 180s only for the handful that
   render, write a file or rebuild the project (`SLOW_TOOLS` in `mcp_server.rs`,
-  mirrored in `desktopMcpServer.ts`). On expiry the pending entry is dropped, a
+  mirrored in `desktopMcpServer.ts` and in the CLI's `cli/src/driver/session.ts`). On expiry the pending entry is dropped, a
   JSON-RPC error goes back, a late reply is discarded, and the connection is
-  free again. The frontend runs the same watchdog a couple of seconds earlier so
-  the error names the tool that hung rather than just reporting silence.
+  free again. The frontend runs the same watchdog a couple of seconds earlier,
+  counted from when the request arrived (time spent queued included), so the
+  error names the tool that hung rather than just reporting silence.
 - The tool implementations are the `McpDesignApi` built in
   `OpenScreenshotGeneratorLayout.tsx` (assigned to a ref each render so the
   bridge always sees fresh state). They mutate through `handleArtboardsUpdate`,
@@ -484,14 +505,23 @@ frontend, where the design state is.
   template gallery and the Recent-projects list call, so an AI-created project is
   indistinguishable from a clicked one (same Dexie row, same Recent entry, same
   `?projectId` URL). `open_project` waits two animation frames before returning
-  so a follow-up `export_png` finds the artboards in the DOM.
-- The `McpDesignApi` closes over the state of the render that built it, which is
-  fine because a client sends its next tool call only after the previous
-  response has travelled back through Rust. React has re-rendered by then and
-  the bridge re-reads the ref. Two mutations dispatched inside a *single* tick
-  would both start from the same artboard array and the second would win, so
-  don't "optimise" the bridge into batching them. `list_projects` sidesteps this
-  entirely by reading the open project from the URL.
+  so a follow-up `export_png` finds the artboards in the DOM (or one second,
+  when the window is minimized and frames stop). `apply_template` fills through
+  the same `fillTemplateSlots` as `create_project_from_template`, then commits
+  through `handleArtboardsUpdate`, so it is one undo step on the open project.
+- The `McpDesignApi` closes over the state of the render that built it, so two
+  writes that both start before React re-renders begin from the same artboard
+  array and the second undoes the first. Both transports therefore run every
+  request through `createSerialMcpRunner`: one at a time, with `getApi()` read
+  as each request starts. After a tool that can change the editor (anything
+  not in `READ_ONLY_TOOLS`), the next request waits until the layout hands out
+  a new api object, which it builds on every render, or 1.5 seconds; the
+  caller gets its own response straight away. A request that waited in line to
+  within a second of its budget is answered with an error and never run,
+  because the transport has given up on it and running it would change the
+  design after the client was told the call failed. `initialize`, `ping` and
+  `tools/list` skip the line. `list_projects` reads the open project from the
+  URL.
 - `list_library` and `add_element`'s `libraryId` resolve through
   `src/lib/mcp/assetLibrary.ts`, a pure index over `elementLibrary.ts`,
   `imageLibrary.ts`, `deviceRegistry.ts` and `device3dPresets.ts`. The palette
@@ -501,11 +531,186 @@ frontend, where the design state is.
 Because it drives the real app, keep it off unless you are using it; it is
 localhost-bound and starts disabled.
 
+## Claude Code agent (desktop only)
+
+The agent screen's first tab, **Claude Code**, runs the AI agent in the Claude
+Code CLI the user already has installed and signed in to, on their Claude plan,
+with no login in the app. It edits the open project through the app's own MCP
+tools, and the user keeps talking to it in the **Agent** tab of the right dock.
+`src-tauri/src/claude_code.rs` finds, starts and stops the process; the frontend
+half is `src/lib/claudeCode/`, described in the Claude Code section of
+[.agents/reference.md](../.agents/reference.md).
+
+**Finding it.** `abs_claude_detect` takes the first file that exists, in this
+order:
+
+1. `OSG_CLAUDE_PATH`, a path to the binary, for testing a specific build or for
+   an install nothing below finds.
+2. Every PATH directory, looking for `claude.exe`, `claude.cmd` or `claude.bat`
+   on Windows and `claude` elsewhere. The lookup walks PATH itself because Rust's
+   `Command::new("claude")` finds only `claude.exe` on Windows. On macOS and
+   Linux the PATH an interactive login shell reports (`$SHELL -ilc`, 6 second
+   limit) goes in front of the app's own: an app started from Finder, the Dock or
+   a launcher inherits almost none, and an npm-installed `claude` needs `node`
+   from that PATH to run at all.
+3. The installer locations. Windows: `%USERPROFILE%\.local\bin\claude.exe` (the
+   native installer), `%USERPROFILE%\.claude\local\claude.exe`, Scoop's shim,
+   Bun's bin, the `claude.exe` npm ships inside
+   `@anthropic-ai\claude-code\bin` (spawned directly, it skips cmd.exe's argument
+   quoting), npm's older `claude.cmd` shim, and WinGet's `Links` folder. macOS and
+   Linux: `~/.local/bin`, `~/.claude/local`, `~/.npm-global/bin`, `~/.bun/bin`,
+   `~/.volta/bin`, `~/.nix-profile/bin`, `/opt/homebrew/bin`, `/usr/local/bin`,
+   `/home/linuxbrew/.linuxbrew/bin` and `/usr/bin`.
+
+It then runs `claude --version` and `claude auth status` (JSON with `loggedIn`,
+`authMethod` and `subscriptionType`), 20 seconds each, with the same scrubbed
+environment the agent gets, so the tab reports the login the agent will actually
+use ("Uses your Claude Max plan"). A build without `auth status` leaves the login
+unknown rather than signed out. The Mac App Store build is sandboxed
+(`APP_SANDBOX_CONTAINER_ID`) and a child process inherits the sandbox, so it
+could read neither `~/.local/bin` nor the login in `~/.claude`: detection reports
+it unavailable and a start is refused.
+
+**Launching it.** The flags are fixed in Rust. The page supplies only the model
+and the conversation to resume, both validated so neither can carry a flag:
+
+```
+claude -p --input-format stream-json --output-format stream-json --verbose
+  --setting-sources "" --settings <ws>/osg-settings.json --plugin-dir <ws>/plugin --tools Skill
+  --strict-mcp-config --mcp-config <ws>/osg-mcp.json
+  --allowedTools Skill,mcp__osg-editor --permission-mode dontAsk
+  --append-system-prompt-file <ws>/system-prompt.md [--model <m>] [--resume <uuid>]
+```
+
+`--setting-sources ""` keeps the user's own settings, hooks, plugins and
+CLAUDE.md out of a design agent, and still uses the subscription login.
+`--tools Skill` leaves one built-in tool, the one that loads the design skill;
+the shell, file access and the web are off (`--tools ""` would remove Skill
+too). `--strict-mcp-config` with `--mcp-config` makes the app's server the only
+MCP server. `--allowedTools` pre-approves it and Skill, because a headless run
+has nobody to answer a permission prompt, and `dontAsk` refuses everything else.
+Never add `--bare`, which never reads the OAuth login, so the plan stops working,
+or `--safe-mode`, which turns off plugins, skills and MCP servers.
+
+**The workspace.** `<ws>` is `claude-agent/` in the app's local data folder
+(`%LOCALAPPDATA%\com.dotnetdreamer.openscreenshotgenerator\claude-agent` on
+Windows, `~/Library/Application Support/com.dotnetdreamer.openscreenshotgenerator/claude-agent`
+on macOS, `~/.local/share/com.dotnetdreamer.openscreenshotgenerator/claude-agent`
+on Linux). It is brought up to date on every start: whatever an older build left
+in `plugin/` is removed, and a file is written only when its contents differ, so
+a process starting beside another never reads a half-written file:
+
+| Path | What |
+| --- | --- |
+| `session/` | The working directory. Empty, so Claude Code has nothing to tell the model about it, and stable, because Claude Code files conversations by working directory and `--resume` looks for them there |
+| `plugin/` | `.claude-plugin/plugin.json` (plugin `osg-agent`) and `skills/<skill>/SKILL.md`, from `src-tauri/claude-agent/skills/` |
+| `system-prompt.md` | The agent's instructions, from `src-tauri/claude-agent/system-prompt.md` |
+| `osg-mcp.json` | One http server, `osg-editor`, at the MCP server's current URL, with the bearer token in an `Authorization` header. Readable by the user only on macOS and Linux |
+| `osg-settings.json` | Exactly `{"disableAllHooks":true}`, written by Rust and passed with `--settings`. One key only: print mode silently ignores a settings file that fails validation |
+
+Rust writes all of it, and the system prompt and the skills are compiled into
+the app with `include_str!`, so the page writes nothing Claude Code reads. A
+skill can make Claude Code run a command: hooks in its frontmatter do, even with
+the shell tool off (verified), and so do `!` lines in its body. A settings file
+or a plugin manifest can declare hooks as well. `osg-settings.json` turns hooks
+off whatever declares them.
+
+**The environment.** Every spawn, detection included, goes through `scrub_env`:
+
+- The variables that would bill something other than the user's plan are
+  removed: `ANTHROPIC_API_KEY` (on its own it moves the bill to API credit, and
+  print mode takes it without asking), `ANTHROPIC_AUTH_TOKEN`,
+  `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL`, and the Bedrock, Vertex and Foundry
+  switches. `CLAUDE_CODE_OAUTH_TOKEN` stays, because it forces the subscription
+  login.
+- The variables a Claude Code session sets for the programs it starts
+  (`CLAUDECODE`, `CLAUDE_CODE_ENTRYPOINT`, `CLAUDE_CODE_SESSION_ID`, ...) are
+  removed, so a `tauri dev` started from Claude Code's terminal does not make the
+  agent think it is nested.
+- Inside an AppImage, `LD_LIBRARY_PATH`, `LD_PRELOAD`, `GIO_EXTRA_MODULES` and
+  `GDK_BACKEND` are removed, because a native `claude` must not load the
+  AppImage's bundled libraries.
+- The child gets the merged PATH from detection, and `NO_COLOR=1`.
+
+**The MCP server and the Settings switch.** The agent reaches the design tools
+through the same local MCP server as any other client. Starting the agent calls
+`mcp_server::ensure_running`, which starts the server whether or not
+**Settings ▸ Run MCP server for external AI tools** is on, and mints a bearer
+token for the agent (128 bits of OS randomness, one per app launch). With the switch on, any
+local client is accepted. With it off, only a request carrying that token gets
+through, and anything else gets `401`. Turning the switch off while an agent
+process is running or starting keeps the socket up for it and reports the server
+as off: the saved setting, the menu check, the status pill and `abs_mcp_status`
+describe external access only. When the agent's last process ends with the
+switch off, the server stops too, and the next start brings it back.
+
+The token guards the socket, not the step after it: Rust hands each call to the
+editor as an `abs-mcp-request` event, and the assistant windows, which host
+third-party sites, may emit events. Every bridged request therefore carries a
+nonce that only the editor window can read (`abs_mcp_bridge_nonce`), and the
+editor drops a request without it. The agent's own `abs-claude-event` events
+carry the same nonce.
+
+**Process lifetime.** One process per chat, kept alive between messages, and at
+most four at once. A writer thread owns each process's stdin, so sending a
+message queues it and returns, and nothing ever waits on the pipe. Stop in the
+panel interrupts the turn over stdin, which keeps the process for the next
+message; `abs_claude_stop` kills it (the whole tree first, then stdin) only if
+that turn has not ended four seconds later. A kill takes the whole tree: `taskkill /T /F`
+on Windows, where an npm-installed `claude` can be `cmd.exe` running `node.exe`,
+and TERM, then KILL, to the process group on macOS and Linux (TERM first, so the
+conversation file is flushed for `--resume`). Every process dies with the editor
+window and when the app exits (`RunEvent::Exit`, which is why `lib.rs` ends in
+`.build(...).run(...)`). A reloaded editor picks its process back up through
+`abs_claude_list`, which also says whether it is mid-turn, since the page may
+have missed the line that ended the turn; any other listed process belonged to
+an editor that is gone and is stopped. A process still starting when the editor
+reloads never gets listed: Rust counts the pages the editor window commits, the
+page sends the count it loaded under with every start, and a start from an
+earlier page kills its process and fails. The page says which page it is
+because Tauri's IPC can deliver a command after its page is gone: it sends an
+invoke again over postMessage when the first attempt fails. For the same
+reason a spawn id is single use, and a line sent twice within a second is
+queued once.
+Every spawn on Windows carries `CREATE_NO_WINDOW`. `tauri dev`
+builds a console app, so a spawn without it only shows in a release build, as a
+console window flashing up.
+
+**Output.** Each stdout line is emitted to the editor window only
+(`emit_to("main", "abs-claude-event", ...)`). The `assistant-*` windows host
+third-party sites and never see a conversation. A line over 512KB has each
+inline image over 256KB emptied: the panel never shows an export at full size,
+and megabytes of base64 per export would stall the IPC bridge. The exit event
+carries the last 20 stderr lines, the only place a process that dies before its
+first turn says why (no Git for Windows or PowerShell, or a flag an older Claude
+Code does not know). `start`, `send`, `close_input` and `stop` refuse any window
+but `main`, so a detached panel sends the editor an intent instead.
+
+**Verifying it live.** The unit tests (`npm run test:unit`) and the Playwright
+spec (`tests/e2e/specs/claude-agent.spec.ts`) run without Claude Code. The live
+check drives a real one on the signed-in plan (`claude auth status` must say
+`loggedIn`) through WebView2's CDP port, so it runs on Windows:
+
+```sh
+WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333 npm run tauri:dev
+node .claude/skills/app-screenshots/scripts/verify-claude-agent-desktop.js
+```
+
+It checks that Claude Code is the agent screen's first tab and is ready, starts
+a run with one screenshot, and checks that the Agent tab opens, the first turn
+puts elements on the canvas, a follow-up changes the background, Stop ends a
+turn as "Stopped" and a new chat empties the panel. Every run spends real usage,
+so it asks for Haiku; `AGENT_MODEL` picks another (`sonnet`, `opus`, `fable` or
+`default`). `WEBVIEW_PORT`, `TURN_TIMEOUT_MS` and `OUT_DIR` (for its
+screenshots) are the other settings. The scripts folder needs a one-time
+`npm install` (puppeteer-core).
+
 ## Operation tracing (timeline, screenshots, HTML report)
 
-Every AI generate request, in all three modes ("use my account", built-in free,
-API key), is recorded as one **operation** (`src/lib/ai/operationLog.ts`,
-persisted in the `operations` Dexie table, IndexedDB). An `OperationRecorder`
+Every AI generate request in the three plan modes ("use my account", built-in
+free, API key), and every Claude Code turn, is recorded as one **operation**
+(`src/lib/ai/operationLog.ts`, persisted in the `operations` Dexie table,
+IndexedDB). An `OperationRecorder`
 collects a timeline as the run goes: each stage, the messages exchanged with the
 provider (the prompt sent and the raw reply), any error, and, for the embedded
 webview mode, a screenshot of the provider window at each step. The info icon on

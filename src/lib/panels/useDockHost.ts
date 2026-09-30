@@ -231,6 +231,33 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'selectTab':
         onSelectTabRef.current(intent.tab);
         break;
+      case 'agentSend':
+        h.onAgentSend(intent.text, intent.attachments ?? []);
+        break;
+      case 'agentStop':
+        h.onAgentStop();
+        break;
+      case 'agentNewChat':
+        h.onAgentNewChat();
+        break;
+      case 'agentDetect':
+        h.onAgentDetect();
+        break;
+      case 'agentSetModel':
+        h.onAgentSetModel(intent.model);
+        break;
+      case 'agentHide':
+        h.onAgentHide();
+        break;
+      case 'agentOpenLink':
+        h.onAgentOpenLink(intent.url);
+        break;
+      default: {
+        // A new intent without a case here compiles, and a click in a detached
+        // window then does nothing at all. This makes that a type error.
+        const unhandled: never = intent;
+        void unhandled;
+      }
     }
   }, []);
 

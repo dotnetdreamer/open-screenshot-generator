@@ -50,7 +50,9 @@ contract their own `mocks.js` does: `invoke`, `transformCallback`,
 
 Every command the app can send is answered: its own Rust commands
 (`abs_app_ready`, `abs_write_export_png`, `abs_mcp_status`, the `abs_web_*`
-session commands, the `abs_oauth_*` ones) and the plugin commands
+session commands, the `abs_oauth_*` ones, the `abs_claude_*` ones that run
+Claude Code, which report it as not installed unless a spec says otherwise) and
+the plugin commands
 (`plugin:dialog|save`, `plugin:fs|write_file`, `plugin:path|join`,
 `plugin:opener|open_url`, `plugin:event|*`, `plugin:window|*`). Anything with no
 answer is recorded in `tauri.unhandled()` instead of failing silently, and

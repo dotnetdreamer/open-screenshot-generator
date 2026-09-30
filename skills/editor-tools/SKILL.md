@@ -2,7 +2,7 @@
 name: editor-tools
 description: >-
   Drives the live Open Screenshot Generator editor tool by tool over MCP, using `osg mcp` to expose
-  all 49 design tools (artboards, elements, backgrounds, fonts, the asset libraries, templates, App
+  the design tools (artboards, elements, backgrounds, fonts, the asset libraries, templates, App
   Preview timelines, 57 locales and PNG export) to any MCP client, plus `osg install` to write the
   server entry into a detected agent config. Use this whenever someone wants to edit an existing
   screenshot project rather than regenerate it, asks to connect the design tools to Claude Code,
@@ -16,7 +16,7 @@ metadata:
   homepage: https://openscrgen.app
 ---
 
-# Driving the editor: 49 tools, and the rules that keep them honest
+# Driving the editor: the tools, and the rules that keep them honest
 
 **The end state**: an MCP client holding a live connection to the real editor, with the user's project
 open, making precise edits that land as real undo steps in a project file the user can open in the
@@ -81,7 +81,9 @@ nothing.
 **1. One call in flight, always.** The tool api closes over the artboards of the render that produced
 it. Two mutations dispatched in the same tick both read the pre change state and the second silently
 clobbers the first. The CLI serializes every bridge call for exactly this reason. If you are driving
-the page yourself, await each response fully before sending the next.
+the page yourself, await each response fully before sending the next. The desktop app and the web
+relay also put concurrent calls in one line, but a call that waits there past its time budget is
+refused rather than run, so a burst of parallel calls turns into errors, not speed.
 
 **2. There is one door, and it is the same door the UI uses.** Every mutating tool commits through
 the app's single update path, which repositions the boards, writes the project, and pushes one undo
@@ -121,8 +123,9 @@ reason.
 
 **10. Upload an image once.** `upload_asset` returns an `asset:<id>` reference you can pass to
 `imageSrc` or `screenshotSrc` as many times as you like, instead of repeating a data URL in every
-call. The reference is expanded to bytes when the element is built, so the saved project never
-carries a dangling ref.
+call. Elements keep the reference and the editor resolves it when it draws, so the bytes are stored
+once. A reference that does not exist is refused when you pass it, never drawn as an empty frame.
+Pass the whole `asset:<id>`, not the bare id.
 
 **11. A recording is not an asset.** `upload_asset` probes bytes as an image and refuses a video.
 Screen recordings go through `upload_recording` and elements carry only the `mediaId` it returns.
@@ -141,11 +144,12 @@ stuck loading.
 arguments is a normal result with `isError` and a sentence saying what to do. Read the sentence, it
 usually names the tool to call instead.
 
-**16. Slow tools get a longer budget.** `export_png`, `export_all`, `create_project_from_template`,
-`open_project`, `translate_locales`, `add_locales`, `upload_asset` and `upload_recording` are allowed
-minutes. Everything else answers in seconds, and a hang means a dialog is open in the page.
+**16. Slow tools get a longer budget.** `export_png`, `export_all`, `apply_template`,
+`create_project_from_template`, `open_project`, `add_elements`, `duplicate_artboard`,
+`update_artboard`, `translate_locales`, `add_locales`, `upload_asset` and `upload_recording` are
+allowed minutes. Everything else answers in seconds, and a hang means a dialog is open in the page.
 
-## The 49 tools, by job
+## The tools, by job
 
 ### Find out what is there (start every session here)
 
@@ -179,6 +183,8 @@ exported file name and a board left as "Blank Artboard" exports as one.
 | `reorder_element` | fixing stacking. `front`, `back`, `forward`, `backward`, or an index |
 | `transform_elements` | moving or scaling several layers as one arrangement |
 | `group_elements` | tagging layers so `transform_elements` can target them later by `groupId` |
+| `align_elements` | lining two or more layers up on one edge of the box they span: `left`, `center-h`, `right`, `top`, `middle-v`, `bottom` |
+| `distribute_elements` | evening out the gaps between three or more layers, `horizontal` or `vertical` |
 
 Types are `text`, `shape`, `device`, `image`, `video-device`, `video`, `gesture`. Instead of
 `type`/`subType` you can pass a `libraryId` from `list_library` to drop a ready made palette asset:
@@ -190,8 +196,18 @@ device mockups, 3D posed devices and coloured frames. Prefixes are `element:`, `
 
 `list_templates` (101 of them, categories `screenshots`, `apple-watch`, `mac`,
 `play-feature-graphic`), `get_template` (its fillable slots, with stable element ids),
-`create_project_from_template` (copy it, open it, and optionally fill text and screenshots in the
-same call), `list_projects`, `open_project`.
+`apply_template` (replace every board of the project that is already open with a filled copy of the
+template, as one undo step, keeping the project), `create_project_from_template` (copy it into a new
+project, open it, and optionally fill text and screenshots in the same call), `list_projects`,
+`open_project`.
+
+When a project is open, and the user expects the design to land in it, use `apply_template`:
+`create_project_from_template` starts a second project and leaves the open one behind. Both take the
+same `texts` and `screenshots`. A screenshot `src` is an `asset:<id>` ref (from `upload_asset`, or
+one of the screenshots the user uploaded), a `data:image` URL, an http(s) URL or a path on the site;
+anything else is refused before the template is touched. Read the `warnings` in the result: they
+name ids the template does not have and every device frame still showing the template's sample
+screenshot.
 
 `list_templates` deliberately hides the app-preview category, because those boards play a recording.
 Preview work goes through `list_preview_scenes` and `add_preview_scene`.

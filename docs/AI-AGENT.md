@@ -4,7 +4,9 @@ The agent can start a design from screenshots of your app and a short descriptio
 
 1. Open the editor and choose the AI agent on the start screen.
 2. Add your app screenshots and describe the result you want, such as "a dark design for a running app".
-3. Choose how to run the agent, then review the project it creates.
+3. Choose how to run the agent. With Claude Code the design appears in a new project while you watch. The other choices show you the project first, for you to review.
+
+In the desktop app the first choice is **Claude Code**. If Claude Code is installed and signed in on your computer, the agent runs there on your Claude plan, with nothing to sign in to in the app. It builds the design in a new project, and you keep asking for changes in the **Agent** tab of the right panel. Each message counts toward your plan's usage limits.
 
 You can use your own AI API key. The browser sends requests to the provider you choose, and saves the key on this device only if you choose to remember it. You can also use a Claude, ChatGPT, or Gemini account you are signed into. The desktop app opens the assistant in its own window; the web editor uses the [companion extension](../extension/README.md) or a copy and paste flow. The desktop app also supports built-in providers and local Ollama or LM Studio.
 
@@ -12,7 +14,7 @@ The agent picks a template, places screenshots, and suggests text. Check the tex
 
 ## How it works for developers
 
-The rest of this page explains how the app gives an AI model information about its templates. The catalog is too large for some chat message limits, so the app sends a link to it or a shortened version. Each method produces an `AgentPlan`, which [buildProjectFromPlan.ts](../src/lib/ai/buildProjectFromPlan.ts) turns into an editable project.
+Sections 1 to 3 explain how the three plan modes ("Free, use my account", "Free, built in" and "Use my API key") give an AI model information about the templates. The catalog is too large for some chat message limits, so the app sends a link to it or a shortened version. Each of these methods produces an `AgentPlan`, which [buildProjectFromPlan.ts](../src/lib/ai/buildProjectFromPlan.ts) turns into an editable project. Claude Code mode has no plan and no catalog in its prompt: see [section 4](#4-claude-code-mode-the-agent-edits-the-live-project).
 
 ## 1. URL mode: the repository hosts the catalog
 
@@ -141,6 +143,81 @@ If your ChatGPT account accepts longer messages (Plus/Pro), raise
 `PROMPT_BUDGETS.chatgpt` to restore detail. Note that in URL mode this rarely matters:
 the 2.2k character URL prompt fits the cap, so ChatGPT only sees the budgeted inline
 prompt when its fetch fails.
+
+## 4. Claude Code mode: the agent edits the live project
+
+Used by the **Claude Code** tab, the first one, in the desktop app. The app runs the Claude
+Code CLI that is already installed and signed in on the user's computer (headless, `claude -p`
+with stream-json on both pipes), so the work is billed to the user's Claude plan and the app
+asks for no key and no login. It is not a plan mode:
+
+- There is no `AgentPlan`, no JSON reply to validate and no template catalog in the prompt.
+  The agent calls the app's MCP design tools (`list_templates`, `get_template`,
+  `apply_template`, `add_elements`, `export_png`, ...) on the open project. Each call runs
+  the same code as a click in the editor and is one undo step.
+- It has those tools and the Skill tool, nothing else: no shell, no files, no web.
+- The conversation goes on after the first design. The user keeps asking for changes in the
+  **Agent** tab of the right dock, and the agent works on whatever project is open.
+
+What the model is told:
+
+- `system-prompt.md`, appended to Claude Code's own system prompt: its role, the working
+  rules (one tool call at a time, look at boards with a small `export_png`, ask before a
+  destructive change the user did not ask for), the rules for copy, and how to reply.
+- Three skills in a plugin: `osg-agent:osg-design`, loaded before the first design tool
+  call, plus `osg-agent:osg-languages` and `osg-agent:osg-app-preview` when a request needs
+  them. The agent cannot read files, so each skill stands on its own.
+- Every message starts with an `<editor-context>` JSON block: the project, its artboards and
+  the active one, the selection with its text, and the language on the canvas. That is how
+  "make this bigger" finds its "this".
+- The first message is different. The app stores the uploaded screenshots as `asset:` refs,
+  makes a blank project sized from them, and sends a brief naming that project and every
+  screenshot's ref and size, then the user's instruction, then the screenshots as 1024px
+  images to look at. The brief asks for `apply_template`, which fills a template into that
+  project as one undo step, rather than `create_project_from_template`, which starts a
+  second project.
+
+The code is in [src/lib/claudeCode/](../src/lib/claudeCode/) (the session store, the stream
+reducer and what goes to stdin),
+[src-tauri/src/claude_code.rs](../src-tauri/src/claude_code.rs) (finding and running the
+CLI), [src-tauri/claude-agent/](../src-tauri/claude-agent/) (the system prompt and the
+skills, compiled into the app), [ClaudeCodeModePanel.tsx](../src/components/open-screenshot-generator/start/ClaudeCodeModePanel.tsx)
+(the tab) and [AgentPanel.tsx](../src/components/open-screenshot-generator/agent/AgentPanel.tsx)
+(the dock tab). The Claude Code section of [.agents/reference.md](../.agents/reference.md) has
+the full notes, and [DESKTOP.md](DESKTOP.md) the desktop details.
+
+**Limits.** Desktop app only: in the web editor the tab says Claude Code runs in the desktop
+app, and when the MCP relay is configured it points to connecting Claude Code from a terminal
+through the MCP button instead. Not in the Mac App Store build, whose sandbox a child process
+inherits. Every message counts toward the plan's usage limits. The agent cannot read files,
+so the user adds the recordings for App Preview boards.
+
+**Troubleshooting Claude Code mode:**
+
+- **"Claude Code is not installed"**: the app looked on PATH, in the PATH a login shell
+  reports (macOS and Linux) and in the usual install folders. Install it with the command
+  the card shows, run `claude` once in a terminal to sign in, then press **Check again**. For
+  an install somewhere else, start the app with `OSG_CLAUDE_PATH` set to the binary.
+- **"Claude Code is not signed in"**: `claude auth status` reported `loggedIn: false`. Run
+  `claude`, sign in with the Claude account, then press **Check again**. The same message
+  shows in the chat when a turn fails with a 401 or 403 or asks for `/login`.
+- **"This chat is billed to an API key"**: the `init` line that opens each turn reported an
+  `apiKeySource` other than `none`. The app removes `ANTHROPIC_API_KEY` and the other
+  variables that reroute billing before it starts Claude Code, and keeps the user's settings
+  (and so any `apiKeyHelper`) out, so this means Claude Code itself is signed in with an API
+  key. The tab says so before the start ("Signed in with an API key"). Sign Claude Code in to
+  a Claude account instead.
+- **"Claude Code could not reach the design tools"**: the `osg-editor` MCP server did not
+  connect for this process. Start a new chat: every start rewrites `osg-mcp.json` with the
+  server's current port and token.
+- **"The earlier conversation was gone, so this is a new one"**: `--resume` pointed at a
+  conversation Claude Code had already pruned, so the app sent the same message once more in a
+  new conversation. Nothing to do.
+- **"Claude Code stopped: ..."**: the process ended mid-turn, and the rest of the line is the
+  last thing it printed to stderr. On Windows, Claude Code needs Git for Windows or
+  PowerShell, and says so there.
+- Every turn is in **Recent runs**, with its tool calls, their results, and what Claude Code
+  reported about the model, the design tools and billing.
 
 ## File map
 

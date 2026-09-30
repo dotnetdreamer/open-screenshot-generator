@@ -59,7 +59,9 @@ import {
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
 import { isTauri } from '@/lib/desktop';
 import { useToast } from '@/hooks/use-toast';
+import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
 import { ApiKeyModePanel, type ApiKeyRunArgs } from './ApiKeyModePanel';
+import { ClaudeCodeModePanel } from './ClaudeCodeModePanel';
 import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
 import { RunHistoryDialog } from './RunHistoryDialog';
@@ -77,6 +79,12 @@ interface AgentStartScreenProps {
   handoffScreenshots?: UploadedScreenshot[];
   /** Changes on every handoff, so re-entering seeds the set exactly once. */
   handoffToken?: number;
+  /**
+   * Hand the run to Claude Code. The layout makes the project, closes this
+   * dialog and opens the Agent panel, which is why this mode has no plan to
+   * review here. Rejects with a message the screen shows as its error.
+   */
+  onStartClaudeCode?: (args: { instruction: string; screenshots: UploadedScreenshot[] }) => Promise<void>;
 }
 
 const EXAMPLE_INSTRUCTIONS = [
@@ -105,6 +113,7 @@ export function AgentStartScreen({
   onCreateProject,
   handoffScreenshots,
   handoffToken,
+  onStartClaudeCode,
 }: AgentStartScreenProps) {
   const [screenshots, setScreenshots] = useState<UploadedScreenshot[]>([]);
   /**
@@ -141,7 +150,12 @@ export function AgentStartScreen({
   // exists in the desktop app. isTauri() reads window, hence the effect: the
   // static export must prerender the same markup the browser hydrates.
   const [desktop, setDesktop] = useState(false);
-  const [mode, setMode] = useState('web');
+  // Claude Code leads the list and is where the screen opens.
+  const [mode, setMode] = useState('claude-code');
+  const [claudeStarting, setClaudeStarting] = useState(false);
+  // State lags a render behind a click, and a second project must not come
+  // from a double click.
+  const claudeStartingRef = useRef(false);
   useEffect(() => {
     if (isTauri()) setDesktop(true);
   }, []);
@@ -560,6 +574,23 @@ export function AgentStartScreen({
     [acceptPlanFromReply, relayPrompt, screenshots, catalogArtifacts, instruction]
   );
 
+  const startClaudeCode = async () => {
+    if (!onStartClaudeCode || claudeStartingRef.current) return;
+    claudeStartingRef.current = true;
+    setClaudeStarting(true);
+    setError(null);
+    setResult(null);
+    setErrorOpId(null);
+    try {
+      await onStartClaudeCode({ instruction: instruction.trim(), screenshots });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      claudeStartingRef.current = false;
+      setClaudeStarting(false);
+    }
+  };
+
   const cancel = () => abortRef.current?.abort();
 
   const create = async () => {
@@ -637,7 +668,12 @@ export function AgentStartScreen({
           </div>
         </div>
         <Tabs value={mode} onValueChange={setMode} className="w-full">
-          <TabsList>
+          {/* Four tabs do not fit a phone in one row. */}
+          <TabsList className="h-auto flex-wrap justify-start">
+            <TabsTrigger value="claude-code" className="gap-1.5">
+              <ClaudeCodeLogo className="h-3.5 w-3.5" />
+              Claude Code
+            </TabsTrigger>
             <TabsTrigger value="web" className="gap-1.5">
               <UserRound className="h-3.5 w-3.5" />
               Free, use my account
@@ -653,6 +689,14 @@ export function AgentStartScreen({
               Use my API key
             </TabsTrigger>
           </TabsList>
+          <TabsContent value="claude-code" className="mt-4">
+            <ClaudeCodeModePanel
+              desktop={desktop}
+              disabled={busy || (screenshots.length === 0 && !instruction.trim())}
+              starting={claudeStarting}
+              onStart={() => void startClaudeCode()}
+            />
+          </TabsContent>
           <TabsContent value="web" className="mt-4">
             <WebSessionModePanel
               busy={busy}

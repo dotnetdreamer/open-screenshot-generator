@@ -227,7 +227,7 @@ export class Editor {
 
   // --------------------------------------------------------------- right dock
 
-  dockTab(name: 'Properties' | 'History' | 'Versions'): Locator {
+  dockTab(name: 'Properties' | 'History' | 'Versions' | 'Agent'): Locator {
     return this.page.getByRole('tab', { name, exact: true });
   }
 
