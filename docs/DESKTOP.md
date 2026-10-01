@@ -364,7 +364,9 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   rotated, so an agent and a person arranging the same board agree.
   Beyond position/size/colour, elements take `opacity`, `shadow`
   (`{x, y, blur, color}`, cast by the real silhouette), `blur`, plus
-  `fillGradient` on shapes and `letterSpacing` / `lineHeight` on text. Passing
+  `fillGradient` on shapes and `letterSpacing` / `lineHeight` on text, and
+  text takes a letter outline as `outlineColor` plus `outlineWidth` (in fontSize
+  units, drawn outside the glyphs; see `src/lib/textOutline.ts`). Passing
   `null` clears one. See `src/lib/elementStyle.ts`.
 - *Measuring*: `measure_element` returns the rendered box in artboard pixels,
   and for text the actual glyph bounds (`textBox`) plus a `clipped` flag.
@@ -534,9 +536,17 @@ frontend, where the design state is.
   caller gets its own response straight away. A request that waited in line to
   within a second of its budget is answered with an error and never run,
   because the transport has given up on it and running it would change the
-  design after the client was told the call failed. `initialize`, `ping` and
-  `tools/list` skip the line. `list_projects` reads the open project from the
-  URL.
+  design after the client was told the call failed. A request also waits while
+  a project is opening (a Recent projects row, a past chat, a reload into
+  `?projectId`), because until the stored project has been read the canvas
+  still shows the project before it, or nothing, and a write would be saved
+  under the wrong project. It runs once the project is on the canvas, or is
+  answered "the editor is still opening a project" near the end of its budget.
+  A tool whose change cannot be saved answers with an error that says nothing
+  was changed: a `translate_locales` still running when another project
+  opens, or any write while an export holds the canvas.
+  `initialize`, `ping` and `tools/list` skip the line. `list_projects` reads
+  the open project from the URL.
 - `list_library` and `add_element`'s `libraryId` resolve through
   `src/lib/mcp/assetLibrary.ts`, a pure index over `elementLibrary.ts`,
   `imageLibrary.ts`, `deviceRegistry.ts` and `device3dPresets.ts`. The palette

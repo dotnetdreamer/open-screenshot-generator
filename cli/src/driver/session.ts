@@ -232,9 +232,12 @@ export async function startSession(options: SessionOptions): Promise<Session> {
           : undefined;
       const budget = name && SLOW_TOOLS.has(name) ? SLOW_HANDLER_TIMEOUT_MS : HANDLER_TIMEOUT_MS;
       debug(`rpc ${(message as { method?: string }).method}${name ? ` ${name}` : ''}`);
-      // The page has its own watchdog with the same budgets; this one is a
-      // little longer so the app's own error message wins the race and the
-      // user learns "waiting on a dialog" rather than "the CLI gave up".
+      // The page has its own watchdog, which gives up well before this one:
+      // after 10s, or 170s for its slow tools (HANDLER_TIMEOUT_MS and
+      // SLOW_HANDLER_TIMEOUT_MS in src/lib/mcp/desktopMcpServer.ts). This one
+      // allows 15s past the CLI's own budget, so the app's own error message
+      // wins the race and the user learns "waiting on a dialog" rather than
+      // "the CLI gave up".
       return await withTimeout(
         page.evaluate((m) => (window as unknown as { __osg: { mcp: (m: unknown) => Promise<unknown> } }).__osg.mcp(m), message),
         budget + 15_000,

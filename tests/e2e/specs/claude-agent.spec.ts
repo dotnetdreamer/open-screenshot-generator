@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '../fixtures/test';
 import { TauriHarness } from '../fixtures/tauri';
+import { holdProjects, readProjects, waitForProject, type StoredProject } from '../fixtures/db';
 
 /**
  * The Claude Code mode of the AI agent, the Agent panel it opens, and the code
@@ -421,6 +422,99 @@ test.describe('a Claude Code run', () => {
     await expect(panel.getByText('Droply is ready.')).toBeVisible();
     await expect.poll(() => new URL(page.url()).searchParams.get('projectId')).toBe(droplyProject);
     await expect(panel.getByText('Make the headline bigger')).toBeVisible();
+
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('a project opened from Past chats takes no undo and no tool call meant for the project being left', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+    const projectInUrl = () => new URL(page.url()).searchParams.get('projectId');
+    const shape = (project: StoredProject | undefined) =>
+      project && {
+        name: project.name,
+        boards: (project.projectData as { id: string; elements: unknown[] }[]).map((board) => `${board.id}:${board.elements.length}`),
+      };
+    const elementsIn = (project: StoredProject) =>
+      (project.projectData as { elements: unknown[] }[]).reduce((sum, board) => sum + board.elements.length, 0);
+    const addText = async (artboardId: string, content: string, y: number) => {
+      const added = await mcpCall(tauri, 'add_element', { artboardId, type: 'text', content, x: 40, y, width: 600, height: 120 }, true);
+      expect(added.isError, added.text).toBe(false);
+    };
+    const firstBoard = async () => (JSON.parse((await mcpCall(tauri, 'list_artboards', {}, true)).text) as { id: string }[])[0].id;
+
+    // The agent's project, with one text on its artboard.
+    const dialog = await openAgentScreen(page, app.startDialog);
+    await page.locator('#agent-instruction').fill('Dark set for a habit tracker called Droply');
+    await dialog.getByRole('button', { name: 'Start with Claude Code' }).click();
+    await expect(dialog).toBeHidden({ timeout: 30_000 });
+    await expect.poll(projectInUrl).not.toBeNull();
+    const droply = projectInUrl()!;
+    const panel = app.activeDockPanel;
+    await waitForListener(tauri, CLAUDE_EVENT);
+    const first = (await tauri.waitForCall('abs_claude_start')).args.args as StartArgs;
+    await expect.poll(async () => (await sentLines(tauri)).length).toBe(1);
+    await play(tauri, first.spawnId, [
+      init('i1'),
+      { type: 'assistant', uuid: 'a1', message: { id: 'm1', content: [{ type: 'text', text: 'Droply is ready.' }] } },
+      turnEnd('r1'),
+    ]);
+    await expect(panel.getByRole('button', { name: 'Send' })).toBeVisible();
+    await addText(await firstBoard(), 'Droply headline', 40);
+
+    // Another project, which gets a chat of its own, with two texts to undo.
+    await app.selectTemplateButton.click();
+    await app.startBlankProject();
+    await expect.poll(projectInUrl).not.toBe(droply);
+    const blank = projectInUrl()!;
+    await expect(panel.getByText('Talk to the agent')).toBeVisible();
+    const blankBoard = await firstBoard();
+    await addText(blankBoard, 'First line', 40);
+    await addText(blankBoard, 'Second line', 200);
+    await waitForProject(page, (project) => project.id === blank && elementsIn(project) === 2);
+    await waitForProject(page, (project) => project.id === droply && elementsIn(project) === 1);
+    const before = new Map((await readProjects(page)).map((project) => [project.id, shape(project)]));
+
+    // Past chats takes the editor back to the Droply project. Hold the project
+    // store, let the panel check that the project still exists, then hold the
+    // editor's own read of it.
+    const hold = await holdProjects(page);
+    await panel.getByRole('button', { name: 'Past chats' }).click();
+    await panel.getByRole('button', { name: /Dark set for a habit tracker called Droply/ }).click();
+    await expect(panel.getByText('Droply is ready.')).toBeVisible();
+    await hold.handOver();
+    await expect.poll(projectInUrl).toBe(droply);
+    // Named, not on the canvas yet: the canvas still holds the project being left.
+    await expect(app.elementsOn(0)).toHaveCount(2);
+
+    // Undo now would put the left project's previous state on the canvas and
+    // save it under the Droply project's id. The agent's call would edit the
+    // left project's artboards and save them there as well.
+    await app.undoButton.click();
+    const answered = (await tauri.callsTo('abs_mcp_respond')).length;
+    const call = mcpCall(tauri, 'create_artboard', { name: 'Sent while opening', width: 800, height: 400 }, true);
+    await page.waitForTimeout(1_000);
+    expect((await tauri.callsTo('abs_mcp_respond')).length).toBe(answered);
+    await expect(app.elementsOn(0)).toHaveCount(2);
+
+    await hold.release();
+    const answer = await call;
+    expect(answer.isError, answer.text).toBe(false);
+    await expect(app.artboards).toHaveCount(2);
+    await page.waitForTimeout(4_000);
+
+    // The call went to the project that opened, and the one left is untouched.
+    const after = new Map((await readProjects(page)).map((project) => [project.id, shape(project)]));
+    expect(after.get(blank)).toEqual(before.get(blank));
+    const droplyBefore = before.get(droply)!;
+    expect(after.get(droply)).toEqual({
+      name: droplyBefore.name,
+      boards: [...droplyBefore.boards, expect.stringMatching(/:0$/)],
+    });
 
     expect(await tauri.unhandled()).toEqual([]);
   });

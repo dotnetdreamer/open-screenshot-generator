@@ -16,6 +16,7 @@
 
 import { db } from '@/database';
 import { isAssetRef, assetIdFromRef } from '@/lib/mediaStore';
+import { canOpenAsProject } from '@/lib/projectCanvas';
 import {
   getCustomFontRows,
   installCustomFont,
@@ -385,6 +386,11 @@ export function bundleFromJson(parsed: unknown): ProjectBundle {
   const file = parsed as Partial<InlineBundleFile> & { projectData?: unknown };
   if (!Array.isArray(file.projectData)) {
     throw new Error('This file is missing its artboard data.');
+  }
+  // The editor opens no project without an artboard (canOpenAsProject), and
+  // the import writes its row before it opens one, so the check is here.
+  if (!canOpenAsProject(file.projectData)) {
+    throw new Error('This file has no artboards, so there is nothing to import.');
   }
 
   const metas = Array.isArray(file.media) ? file.media : [];

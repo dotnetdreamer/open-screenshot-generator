@@ -25,6 +25,13 @@ import type { CommandContext } from '../context.js';
 import type { Session } from '../driver/session.js';
 import { EXIT, OsgError, usageError } from '../errors.js';
 import { debug, dim, emit, fail, humanMs, info, ok, step, warn } from '../log.js';
+import {
+  followEditorProject,
+  writeBackIdentity,
+  type EditorProject,
+  type ProjectIdentity,
+} from '../projectIdentity.js';
+import { canOpenAsProject } from '@/lib/projectCanvas';
 
 interface ToolCall {
   tool: string;
@@ -48,6 +55,10 @@ export async function run(ctx: CommandContext): Promise<number> {
 
   const session = await ctx.session();
   const loaded = await openProjectFile(ctx, session);
+  // The editor's project, followed call by call so the write back can tell a
+  // rename from the name the editor gives a project it starts itself (see
+  // projectIdentity.ts). The file's own project when the editor opened it.
+  let followed: EditorProject | null = loaded?.opened ? { projectId: loaded.id, projectName: loaded.name } : null;
 
   step(`edit: ${calls.length} call${calls.length === 1 ? '' : 's'}`);
   const startedAt = Date.now();
@@ -63,6 +74,7 @@ export async function run(ctx: CommandContext): Promise<number> {
       outcomes.push({ index: index + 1, tool: call.tool, ok: true, ms, result });
       ok(`${label} ${dim(humanMs(ms))}`);
       debug(typeof result === 'string' ? result : JSON.stringify(result));
+      if (save && loaded) followed = followEditorProject(followed, await session.status());
     } catch (error) {
       const ms = Date.now() - at;
       const message = error instanceof Error ? error.message : String(error);
@@ -80,7 +92,7 @@ export async function run(ctx: CommandContext): Promise<number> {
   let saved: string | null = null;
   // Nothing changed means nothing to write, and rewriting the file after a run
   // that only failed would churn the diff for no reason.
-  if (save && succeeded > 0) saved = await writeProjectFile(ctx, session, loaded?.name);
+  if (save && succeeded > 0) saved = await writeProjectFile(ctx, session, loaded, followed);
 
   const status = await session.status();
   info(
@@ -237,10 +249,10 @@ async function readStdin(): Promise<string> {
 
 // --- the project file -------------------------------------------------------
 
-interface LoadedProject {
-  id: string;
-  name: string;
+interface LoadedProject extends ProjectIdentity {
   data: unknown[];
+  /** False when the editor did not open it, as with a file that has no artboards. */
+  opened: boolean;
 }
 
 /**
@@ -257,6 +269,13 @@ async function openProjectFile(ctx: CommandContext, session: Session): Promise<L
   }
 
   const project = readProjectFile(file, ctx.config.name);
+  // The editor opens no project without an artboard, so a file with none is
+  // edited the way a missing one is, from the empty document. Its id and name
+  // are still handed back, for the write back.
+  if (!canOpenAsProject(project.data)) {
+    warn(`${file} has no artboards, editing the empty document`);
+    return { ...project, opened: false };
+  }
   // page.evaluate is handed a string by the driver, so the document travels as
   // a literal in the expression rather than as an argument.
   const script = `(async () => {
@@ -274,10 +293,10 @@ async function openProjectFile(ctx: CommandContext, session: Session): Promise<L
     });
   }
   info(dim(`  project: ${file}, ${project.data.length} boards`));
-  return project;
+  return { ...project, opened: true };
 }
 
-function readProjectFile(file: string, configName: string | undefined): LoadedProject {
+function readProjectFile(file: string, configName: string | undefined): Omit<LoadedProject, 'opened'> {
   let parsed: unknown;
   try {
     parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -308,9 +327,16 @@ function readProjectFile(file: string, configName: string | undefined): LoadedPr
 
 /**
  * Rebuilt from the live boards, because no tool hands back a whole project:
- * status() for the ids, get_artboard for each one's full state.
+ * status() for the ids, get_artboard for each one's full state. A file keeps
+ * its own id and name (see projectIdentity.ts); with no file, the editor's
+ * project gives both.
  */
-async function writeProjectFile(ctx: CommandContext, session: Session, name: string | undefined): Promise<string> {
+async function writeProjectFile(
+  ctx: CommandContext,
+  session: Session,
+  loaded: LoadedProject | null,
+  followed: EditorProject | null
+): Promise<string> {
   const status = await session.status();
   const projectData: unknown[] = [];
   for (const board of status.artboards) {
@@ -321,14 +347,18 @@ async function writeProjectFile(ctx: CommandContext, session: Session, name: str
     projectData.push(state);
   }
 
+  const identity = loaded
+    ? writeBackIdentity(loaded, followed, status)
+    : { id: status.projectId ?? `project_${Date.now()}`, name: status.projectName ?? ctx.config.name ?? 'Project' };
+
   const file = ctx.projectFile;
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(
     file,
     `${JSON.stringify(
       {
-        id: status.projectId ?? `project_${Date.now()}`,
-        name: name ?? status.projectName ?? ctx.config.name ?? 'Project',
+        id: identity.id,
+        name: identity.name,
         timestamp: new Date().toISOString(),
         projectData,
       },

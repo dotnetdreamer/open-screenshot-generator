@@ -21,6 +21,7 @@ import type { CommandContext } from '../context.js';
 import type { SavedFile, Session, SessionStatus } from '../driver/session.js';
 import { EXIT, driverError, usageError } from '../errors.js';
 import { bold, debug, dim, emit, humanBytes, humanMs, info, ok, step, warn } from '../log.js';
+import { canOpenAsProject } from '@/lib/projectCanvas';
 
 /**
  * The format ids `exportImages` understands (DeviceFormat in
@@ -272,6 +273,14 @@ function openScript(sourceExpression: string): string {
  */
 export async function openProject(ctx: CommandContext, session: Session): Promise<SessionStatus> {
   const project = readProjectFile(ctx.projectFile);
+  // The editor opens no project without an artboard and would only answer
+  // false, so the reason is given here.
+  if (!canOpenAsProject(project.boards)) {
+    throw usageError(
+      `${project.file} has no artboards, so there is nothing to open.`,
+      'Add one with `osg edit --tool create_artboard`, or start again with `osg new`.'
+    );
+  }
   const boardWord = project.boards.length === 1 ? 'board' : 'boards';
   step(`project: ${project.name}, ${project.boards.length} ${boardWord}, ${humanBytes(project.bytes)}`);
 

@@ -183,6 +183,11 @@ on a proof board.
   gives each family's weights): "700" or "800" on Poppins, Outfit or Noto Sans, while Anton,
   Bebas Neue and DM Serif Display only come in "400" and are heavy already. Keep contrast high:
   white or near white on dark grounds, near black on light ones.
+- Game titles: outlineColor and outlineWidth draw an outline round every letter, outside the
+  glyph so the fill keeps its weight. About 0.075 x fontSize in a dark ink, plus a shadow
+  straight down ({x: 0, y: fontSize / 6, blur: 0}), gives the chunky lettering of a mobile game,
+  and Lilita One, Titan One and Luckiest Guy are the families drawn for it. Both fields are
+  needed; null on either removes the outline.
 
 ## Devices and screenshots
 

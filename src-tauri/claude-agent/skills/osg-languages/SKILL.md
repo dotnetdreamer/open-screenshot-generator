@@ -12,8 +12,8 @@ description: >-
 
 A project holds one set of artboards and one layout, and a language is an overlay on it. Per
 language, an element can have its own text, screenshot, image or recording, and its own
-fontFamily, fontSize, lineHeight, letterSpacing, fontWeight, textAlign, color, rotation, scale,
-position and size, or be hidden. Everything else is shared, so a layout fix lands in every
+fontFamily, fontSize, lineHeight, letterSpacing, fontWeight, textAlign, color, outlineColor,
+outlineWidth, rotation, scale, position and size, or be hidden. Everything else is shared, so a layout fix lands in every
 language at once. There is never a per language artboard or a copied project.
 
 ## Setting up
@@ -65,9 +65,10 @@ Translation notes:
 set_locale_override takes elementId, locale and any of: content, screenshotSrc (a localized
 screenshot, as an asset ref), imageSrc, mediaId, fontFamily (this also turns off the automatic
 script substitution for that element), fontSize (this also turns off auto shrink, so the box can
-clip if the string grows), lineHeight, letterSpacing, fontWeight, textAlign, color, rotation,
-scale, position {x, y}, size {width, height} and hidden (true drops the element in that language
-only). null hands one property back to the shared design.
+clip if the string grows), lineHeight, letterSpacing, fontWeight, textAlign, color, outlineColor,
+outlineWidth (an auto shrunk translation keeps the shared width, so a thinner one can suit it),
+rotation, scale, position {x, y}, size {width, height} and hidden (true drops the element in that
+language only). null hands one property back to the shared design.
 
 reset_locale_overrides takes locale and a scope: element (needs elementId), artboard (needs
 artboardId) or project. With fields, for example ["fontSize"] or ["position", "size"], it drops

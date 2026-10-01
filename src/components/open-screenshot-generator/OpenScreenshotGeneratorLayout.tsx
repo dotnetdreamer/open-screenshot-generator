@@ -82,6 +82,8 @@ import {
 import type { LocaleOverrideState } from './LayersPanel';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { installHeadlessBridge, type HeadlessHost } from '@/lib/headless/bridge';
+import { canOpenAsProject, canvasStillHolds, type RenderedCanvas } from '@/lib/projectCanvas';
+import { createProjectSaveQueue } from '@/lib/projectSaveQueue';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
@@ -355,6 +357,32 @@ const NUDGE_DIRECTIONS: Record<string, { x: number; y: number }> = {
 // for. Anything that matters more than the clock (an export, a conversion,
 // somebody naming one) writes its own regardless.
 const VERSION_INTERVAL_MS = 10 * 60 * 1000;
+
+/**
+ * Why handleArtboardsUpdate turned a commit down: an export holds the canvas,
+ * the canvas does not hold the open project's document (a project is opening,
+ * or another document went onto the canvas after the render that made the
+ * commit), or the commit would leave the project with no artboards.
+ */
+type CommitRefusal = 'exporting' | 'opening' | 'empty';
+
+/** What a design tool answers when its commit was turned down. */
+const TOOL_COMMIT_REFUSALS: Record<CommitRefusal, string> = {
+  exporting: 'An export is running, so nothing was changed. Send this again once the export finishes.',
+  opening:
+    'Another project was opened while this call ran, so nothing was changed. Check list_projects for the one open now before you send it again.',
+  empty: 'That would leave the project with no artboards, so nothing was changed. A project keeps at least one.',
+};
+
+/** Why work the user waited for (a translation, images being read) was not saved. */
+const UNSAVED_RESULT_REASONS: Record<CommitRefusal, string> = {
+  exporting: 'An export was running. Try again once it finishes.',
+  opening: 'Another project was opened in the meantime. Open the project again and try once more.',
+  empty: 'A project keeps at least one artboard.',
+};
+
+/** Why a rename or a named version asked for while a project opens was turned down. */
+const PROJECT_STILL_OPENING = 'A project is still opening. Try again once it is open.';
 
 let historyEntrySeq = 0;
 
@@ -1037,6 +1065,53 @@ export function OpenScreenshotGeneratorLayout() {
   projectNameRef.current = currentProjectName;
   const activeProjectIdRef = useRef<string | null>(null);
   activeProjectIdRef.current = activeProjectId;
+  // The project whose document the canvas holds. The loader effect reads a
+  // project out of Dexie only when activeProjectId names a different one, so
+  // every path that puts a document on the canvas itself (loadProjectFromData,
+  // the first edit of a canvas with no project) sets this before it sets the
+  // id. Reading the row back after that would replace the canvas and the undo
+  // stack with the row as it was when the read began, and drop every edit made
+  // in between.
+  const loadedProjectIdRef = useRef<string | null>(null);
+  // Counts the documents that have gone onto the canvas: it moves on every
+  // write of loadedProjectIdRef, the same project opened again included.
+  const canvasSerialRef = useRef(0);
+  // Commits write the open project's row through this queue once the edits go
+  // quiet (src/lib/projectSaveQueue.ts). Made once, because a write it holds
+  // has to outlive the render that scheduled it.
+  const [projectSaves] = useState(() =>
+    createProjectSaveQueue((save) =>
+      db.projects
+        .put({
+          id: save.id,
+          name: save.name,
+          timestamp: new Date(),
+          projectData: JSON.parse(JSON.stringify(save.artboards)),
+        })
+        .catch((error) => {
+          console.error("Error saving project to Dexie:", error);
+        })
+    )
+  );
+  const putProjectOnCanvas = useCallback((projectId: string) => {
+    // The project leaving the canvas took edits up to this moment, and a save
+    // of them may still be waiting. It is written now, before the next
+    // project's first edit schedules a save of its own.
+    void projectSaves.flushOtherThan(projectId);
+    loadedProjectIdRef.current = projectId;
+    canvasSerialRef.current += 1;
+  }, [projectSaves]);
+  // The document this render's artboards are, read once per render. Every
+  // commit path and the design-tool api check it with canvasStillHolds before
+  // they write: while a project opens, the canvas still holds the project
+  // before it, or nothing after a reload, and a commit made from that would be
+  // saved under the incoming project's id.
+  const renderedCanvasProjectId = loadedProjectIdRef.current;
+  const renderedCanvasSerial = canvasSerialRef.current;
+  const renderedCanvas = useMemo<RenderedCanvas>(
+    () => ({ activeProjectId, canvasProjectId: renderedCanvasProjectId, serial: renderedCanvasSerial }),
+    [activeProjectId, renderedCanvasProjectId, renderedCanvasSerial]
+  );
   const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [recentProjectSearch, setRecentProjectSearch] = useState('');
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
@@ -1044,7 +1119,6 @@ export function OpenScreenshotGeneratorLayout() {
   // spinner: bundling a project reads every media blob out of Dexie.
   const [duplicatingProjectId, setDuplicatingProjectId] = useState<string | null>(null);
   const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
-  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   // Which view the preview opens on. The toolbar's Preview menu points at one
   // directly, so the store mockup is reachable without a detour.
@@ -1393,77 +1467,113 @@ export function OpenScreenshotGeneratorLayout() {
     if (!activeProjectId && artboards.length === 0) {
       openStartDialog();
     }
+    // Only an id whose document is not on the canvas yet has a row to read,
+    // see loadedProjectIdRef.
+    if (!activeProjectId || activeProjectId === loadedProjectIdRef.current) return;
+    const projectId = activeProjectId;
+    // A read that lands after another project was chosen, or after another
+    // path put this one on the canvas, is out of date and is dropped.
+    let superseded = false;
+    const isStale = () => superseded || loadedProjectIdRef.current === projectId;
 
     const loadProject = async () => {
-      if (activeProjectId && !isLoadingTemplate) {
-        setLoadPhase('project');
-        try {
-          // Commit any debounced edits of the outgoing project before the
-          // switch, so nothing of it is lost or written after we move on.
-          flushProjectSave();
-          const project = await db.projects.get(activeProjectId);
-          if (project && project.projectData) {
-            // Projects saved before recordings became their own element type
-            // still carry them on the screenshot device — convert on load.
-            // externalizeInlineMedia moves inline base64 screenshots/images into
-            // the Dexie media table (issue #19: inline media multiplied through
-            // every undo snapshot and autosave until WKWebView killed the page).
-            // Positions are derived, so re-lay the boards here too: an imported
-            // or externally written project can carry stale/identical positions
-            // that would stack every board on the same spot.
-            // ensureUniqueElementIds repairs boards an older Duplicate Artboard
-            // aliased; normalizeLocalization re-stamps the language config and
-            // sweeps overrides whose element or language is gone. All return
-            // their input by reference when there is nothing to fix.
-            const externalized = await externalizeInlineMedia(migrateVideoDevices(project.projectData));
-            const projectData = calculateArtboardPositions(
-              normalizeLocalization(ensureUniqueElementIds(externalized))
-            );
-            if (externalized !== project.projectData) {
-              // Persist the slimmed row now, so the multi-MB base64 version is
-              // gone even if the user closes without editing. Timestamp kept:
-              // opening is not a modification.
-              await db.projects.put({
-                ...project,
-                projectData: JSON.parse(JSON.stringify(projectData)),
-              });
-            }
-            setArtboards(projectData);
-            setCurrentProjectName(project.name || 'Untitled Project');
-            // Held, not written: a project somebody opens and closes again
-            // should leave nothing behind. The first edit is what turns this
-            // into a version (see noteVersionCheckpoint).
-            openedSnapshotRef.current = {
-              projectId: activeProjectId,
-              boards: projectData,
-              name: project.name || 'Untitled Project',
-            };
-            setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
-            setHistoryIndex(0);
-            // Auto-select the first artboard so a refreshed project opens ready to
-            // edit (matches loadProjectFromData, the click-a-template path). Without
-            // this, refreshing into ?projectId left nothing selected.
-            setActiveArtboardId(projectData.length > 0 ? projectData[0].id : null);
-            setSelectedElementIdOnActiveArtboard(null);
-            setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
-          } else {
-            console.warn(`Project with ID ${activeProjectId} not found.`);
-            setActiveProjectId(null); // Clear active project state
-            toast({ title: "Project Not Found", description: "The selected project could not be loaded.", variant: "destructive" });
-            openStartDialog(); // Re-open template selector
+      setLoadPhase('project');
+      try {
+        // Commit any debounced edits of the outgoing project before the
+        // switch, so nothing of it is lost or written after we move on.
+        flushProjectSave();
+        const project = await db.projects.get(projectId);
+        if (isStale()) return;
+        if (project && canOpenAsProject(project.projectData)) {
+          // Projects saved before recordings became their own element type
+          // still carry them on the screenshot device — convert on load.
+          // externalizeInlineMedia moves inline base64 screenshots/images into
+          // the Dexie media table (issue #19: inline media multiplied through
+          // every undo snapshot and autosave until WKWebView killed the page).
+          // Positions are derived, so re-lay the boards here too: an imported
+          // or externally written project can carry stale/identical positions
+          // that would stack every board on the same spot.
+          // ensureUniqueElementIds repairs boards an older Duplicate Artboard
+          // aliased; normalizeLocalization re-stamps the language config and
+          // sweeps overrides whose element or language is gone. All return
+          // their input by reference when there is nothing to fix.
+          const externalized = await externalizeInlineMedia(migrateVideoDevices(project.projectData));
+          if (isStale()) return;
+          const projectData = calculateArtboardPositions(
+            normalizeLocalization(ensureUniqueElementIds(externalized))
+          );
+          if (externalized !== project.projectData) {
+            // Persist the slimmed row now, so the multi-MB base64 version is
+            // gone even if the user closes without editing. Timestamp kept:
+            // opening is not a modification.
+            await db.projects.put({
+              ...project,
+              projectData: JSON.parse(JSON.stringify(projectData)),
+            });
           }
-        } catch (error) {
-          console.error("Error loading project from Dexie:", error);
-          setActiveProjectId(null); // Clear active project state on error
-          toast({ title: "Loading Error", description: "Failed to load project. See console for details.", variant: "destructive" });
-          openStartDialog(); // Re-open template selector on error
-        } finally {
-          setLoadPhase('idle');
+          if (isStale()) return;
+          putProjectOnCanvas(projectId);
+          setArtboards(projectData);
+          setCurrentProjectName(project.name || 'Untitled Project');
+          // Held, not written: a project somebody opens and closes again
+          // should leave nothing behind. The first edit is what turns this
+          // into a version (see noteVersionCheckpoint).
+          openedSnapshotRef.current = {
+            projectId,
+            boards: projectData,
+            name: project.name || 'Untitled Project',
+          };
+          setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
+          setHistoryIndex(0);
+          // Auto-select the first artboard so a refreshed project opens ready to
+          // edit (matches loadProjectFromData, the click-a-template path). Without
+          // this, refreshing into ?projectId left nothing selected.
+          setActiveArtboardId(projectData.length > 0 ? projectData[0].id : null);
+          setSelectedElementIdOnActiveArtboard(null);
+          setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
+        } else {
+          // A row with no artboards has nothing to open, the same as a row
+          // that is gone (see canOpenAsProject).
+          const empty = !!project;
+          console.warn(`Project with ID ${projectId} ${empty ? 'has no artboards' : 'not found'}.`);
+          // Back to the project the canvas still shows, or to none after a
+          // reload, so the open project and the canvas agree again.
+          setActiveProjectId(loadedProjectIdRef.current);
+          toast(
+            empty
+              ? {
+                  title: "That project has no artboards",
+                  description: "There is nothing in it to open. Pick another project or start a new one.",
+                  variant: "destructive",
+                }
+              : {
+                  title: "That project could not be found",
+                  description: "It may have been deleted. Pick another project or start a new one.",
+                  variant: "destructive",
+                }
+          );
+          openStartDialog(); // Re-open template selector
         }
+      } catch (error) {
+        console.error("Error loading project from Dexie:", error);
+        if (isStale()) return;
+        // Back to whatever the canvas still shows, as above.
+        setActiveProjectId(loadedProjectIdRef.current);
+        toast({
+          title: "That project could not be opened",
+          description: "Try opening it again, or pick another project.",
+          variant: "destructive",
+        });
+        openStartDialog(); // Re-open template selector on error
+      } finally {
+        setLoadPhase('idle');
       }
     };
     loadProject();
- }, [activeProjectId, isLoadingTemplate, toast, openStartDialog]); // Added isLoadingTemplate dependency
+    return () => {
+      superseded = true;
+    };
+ }, [activeProjectId, toast, openStartDialog, putProjectOnCanvas]);
   /**
    * Record a new history state. `change` names the command when the caller
    * knows it (Paste, Convert to iPhone 15); otherwise the name is recovered by
@@ -1472,11 +1582,21 @@ export function OpenScreenshotGeneratorLayout() {
    *
    * Continuous tweaks (a slider fires an update per pixel) collapse into the
    * state they started, so one gesture is one entry in the panel and one undo.
+   *
+   * `startsProject` marks the edit that creates a project. Nothing before it
+   * belongs to that project, so its state becomes the bottom of the stack, the
+   * way an opened project's history starts at the state it opened in. Undo
+   * stops there instead of emptying a project that is already saved.
    */
-  const pushToHistory = (newArtboardsState: ArtboardState[], change?: HistoryChange) => {
+  const pushToHistory = (newArtboardsState: ArtboardState[], change?: HistoryChange, startsProject = false) => {
     const trimmed = history.slice(0, historyIndex + 1);
     const previous = trimmed[trimmed.length - 1];
     const described = change ?? describeArtboardsChange(previous?.artboards ?? [], newArtboardsState);
+    if (startsProject) {
+      setHistory([makeHistoryEntry(newArtboardsState, described ?? namedChange('New Document', 'open'))]);
+      setHistoryIndex(0);
+      return;
+    }
     // Nothing actually moved (a re-save, a no-op update): leave the stack alone
     // so the panel does not fill with states that restore the same thing.
     if (!described) return;
@@ -1538,9 +1658,11 @@ export function OpenScreenshotGeneratorLayout() {
    * Enabled for the project that is currently open, unlike Delete next to it:
    * the open one is exactly the one people want a variant of. That is also why
    * the bundle is built from the canvas rather than the stored row when the
-   * target IS the open project: handleArtboardsUpdate's db.projects.put is
-   * fire and forget, so the row can lag the editor by a tick and a naive copy
-   * would quietly drop the last edit.
+   * target is the project on the canvas: handleArtboardsUpdate's
+   * db.projects.put is fire and forget, so the row can lag the editor by a
+   * tick and a naive copy would quietly drop the last edit. While a project
+   * opens, the canvas still holds the one before it, so the project being
+   * opened is copied from its row.
    *
    * importBundle restores media under their original ids and skips ids already
    * present, so the copy shares those blobs by reference and writes no bytes.
@@ -1555,7 +1677,7 @@ export function OpenScreenshotGeneratorLayout() {
       // must fail loudly: the list entry is a stub, and duplicating it would
       // produce an empty copy that looks like the design was destroyed.
       let source: Project;
-      if (project.id === activeProjectId) {
+      if (project.id === loadedProjectIdRef.current) {
         source = {
           ...project,
           name: currentProjectName,
@@ -1604,36 +1726,12 @@ export function OpenScreenshotGeneratorLayout() {
     }
   };
 
-  // Debounced project save (issue #19). A slider can commit per pixel, and each
-  // commit used to serialize the whole project and rewrite the full IndexedDB
-  // row on the spot: hundreds of stringify+structured-clone passes per gesture.
-  // Commits now only schedule; the row is written once the edits go quiet.
-  // The scheduled row captures id/name/artboards at schedule time, so a save
-  // that fires after a project switch still writes the right data to the right
-  // row. Flushed early on unload and before a project switch or duplicate.
-  const pendingSaveRef = useRef<{
-    timer: ReturnType<typeof setTimeout>;
-    id: string;
-    name: string;
-    artboards: ArtboardState[];
-  } | null>(null);
-  // Returns the put's promise so close paths can wait for durability; readers
-  // that follow up with db.projects.get need not await it, since IndexedDB
-  // runs overlapping-scope transactions in creation order.
-  const flushProjectSave = useCallback((): Promise<unknown> => {
-    const pending = pendingSaveRef.current;
-    if (!pending) return Promise.resolve();
-    pendingSaveRef.current = null;
-    clearTimeout(pending.timer);
-    return db.projects.put({
-      id: pending.id,
-      name: pending.name,
-      timestamp: new Date(),
-      projectData: JSON.parse(JSON.stringify(pending.artboards)),
-    }).catch((error) => {
-      console.error("Error saving project to Dexie:", error);
-    });
-  }, []);
+  // Writes the save still waiting in projectSaves (the debounced write, issue
+  // #19), on unload and before a project switch or duplicate. Returns the
+  // put's promise so close paths can wait for durability; readers that follow
+  // up with db.projects.get need not await it, since IndexedDB runs
+  // overlapping-scope transactions in creation order.
+  const flushProjectSave = useCallback((): Promise<unknown> => projectSaves.flush(), [projectSaves]);
 
   /*
    * The same project, kept in the cloud on its own.
@@ -1704,16 +1802,22 @@ export function OpenScreenshotGeneratorLayout() {
   const noteAccountChange = accountSync.noteChange;
 
   const scheduleProjectSave = useCallback((id: string, name: string, artboardsToSave: ArtboardState[]) => {
-    if (pendingSaveRef.current) clearTimeout(pendingSaveRef.current.timer);
-    const timer = setTimeout(() => flushProjectSave(), 600);
-    pendingSaveRef.current = { timer, id, name, artboards: artboardsToSave };
+    // A row is only ever written for the project whose document is on the
+    // canvas. While another one opens, the boards handed in here are the
+    // outgoing project's (or none), and saving them under the incoming id
+    // would replace that project's artboards and name with them.
+    if (id !== loadedProjectIdRef.current) {
+      console.warn(`Not saving project ${id}: the canvas holds a different project.`);
+      return;
+    }
+    projectSaves.schedule({ id, name, artboards: artboardsToSave });
     // Cheap by design: this runs once per commit, and a drag commits per pixel.
     // The single funnel every commit path goes through, which is why one line
     // here covers handleArtboardsUpdate, applyRemoteArtboards and the history
     // stack without any of them knowing either saver exists.
     noteCloudChange(id);
     noteAccountChange(id);
-  }, [flushProjectSave, noteCloudChange, noteAccountChange]);
+  }, [projectSaves, noteCloudChange, noteAccountChange]);
   // Unload must not lose the last half-second of edits. `pagehide` covers the
   // web; a Tauri window close destroys the webview WITHOUT any unload events,
   // so the desktop shell needs the window's close-requested hook, where the
@@ -1779,6 +1883,11 @@ export function OpenScreenshotGeneratorLayout() {
     lastAutoVersionRef.current = Date.now();
   }, [activeProjectId, projectOpenToken, refreshVersions]);
 
+  /**
+   * Keep `boards` as a version of the project. True when a version was
+   * written: nothing is kept while another project opens, and saveVersion
+   * answers null when its write fails.
+   */
   const writeVersion = useCallback(
     async (
       boards: ArtboardState[],
@@ -1786,11 +1895,17 @@ export function OpenScreenshotGeneratorLayout() {
       kind: 'named' | 'auto' | 'safety',
       projectId?: string | null,
       projectName?: string
-    ) => {
+    ): Promise<boolean> => {
       const target = projectId ?? activeProjectIdRef.current;
-      if (!target) return;
-      await saveVersion(target, boards, projectName ?? projectNameRef.current, { kind, label });
+      if (!target) return false;
+      // Every caller hands in the canvas, so the version belongs to the
+      // project the canvas holds. While another project opens, that is not
+      // the open one, and the boards would be kept as a version of the wrong
+      // project (see scheduleProjectSave).
+      if (target !== loadedProjectIdRef.current) return false;
+      const saved = await saveVersion(target, boards, projectName ?? projectNameRef.current, { kind, label });
       if (target === activeProjectIdRef.current) await refreshVersions(target);
+      return saved !== null;
     },
     [refreshVersions]
   );
@@ -1820,14 +1935,38 @@ export function OpenScreenshotGeneratorLayout() {
     [writeVersion]
   );
 
-  const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange) => {
+  // Why the last commit below was turned down, for the callers that say so:
+  // a design tool answers it as an error, and work the user waited for
+  // explains it in a toast.
+  const commitRefusalRef = useRef<CommitRefusal | null>(null);
+  // True when the commit landed. The refusals below log, record their reason
+  // and return false, so a caller that reports success can report this instead.
+  const handleArtboardsUpdate = useCallback((updatedArtboards: ArtboardState[], change?: HistoryChange): boolean => {
     // An export has a converted or re-projected list on the canvas. A commit
     // arriving now (an MCP tool, a drag settling on mouseup) would be measured
     // against that temporary render and persist it as the project.
     if (isExportingRef.current) {
       console.warn('Ignoring an artboard update while an export is swapping the canvas.');
-      return;
+      commitRefusalRef.current = 'exporting';
+      return false;
     }
+    // Made while a project was opening, or from a render whose document has
+    // been replaced since: the boards are built from the wrong project, the
+    // document being opened would replace them anyway, and saving them would
+    // put them under the open project's id.
+    if (!canvasStillHolds(renderedCanvas, canvasSerialRef.current)) {
+      console.warn('Ignoring an artboard update made while a project was opening.');
+      commitRefusalRef.current = 'opening';
+      return false;
+    }
+    // A project keeps at least one artboard (see canOpenAsProject), so no state
+    // without one reaches the canvas, the stored row or the undo stack.
+    if (updatedArtboards.length === 0) {
+      console.warn('Ignoring an artboard update that would leave the project with no artboards.');
+      commitRefusalRef.current = 'empty';
+      return false;
+    }
+    commitRefusalRef.current = null;
     const repositionedArtboards = calculateArtboardPositions(updatedArtboards);
     setArtboards(repositionedArtboards); // Update React state first
     noteVersionCheckpoint(repositionedArtboards);
@@ -1837,14 +1976,28 @@ export function OpenScreenshotGeneratorLayout() {
 
     const saveProject = async () => {
       let projectIdToSave = activeProjectId;
+      let projectNameToSave = currentProjectName;
       if (!projectIdToSave) {
         // Generate a new ID only if there is no active project
         projectIdToSave = Date.now().toString();
         // Set a random project name for new projects
-        setCurrentProjectName(generateRandomProjectName());
+        projectNameToSave = generateRandomProjectName();
+        setCurrentProjectName(projectNameToSave);
+        // The canvas already holds this project, so the loader effect has
+        // nothing to read back (see loadedProjectIdRef), and the start dialog
+        // closes the way it does when any other project opens.
+        putProjectOnCanvas(projectIdToSave);
+        setIsTemplateSelectorOpen(false);
+        // The state the project starts in is what its first version keeps,
+        // as with an opened project (see noteVersionCheckpoint).
+        openedSnapshotRef.current = {
+          projectId: projectIdToSave,
+          boards: repositionedArtboards,
+          name: projectNameToSave,
+        };
       }
 
-      scheduleProjectSave(projectIdToSave, currentProjectName, repositionedArtboards);
+      scheduleProjectSave(projectIdToSave, projectNameToSave, repositionedArtboards);
 
       if (activeProjectId !== projectIdToSave) {
         setActiveProjectId(projectIdToSave); // Set the new active project ID if it was just created
@@ -1865,8 +2018,10 @@ export function OpenScreenshotGeneratorLayout() {
         }
     }
     saveProject(); // Call the async save function
-    pushToHistory(repositionedArtboards, change);
-  }, [activeArtboardId, selectedElementIds, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId, collabPublish, scheduleProjectSave, noteVersionCheckpoint]);
+    // With no project open, this edit is the one that creates it.
+    pushToHistory(repositionedArtboards, change, !activeProjectId);
+    return true;
+  }, [activeArtboardId, selectedElementIds, activeProjectId, currentProjectName, history, historyIndex, setActiveProjectId, collabPublish, scheduleProjectSave, noteVersionCheckpoint, renderedCanvas, putProjectOnCanvas]);
   /**
    * The newest handleArtboardsUpdate, for work that commits after an await.
    * The one a render closed over pushes onto that render's history and saves
@@ -1875,6 +2030,33 @@ export function OpenScreenshotGeneratorLayout() {
    */
   const handleArtboardsUpdateRef = useRef(handleArtboardsUpdate);
   handleArtboardsUpdateRef.current = handleArtboardsUpdate;
+
+  /**
+   * For work the user waited on (a translation, images being read) whose
+   * commit was turned down: says the result was not saved, and why, in place
+   * of the toast that would have reported it.
+   */
+  const toastUnsavedResult = useCallback(
+    (title: string) => {
+      toast({
+        title,
+        description: UNSAVED_RESULT_REASONS[commitRefusalRef.current ?? 'opening'],
+        variant: 'destructive',
+      });
+    },
+    [toast]
+  );
+
+  /**
+   * Whether handleArtboardsUpdate would take a commit now. The handlers that
+   * edit through an Artboard component ask this first, because the component
+   * reports success itself and keeps its own copy of the elements, so a
+   * refused commit would leave both saying the edit happened.
+   */
+  const canvasTakesCommits = useCallback(
+    () => !isExportingRef.current && canvasStillHolds(renderedCanvas, canvasSerialRef.current),
+    [renderedCanvas]
+  );
 
   /**
    * A change from somebody else in the room.
@@ -1922,10 +2104,23 @@ export function OpenScreenshotGeneratorLayout() {
   /** Keep this exact state under a name. Never thinned away afterwards. */
   const handleSaveNamedVersion = async (label: string) => {
     if (!activeProjectId || isVersionBusy) return;
+    // A version keeps the canvas, and while a project opens the canvas still
+    // shows the one before it, so writeVersion keeps nothing then.
+    if (activeProjectIdRef.current !== loadedProjectIdRef.current) {
+      toast({ title: 'The version was not saved', description: PROJECT_STILL_OPENING, variant: 'destructive' });
+      return;
+    }
     setIsVersionBusy(true);
     try {
-      await writeVersion(artboardsRef.current, label, 'named');
-      toast({ title: 'Version saved', description: `"${label}" is in the Versions list, under History.` });
+      if (await writeVersion(artboardsRef.current, label, 'named')) {
+        toast({ title: 'Version saved', description: `"${label}" is in the Versions list, under History.` });
+      } else {
+        toast({
+          title: 'The version was not saved',
+          description: 'It could not be stored on this device. Try again.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsVersionBusy(false);
     }
@@ -1952,8 +2147,18 @@ export function OpenScreenshotGeneratorLayout() {
         });
         return;
       }
+      // A project keeps at least one artboard (see canOpenAsProject).
+      if (!canOpenAsProject(restored.boards)) {
+        toast({ title: 'That version has no artboards', description: 'Nothing was changed.', variant: 'destructive' });
+        return;
+      }
       await writeVersion(artboardsRef.current, 'Before restore', 'safety');
-      handleArtboardsUpdate(restored.boards, namedChange('Restore version', 'open', version.label));
+      // The commit is refused when another project opened during the reads
+      // above, since this version belongs to the project that was open.
+      if (!handleArtboardsUpdate(restored.boards, namedChange('Restore version', 'open', version.label))) {
+        toast({ title: 'Restore failed', description: 'Nothing was changed.', variant: 'destructive' });
+        return;
+      }
       toast({
         title: 'Version restored',
         description: `"${version.label}" is on the canvas. Undo puts it back the way it was.`,
@@ -1979,6 +2184,11 @@ export function OpenScreenshotGeneratorLayout() {
     try {
       const restored = await readVersion(version.id);
       if (!restored) throw new Error('That version could not be read.');
+      // Checked before the row below is written, so a version with no
+      // artboards leaves no empty project behind in Recent projects.
+      if (!canOpenAsProject(restored.boards)) {
+        throw new Error('That version has no artboards, so there is nothing to open.');
+      }
       flushProjectSave();
       const copyId = `project_${Date.now()}`;
       const name = `${restored.projectName} (${version.label})`;
@@ -2083,6 +2293,11 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
     const described = change ?? describeArtboardsChange(base, next);
+    const landed = handleArtboardsUpdate(
+      next,
+      described ? { ...described, label: `${described.label} (all languages)` } : undefined
+    );
+    if (!landed) return;
     // Throttled, NOT once per session. A single lifetime showing is consumed by
     // the first shared edit a user ever makes, and every later one then changes
     // all their languages silently, which reads as the feature being broken.
@@ -2097,10 +2312,6 @@ export function OpenScreenshotGeneratorLayout() {
         description: `Text and screenshots are ${localeName(locale)} only. For anything else, use the "This language only" toggle beside that property first.`,
       });
     }
-    handleArtboardsUpdate(
-      next,
-      described ? { ...described, label: `${described.label} (all languages)` } : undefined
-    );
   }, [handleArtboardsUpdate, toast]);
 
   // Switching language commits nothing: the view is a memo over `artboards`.
@@ -2255,9 +2466,11 @@ export function OpenScreenshotGeneratorLayout() {
     }
     const next = await runLocaleTranslation(locale, 'all', { ...scope, includeManual: true });
     if (next && next !== artboardsRef.current) {
-      handleArtboardsUpdate(next, namedChange(label, 'translate', localeLabel(locale)));
+      if (!handleArtboardsUpdate(next, namedChange(label, 'translate', localeLabel(locale)))) {
+        toastUnsavedResult('The translation was not saved');
+      }
     }
-  }, [handleArtboardsUpdate, runLocaleTranslation, toast]);
+  }, [handleArtboardsUpdate, runLocaleTranslation, toast, toastUnsavedResult]);
 
   /** Asks the running translation to stop. The dialog stays up until it has. */
   const handleCancelTranslation = useCallback(() => {
@@ -2318,17 +2531,21 @@ export function OpenScreenshotGeneratorLayout() {
         setIsCancellingTranslate(false);
       }
     }
-    handleArtboardsUpdate(
+    const landed = handleArtboardsUpdate(
       boards,
       namedChange('Add Languages', 'translate', `${next.locales.length} languages`)
     );
+    if (!landed) {
+      toastUnsavedResult('The languages were not saved');
+      return;
+    }
     // Viewing a language that was just removed would show a projection of a
     // locale the project no longer has.
     const viewing = activeLocaleRef.current;
     if (viewing && !next.locales.some((entry) => entry.code === viewing)) {
       handleSelectLocale(null);
     }
-  }, [handleArtboardsUpdate, handleSelectLocale]);
+  }, [handleArtboardsUpdate, handleSelectLocale, toastUnsavedResult]);
 
   const handleOpenTranslations = useCallback((filter: 'all' | 'untranslated' = 'all') => {
     setTranslationTableLocale(activeLocaleRef.current);
@@ -2349,14 +2566,19 @@ export function OpenScreenshotGeneratorLayout() {
     }
     const next = await runLocaleTranslation(locale, 'stale');
     if (next && next !== artboardsRef.current) {
-      handleArtboardsUpdate(next, namedChange('Update Translations', 'translate', localeLabel(locale)));
+      if (!handleArtboardsUpdate(next, namedChange('Update Translations', 'translate', localeLabel(locale)))) {
+        toastUnsavedResult('The translation was not saved');
+      }
     }
-  }, [handleArtboardsUpdate, runLocaleTranslation, toast]);
+  }, [handleArtboardsUpdate, runLocaleTranslation, toast, toastUnsavedResult]);
 
-  // One commit for a whole bulk-entry session, so undo restores all of it.
+  // One commit for a whole bulk-entry session, so undo restores all of it. The
+  // table closes on Save, so a commit turned down has to say so here.
   const handleSaveTranslations = useCallback((next: ArtboardState[], editedCount: number) => {
-    handleArtboardsUpdate(next, namedChange('Edit Translations', 'translate', `${editedCount} strings`));
-  }, [handleArtboardsUpdate]);
+    if (!handleArtboardsUpdate(next, namedChange('Edit Translations', 'translate', `${editedCount} strings`))) {
+      toastUnsavedResult('The translations were not saved');
+    }
+  }, [handleArtboardsUpdate, toastUnsavedResult]);
 
   /** Drops one override key, handing that row back to the base language. */
   const handleResetLocaleField = useCallback((
@@ -2910,7 +3132,7 @@ export function OpenScreenshotGeneratorLayout() {
     // Every board resized and every mockup swapped in one commit: undo covers
     // it, but only until the tab is closed.
     void writeVersion(artboardsRef.current, `Before ${preset.label}`, 'safety');
-    handleArtboardsUpdate(converted, namedChange(`Convert to ${preset.label}`, 'device'));
+    if (!handleArtboardsUpdate(converted, namedChange(`Convert to ${preset.label}`, 'device'))) return;
     trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
       resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
@@ -2938,42 +3160,56 @@ export function OpenScreenshotGeneratorLayout() {
         }
         return ab;
       });
-      handleArtboardsUpdate(updatedArtboards);
+      if (!handleArtboardsUpdate(updatedArtboards)) return;
       toast({ title: "Element Renamed", description: `Element renamed to "${newName}".` });
     }
   };
 
-  // Handler for renaming the current project
-  const handleRenameProject = async (newName: string) => {
-    if (activeProjectId && newName.trim() && newName.trim() !== currentProjectName) {
-      const trimmedName = newName.trim();
-      setCurrentProjectName(trimmedName);
-      
-      // Update the project in the database. Flush any debounced save first:
-      // a pending row still carries the old name and would win the race.
-      try {
-        flushProjectSave();
-        const project = await db.projects.get(activeProjectId);
-        if (project) {
-          await db.projects.put({
-            ...project,
-            name: trimmedName,
-          });
-          // A rename writes the row without going through handleArtboardsUpdate,
-          // so both savers have to be told about it here or they would keep the
-          // old name until the next edit to the design itself.
-          noteCloudChange(activeProjectId);
-          noteAccountChange(activeProjectId);
-          toast({ title: "Project Renamed", description: `Project renamed to "${trimmedName}".` });
-        }
-      } catch (error) {
-        console.error("Error renaming project:", error);
-        toast({ title: "Rename Failed", description: "Failed to rename project.", variant: "destructive" });
-      }
+  // Handler for renaming the current project. True when the project has the
+  // new name.
+  const handleRenameProject = async (newName: string): Promise<boolean> => {
+    const trimmedName = newName.trim();
+    if (!activeProjectId || !trimmedName) return false;
+    if (trimmedName === currentProjectName) return true;
+    // While a project opens, the name field still shows the project on the
+    // canvas, but activeProjectId already names the one being read. A rename
+    // now would be written to that row, and the name the read brings back
+    // would replace it at the next save. Edits are turned down in that window
+    // (handleArtboardsUpdate), and so is this.
+    if (!canvasStillHolds(renderedCanvas, canvasSerialRef.current)) {
+      toast({ title: 'The project was not renamed', description: PROJECT_STILL_OPENING, variant: 'destructive' });
+      return false;
     }
+    setCurrentProjectName(trimmedName);
+
+    // Update the project in the database. Flush any debounced save first:
+    // a pending row still carries the old name and would win the race.
+    try {
+      flushProjectSave();
+      const project = await db.projects.get(activeProjectId);
+      if (project) {
+        await db.projects.put({
+          ...project,
+          name: trimmedName,
+        });
+        // A rename writes the row without going through handleArtboardsUpdate,
+        // so both savers have to be told about it here or they would keep the
+        // old name until the next edit to the design itself.
+        noteCloudChange(activeProjectId);
+        noteAccountChange(activeProjectId);
+        toast({ title: 'Project renamed', description: `It is called "${trimmedName}" now.` });
+        return true;
+      }
+    } catch (error) {
+      console.error("Error renaming project:", error);
+      toast({ title: 'The new name was not saved', description: 'Try again.', variant: 'destructive' });
+    }
+    return false;
   };
 
   const handleAddElementToArtboard = useCallback((artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => {
+    // The component adds and announces the element itself (see canvasTakesCommits).
+    if (!canvasTakesCommits()) return;
     const artboardComponent = artboardRefs.current[artboardId];
     if (artboardComponent && typeof artboardComponent.addElement === 'function') {
       const newElementId = artboardComponent.addElement(type, subType, dropPosition, styleProps);
@@ -2984,7 +3220,7 @@ export function OpenScreenshotGeneratorLayout() {
     } else {
       toast({ title: "Error", description: "Could not add element. Artboard not found or not active.", variant: "destructive" });
     }
-  }, [toast]);
+  }, [toast, canvasTakesCommits]);
 
   // Sound layers are added with their file, so both doors (the timeline's
   // "+ Sound" and the palette tile) open the file picker first and add the
@@ -3189,13 +3425,17 @@ export function OpenScreenshotGeneratorLayout() {
 
       if (filled > 0 || placedImages > 0) {
         const total = filled + placedImages;
-        handleArtboardsUpdate(
+        const landed = handleArtboardsUpdate(
           next,
           namedChange(
             total === 1 ? 'Drop in a screenshot' : `Drop in ${total} screenshots`,
             'add'
           )
         );
+        if (!landed) {
+          toastUnsavedResult(filled > 0 ? 'The screenshots were not placed' : 'The images were not added');
+          return;
+        }
       }
 
       toast({
@@ -3286,10 +3526,12 @@ export function OpenScreenshotGeneratorLayout() {
     // answers from the first board that has one; normalize re-stamps it so a
     // new board joins the project's languages instead of silently opting out.
     // Returns the input by reference for a project with no languages at all.
-    handleArtboardsUpdate(
+    // Null when the commit was turned down, so nothing is selected or announced.
+    const landed = handleArtboardsUpdate(
       normalizeLocalization(newArtboardsArray),
       namedChange(options.historyLabel ?? 'Add Artboard', 'artboard', newArtboard.name)
     );
+    if (!landed) return null;
     setActiveArtboardId(newArtboard.id);
     setSelectedElementIdOnActiveArtboard(null);
     toast(options.notice ?? {
@@ -3387,7 +3629,7 @@ export function OpenScreenshotGeneratorLayout() {
       newArtboardsArray.push(duplicatedArtboard);
     }
 
-    handleArtboardsUpdate(newArtboardsArray, namedChange('Duplicate Artboard', 'copy', artboardToDuplicate.name));
+    if (!handleArtboardsUpdate(newArtboardsArray, namedChange('Duplicate Artboard', 'copy', artboardToDuplicate.name))) return;
     setActiveArtboardId(duplicatedArtboard.id);
     toast({ title: "Artboard Duplicated", description: `Artboard "${artboardToDuplicate.name}" duplicated.` });
   };
@@ -3401,7 +3643,7 @@ export function OpenScreenshotGeneratorLayout() {
     if (!artboardToDelete) return;
 
     const newArtboardsArray = artboards.filter(ab => ab.id !== artboardId);
-    handleArtboardsUpdate(newArtboardsArray, namedChange('Delete Artboard', 'delete', artboardToDelete.name));
+    if (!handleArtboardsUpdate(newArtboardsArray, namedChange('Delete Artboard', 'delete', artboardToDelete.name))) return;
 
     if (activeArtboardId === artboardId) {
       setActiveArtboardId(newArtboardsArray.length > 0 ? newArtboardsArray[0].id : null);
@@ -3427,7 +3669,7 @@ export function OpenScreenshotGeneratorLayout() {
       return; 
     }
   
-    handleArtboardsUpdate(newArtboardsArray, namedChange('Move Artboard', 'order', targetArtboard.name));
+    if (!handleArtboardsUpdate(newArtboardsArray, namedChange('Move Artboard', 'order', targetArtboard.name))) return;
     toast({ title: "Artboard Moved", description: `Artboard "${targetArtboard.name}" moved ${direction}.` });
   };
 
@@ -3573,8 +3815,7 @@ export function OpenScreenshotGeneratorLayout() {
       });
     } catch (error) {
       console.error("Error creating project from template:", error);
-      setIsLoadingTemplate(false); // Reset loading flag on error
-      toast({ 
+      toast({
         title: "Creation Failed", 
         description: "Failed to create project from template.", 
         variant: "destructive" 
@@ -5204,6 +5445,10 @@ export function OpenScreenshotGeneratorLayout() {
    */
   const applyHistoryIndex = useCallback((targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= history.length || targetIndex === historyIndex) return;
+    // The stack holds states of the document this render shows. While another
+    // project opens, stepping through it would put the outgoing project back
+    // on the canvas and save it under the incoming project's id.
+    if (!canvasStillHolds(renderedCanvas, canvasSerialRef.current)) return;
     const state: ArtboardState[] = JSON.parse(JSON.stringify(history[targetIndex].artboards));
     setHistoryIndex(targetIndex);
     setArtboards(state);
@@ -5217,7 +5462,7 @@ export function OpenScreenshotGeneratorLayout() {
       // used to write three full rows back to back.
       scheduleProjectSave(activeProjectId, currentProjectName, state);
     }
-  }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName, scheduleProjectSave]);
+  }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName, scheduleProjectSave, renderedCanvas]);
 
   const handleUndo = useCallback(() => {
     applyHistoryIndex(historyIndex - 1);
@@ -5248,13 +5493,14 @@ export function OpenScreenshotGeneratorLayout() {
       // dropElementOverrides in the same pass, the way every other delete path
       // does it: a translation left behind under a dead id is what a re-minted
       // id would later inherit.
-      handleArtboardsUpdate(
+      const landed = handleArtboardsUpdate(
         artboards.map(ab =>
           ab.id === activeArtboardId
             ? dropElementOverrides({ ...ab, elements: remaining }, [...doomed])
             : ab
         )
       );
+      if (!landed) return;
       setSelectedElementIds([]);
       toast({
         title: removedCount === 1 ? "Element deleted" : `${removedCount} elements deleted`,
@@ -5605,6 +5851,8 @@ export function OpenScreenshotGeneratorLayout() {
 
   // Add handler for deleting element from layers panel
   const handleDeleteElementFromLayerPanel = (elementId: string) => {
+    // The component deletes the element itself (see canvasTakesCommits).
+    if (!canvasTakesCommits()) return;
     if (activeArtboardId) {
       const artboardComponent = artboardRefs.current[activeArtboardId];
       if (artboardComponent && artboardComponent.deleteElementByIdG) {
@@ -5677,7 +5925,7 @@ export function OpenScreenshotGeneratorLayout() {
     
     // Through the one door: this used to push history and set state without
     // ever writing Dexie, so a canvas size change did not survive a reload.
-    handleArtboardsUpdate(updatedArtboards, namedChange(`Canvas Size ${width} x ${height}`, 'resize'));
+    if (!handleArtboardsUpdate(updatedArtboards, namedChange(`Canvas Size ${width} x ${height}`, 'resize'))) return;
 
     toast({
       title: "Artboard Size Updated",
@@ -5808,8 +6056,12 @@ export function OpenScreenshotGeneratorLayout() {
     }
 
     if (rateLimitHit) {
-      if (successCount > 0) {
-        handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`));
+      if (
+        successCount > 0 &&
+        !handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`))
+      ) {
+        toastUnsavedResult('The translation was not saved');
+        return;
       }
       toast({
         title: "Rate limit exceeded",
@@ -5817,7 +6069,10 @@ export function OpenScreenshotGeneratorLayout() {
         variant: "destructive"
       });
     } else if (successCount > 0) {
-      handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`));
+      if (!handleArtboardsUpdate(newArtboards, namedChange('Translate', 'translate', `${successCount} text layers`))) {
+        toastUnsavedResult('The translation was not saved');
+        return;
+      }
       toast({
         title: "Translation complete",
         description: `Successfully translated ${successCount} text element(s).${failCount > 0 ? ` Failed to translate ${failCount} element(s).` : ''}`
@@ -5898,7 +6153,7 @@ export function OpenScreenshotGeneratorLayout() {
       (el) => el.type === 'text' && el.id !== elementId
     );
 
-    handleArtboardsUpdate(
+    const landed = handleArtboardsUpdate(
       artboards.map((ab) =>
         ab.id !== owner.id
           ? ab
@@ -5914,6 +6169,10 @@ export function OpenScreenshotGeneratorLayout() {
       ),
       namedChange('Translate', 'translate', getElementDisplayName(element))
     );
+    if (!landed) {
+      toastUnsavedResult('The translation was not saved');
+      return;
+    }
 
     toast({
       title: "Translation complete",
@@ -6361,6 +6620,8 @@ export function OpenScreenshotGeneratorLayout() {
     const element = artboards.find(ab => ab.id === artboardId)?.elements.find(el => el.id === elementId);
     if (!element) return;
 
+    // The component deletes the element itself (see canvasTakesCommits).
+    if (!canvasTakesCommits()) return;
     const artboardComponent = artboardRefs.current[artboardId];
     if (!artboardComponent?.deleteElementByIdG) {
       toast({ title: "Cannot Delete Element", description: "Artboard component reference not found.", variant: "destructive" });
@@ -6423,7 +6684,7 @@ export function OpenScreenshotGeneratorLayout() {
         return ab;
       });
 
-      handleArtboardsUpdate(
+      const landed = handleArtboardsUpdate(
         updatedArtboards,
         namedChange(
           'Paste',
@@ -6431,6 +6692,7 @@ export function OpenScreenshotGeneratorLayout() {
           newElements.length === 1 ? getElementDisplayName(newElements[0]) : `${newElements.length} layers`
         )
       );
+      if (!landed) return;
       if (artboardId !== activeArtboardId) {
         setActiveArtboardId(artboardId);
       }
@@ -6590,8 +6852,14 @@ export function OpenScreenshotGeneratorLayout() {
 
   // Common function to load project data and apply positioning
   const loadProjectFromData = async (projectData: ArtboardState[], projectName: string, projectId: string) => {
+    // A project keeps at least one artboard (see canOpenAsProject), so a
+    // document with none is refused before anything is stored. The callers
+    // report the false; the headless bridge returns it to the CLI.
+    if (!canOpenAsProject(projectData)) {
+      console.warn(`Not opening "${projectName}": it has no artboards.`);
+      return false;
+    }
     try {
-      setIsLoadingTemplate(true); // Prevent effect from loading project
       // The outgoing project may still have a debounced save pending.
       flushProjectSave();
       
@@ -6605,9 +6873,32 @@ export function OpenScreenshotGeneratorLayout() {
         )
       );
       console.log("Final artboards with positions:", finalArtboards.map((ab: ArtboardState) => ({ id: ab.id, position: ab.position })));
-      
+
+      // Store what the canvas is about to show. Most callers wrote a row a
+      // moment ago, before the passes above; the headless bridge hands in a
+      // document that has no row at all, and a project without one is missing
+      // from Recent projects and cannot be reopened. An existing row keeps its
+      // timestamp and its other fields, because opening a project is not an
+      // edit.
+      const stored = await db.projects.get(projectId);
+      await db.projects.put({
+        ...stored,
+        id: projectId,
+        name: projectName,
+        timestamp: stored?.timestamp ?? new Date(),
+        projectData: JSON.parse(JSON.stringify(finalArtboards)),
+      });
+      // An edit made to this same project while the passes above ran is
+      // replaced by the document being opened, and its waiting save would
+      // write it back over the row stored just now. A waiting save of the
+      // project being left is written by putProjectOnCanvas below.
+      projectSaves.drop(projectId);
+
       // Set project details first to avoid triggering effects
       setCurrentProjectName(projectName);
+      // Before the id, so the loader effect does not read this project back
+      // over the document set below.
+      putProjectOnCanvas(projectId);
       setActiveProjectId(projectId);
       // Every open path funnels through here, which is what makes this the one
       // place the cloud auto saver has to be re-armed from, and the one place
@@ -6635,11 +6926,9 @@ export function OpenScreenshotGeneratorLayout() {
         window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
       }
 
-      setIsLoadingTemplate(false); // Reset loading flag
       return true; // Success
     } catch (error) {
       console.error("Error loading project data:", error);
-      setIsLoadingTemplate(false); // Reset loading flag on error
       return false; // Failure
     }
   };
@@ -7514,8 +7803,27 @@ const generateRandomProjectName = (): string => {
     };
   };
 
+  /** The error a design tool answers with when its commit was turned down. */
+  const toolCommitRefused = () => new Error(TOOL_COMMIT_REFUSALS[commitRefusalRef.current ?? 'opening']);
+
+  /**
+   * The commit every design tool below makes. handleArtboardsUpdate turns a
+   * commit down while an export holds the canvas, or once another project's
+   * document has gone onto it, and a tool that went on to answer with its
+   * result would report a change that never landed. A tool that commits after
+   * an await of its own and builds on the newest state passes the newest
+   * handleArtboardsUpdate as `commit`.
+   */
+  const commitForTool = (
+    next: ArtboardState[],
+    change?: HistoryChange,
+    commit: (boards: ArtboardState[], change?: HistoryChange) => boolean = handleArtboardsUpdate
+  ): void => {
+    if (!commit(next, change)) throw toolCommitRefused();
+  };
+
   // Every mutating tool below writes the BASE document and commits through
-  // handleArtboardsUpdate. None of them may ever be switched to viewArtboards:
+  // commitForTool. None of them may ever be switched to viewArtboards:
   // update_element through a projection would turn a colour change into a
   // per-language override, and delete_element would trip the unproject
   // assertion and silently drop the commit. Only the two read tools project,
@@ -7556,7 +7864,7 @@ const generateRandomProjectName = (): string => {
         backgroundType: 'solid',
         zoom: 1,
       };
-      handleArtboardsUpdate([...artboards, board]);
+      commitForTool([...artboards, board]);
       setActiveArtboardId(id);
       return { id, name: board.name, width: size.width, height: size.height, backgroundColor: board.backgroundColor, elementCount: 0, active: true };
     },
@@ -7600,7 +7908,7 @@ const generateRandomProjectName = (): string => {
         const [moved] = next.splice(from, 1);
         next.splice(to, 0, moved);
       }
-      handleArtboardsUpdate(next);
+      commitForTool(next);
       return {
         id: updated.id,
         name: updated.name,
@@ -7628,7 +7936,7 @@ const generateRandomProjectName = (): string => {
       // gone; point it at a surviving board so later calls without an explicit
       // artboardId still have a target.
       const nextActiveId = activeArtboardId === boardId ? remaining[0]?.id ?? null : activeArtboardId;
-      handleArtboardsUpdate(remaining);
+      commitForTool(remaining);
       if (nextActiveId !== activeArtboardId) setActiveArtboardId(nextActiveId);
       return { deletedId: boardId, artboards: summarizeArtboards(remaining, nextActiveId) };
     },
@@ -7658,7 +7966,7 @@ const generateRandomProjectName = (): string => {
         : sourceIndex + 1;
       const next = [...artboards];
       next.splice(at, 0, copy);
-      handleArtboardsUpdate(next);
+      commitForTool(next);
       setActiveArtboardId(copy.id);
       return {
         id: copy.id,
@@ -7686,6 +7994,7 @@ const generateRandomProjectName = (): string => {
           description: 'Added by an AI tool over MCP.',
         },
       });
+      if (!board) throw toolCommitRefused();
       return {
         id: board.id,
         name: board.name,
@@ -7707,7 +8016,7 @@ const generateRandomProjectName = (): string => {
               return rest as ArtboardState;
             })()
           : { ...board, previewDurationSeconds: clampPreviewDuration(Number(seconds)) };
-      handleArtboardsUpdate(
+      commitForTool(
         artboards.map((ab) => (ab.id === boardId ? updated : ab)),
         namedChange('Preview Length', 'edit', updated.name)
       );
@@ -7740,7 +8049,7 @@ const generateRandomProjectName = (): string => {
         el.id === elementId ? ({ ...el, animation: result.animation } as ArtboardElement) : el
       );
       const updated = { ...board, elements };
-      handleArtboardsUpdate(
+      commitForTool(
         artboards.map((ab) => (ab.id === boardId ? updated : ab)),
         namedChange('Animate Layer', 'edit', element.name || element.type)
       );
@@ -7757,7 +8066,7 @@ const generateRandomProjectName = (): string => {
       if (!board) throw new Error('No artboard to add to. Create one first with create_artboard.');
       const element = buildMcpElement(type, subType, props ?? {}, board);
       if (!element) throw new Error(`Could not create a "${type}" element (shapes and devices need a subType).`);
-      handleArtboardsUpdate(
+      commitForTool(
         artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: [...ab.elements, element] } : ab))
       );
       setActiveArtboardId(boardId);
@@ -7778,7 +8087,7 @@ const generateRandomProjectName = (): string => {
         // batch would collide without the index.
         return { ...element, id: `${element.id}_${i}` } as ArtboardElement;
       });
-      handleArtboardsUpdate(
+      commitForTool(
         artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: [...ab.elements, ...built] } : ab))
       );
       setActiveArtboardId(boardId);
@@ -7791,14 +8100,14 @@ const generateRandomProjectName = (): string => {
       const newElements = board.elements.map((el) =>
         el.id === elementId ? ({ ...el, ...props, id: el.id, type: el.type } as ArtboardElement) : el
       );
-      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: newElements } : ab)));
+      commitForTool(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: newElements } : ab)));
       return true;
     },
     deleteElement: ({ artboardId, elementId }) => {
       const boardId = resolveBoardId(artboardId);
       const board = artboards.find((ab) => ab.id === boardId);
       if (!board || !board.elements.some((el) => el.id === elementId)) return false;
-      handleArtboardsUpdate(
+      commitForTool(
         artboards.map((ab) =>
           ab.id === boardId
             // The element's translations go in the same commit, or a re-minted
@@ -7827,7 +8136,7 @@ const generateRandomProjectName = (): string => {
       const elements = [...board.elements];
       const [moved] = elements.splice(from, 1);
       elements.splice(to, 0, moved);
-      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)));
+      commitForTool(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)));
       return { index: to, total: elements.length };
     },
     measureElement: ({ artboardId, elementId }) => {
@@ -7902,7 +8211,7 @@ const generateRandomProjectName = (): string => {
         ? board.elements.find((el) => el.groupId === nextGroupId && el.groupName)?.groupName ??
           nextGroupName(board.elements)
         : undefined;
-      handleArtboardsUpdate(
+      commitForTool(
         artboards.map((ab) =>
           ab.id === boardId
             ? {
@@ -7975,7 +8284,7 @@ const generateRandomProjectName = (): string => {
         }
         return { ...el, position, scale: (el.scale || 1) * factor } as ArtboardElement;
       });
-      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)));
+      commitForTool(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)));
       return {
         elementIds: [...ids],
         bounds: {
@@ -8003,7 +8312,7 @@ const generateRandomProjectName = (): string => {
       if (members.length < 2) return null;
       const ids = new Set(members.map((el) => el.id));
       const elements = alignElements(board.elements, ids, edge);
-      handleArtboardsUpdate(
+      commitForTool(
         artboardsRef.current.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)),
         namedChange(ALIGN_HISTORY_LABELS[edge], 'move', `${members.length} layers`)
       );
@@ -8028,7 +8337,7 @@ const generateRandomProjectName = (): string => {
       if (members.length < 3) return null;
       const ids = new Set(members.map((el) => el.id));
       const elements = distributeElements(board.elements, ids, axis);
-      handleArtboardsUpdate(
+      commitForTool(
         artboardsRef.current.map((ab) => (ab.id === boardId ? { ...ab, elements } : ab)),
         namedChange(
           axis === 'horizontal' ? 'Distribute Horizontally' : 'Distribute Vertically',
@@ -8054,7 +8363,7 @@ const generateRandomProjectName = (): string => {
           ? { backgroundType: 'solid', backgroundColor }
           : {};
       if (Object.keys(patch).length === 0) return false;
-      handleArtboardsUpdate(artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)));
+      commitForTool(artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)));
       return true;
     },
     exportPng: async ({ artboardId, scale, save, directory, fileName, includeImage, locale }) => {
@@ -8159,9 +8468,8 @@ const generateRandomProjectName = (): string => {
       const template = availableProjects.find((t) => t.id === templateId);
       if (!template) throw new Error(`No template "${templateId}". Call list_templates for valid ids.`);
       if (!template.projectData?.length) throw new Error(`Template "${templateId}" has no artboards.`);
-      // handleArtboardsUpdate ignores a commit that lands while an export has
-      // the canvas swapped, and this would then report a change that never
-      // happened.
+      // An export holds the canvas, so the commit at the end would be turned
+      // down. Said now, before the work below.
       if (isExportingRef.current) {
         throw new Error('An export is running. Apply the template again once it finishes.');
       }
@@ -8202,7 +8510,7 @@ const generateRandomProjectName = (): string => {
       // Every board is replaced, and undo does not survive a reload, so the
       // outgoing design is kept as a version first.
       void writeVersion(artboardsRef.current, `Before ${template.name}`, 'safety');
-      handleArtboardsUpdateRef.current(boards, namedChange('Apply template', 'open', template.name));
+      commitForTool(boards, namedChange('Apply template', 'open', template.name), handleArtboardsUpdateRef.current);
       setActiveArtboardId(boards[0].id);
       setSelectedElementIds([]);
 
@@ -8210,10 +8518,13 @@ const generateRandomProjectName = (): string => {
       // scheduled, which still carries the old name, then writes the new one.
       // Renaming first would let that pending save put the old name back.
       const rename = projectName?.trim();
-      if (rename) await handleRenameProject(rename);
+      const renamed = rename ? await handleRenameProject(rename) : false;
+      if (rename && !renamed) {
+        warnings.push('The template was applied, but the project kept its name. Call rename_project to rename it.');
+      }
       return {
         projectId: activeProjectId,
-        name: rename || projectNameRef.current,
+        name: renamed && rename ? rename : projectNameRef.current,
         artboards: summarizeArtboards(boards),
         warnings,
       };
@@ -8241,6 +8552,11 @@ const generateRandomProjectName = (): string => {
       flushProjectSave();
       const project = await db.projects.get(projectId);
       if (!project || !project.projectData) return null;
+      if (!canOpenAsProject(project.projectData)) {
+        throw new Error(
+          'That project has no artboards, so there is nothing to open. Pick another with list_projects, or start one with create_project_from_template.'
+        );
+      }
       const name = project.name || 'Untitled Project';
       const success = await loadProjectFromData(project.projectData, name, project.id);
       if (!success) throw new Error('Could not open that project.');
@@ -8285,7 +8601,7 @@ const generateRandomProjectName = (): string => {
       if (!boardId) return null;
       const applied = applyLocalizedText(artboards, { artboardId: boardId, elementId, locale, text });
       if (!applied) return null;
-      handleArtboardsUpdate(
+      commitForTool(
         applied.artboards,
         namedChange('Edit Translations', 'translate', localeLabel(locale))
       );
@@ -8304,8 +8620,13 @@ const generateRandomProjectName = (): string => {
         boards = run.artboards;
         translation = run.result;
       }
+      // Built from this render's document, so committed through this render's
+      // handleArtboardsUpdate (commitForTool's default). When another project
+      // went onto the canvas during the run, that turns the commit down and
+      // the call answers with an error. The newest handleArtboardsUpdate would
+      // take these boards as an edit of the project open now.
       if (boards !== artboards) {
-        handleArtboardsUpdate(
+        commitForTool(
           boards,
           namedChange('Add Languages', 'translate', `${added.result.locales.length} languages`)
         );
@@ -8318,7 +8639,7 @@ const generateRandomProjectName = (): string => {
     removeLocales: ({ locales }) => {
       const removed = removeProjectLocales(artboards, locales);
       if (removed.artboards !== artboards) {
-        handleArtboardsUpdate(
+        commitForTool(
           removed.artboards,
           namedChange('Remove Languages', 'translate', removed.result.removed.join(', '))
         );
@@ -8331,7 +8652,7 @@ const generateRandomProjectName = (): string => {
       const applied = setProjectBaseLocale(artboards, locale);
       if ('error' in applied) throw new Error(applied.error);
       if (applied.artboards !== artboards) {
-        handleArtboardsUpdate(
+        commitForTool(
           applied.artboards,
           namedChange('Set Base Language', 'translate', localeLabel(locale))
         );
@@ -8344,7 +8665,7 @@ const generateRandomProjectName = (): string => {
       const applied = applyLocaleTexts(artboards, writes);
       if (applied.artboards !== artboards) {
         const count = applied.result.written + applied.result.cleared;
-        handleArtboardsUpdate(
+        commitForTool(
           applied.artboards,
           namedChange('Edit Translations', 'translate', `${count} ${count === 1 ? 'string' : 'strings'}`)
         );
@@ -8359,8 +8680,9 @@ const generateRandomProjectName = (): string => {
         artboardIds,
         elementIds,
       });
+      // Committed the way add_locales commits its draft, for the same reason.
       if (run.artboards !== artboards) {
-        handleArtboardsUpdate(
+        commitForTool(
           run.artboards,
           namedChange('Translate', 'translate', locales.map((code) => localeName(code)).join(', '))
         );
@@ -8383,7 +8705,7 @@ const generateRandomProjectName = (): string => {
       const wanted = locales && locales.length > 0 ? new Set(locales) : null;
       const changes = wanted ? plan.changes.filter((change) => wanted.has(change.locale)) : plan.changes;
       if (!dryRun && changes.length > 0) {
-        handleArtboardsUpdate(
+        commitForTool(
           applyCsvImport(artboards, changes),
           namedChange('Import Translations', 'translate', `${changes.length} strings`)
         );
@@ -8403,7 +8725,7 @@ const generateRandomProjectName = (): string => {
       });
       if ('error' in applied) throw new Error(applied.error);
       if (applied.artboards !== artboards) {
-        handleArtboardsUpdate(
+        commitForTool(
           applied.artboards,
           namedChange('Detach For Language', 'translate', localeLabel(input.locale))
         );
@@ -8414,7 +8736,7 @@ const generateRandomProjectName = (): string => {
       const applied = resetLocaleOverrides(artboards, input);
       if ('error' in applied) throw new Error(applied.error);
       if (applied.artboards !== artboards) {
-        handleArtboardsUpdate(
+        commitForTool(
           applied.artboards,
           namedChange(
             input.scope === 'element' ? 'Reset Element To Base'
@@ -8434,6 +8756,10 @@ const generateRandomProjectName = (): string => {
     importProjectImage: (path, name) => importProjectImage(path, name),
     agentReadsFolders: () => claudeAgent.agentReadsFolders(),
     agentMayHoldFolderData: () => claudeAgent.agentMayHoldFolderData(),
+
+    // Every tool above closes over this render's artboards. The serial runner
+    // holds a call until this says they are the open project's document.
+    canvasReady: () => canvasStillHolds(renderedCanvas, canvasSerialRef.current),
   };
   mcpApiRef.current = mcpApi;
 

@@ -426,6 +426,37 @@ test.describe('a project comes back in from a file', () => {
     await expect(app.board(0).locator('[data-text-body="true"]')).toHaveText('Still here');
     expect(await readProjects(page)).toHaveLength(1);
   });
+
+  test('a project file with no artboards is refused with a message, and nothing is stored', async ({ app, page }, testInfo) => {
+    await app.startBlankProject();
+    const stored = await committedProject(app);
+
+    // The right shape with nothing in it. Opened, it would be a project with
+    // no artboard to add the next one from, and undo could reach that state.
+    const empty = testInfo.outputPath('no-artboards.json');
+    await fs.mkdir(path.dirname(empty), { recursive: true });
+    await fs.writeFile(
+      empty,
+      JSON.stringify({
+        formatVersion: 1,
+        id: 'proj_no_artboards',
+        name: 'No Artboards',
+        timestamp: new Date().toISOString(),
+        projectData: [],
+        media: [],
+      }),
+      'utf8'
+    );
+
+    const chooser = page.waitForEvent('filechooser');
+    await app.chooseFromMenu(app.openProjectButton, /From a project file/i);
+    await (await chooser).setFiles(empty);
+
+    await expect(toast(page, 'This file has no artboards, so there is nothing to import.')).toBeVisible();
+    await expect(app.artboards).toHaveCount(1);
+    expect(page.url()).toContain(`projectId=${stored.id}`);
+    expect((await readProjects(page)).map((row) => row.id)).toEqual([stored.id]);
+  });
 });
 
 test.describe('the project file is an interchange format', () => {

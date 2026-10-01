@@ -565,6 +565,17 @@ export interface McpDesignApi {
    * leave in a URL.
    */
   agentMayHoldFolderData(): boolean;
+
+  // -- The line ------------------------------------------------------------------
+
+  /**
+   * False while a call on this api would start from the wrong document: a
+   * project is opening and the canvas still shows the one before it, or
+   * nothing after a reload, or another document went onto the canvas after
+   * the render that built this api. The serial runner holds each call until
+   * the api in place says true (see takeTurn).
+   */
+  canvasReady(): boolean;
 }
 
 /**
@@ -816,6 +827,14 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   textAlign: { type: 'string', description: "'left' | 'center' | 'right' (text)." },
   lineHeight: { type: 'number', description: 'Line height as a multiplier of the font size, e.g. 1.1 for tight headlines (text).' },
   letterSpacing: { type: 'number', description: 'Tracking, in the same units as fontSize (negative tightens). Text elements.' },
+  outlineColor: {
+    type: 'string',
+    description: 'Colour of an outline drawn around every letter, outside the glyph so the fill keeps its weight (text). Use an opaque CSS colour. Needs outlineWidth too; pass null to remove the outline.',
+  },
+  outlineWidth: {
+    type: 'number',
+    description: 'Thickness of that outline, in the same units as fontSize, so it scales with the type (text). About 0.075 x fontSize, in a dark ink with a shadow straight down ({x:0, y:fontSize/6, blur:0}), gives a chunky mobile game title. Needs outlineColor too; 0 or null removes it.',
+  },
   fillColor: { type: 'string', description: 'Fill colour (shapes).' },
   fillGradient: {
     type: 'object',
@@ -2277,6 +2296,8 @@ const TOOLS: ToolDef[] = [
         fontWeight: { type: 'string' },
         textAlign: { type: 'string', description: "'left' | 'center' | 'right'. RTL languages already flip through logical alignment, so this is for real layout differences." },
         color: { type: 'string' },
+        outlineColor: { type: 'string', description: 'Letter outline colour for this language only (text).' },
+        outlineWidth: { type: 'number', description: 'Letter outline thickness for this language only, in fontSize units. An auto-shrunk translation keeps the shared width, so a thinner outline here can suit a longer string or a script with finer strokes.' },
         rotation: { type: 'number' },
         scale: { type: 'number' },
         position: {
@@ -2898,9 +2919,9 @@ export interface McpRequestTiming {
  * back with a response object, whatever happens.
  *
  * This is the seam between the tools and the transports. Rust's local socket
- * in the desktop app (below) and the hosted relay the web build talks to
- * (src/lib/mcp/relayBridge.ts) both reach it through createSerialMcpRunner.
- * The npm CLI's headless bridge calls it directly and orders its own calls.
+ * in the desktop app (below), the hosted relay the web build talks to
+ * (src/lib/mcp/relayBridge.ts) and the npm CLI's headless bridge
+ * (src/lib/headless/bridge.ts) all reach it through createSerialMcpRunner.
  * `ctx` says who is calling; only Rust's socket can say it is the agent.
  */
 export async function runMcpRequest(
@@ -3061,8 +3082,8 @@ function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage, receivedA
 // ---------------------------------------------------------------------------
 // One call at a time. Every tool closes over the artboards of the render that
 // built the api, so two writes that both start before React re-renders begin
-// from the same array, and the second quietly undoes the first. Both transports
-// run their requests through a runner made here.
+// from the same array, and the second quietly undoes the first. Every transport
+// runs its requests through a runner made here.
 // ---------------------------------------------------------------------------
 
 /**
@@ -3160,6 +3181,33 @@ function waitForNextApi(getApi: () => McpDesignApi | null, current: McpDesignApi
   });
 }
 
+/**
+ * Resolves true once getApi() hands out an api whose canvasReady() says true,
+ * or false at `deadline`. A null api ends the wait at once: the transport has
+ * closed or the editor has not rendered yet, and runMcpRequest answers the
+ * call "not ready" without touching anything. A canvasReady that throws counts
+ * as ready, so a broken check cannot hold up the line.
+ */
+function waitForCanvas(getApi: () => McpDesignApi | null, deadline: number): Promise<boolean> {
+  const ready = () => {
+    const api = getApi();
+    if (!api) return true;
+    try {
+      return api.canvasReady() !== false;
+    } catch {
+      return true;
+    }
+  };
+  return new Promise((resolve) => {
+    const check = () => {
+      if (ready()) resolve(true);
+      else if (Date.now() >= deadline) resolve(false);
+      else setTimeout(check, SETTLE_POLL_MS);
+    };
+    check();
+  });
+}
+
 export interface SerialMcpRunnerOptions {
   /**
    * False once the transport feeding the runner has shut down. From then on
@@ -3173,6 +3221,10 @@ export interface SerialMcpRunnerOptions {
  * Runs bridged requests through one line, strictly one at a time.
  *
  * - getApi() is read when a request starts, never when it is queued.
+ * - A request starts only once the api in place says canvasReady(): while a
+ *   project opens, it waits for the render that shows that project. One that
+ *   is still waiting when its budget has nearly run out is answered with an
+ *   error and never run.
  * - After a request that may have changed the editor, the next one waits until
  *   the editor has rendered that change, or SETTLE_TIMEOUT_MS. The caller gets
  *   its own response without waiting for that.
@@ -3222,6 +3274,21 @@ async function takeTurn(
         message?.id,
         -32001,
         `${label} was not run. It waited ${Math.round(waited / 1000)}s behind an earlier call that was still running, which used up its time. Nothing was changed, so it is safe to send again.`
+      ),
+      settled: Promise.resolve(),
+    };
+  }
+  // While a project opens, the canvas holds the project before it, or nothing
+  // after a reload. A write made from that would land on the wrong document,
+  // or be saved under the incoming project's id, so the call waits for the
+  // opened project, out of its own budget.
+  if (!(await waitForCanvas(getApi, receivedAt + budgetFor(message) - QUEUE_GRACE_MS))) {
+    const label = toolNameOf(message) ?? message?.method ?? 'The request';
+    return {
+      response: rpcError(
+        message?.id,
+        -32001,
+        `${label} was not run, because the editor is still opening a project. Nothing was changed, so it is safe to send again.`
       ),
       settled: Promise.resolve(),
     };

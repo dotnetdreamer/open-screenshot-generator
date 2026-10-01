@@ -9,9 +9,11 @@
  * `window.__OSG_HEADLESS` set by the driver before navigation.
  *
  * It adds no behaviour of its own. Every entry point below lands in the same
- * function a click in the UI lands in:
+ * function a click in the UI lands in. mcp() goes through a serial runner of
+ * its own, made by createSerialMcpRunner like the desktop server's and the web
+ * relay's, so the bridge's calls queue only behind each other:
  *
- *   mcp()           -> runMcpRequest(message, mcpApi)     the 49 design tools
+ *   mcp()           -> createSerialMcpRunner(getMcpApi)   the 49 design tools
  *   exportImages()  -> handleConfirmExport                the store PNG run
  *   exportVideo()   -> handleExportVideo                  the MP4 run
  *   capture()       -> handlePublishCapture               bytes for an upload
@@ -25,7 +27,7 @@
 import type { ArtboardState, Project } from '@/types/artboard';
 import type { DeviceFormat } from '@/lib/deviceRegistry';
 import type { McpDesignApi } from '@/lib/mcp/desktopMcpServer';
-import { runMcpRequest } from '@/lib/mcp/desktopMcpServer';
+import { createSerialMcpRunner } from '@/lib/mcp/desktopMcpServer';
 import type { PublishImage } from '@/lib/publish/types';
 
 /** Bumped whenever a method here changes shape. The CLI pins it. */
@@ -118,6 +120,12 @@ export interface HeadlessBridge {
     formatId: DeviceFormat | null,
     locale?: string | null
   ) => Promise<HeadlessCapturedImage[]>;
+  /**
+   * Open a document as the project `id` and store it under that id. False
+   * when the editor refuses it, and a document with no artboards is always
+   * refused: a project keeps at least one (canOpenAsProject in
+   * src/lib/projectCanvas.ts, which the CLI checks too, to say why).
+   */
   loadProject: (data: ArtboardState[], name: string, id: string) => Promise<boolean>;
   agent: (input: HeadlessAgentInput) => Promise<HeadlessAgentResult>;
 }
@@ -156,11 +164,22 @@ function bytesToBase64(bytes: Uint8Array): string {
 }
 
 /**
- * Install the bridge. Safe to call on every render: it rebinds the host so the
- * facade always sees the latest closure, and installs the object once.
+ * Install the bridge and return the function that removes it. The layout
+ * calls this once, from an effect, with a host that reads the latest render
+ * through refs.
  */
 export function installHeadlessBridge(host: HeadlessHost): () => void {
   if (typeof window === 'undefined' || !isHeadless()) return () => {};
+
+  // One call at a time, and a call that follows a write waits until the
+  // editor has rendered that write. Every tool closes over the artboards of
+  // the render that built it, so a call that started sooner would begin from
+  // the board as it was before the previous edit and undo that edit, with no
+  // error. The CLI sends one call at a time, but nothing in that makes the
+  // page render in between. A call still waiting when the bridge is removed
+  // is answered "not ready" and never run.
+  let removed = false;
+  const run = createSerialMcpRunner(host.getMcpApi, { isOpen: () => !removed });
 
   const bridge: HeadlessBridge = {
     protocol: HEADLESS_PROTOCOL,
@@ -168,11 +187,10 @@ export function installHeadlessBridge(host: HeadlessHost): () => void {
 
     status: () => ({ protocol: HEADLESS_PROTOCOL, ready: true, ...host.getStatus() }),
 
-    // The single transport seam, unchanged. Unknown tools still come back as
-    // -32602 and a thrown handler still comes back as an isError result, so
-    // the CLI reports what the app reports rather than guessing. The CLI is
-    // never the desktop app's own agent.
-    mcp: (message: unknown) => runMcpRequest(message as never, host.getMcpApi(), { agent: false }),
+    // An unknown tool comes back as -32602 and a thrown handler as an isError
+    // result, so the CLI reports what the app reports rather than guessing.
+    // The CLI is never the desktop app's own agent.
+    mcp: (message: unknown) => run(message as never, { agent: false }),
 
     exportImages: (selection) => host.exportImages(selection),
     exportVideo: (request) => host.exportVideo(request),
@@ -251,6 +269,7 @@ export function installHeadlessBridge(host: HeadlessHost): () => void {
 
   window.__osg = bridge;
   return () => {
+    removed = true;
     if (window.__osg === bridge) delete window.__osg;
   };
 }

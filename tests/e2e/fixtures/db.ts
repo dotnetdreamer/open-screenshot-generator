@@ -121,6 +121,72 @@ export async function waitForProject(
   );
 }
 
+/** Where holdProjects keeps its controls in the page. */
+type HoldWindow = { __E2E_HOLD__: { release(): void; handOver(): void } };
+
+/** A read-write transaction on `projects`, held open from the test. */
+export interface ProjectsHold {
+  /** End the hold. Every read that queued behind it goes through. */
+  release(): Promise<void>;
+  /**
+   * End the hold and start the next one in the same task. A read the app
+   * already started goes through, and the next one it starts waits again.
+   */
+  handOver(): Promise<void>;
+}
+
+/**
+ * Hold the `projects` store, so that every read the app starts from now on
+ * waits until the hold ends.
+ *
+ * IndexedDB runs transactions on one store in the order they were made, so a
+ * read-write transaction kept alive here (it keeps asking for a key that is
+ * not there) parks the editor at the point where it has picked a project and
+ * is still reading it. That is the moment the races over opening a project
+ * happen in, and without the hold it lasts a few milliseconds.
+ */
+export async function holdProjects(page: Page): Promise<ProjectsHold> {
+  await page.evaluate(
+    (dbName) =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open(dbName);
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const db = open.result;
+          let stop = () => {};
+          const start = () => {
+            let stopped = false;
+            const store = db.transaction('projects', 'readwrite').objectStore('projects');
+            const spin = () => {
+              if (!stopped) store.get('__e2e_hold__').onsuccess = spin;
+            };
+            spin();
+            stop = () => {
+              stopped = true;
+            };
+          };
+          start();
+          (window as unknown as HoldWindow).__E2E_HOLD__ = {
+            release: () => {
+              stop();
+              db.close();
+            },
+            handOver: () => {
+              stop();
+              start();
+            },
+          };
+          resolve();
+        };
+      }),
+    DB_NAME
+  );
+  return {
+    release: () => page.evaluate(() => (window as unknown as HoldWindow).__E2E_HOLD__.release()),
+    handOver: () => page.evaluate(() => (window as unknown as HoldWindow).__E2E_HOLD__.handOver()),
+  };
+}
+
 /**
  * Delete the whole database.
  *

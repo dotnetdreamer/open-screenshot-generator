@@ -770,15 +770,22 @@ Calls are strictly one in flight. The design api closes over the artboards of th
 render that produced it, so two mutations in one tick both start from the pre
 change state and the second wins. `driver/session.ts` chains every bridge call
 onto the previous one, and keeps the chain alive after a rejection so one failed
-call does not poison the rest of the run.
+call does not poison the rest of the run. Inside the page, the bridge runs each
+call through a serial runner of its own, built the same way as the desktop
+server's, so a call that follows a write starts only after the editor has
+rendered that write, and a call sent while a project is still opening waits for
+it.
 
-Budgets are 30 seconds for an ordinary call and 180 seconds for the handful that
-render, write a file or rebuild the project (`export_png`, `export_all`,
-`create_project_from_template`, `open_project`, `translate_locales`,
-`add_locales`, `upload_asset`, `upload_recording`). The CLI's own watchdog fires
-15 seconds later than the page's, on purpose, so the app's own error message wins
-the race and you learn "waiting on a dialog" rather than "the CLI gave up". A PNG
-export gets 20 minutes end to end and a video export 45.
+Budgets are 30 seconds for an ordinary call and 180 seconds for the tools on
+`SLOW_TOOLS` in `driver/session.ts`, the ones that render, translate, store media
+or rebuild the project or whole artboards: `export_png`, `export_all`,
+`create_project_from_template`, `apply_template`, `open_project`,
+`upload_asset`, `import_project_image`, `upload_recording`, `add_elements`,
+`duplicate_artboard`, `update_artboard`, `translate_locales` and `add_locales`.
+The CLI waits 15 seconds past them. The page's own watchdog gives up well before
+that, after 10 seconds or 170 for those tools, so the app's own error message
+wins the race and you learn "waiting on a dialog" rather than "the CLI gave up".
+A PNG export gets 20 minutes end to end and a video export 45.
 
 ## CI
 
@@ -870,6 +877,12 @@ The cache does not have it. Run `osg cache warm` once with a network, or
 **"<tool> did not return within 45s."**
 The page is waiting on something, usually a dialog the tool opened. Re-run with
 `--verbose` to see the page console, or with `--headed` to see the window.
+
+**"project.json has no artboards, so there is nothing to open."**
+Its `projectData` is an empty list, and the editor opens no project without an
+artboard. `osg edit` starts from the empty document instead and writes the
+project back, so `osg edit --tool create_artboard` gives the file its first
+artboard. Or start again with `osg new`.
 
 **A locale renders in the wrong typeface.**
 The font cache is cold and the run was offline, so the woff2 never arrived. Run

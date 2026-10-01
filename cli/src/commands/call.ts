@@ -23,6 +23,14 @@ import type { CommandContext } from '../context.js';
 import type { Session } from '../driver/session.js';
 import { EXIT, OsgError, usageError } from '../errors.js';
 import { debug, dim, emit, fail, info, warn } from '../log.js';
+import { writeBackIdentity, type ProjectIdentity } from '../projectIdentity.js';
+import { canOpenAsProject } from '@/lib/projectCanvas';
+
+/** The project file on disk, by its own id and name. */
+interface ProjectFile extends ProjectIdentity {
+  /** False when the editor did not open it, as with a file that has no artboards. */
+  opened: boolean;
+}
 
 export async function run(ctx: CommandContext): Promise<number> {
   const flags = ctx.args.flags;
@@ -39,7 +47,7 @@ export async function run(ctx: CommandContext): Promise<number> {
   const args = raw && raw.trim() ? parseArgs(raw) : {};
 
   const session = await ctx.session();
-  await openProjectFile(ctx, session);
+  const file = await openProjectFile(ctx, session);
 
   let result: unknown;
   try {
@@ -54,8 +62,8 @@ export async function run(ctx: CommandContext): Promise<number> {
   }
 
   if (flagBool(flags, 'save', false)) {
-    const file = await writeProjectFile(ctx, session);
-    info(dim(`project: ${file}`));
+    const written = await writeProjectFile(ctx, session, file);
+    info(dim(`project: ${written}`));
   }
 
   emit(result);
@@ -114,13 +122,14 @@ async function readStdin(): Promise<string> {
  * A headless browser starts with an empty document, so a tool would answer
  * about nothing unless the project is opened first. Missing is not an error
  * here: list_templates and list_fonts are perfectly good questions to ask in a
- * directory that has no project yet.
+ * directory that has no project yet. Null then, and the file's id and name
+ * otherwise, for the write back.
  */
-async function openProjectFile(ctx: CommandContext, session: Session): Promise<void> {
+async function openProjectFile(ctx: CommandContext, session: Session): Promise<ProjectFile | null> {
   const file = ctx.projectFile;
   if (!fs.existsSync(file)) {
     debug(`no project at ${file}`);
-    return;
+    return null;
   }
 
   let parsed: unknown;
@@ -140,6 +149,12 @@ async function openProjectFile(ctx: CommandContext, session: Session): Promise<v
   }
   const name = typeof record.name === 'string' ? record.name : ctx.config.name ?? path.basename(file, path.extname(file));
   const id = typeof record.id === 'string' ? record.id : `project_${Date.now()}`;
+  // The editor opens no project without an artboard, so a file with none
+  // meets the tool the way a missing file does: with the empty document.
+  if (!canOpenAsProject(data)) {
+    warn(`${file} has no artboards, the tool will see an empty document`);
+    return { id, name, opened: false };
+  }
 
   // The driver hands page.evaluate a string, so the document travels as a
   // literal in the expression rather than as an argument.
@@ -150,10 +165,15 @@ async function openProjectFile(ctx: CommandContext, session: Session): Promise<v
   })()`;
   const opened = await session.evaluate<boolean>(script);
   if (!opened) warn(`the editor refused to open ${file}, the tool will see an empty document`);
+  return { id, name, opened };
 }
 
-/** Rebuilt from the live boards: no tool hands back a whole project. */
-async function writeProjectFile(ctx: CommandContext, session: Session): Promise<string> {
+/**
+ * Rebuilt from the live boards: no tool hands back a whole project. A file
+ * keeps its own id and name (see projectIdentity.ts); with no file, the
+ * editor's project gives both.
+ */
+async function writeProjectFile(ctx: CommandContext, session: Session, file: ProjectFile | null): Promise<string> {
   const status = await session.status();
   const projectData: unknown[] = [];
   for (const board of status.artboards) {
@@ -164,14 +184,19 @@ async function writeProjectFile(ctx: CommandContext, session: Session): Promise<
     projectData.push(state);
   }
 
-  const file = ctx.projectFile;
-  fs.mkdirSync(path.dirname(file), { recursive: true });
+  // The one tool call worked on the file's project when the editor opened it.
+  const identity = file
+    ? writeBackIdentity(file, file.opened ? { projectId: file.id, projectName: file.name } : null, status)
+    : { id: status.projectId ?? `project_${Date.now()}`, name: status.projectName || ctx.config.name || 'Project' };
+
+  const target = ctx.projectFile;
+  fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(
-    file,
+    target,
     `${JSON.stringify(
       {
-        id: status.projectId ?? `project_${Date.now()}`,
-        name: status.projectName || ctx.config.name || 'Project',
+        id: identity.id,
+        name: identity.name,
         timestamp: new Date().toISOString(),
         projectData,
       },
@@ -180,5 +205,5 @@ async function writeProjectFile(ctx: CommandContext, session: Session): Promise<
     )}\n`,
     'utf8'
   );
-  return file;
+  return target;
 }
