@@ -514,6 +514,22 @@ const GESTURE_TIMING_KEYS: DetachableKey[] = ['gestureRepeat', 'triggerTime', 'g
 /** One row of buttons, so one toggle: bold, italic and the two decorations. */
 const TEXT_STYLE_KEYS: DetachableKey[] = ['fontWeight', 'fontStyle', 'textDecoration'];
 
+/** A text outline is its colour and its width, one control. */
+const TEXT_OUTLINE_KEYS: DetachableKey[] = ['outlineColor', 'outlineWidth'];
+
+/**
+ * The colour a text outline gets when only its width is set. The outline's
+ * colour field shows a black swatch while it is empty, so this is the colour
+ * the panel was already showing.
+ */
+const DEFAULT_OUTLINE_COLOR = '#000000';
+
+/**
+ * The width a text outline gets when only its colour is set: about 8% of the
+ * type, in steps of 0.5. Same units as fontSize.
+ */
+const defaultOutlineWidth = (fontSize: number) => Math.max(0.5, Math.round(fontSize * 0.16) / 2);
+
 /**
  * The BaseElement properties this panel has no field for. Geometry comes from
  * dragging on the canvas, and shadow and blur are written by the AI agent and
@@ -2868,6 +2884,43 @@ export function PropertiesPanel({
     void applyTextUpdate({ lineHeight: value });
   };
 
+  // An outline needs a colour and a width. Whichever one is set first brings a
+  // default for the other, so either field on its own shows an outline.
+  // Neither goes through applyTextUpdate: the outline paints outside the
+  // glyphs and never changes how much room the text needs.
+  //
+  // Clearing writes '' and 0, never undefined. Both mean "no outline" to the
+  // renderer, and a detached panel on the desktop sends its edits through a
+  // Tauri event as JSON, which drops a key whose value is undefined.
+  const handleOutlineColorCommit = (element: TextElementProps, next: string) => {
+    if (!next.trim()) {
+      onUpdateElement({ outlineColor: '' });
+      return;
+    }
+    const hasWidth = typeof element.outlineWidth === 'number' && element.outlineWidth > 0;
+    onUpdateElement(
+      hasWidth
+        ? { outlineColor: next }
+        : { outlineColor: next, outlineWidth: defaultOutlineWidth(element.fontSize) }
+    );
+  };
+
+  const handleOutlineWidthChange = (element: TextElementProps, input: HTMLInputElement) => {
+    // A number field reports "" when it is cleared, and also while what has
+    // been typed is not a number yet, like the "." that starts ".5". Only the
+    // cleared field means "no outline".
+    if (input.validity.badInput) return;
+    const width = parseFloat(input.value);
+    if (!(width > 0)) {
+      onUpdateElement({ outlineWidth: 0 });
+      return;
+    }
+    const hasColor = typeof element.outlineColor === 'string' && element.outlineColor.trim() !== '';
+    onUpdateElement(
+      hasColor ? { outlineWidth: width } : { outlineWidth: width, outlineColor: DEFAULT_OUTLINE_COLOR }
+    );
+  };
+
   // Render text properties in a more compact horizontal layout
   const renderTextProperties = (element: TextElementProps) => {
     const contentOverridden = localeOverride?.content !== undefined;
@@ -3003,6 +3056,41 @@ export function PropertiesPanel({
               value={element.color}
               onChange={(e) => onUpdateElement({ color: e.target.value })}
               className="flex-1 text-xs font-mono"
+            />
+          </div>
+        </div>
+
+        {/* Outline: a band of colour outside the letters, the way game titles
+            are lettered. An empty colour or a width of 0 is no outline. */}
+        <div className="space-y-2">
+          {detachLabelRow(
+            <Label htmlFor="textOutlineColor" className="text-xs font-medium">Outline</Label>,
+            TEXT_OUTLINE_KEYS,
+            'Outline'
+          )}
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <ColorField
+                id="textOutlineColor"
+                value={element.outlineColor ?? ''}
+                placeholder="None"
+                onCommit={(next) => handleOutlineColorCommit(element, next)}
+              />
+            </div>
+            <Input
+              id="textOutlineWidth"
+              type="number"
+              min={0}
+              step={0.5}
+              // Empty for no outline, so the placeholder shows. Rounded for
+              // display: a resized canvas scales the width with the type and
+              // can leave a long decimal behind.
+              value={typeof element.outlineWidth === 'number' && element.outlineWidth > 0 ? Math.round(element.outlineWidth * 100) / 100 : ''}
+              placeholder="0"
+              onChange={(e) => handleOutlineWidthChange(element, e.currentTarget)}
+              className="h-8 w-16 text-xs"
+              title="Outline width"
+              aria-label="Outline width"
             />
           </div>
         </div>

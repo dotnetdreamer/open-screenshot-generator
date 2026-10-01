@@ -109,6 +109,15 @@ export interface TextElementProps extends BaseElement {
   // Tracking, in the same units as fontSize (both are divided by the 0.3
   // display scale when rendered), so it stays proportional to the type.
   letterSpacing?: number;
+  // A band of colour around every glyph, drawn outside the letter so the fill
+  // keeps its full weight (see src/lib/textOutline.ts). Any CSS colour, and
+  // meant to be opaque: the outline is built from overlapping copies, so a
+  // see-through colour comes out darker where they overlap. Unset or empty
+  // means no outline.
+  outlineColor?: string;
+  // Thickness, in the same units as fontSize and letterSpacing: it renders at
+  // outlineWidth / 0.3 px. 0 or unset means no outline.
+  outlineWidth?: number;
 }
 
 export type ShapeType =

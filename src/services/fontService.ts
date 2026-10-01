@@ -64,6 +64,7 @@ export const GOOGLE_FONTS: AppFont[] = [
   { family: 'Righteous', category: 'display', fallback: 'cursive', script: 'latin' },
   { family: 'Titan One', category: 'display', fallback: 'cursive', script: 'latin' },
   { family: 'Luckiest Guy', category: 'display', fallback: 'cursive', script: 'latin' },
+  { family: 'Lilita One', category: 'display', fallback: 'cursive', script: 'latin' },
   { family: 'Bangers', category: 'display', fallback: 'cursive', script: 'latin' },
   { family: 'Monoton', category: 'display', fallback: 'cursive', script: 'latin' },
   { family: 'Fredoka', variants: ['300', '400', '500', '600', '700'], category: 'display', fallback: 'sans-serif', script: 'latin' },

@@ -154,6 +154,7 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
     icon: 'text',
   },
   { keys: ['color', 'fillColor', 'strokeColor', 'fillGradient'], label: 'Color', icon: 'color' },
+  { keys: ['outlineColor', 'outlineWidth'], label: 'Outline', icon: 'color' },
   { keys: ['frameColor', 'frameColor3d', 'notchColor', 'frameOpacity', 'frameStyle'], label: 'Device Color', icon: 'color' },
   { keys: ['styleType', 'pose3d', 'matrix3d', 'skewX', 'skewY', 'perspectiveX', 'perspectiveY'], label: 'Transform', icon: 'rotate' },
   { keys: ['opacity', 'fillOpacity'], label: 'Opacity', icon: 'color' },

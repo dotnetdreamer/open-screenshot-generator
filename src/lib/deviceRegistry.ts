@@ -334,6 +334,8 @@ export function scaleElementsToCanvas(
         position,
         size: { width: el.size.width * factor, height: el.size.height * factor },
         fontSize: el.fontSize * factor,
+        // Same units as fontSize, so the outline keeps its weight on the type.
+        ...(typeof el.outlineWidth === 'number' ? { outlineWidth: el.outlineWidth * factor } : null),
       };
     }
     return { ...el, position, scale: (el.scale || 1) * factor };

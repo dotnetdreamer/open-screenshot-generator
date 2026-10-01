@@ -3,8 +3,12 @@ import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import type { TextElementProps as TextElementType } from '@/types/artboard';
 import { fitTextBox } from '@/lib/textFit';
+import { textOutlineStyle } from '@/lib/textOutline';
 import { cssFontFamily } from '@/services/fontService';
 import { QUICK_EDIT_EVENT } from './DraggableElement';
+
+/** Room between the box edge and the text, on every side. textFit.ts counts it too. */
+const BOX_PADDING_PX = 2;
 
 interface TextElementProps {
   element: TextElementType;
@@ -175,6 +179,12 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         ? 'flex-end'
         : 'flex-start';
 
+  // An outline paints past the glyphs, and this box clips, so with one the box
+  // reaches out past the element by the outline's width while the text inside
+  // keeps the same place to wrap and centre in. Text without an outline gets
+  // nothing here.
+  const glyphOutline = textOutlineStyle(element, BOX_PADDING_PX);
+
   return (
     <div
       // ONE node for both states, editable or not, carrying ONE set of styles.
@@ -227,8 +237,9 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         // selection outline is already up, and the caret plus the selected run
         // say the box is live. The point is that it looks unchanged.
         outline: 'none',
-        padding: '2px',
+        padding: `${BOX_PADDING_PX}px`,
         boxSizing: 'border-box',
+        ...glyphOutline,
       }}
       title={isEditing ? undefined : isSelected ? 'Click to edit text' : element.content}
     >
