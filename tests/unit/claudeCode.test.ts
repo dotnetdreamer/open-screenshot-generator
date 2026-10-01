@@ -484,6 +484,7 @@ test('the detached view is slim', () => {
     detection: { status: 'done', result: { found: true }, error: null },
     status: 'ready',
     model: 'default',
+    effort: 'max',
     resolvedModel: null,
     items,
     omitted: 0,

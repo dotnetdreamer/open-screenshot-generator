@@ -28,8 +28,8 @@ const OLD = 'cc-old-process';
 const snap = () => claudeAgent.getSnapshot();
 
 // What the editor saved before the reload: a chat with a folder whose process
-// was mid-turn, saved by a build from before the chat kept readFolders and
-// ranFolders.
+// was mid-turn. The chat itself has no readFolders or ranFolders, as in a save
+// from before the chat kept them.
 storage.set(
   'osg-claude-agent-v1',
   JSON.stringify({
@@ -38,6 +38,7 @@ storage.set(
     resolvedModel: 'claude-haiku-4-5-20251001',
     spawnId: OLD,
     processModel: 'default',
+    processEffort: 'max',
     processFolders: [marbly.path],
     items: [
       { kind: 'user', id: 'u1', text: 'Read my app', attachments: 0, at: 1 },

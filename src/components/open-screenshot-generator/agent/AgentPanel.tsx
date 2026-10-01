@@ -49,7 +49,13 @@ import { saveImageAsset } from '@/lib/mcp/assetStore';
 import { useImageSrc } from '@/lib/mediaStore';
 import { toolImageAlt, toolLabel, toolSkipped } from '@/lib/claudeCode/toolLabels';
 import { FOLDER_CAP_NOTICE, MAX_FOLDERS } from '@/lib/claudeCode/folders';
-import { CLAUDE_MODEL_CHOICES, type AgentItem, type ClaudeModelChoice } from '@/lib/claudeCode/types';
+import {
+  CLAUDE_EFFORT_CHOICES,
+  CLAUDE_MODEL_CHOICES,
+  type AgentItem,
+  type ClaudeEffortChoice,
+  type ClaudeModelChoice,
+} from '@/lib/claudeCode/types';
 import type { AgentAttachment, AgentPanelFolder, AgentPanelView } from '@/lib/claudeCode/view';
 import type { AgentChatListItem } from '@/lib/claudeCode/chats';
 import { RunHistoryDialog } from '../start/RunHistoryDialog';
@@ -63,6 +69,8 @@ export interface AgentPanelHandlers {
   onNewChat: () => void;
   onDetect: () => void;
   onSetModel: (model: ClaudeModelChoice) => void;
+  /** Like the model, it applies from the next message. */
+  onSetEffort: (effort: ClaudeEffortChoice) => void;
   onHide: () => void;
   /** Go back to a past chat, and to its project when another one is open. */
   onOpenChat: (chatId: string) => void;
@@ -585,12 +593,22 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
 
   const rows = useMemo(() => groupRows(view.items), [view.items]);
   const account = accountLine(view.detection.result);
-  const modelName = prettyModel(view.resolvedModel) ?? CLAUDE_MODEL_CHOICES.find((c) => c.value === view.model)?.label ?? null;
+  // The header's line is about 30 characters wide in a default dock, so the
+  // picker's "Your default model" loses its first word here.
+  const modelName =
+    prettyModel(view.resolvedModel) ??
+    (view.model === 'default' ? 'Default model' : CLAUDE_MODEL_CHOICES.find((c) => c.value === view.model)?.label) ??
+    null;
+  const effortName = CLAUDE_EFFORT_CHOICES.find((c) => c.value === view.effort)?.label.toLowerCase() ?? null;
+  // "Opus 5.5, max effort". Haiku has no effort levels, so for it the line
+  // would claim something untrue.
+  const usesEffort = !/haiku/i.test(view.resolvedModel ?? view.model);
+  const modelLine = modelName && effortName && usesEffort ? `${modelName}, ${effortName} effort` : modelName;
   const statusLine = working
     ? view.status === 'starting'
       ? 'Starting...'
       : 'Working...'
-    : modelName;
+    : modelLine;
 
   const submit = () => {
     if (!canSend) return;
@@ -669,7 +687,11 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
         <ClaudeCodeLogo className="h-4 w-4" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold leading-tight">Claude Code</p>
-          {statusLine && <p className="truncate text-[11px] leading-tight text-muted-foreground">{statusLine}</p>}
+          {statusLine && (
+            <p className="truncate text-[11px] leading-tight text-muted-foreground" title={statusLine}>
+              {statusLine}
+            </p>
+          )}
         </div>
         <Button
           variant="ghost"
@@ -714,6 +736,18 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
               onValueChange={(value) => handlers.onSetModel(value as ClaudeModelChoice)}
             >
               {CLAUDE_MODEL_CHOICES.map((choice) => (
+                <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
+                  {choice.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Effort</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              value={view.effort}
+              onValueChange={(value) => handlers.onSetEffort(value as ClaudeEffortChoice)}
+            >
+              {CLAUDE_EFFORT_CHOICES.map((choice) => (
                 <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
                   {choice.label}
                 </DropdownMenuRadioItem>

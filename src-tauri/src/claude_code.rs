@@ -30,8 +30,8 @@
 //! settings file of our own turns hooks off entirely, and the environment is
 //! scrubbed of anything that would bill an API key instead of the user's Claude
 //! plan. The system prompt and the skills are compiled into the app from
-//! src-tauri/claude-agent/. The frontend picks the model, the conversation to
-//! resume and which picked folders to grant, and stdin takes a user message,
+//! src-tauri/claude-agent/. The frontend picks the model, the effort level, the
+//! conversation to resume and which picked folders to grant, and stdin takes a user message,
 //! its `@` mentions defused, or an interrupt and nothing else, so nothing the
 //! page sends changes what Claude Code loads.
 
@@ -1016,6 +1016,9 @@ pub async fn abs_claude_read_project_image<R: Runtime>(
 pub struct StartArgs {
     spawn_id: String,
     model: Option<String>,
+    /// One of EFFORT_LEVELS, passed as `--effort`. Without it the model's own
+    /// default applies.
+    effort: Option<String>,
     resume: Option<String>,
     /// The page_epoch the asking page read when it loaded
     /// (abs_claude_page_epoch). Rust only knows when an invoke arrives, and
@@ -1056,6 +1059,15 @@ fn valid_model(model: &str) -> bool {
     (1..=64).contains(&model.len())
         && !model.starts_with('-')
         && model.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | '[' | ']'))
+}
+
+/// What `--effort` accepts. Checked here because Claude Code does not refuse
+/// anything else: it prints a warning on stderr and runs at the model's
+/// default effort, so a bad value would go unnoticed.
+const EFFORT_LEVELS: &[&str] = &["low", "medium", "high", "xhigh", "max"];
+
+fn valid_effort(effort: &str) -> bool {
+    EFFORT_LEVELS.contains(&effort)
 }
 
 /// A start's folder list before anything touches the disk: how many and how
@@ -1126,8 +1138,18 @@ const NESTED_SESSION_VARS: &[&str] = &[
 /// read: this one pulls in the CLAUDE.md files of added folders.
 const CONFIG_LOADING_VARS: &[&str] = &["CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD"];
 
+/// Variables that overrule a choice the user made in the app. Claude Code
+/// ranks CLAUDE_CODE_EFFORT_LEVEL above `--effort`, so one left in the shell
+/// that started the app would quietly replace the level picked in the panel.
+const CHOICE_OVERRIDING_VARS: &[&str] = &["CLAUDE_CODE_EFFORT_LEVEL"];
+
 fn scrub_env(command: &mut Command) {
-    for key in REROUTING_VARS.iter().chain(NESTED_SESSION_VARS).chain(CONFIG_LOADING_VARS) {
+    for key in REROUTING_VARS
+        .iter()
+        .chain(NESTED_SESSION_VARS)
+        .chain(CONFIG_LOADING_VARS)
+        .chain(CHOICE_OVERRIDING_VARS)
+    {
         command.env_remove(key);
     }
     // An AppImage points the dynamic loader at its own bundled libraries,
@@ -1414,6 +1436,7 @@ struct SpawnPlan<'a> {
     /// Set when the chat has code folders that passed.
     folders: Option<&'a SpawnFiles>,
     model: Option<&'a str>,
+    effort: Option<&'a str>,
     resume: Option<&'a str>,
     /// What the child's PATH is (effective_path).
     path: &'a str,
@@ -1464,6 +1487,11 @@ fn agent_command(binary: &Path, plan: &SpawnPlan<'_>) -> Command {
     if let Some(model) = plan.model {
         command.args(["--model", model]);
     }
+    // A model without effort levels (Haiku) runs as if it were not there, and
+    // one without the level asked for takes the highest it has below it.
+    if let Some(effort) = plan.effort {
+        command.args(["--effort", effort]);
+    }
     if let Some(resume) = plan.resume {
         command.args(["--resume", resume]);
     }
@@ -1513,6 +1541,11 @@ pub async fn abs_claude_start<R: Runtime>(
     if let Some(model) = &args.model {
         if !valid_model(model) {
             return Err(format!("{model} is not a model name Claude Code accepts"));
+        }
+    }
+    if let Some(effort) = &args.effort {
+        if !valid_effort(effort) {
+            return Err(format!("{effort} is not an effort level Claude Code accepts"));
         }
     }
     if let Some(resume) = &args.resume {
@@ -1646,6 +1679,7 @@ fn spawn_session<R: Runtime>(
         workspace: &workspace,
         folders: spawn_files.as_ref(),
         model: args.model.as_deref(),
+        effort: args.effort.as_deref(),
         resume: args.resume.as_deref(),
         path: &path,
     };
@@ -1996,6 +2030,12 @@ mod tests {
         assert!(!valid_model("opus --dangerously-skip-permissions"));
         assert!(!valid_model("--tools"));
         assert!(!valid_model(""));
+        for effort in ["low", "medium", "high", "xhigh", "max"] {
+            assert!(valid_effort(effort), "{effort}");
+        }
+        for effort in ["", "auto", "ultra", "MAX", "max --tools Bash", "--max"] {
+            assert!(!valid_effort(effort), "{effort}");
+        }
         assert!(valid_spawn_id("cc-1727600000000-ab12"));
         assert!(!valid_spawn_id("a b"));
     }
@@ -2362,7 +2402,14 @@ mod tests {
     fn a_spawn_without_folders_gets_skill_and_the_design_tools_only() {
         let ws = test_workspace(Path::new("/ws"));
         let resume = "6e6cdc77-0d28-43a0-955d-9cad1fb02032";
-        let plan = SpawnPlan { workspace: &ws, folders: None, model: Some("haiku"), resume: Some(resume), path: "/usr/bin" };
+        let plan = SpawnPlan {
+            workspace: &ws,
+            folders: None,
+            model: Some("haiku"),
+            effort: Some("max"),
+            resume: Some(resume),
+            path: "/usr/bin",
+        };
         let command = agent_command(Path::new("claude"), &plan);
         let settings = ws.settings.to_string_lossy();
         let plugin = ws.plugin.to_string_lossy();
@@ -2394,6 +2441,8 @@ mod tests {
             &*system_prompt,
             "--model",
             "haiku",
+            "--effort",
+            "max",
             "--resume",
             resume,
         ];
@@ -2405,7 +2454,13 @@ mod tests {
         assert_eq!(env.get("CLAUDE_CODE_DISABLE_CLAUDE_MDS"), Some(&Some("1".to_string())));
         assert!(!env.contains_key("CLAUDE_CODE_GLOB_NO_IGNORE"));
         assert!(!env.contains_key("CLAUDE_CODE_GLOB_HIDDEN"));
-        for removed in ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "CLAUDECODE", "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD"] {
+        for removed in [
+            "ANTHROPIC_API_KEY",
+            "ANTHROPIC_BASE_URL",
+            "CLAUDECODE",
+            "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD",
+            "CLAUDE_CODE_EFFORT_LEVEL",
+        ] {
             assert_eq!(env.get(removed), Some(&None), "{removed} is removed");
         }
         assert!(!env.contains_key("CLAUDE_CODE_OAUTH_TOKEN"), "the subscription token stays");
@@ -2418,7 +2473,14 @@ mod tests {
             settings: PathBuf::from("/ws/spawn/cc-1.settings.json"),
             prompt: PathBuf::from("/ws/spawn/cc-1.prompt.md"),
         };
-        let plain = SpawnPlan { workspace: &ws, folders: None, model: None, resume: None, path: "/usr/bin" };
+        let plain = SpawnPlan {
+            workspace: &ws,
+            folders: None,
+            model: None,
+            effort: Some("max"),
+            resume: None,
+            path: "/usr/bin",
+        };
         let foldered = SpawnPlan { folders: Some(&files), ..plain };
         let without = agent_command(Path::new("claude"), &plain);
         let with = agent_command(Path::new("claude"), &foldered);
@@ -2551,6 +2613,10 @@ mod tests {
         assert_eq!(args.folders.as_deref(), Some(&["/code/app".to_string()][..]));
         let before_folders: StartArgs = serde_json::from_value(json!({ "spawnId": "cc-1", "model": "haiku" })).unwrap();
         assert!(before_folders.folders.is_none());
+        // A page from before the effort picker sends none, and the model's default applies.
+        assert!(before_folders.effort.is_none());
+        let with_effort: StartArgs = serde_json::from_value(json!({ "spawnId": "cc-1", "effort": "max" })).unwrap();
+        assert_eq!(with_effort.effort.as_deref(), Some("max"));
         for message in [PICKER_TITLE, PICKER_OPEN] {
             assert!(!message.contains(['\u{2013}', '\u{2014}']) && !message.ends_with('.'), "{message}");
         }

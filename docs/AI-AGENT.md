@@ -166,6 +166,10 @@ asks for no key and no login. It is not a plan mode:
   tab). Opening a project brings back its latest chat, or an empty one, so any project or
   template can start its own. Picking a past chat opens its project too, and the next message
   resumes that conversation with `--resume`.
+- The user picks the model and the **effort** level, on the Claude Code tab or in the Agent
+  tab's options menu. Effort is Max unless they pick another, because a better design is worth
+  the extra time and plan usage. A new model or effort applies from the next message, which
+  restarts the process on the same conversation.
 
 What the model is told:
 

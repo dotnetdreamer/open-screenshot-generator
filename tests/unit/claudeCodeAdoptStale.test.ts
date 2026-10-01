@@ -21,6 +21,7 @@ storage.set(
     resolvedModel: 'claude-haiku-4-5-20251001',
     spawnId: OLD,
     processModel: 'default',
+    processEffort: 'max',
     processFolders: [],
     items: [{ kind: 'user', id: 'u1', text: 'Use the folder I added', attachments: 0, at: 1 }],
     chat: { id: 'chat-old', projectId: 'p1', projectName: 'P1', createdAt: 1, folders: [marbly], readFolders: false, ranFolders: [] },

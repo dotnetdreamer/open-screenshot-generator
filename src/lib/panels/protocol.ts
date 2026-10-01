@@ -31,7 +31,7 @@ import type { HistoryEntry } from '@/lib/historyLabels';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { LocaleOverrideState } from '@/components/open-screenshot-generator/LayersPanel';
 import type { DetachableKey } from '@/lib/i18n/project';
-import type { ClaudeModelChoice } from '@/lib/claudeCode/types';
+import type { ClaudeEffortChoice, ClaudeModelChoice } from '@/lib/claudeCode/types';
 import { slimAgentView, type AgentAttachment, type AgentPanelView } from '@/lib/claudeCode/view';
 import type { DetachablePanel } from './url';
 
@@ -176,6 +176,7 @@ export type DockIntent =
   | { name: 'agentNewChat' }
   | { name: 'agentDetect' }
   | { name: 'agentSetModel'; model: ClaudeModelChoice }
+  | { name: 'agentSetEffort'; effort: ClaudeEffortChoice }
   | { name: 'agentHide' }
   | { name: 'agentOpenChat'; chatId: string }
   | { name: 'agentDeleteChat'; chatId: string }

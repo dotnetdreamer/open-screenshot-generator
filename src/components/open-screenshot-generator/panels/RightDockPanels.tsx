@@ -29,7 +29,7 @@ import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
 import { DETACHABLE_PANELS, type DetachablePanel } from '@/lib/panels/url';
-import type { ClaudeModelChoice, FolderPickerNear } from '@/lib/claudeCode/types';
+import type { ClaudeEffortChoice, ClaudeModelChoice, FolderPickerNear } from '@/lib/claudeCode/types';
 import type { AgentAttachment } from '@/lib/claudeCode/view';
 
 /**
@@ -85,6 +85,7 @@ export interface DockHandlers {
   onAgentNewChat: () => void;
   onAgentDetect: () => void;
   onAgentSetModel: (model: ClaudeModelChoice) => void;
+  onAgentSetEffort: (effort: ClaudeEffortChoice) => void;
   onAgentHide: () => void;
   onAgentOpenChat: (chatId: string) => void;
   onAgentDeleteChat: (chatId: string) => void;
@@ -281,6 +282,7 @@ export function RightDockPanels({
                 onNewChat: handlers.onAgentNewChat,
                 onDetect: handlers.onAgentDetect,
                 onSetModel: handlers.onAgentSetModel,
+                onSetEffort: handlers.onAgentSetEffort,
                 onHide: handlers.onAgentHide,
                 onOpenChat: handlers.onAgentOpenChat,
                 onDeleteChat: handlers.onAgentDeleteChat,

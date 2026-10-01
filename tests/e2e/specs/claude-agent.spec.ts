@@ -29,8 +29,17 @@ const DESKTOP_DOWNLOAD_URL = 'https://openscrgen.app';
  * Everything the page may put in abs_claude_start. The system prompt and the
  * skills are built into the app, and Rust checks every folder path again.
  */
-const START_KEYS = ['spawnId', 'model', 'resume', 'pageEpoch', 'folders'];
-type StartArgs = { spawnId: string; model?: string; resume?: string; pageEpoch?: number; folders?: string[] };
+const START_KEYS = ['spawnId', 'model', 'effort', 'resume', 'pageEpoch', 'folders'];
+type StartArgs = {
+  spawnId: string;
+  model?: string;
+  effort?: string;
+  resume?: string;
+  pageEpoch?: number;
+  folders?: string[];
+};
+/** The hint under the start screen's Effort picker. */
+const EFFORT_HINT = 'Higher effort makes a better design, takes longer and uses more of your plan';
 
 /** Folders as Rust's picker hands them back: canonical paths, and the folder's own name. */
 const MARBLY = { name: 'marbly', path: '/Users/e2e/code/marbly' };
@@ -259,6 +268,9 @@ test.describe('a Claude Code run', () => {
     const dialog = await openAgentScreen(page, app.startDialog);
     await expect(dialog.getByText('Claude Code 2.1.202 is ready')).toBeVisible();
     await expect(dialog.getByText('Uses your Claude Max plan')).toBeVisible();
+    // Max effort unless the user picks another: the best design is the point.
+    await expect(dialog.locator('#claude-code-effort')).toHaveText('Max');
+    await expect(dialog.getByText(EFFORT_HINT)).toBeVisible();
     await page.locator('#agent-instruction').fill('Dark set for a habit tracker called Droply');
     await dialog.getByRole('button', { name: 'Start with Claude Code' }).click();
 
@@ -283,6 +295,7 @@ test.describe('a Claude Code run', () => {
     // folder, so the start carries none.
     const args = start.args.args as StartArgs;
     expect(START_KEYS).toEqual(expect.arrayContaining(Object.keys(args)));
+    expect(args.effort).toBe('max');
     expect(args.resume).toBeUndefined();
     expect(args.pageEpoch).toBe(1);
     expect(args.folders).toBeUndefined();
@@ -323,7 +336,7 @@ test.describe('a Claude Code run', () => {
     // A chat with no code folder keeps a link a link.
     await expect(panel.getByRole('link', { name: 'the guidelines' })).toHaveAttribute('href', 'https://developer.apple.com/app-store/');
     await expect(panel.getByText('Looked at the artboards')).toBeVisible();
-    await expect(panel.getByText('Opus 5.5')).toBeVisible();
+    await expect(panel.getByText('Opus 5.5, max effort')).toBeVisible();
 
     // A follow-up from the panel goes to the same process, with the context.
     const input = panel.getByLabel('Message the agent');
@@ -544,6 +557,100 @@ test.describe('a Claude Code run', () => {
     await expect(agentTab).toHaveCount(0);
     await expect(app.dockTab('Properties')).toHaveAttribute('aria-selected', 'true');
     expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('an effort picked in the panel applies from the next message, on the same conversation', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+
+    await app.startBlankProject();
+    await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Chat with Claude Code');
+    const panel = app.activeDockPanel;
+    await expect(panel.getByText('Talk to the agent')).toBeVisible();
+    const options = panel.getByRole('button', { name: 'Agent options' });
+    // Exact names: "High" is also the end of "Extra high".
+    const effort = (label: string) => page.getByRole('menuitemradio', { name: label, exact: true });
+
+    // Max until the user picks another.
+    await options.click();
+    await expect(effort('Max')).toHaveAttribute('aria-checked', 'true');
+    await page.keyboard.press('Escape');
+
+    await panel.getByLabel('Message the agent').fill('Make it dark');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    const first = (await tauri.waitForCall('abs_claude_start')).args.args as StartArgs;
+    expect(first.effort).toBe('max');
+    await play(tauri, first.spawnId, [init('i1'), turnEnd('r1')]);
+    await expect(panel.getByText('Opus 5.5, max effort')).toBeVisible();
+
+    // A new pick shows at once, and the running process is left alone until
+    // there is a message for it.
+    await options.click();
+    await effort('High').click();
+    await expect(panel.getByText('Opus 5.5, high effort')).toBeVisible();
+    expect(await tauri.callsTo('abs_claude_stop')).toHaveLength(0);
+
+    // The next message restarts the process at High, on the same conversation.
+    await panel.getByLabel('Message the agent').fill('Bigger headline');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    await expect.poll(async () => (await tauri.callsTo('abs_claude_start')).length).toBe(2);
+    expect((await tauri.callsTo('abs_claude_stop')).map((call) => call.args.spawnId)).toEqual([first.spawnId]);
+    const second = (await tauri.callsTo('abs_claude_start'))[1].args.args as StartArgs;
+    expect(second.effort).toBe('high');
+    expect(second.resume).toBe(SESSION);
+    await expect.poll(async () => (await sentLines(tauri)).at(-1)?.message?.content?.[0]?.text).toMatch(/Bigger headline$/);
+    await play(tauri, second.spawnId, [init('i2'), turnEnd('r2')]);
+
+    // The start screen shows the same pick, and says when the model ignores it.
+    await app.selectTemplateButton.click();
+    const dialog = await openAgentScreen(page, app.startDialog);
+    await expect(dialog.locator('#claude-code-effort')).toHaveText('High');
+    await expect(dialog.getByText(EFFORT_HINT)).toBeVisible();
+    await dialog.locator('#claude-code-model').click();
+    await page.getByRole('option', { name: 'Haiku', exact: true }).click();
+    await expect(dialog.getByText('Haiku has no effort levels, so it runs the same at any of them')).toBeVisible();
+    await expect(dialog.getByText(EFFORT_HINT)).toHaveCount(0);
+
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('a detached Agent window changes the effort through the editor', async ({ app, page, tauri, isDesktop }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+
+    await app.startBlankProject();
+    await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Chat with Claude Code');
+    await expect(app.activeDockPanel.getByText('Talk to the agent')).toBeVisible();
+    await app.chooseFromMenu(page.getByTitle('Panel and display options'), /^agent$/i);
+    const created = await tauri.waitForCall('plugin:webview|create_webview_window', 30_000);
+    const url = String((created.args as { options?: { url?: string } }).options?.url ?? '');
+    const agentWindow = await page.context().newPage();
+    await agentWindow.goto(new URL(url, page.url()).href, { waitUntil: 'domcontentloaded' });
+    const detached = agentWindow.locator('[data-agent-panel]');
+    await expect(detached.getByText('Talk to the agent')).toBeVisible({ timeout: 30_000 });
+    const effort = (label: string) => agentWindow.getByRole('menuitemradio', { name: label, exact: true });
+
+    // The pick travels to the editor, which owns the setting, and comes back
+    // in the next snapshot.
+    await detached.getByRole('button', { name: 'Agent options' }).click();
+    await expect(effort('Max')).toHaveAttribute('aria-checked', 'true');
+    await effort('Low').click();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('osg-claude-agent-effort'))).toBe('low');
+    await detached.getByRole('button', { name: 'Agent options' }).click();
+    await expect(effort('Low')).toHaveAttribute('aria-checked', 'true');
+    await agentWindow.keyboard.press('Escape');
+
+    // And a message sent from the detached window starts the process at Low.
+    await detached.getByLabel('Message the agent').fill('Make it dark');
+    await detached.getByRole('button', { name: 'Send' }).click();
+    const start = (await tauri.waitForCall('abs_claude_start')).args.args as StartArgs;
+    expect(start.effort).toBe('low');
+
+    expect(await tauri.unhandled()).toEqual([]);
+    expect(await new TauriHarness(agentWindow, true).unhandled()).toEqual([]);
   });
 
   test('a press on the canvas takes the keyboard back from the chat', async ({ app, page, isDesktop }) => {

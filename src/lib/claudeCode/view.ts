@@ -15,6 +15,7 @@ import type {
   AgentLastTurn,
   AgentRateLimit,
   AgentStatus,
+  ClaudeEffortChoice,
   ClaudeModelChoice,
 } from './types';
 
@@ -24,6 +25,8 @@ export interface AgentPanelView {
   detection: AgentDetectionState;
   status: AgentStatus;
   model: ClaudeModelChoice;
+  /** The effort picked for the next process. Claude Code never reports it back. */
+  effort: ClaudeEffortChoice;
   /** The model Claude Code reported, once a turn has started. */
   resolvedModel: string | null;
   items: AgentItem[];
@@ -89,6 +92,7 @@ export function toAgentPanelView(
     detection: agent.detection,
     status: session.status,
     model: agent.model,
+    effort: agent.effort,
     resolvedModel: session.model,
     items: session.items,
     omitted: 0,

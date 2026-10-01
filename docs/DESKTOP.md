@@ -606,8 +606,13 @@ claude -p --input-format stream-json --output-format stream-json --verbose
   --setting-sources "" --settings <ws>/osg-settings.json --plugin-dir <ws>/plugin --tools Skill
   --strict-mcp-config --mcp-config <ws>/osg-mcp.json
   --allowedTools Skill,mcp__osg-editor --permission-mode dontAsk
-  --append-system-prompt-file <ws>/system-prompt.md [--model <m>] [--resume <uuid>]
+  --append-system-prompt-file <ws>/system-prompt.md [--model <m>] [--effort <level>] [--resume <uuid>]
 ```
+
+The effort level is the one picked next to the model, Max unless the user
+picks another: `low`, `medium`, `high`, `xhigh` or `max`, and Rust refuses
+anything else, because Claude Code only warns about an unknown level and runs
+at the model's default. Haiku has no effort levels and ignores the flag.
 
 `--setting-sources ""` keeps the user's own settings, hooks, plugins and
 CLAUDE.md out of a design agent, and still uses the subscription login.
@@ -669,6 +674,9 @@ per-spawn settings file, turns hooks off whatever declares them.
 - Inside an AppImage, `LD_LIBRARY_PATH`, `LD_PRELOAD`, `GIO_EXTRA_MODULES` and
   `GDK_BACKEND` are removed, because a native `claude` must not load the
   AppImage's bundled libraries.
+- `CLAUDE_CODE_EFFORT_LEVEL` is removed. Claude Code ranks it above
+  `--effort`, so one left in the shell that started the app would replace the
+  level the user picked.
 - `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` is removed, and
   `CLAUDE_CODE_DISABLE_CLAUDE_MDS=1` is set on every spawn. The app ships no
   CLAUDE.md, and once Read exists a read would otherwise load `.claude/rules`

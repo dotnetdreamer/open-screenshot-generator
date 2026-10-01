@@ -58,6 +58,8 @@ import {
   unreferencedPaths,
 } from './folders';
 import {
+  CLAUDE_EFFORT_CHOICES,
+  DEFAULT_CLAUDE_EFFORT,
   INITIAL_AGENT_STATE,
   type AgentDetectionState,
   type AgentEditorContext,
@@ -66,6 +68,7 @@ import {
   type AgentItem,
   type AgentSessionState,
   type ClaudeDetection,
+  type ClaudeEffortChoice,
   type ClaudeModelChoice,
   type ClaudeStartInfo,
   type ClaudeTransport,
@@ -79,6 +82,8 @@ export interface ClaudeAgentSnapshot {
   session: AgentSessionState;
   detection: AgentDetectionState;
   model: ClaudeModelChoice;
+  /** Every process starts with it. Max unless the user picked another. */
+  effort: ClaudeEffortChoice;
   /** The Agent tab is in the dock. Turned on the first time Claude Code is picked. */
   panelEnabled: boolean;
   /** Which saved chat the conversation on screen is, and the project it belongs to. */
@@ -153,6 +158,7 @@ export interface AgentTurnInput {
 
 const STORAGE_KEY = 'osg-claude-agent-v1';
 const MODEL_KEY = 'osg-claude-agent-model';
+const EFFORT_KEY = 'osg-claude-agent-effort';
 const PANEL_KEY = 'osg-claude-agent-panel';
 /** Items kept across a reload. The rest of a long chat is still in Claude Code's own file. */
 const PERSIST_ITEMS = 150;
@@ -165,12 +171,14 @@ const DETECT_TTL_MS = 60_000;
 const NOTIFY_DELAY_MS = 60;
 
 const MODELS: ClaudeModelChoice[] = ['default', 'fable', 'opus', 'sonnet', 'haiku'];
+const EFFORTS: ClaudeEffortChoice[] = CLAUDE_EFFORT_CHOICES.map((choice) => choice.value);
 
 const SERVER_SNAPSHOT: ClaudeAgentSnapshot = {
   available: false,
   session: INITIAL_AGENT_STATE,
   detection: { status: 'unknown', result: null, error: null },
   model: 'default',
+  effort: DEFAULT_CLAUDE_EFFORT,
   panelEnabled: false,
   chat: NO_CHAT,
   chats: [],
@@ -196,6 +204,8 @@ let spawnId: string | null = null;
  * the chosen model.
  */
 let processModel: ClaudeModelChoice | null = null;
+/** The effort that process was started with, null when unknown, as with the model. */
+let processEffort: ClaudeEffortChoice | null = null;
 /**
  * The code folders that process was started with, as Rust granted them. Null
  * when there is no process, or when nobody knows (one adopted from a build that
@@ -326,6 +336,7 @@ function refreshFolderFlags(): void {
 function dropProcess(): void {
   spawnId = null;
   processModel = null;
+  processEffort = null;
   processFolders = null;
 }
 
@@ -377,6 +388,8 @@ interface Persisted {
   spawnId: string | null;
   /** The choice the running process was started on. Missing in older saves. */
   processModel?: ClaudeModelChoice | null;
+  /** The effort the running process was started with. Missing in older saves. */
+  processEffort?: ClaudeEffortChoice | null;
   /** The folders the running process was started with. Missing in older saves. */
   processFolders?: string[] | null;
   items: AgentItem[];
@@ -403,6 +416,7 @@ function schedulePersist(): void {
       resolvedModel: session.model,
       spawnId,
       processModel,
+      processEffort,
       processFolders,
       items: slimForStorage(session.items),
       chat,
@@ -475,6 +489,8 @@ function hydrate(): void {
   const available = !!getTransport();
   const storedModel = readStorage(MODEL_KEY) as ClaudeModelChoice | null;
   const model = storedModel && MODELS.includes(storedModel) ? storedModel : 'default';
+  const storedEffort = readStorage(EFFORT_KEY) as ClaudeEffortChoice | null;
+  const effort = storedEffort && EFFORTS.includes(storedEffort) ? storedEffort : DEFAULT_CLAUDE_EFFORT;
   const panelEnabled = readStorage(PANEL_KEY) === '1';
 
   let persisted: Persisted | null = null;
@@ -516,11 +532,17 @@ function hydrate(): void {
     chat = { ...chat, id: newChatId(), createdAt: session.items[0]?.at ?? Date.now() };
   }
 
-  snapshot = withFolderFlags({ ...snapshot, available, model, panelEnabled, session, chat });
+  snapshot = withFolderFlags({ ...snapshot, available, model, effort, panelEnabled, session, chat });
   const t = getTransport();
   if (available && t) {
     void readPageEpoch(t);
-    adopted = adopt(persisted?.spawnId ?? null, persisted?.processModel ?? null, sanitizePaths(persisted?.processFolders));
+    const savedEffort = persisted?.processEffort;
+    adopted = adopt(
+      persisted?.spawnId ?? null,
+      persisted?.processModel ?? null,
+      savedEffort && EFFORTS.includes(savedEffort) ? savedEffort : null,
+      sanitizePaths(persisted?.processFolders)
+    );
     chatsLoaded = loadChats();
   }
 }
@@ -540,6 +562,7 @@ function hydrate(): void {
 async function adopt(
   id: string | null,
   model: ClaudeModelChoice | null,
+  effort: ClaudeEffortChoice | null,
   savedFolders: string[] | null
 ): Promise<void> {
   const t = getTransport();
@@ -560,6 +583,7 @@ async function adopt(
     }
     spawnId = id;
     processModel = model;
+    processEffort = effort;
     processFolders = sanitizePaths(mine.folders) ?? savedFolders;
     const { chat } = snapshot;
     set({
@@ -659,6 +683,8 @@ function recordStream(message: unknown): void {
       'Claude Code started the turn',
       [
         `model: ${String(message.model ?? '')}`,
+        // Not in init: what the process was started with.
+        `effort: ${processEffort ?? 'unknown'}`,
         `conversation: ${String(message.session_id ?? '')}`,
         `design tools: ${servers.map((s) => (isObject(s) ? `${String(s.name)} ${String(s.status)}` : '')).join(', ') || 'none'}`,
         `billed through: ${String(message.apiKeySource ?? 'unknown')}`,
@@ -854,10 +880,14 @@ async function retryWithoutResume(): Promise<void> {
 /** The id of a running process for this chat, starting one if there is none. */
 async function ensureProcess(t: ClaudeTransport): Promise<string> {
   const wanted = folderPaths(snapshot.chat.folders);
-  // A process started on another model or with other folders (or on ones
-  // nobody remembers) is replaced, with the conversation resumed, so the
-  // change takes effect on the very next message. Both are fixed at spawn.
-  if (spawnId && (processModel !== snapshot.model || !sameFolderSet(processFolders, wanted))) {
+  // A process started on another model, at another effort or with other
+  // folders (or on ones nobody remembers) is replaced, with the conversation
+  // resumed, so the change takes effect on the very next message. All three
+  // are fixed at spawn.
+  if (
+    spawnId &&
+    (processModel !== snapshot.model || processEffort !== snapshot.effort || !sameFolderSet(processFolders, wanted))
+  ) {
     const old = spawnId;
     dropProcess();
     await t.stop(old).catch(() => {});
@@ -874,6 +904,7 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
   // folders count as readable from here, so the MCP guard is already up.
   spawnId = id;
   processModel = snapshot.model;
+  processEffort = snapshot.effort;
   processFolders = wanted;
   stderrTail = [];
   let info: ClaudeStartInfo | undefined;
@@ -881,6 +912,7 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
     info = await t.start({
       spawnId: id,
       model: modelArg(snapshot.model),
+      effort: snapshot.effort,
       resume: snapshot.session.sessionId ?? undefined,
       pageEpoch: epoch,
       ...(wanted.length ? { folders: wanted } : {}),
@@ -1368,6 +1400,14 @@ function setModel(model: ClaudeModelChoice): void {
   set({ model }, { immediate: true });
 }
 
+/** Like the model, it takes effect on the next message, which restarts the process. */
+function setEffort(effort: ClaudeEffortChoice): void {
+  hydrate();
+  if (!EFFORTS.includes(effort) || effort === snapshot.effort) return;
+  writeStorage(EFFORT_KEY, effort);
+  set({ effort }, { immediate: true });
+}
+
 function setPanelEnabled(enabled: boolean): void {
   hydrate();
   if (enabled === snapshot.panelEnabled) return;
@@ -1402,6 +1442,7 @@ export const claudeAgent = {
   deleteChat,
   followProject,
   setModel,
+  setEffort,
   setPanelEnabled,
   hidePanel,
   pickFolder,

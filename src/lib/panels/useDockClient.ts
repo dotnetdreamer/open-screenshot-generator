@@ -238,6 +238,7 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
       onAgentNewChat: () => send({ name: 'agentNewChat' }),
       onAgentDetect: () => send({ name: 'agentDetect' }),
       onAgentSetModel: (model) => send({ name: 'agentSetModel', model }),
+      onAgentSetEffort: (effort) => send({ name: 'agentSetEffort', effort }),
       onAgentHide: () => send({ name: 'agentHide' }),
       onAgentOpenChat: (chatId) => send({ name: 'agentOpenChat', chatId }),
       onAgentDeleteChat: (chatId) => send({ name: 'agentDeleteChat', chatId }),

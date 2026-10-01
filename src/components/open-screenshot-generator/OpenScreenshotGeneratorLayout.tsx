@@ -6479,6 +6479,7 @@ export function OpenScreenshotGeneratorLayout() {
     },
     onAgentDetect: () => void claudeAgent.detect(true),
     onAgentSetModel: (model) => claudeAgent.setModel(model),
+    onAgentSetEffort: (effort) => claudeAgent.setEffort(effort),
     onAgentHide: () => {
       claudeAgent.hidePanel();
       if (rightDockTab === 'agent') selectRightDockTab('properties');

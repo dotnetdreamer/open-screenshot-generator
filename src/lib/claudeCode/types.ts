@@ -42,6 +42,8 @@ export interface ClaudeStartArgs {
   spawnId: string;
   /** A Claude Code model alias or full name. Omitted means the user's own default. */
   model?: string;
+  /** Passed as `--effort`. Rust refuses anything not in its own list. */
+  effort?: ClaudeEffortChoice;
   /** A conversation id from an earlier `system/init`, to carry on where it stopped. */
   resume?: string;
   /**
@@ -133,6 +135,28 @@ export const CLAUDE_MODEL_CHOICES: { value: ClaudeModelChoice; label: string }[]
   { value: 'opus', label: 'Opus' },
   { value: 'sonnet', label: 'Sonnet' },
   { value: 'haiku', label: 'Haiku' },
+];
+
+/**
+ * How hard the model thinks before it acts, passed as `--effort`. A model
+ * without effort levels (Haiku) ignores it, and one without the level asked
+ * for runs at the highest it has below it.
+ */
+export type ClaudeEffortChoice = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+
+/**
+ * Max: a set of store screenshots is worth the extra time and plan usage, and
+ * the best design is what the user came for.
+ */
+export const DEFAULT_CLAUDE_EFFORT: ClaudeEffortChoice = 'max';
+
+/** Strongest first, like the model list. */
+export const CLAUDE_EFFORT_CHOICES: { value: ClaudeEffortChoice; label: string }[] = [
+  { value: 'max', label: 'Max' },
+  { value: 'xhigh', label: 'Extra high' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
 ];
 
 // ---------------------------------------------------------------------------

@@ -37,10 +37,12 @@ test('a process whose folders nobody kept counts as reading them', async () => {
   assert.equal(snap().chat.readFolders, true, 'the chat keeps that for good');
 
   // Nothing says what it can read, so the next message replaces it with one
-  // started on the chat's folders, here none, and the same conversation.
+  // started on the chat's folders, here none, and the same conversation. The
+  // save does not say its effort either, and the new one gets the chosen level.
   await claudeAgent.send({ text: 'Carry on' });
   assert.deepEqual(callsTo('abs_claude_stop').map((entry) => entry.args.spawnId), [OLD]);
   assert.equal(lastStart().resume, SESSION);
+  assert.equal(lastStart().effort, 'max');
   assert.equal('folders' in lastStart(), false);
   assert.equal(sentTexts().at(-1), 'Carry on');
   assert.equal(claudeAgent.agentReadsFolders(), false);

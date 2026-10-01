@@ -9,7 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { openExternal } from '@/lib/desktop';
 import { relayConfigured } from '@/lib/mcp/relayBridge';
 import { claudeAgent, useClaudeAgent } from '@/lib/claudeCode/store';
-import { CLAUDE_MODEL_CHOICES, type ClaudeModelChoice } from '@/lib/claudeCode/types';
+import {
+  CLAUDE_EFFORT_CHOICES,
+  CLAUDE_MODEL_CHOICES,
+  type ClaudeEffortChoice,
+  type ClaudeModelChoice,
+} from '@/lib/claudeCode/types';
 import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
 import {
   ClaudeCodeSetup,
@@ -125,6 +130,30 @@ export function ClaudeCodeModePanel({ desktop, disabled, starting, onStart }: Cl
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="claude-code-effort">Effort</Label>
+          <Select
+            value={agent.effort}
+            onValueChange={(value) => claudeAgent.setEffort(value as ClaudeEffortChoice)}
+            disabled={starting}
+          >
+            <SelectTrigger id="claude-code-effort">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CLAUDE_EFFORT_CHOICES.map((choice) => (
+                <SelectItem key={choice.value} value={choice.value}>
+                  {choice.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <p className="text-xs text-muted-foreground sm:col-span-2">
+          {agent.model === 'haiku'
+            ? 'Haiku has no effort levels, so it runs the same at any of them'
+            : 'Higher effort makes a better design, takes longer and uses more of your plan'}
+        </p>
       </div>
 
       <div className="space-y-2">
