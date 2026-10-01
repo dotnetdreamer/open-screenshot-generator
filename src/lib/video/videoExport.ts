@@ -27,6 +27,7 @@ import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { assetIdFromRef, getMediaAsset, getMediaUrl, isAssetRef } from '@/lib/mediaStore';
 import { artboardBackgroundImageBox, normalizeGradient } from '@/lib/artboardBackground';
 import { imageTint } from '@/lib/elementStyle';
+import { textOutlineReach } from '@/lib/textOutline';
 import { withBasePath } from '@/lib/basePath';
 import { animationStateAt, animationEndTime } from './animation';
 import { drawGesture, gesturePhaseAt, gestureEndTime } from './gestures';
@@ -421,11 +422,12 @@ function elementNode(root: HTMLElement, id: string): HTMLElement | null {
 }
 
 /**
- * Rasterize one element wrapper at its layout size. The wrapper is positioned
- * with left/top and rotated with a transform; html-to-image keeps BOTH on the
- * cloned root, which would shift the artwork out of the sprite by the
- * element's canvas position — so zero them for the capture and let the canvas
- * compositor re-apply position/rotation.
+ * Rasterize one element wrapper at its layout size. The wrapper is placed with
+ * left/top and rotated with a transform, and html-to-image copies both onto its
+ * clone, which would move the artwork out of the sprite by the element's board
+ * position. The capture's `style` option moves the clone to the sprite's padded
+ * origin without the rotation, and the canvas compositor applies position and
+ * rotation itself.
  */
 async function captureSprite(
   root: HTMLElement,
@@ -457,8 +459,30 @@ async function captureSprite(
     fontEmbedCSS: spriteFontEmbedCSS,
     filter: extraFilter ? (n: Node) => SPRITE_FILTER(n) && extraFilter(n) : SPRITE_FILTER,
     style: {
+      // html-to-image copies the live element's computed style onto the
+      // clone, logical insets included (inset-block-start and the other
+      // three), and those hold the element's board position. Chromium and
+      // WebKit both serialize the clone's style with `inset-block` and
+      // `inset-inline` after the physical `inset`, so when they parse the
+      // capture's SVG, those override left and top and the element lands
+      // outside its own sprite. An empty string removes a declaration, which
+      // leaves the physical insets set here as the only ones. Giving the
+      // logical insets the pad instead would break a right-to-left wrapper,
+      // where inset-inline-start is the right edge.
       left: `${pad}px`,
       top: `${pad}px`,
+      right: 'auto',
+      bottom: 'auto',
+      insetBlockStart: '',
+      insetBlockEnd: '',
+      insetInlineStart: '',
+      insetInlineEnd: '',
+      // The element's own size. html-to-image sizes the clone's root to the
+      // whole padded canvas, and in a right-to-left wrapper, where content
+      // sits against the right edge, that would shift it across by twice the
+      // pad. The logical sizes it copies already hold these numbers.
+      width: `${boxW}px`,
+      height: `${boxH}px`,
       transform: 'none',
     },
   });
@@ -468,7 +492,9 @@ async function captureSprite(
 /**
  * How far past its own box an element paints, in artboard px. Mirrors the CSS
  * filters src/lib/elementStyle.ts puts on the element wrapper: a drop-shadow
- * reaches offset + blur, and a `blur(n)` fades out to roughly 3n.
+ * reaches offset + blur, and a `blur(n)` fades out to roughly 3n. A text
+ * outline (src/lib/textOutline.ts) widens the silhouette both of those start
+ * from, so its reach is added on top.
  */
 function spriteOverspill(el: ArtboardElement): number {
   let pad = 0;
@@ -477,6 +503,7 @@ function spriteOverspill(el: ArtboardElement): number {
     pad = Math.max(pad, Math.max(Math.abs(x), Math.abs(y)) + Math.max(0, blur));
   }
   if (typeof el.blur === 'number' && el.blur > 0) pad = Math.max(pad, el.blur * 3);
+  if (el.type === 'text') pad += textOutlineReach(el);
   return Math.ceil(pad);
 }
 
