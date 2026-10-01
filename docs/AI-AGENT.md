@@ -8,6 +8,8 @@ The agent can start a design from screenshots of your app and a short descriptio
 
 In the desktop app the first choice is **Claude Code**. If Claude Code is installed and signed in on your computer, the agent runs there on your Claude plan, with nothing to sign in to in the app. It builds the design in a new project, and you keep asking for changes in the **Agent** tab of the right panel. Each message counts toward your plan's usage limits.
 
+Claude Code can also read your app's code. Add up to three folders with **Add your app's code folder**, on the start screen or under the message box in the Agent tab, and the agent uses your app's real name, icon, colours and store text, and any screenshots already in the folder. It reads the folder and never changes a file in it. Pick the top folder of your app, not a subfolder such as `src`, so the store text and the README are inside it.
+
 You can use your own AI API key. The browser sends requests to the provider you choose, and saves the key on this device only if you choose to remember it. You can also use a Claude, ChatGPT, or Gemini account you are signed into. The desktop app opens the assistant in its own window; the web editor uses the [companion extension](../extension/README.md) or a copy and paste flow. The desktop app also supports built-in providers and local Ollama or LM Studio.
 
 The agent picks a template, places screenshots, and suggests text. Check the text and images before exporting. You can find the steps from a past run under **Recent runs**.
@@ -155,7 +157,9 @@ asks for no key and no login. It is not a plan mode:
   The agent calls the app's MCP design tools (`list_templates`, `get_template`,
   `apply_template`, `add_elements`, `export_png`, ...) on the open project. Each call runs
   the same code as a click in the editor and is one undo step.
-- It has those tools and the Skill tool, nothing else: no shell, no files, no web.
+- It has those tools and the Skill tool, nothing else: no shell and no web, and no files unless
+  the user attached their app's code folder, which it can read and search (Read and Grep) but
+  never change. See **Code folders** below.
 - The conversation goes on after the first design. The user keeps asking for changes in the
   **Agent** tab of the right dock, and the agent works on whatever project is open.
 - Every chat belongs to a project and is kept in **Past chats** (the clock button in the Agent
@@ -165,27 +169,71 @@ asks for no key and no login. It is not a plan mode:
 
 What the model is told:
 
-- `system-prompt.md`, appended to Claude Code's own system prompt: its role, the working
-  rules (one tool call at a time, look at boards with a small `export_png`, ask before a
-  destructive change the user did not ask for), the rules for copy, and how to reply.
+- `system-prompt.md`, appended to Claude Code's own system prompt: its role, the working rules
+  (one tool call at a time except for Read and Grep, look at boards with a small `export_png`,
+  ask before a destructive change the user did not ask for), the rules for copy, and how to
+  reply.
+- `project-folders.md`, appended after it only when the chat has a code folder, then a map
+  of each folder that the app writes: its path, its top level, its pictures and the files most
+  likely to help.
 - Three skills in a plugin: `osg-agent:osg-design`, loaded before the first design tool
   call, plus `osg-agent:osg-languages` and `osg-agent:osg-app-preview` when a request needs
-  them. The agent cannot read files, so each skill stands on its own.
+  them. Only a chat with a code folder can read files, and only in that folder, so each skill
+  stands on its own.
 - Every message starts with an `<editor-context>` JSON block: the project, its artboards and
   the active one, the selection with its text, and the language on the canvas. That is how
   "make this bigger" finds its "this".
+- Claude Code's `@file` mentions are off. Before a message goes out, the app puts an
+  invisible character in front of every `@` that could start one, so a file named after an `@`
+  in a message, or in an artboard's name, is never attached to the turn. An e-mail address is
+  left as it is, and a chat with a code folder reads files with Read instead.
 - The first message is different. The app stores the uploaded screenshots as `asset:` refs,
-  makes a blank project sized from them, and sends a brief naming that project and every
-  screenshot's ref and size, then the user's instruction, then the screenshots as 1024px
-  images to look at. The brief asks for `apply_template`, which fills a template into that
-  project as one undo step, rather than `create_project_from_template`, which starts a
-  second project.
+  makes a blank project sized from them, and sends a brief naming that project, every
+  screenshot's ref and size and the code folders Claude Code started with, then the user's
+  instruction, then the screenshots as 1024px images to look at. The brief asks for
+  `apply_template`, which fills a template into that project as one undo step, rather than
+  `create_project_from_template`, which starts a second project. A folder with no screenshots
+  can start a run too: the brief then asks the agent to look for real screenshots in the folder
+  first and place them with `import_project_image`.
+
+**Code folders.** In the desktop app, a Claude Code chat can hold up to three of the user's
+code folders, added with **Add your app's code folder** under the message box or in the start
+screen's **Your app's code (Claude Code only)** row. The agent reads them before its first
+board: the name the stores show, the store description and other copy, the brand colours, the
+App Store and Play icons, screenshots already in the repo, the languages the app ships and its
+font. It places pictures from the folder with `import_project_image`, and it ends a reply that
+used the folder with one line on what it took from it ("From your code: Marbly, #7C5CFF, the
+App Store icon"), so the user can correct it.
+
+- The folder is read only. Claude Code gets Read and Grep inside it and nothing that can
+  write; the only thing the agent can save is an export, and never inside the folder.
+- A folder reaches Claude Code only through the native folder dialog. The app refuses a whole
+  drive, the home folder, a whole Documents, Desktop or Downloads folder or one that holds it,
+  hidden and system folders, network drives and a folder Claude Code would refuse to read
+  because of its name, with a message saying which it was. On a Mac, code kept in iCloud Drive,
+  Dropbox, Google Drive or OneDrive can be added from its own folder inside the drive.
+- Secrets and bulk are refused inside the folder: `.env` files, keys, signing and provisioning
+  files, cloud credentials, `.git`, dependency and build folders and lock files. So are Claude
+  Code's own history in `~/.claude` and its global config, `~/.claude.json`, which names the
+  signed-in account. A step the agent tried on one of them shows as "Skipped a blocked file".
+- Once the agent in a chat has been able to read a folder, it cannot use web links in its tool
+  calls, and links in its replies show as text with the address beside them. That lasts as long
+  as the chat does, after the folder is removed and after a relaunch too, because the
+  conversation keeps what the agent read.
+- Removing a folder ends access at once; while the agent is working, stop it first. Adding
+  one takes effect with the next message, which resumes the same conversation.
+- On the web the start screen shows the same row, and its button explains that code folders
+  need the desktop app. Claude Code run in a terminal inside the app's folder and connected
+  through the MCP relay reads the code on its own.
 
 The code is in [src/lib/claudeCode/](../src/lib/claudeCode/) (the session store, the stream
 reducer and what goes to stdin),
 [src-tauri/src/claude_code.rs](../src-tauri/src/claude_code.rs) (finding and running the
-CLI), [src-tauri/claude-agent/](../src-tauri/claude-agent/) (the system prompt and the
-skills, compiled into the app), [ClaudeCodeModePanel.tsx](../src/components/open-screenshot-generator/start/ClaudeCodeModePanel.tsx)
+CLI and granting its code folders),
+[src-tauri/src/code_folders.rs](../src-tauri/src/code_folders.rs) (which folders may be
+added, the deny rules, the folder map, the picture import and export checks),
+[src-tauri/claude-agent/](../src-tauri/claude-agent/) (the
+system prompt, the code folder addendum and the skills, compiled into the app), [ClaudeCodeModePanel.tsx](../src/components/open-screenshot-generator/start/ClaudeCodeModePanel.tsx)
 (the tab) and [AgentPanel.tsx](../src/components/open-screenshot-generator/agent/AgentPanel.tsx)
 (the dock tab). The Claude Code section of [.agents/reference.md](../.agents/reference.md) has
 the full notes, and [DESKTOP.md](DESKTOP.md) the desktop details.
@@ -193,8 +241,11 @@ the full notes, and [DESKTOP.md](DESKTOP.md) the desktop details.
 **Limits.** Desktop app only: in the web editor the tab says Claude Code runs in the desktop
 app, and when the MCP relay is configured it points to connecting Claude Code from a terminal
 through the MCP button instead. Not in the Mac App Store build, whose sandbox a child process
-inherits. Every message counts toward the plan's usage limits. The agent cannot read files,
-so the user adds the recordings for App Preview boards.
+inherits. Every message counts toward the plan's usage limits, and so does every file the agent
+reads from a code folder, which stays in the conversation. The agent reads files only in an
+attached code folder and imports only pictures (PNG, JPEG, WebP, GIF and SVG, up to 20 MB)
+from it, so the user adds the recordings for App Preview boards. There is no Glob: the agent
+finds files through the map the app writes into its prompt, and with Grep.
 
 **Troubleshooting Claude Code mode:**
 
@@ -220,6 +271,29 @@ so the user adds the recordings for App Preview boards.
 - **"Claude Code stopped: ..."**: the process ended mid-turn, and the rest of the line is the
   last thing it printed to stderr. On Windows, Claude Code needs Git for Windows or
   PowerShell, and says so there.
+- **A folder is refused when you pick it**: the message says why. It was a whole drive or the
+  home folder, a whole Documents, Desktop or Downloads folder or a folder that holds one
+  (Windows lets you move Documents to another drive, so `D:\Users\me` can be one), a folder of
+  system or private files, or a network drive. On a Mac the top of iCloud Drive, Dropbox, Google
+  Drive or OneDrive, or a Documents or Desktop folder right inside it, counts as too broad, and
+  the rest of `~/Library` as private: pick the app's own folder inside the drive. Or it is named
+  like a folder the agent never reads, such as `build`, `dist` or `node_modules`, or sits inside
+  one, where every file would be refused. Or its path has a `~` followed by a digit, or a folder
+  name ending in a dot or a space ("Claude Code cannot read a folder with that name"): Claude
+  Code would refuse every read in it. Pick the app's own folder, move or rename it, or copy it to
+  this computer first.
+- **"The agent can no longer read the <name> folder"**: every start checks each folder again,
+  and this one was moved, deleted or refused. Add it again with **Add your app's code folder**.
+- **"Web links are off in this chat because the agent has read a code folder"**: the agent tried a web
+  address in a tool call in a chat whose agent has read the code. Attach the picture to a
+  message instead. Removing the folder does not turn this off, since the conversation still
+  holds what was read; a new chat without the folder starts clean.
+- **"Exports cannot be saved inside the code folder the agent is reading"** (or "to a network
+  folder"): while a folder is attached, exports go to *Downloads/Open Screenshot Generator*.
+  Copy them into the repo yourself, for example into `fastlane/screenshots`.
+- **"Claude Code could not start with your code folder"**: the app could not write the
+  settings file that grants the folder, in its own data folder. Send the message again; if it
+  keeps failing, remove the folder to carry on without it.
 - Every turn is in **Recent runs**, with its tool calls, their results, and what Claude Code
   reported about the model, the design tools and billing.
 

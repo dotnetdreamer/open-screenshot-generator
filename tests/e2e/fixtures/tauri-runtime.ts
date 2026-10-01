@@ -33,6 +33,13 @@ export interface TauriWrittenFile {
   via: 'plugin:fs|write_file' | 'plugin:fs|write_text_file' | 'abs_write_export_png' | 'abs_mcp_write_png';
 }
 
+/** A folder of the user's app code, as Rust's own picker hands it back. */
+export interface TauriCodeFolder {
+  name: string;
+  /** Absolute and canonical, the way Rust's grant book stores it. */
+  path: string;
+}
+
 export interface TauriMockConfig {
   /** Reported by the path plugin's separator handling and dialog defaults. */
   os: 'macos' | 'windows' | 'linux';
@@ -48,6 +55,12 @@ export interface TauriMockConfig {
   savePath: string | null;
   /** What the native folder picker returns. `null` simulates a cancel. */
   openPath: string | null;
+  /**
+   * What Rust's code folder dialog (abs_claude_pick_folder) returns. `null`
+   * simulates a cancel. Rust refuses a folder by rejecting with the sentence
+   * the user reads, so a refusal is an `errors` entry for that command.
+   */
+  codeFolder: TauriCodeFolder | null;
   /** Canned results per command. Overrides every default below. */
   responses: Record<string, unknown>;
   /** Commands that must reject, mapped to the rejection message. */
@@ -59,6 +72,7 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   windowLabel: 'main',
   savePath: '/tmp/osg-e2e/',
   openPath: '/tmp/osg-e2e',
+  codeFolder: { name: 'marbly', path: '/Users/e2e/code/marbly' },
   responses: {},
   errors: {},
 };
@@ -85,8 +99,31 @@ export function tauriInitScript(config: TauriMockConfig): string {
     unhandled: [],
     /** Events the app emitted, so a test can assert on cross-window traffic. */
     emitted: [],
+    /**
+     * The Claude Code processes started and not stopped, by spawn id, with
+     * the code folders each can read. What abs_claude_list reports. Rust
+     * keeps its processes when the editor reloads, so this outlives a reload
+     * too: it is kept in sessionStorage, which lasts as long as the tab.
+     */
+    claudeProcesses: loadClaudeProcesses(),
   };
   window.__E2E_TAURI__ = state;
+
+  function loadClaudeProcesses() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('__e2e_tauri_claude_processes__') || '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    } catch {
+      return {};
+    }
+  }
+  function saveClaudeProcesses() {
+    try {
+      sessionStorage.setItem('__e2e_tauri_claude_processes__', JSON.stringify(state.claudeProcesses));
+    } catch {
+      // A document with no storage of its own keeps them for its own life only.
+    }
+  }
 
   // ---- callback registry (mocks.js contract) -----------------------------
   const callbacks = new Map();
@@ -214,6 +251,67 @@ export function tauriInitScript(config: TauriMockConfig): string {
     return dir.endsWith(sep) ? dir + name : dir + sep + name;
   }
 
+  // ---- code folders (claude_code.rs, code_folders.rs) --------------------
+  // Forward slashes, and no letter case where the OS ignores it, which is
+  // how Rust compares a path with a folder.
+  function folderKey(path) {
+    const forward = String(path).split('\\\\').join('/').replace(/\\/+$/, '');
+    return config.os === 'linux' ? forward : forward.toLowerCase();
+  }
+
+  function liveFolders() {
+    const all = [];
+    for (const folders of Object.values(state.claudeProcesses)) all.push(...folders);
+    return all;
+  }
+
+  // A 1x1 PNG, and a square SVG that states its own size.
+  const PNG_1X1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+  const SVG_ICON =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">' +
+    '<rect width="96" height="96" rx="21" fill="#7C5CFF"/></svg>';
+
+  /** The picture Rust would read, with its refusals in the order Rust checks them. */
+  function readProjectImage(path) {
+    const folders = liveFolders();
+    if (!folders.length) throw new Error('No code folder is attached to this chat');
+    const file = folderKey(path);
+    if (!folders.some((folder) => file.startsWith(folderKey(folder) + '/'))) {
+      throw new Error('That file is not in a code folder attached to this chat');
+    }
+    const extension = (file.split('/').pop() || '').split('.').pop();
+    if (!['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(extension)) {
+      throw new Error('Only PNG, JPEG, WebP, GIF and SVG files can be imported');
+    }
+    if (extension === 'svg') return new TextEncoder().encode(SVG_ICON).buffer;
+    return Uint8Array.from(atob(PNG_1X1), (c) => c.charCodeAt(0)).buffer;
+  }
+
+  /**
+   * Why Rust would refuse an MCP export's folder (mcp_export_problem in
+   * mcp_server.rs), or null. No folder means the default one, which needs no
+   * check. The user's own Export dialog (abs_write_export_png) is never
+   * checked.
+   */
+  function mcpExportProblem(directory) {
+    if (typeof directory !== 'string' || !directory.trim()) return null;
+    const forward = directory.split('\\\\').join('/');
+    const absolute = forward.startsWith('/') || /^[a-zA-Z]:\\//.test(forward);
+    if (!absolute || forward.split('/').some((part) => part === '.' || part === '..')) {
+      return 'directory must be a full folder path without . or .. in it. Leave it out to use the default folder';
+    }
+    const folders = liveFolders();
+    if (!folders.length) return null;
+    if (forward.startsWith('//')) {
+      return 'Exports cannot be saved to a network folder while the agent is reading a code folder. Leave directory out to use the default folder';
+    }
+    const dir = folderKey(directory);
+    if (folders.some((folder) => dir === folderKey(folder) || dir.startsWith(folderKey(folder) + '/'))) {
+      return 'Exports cannot be saved inside the code folder the agent is reading. Leave directory out to use the default folder';
+    }
+    return null;
+  }
+
   // ---- the IPC itself ----------------------------------------------------
   async function invoke(cmd, args, options) {
     args = args ?? {};
@@ -244,6 +342,11 @@ export function tauriInitScript(config: TauriMockConfig): string {
         return 'e2e-bridge-nonce';
       case 'abs_mcp_write_png':
       case 'abs_write_export_png': {
+        if (cmd === 'abs_mcp_write_png') {
+          // Rust rejects with the sentence the agent reads.
+          const problem = mcpExportProblem(args.directory);
+          if (problem) throw new Error(problem);
+        }
         const dir = args.directory ?? '';
         const name = args.fileName ?? 'untitled.png';
         const path = args.subdirectory ? joinPath(joinPath(dir, args.subdirectory), name) : joinPath(dir, name);
@@ -274,16 +377,37 @@ export function tauriInitScript(config: TauriMockConfig): string {
       // process's output with emitFromBackend('abs-claude-event', ...).
       case 'abs_claude_detect':
         return { found: false };
-      case 'abs_claude_start':
-        return { pid: 4242, workspace: '/agent/session', mcpUrl: 'http://127.0.0.1:8722/mcp' };
+      case 'abs_claude_start': {
+        // Rust grants a requested code folder only when its dialog picked it
+        // and it still passes the checks. Here every one does, so the process
+        // can read them all and none is missing. A spec that wants a missing
+        // folder answers this command through config.responses.
+        const start = args.args || {};
+        const folders = Array.isArray(start.folders) ? start.folders.slice().sort() : [];
+        if (typeof start.spawnId === 'string') {
+          state.claudeProcesses[start.spawnId] = folders;
+          saveClaudeProcesses();
+        }
+        return { pid: 4242, workspace: '/agent/session', mcpUrl: 'http://127.0.0.1:8722/mcp', missingFolders: [] };
+      }
+      case 'abs_claude_stop':
+        delete state.claudeProcesses[args.spawnId];
+        saveClaudeProcesses();
+        return null;
       case 'abs_claude_send':
       case 'abs_claude_close_input':
-      case 'abs_claude_stop':
         return null;
       case 'abs_claude_list':
-        return [];
+        return Object.entries(state.claudeProcesses).map(([spawnId, folders]) => ({ spawnId, busy: false, folders }));
       case 'abs_claude_page_epoch':
         return 1;
+      case 'abs_claude_pick_folder':
+        return state.config.codeFolder;
+      case 'abs_claude_forget_folder':
+        return null;
+      // A tauri::ipc::Response in Rust, so the page gets an ArrayBuffer.
+      case 'abs_claude_read_project_image':
+        return readProjectImage(args.path);
 
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {

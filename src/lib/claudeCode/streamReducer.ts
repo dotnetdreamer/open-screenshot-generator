@@ -15,10 +15,28 @@
 // at the start of every turn.
 
 import { toolDetail } from './toolLabels';
-import type { AgentItem, AgentSessionState } from './types';
+import type { AgentFolder, AgentItem, AgentSessionState } from './types';
 
 /** Longest tool answer kept in the transcript. The panel shows a line of it. */
 const MAX_RESULT_CHARS = 1200;
+
+/**
+ * Claude Code's own tools, as against the design server's. A picture one of
+ * them returns (a PNG the agent Read from the user's folder) stays off the
+ * row: the model has already seen it, and a data URL kept per file read is how
+ * the editor ran out of memory in issue #19. export_png's picture stays.
+ */
+const CLAUDE_CODE_TOOLS = new Set(['Skill', 'Read', 'Grep', 'Glob']);
+
+/** Whether a tool's row keeps the picture its result carried. */
+export function keepsToolImage(name: string): boolean {
+  return !CLAUDE_CODE_TOOLS.has(name);
+}
+
+/** What folding needs to know beyond the stream: the chat's code folders, for how a file path reads. */
+export interface ReduceOptions {
+  folders?: readonly AgentFolder[];
+}
 
 /** A transcript longer than this drops its oldest items. */
 export const MAX_ITEMS = 400;
@@ -52,7 +70,7 @@ function trimItems(items: AgentItem[]): AgentItem[] {
 }
 
 /** Text of a tool_result's content, which is either a string or content blocks. */
-function toolResultText(content: unknown): { text: string; image?: string } {
+function toolResultText(content: unknown, withImage: boolean): { text: string; image?: string } {
   if (typeof content === 'string') return { text: content };
   if (!Array.isArray(content)) return { text: '' };
   const parts: string[] = [];
@@ -60,7 +78,7 @@ function toolResultText(content: unknown): { text: string; image?: string } {
   for (const block of content) {
     if (!isObject(block)) continue;
     if (block.type === 'text' && typeof block.text === 'string') parts.push(block.text);
-    if (block.type === 'image' && !image) {
+    if (block.type === 'image' && withImage && !image) {
       // Claude Code re-emits an MCP image either as an Anthropic image block
       // ({source:{type:'base64',media_type,data}}) or as the MCP shape
       // ({data,mimeType}). Rust empties the bytes of a large one.
@@ -109,7 +127,12 @@ function wasStopped(msg: Json): boolean {
  * Apply one parsed stdout line. Anything unrecognised returns the state as it
  * was, which is what makes new message types from a newer Claude Code harmless.
  */
-export function reduceStreamMessage(state: AgentSessionState, msg: unknown, now: number): AgentSessionState {
+export function reduceStreamMessage(
+  state: AgentSessionState,
+  msg: unknown,
+  now: number,
+  options: ReduceOptions = {}
+): AgentSessionState {
   if (!isObject(msg)) return state;
   const type = str(msg.type);
 
@@ -118,19 +141,24 @@ export function reduceStreamMessage(state: AgentSessionState, msg: unknown, now:
     if (subtype === 'init') {
       const servers = Array.isArray(msg.mcp_servers) ? msg.mcp_servers.filter(isObject) : [];
       const ours = servers[0];
-      const connected = ours ? str(ours.status) === 'connected' : false;
+      // Claude Code reports each server's client state, and it starts the turn
+      // without waiting for them. A server still connecting says "pending" and
+      // is usually up a few seconds later, so only a real failure counts.
+      const status = ours ? str(ours.status) : null;
+      const pending = status === 'pending';
+      const connected = status === 'connected';
       const apiKeySource = str(msg.apiKeySource);
       const billedElsewhere = !!apiKeySource && apiKeySource !== 'none';
       const next: AgentSessionState = {
         ...state,
         sessionId: str(msg.session_id) ?? state.sessionId,
         model: str(msg.model) ?? state.model,
-        toolsConnected: connected,
+        toolsConnected: pending ? (state.toolsConnected === true ? true : null) : connected,
         billedToApiKey: billedElsewhere,
       };
       const notices: AgentItem[] = [];
       // Each said once per conversation, not on every turn's init.
-      if (!connected && state.toolsConnected !== false) {
+      if (!connected && !pending && state.toolsConnected !== false) {
         notices.push({
           kind: 'notice',
           id: `notice-tools-${str(msg.uuid) ?? now}`,
@@ -212,7 +240,7 @@ export function reduceStreamMessage(state: AgentSessionState, msg: unknown, now:
             toolUseId,
             name,
             input,
-            detail: toolDetail(name, input) ?? undefined,
+            detail: toolDetail(name, input, options.folders) ?? undefined,
             status: 'running',
             at: now,
           },
@@ -228,6 +256,9 @@ export function reduceStreamMessage(state: AgentSessionState, msg: unknown, now:
     const message = isObject(msg.message) ? msg.message : null;
     const content = Array.isArray(message?.content) ? message.content : [];
     let changed = false;
+    // A design tool that answered proves the server is up, which settles an
+    // init that said "pending".
+    let designToolAnswered = false;
     const items = state.items.map((item) => {
       if (item.kind !== 'tool') return item;
       const block = content.find(
@@ -235,7 +266,8 @@ export function reduceStreamMessage(state: AgentSessionState, msg: unknown, now:
       );
       if (!block) return item;
       changed = true;
-      const { text, image } = toolResultText(block.content);
+      if (!block.is_error && !CLAUDE_CODE_TOOLS.has(item.name)) designToolAnswered = true;
+      const { text, image } = toolResultText(block.content, keepsToolImage(item.name));
       return {
         ...item,
         status: block.is_error ? ('error' as const) : ('done' as const),
@@ -244,7 +276,8 @@ export function reduceStreamMessage(state: AgentSessionState, msg: unknown, now:
         endedAt: now,
       };
     });
-    return changed ? { ...state, items } : state;
+    if (!changed) return state;
+    return designToolAnswered && state.toolsConnected !== true ? { ...state, items, toolsConnected: true } : { ...state, items };
   }
 
   if (type === 'result') {
@@ -295,14 +328,19 @@ export function describeExit(code: number | null, stderrTail: string[]): string 
 }
 
 /** Parse one stdout line and fold it in. A line that is not JSON is ignored. */
-export function reduceStreamLine(state: AgentSessionState, line: string, now: number): AgentSessionState {
+export function reduceStreamLine(
+  state: AgentSessionState,
+  line: string,
+  now: number,
+  options: ReduceOptions = {}
+): AgentSessionState {
   let parsed: unknown;
   try {
     parsed = JSON.parse(line);
   } catch {
     return state;
   }
-  return reduceStreamMessage(state, parsed, now);
+  return reduceStreamMessage(state, parsed, now, options);
 }
 
 /** The user's side of a turn, added the moment it is sent. */

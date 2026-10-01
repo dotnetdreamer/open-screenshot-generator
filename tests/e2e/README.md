@@ -51,7 +51,17 @@ contract their own `mocks.js` does: `invoke`, `transformCallback`,
 Every command the app can send is answered: its own Rust commands
 (`abs_app_ready`, `abs_write_export_png`, `abs_mcp_status`, the `abs_web_*`
 session commands, the `abs_oauth_*` ones, the `abs_claude_*` ones that run
-Claude Code, which report it as not installed unless a spec says otherwise) and
+Claude Code, which report it as not installed unless a spec says otherwise,
+including the code folder commands: `abs_claude_pick_folder` answers with the
+folder a spec configures (`tauriConfig.codeFolder`, `null` for a cancel, an
+`errors` entry for a refusal), `abs_claude_forget_folder` and
+`abs_claude_read_project_image` are modelled too (a small picture for a path
+inside a running process's folders, Rust's refusal otherwise), and
+`abs_claude_start` and `abs_claude_list` echo the requested folders back as
+granted. The processes outlive a reload of the page, as Rust's do, because
+the mock keeps them in sessionStorage. `abs_mcp_write_png` refuses an MCP
+export's folder the way Rust does: a relative one or one with `.` or `..`
+always, and while a process reads a folder, one inside it or on a share) and
 the plugin commands
 (`plugin:dialog|save`, `plugin:fs|write_file`, `plugin:path|join`,
 `plugin:opener|open_url`, `plugin:event|*`, `plugin:window|*`). Anything with no
@@ -86,8 +96,10 @@ app sent or with what arguments.
 
 The tradeoff is honest: these tests prove the app *asks the desktop shell for
 the right thing*. They do not prove Rust does the right thing with it. The Rust
-side (`src-tauri/src/`) needs its own tests, and packaging is covered by
-`.github/workflows/desktop.yml`.
+side (`src-tauri/src/`) has its own tests, which `cargo test --lib` in
+`src-tauri/` runs, the code folder rules in `code_folders.rs` included (a name
+filter such as `cargo test claude_code` misses nearly all of those), and
+packaging is covered by `.github/workflows/desktop.yml`.
 
 ## Layout
 
@@ -264,4 +276,4 @@ scattered ones.
    close to worthless; click it and assert what changed, in the DOM, in the
    database, or in the Tauri IPC.
 4. `npx tsc --noEmit` covers `tests/**` as well, and it is the project's real
-   gate. Eight pre-existing errors under `promo/` are expected; nothing else is.
+   gate. 24 pre-existing errors under `promo/` and `promo-i18n/` are expected; nothing else is.

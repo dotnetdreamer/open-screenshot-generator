@@ -31,6 +31,7 @@ const SLOW_TOOLS = new Set([
   'apply_template',
   'open_project',
   'upload_asset',
+  'import_project_image',
   'upload_recording',
   'add_elements',
   'duplicate_artboard',

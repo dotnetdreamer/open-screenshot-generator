@@ -4,7 +4,9 @@
 
 import { isTauri } from '@/lib/desktop';
 import type {
+  AgentFolder,
   ClaudeDetection,
+  ClaudeListedProcess,
   ClaudeStartArgs,
   ClaudeStartInfo,
   ClaudeTransport,
@@ -32,8 +34,15 @@ export const desktopTransport: ClaudeTransport = {
   send: (spawnId, line) => invoke<void>('abs_claude_send', { spawnId, line }),
   closeInput: (spawnId) => invoke<void>('abs_claude_close_input', { spawnId }),
   stop: (spawnId) => invoke<void>('abs_claude_stop', { spawnId }),
-  list: () => invoke<{ spawnId: string; busy: boolean }[]>('abs_claude_list'),
+  list: () => invoke<ClaudeListedProcess[]>('abs_claude_list'),
   pageEpoch: () => invoke<number>('abs_claude_page_epoch'),
+  // The dialog is Rust's, never the page's: a path only reaches Claude Code if
+  // the user picked it there (rule 37 in AGENTS.md).
+  pickFolder: (near) => invoke<AgentFolder | null>('abs_claude_pick_folder', near ? { near } : {}),
+  forgetFolder: (path) => invoke<void>('abs_claude_forget_folder', { path }),
+  // A tauri::ipc::Response on the Rust side, so the bytes arrive as an
+  // ArrayBuffer rather than as a JSON array of numbers.
+  readProjectImage: (path) => invoke<ArrayBuffer>('abs_claude_read_project_image', { path }),
   async listen(callback: (event: ClaudeTransportEvent) => void) {
     if (!isTauri()) return () => {};
     // Rust stamps every event with a nonce only this window can read. The

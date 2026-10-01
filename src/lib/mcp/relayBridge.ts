@@ -116,7 +116,8 @@ export function startRelayMcpBridge(options: {
     }
     if (!callId) return;
 
-    const response = await run(message as any);
+    // Nothing on the relay is the desktop app's own agent.
+    const response = await run(message as any, { agent: false });
     if (closed) return;
     try {
       await fetch(`${MCP_RELAY_URL}/tab/${code}/reply`, {

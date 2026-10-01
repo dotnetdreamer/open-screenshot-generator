@@ -268,6 +268,16 @@ export interface McpCsvImport {
   }>;
 }
 
+/** A picture from the agent's code folder, stored as an asset. */
+export interface McpProjectImage {
+  /** Pass this wherever an image source is expected. */
+  ref: string;
+  name: string;
+  /** Null for an SVG that has no size of its own. */
+  width: number | null;
+  height: number | null;
+}
+
 export interface McpDesignApi {
   /**
    * Lightweight list of every artboard on the canvas. A locale reads that
@@ -535,7 +545,46 @@ export interface McpDesignApi {
   setLocaleOverride(input: LocaleOverrideInput): McpLocaleOverrideResult;
   /** Hand a language's overrides back to the shared design, at any scope. */
   resetLocaleOverrides(input: LocaleResetInput): McpLocaleResetResult;
+
+  // -- The Claude Code agent's code folders (desktop) --------------------------
+
+  /**
+   * Store a picture from a code folder attached to the agent's chat and return
+   * its asset reference. Rust reads the file and refuses anything outside the
+   * folders a running agent process was started with. Throws a short sentence
+   * the agent can act on.
+   */
+  importProjectImage(path: string, name?: string): Promise<McpProjectImage>;
+  /** The app's Claude Code process can read a code folder now, so import_project_image has one to read from. */
+  agentReadsFolders(): boolean;
+  /**
+   * The agent may hold something read from a code folder: its process can
+   * read one now, or the chat's agent once could and the conversation it
+   * resumes still has what it read. While this holds, the agent's calls may
+   * carry no web link (see hasWebLink), so nothing read from a folder can
+   * leave in a URL.
+   */
+  agentMayHoldFolderData(): boolean;
 }
+
+/**
+ * Who is calling. Rust knows, because the app's own Claude Code agent sends
+ * its bearer token with every request whatever the Settings switch says; the
+ * page cannot tell one client from another by itself.
+ */
+export interface McpCallContext {
+  /** The app's built-in Claude Code agent. False for every other client, the web relay and the CLI. */
+  agent: boolean;
+  /**
+   * Rust's word, taken as the request arrived, that a Claude Code process it
+   * runs can read a code folder. It covers the moments the page has lost
+   * track of a process that is still alive: a reload before adoption, or a
+   * chat left while its process is being killed. Missing from older builds.
+   */
+  folders?: boolean;
+}
+
+const OTHER_CLIENT: McpCallContext = { agent: false };
 
 // ---------------------------------------------------------------------------
 // Tool definitions. Each tool declares its JSON schema (so the client can call
@@ -558,7 +607,8 @@ interface ToolDef {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  run: (args: Record<string, any>, api: McpDesignApi) => Promise<ToolResult> | ToolResult;
+  /** `ctx` says who called. Only a tool that is not for everyone reads it. */
+  run: (args: Record<string, any>, api: McpDesignApi, ctx: McpCallContext) => Promise<ToolResult> | ToolResult;
 }
 
 const SHAPE_TYPES = [
@@ -1036,6 +1086,28 @@ async function dataUrlDecodes(dataUrl: string): Promise<boolean> {
 }
 
 /**
+ * A stand-in for the editor's own origin. Its scheme is a special one, like
+ * the editor's http://tauri.localhost and dev server, so the URL parser reads
+ * a backslash as a slash here as it does there.
+ */
+const OWN_ORIGIN = 'http://osg.invalid';
+
+/**
+ * Whether `value` is a path from the root of the editor's own site, as the
+ * browser will resolve it. The browser's own URL parser decides, because it
+ * drops a tab or a newline anywhere and reads `/\host` as `//host`, and a
+ * pattern of ours would see neither.
+ */
+function isOwnSitePath(value: string): boolean {
+  if (!value.startsWith('/')) return false;
+  try {
+    return new URL(value, `${OWN_ORIGIN}/`).origin === OWN_ORIGIN;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Whether a path starting with "/" is a picture this site serves. Loaded, not
  * just asked about: the desktop build answers a path it does not have with
  * index.html and a 200 (Tauri's single-page fallback), labelled by the path's
@@ -1073,7 +1145,8 @@ async function screenshotSrcProblem(src: string): Promise<string | null> {
     if (await dataUrlDecodes(src)) return null;
     return `"${shortValue(src)}" does not decode as a whole image, or its base64 was cut short. Send the whole file as base64, in PNG, JPEG, WebP, GIF or SVG.`;
   }
-  if (src.startsWith('/') && !src.startsWith('//')) {
+  // Probed only when it stays on this site: the probe is a real request.
+  if (isOwnSitePath(src)) {
     if (await siteServesImage(src)) return null;
     return `"${shortValue(src)}" is not an image this app serves. A file on this computer has to go through upload_asset first: send its bytes as base64, then pass the asset:<id> ref it returns.`;
   }
@@ -2593,7 +2666,128 @@ const TOOLS: ToolDef[] = [
       return ok ? textResult({ ok }) : { ...textResult('No such asset.'), isError: true };
     },
   },
+  {
+    name: 'import_project_image',
+    description:
+      'Desktop app only, for the built-in Claude Code agent with a code folder attached to its chat. Store a picture from that folder (the app icon, a logo, a screenshot already in the repo) and get back an "asset:<id>" reference for imageSrc or screenshotSrc, the same as upload_asset gives. Pass the absolute path of a PNG, JPEG, WebP, GIF or SVG file of up to 20 MB. The app reads the file itself, so there is no need to Read a picture just to import it.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        path: { type: 'string', description: 'Absolute path of the picture, inside a code folder attached to this chat.' },
+        name: { type: 'string', description: 'Label shown by list_assets. Defaults to the file name.' },
+      },
+      required: ['path'],
+    },
+    run: async (args, api, ctx) => {
+      // Any client can list this tool, and with the Settings switch on any
+      // local client can call it. Only the agent whose chat holds the folder
+      // may read from it.
+      if (!ctx.agent || !isTauri()) {
+        return {
+          ...textResult('import_project_image works only for the app\'s built-in Claude Code agent, in a chat with a code folder attached'),
+          isError: true,
+        };
+      }
+      if (typeof args.path !== 'string' || !args.path.trim()) {
+        return { ...textResult('path must be the absolute path of a picture in the code folder.'), isError: true };
+      }
+      if (!api.agentReadsFolders()) {
+        return {
+          ...textResult('No code folder is attached to this chat. Ask the user to add one with the folder button under the message box'),
+          isError: true,
+        };
+      }
+      const image = await api.importProjectImage(args.path.trim(), typeof args.name === 'string' ? args.name : undefined);
+      return textResult(image);
+    },
+  },
 ];
+
+// ---------------------------------------------------------------------------
+// Web links while the agent may hold something read from a code folder. Its
+// calls then go through one check at the dispatch below, whatever the tool: a
+// prompt planted in a README must not get file contents out in a URL the
+// editor then loads.
+// ---------------------------------------------------------------------------
+
+/** Keys whose value the editor loads as a source: imageSrc, videoSrc, src, upload_asset's source, a url, an href. */
+const SOURCE_KEY = /(src|source|url|href)$/i;
+/** An `asset:<id>` reference, which the editor reads from IndexedDB. */
+const ASSET_REF = /^asset:[\w-]+$/;
+/** Sources that carry their own bytes, so loading one reaches no network. */
+const INLINE_SOURCE = /^(data:(image|video)\/|blob:)/i;
+/**
+ * CSS that fetches. A colour is written into a background as it is given, so
+ * set_background's color1 could carry `red), url(https://...` and load it.
+ */
+const CSS_FETCH = /url\(|image-set\(/i;
+/** A CSS escape: a backslash and one to six hex digits with one optional space after, or a backslash and any other character. */
+const CSS_ESCAPE = /\\(?:([0-9a-f]{1,6})(?:\r\n|[ \t\r\n\f])?|([^\r\n\f]))/gi;
+/** An argument tree bigger than this is refused rather than half read. */
+const MAX_SCANNED_VALUES = 100_000;
+
+export const WEB_LINKS_OFF =
+  'Web links are off in this chat because the agent has read a code folder. Use import_project_image or a picture the user attached';
+
+/**
+ * Whether the editor loads `value` as a source without leaving the machine:
+ * nothing, an asset reference, a data: picture or video, a blob: URL, or a
+ * path on the editor's own site. Anything else is taken to reach the web,
+ * whatever its scheme or spelling. The raw string is tested, since that is
+ * what the browser gets.
+ */
+function staysLocal(value: string): boolean {
+  return value === '' || ASSET_REF.test(value) || INLINE_SOURCE.test(value) || isOwnSitePath(value);
+}
+
+/** CSS as the browser reads it, escapes undone: `\75 rl(` and `u\rl(` are both `url(`. */
+function decodeCssEscapes(value: string): string {
+  if (!value.includes('\\')) return value;
+  return value.replace(CSS_ESCAPE, (_match, hex: string | undefined, char: string | undefined) => {
+    if (hex === undefined) return char ?? '';
+    const code = parseInt(hex, 16);
+    // CSS reads zero, a surrogate or anything past Unicode as U+FFFD.
+    return code === 0 || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff) ? '\uFFFD' : String.fromCodePoint(code);
+  });
+}
+
+/**
+ * Whether a call's arguments could make the editor reach the web: a value
+ * under a source key, anywhere in the tree, that does not stay on this machine
+ * (staysLocal), or CSS that loads something under any key, with its escapes
+ * undone too. Words that only mention a site (a headline naming example.com)
+ * are fine.
+ */
+export function hasWebLink(args: unknown): boolean {
+  const stack: Array<{ value: unknown; key: string }> = [{ value: args, key: '' }];
+  let seen = 0;
+  while (stack.length) {
+    const { value, key } = stack.pop()!;
+    if (++seen > MAX_SCANNED_VALUES) return true;
+    if (typeof value === 'string') {
+      if (CSS_FETCH.test(value) || CSS_FETCH.test(decodeCssEscapes(value))) return true;
+      if (SOURCE_KEY.test(key) && !staysLocal(value)) return true;
+    } else if (Array.isArray(value)) {
+      // An array's items answer to the key that holds it.
+      for (const item of value) stack.push({ value: item, key });
+    } else if (value && typeof value === 'object') {
+      for (const [name, item] of Object.entries(value)) stack.push({ value: item, key: name });
+    }
+  }
+  return false;
+}
+
+/**
+ * Whether the agent's calls go through hasWebLink, by the page's account: the
+ * store knows the process and the chat. A broken answer counts as yes.
+ */
+function webLinksOff(api: McpDesignApi): boolean {
+  try {
+    return api.agentMayHoldFolderData() !== false;
+  } catch {
+    return true;
+  }
+}
 
 function toolListPayload() {
   return TOOLS.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }));
@@ -2636,7 +2830,8 @@ function rpcError(id: unknown, code: number, message: string) {
 
 export async function handleMcpMessage(
   message: JsonRpcMessage,
-  api: McpDesignApi | null
+  api: McpDesignApi | null,
+  ctx: McpCallContext = OTHER_CLIENT
 ): Promise<unknown> {
   const { id, method, params } = message;
   switch (method) {
@@ -2667,8 +2862,14 @@ export async function handleMcpMessage(
           isError: true,
         });
       }
+      const args = params?.arguments ?? {};
+      // The one place every call passes, so no tool can be missed. Rust's word
+      // on the process, or the page's on the chat, is enough to turn it on.
+      if (ctx.agent && (ctx.folders === true || webLinksOff(api)) && hasWebLink(args)) {
+        return rpcResult(id, { content: [{ type: 'text', text: WEB_LINKS_OFF }], isError: true });
+      }
       try {
-        const result = await tool.run(params?.arguments ?? {}, api);
+        const result = await tool.run(args, api, ctx);
         return rpcResult(id, result);
       } catch (e) {
         return rpcResult(id, {
@@ -2700,10 +2901,12 @@ export interface McpRequestTiming {
  * in the desktop app (below) and the hosted relay the web build talks to
  * (src/lib/mcp/relayBridge.ts) both reach it through createSerialMcpRunner.
  * The npm CLI's headless bridge calls it directly and orders its own calls.
+ * `ctx` says who is calling; only Rust's socket can say it is the agent.
  */
 export async function runMcpRequest(
   message: JsonRpcMessage,
   api: McpDesignApi | null,
+  ctx: McpCallContext = OTHER_CLIENT,
   timing: McpRequestTiming = {}
 ): Promise<unknown> {
   try {
@@ -2711,7 +2914,7 @@ export async function runMcpRequest(
     // The transport drops the call at its own (longer) deadline either way, but
     // replying here frees the client sooner and names the tool that misbehaved
     // instead of just going quiet.
-    return await withWatchdog(handleMcpMessage(message, api), message, timing.receivedAt ?? Date.now());
+    return await withWatchdog(handleMcpMessage(message, api, ctx), message, timing.receivedAt ?? Date.now());
   } catch (e) {
     return rpcError(message?.id, -32603, e instanceof Error ? e.message : String(e));
   }
@@ -2727,6 +2930,14 @@ interface BridgedRequest {
   message: JsonRpcMessage;
   /** The value abs_mcp_bridge_nonce returns. */
   nonce: string;
+  /**
+   * The request carried the agent's bearer token, whatever the Settings
+   * switch says. Missing from builds before code folders, which means another
+   * client.
+   */
+  agent?: boolean;
+  /** For an agent request, whether a running Claude Code process could read a code folder when it arrived. */
+  folders?: boolean;
 }
 
 /**
@@ -2770,7 +2981,10 @@ export async function startDesktopMcpBridge(
   const unlisten = await listen<Partial<BridgedRequest> | null>(MCP_REQUEST_EVENT, async (event) => {
     const request = event.payload;
     if (!request || request.nonce !== nonce) return;
-    const response = await run(request.message as JsonRpcMessage);
+    const response = await run(request.message as JsonRpcMessage, {
+      agent: request.agent === true,
+      folders: request.folders === true,
+    });
     try {
       await invoke('abs_mcp_respond', { callId: request.callId, response });
     } catch {
@@ -2797,6 +3011,8 @@ const SLOW_TOOLS = new Set([
   'apply_template',
   'open_project',
   'upload_asset',
+  // Reads a picture of up to 20 MB from the agent's code folder, through Rust.
+  'import_project_image',
   // Fetches and decodes a screen recording, which can be tens of megabytes.
   'upload_recording',
   'add_elements',
@@ -2852,11 +3068,11 @@ function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage, receivedA
 /**
  * Tools that leave the project and the editor's state as they found them, so
  * the call after one has no render to wait for. Most are plain reads.
- * upload_asset, upload_recording and delete_asset do write, but only to the
- * media table, which no tool reads through a render. The two exports belong
- * here when they capture what the canvas already shows; changesEditor() counts
- * one that was given a locale as a write, because it switches the canvas there
- * and back.
+ * upload_asset, import_project_image, upload_recording and delete_asset do
+ * write, but only to the media table, which no tool reads through a render.
+ * The two exports belong here when they capture what the canvas already shows;
+ * changesEditor() counts one that was given a locale as a write, because it
+ * switches the canvas there and back.
  *
  * A tool missing from this list counts as a write. A read left off it costs up
  * to SETTLE_TIMEOUT_MS of waiting; a write put on it would lose edits. When in
@@ -2881,6 +3097,7 @@ const READ_ONLY_TOOLS = new Set([
   'list_fonts',
   'list_assets',
   'upload_asset',
+  'import_project_image',
   'delete_asset',
   'export_png',
   'export_all',
@@ -2964,6 +3181,7 @@ export interface SerialMcpRunnerOptions {
  * - Once options.isOpen() is false, a request that has not started yet is
  *   answered "not ready" and never run.
  * - initialize, ping and tools/list skip the line.
+ * - Each request carries the caller its transport vouched for (`ctx`).
  *
  * A call the watchdog abandons frees the line while its own work may still be
  * running. That is the price of a line that cannot wedge: the alternative is
@@ -2972,16 +3190,16 @@ export interface SerialMcpRunnerOptions {
 export function createSerialMcpRunner(
   getApi: () => McpDesignApi | null,
   options: SerialMcpRunnerOptions = {}
-): (message: JsonRpcMessage) => Promise<unknown> {
+): (message: JsonRpcMessage, ctx?: McpCallContext) => Promise<unknown> {
   const { isOpen } = options;
   const liveApi = () => (isOpen && !isOpen() ? null : getApi());
   let tail: Promise<unknown> = Promise.resolve();
-  return (message) => {
+  return (message, ctx = OTHER_CLIENT) => {
     const receivedAt = Date.now();
     if (UNQUEUED_METHODS.has(String(message?.method))) {
-      return runMcpRequest(message, liveApi(), { receivedAt });
+      return runMcpRequest(message, liveApi(), ctx, { receivedAt });
     }
-    const turn = tail.then(() => takeTurn(message, receivedAt, liveApi));
+    const turn = tail.then(() => takeTurn(message, receivedAt, liveApi, ctx));
     tail = turn.then((done) => done.settled).catch(() => undefined);
     return turn.then(
       (done) => done.response,
@@ -2993,7 +3211,8 @@ export function createSerialMcpRunner(
 async function takeTurn(
   message: JsonRpcMessage,
   receivedAt: number,
-  getApi: () => McpDesignApi | null
+  getApi: () => McpDesignApi | null,
+  ctx: McpCallContext
 ): Promise<{ response: unknown; settled: Promise<void> }> {
   const waited = Date.now() - receivedAt;
   if (waited > budgetFor(message) - QUEUE_GRACE_MS) {
@@ -3008,7 +3227,7 @@ async function takeTurn(
     };
   }
   const api = getApi();
-  const response = await runMcpRequest(message, api, { receivedAt });
+  const response = await runMcpRequest(message, api, ctx, { receivedAt });
   // Measured against the api in place now, not the one the call started with.
   // Something else can re-render mid-call (a toast, the agent panel streaming
   // text), and that would make the starting api look replaced before this

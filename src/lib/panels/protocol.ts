@@ -180,7 +180,15 @@ export type DockIntent =
   | { name: 'agentOpenChat'; chatId: string }
   | { name: 'agentDeleteChat'; chatId: string }
   /** A link in the chat. A panel window cannot open one itself (panels.json). */
-  | { name: 'agentOpenLink'; url: string };
+  | { name: 'agentOpenLink'; url: string }
+  /**
+   * Add a code folder. The editor opens the dialog, parented to the detached
+   * Agent window: a panel window may open no dialog, and only the editor may
+   * call Claude Code's commands.
+   */
+  | { name: 'agentAddFolder' }
+  /** Take a code folder off the chat, by the path the snapshot sent. */
+  | { name: 'agentRemoveFolder'; path: string };
 
 /**
  * Every message on the bus.

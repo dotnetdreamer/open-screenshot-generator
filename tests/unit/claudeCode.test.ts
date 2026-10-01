@@ -19,15 +19,23 @@ import {
   buildAttachmentNote,
   buildFirstRunBrief,
   composeTurnText,
+  defaultStartText,
   encodeInterrupt,
   encodeUserMessage,
 } from '@/lib/claudeCode/prompt';
-import { INITIAL_AGENT_STATE, type AgentItem, type AgentSessionState } from '@/lib/claudeCode/types';
+import { FOLDERS_CHANGED_NOTE } from '@/lib/claudeCode/folders';
+import {
+  INITIAL_AGENT_STATE,
+  type AgentEditorContext,
+  type AgentImage,
+  type AgentItem,
+  type AgentSessionState,
+} from '@/lib/claudeCode/types';
 import { slimAgentView, type AgentPanelView } from '@/lib/claudeCode/view';
 import { pickCanvasSize, projectNameFromInstruction } from '@/lib/claudeCode/startProject';
 import { KEEP_CHATS, chatListItems, chatTitle, chatUpdatedAt, upsertChatSummary, type AgentChatSummary } from '@/lib/claudeCode/chats';
 import { agentContextLabel, buildAgentContext } from '@/lib/claudeCode/context';
-import { toolDetail, toolLabel } from '@/lib/claudeCode/toolLabels';
+import { toolDetail, toolImageAlt, toolLabel, toolSkipped } from '@/lib/claudeCode/toolLabels';
 import type { ArtboardState } from '@/types/artboard';
 
 const FIXTURE = path.join(process.cwd(), 'tests', 'unit', 'fixtures', 'claude', 'tool-turn.jsonl');
@@ -138,6 +146,33 @@ test('missing design tools and API key billing are each said once', () => {
   assert.equal(state.billedToApiKey, true);
 });
 
+test('design tools still connecting are not reported as unreachable', () => {
+  const init = { type: 'system', subtype: 'init', session_id: 's', model: 'm', mcp_servers: [{ name: 'osg-editor', status: 'pending' }], uuid: 'p' };
+  let state = reduceStreamMessage(INITIAL_AGENT_STATE, init, 1);
+  assert.equal(state.items.filter((item) => item.kind === 'notice').length, 0);
+  assert.equal(state.toolsConnected, null);
+  // Claude Code's own Read answering says nothing about the design server.
+  state = reduceStreamMessage(
+    state,
+    { type: 'assistant', uuid: 'a1', message: { content: [{ type: 'tool_use', id: 'r1', name: 'Read', input: { file_path: '/x/README.md' } }] } },
+    2
+  );
+  state = reduceStreamMessage(state, { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'r1', content: 'ok' }] } }, 3);
+  assert.equal(state.toolsConnected, null);
+  // A design tool answering does.
+  state = reduceStreamMessage(
+    state,
+    { type: 'assistant', uuid: 'a2', message: { content: [{ type: 'tool_use', id: 't1', name: 'mcp__osg-editor__list_artboards', input: {} }] } },
+    4
+  );
+  state = reduceStreamMessage(state, { type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 't1', content: '[]' }] } }, 5);
+  assert.equal(state.toolsConnected, true);
+  // A later turn's init that still says pending keeps what the tool proved.
+  state = reduceStreamMessage(state, { ...init, uuid: 'q' }, 6);
+  assert.equal(state.toolsConnected, true);
+  assert.equal(state.items.filter((item) => item.kind === 'notice').length, 0);
+});
+
 test('a process that dies mid-turn leaves nothing spinning', () => {
   let state = appendUserTurn(INITIAL_AGENT_STATE, { id: 'u', text: 'go', attachments: 0 }, 1);
   state = reduceStreamMessage(
@@ -176,6 +211,104 @@ test('user turns and interrupts encode as one line of stream-json', () => {
 
   const interrupt = JSON.parse(encodeInterrupt('stop-1'));
   assert.deepEqual(interrupt, { type: 'control_request', request_id: 'stop-1', request: { subtype: 'interrupt' } });
+
+  // The bytes Rust's stdin test accepts (stdin_takes_messages_and_interrupts_only
+  // in claude_code.rs). Rust refuses a line with any other key, so the two
+  // change together.
+  assert.equal(
+    encodeUserMessage('hi'),
+    '{"type":"user","message":{"role":"user","content":[{"type":"text","text":"hi"}]},"parent_tool_use_id":null,"session_id":""}'
+  );
+  assert.equal(
+    encodeInterrupt('interrupt-1727600000000'),
+    '{"type":"control_request","request_id":"interrupt-1727600000000","request":{"subtype":"interrupt"}}'
+  );
+});
+
+/**
+ * The lines Rust's stdin allowlist is tested on. claude_code.rs reads this
+ * file (the_lines_prompt_ts_writes_pass) and checks that each line passes and
+ * goes on to Claude Code as the same message, so a change to the encoders that
+ * Rust would refuse fails a test instead of every send. When prompt.ts or the
+ * cases below change on purpose, write the file again with OSG_WRITE_GOLDEN=1
+ * set for `npm run test:unit -- claudeCode.test`, then run `cargo test --lib`
+ * in src-tauri.
+ */
+const STDIN_GOLDEN = path.join(process.cwd(), 'tests', 'unit', 'fixtures', 'claude', 'stdin-lines.jsonl');
+
+const GOLDEN_CONTEXT: AgentEditorContext = {
+  projectId: 'project_1727600000000',
+  projectName: 'Marbly screenshots',
+  artboards: [
+    // The agent can rename a board, so a name can hold what Claude Code
+    // would read as a file mention.
+    { id: 'artboard_1', name: 'Hero @~/.claude.json x', width: 1290, height: 2796 },
+    { id: 'artboard_2', name: 'Streaks \u{1F525}', width: 1290, height: 2796 },
+  ],
+  activeArtboardId: 'artboard_1',
+  // Cut where a bare slice would keep half of the emoji, which Rust's JSON
+  // parser refuses.
+  selection: [{ id: 'el_1', type: 'text', name: 'Headline', text: `${'x'.repeat(159)}\u{1F525} and more` }],
+  activeLocale: 'en',
+};
+
+function stdinGoldenLines(): string[] {
+  const shot = { ref: 'asset:asset_1_a', width: 1290, height: 2796, fileName: 'home.png' };
+  const png: AgentImage = { mediaType: 'image/png', data: 'iVBORw0KGgo=' };
+  const jpeg: AgentImage = { mediaType: 'image/jpeg', data: '/9j/4AAQ' };
+  const turn = (parts: Parameters<typeof composeTurnText>[0], images: AgentImage[] = []) =>
+    encodeUserMessage(composeTurnText(parts), images);
+  return [
+    // A run's first message from the start screen: the brief, the default
+    // words and a screenshot.
+    turn(
+      {
+        context: null,
+        preface: buildFirstRunBrief({
+          projectName: 'Marbly screenshots',
+          artboard: { id: 'artboard_blank_1', width: 1290, height: 2796 },
+          screenshots: [shot],
+          folders: [{ name: 'Marbly', path: '/Users/me/code/Marbly' }],
+        }),
+        text: defaultStartText({ screenshots: 1, folders: 1 }),
+      },
+      [png]
+    ),
+    // From the panel: the editor context first, and an @ in the words too.
+    turn({ context: GOLDEN_CONTEXT, text: 'Mail me@b.com about @README.md' }),
+    // A folder change, then two attached pictures, the way the store joins them.
+    turn(
+      {
+        context: GOLDEN_CONTEXT,
+        preface: [FOLDERS_CHANGED_NOTE, buildAttachmentNote([shot, { ...shot, ref: 'asset:asset_2_b', fileName: 'stats.png' }])].join('\n\n'),
+        text: 'Put my app icon on the first artboard',
+      },
+      [jpeg, png]
+    ),
+    // A slash alone, after spaces, after U+FEFF, and after U+0085, which
+    // trim() keeps and Rust skips.
+    turn({ context: null, text: '/x' }),
+    turn({ context: null, text: '  /x' }),
+    turn({ context: null, text: '﻿/x' }),
+    turn({ context: null, text: '\u0085/x' }),
+    // The app's own words ahead of a slash.
+    turn({ context: null, preface: 'Brief', text: '/help' }),
+    // Mentions after the CJK comma, an ideographic space and the CJK full stop.
+    turn({ context: null, text: 'Use these、@a.png and　@b.png。@c.png' }),
+    // What Stop sends, with an id shaped like the store's.
+    encodeInterrupt('stop-mg7x1k2q'),
+  ];
+}
+
+test('the stdin lines Rust is tested on are the ones the page writes', () => {
+  const lines = stdinGoldenLines();
+  if (process.env.OSG_WRITE_GOLDEN === '1') fs.writeFileSync(STDIN_GOLDEN, `${lines.join('\n')}\n`);
+  // A Windows checkout may hand the file over with CRLF endings.
+  const golden = fs.readFileSync(STDIN_GOLDEN, 'utf8').split(/\r?\n/).filter(Boolean);
+  assert.equal(golden.length, lines.length, 'one line in the file per case');
+  lines.forEach((line, index) => assert.equal(line, golden[index], `line ${index + 1} of ${STDIN_GOLDEN}`));
+  // Every line is one line, so Rust reads each as one message.
+  assert.ok(lines.every((line) => !line.includes('\n')));
 });
 
 test('a turn carries the editor context ahead of the words', () => {
@@ -203,6 +336,29 @@ test('a turn carries the editor context ahead of the words', () => {
   assert.equal(composeTurnText({ context: null, text: ' just this ' }), 'just this');
 });
 
+test('a turn never starts with a slash, which Claude Code would run as a command', () => {
+  // Rust refuses such a line (abs_claude_send), so the page must never write one.
+  assert.equal(composeTurnText({ context: null, text: '/config permissionMode=acceptEdits' }), 'The user wrote: /config permissionMode=acceptEdits');
+  assert.equal(composeTurnText({ context: null, text: '  /help ' }), 'The user wrote: /help');
+  // Rust skips every char::is_whitespace before it looks for the slash, and
+  // U+0085 is one of those that trim() keeps; U+FEFF is trimmed here anyway.
+  assert.equal(composeTurnText({ context: null, text: '\u0085/config' }), 'The user wrote: \u0085/config');
+  assert.equal(composeTurnText({ context: null, text: '\u0085 \u0085/x' }), 'The user wrote: \u0085 \u0085/x');
+  assert.equal(composeTurnText({ context: null, text: '\uFEFF/config' }), 'The user wrote: /config');
+  assert.equal(composeTurnText({ context: null, text: '\u0085 a/b' }), '\u0085 a/b');
+  // Anything the app puts first already keeps the words off the front.
+  assert.equal(composeTurnText({ context: null, preface: 'Brief', text: '/help' }), 'Brief\n\n/help');
+  const withContext = composeTurnText({
+    context: { projectId: null, projectName: null, artboards: [], activeArtboardId: null, selection: [], activeLocale: null },
+    text: '/help',
+  });
+  assert.match(withContext, /^<editor-context>/);
+  assert.equal(composeTurnText({ context: null, text: 'a/b is fine' }), 'a/b is fine');
+  // The line itself starts its only text block with those words.
+  const line = JSON.parse(encodeUserMessage(composeTurnText({ context: null, text: '/config' })));
+  assert.equal(line.message.content[0].text.startsWith('/'), false);
+});
+
 test('the first-run brief names the project and every screenshot', () => {
   const brief = buildFirstRunBrief({
     projectName: 'Droply screenshots',
@@ -221,6 +377,93 @@ test('the first-run brief names the project and every screenshot', () => {
   assert.match(buildFirstRunBrief({ projectName: 'P', artboard: null, screenshots: [] }), /No screenshots/);
   assert.equal(buildAttachmentNote([]), '');
   assert.match(buildAttachmentNote([{ ref: 'asset:x', width: 1, height: 2, fileName: 'a.png' }]), /asset:x/);
+});
+
+test('the first-run brief says when the app code came with the screenshots, or instead of them', () => {
+  const marbly = { name: 'Marbly', path: 'C:\\Users\\me\\code\\Marbly' };
+  const shot = { ref: 'asset:asset_1_a', width: 1290, height: 2796, fileName: 'home.png' };
+
+  const both = buildFirstRunBrief({ projectName: 'P', artboard: null, screenshots: [shot], folders: [marbly] });
+  assert.ok(both.includes('The user also attached their app folder (Marbly). Your instructions list it; read it before you build.'));
+  assert.match(both, /0\. asset:asset_1_a/);
+  assert.doesNotMatch(both, /No screenshots/);
+  // The paths are the system prompt's business, never the turn's.
+  assert.equal(both.includes(marbly.path), false);
+
+  const folderOnly = buildFirstRunBrief({ projectName: 'P', artboard: null, screenshots: [], folders: [marbly] });
+  assert.ok(
+    folderOnly.includes(
+      "No screenshots were uploaded, but the user's app folder is attached. Look there for real screenshots first (fastlane/screenshots/<language>, fastlane/metadata/android/<language>/images/phoneScreenshots, a screenshots or store folder, images the README shows) and put the plain screens in the device frames with import_project_image, never finished store images that already have a frame or caption. If there are none, keep the device frames the templates come with, and say so in your reply."
+    )
+  );
+  assert.equal(folderOnly.includes('No screenshots were uploaded. Keep'), false);
+  assert.match(folderOnly, /\(Marbly\)/);
+
+  // Two folders of one name are told apart by their parents.
+  const two = buildFirstRunBrief({
+    projectName: 'P',
+    artboard: null,
+    screenshots: [],
+    folders: [
+      { name: 'app', path: '/Users/me/code/ios/app' },
+      { name: 'app', path: '/Users/me/code/android/app' },
+    ],
+  });
+  assert.ok(two.includes('their app folders (ios/app, android/app). Your instructions list them'));
+  assert.ok(two.includes("the user's app folders are attached"));
+
+  // No folders: exactly the brief from before folders, word for word.
+  const plain =
+    'This chat was started from the new project dialog. A new, empty project named "P" is open. Build the design in this project. Use apply_template if a template fits, so the result stays in this project.\n\nNo screenshots were uploaded. Keep the device frames the templates come with, and say so in your reply.';
+  assert.equal(buildFirstRunBrief({ projectName: 'P', artboard: null, screenshots: [], folders: [] }), plain);
+  assert.equal(buildFirstRunBrief({ projectName: 'P', artboard: null, screenshots: [] }), plain);
+});
+
+test('the first message says what the user gave when they wrote nothing', () => {
+  assert.equal(defaultStartText({ screenshots: 2, folders: 0 }), 'Design store screenshots for my app from these screenshots');
+  assert.equal(defaultStartText({ screenshots: 0, folders: 1 }), 'Design store screenshots for my app from its code folder');
+  assert.equal(
+    defaultStartText({ screenshots: 1, folders: 2 }),
+    'Design store screenshots for my app from these screenshots and its code folder'
+  );
+});
+
+test('a picture a file read returned stays off its row; an export keeps its own', () => {
+  const picture = [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'QUJD' } }];
+  let state = appendUserTurn(INITIAL_AGENT_STATE, { id: 'u', text: 'go', attachments: 0 }, 1);
+  state = reduceStreamMessage(
+    state,
+    {
+      type: 'assistant',
+      uuid: 'a1',
+      message: {
+        content: [
+          { type: 'tool_use', id: 'r1', name: 'Read', input: { file_path: 'C:\\code\\Marbly\\icon.png' } },
+          { type: 'tool_use', id: 'e1', name: 'mcp__osg-editor__export_png', input: { scale: 0.25 } },
+        ],
+      },
+    },
+    2,
+    { folders: [{ name: 'Marbly', path: 'C:\\code\\Marbly' }] }
+  );
+  const read = state.items.find((item) => item.kind === 'tool' && item.toolUseId === 'r1');
+  assert.equal(read?.kind === 'tool' && read.detail, 'icon.png');
+  state = reduceStreamMessage(
+    state,
+    {
+      type: 'user',
+      message: {
+        content: [
+          { type: 'tool_result', tool_use_id: 'r1', content: picture },
+          { type: 'tool_result', tool_use_id: 'e1', content: [...picture, { type: 'text', text: '{}' }] },
+        ],
+      },
+    },
+    3
+  );
+  const tools = state.items.filter((item): item is Extract<AgentItem, { kind: 'tool' }> => item.kind === 'tool');
+  assert.equal(tools.find((tool) => tool.toolUseId === 'r1')?.image, undefined);
+  assert.equal(tools.find((tool) => tool.toolUseId === 'e1')?.image, 'data:image/png;base64,QUJD');
 });
 
 test('the detached view is slim', () => {
@@ -260,8 +503,30 @@ test('the detached view is slim', () => {
       current: index === 0,
     })),
     projectId: 'project_0',
+    folders: [
+      { name: 'Marbly', path: 'C:\\Users\\me\\code\\Marbly', label: 'Marbly' },
+      { name: 'n'.repeat(200), path: `/Users/me/${'p'.repeat(900)}`, label: 'l'.repeat(200) },
+    ],
+    folderPicking: true,
+    folderNotice: 'You can add up to 3 folders. Remove one to add another',
+    foldersLive: false,
+    foldersPending: false,
+    linksAsText: true,
   };
   const slim = slimAgentView(view);
+  // The folders and their flags reach a detached window. A path stays whole,
+  // since removing a folder sends it back; the words around it are cut.
+  assert.equal(slim.folders.length, 2);
+  assert.equal(slim.folders[0].path, 'C:\\Users\\me\\code\\Marbly');
+  assert.equal(slim.folders[1].path, view.folders[1].path);
+  assert.ok(slim.folders[1].name.length <= 81 && slim.folders[1].label.length <= 81);
+  assert.equal(slim.folderPicking, true);
+  assert.equal(slim.foldersLive, false);
+  assert.equal(slim.foldersPending, false);
+  // A chat whose agent once read a folder keeps its links as text in a
+  // detached window too, with no process running.
+  assert.equal(slim.linksAsText, true);
+  assert.equal(slim.folderNotice, view.folderNotice);
   assert.equal(slim.items.length, 60);
   assert.equal(slim.omitted, 20);
   // Past chats travel too, fewer of them and cut short.
@@ -397,4 +662,57 @@ test('tool rows read as what happened', () => {
   assert.equal(toolLabel('rename_project', 'done'), 'Renamed the project');
   assert.equal(toolDetail('rename_project', { name: 'First one' }), 'First one');
   assert.equal(toolDetail('Skill', { skill: 'osg-agent:osg-design' }), null);
+});
+
+test('reading the code folder reads as what happened, and a refused secret is not an error', () => {
+  assert.equal(toolLabel('Read', 'running'), 'Reading a file...');
+  assert.equal(toolLabel('Read', 'done'), 'Read a file');
+  assert.equal(toolLabel('Read', 'error', 'File does not exist.'), 'Could not read a file');
+  assert.equal(toolLabel('Grep', 'running'), 'Searching your files...');
+  assert.equal(toolLabel('Grep', 'done'), 'Searched your files');
+  assert.equal(toolLabel('Grep', 'error'), 'Could not search your files');
+  assert.equal(toolLabel('import_project_image', 'running'), 'Importing an image...');
+  assert.equal(toolLabel('import_project_image', 'done'), 'Imported an image');
+  // Tools with no error label of their own read as before.
+  assert.equal(toolLabel('apply_template', 'error'), 'Applied a template');
+
+  // What Claude Code 2.1.202 says when a deny rule stops a Read, and a Grep on
+  // one file. The rules cover lock files and dependencies as well as secrets,
+  // so the row says blocked, which is true of all of them.
+  const deniedRead = '<tool_use_error>File is in a directory that is denied by your permission settings.</tool_use_error>';
+  const deniedGrep = 'Permission to read C:\\code\\Marbly\\.env has been denied.';
+  const deniedLock = 'Permission to read C:\\code\\Marbly\\package-lock.json has been denied.';
+  assert.equal(toolLabel('Read', 'error', deniedRead), 'Skipped a blocked file');
+  assert.equal(toolSkipped('Read', 'error', deniedRead), true);
+  assert.equal(toolLabel('Grep', 'error', deniedGrep), 'Skipped a blocked file');
+  assert.equal(toolLabel('Grep', 'error', deniedLock), 'Skipped a blocked file');
+  // A read outside the folders is refused in other words, and stays an error.
+  const outside = 'Permission to use Read has been denied because Claude Code is running in don\'t ask mode.';
+  assert.equal(toolSkipped('Read', 'error', outside), false);
+  assert.equal(toolLabel('Read', 'error', outside), 'Could not read a file');
+  assert.equal(toolSkipped('Read', 'done', deniedRead), false);
+  assert.equal(toolSkipped('update_element', 'error', deniedRead), false);
+
+  const folders = [{ name: 'Marbly', path: 'C:\\Users\\me\\code\\Marbly' }];
+  assert.equal(toolDetail('Read', { file_path: 'C:\\Users\\me\\code\\Marbly\\ios\\Info.plist' }, folders), 'ios/Info.plist');
+  // The agent may write the path with forward slashes and another case.
+  assert.equal(toolDetail('Read', { file_path: 'c:/users/me/code/marbly/README.md' }, folders), 'README.md');
+  // Outside every folder: the path as it is, cut from the left.
+  const far = toolDetail('Read', { file_path: 'D:\\elsewhere\\deep\\down\\in\\a\\very\\long\\path\\to\\Contents.json' }, folders)!;
+  assert.ok(far.startsWith('...') && far.endsWith('/to/Contents.json') && far.length <= 48, far);
+  const deep = toolDetail(
+    'import_project_image',
+    {
+      path: 'C:\\Users\\me\\code\\Marbly\\ios\\Marbly\\Assets.xcassets\\AppIcon.appiconset\\AccentColor.colorset\\icon-1024.png',
+      name: 'App icon',
+    },
+    folders
+  )!;
+  assert.ok(deep.startsWith('...') && deep.endsWith('AccentColor.colorset/icon-1024.png') && deep.length <= 48, deep);
+  assert.equal(toolDetail('Grep', { pattern: 'CFBundleDisplayName', glob: '**/*.pbxproj' }), '"CFBundleDisplayName"');
+  assert.equal(toolDetail('Read', {}), null);
+
+  assert.equal(toolImageAlt('Read', { file_path: 'C:\\code\\Marbly\\icon.png' }), 'icon.png from your folder');
+  assert.equal(toolImageAlt('import_project_image', { path: '/code/marbly/logo.svg' }), 'logo.svg from your folder');
+  assert.equal(toolImageAlt('export_png', {}), 'The artboard as the agent saw it');
 });

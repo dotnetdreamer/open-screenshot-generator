@@ -9,7 +9,8 @@
 // its stdout into a transcript (streamReducer.ts), and keeps the transcript in
 // localStorage so a reload or a relaunch shows the chat and resumes it. Every
 // chat is also saved in Past chats (chats.ts), and the chat on screen follows
-// the project the editor has open.
+// the project the editor has open. A chat can carry up to three folders of the
+// user's app code (folders.ts), which its process is started able to read.
 //
 // A detached panel window never touches this module. It renders the snapshot
 // the editor sends it and asks the editor to act (rule 29 in AGENTS.md).
@@ -39,16 +40,37 @@ import {
 } from './streamReducer';
 import { composeTurnText, encodeInterrupt, encodeUserMessage } from './prompt';
 import {
+  FOLDER_CAP_NOTICE,
+  FOLDER_PICKER_OPEN,
+  MAX_FOLDERS,
+  alreadyAddedNotice,
+  folderChangeNote,
+  folderLabels,
+  folderPaths,
+  hasUnreadFolder,
+  missingFolderNotice,
+  sameFolderSet,
+  sanitizeFolder,
+  sanitizeFolders,
+  sanitizePaths,
+  savedRanFolders,
+  savedReadFolders,
+  unreferencedPaths,
+} from './folders';
+import {
   INITIAL_AGENT_STATE,
   type AgentDetectionState,
   type AgentEditorContext,
+  type AgentFolder,
   type AgentImage,
   type AgentItem,
   type AgentSessionState,
   type ClaudeDetection,
   type ClaudeModelChoice,
+  type ClaudeStartInfo,
   type ClaudeTransport,
   type ClaudeTransportEvent,
+  type FolderPickerNear,
 } from './types';
 
 export interface ClaudeAgentSnapshot {
@@ -63,6 +85,14 @@ export interface ClaudeAgentSnapshot {
   chat: AgentChatMeta;
   /** Past chats, newest first. Empty outside the desktop app. */
   chats: AgentChatSummary[];
+  /** Rust's folder dialog is open. The add button shows it and ignores clicks meanwhile. */
+  folderPicking: boolean;
+  /** Why the last folder did not join the chat: a refusal, or the cap. Cleared by the next pick or message. */
+  folderNotice: string | null;
+  /** The running process can read code folders (agentReadsFolders). */
+  foldersLive: boolean;
+  /** The chat has a folder the agent was not started with, so a message needs no words of its own. */
+  foldersPending: boolean;
 }
 
 export interface AgentChatMeta {
@@ -71,15 +101,47 @@ export interface AgentChatMeta {
   projectId: string | null;
   projectName: string | null;
   createdAt: number | null;
+  /** The chat's code folders, in the order they were added. The next process starts able to read them. */
+  folders: AgentFolder[];
+  /**
+   * A process of this chat was started able to read a code folder. Never
+   * cleared for the chat: a resumed conversation still holds what was read,
+   * so its replies keep links as text and its tool calls stay off the web.
+   */
+  readFolders: boolean;
+  /**
+   * The folder paths the conversation's last turn ran with, set once that
+   * turn's message has gone out. Null for a chat that has not run a turn.
+   * The folder-change line and foldersPending compare against it.
+   */
+  ranFolders: string[] | null;
 }
 
-const NO_CHAT: AgentChatMeta = { id: null, projectId: null, projectName: null, createdAt: null };
+const NO_CHAT: AgentChatMeta = {
+  id: null,
+  projectId: null,
+  projectName: null,
+  createdAt: null,
+  folders: [],
+  readFolders: false,
+  ranFolders: null,
+};
+
+/** What a folder pick came to. */
+export type FolderPick =
+  | { kind: 'picked'; folder: AgentFolder }
+  | { kind: 'cancelled' }
+  | { kind: 'refused'; message: string };
 
 export interface AgentTurnInput {
   /** What the user typed. The transcript shows this and nothing else. */
   text: string;
-  /** Words only Claude reads, between the editor context and the user's own. */
-  preface?: string;
+  /**
+   * Words only Claude reads, between the editor context and the user's own.
+   * A function is called once the process is up, with the chat's folders Rust
+   * granted it, so the words never name a folder the agent cannot read.
+   */
+  preface?: string | ((granted: AgentFolder[]) => string);
   images?: AgentImage[];
   /**
    * Leave out the editor context. The first turn of a new design does: the
@@ -112,6 +174,10 @@ const SERVER_SNAPSHOT: ClaudeAgentSnapshot = {
   panelEnabled: false,
   chat: NO_CHAT,
   chats: [],
+  folderPicking: false,
+  folderNotice: null,
+  foldersLive: false,
+  foldersPending: false,
 };
 
 let snapshot: ClaudeAgentSnapshot = SERVER_SNAPSHOT;
@@ -130,6 +196,12 @@ let spawnId: string | null = null;
  * the chosen model.
  */
 let processModel: ClaudeModelChoice | null = null;
+/**
+ * The code folders that process was started with, as Rust granted them. Null
+ * when there is no process, or when nobody knows (one adopted from a build that
+ * did not say), which makes the next send restart it.
+ */
+let processFolders: string[] | null = null;
 /**
  * Stop was pressed for the turn in progress. Also covers a turn whose process
  * is still starting: send() checks it before writing and holds the message back.
@@ -190,13 +262,71 @@ function notifyNow(): void {
 }
 
 function set(next: Partial<ClaudeAgentSnapshot>, options: { immediate?: boolean } = {}): void {
-  snapshot = { ...snapshot, ...next };
+  snapshot = withFolderFlags({ ...snapshot, ...next });
   schedulePersist();
   if (options.immediate) {
     notifyNow();
   } else if (!notifyTimer) {
     notifyTimer = setTimeout(notifyNow, NOTIFY_DELAY_MS);
   }
+}
+
+/**
+ * Whether the running process can read code folders now. import_project_image
+ * asks before it reads a picture. A process whose folders are not known counts
+ * as reading them.
+ */
+function agentReadsFolders(): boolean {
+  return !!spawnId && (processFolders === null || processFolders.length > 0);
+}
+
+/**
+ * Whether the agent may hold something read from a code folder: its process
+ * can read one now, or the chat's agent once could, and the conversation it
+ * resumes still has what it read. The MCP server asks before each of the
+ * agent's calls and refuses web links while this holds, so nothing read from
+ * a folder leaves in a URL. It reads the saved chat first, because the MCP
+ * bridge can be up before anything has subscribed to this store.
+ */
+function agentMayHoldFolderData(): boolean {
+  hydrate();
+  return agentReadsFolders() || snapshot.chat.readFolders;
+}
+
+/** The folder flags follow the process, which lives in module variables rather than in the snapshot. */
+function withFolderFlags(state: ClaudeAgentSnapshot): ClaudeAgentSnapshot {
+  const foldersLive = agentReadsFolders();
+  const foldersPending = hasUnreadFolder(state.chat.folders, state.chat.ranFolders);
+  if (state.foldersLive === foldersLive && state.foldersPending === foldersPending) return state;
+  return { ...state, foldersLive, foldersPending };
+}
+
+/** A process of the chat on screen can read a folder, which marks the chat for as long as it exists. */
+function markReadFolders(): void {
+  if (!snapshot.chat.readFolders) set({ chat: { ...snapshot.chat, readFolders: true } }, { immediate: true });
+}
+
+/** A turn's message went out to a process that reads `paths`, which is what the conversation ran with last. */
+function commitRanFolders(paths: string[]): void {
+  const { chat } = snapshot;
+  if (sameFolderSet(chat.ranFolders, paths)) return;
+  set({ chat: { ...chat, ranFolders: paths } }, { immediate: true });
+}
+
+/** For a change to the process that no set() follows. */
+function refreshFolderFlags(): void {
+  const next = withFolderFlags(snapshot);
+  if (next === snapshot) return;
+  snapshot = next;
+  schedulePersist();
+  notifyNow();
+}
+
+/** This window stops talking to its process. The conversation stays resumable. */
+function dropProcess(): void {
+  spawnId = null;
+  processModel = null;
+  processFolders = null;
 }
 
 function setSession(session: AgentSessionState, options: { immediate?: boolean } = {}): void {
@@ -247,6 +377,8 @@ interface Persisted {
   spawnId: string | null;
   /** The choice the running process was started on. Missing in older saves. */
   processModel?: ClaudeModelChoice | null;
+  /** The folders the running process was started with. Missing in older saves. */
+  processFolders?: string[] | null;
   items: AgentItem[];
   /** Which saved chat this is. Missing in saves from before Past chats. */
   chat?: AgentChatMeta;
@@ -259,9 +391,10 @@ function schedulePersist(): void {
     const { session, chat } = snapshot;
     if (session.status === 'idle' && session.items.length === 0 && !session.sessionId) {
       // An empty chat still remembers its project, so opening that project
-      // again after a relaunch does not count as a switch.
+      // again after a relaunch does not count as a switch, and the folders the
+      // user added before writing anything.
       const empty: Persisted = { v: 1, sessionId: null, resolvedModel: null, spawnId: null, items: [], chat };
-      writeStorage(STORAGE_KEY, chat.projectId ? JSON.stringify(empty) : null);
+      writeStorage(STORAGE_KEY, chat.projectId || chat.folders.length ? JSON.stringify(empty) : null);
       return;
     }
     const persisted: Persisted = {
@@ -270,6 +403,7 @@ function schedulePersist(): void {
       resolvedModel: session.model,
       spawnId,
       processModel,
+      processFolders,
       items: slimForStorage(session.items),
       chat,
     };
@@ -298,6 +432,9 @@ function saveChat(): Promise<void> {
     createdAt: chat.createdAt ?? now,
     updatedAt: chatUpdatedAt(session.items, now),
     items: slimForStorage(session.items),
+    folders: chat.folders,
+    readFolders: chat.readFolders,
+    ranFolders: chat.ranFolders,
   };
   setChats(upsertChatSummary(snapshot.chats, toChatSummary(record)));
   return db.agentChats
@@ -361,18 +498,29 @@ function hydrate(): void {
       }
     : INITIAL_AGENT_STATE;
 
-  let chat: AgentChatMeta = persisted && isChatMeta(persisted.chat) ? { ...NO_CHAT, ...persisted.chat } : NO_CHAT;
+  let chat: AgentChatMeta = NO_CHAT;
+  if (persisted && isChatMeta(persisted.chat)) {
+    const saved = persisted.chat;
+    const folders = sanitizeFolders(saved.folders);
+    chat = {
+      ...NO_CHAT,
+      ...saved,
+      folders,
+      readFolders: savedReadFolders(saved.readFolders, folders),
+      ranFolders: savedRanFolders(persisted.sessionId, saved.ranFolders, folders),
+    };
+  }
   // A chat saved before Past chats existed gets an id now, so it is kept like
   // the rest. It learns its project when the editor reports the open one.
   if (!chat.id && chatTitle(session.items)) {
     chat = { ...chat, id: newChatId(), createdAt: session.items[0]?.at ?? Date.now() };
   }
 
-  snapshot = { ...snapshot, available, model, panelEnabled, session, chat };
+  snapshot = withFolderFlags({ ...snapshot, available, model, panelEnabled, session, chat });
   const t = getTransport();
   if (available && t) {
     void readPageEpoch(t);
-    adopted = adopt(persisted?.spawnId ?? null, persisted?.processModel ?? null);
+    adopted = adopt(persisted?.spawnId ?? null, persisted?.processModel ?? null, sanitizePaths(persisted?.processFolders));
     chatsLoaded = loadChats();
   }
 }
@@ -383,8 +531,17 @@ function hydrate(): void {
  * middle of a turn: the page may well have missed the line that ended it.
  * Anything else listed belonged to an editor that no longer exists, and
  * nothing would ever talk to it again.
+ *
+ * What the process can read comes from Rust's list, which knows. The copy this
+ * page saved stands in only when a build's list does not say; with neither,
+ * the folders are unknown and the next message restarts the process. A process
+ * that can read folders, or may, marks the chat as having read them.
  */
-async function adopt(id: string | null, model: ClaudeModelChoice | null): Promise<void> {
+async function adopt(
+  id: string | null,
+  model: ClaudeModelChoice | null,
+  savedFolders: string[] | null
+): Promise<void> {
   const t = getTransport();
   if (!t) return;
   const gen = generation;
@@ -403,6 +560,15 @@ async function adopt(id: string | null, model: ClaudeModelChoice | null): Promis
     }
     spawnId = id;
     processModel = model;
+    processFolders = sanitizePaths(mine.folders) ?? savedFolders;
+    const { chat } = snapshot;
+    set({
+      chat: {
+        ...chat,
+        readFolders: chat.readFolders || processFolders === null || processFolders.length > 0,
+        ranFolders: processFolders ?? chat.ranFolders,
+      },
+    });
     setSession(
       { ...snapshot.session, status: mine.busy ? 'working' : 'ready', turnStartedAt: mine.busy ? Date.now() : null },
       { immediate: true }
@@ -449,8 +615,19 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function startRecorder(input: AgentTurnInput, fullText: string): void {
+/**
+ * Claude Code's file tools. The run log keeps only the start of what they
+ * return: the log is saved in IndexedDB and goes into downloaded run reports,
+ * and the user's source code has no business in either.
+ */
+const FILE_TOOLS = new Set(['Read', 'Grep', 'Glob']);
+const FILE_RESULT_CHARS = 2000;
+/** The turn's tool names by tool_use id, since a result names only the id. */
+const recordedTools = new Map<string, string>();
+
+function startRecorder(input: AgentTurnInput): void {
   finishRecorder('cancelled');
+  recordedTools.clear();
   try {
     recorder = new OperationRecorder({
       mode: 'claude-code',
@@ -460,9 +637,17 @@ function startRecorder(input: AgentTurnInput, fullText: string): void {
       instruction: input.text,
       screenshotCount: input.images?.length ?? 0,
     });
-    recorder.message('app-to-provider', 'Message sent', { detail: fullText });
   } catch {
     recorder = null;
+  }
+}
+
+/** The message as it went out, once the process it went to is known. */
+function recordSent(fullText: string): void {
+  try {
+    recorder?.message('app-to-provider', 'Message sent', { detail: fullText });
+  } catch {
+    // The log is for looking back; the turn goes ahead without it.
   }
 }
 
@@ -490,6 +675,7 @@ function recordStream(message: unknown): void {
         recorder.message('provider-to-app', 'Reply', { detail: block.text });
       } else if (block.type === 'tool_use') {
         const name = stripToolPrefix(String(block.name ?? 'tool'));
+        if (typeof block.id === 'string') recordedTools.set(block.id, name);
         recorder.message('provider-to-app', `Tool call: ${name}`, {
           detail: JSON.stringify(block.input ?? {}, null, 2),
           code: name,
@@ -504,8 +690,9 @@ function recordStream(message: unknown): void {
             .map((part) => (isObject(part) && typeof part.text === 'string' ? part.text : isObject(part) && part.type === 'image' ? '[image]' : ''))
             .join('\n')
         : String(block.content ?? '');
+      const tool = typeof block.tool_use_id === 'string' ? recordedTools.get(block.tool_use_id) : undefined;
       recorder.message('app-to-provider', 'Tool result', {
-        detail: body,
+        detail: tool && FILE_TOOLS.has(tool) ? clipText(body, FILE_RESULT_CHARS) : body,
         code: block.is_error ? 'tool-error' : undefined,
       });
     }
@@ -561,7 +748,7 @@ function onEvent(event: ClaudeTransportEvent): void {
     }
     recordStream(message);
     const isResult = isObject(message) && message.type === 'result';
-    const next = reduceStreamMessage(snapshot.session, message, now);
+    const next = reduceStreamMessage(snapshot.session, message, now, { folders: snapshot.chat.folders });
     if (isResult && isObject(message)) {
       clearInterruptTimer();
       const stopped = /^abort|interrupt/i.test(String(message.terminal_reason ?? ''));
@@ -594,8 +781,7 @@ function onEvent(event: ClaudeTransportEvent): void {
   // exit
   const wasWorking = snapshot.session.status === 'working' || snapshot.session.status === 'starting';
   const tail = event.stderrTail?.length ? event.stderrTail : stderrTail;
-  spawnId = null;
-  processModel = null;
+  dropProcess();
   clearInterruptTimer();
   if (wasWorking && !stopRequested && lastTurn?.resumedFrom && /no conversation found/i.test(tail.join('\n'))) {
     void retryWithoutResume();
@@ -625,8 +811,7 @@ async function retryWithoutResume(): Promise<void> {
   lastTurn = null;
   if (!t || !turn) return;
   const old = spawnId;
-  spawnId = null;
-  processModel = null;
+  dropProcess();
   if (old) void t.stop(old).catch(() => {});
   if (stopRequested) {
     stoppedBeforeSending();
@@ -652,7 +837,9 @@ async function retryWithoutResume(): Promise<void> {
       return;
     }
     lastTurn = { line: turn.line, resumedFrom: null };
+    const granted = processFolders ?? [];
     await t.send(id, turn.line);
+    if (gen === generation && token === turnToken) commitRanFolders(granted);
   } catch (error) {
     if (error instanceof TurnAbandoned || gen !== generation || token !== turnToken) return;
     if (id && spawnId !== id) return;
@@ -666,37 +853,40 @@ async function retryWithoutResume(): Promise<void> {
 
 /** The id of a running process for this chat, starting one if there is none. */
 async function ensureProcess(t: ClaudeTransport): Promise<string> {
-  // A process started on another model (or on one nobody remembers) is
-  // replaced, with the conversation resumed, so a model change takes effect on
-  // the very next message.
-  if (spawnId && processModel !== snapshot.model) {
+  const wanted = folderPaths(snapshot.chat.folders);
+  // A process started on another model or with other folders (or on ones
+  // nobody remembers) is replaced, with the conversation resumed, so the
+  // change takes effect on the very next message. Both are fixed at spawn.
+  if (spawnId && (processModel !== snapshot.model || !sameFolderSet(processFolders, wanted))) {
     const old = spawnId;
-    spawnId = null;
-    processModel = null;
+    dropProcess();
     await t.stop(old).catch(() => {});
   }
   if (spawnId) return spawnId;
   await ensureListener(t);
   const epoch = await readPageEpoch(t);
-  if (spawnId) return spawnId;
+  // A reload's adoption can land during those waits. That process is checked
+  // like any other, so a send never goes to one started with other folders.
+  if (spawnId) return ensureProcess(t);
   const id = `cc-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   // Set before start() resolves: the process can print its first lines
-  // before the invoke returns, and onEvent drops anything for another id.
+  // before the invoke returns, and onEvent drops anything for another id. Its
+  // folders count as readable from here, so the MCP guard is already up.
   spawnId = id;
   processModel = snapshot.model;
+  processFolders = wanted;
   stderrTail = [];
+  let info: ClaudeStartInfo | undefined;
   try {
-    await t.start({
+    info = await t.start({
       spawnId: id,
       model: modelArg(snapshot.model),
       resume: snapshot.session.sessionId ?? undefined,
       pageEpoch: epoch,
+      ...(wanted.length ? { folders: wanted } : {}),
     });
   } catch (error) {
-    if (spawnId === id) {
-      spawnId = null;
-      processModel = null;
-    }
+    if (spawnId === id) dropProcess();
     throw error;
   }
   if (spawnId !== id) {
@@ -705,7 +895,35 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
     void t.stop(id).catch(() => {});
     throw new TurnAbandoned();
   }
+  // Rust starts the process without any folder that is gone or no longer
+  // passes its checks, and says which.
+  const missing = new Set(sanitizePaths(info?.missingFolders) ?? []);
+  processFolders = wanted.filter((path) => !missing.has(path));
+  if (processFolders.length) markReadFolders();
+  if (missing.size) dropMissingFolders(missing);
+  else refreshFolderFlags();
   return id;
+}
+
+/** Folders the process was started without leave the chat, each with a word in the transcript. */
+function dropMissingFolders(missing: Set<string>): void {
+  const { chat } = snapshot;
+  const gone = chat.folders.filter((folder) => missing.has(folder.path));
+  if (!gone.length) {
+    refreshFolderFlags();
+    return;
+  }
+  const now = Date.now();
+  let session = snapshot.session;
+  gone.forEach((folder, index) => {
+    session = appendNotice(
+      session,
+      { id: `notice-folder-${now}-${index}`, tone: 'warning', text: missingFolderNotice(folder) },
+      now
+    );
+  });
+  set({ chat: { ...chat, folders: chat.folders.filter((folder) => !missing.has(folder.path)) }, session }, { immediate: true });
+  void forgetUnreferenced(gone.map((folder) => folder.path));
 }
 
 function failTurn(error: unknown): void {
@@ -713,8 +931,7 @@ function failTurn(error: unknown): void {
   const message = errorText(error);
   if (spawnId && t) {
     const dead = spawnId;
-    spawnId = null;
-    processModel = null;
+    dropProcess();
     void t.stop(dead).catch(() => {});
   }
   const now = Date.now();
@@ -741,9 +958,10 @@ async function send(input: AgentTurnInput): Promise<void> {
   } catch {
     context = null;
   }
-  const fullText = composeTurnText({ context, preface: input.preface, text: input.text });
-  const line = encodeUserMessage(fullText, input.images ?? []);
   const now = Date.now();
+  // Whether the conversation has run a turn before, for the folder line once
+  // the process is known.
+  const continuing = !!snapshot.session.sessionId;
   // Saved from its first message on, and it belongs to the project that
   // message is about. A first message sent without the context has its
   // project from newChat.
@@ -751,6 +969,7 @@ async function send(input: AgentTurnInput): Promise<void> {
   set(
     {
       chat: {
+        ...chat,
         id: chat.id ?? newChatId(),
         createdAt: chat.createdAt ?? now,
         projectId: context?.projectId ?? chat.projectId,
@@ -761,6 +980,7 @@ async function send(input: AgentTurnInput): Promise<void> {
         { id: `u-${now}-${turnSeq++}`, text: input.text, attachments: input.images?.length ?? 0 },
         now
       ),
+      folderNotice: null,
     },
     { immediate: true }
   );
@@ -768,7 +988,7 @@ async function send(input: AgentTurnInput): Promise<void> {
   clearInterruptTimer();
   turnToken += 1;
   const token = turnToken;
-  startRecorder(input, fullText);
+  startRecorder(input);
 
   const gen = generation;
   let id: string | null = null;
@@ -781,8 +1001,24 @@ async function send(input: AgentTurnInput): Promise<void> {
       stoppedBeforeSending();
       return;
     }
+    // Written after the start, not before: the folders Rust granted decide
+    // whether the agent is told its folders changed, and which folders the
+    // app's own words may name. They become what the conversation ran with
+    // only once the message is out, so a turn stopped or failed before that
+    // still leaves the line for the next one.
+    const granted = processFolders ?? [];
+    const folderLine = folderChangeNote(snapshot.chat.ranFolders, granted, continuing);
+    const own =
+      typeof input.preface === 'function'
+        ? input.preface(snapshot.chat.folders.filter((folder) => granted.includes(folder.path)))
+        : input.preface;
+    const preface = [folderLine, own?.trim()].filter(Boolean).join('\n\n');
+    const fullText = composeTurnText({ context, preface, text: input.text });
+    const line = encodeUserMessage(fullText, input.images ?? []);
+    recordSent(fullText);
     lastTurn = { line, resumedFrom: snapshot.session.sessionId };
     await t.send(id, line);
+    if (gen === generation && token === turnToken) commitRanFolders(granted);
   } catch (error) {
     if (error instanceof TurnAbandoned || gen !== generation || token !== turnToken) return;
     // The process died between starting and this write, and its exit event
@@ -826,13 +1062,13 @@ function leaveChat(): void {
   const t = getTransport();
   const id = spawnId;
   generation += 1;
-  spawnId = null;
-  processModel = null;
+  dropProcess();
   stopRequested = false;
   lastTurn = null;
   clearInterruptTimer();
   if (t && id) void t.stop(id).catch(() => {});
   finishRecorder('cancelled');
+  refreshFolderFlags();
 }
 
 /** The project open in the editor now, as the context provider reports it. */
@@ -847,9 +1083,14 @@ function openProject(): { projectId: string; projectName: string | null } | null
 
 /**
  * An empty chat, for `project` or else the project open now. The chat being
- * left is saved first, so Past chats has it.
+ * left is saved first, so Past chats has it. `folders` are the code folders it
+ * starts with: the start screen's, or the chat's own when the panel's New chat
+ * stays on the same project. None otherwise.
  */
-async function newChat(project?: { projectId: string | null; projectName: string | null }): Promise<void> {
+async function newChat(
+  project?: { projectId: string | null; projectName: string | null },
+  options: { folders?: AgentFolder[] } = {}
+): Promise<void> {
   hydrate();
   void saveChat();
   leaveChat();
@@ -857,7 +1098,13 @@ async function newChat(project?: { projectId: string | null; projectName: string
   set(
     {
       session: { ...INITIAL_AGENT_STATE },
-      chat: { ...NO_CHAT, projectId: target?.projectId ?? null, projectName: target?.projectName ?? null },
+      chat: {
+        ...NO_CHAT,
+        projectId: target?.projectId ?? null,
+        projectName: target?.projectName ?? null,
+        folders: sanitizeFolders(options.folders ?? []),
+      },
+      folderNotice: null,
     },
     { immediate: true }
   );
@@ -882,6 +1129,7 @@ async function openChat(id: string): Promise<boolean> {
     return false;
   }
   const items = markExited({ ...INITIAL_AGENT_STATE, status: 'stopped', items: record.items }, Date.now()).items;
+  const folders = sanitizeFolders(record.folders);
   set(
     {
       session: {
@@ -891,7 +1139,16 @@ async function openChat(id: string): Promise<boolean> {
         items,
         status: record.sessionId || items.length ? 'stopped' : 'idle',
       },
-      chat: { id: record.id, projectId: record.projectId, projectName: record.projectName, createdAt: record.createdAt },
+      chat: {
+        id: record.id,
+        projectId: record.projectId,
+        projectName: record.projectName,
+        createdAt: record.createdAt,
+        folders,
+        readFolders: savedReadFolders(record.readFolders, folders),
+        ranFolders: savedRanFolders(record.sessionId, record.ranFolders, folders),
+      },
+      folderNotice: null,
     },
     { immediate: true }
   );
@@ -902,8 +1159,135 @@ async function openChat(id: string): Promise<boolean> {
 async function deleteChat(id: string): Promise<void> {
   hydrate();
   if (id === snapshot.chat.id) return;
+  const gone = snapshot.chats.find((chat) => chat.id === id);
   setChats(snapshot.chats.filter((chat) => chat.id !== id));
   await db.agentChats.delete(id).catch((error) => console.error('Could not delete the agent chat', error));
+  const paths = sanitizeFolders(gone?.folders).map((folder) => folder.path);
+  if (paths.length) await forgetUnreferenced(paths);
+}
+
+// ---------------------------------------------------------------------------
+// Code folders
+// ---------------------------------------------------------------------------
+
+/**
+ * Rust keeps a list of every folder the user picked, and starts a process
+ * only with folders on it. One that no chat uses any more comes off, so a
+ * folder the user took away cannot be handed back without the dialog.
+ */
+async function forgetUnreferenced(paths: string[]): Promise<void> {
+  const t = getTransport();
+  if (!t || !paths.length) return;
+  await chatsLoaded;
+  const current = snapshot.chat;
+  const inUse = [current.folders, ...snapshot.chats.filter((chat) => chat.id !== current.id).map((chat) => chat.folders)];
+  for (const path of unreferencedPaths(paths, inUse)) void t.forgetFolder(path).catch(() => {});
+}
+
+function pickRefusal(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  return typeof error === 'string' && error ? error : 'That folder could not be added';
+}
+
+/**
+ * Open Rust's folder dialog. `near: 'agent'` puts it over the detached Agent
+ * window, when there is one.
+ *
+ * With `addToChat` (the Agent panel) the folder joins the chat on screen,
+ * refusals, the cap and a folder the chat already has show as the folder
+ * notice, and the dialog does not open at all once the chat has MAX_FOLDERS. The dialog is modal to one window only,
+ * so the chat can change under it (Past chats in a panel on another display):
+ * a folder picked for one chat never lands in another, and that pick comes
+ * back as cancelled. Without it (the start screen, which holds its own folders
+ * until Start) the result is all that happens.
+ */
+async function pickFolder(options: { near?: FolderPickerNear; addToChat?: boolean } = {}): Promise<FolderPick> {
+  hydrate();
+  const refuse = (message: string): FolderPick => {
+    if (options.addToChat) set({ folderNotice: message }, { immediate: true });
+    return { kind: 'refused', message };
+  };
+  const t = getTransport();
+  if (!t) return refuse('Code folders need the desktop app');
+  if (snapshot.folderPicking) return refuse(FOLDER_PICKER_OPEN);
+  if (options.addToChat && snapshot.chat.folders.length >= MAX_FOLDERS) return refuse(FOLDER_CAP_NOTICE);
+  const gen = generation;
+  set({ folderPicking: true, folderNotice: null }, { immediate: true });
+  let chosen: AgentFolder | null;
+  try {
+    chosen = await t.pickFolder(options.near);
+  } catch (error) {
+    set({ folderPicking: false }, { immediate: true });
+    return refuse(pickRefusal(error));
+  }
+  set({ folderPicking: false }, { immediate: true });
+  if (chosen === null || chosen === undefined) return { kind: 'cancelled' };
+  const folder = sanitizeFolder(chosen);
+  if (!folder) return refuse('That folder could not be added');
+  if (options.addToChat) {
+    if (gen !== generation) return { kind: 'cancelled' };
+    if (!addFolder(folder)) return { kind: 'refused', message: snapshot.folderNotice ?? FOLDER_CAP_NOTICE };
+  }
+  return { kind: 'picked', folder };
+}
+
+/**
+ * Put a folder on the chat on screen. The process picks it up on the next
+ * message. False when nothing changed: the folder is already there, or the
+ * chat is at the cap. Either way the folder notice says which.
+ */
+function addFolder(folder: AgentFolder): boolean {
+  hydrate();
+  const clean = sanitizeFolder(folder);
+  if (!clean) return false;
+  const { chat } = snapshot;
+  const index = chat.folders.findIndex((entry) => entry.path === clean.path);
+  if (index >= 0) {
+    // Without a word, picking it again would look like nothing happened.
+    set({ folderNotice: alreadyAddedNotice(folderLabels(chat.folders)[index]) }, { immediate: true });
+    return false;
+  }
+  if (chat.folders.length >= MAX_FOLDERS) {
+    set({ folderNotice: FOLDER_CAP_NOTICE }, { immediate: true });
+    return false;
+  }
+  set({ chat: { ...chat, folders: [...chat.folders, clean] }, folderNotice: null }, { immediate: true });
+  return true;
+}
+
+/**
+ * Take a folder off the chat on screen. Refused (false) while a turn runs or
+ * a process is starting. A process that can read the folder is stopped right
+ * away, so access ends when the chip goes rather than on the next message; the
+ * conversation stays resumable. Rust forgets the folder once no saved chat
+ * uses it.
+ */
+async function removeFolder(path: string): Promise<boolean> {
+  hydrate();
+  // Until a reload's adoption is done, a process that outlived the reload
+  // looks stopped: it could be mid-turn, and it would keep the folder.
+  await adopted;
+  const { status } = snapshot.session;
+  if (status === 'working' || status === 'starting') return false;
+  const { chat } = snapshot;
+  if (!chat.folders.some((folder) => folder.path === path)) return false;
+  set(
+    { chat: { ...chat, folders: chat.folders.filter((folder) => folder.path !== path) }, folderNotice: null },
+    { immediate: true }
+  );
+  if (spawnId && (processFolders === null || processFolders.includes(path))) endIdleProcess();
+  await forgetUnreferenced([path]);
+  return true;
+}
+
+/** Stop the process between turns. The chat's ranFolders stays, so the next message says what changed. */
+function endIdleProcess(): void {
+  const t = getTransport();
+  const id = spawnId;
+  dropProcess();
+  lastTurn = null;
+  if (t && id) void t.stop(id).catch(() => {});
+  setSession(markExited(snapshot.session, Date.now()), { immediate: true });
 }
 
 /**
@@ -1020,6 +1404,11 @@ export const claudeAgent = {
   setModel,
   setPanelEnabled,
   hidePanel,
+  pickFolder,
+  addFolder,
+  removeFolder,
+  agentReadsFolders,
+  agentMayHoldFolderData,
   /** Called with every message to describe what is open and selected. */
   setContextProvider(provider: (() => AgentEditorContext | null) | null): void {
     contextProvider = provider;

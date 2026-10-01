@@ -8,6 +8,7 @@
 import type { ClaudeAgentSnapshot } from './store';
 import { clipText } from '@/lib/clipText';
 import { chatListItems, type AgentChatListItem } from './chats';
+import { MAX_FOLDER_PATH, folderLabels } from './folders';
 import type {
   AgentDetectionState,
   AgentItem,
@@ -41,6 +42,31 @@ export interface AgentPanelView {
   chats: AgentChatListItem[];
   /** The project open in the editor, which Past chats lists first. */
   projectId: string | null;
+  /** The chat's code folders, in the order they were added. At most 3. */
+  folders: AgentPanelFolder[];
+  /** The folder dialog is open: the add button shows it is busy and ignores clicks, in every window. */
+  folderPicking: boolean;
+  /** Why the last folder was not added (a refusal, the cap), for the composer's error line. */
+  folderNotice: string | null;
+  /** The running agent can read code folders. */
+  foldersLive: boolean;
+  /** A folder was added that the agent was not started with, so Send works with an empty box. */
+  foldersPending: boolean;
+  /**
+   * Links in replies show as text, not as links: the agent can read a code
+   * folder now, or this chat's agent once could. The conversation keeps what
+   * it read, so this lasts as long as the chat does.
+   */
+  linksAsText: boolean;
+}
+
+/** A code folder as the panel shows it. */
+export interface AgentPanelFolder {
+  name: string;
+  /** What the remove intent sends back. Never cut, so it still matches. */
+  path: string;
+  /** What the chip says: the name, or "parent/name" when two folders share a name. */
+  label: string;
 }
 
 /** A picture the user attached in the panel, already stored as an asset. */
@@ -57,6 +83,7 @@ export function toAgentPanelView(
   project: { projectId: string | null; nameOf?: (projectId: string) => string | null } = { projectId: null }
 ): AgentPanelView {
   const { session } = agent;
+  const labels = folderLabels(agent.chat.folders);
   return {
     available: agent.available,
     detection: agent.detection,
@@ -74,6 +101,12 @@ export function toAgentPanelView(
     contextLabel,
     chats: chatListItems(agent.chats, agent.chat.id, project.nameOf),
     projectId: project.projectId,
+    folders: agent.chat.folders.map((folder, index) => ({ name: folder.name, path: folder.path, label: labels[index] })),
+    folderPicking: agent.folderPicking,
+    folderNotice: agent.folderNotice,
+    foldersLive: agent.foldersLive,
+    foldersPending: agent.foldersPending,
+    linksAsText: agent.foldersLive || agent.chat.readFolders,
   };
 }
 
@@ -131,5 +164,13 @@ export function slimAgentView(view: AgentPanelView): AgentPanelView {
       title: clipText(chat.title, 60),
       projectName: chat.projectName === null ? null : clipText(chat.projectName, 40),
     })),
+    // Three at most. A path is cut only at the length Rust refuses anyway,
+    // because the remove intent has to send it back whole.
+    folders: view.folders.map((folder) => ({
+      name: clipText(folder.name, 80),
+      path: clipText(folder.path, MAX_FOLDER_PATH),
+      label: clipText(folder.label, 80),
+    })),
+    folderNotice: view.folderNotice === null ? null : clipText(view.folderNotice, 200),
   };
 }

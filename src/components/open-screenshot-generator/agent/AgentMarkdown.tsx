@@ -88,7 +88,13 @@ const INTRAWORD = '\uE000';
 
 type OpenLink = (url: string) => void;
 
-function renderInline(source: string, keyPrefix: string, onOpenLink: OpenLink): React.ReactNode[] {
+interface InlineOptions {
+  onOpenLink: OpenLink;
+  /** Show a link's address beside its text, with nothing to click. */
+  linksAsText: boolean;
+}
+
+function renderInline(source: string, keyPrefix: string, options: InlineOptions): React.ReactNode[] {
   const text = source.replace(/([A-Za-z0-9])_(?=[A-Za-z0-9])/g, `$1${INTRAWORD}`);
   const restore = (value: string) => value.split(INTRAWORD).join('_');
   const out: React.ReactNode[] = [];
@@ -110,7 +116,19 @@ function renderInline(source: string, keyPrefix: string, onOpenLink: OpenLink): 
     } else if (token.startsWith('[')) {
       const link = /^\[([^\]]+)\]\(([^)\s]+)\)$/.exec(token);
       const href = link ? restore(link[2]) : '';
-      if (link && /^https?:\/\//i.test(href)) {
+      if (link && /^https?:\/\//i.test(href) && options.linksAsText) {
+        // An agent that has read the user's code could put some of it in a
+        // link's address, where the text hides it. Written out, the address is
+        // there to read, and opening it takes a copy and a paste.
+        const label = restore(link[1]);
+        out.push(
+          <React.Fragment key={key}>
+            {label !== href && `${label} `}
+            <span className="text-muted-foreground">{href}</span>
+          </React.Fragment>
+        );
+      } else if (link && /^https?:\/\//i.test(href)) {
+        const { onOpenLink } = options;
         out.push(
           <a
             key={key}
@@ -142,13 +160,21 @@ export function AgentMarkdown({
   text,
   className,
   onOpenLink = (url) => void openExternal(url),
+  linksAsText = false,
 }: {
   text: string;
   className?: string;
   /** Where a clicked link goes. A detached panel window hands it to the editor. */
   onOpenLink?: OpenLink;
+  /**
+   * Links become their text followed by the address in muted type, and open
+   * nothing. Set for a chat whose agent can read, or once could read, the
+   * user's code folders.
+   */
+  linksAsText?: boolean;
 }) {
   const blocks = parseBlocks(text);
+  const inline: InlineOptions = { onOpenLink, linksAsText };
   return (
     <div className={cn('space-y-2 break-words text-[13px] leading-relaxed', className)}>
       {blocks.map((block, i) => {
@@ -157,7 +183,7 @@ export function AgentMarkdown({
           case 'heading':
             return (
               <p key={key} className="font-semibold">
-                {renderInline(block.text, key, onOpenLink)}
+                {renderInline(block.text, key, inline)}
               </p>
             );
           case 'code':
@@ -171,7 +197,7 @@ export function AgentMarkdown({
             return (
               <ListTag key={key} className={cn('space-y-0.5 pl-4', block.ordered ? 'list-decimal' : 'list-disc')}>
                 {block.items.map((item, j) => (
-                  <li key={`${key}-${j}`}>{renderInline(item, `${key}-${j}`, onOpenLink)}</li>
+                  <li key={`${key}-${j}`}>{renderInline(item, `${key}-${j}`, inline)}</li>
                 ))}
               </ListTag>
             );
@@ -182,7 +208,7 @@ export function AgentMarkdown({
                 {block.lines.map((line, j) => (
                   <React.Fragment key={`${key}-${j}`}>
                     {j > 0 && <br />}
-                    {renderInline(line, `${key}-${j}`, onOpenLink)}
+                    {renderInline(line, `${key}-${j}`, inline)}
                   </React.Fragment>
                 ))}
               </p>

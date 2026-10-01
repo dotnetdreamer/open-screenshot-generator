@@ -170,8 +170,9 @@ export function installHeadlessBridge(host: HeadlessHost): () => void {
 
     // The single transport seam, unchanged. Unknown tools still come back as
     // -32602 and a thrown handler still comes back as an isError result, so
-    // the CLI reports what the app reports rather than guessing.
-    mcp: (message: unknown) => runMcpRequest(message as never, host.getMcpApi()),
+    // the CLI reports what the app reports rather than guessing. The CLI is
+    // never the desktop app's own agent.
+    mcp: (message: unknown) => runMcpRequest(message as never, host.getMcpApi(), { agent: false }),
 
     exportImages: (selection) => host.exportImages(selection),
     exportVideo: (request) => host.exportVideo(request),

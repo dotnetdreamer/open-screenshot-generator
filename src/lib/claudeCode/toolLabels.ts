@@ -2,16 +2,27 @@
 // watching the canvas wants to know what just happened to it.
 
 import { clipText } from '@/lib/clipText';
+import { folderNameOf, folderRelativePath } from './folders';
+import type { AgentFolder } from './types';
+
+type ToolStatus = 'running' | 'done' | 'error';
 
 interface ToolLabel {
   /** While it runs, ending in "...". */
   running: string;
   /** Once it is done. */
   done: string;
+  /** When it failed, for the tools where "done" would say it worked. */
+  error?: string;
 }
 
 const LABELS: Record<string, ToolLabel> = {
   Skill: { running: 'Reading the design guide...', done: 'Read the design guide' },
+  // Claude Code's own file tools, which it has only while a code folder is
+  // attached to the chat.
+  Read: { running: 'Reading a file...', done: 'Read a file', error: 'Could not read a file' },
+  Grep: { running: 'Searching your files...', done: 'Searched your files', error: 'Could not search your files' },
+  import_project_image: { running: 'Importing an image...', done: 'Imported an image' },
   list_artboards: { running: 'Looking at the artboards...', done: 'Looked at the artboards' },
   get_artboard: { running: 'Reading an artboard...', done: 'Read an artboard' },
   create_artboard: { running: 'Adding an artboard...', done: 'Added an artboard' },
@@ -73,23 +84,79 @@ function fallback(name: string): ToolLabel {
   return { running: `${phrase}...`, done: phrase };
 }
 
-export function toolLabel(name: string, status: 'running' | 'done' | 'error'): string {
+/**
+ * How Claude Code answers a read its permission settings refuse: a Read of a
+ * denied file, or a Grep pointed at one. Reads outside the folders are refused
+ * in other words ("don't ask mode") and stay errors.
+ */
+const DENIED_BY_SETTINGS = /denied by your permission settings|permission to read .+ has been denied/i;
+
+/**
+ * A failed call that did what it should: the settings Rust starts Claude Code
+ * with keep secrets (.env, signing keys), lock files, dependency and build
+ * folders and Claude Code's own folder out of reach, and the agent sometimes
+ * tries one anyway. Its row says "Skipped a blocked file", which is true of
+ * all of them, and gets a neutral icon rather than the error one.
+ */
+export function toolSkipped(name: string, status: ToolStatus, result?: string): boolean {
+  return status === 'error' && (name === 'Read' || name === 'Grep') && !!result && DENIED_BY_SETTINGS.test(result);
+}
+
+/** The row's words. Pass the result too: a failed file read reads differently from one that worked. */
+export function toolLabel(name: string, status: ToolStatus, result?: string): string {
   const label = LABELS[name] ?? fallback(name);
   if (status === 'running') return label.running;
+  if (status === 'error') {
+    if (toolSkipped(name, status, result)) return 'Skipped a blocked file';
+    return label.error ?? label.done;
+  }
   return label.done;
+}
+
+/** The alt text of a picture on a tool row. */
+export function toolImageAlt(name: string, input: Record<string, unknown>): string {
+  if (name === 'Read' || name === 'import_project_image') {
+    const path = typeof input.file_path === 'string' ? input.file_path : typeof input.path === 'string' ? input.path : '';
+    if (path.trim()) return `${clipText(folderNameOf(path), 60)} from your folder`;
+  }
+  return 'The artboard as the agent saw it';
 }
 
 function clip(text: string, max: number): string {
   return clipText(text.replace(/\s+/g, ' ').trim(), max);
 }
 
+/** The end of `text` in `max` characters, since the end of a path is the telling part. */
+function clipLeft(text: string, max: number): string {
+  if (text.length <= max) return text;
+  let start = text.length - (max - 3);
+  // Never the second half of an emoji: Rust refuses a lone surrogate.
+  const first = text.charCodeAt(start);
+  if (first >= 0xdc00 && first <= 0xdfff) start += 1;
+  return `...${text.slice(start)}`;
+}
+
+/** A file the agent opened, from its code folder on when it is in one. */
+function pathDetail(path: string, folders: readonly AgentFolder[]): string {
+  const shown = folderRelativePath(path, folders) ?? path.replace(/\\/g, '/');
+  return clipLeft(shown.replace(/\s+/g, ' ').trim(), 48);
+}
+
 /**
  * One short line about what a call was given, when there is something a
- * person would recognise: the words written, a template, a name.
+ * person would recognise: the words written, a template, a name, a file.
+ * `folders` are the chat's code folders, which a file path is shown relative to.
  */
-export function toolDetail(name: string, input: Record<string, unknown>): string | null {
+export function toolDetail(
+  name: string,
+  input: Record<string, unknown>,
+  folders: readonly AgentFolder[] = []
+): string | null {
   const str = (key: string) => (typeof input[key] === 'string' ? (input[key] as string) : null);
   if (name === 'Skill') return null;
+  if (name === 'Read') return str('file_path')?.trim() ? pathDetail(str('file_path')!, folders) : null;
+  if (name === 'import_project_image') return str('path')?.trim() ? pathDetail(str('path')!, folders) : null;
+  if (name === 'Grep') return str('pattern') ? `"${clip(str('pattern')!, 40)}"` : null;
   if (typeof input.content === 'string' && input.content.trim()) return `"${clip(input.content, 60)}"`;
   if (name === 'apply_template' || name === 'get_template' || name === 'create_project_from_template') {
     return str('templateId') ? clip(str('templateId')!.replace(/^template_/, ''), 48) : null;

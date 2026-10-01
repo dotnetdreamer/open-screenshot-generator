@@ -17,10 +17,13 @@ import {
   CircleAlert,
   Crosshair,
   EyeOff,
+  Folder,
+  FolderPlus,
   History,
   ImagePlus,
   Info,
   Loader2,
+  Lock,
   MoreHorizontal,
   RefreshCw,
   Square,
@@ -44,9 +47,10 @@ import { cn } from '@/lib/utils';
 import { readScreenshotFile } from '@/lib/ai/imageUtils';
 import { saveImageAsset } from '@/lib/mcp/assetStore';
 import { useImageSrc } from '@/lib/mediaStore';
-import { toolLabel } from '@/lib/claudeCode/toolLabels';
+import { toolImageAlt, toolLabel, toolSkipped } from '@/lib/claudeCode/toolLabels';
+import { FOLDER_CAP_NOTICE, MAX_FOLDERS } from '@/lib/claudeCode/folders';
 import { CLAUDE_MODEL_CHOICES, type AgentItem, type ClaudeModelChoice } from '@/lib/claudeCode/types';
-import type { AgentAttachment, AgentPanelView } from '@/lib/claudeCode/view';
+import type { AgentAttachment, AgentPanelFolder, AgentPanelView } from '@/lib/claudeCode/view';
 import type { AgentChatListItem } from '@/lib/claudeCode/chats';
 import { RunHistoryDialog } from '../start/RunHistoryDialog';
 import { AgentMarkdown } from './AgentMarkdown';
@@ -65,6 +69,14 @@ export interface AgentPanelHandlers {
   onDeleteChat: (chatId: string) => void;
   /** Open a web link. The editor window does it for a detached one. */
   onOpenLink: (url: string) => void;
+  /**
+   * Pick a code folder for the chat. The editor window opens the dialog; the
+   * pick shows up as a new entry in view.folders, and a refusal or the cap as
+   * view.folderNotice.
+   */
+  onAddFolder: () => void;
+  /** Take a folder off the chat, by its path in view.folders. */
+  onRemoveFolder: (path: string) => void;
 }
 
 interface AgentPanelProps {
@@ -95,6 +107,26 @@ const SUGGESTIONS = [
   'Add an artboard for another screenshot',
   'Write shorter headlines',
 ];
+
+/** For a chat with a code folder: what the agent can find there. */
+const FOLDER_SUGGESTIONS = [
+  "Use my app's name and colours",
+  'Put my app icon on the first artboard',
+  "Write headlines from my app's features",
+];
+
+/**
+ * How long a click on the folder button waits for the view to say the dialog
+ * opened. A detached window hears it only from the next snapshot, and never
+ * does when the dialog opened and closed between two snapshots.
+ */
+const PICK_WAIT_MS = 4000;
+
+/** The folder a pick put at the end of the list, when the list is the old one plus one. */
+function appendedFolder(before: string[], folders: AgentPanelFolder[]): AgentPanelFolder | null {
+  if (folders.length !== before.length + 1) return null;
+  return before.every((path, index) => folders[index].path === path) ? folders[folders.length - 1] : null;
+}
 
 /** "Opus 5.5" out of "claude-opus-5-5", the raw id for anything else. */
 function prettyModel(id: string | null): string | null {
@@ -139,8 +171,11 @@ function groupRows(items: AgentItem[]): Row[] {
   return rows;
 }
 
-function StepIcon({ status }: { status: 'running' | 'done' | 'error' }) {
+function StepIcon({ status, skipped }: { status: 'running' | 'done' | 'error'; skipped: boolean }) {
   if (status === 'running') return <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" />;
+  // A file the settings keep out of reach (a secret, a lock file, a dependency
+  // or build folder): refused on purpose, not broken.
+  if (skipped) return <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />;
   if (status === 'error') return <CircleAlert className="h-3.5 w-3.5 shrink-0 text-destructive" />;
   return <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />;
 }
@@ -148,6 +183,9 @@ function StepIcon({ status }: { status: 'running' | 'done' | 'error' }) {
 function StepRow({ item }: { item: Extract<AgentItem, { kind: 'tool' }> }) {
   const [open, setOpen] = useState(false);
   const expandable = !!item.result;
+  const skipped = toolSkipped(item.name, item.status, item.result);
+  // The end of a file path is the telling part, so a long one loses its start.
+  const pathDetail = item.name === 'Read' || item.name === 'import_project_image';
   return (
     <li>
       <button
@@ -159,9 +197,17 @@ function StepRow({ item }: { item: Extract<AgentItem, { kind: 'tool' }> }) {
           expandable ? 'hover:bg-muted' : 'cursor-default'
         )}
       >
-        <StepIcon status={item.status} />
-        <span className="shrink-0 font-medium">{toolLabel(item.name, item.status)}</span>
-        <span className="min-w-0 flex-1 truncate text-muted-foreground">{item.detail ?? ''}</span>
+        <StepIcon status={item.status} skipped={skipped} />
+        <span className="shrink-0 font-medium">{toolLabel(item.name, item.status, item.result)}</span>
+        {pathDetail && item.detail ? (
+          // Right to left only so the ellipsis goes at the start; the bdi keeps
+          // the path itself reading left to right.
+          <span className="min-w-0 flex-1 truncate text-left text-muted-foreground [direction:rtl]">
+            <bdi>{item.detail}</bdi>
+          </span>
+        ) : (
+          <span className="min-w-0 flex-1 truncate text-muted-foreground">{item.detail ?? ''}</span>
+        )}
         {expandable && (
           <ChevronRight
             className={cn('h-3 w-3 shrink-0 text-muted-foreground transition-transform', open && 'rotate-90')}
@@ -173,7 +219,7 @@ function StepRow({ item }: { item: Extract<AgentItem, { kind: 'tool' }> }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={item.image}
-          alt="The artboard as the agent saw it"
+          alt={toolImageAlt(item.name, item.input)}
           className="ml-7 mt-1 max-h-44 max-w-[calc(100%-1.75rem)] rounded border bg-muted object-contain"
         />
       )}
@@ -378,6 +424,24 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
   const stickToBottom = useRef(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const textRef = useRef<HTMLTextAreaElement | null>(null);
+  const addFolderRef = useRef<HTMLButtonElement | null>(null);
+  const removeFolderRefs = useRef(new Map<string, HTMLButtonElement>());
+  /**
+   * A folder pick this panel asked for, until it ends: `asked` at the click,
+   * `open` once the view says the dialog is up, `closing` for a moment after
+   * it says the dialog shut, in case the new folder comes a snapshot later.
+   * `known` is the folder list at the click, so the one the pick adds can be
+   * told apart.
+   */
+  const pickRef = useRef<{ phase: 'asked' | 'open' | 'closing'; known: string[]; notice: string | null } | null>(null);
+  const pickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Covers the moment between a click and the snapshot that says the dialog is open. */
+  const [pickAsked, setPickAsked] = useState(false);
+  /** A chip whose remove button was pressed: focus moves on once it is gone. */
+  const removingRef = useRef<{ path: string; index: number; rest: string[] } | null>(null);
+  const [announcement, setAnnouncement] = useState('');
+  /** The folder notice last read out. One already on screen at mount is not read again. */
+  const lastNotice = useRef(view.folderNotice);
 
   useEffect(() => {
     draftText = text;
@@ -390,7 +454,112 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
   const readiness = readinessOf(view.detection);
   const needsSetup = readiness === 'missing' || readiness === 'signed-out' || readiness === 'sandboxed' || readiness === 'broken';
   const blocked = !view.available || offline || (needsSetup && readiness !== 'broken');
-  const canSend = !blocked && !working && !attaching && (text.trim().length > 0 || attachments.length > 0);
+  // A folder the agent was not started with is worth a message on its own.
+  const canSend =
+    !blocked && !working && !attaching && (text.trim().length > 0 || attachments.length > 0 || view.foldersPending);
+  const picking = view.folderPicking || pickAsked;
+  // Access to a folder ends with its process, which a running turn still needs.
+  const removeLocked = blocked || working;
+
+  /** Read out by a screen reader. Cleared first, so the same words twice are read twice. */
+  const announce = (message: string) => {
+    setAnnouncement('');
+    window.setTimeout(() => setAnnouncement(message), 50);
+  };
+
+  const clearPickTimer = () => {
+    if (pickTimer.current) clearTimeout(pickTimer.current);
+    pickTimer.current = null;
+  };
+  const endPick = () => {
+    pickRef.current = null;
+    setPickAsked(false);
+    clearPickTimer();
+  };
+  /** Stop waiting after `ms` unless the pick has moved on to another phase by then. */
+  const endPickAfter = (phase: 'asked' | 'closing', ms: number) => {
+    clearPickTimer();
+    pickTimer.current = setTimeout(() => {
+      pickTimer.current = null;
+      if (pickRef.current?.phase === phase) endPick();
+    }, ms);
+  };
+  useEffect(
+    () => () => {
+      if (pickTimer.current) clearTimeout(pickTimer.current);
+    },
+    []
+  );
+
+  const addFolder = () => {
+    if (blocked || picking) return;
+    if (view.folders.length >= MAX_FOLDERS) {
+      // No dialog opens at the cap: the store answers with the cap notice.
+      // When that is the notice already, nothing on screen changes, so a
+      // screen reader hears it from here.
+      if (view.folderNotice === FOLDER_CAP_NOTICE) announce(FOLDER_CAP_NOTICE);
+      handlers.onAddFolder();
+      return;
+    }
+    pickRef.current = { phase: 'asked', known: view.folders.map((folder) => folder.path), notice: view.folderNotice };
+    setPickAsked(true);
+    endPickAfter('asked', PICK_WAIT_MS);
+    handlers.onAddFolder();
+  };
+
+  // How a pick ended, read off the view, because a detached window has no
+  // other way to hear it. A new folder at the end of the list means it was
+  // picked: the message box gets focus and a screen reader hears its name. A
+  // dialog that closed with nothing new was cancelled or refused, and focus
+  // stays on the button, which was never disabled.
+  useEffect(() => {
+    const pick = pickRef.current;
+    if (!pick) return;
+    const added = appendedFolder(pick.known, view.folders);
+    if (added) {
+      endPick();
+      textRef.current?.focus();
+      announce(`Added ${added.label}`);
+    } else if (view.folderPicking) {
+      pick.phase = 'open';
+      clearPickTimer();
+    } else if (pick.phase === 'open') {
+      pick.phase = 'closing';
+      setPickAsked(false);
+      endPickAfter('closing', 600);
+    } else if (pick.phase === 'asked' && view.folderNotice && view.folderNotice !== pick.notice) {
+      // Refused before any dialog opened.
+      endPick();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.folderPicking, view.folders, view.folderNotice]);
+
+  // A refusal or the cap shows in the error line, and a screen reader hears it.
+  useEffect(() => {
+    if (view.folderNotice && view.folderNotice !== lastNotice.current) announce(view.folderNotice);
+    lastNotice.current = view.folderNotice;
+  }, [view.folderNotice]);
+
+  const removeFolder = (folder: AgentPanelFolder, index: number) => {
+    if (removeLocked) return;
+    const rest = view.folders.filter((entry) => entry.path !== folder.path).map((entry) => entry.path);
+    removingRef.current = { path: folder.path, index, rest };
+    handlers.onRemoveFolder(folder.path);
+  };
+
+  // Once the chip has gone, focus goes to the remove button of the chip that
+  // took its place, or to the add button when it was the last one. A list
+  // that changed some other way (another chat opened) moves nothing.
+  useEffect(() => {
+    const removing = removingRef.current;
+    if (!removing) return;
+    const paths = view.folders.map((folder) => folder.path);
+    if (paths.includes(removing.path)) return;
+    removingRef.current = null;
+    if (paths.length !== removing.rest.length || paths.some((path, i) => path !== removing.rest[i])) return;
+    const next = view.folders[removing.index];
+    (next ? removeFolderRefs.current.get(next.path) : addFolderRef.current)?.focus();
+  }, [view.folders]);
 
   useEffect(() => {
     if (!working) return;
@@ -425,7 +594,13 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
 
   const submit = () => {
     if (!canSend) return;
-    handlers.onSend(text.trim() || 'Use the attached screenshots', attachments);
+    const fallback =
+      attachments.length === 0
+        ? 'Use the folder I added'
+        : view.foldersPending
+          ? 'Use the attached screenshots and the folder I added'
+          : 'Use the attached screenshots';
+    handlers.onSend(text.trim() || fallback, attachments);
     setText('');
     setAttachments([]);
     setAttachError(null);
@@ -611,7 +786,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
                 {account && <p className="mt-1 text-xs text-muted-foreground">{account}</p>}
                 {!blocked && (
                   <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-                    {SUGGESTIONS.map((suggestion) => (
+                    {(view.folders.length > 0 ? FOLDER_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
@@ -648,7 +823,14 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
                     );
                   }
                   if (item.kind === 'text') {
-                    return <AgentMarkdown key={item.id} text={item.text} onOpenLink={handlers.onOpenLink} />;
+                    return (
+                      <AgentMarkdown
+                        key={item.id}
+                        text={item.text}
+                        onOpenLink={handlers.onOpenLink}
+                        linksAsText={view.linksAsText}
+                      />
+                    );
                   }
                   if (item.kind === 'notice') return <NoticeRow key={item.id} item={item} />;
                   return null;
@@ -692,6 +874,37 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             <span className="truncate">About {view.contextLabel}</span>
           </p>
         )}
+        {view.folders.length > 0 && (
+          // For the whole chat, unlike the pictures below, which go with one message.
+          <ul aria-label="Folders Claude Code can read" className="mb-1.5 flex flex-wrap gap-1">
+            {view.folders.map((folder, index) => (
+              <li
+                key={folder.path}
+                title={`${folder.path}\nClaude Code can read this folder but not change it`}
+                className="flex min-w-0 max-w-full items-center gap-1 rounded-md border bg-muted/40 py-px pl-1.5 pr-px text-[11px] text-muted-foreground"
+              >
+                <Folder className="h-3 w-3 shrink-0" />
+                <span className="min-w-0 truncate">{folder.label}</span>
+                <button
+                  ref={(node) => {
+                    if (node) removeFolderRefs.current.set(folder.path, node);
+                    else removeFolderRefs.current.delete(folder.path);
+                  }}
+                  type="button"
+                  onClick={() => removeFolder(folder, index)}
+                  // aria-disabled rather than disabled: the button keeps focus
+                  // and its tooltip while a turn runs.
+                  aria-disabled={removeLocked || undefined}
+                  aria-label={`Remove the ${folder.label} folder`}
+                  title={working ? 'Stop the agent to remove a folder' : `Remove the ${folder.label} folder`}
+                  className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded hover:bg-muted hover:text-foreground aria-disabled:cursor-not-allowed aria-disabled:opacity-50 aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted-foreground [@media(pointer:coarse)]:h-6 [@media(pointer:coarse)]:w-6"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         {attachments.length > 0 && (
           <div className="mb-1.5 flex gap-1.5">
             {attachments.map((attachment) => (
@@ -704,6 +917,10 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
           </div>
         )}
         {attachError && <p className="mb-1.5 text-[11px] text-destructive">{attachError}</p>}
+        {view.folderNotice && <p className="mb-1.5 text-[11px] text-destructive">{view.folderNotice}</p>}
+        <p role="status" className="sr-only">
+          {announcement}
+        </p>
         <div className="rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring">
           <textarea
             ref={textRef}
@@ -733,17 +950,35 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             className="block max-h-40 min-h-[2.75rem] w-full resize-none bg-transparent px-2.5 py-2 text-[13px] leading-relaxed outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
           />
           <div className="flex items-center justify-between px-1.5 pb-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground"
-              onClick={() => fileRef.current?.click()}
-              disabled={blocked || attaching || attachments.length >= MAX_ATTACHMENTS}
-              title="Attach screenshots"
-              aria-label="Attach screenshots"
-            >
-              {attaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-            </Button>
+            <div className="flex items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground"
+                onClick={() => fileRef.current?.click()}
+                disabled={blocked || attaching || attachments.length >= MAX_ATTACHMENTS}
+                title="Attach screenshots"
+                aria-label="Attach screenshots"
+              >
+                {attaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+              </Button>
+              {/* Never disabled while the dialog is open, only busy: disabling
+                  it would drop the keyboard focus the dialog hands back. At the
+                  cap a click explains the cap instead of opening the dialog. */}
+              <Button
+                ref={addFolderRef}
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground"
+                onClick={addFolder}
+                disabled={blocked}
+                aria-busy={picking || undefined}
+                title="Add your app's code folder"
+                aria-label="Add your app's code folder"
+              >
+                {picking ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderPlus className="h-4 w-4" />}
+              </Button>
+            </div>
             <input
               ref={fileRef}
               type="file"

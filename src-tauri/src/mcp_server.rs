@@ -68,6 +68,9 @@ const SLOW_TOOLS: &[&str] = &[
     "apply_template",
     "open_project",
     "upload_asset",
+    // Reads a picture of up to 20 MB from the agent's code folder, through
+    // claude_code.rs, and stores it.
+    "import_project_image",
     // Fetches and decodes a screen recording, which can be tens of megabytes.
     "upload_recording",
     "add_elements",
@@ -315,6 +318,30 @@ fn is_request(msg: &Value) -> bool {
         && !matches!(msg.get("id"), None | Some(Value::Null))
 }
 
+/// Whether a request carries the app's own Claude Code agent's token. Checked
+/// whatever the Settings switch says, and handed to the page with every
+/// bridged request as `agent`, since only the agent may reach the code folders
+/// its chat holds (import_project_image).
+fn from_agent<R: Runtime>(app: &AppHandle<R>, request: &Request) -> bool {
+    let token = app.state::<McpState>().agent_token.lock().unwrap().clone();
+    let values = request
+        .headers()
+        .iter()
+        .filter(|header| header.field.equiv("Authorization"))
+        .map(|header| header.value.as_str());
+    bearer_matches(values, token.as_deref())
+}
+
+/// Whether one of a request's Authorization values is exactly
+/// `Bearer <token>`. Never before a token has been minted.
+fn bearer_matches<'a>(auth_values: impl IntoIterator<Item = &'a str>, token: Option<&str>) -> bool {
+    let Some(token) = token.filter(|token| !token.is_empty()) else {
+        return false;
+    };
+    let expected = format!("Bearer {token}");
+    auth_values.into_iter().any(|value| value == expected)
+}
+
 /// Who may call the tools.
 ///
 /// With the Settings switch on, any local client: the user opened the tools up
@@ -323,18 +350,8 @@ fn is_request(msg: &Value) -> bool {
 /// gets through. Otherwise starting the agent would quietly hand every program
 /// on the machine, and every web page the browser lets reach localhost, a way
 /// to read and rewrite the user's projects.
-fn authorized<R: Runtime>(app: &AppHandle<R>, request: &Request) -> bool {
-    if crate::settings::current(app).mcp_server_enabled {
-        return true;
-    }
-    let Some(token) = app.state::<McpState>().agent_token.lock().unwrap().clone() else {
-        return false;
-    };
-    let expected = format!("Bearer {token}");
-    request
-        .headers()
-        .iter()
-        .any(|header| header.field.equiv("Authorization") && header.value.as_str() == expected)
+fn authorized(agent: bool, switch_on: bool) -> bool {
+    agent || switch_on
 }
 
 /// 128 bits of OS randomness in a 64-character string. RandomState seeds its
@@ -375,7 +392,8 @@ fn handle_request<R: Runtime>(
         _ => return respond_empty(request, 405),
     }
 
-    if !authorized(&app, &request) {
+    let agent = from_agent(&app, &request);
+    if !authorized(agent, crate::settings::current(&app).mcp_server_enabled) {
         return respond_json(
             request,
             401,
@@ -410,7 +428,7 @@ fn handle_request<R: Runtime>(
                 return respond_empty(request, 202);
             }
             let is_initialize = parsed.get("method").and_then(Value::as_str) == Some("initialize");
-            let response = bridge_request(&app, &pending, &next_id, parsed);
+            let response = bridge_request(&app, &pending, &next_id, parsed, agent);
             let session = is_initialize.then(|| session_id(&next_id));
             respond_json(request, 200, response.to_string(), session);
         }
@@ -420,7 +438,7 @@ fn handle_request<R: Runtime>(
             let mut out: Vec<Value> = Vec::new();
             for item in items {
                 if is_request(&item) {
-                    out.push(bridge_request(&app, &pending, &next_id, item));
+                    out.push(bridge_request(&app, &pending, &next_id, item, agent));
                 }
             }
             if out.is_empty() {
@@ -452,11 +470,21 @@ fn timeout_for(message: &Value) -> Duration {
 }
 
 /// Forward one JSON-RPC request to the frontend and block for its reply.
+/// `agent` says the request carried the built-in agent's token (from_agent).
+///
+/// The event's payload is `{ callId, message, nonce, agent, folders }`.
+/// `folders` is true for an agent request while a process that reads code
+/// folders is alive, read here as the request is bridged, so the page's web
+/// link guard need not go by what the page believes about its own process,
+/// which lags a reload and a process the page has let go of. A process stays
+/// in the sessions map until its wait thread sees it exit, so its last calls
+/// still carry true.
 fn bridge_request<R: Runtime>(
     app: &AppHandle<R>,
     pending: &Pending,
     next_id: &AtomicU64,
     message: Value,
+    agent: bool,
 ) -> Value {
     let id = message.get("id").cloned().unwrap_or(Value::Null);
 
@@ -469,10 +497,14 @@ fn bridge_request<R: Runtime>(
     let (tx, rx) = channel::<Value>();
     pending.lock().unwrap().insert(call_id.clone(), tx);
 
+    // No McpState lock is held here, so taking the sessions lock keeps to the
+    // one order the two states share: McpState.server, then the sessions
+    // (stop_if_unused).
+    let folders = agent && !crate::claude_code::live_folders(app).is_empty();
     let emitted = app.emit_to(
         "main",
         MCP_REQUEST_EVENT,
-        json!({ "callId": call_id, "message": message, "nonce": bridge_nonce(app) }),
+        json!({ "callId": call_id, "message": message, "nonce": bridge_nonce(app), "agent": agent, "folders": folders }),
     );
     if emitted.is_err() {
         pending.lock().unwrap().remove(&call_id);
@@ -488,7 +520,7 @@ fn bridge_request<R: Runtime>(
             id,
             -32001,
             &format!(
-                "the app did not answer within {}s, so the call was dropped. The server is still running — try again.",
+                "the app did not answer within {}s, so the call was dropped. The server is still running. Try again.",
                 timeout.as_secs()
             ),
         ),
@@ -502,11 +534,39 @@ fn bridge_request<R: Runtime>(
 /// Goes through Rust rather than the JS fs plugin because that plugin's scope
 /// only opens up for paths the *user* picked in a dialog, and an MCP export is
 /// unattended. `directory` defaults to "Open Screenshot Generator" under the
-/// user's Downloads folder, and the name is sanitised to a bare `.png` file, so
-/// a tool call cannot pick the path apart to write somewhere unexpected.
+/// user's Downloads folder. One that is relative or climbs with `..` is
+/// refused, and while an agent process reads code folders, so is one inside
+/// them or on a share, so an export cannot overwrite the app's own icons
+/// (code_folders.rs).
 #[tauri::command]
 pub fn abs_mcp_write_png<R: Runtime>(
     app: AppHandle<R>,
+    directory: Option<String>,
+    file_name: String,
+    data_base64: String,
+) -> Result<String, String> {
+    // Only the sessions lock, and no lock of ours is held here.
+    let live = crate::claude_code::live_folders(&app);
+    if let Some(problem) = mcp_export_problem(directory.as_deref(), &live) {
+        return Err(problem.to_string());
+    }
+    write_png(&app, directory, file_name, data_base64)
+}
+
+/// Why an MCP export may not go to `directory`, or None. Blank or missing
+/// means the default folder, which needs no check, the same test write_png
+/// applies. `live` is every code folder a running agent process reads.
+fn mcp_export_problem(directory: Option<&str>, live: &[std::path::PathBuf]) -> Option<&'static str> {
+    let dir = directory.filter(|dir| !dir.trim().is_empty())?;
+    crate::code_folders::export_directory_problem(std::path::Path::new(dir), live)
+}
+
+/// The write itself, with no check on the directory, which the user's own
+/// Export dialog picked (abs_write_export_png) or abs_mcp_write_png vetted.
+/// The name is sanitised to a bare `.png` file, so a caller cannot pick the
+/// path apart to write somewhere unexpected.
+fn write_png<R: Runtime>(
+    app: &AppHandle<R>,
     directory: Option<String>,
     file_name: String,
     data_base64: String,
@@ -594,8 +654,10 @@ pub fn abs_write_export_png<R: Runtime>(
     // Delegating keeps the name sanitising, the create_dir_all and the base64
     // decode in one place. A second copy of that rule would drift, and it is
     // the rule that stops a caller writing outside the folder it was handed.
-    abs_mcp_write_png(
-        app,
+    // Not through abs_mcp_write_png's guard: the user picked this folder, and
+    // saving fastlane screenshots into their own repo is theirs to do.
+    write_png(
+        &app,
         Some(dir.to_string_lossy().into_owned()),
         file_name,
         data_base64,
@@ -695,5 +757,62 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) {
     if crate::settings::current(app).mcp_server_enabled {
         let state = app.state::<McpState>();
         let _ = start(app, &state);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_image_import_gets_the_long_budget() {
+        let call = |name: &str| json!({ "jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": { "name": name, "arguments": {} } });
+        assert_eq!(timeout_for(&call("import_project_image")), SLOW_RESPONSE_TIMEOUT);
+        assert_eq!(timeout_for(&call("export_png")), SLOW_RESPONSE_TIMEOUT);
+        assert_eq!(timeout_for(&call("list_artboards")), RESPONSE_TIMEOUT);
+        assert_eq!(timeout_for(&json!({ "jsonrpc": "2.0", "id": 1, "method": "tools/list" })), RESPONSE_TIMEOUT);
+    }
+
+    #[test]
+    fn only_the_agents_token_marks_a_request_as_the_agent() {
+        let token = Some("0123abcd");
+        assert!(bearer_matches(["Bearer 0123abcd"], token));
+        // One of several Authorization headers is enough.
+        assert!(bearer_matches(["Basic eA==", "Bearer 0123abcd"], token));
+        for wrong in ["Bearer 0123abc", "Bearer 0123abcd ", "bearer 0123abcd", "0123abcd", "Bearer", ""] {
+            assert!(!bearer_matches([wrong], token), "{wrong:?}");
+        }
+        assert!(!bearer_matches(Vec::<&str>::new(), token));
+        // No token minted yet, so no request is the agent's.
+        assert!(!bearer_matches(["Bearer "], None));
+        assert!(!bearer_matches(["Bearer "], Some("")));
+    }
+
+    #[test]
+    fn the_agent_gets_through_with_the_switch_off_and_nobody_else_does() {
+        assert!(authorized(true, false));
+        assert!(authorized(true, true));
+        assert!(authorized(false, true));
+        assert!(!authorized(false, false));
+    }
+
+    #[test]
+    fn mcp_exports_skip_the_guard_only_for_the_default_folder() {
+        let base = std::env::temp_dir().join(format!("osg-mcp-export-{}", std::process::id()));
+        let root = base.join("app");
+        std::fs::create_dir_all(root.join("res")).unwrap();
+        let root = crate::code_folders::canonical(&root).unwrap();
+        let live = vec![root.clone()];
+        for blank in [None, Some(""), Some("   ")] {
+            assert_eq!(mcp_export_problem(blank, &live), None, "{blank:?}");
+        }
+        // Refused whether or not a folder is live.
+        assert_eq!(mcp_export_problem(Some("exports"), &[]), Some(crate::code_folders::EXPORT_NOT_ABSOLUTE));
+        let inside = root.join("res");
+        assert_eq!(mcp_export_problem(inside.to_str(), &live), Some(crate::code_folders::EXPORT_INSIDE_FOLDER));
+        assert_eq!(mcp_export_problem(inside.to_str(), &[]), None);
+        let beside = base.join("exports");
+        assert_eq!(mcp_export_problem(beside.to_str(), &live), None);
+        let _ = std::fs::remove_dir_all(&base);
     }
 }

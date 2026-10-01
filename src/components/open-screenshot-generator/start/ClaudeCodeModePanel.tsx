@@ -22,7 +22,7 @@ import {
 interface ClaudeCodeModePanelProps {
   /** Only the desktop app can start Claude Code. Known only after mount (rule 14). */
   desktop: boolean;
-  /** Nothing to go on yet: no instruction and no screenshots. */
+  /** Nothing to go on yet: no instruction, no screenshots and no code folder. */
   disabled: boolean;
   /** The project is being made and the chat started. */
   starting: boolean;

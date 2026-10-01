@@ -15,9 +15,9 @@ montage of stills is not. So a preview board is built around the user's real scr
 
 ## What you can and cannot do
 
-- You have no files, so you cannot supply the recording. The user adds it: they select the phone
-  layer (named "Phone (drop your recording here)" on a scene) and use Upload Recording in the
-  Properties panel.
+- You cannot supply the recording, not even from the user's app folder: import_project_image
+  takes pictures only. The user adds it: they select the phone layer (named "Phone (drop your
+  recording here)" on a scene) and use Upload Recording in the Properties panel.
 - list_recordings lists the recordings already stored, newest first, with mediaId and duration.
   Put one in with update_element mediaId on the video-device layer.
 - upload_recording takes source as an http(s) URL the app can fetch. Use it only when the user

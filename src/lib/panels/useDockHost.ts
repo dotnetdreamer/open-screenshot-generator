@@ -258,6 +258,14 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'agentOpenLink':
         h.onAgentOpenLink(intent.url);
         break;
+      case 'agentAddFolder':
+        // It came from a detached window, so the dialog opens over that one
+        // rather than over the editor, which may be on another display.
+        h.onAgentAddFolder('agent');
+        break;
+      case 'agentRemoveFolder':
+        if (typeof intent.path === 'string') h.onAgentRemoveFolder(intent.path);
+        break;
       default: {
         // A new intent without a case here compiles, and a click in a detached
         // window then does nothing at all. This makes that a type error.

@@ -28,7 +28,7 @@ user sees every change land on the canvas, and every mutating call is one undo s
 6. Fix what looks off and look again. Two rounds per board is normally enough.
 7. Reply in a few plain lines.
 
-One call at a time, always: each call reads the canvas the previous one committed.
+One design tool call at a time, always: each call reads the canvas the previous one committed.
 
 ## Rules that otherwise fail silently
 
@@ -56,8 +56,8 @@ One call at a time, always: each call reads the canvas the previous one committe
 - Errors are data. A rejected call returns isError and a sentence saying what to fix, often which
   tool to use instead. Fix the argument and retry once.
 - Keep reads small. A text result over about 25k tokens is cut short or swapped for a file path
-  you cannot open. Narrow list_templates with category or query, list_library with kind, group or
-  query, and page list_translations with limit and offset.
+  you cannot open, not even with Read. Narrow list_templates with category or query, list_library
+  with kind, group or query, and page list_translations with limit and offset.
 
 ## Artboard sizes
 
@@ -115,8 +115,12 @@ can read. list_assets lists every uploaded image if you need a ref again. Copy r
   screenshotSrc there still starts with /data/ or /elements/, not asset:) is a leftover, so
   remove it with delete_artboard unless the user wants that many boards. A sample frame beside a
   filled one gets another screenshot, or goes with delete_element.
-- No screenshots at all: keep every sample screen, and tell the user they can drop their
-  screenshot files onto the canvas, which fills the device frames.
+- No screenshots at all: when the user's app folder is attached, look there first
+  (fastlane/screenshots/<language>, fastlane/metadata/android/<language>/images/phoneScreenshots,
+  a screenshots or store folder, images the README shows), import the plain screens you find
+  with import_project_image (never a finished store image, which has its own frame or caption)
+  and put the refs in the frames. Otherwise keep every sample screen, and tell the user they can
+  drop their screenshot files onto the canvas, which fills the device frames.
 - Measure the rewritten texts, then look at every board.
 - There are no iPad templates, and the screenshots templates are 1290x2796 with iPhone frames.
   Build iPad and Google Play boards from scratch.
@@ -217,7 +221,9 @@ on a proof board.
   store badges such as image:app-store and image:google-play. Call it with kind alone to see the
   groups, then with kind and group for item ids to pass as libraryId.
 - An image element is type image with imageSrc (an asset ref) and objectFit. upload_asset stores
-  an image from an http(s) link the user gives you and returns its ref.
+  an image from an http(s) link the user gives you and returns its ref. When the user's app
+  folder is attached, import_project_image does the same for a picture in it, by its absolute
+  path, and web links are refused.
 - Arrangements: group_elements tags layers as one group. transform_elements moves (dx and dy, or
   x and y for the top left corner) or scales (about the centre) a group or a list of elementIds.
   align_elements lines two or more up on one edge (left, center-h, right, top, middle-v, bottom).
@@ -227,8 +233,9 @@ on a proof board.
 
 - One benefit per board in 2 to 6 words, in the app's voice. Say what the user gets, not what the
   screen is called: "Sleep through the night" beats "Sleep tab".
-- Use the real product name, feature names and numbers you can read in the screenshots. Never
-  invent ratings, awards, download counts or quotes.
+- Use the real product name, feature names and numbers you can read in the screenshots, or in
+  the user's app folder when one is attached. Never invent ratings, awards, download counts or
+  quotes. The ones in code, mocks, fixtures or tests are samples, not facts.
 - A subline is optional. One clear line beats two cramped ones.
 - Sentence case, no period at the end of a headline, and no em or en dashes (use a comma or a
   colon). Keep a template's capitals if its headlines are written in capitals.
@@ -288,8 +295,8 @@ fonts, screenshots and positions on top.
 
 ## App Preview video
 
-A preview board plays a screen recording of the app, and you cannot supply one because you have
-no files.
+A preview board plays a screen recording of the app, and you cannot supply one, not even from the
+user's app folder: import_project_image takes pictures only.
 - list_preview_scenes (query by app type), then add_preview_scene with sceneId adds a finished,
   animated 18 second board after the active one. get_artboard gives its layer ids; rewrite the
   text layers with update_element, 3 to 5 words each.

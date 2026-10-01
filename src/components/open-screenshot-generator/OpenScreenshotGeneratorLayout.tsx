@@ -126,8 +126,10 @@ import { DialogDropLayer } from './start/quickstart/DialogDropLayer';
 import { saveImageAsset, saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
 import { claudeAgent, readAgentPanelEnabled, useClaudeAgent } from '@/lib/claudeCode/store';
-import { buildAttachmentNote, buildFirstRunBrief } from '@/lib/claudeCode/prompt';
+import { buildAttachmentNote, buildFirstRunBrief, defaultStartText } from '@/lib/claudeCode/prompt';
 import { assetToImage, screenshotToImage } from '@/lib/claudeCode/images';
+import { importProjectImage } from '@/lib/claudeCode/projectImages';
+import type { AgentFolder } from '@/lib/claudeCode/types';
 import { agentContextLabel as describeAgentContext, buildAgentContext } from '@/lib/claudeCode/context';
 import { PLACEHOLDER_PROJECT_NAME, pickCanvasSize, projectNameFromInstruction } from '@/lib/claudeCode/startProject';
 import { toAgentPanelView, type AgentAttachment } from '@/lib/claudeCode/view';
@@ -6208,7 +6210,14 @@ export function OpenScreenshotGeneratorLayout() {
     onRenameElement: handleRenameElementFromLayerPanel,
     onAgentSend: (text, attachments) => void handleAgentSend(text, attachments),
     onAgentStop: () => void claudeAgent.stop(),
-    onAgentNewChat: () => void claudeAgent.newChat(),
+    onAgentNewChat: () => {
+      // A new chat on the project the old one was about keeps its code
+      // folders. When the editor has moved to another project, it starts
+      // without them.
+      const { chat } = claudeAgent.getSnapshot();
+      const sameProject = !chat.projectId || chat.projectId === activeProjectIdRef.current;
+      void claudeAgent.newChat(undefined, { folders: sameProject ? chat.folders : [] });
+    },
     onAgentDetect: () => void claudeAgent.detect(true),
     onAgentSetModel: (model) => claudeAgent.setModel(model),
     onAgentHide: () => {
@@ -6224,6 +6233,11 @@ export function OpenScreenshotGeneratorLayout() {
     onAgentOpenLink: (url) => {
       if (/^https?:\/\//i.test(url)) void openExternal(url);
     },
+    // Rust's dialog, opened from this window whichever one was clicked:
+    // panel windows may open no dialog. The store adds the pick to the chat
+    // and puts a refusal or the cap in view.folderNotice.
+    onAgentAddFolder: (near) => void claudeAgent.pickFolder({ near, addToChat: true }),
+    onAgentRemoveFolder: (path) => void claudeAgent.removeFolder(path),
   };
 
   const dockHost = useDockHost({
@@ -6757,15 +6771,18 @@ const generateRandomProjectName = (): string => {
   /**
    * Hand a new design to Claude Code: an empty project for it to work in, the
    * screenshots stored as assets it can place by reference, the Agent tab open
-   * on the chat, and the first message on its way. Throws a sentence the agent
-   * screen shows when there is no project to work in.
+   * on a chat that holds the code folders picked there, and the first message
+   * on its way. Throws a sentence the agent screen shows when there is no
+   * project to work in.
    */
   const handleStartClaudeCode = async ({
     instruction,
     screenshots,
+    folders = [],
   }: {
     instruction: string;
     screenshots: UploadedScreenshot[];
+    folders?: AgentFolder[];
   }) => {
     let created: Awaited<ReturnType<typeof createProjectFromTemplateData>>;
     let stored: { ref: string; width: number; height: number; fileName: string }[];
@@ -6791,19 +6808,28 @@ const generateRandomProjectName = (): string => {
     claudeAgent.setPanelEnabled(true);
     revealDockTab('agent');
     if (isMobileViewport) setIsMobileDockOpen(true);
-    track('agent_claude_code_start', { screenshots: screenshots.length });
+    // Counts only: never a folder's name or path.
+    track('agent_claude_code_start', { screenshots: screenshots.length, folders: folders.length });
 
-    await claudeAgent.newChat({ projectId: created.projectId, projectName: created.name });
+    await claudeAgent.newChat({ projectId: created.projectId, projectName: created.name }, { folders });
+    // What the chat really holds: at most three, one per path.
+    const chatFolders = claudeAgent.getSnapshot().chat.folders;
     const board = created.artboards[0];
     void claudeAgent
       .send({
-        text: instruction || 'Design store screenshots for my app from these screenshots',
-        preface: buildFirstRunBrief({
-          projectName: created.name,
-          placeholderName: created.name === PLACEHOLDER_PROJECT_NAME,
-          artboard: board ? { id: board.id, width: board.size.width, height: board.size.height } : null,
-          screenshots: stored,
-        }),
+        // The words the user sees go on screen before the start, so they name
+        // every folder they gave.
+        text: instruction || defaultStartText({ screenshots: screenshots.length, folders: chatFolders.length }),
+        // The brief waits for the start: a folder Rust refused then (moved,
+        // deleted, forgotten) is never named to the agent as readable.
+        preface: (granted) =>
+          buildFirstRunBrief({
+            projectName: created.name,
+            placeholderName: created.name === PLACEHOLDER_PROJECT_NAME,
+            artboard: board ? { id: board.id, width: board.size.width, height: board.size.height } : null,
+            screenshots: stored,
+            folders: granted,
+          }),
         images: screenshots.map(screenshotToImage),
         skipContext: true,
       })
@@ -8401,6 +8427,13 @@ const generateRandomProjectName = (): string => {
       }
       return applied.result;
     },
+
+    // The Claude Code agent's code folders. Rust reads the picture and checks
+    // the path; the store knows whether the process can read a folder now, and
+    // whether the chat's agent ever could.
+    importProjectImage: (path, name) => importProjectImage(path, name),
+    agentReadsFolders: () => claudeAgent.agentReadsFolders(),
+    agentMayHoldFolderData: () => claudeAgent.agentMayHoldFolderData(),
   };
   mcpApiRef.current = mcpApi;
 

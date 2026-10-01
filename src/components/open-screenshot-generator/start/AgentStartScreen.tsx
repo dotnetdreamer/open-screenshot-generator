@@ -41,6 +41,7 @@ import {
 } from '@/lib/ai/promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from '@/lib/ai/templateCatalog';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
+import type { AgentFolder } from '@/lib/claudeCode/types';
 import { describeEndpoint } from '@/lib/ai/providers';
 import { WEB_PROVIDERS, type WebProviderId } from '@/lib/ai/webAdapters';
 import {
@@ -62,6 +63,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
 import { ApiKeyModePanel, type ApiKeyRunArgs } from './ApiKeyModePanel';
 import { ClaudeCodeModePanel } from './ClaudeCodeModePanel';
+import { CodeFolderPicker } from './CodeFolderPicker';
 import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
 import { RunHistoryDialog } from './RunHistoryDialog';
@@ -84,7 +86,12 @@ interface AgentStartScreenProps {
    * dialog and opens the Agent panel, which is why this mode has no plan to
    * review here. Rejects with a message the screen shows as its error.
    */
-  onStartClaudeCode?: (args: { instruction: string; screenshots: UploadedScreenshot[] }) => Promise<void>;
+  onStartClaudeCode?: (args: {
+    instruction: string;
+    screenshots: UploadedScreenshot[];
+    /** Code folders picked on this screen, which the new chat starts with. */
+    folders?: AgentFolder[];
+  }) => Promise<void>;
 }
 
 const EXAMPLE_INSTRUCTIONS = [
@@ -134,6 +141,8 @@ export function AgentStartScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handoffToken]);
   const [instruction, setInstruction] = useState('');
+  /** Code folders for a Claude Code run, held here until Start gives them to the new chat. */
+  const [folders, setFolders] = useState<AgentFolder[]>([]);
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState<BridgeStage | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -582,7 +591,7 @@ export function AgentStartScreen({
     setResult(null);
     setErrorOpId(null);
     try {
-      await onStartClaudeCode({ instruction: instruction.trim(), screenshots });
+      await onStartClaudeCode({ instruction: instruction.trim(), screenshots, folders });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -622,6 +631,16 @@ export function AgentStartScreen({
           <p className="text-xs text-muted-foreground">
             {`Only the first ${AGENT_LIMITS.maxScreenshots} go to the agent. The rest are still on the quick start screen`}
           </p>
+        )}
+        {/* On every tab, so picking a mode below never moves this row. */}
+        {onStartClaudeCode && (
+          <CodeFolderPicker
+            desktop={desktop}
+            folders={folders}
+            onChange={setFolders}
+            claudeCode={mode === 'claude-code'}
+            disabled={busy || claudeStarting}
+          />
         )}
       </section>
 
@@ -692,7 +711,9 @@ export function AgentStartScreen({
           <TabsContent value="claude-code" className="mt-4">
             <ClaudeCodeModePanel
               desktop={desktop}
-              disabled={busy || (screenshots.length === 0 && !instruction.trim())}
+              // A code folder alone is enough to go on: the agent reads the
+              // app's name, colours and store text there.
+              disabled={busy || (screenshots.length === 0 && !instruction.trim() && folders.length === 0)}
               starting={claudeStarting}
               onStart={() => void startClaudeCode()}
             />

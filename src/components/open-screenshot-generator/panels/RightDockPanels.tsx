@@ -29,7 +29,7 @@ import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
 import { DETACHABLE_PANELS, type DetachablePanel } from '@/lib/panels/url';
-import type { ClaudeModelChoice } from '@/lib/claudeCode/types';
+import type { ClaudeModelChoice, FolderPickerNear } from '@/lib/claudeCode/types';
 import type { AgentAttachment } from '@/lib/claudeCode/view';
 
 /**
@@ -89,6 +89,9 @@ export interface DockHandlers {
   onAgentOpenChat: (chatId: string) => void;
   onAgentDeleteChat: (chatId: string) => void;
   onAgentOpenLink: (url: string) => void;
+  /** Pick a code folder for the chat. `near: 'agent'` opens the dialog over the detached Agent window. */
+  onAgentAddFolder: (near?: FolderPickerNear) => void;
+  onAgentRemoveFolder: (path: string) => void;
 }
 
 interface RightDockPanelsProps {
@@ -282,6 +285,10 @@ export function RightDockPanels({
                 onOpenChat: handlers.onAgentOpenChat,
                 onDeleteChat: handlers.onAgentDeleteChat,
                 onOpenLink: handlers.onAgentOpenLink,
+                // No `near` here: docked, the editor is the window clicked
+                // in, and a detached window's click arrives as an intent.
+                onAddFolder: () => handlers.onAgentAddFolder(),
+                onRemoveFolder: handlers.onAgentRemoveFolder,
               }}
             />
           </TabsContent>

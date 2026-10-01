@@ -20,6 +20,21 @@ export interface ClaudeDetection {
 }
 
 /**
+ * A folder of the user's app code that Claude Code may read and never change.
+ * Only Rust's own folder picker hands one out, and Rust keeps the list of every
+ * folder the user picked, so a path the page makes up is refused at start.
+ */
+export interface AgentFolder {
+  /** The folder's own name, for the chip. */
+  name: string;
+  /** Absolute and canonical, as Rust stored it. What ClaudeStartArgs.folders sends back. */
+  path: string;
+}
+
+/** Which window Rust parents the folder dialog to: the detached Agent window, or else the editor. */
+export type FolderPickerNear = 'agent';
+
+/**
  * All the page chooses about a process. The system prompt and the skills are
  * compiled into the app (src-tauri/claude-agent/), never sent from here.
  */
@@ -35,12 +50,30 @@ export interface ClaudeStartArgs {
    * page says which page it is and Rust kills a start from one that is gone.
    */
   pageEpoch?: number;
+  /**
+   * The chat's code folders, by path, sorted. Rust grants only the ones the
+   * user picked in its dialog that still pass its checks, and names the rest
+   * in ClaudeStartInfo.missingFolders. Left out when the chat has none, so a
+   * start without folders is the same as it always was.
+   */
+  folders?: string[];
 }
 
 export interface ClaudeStartInfo {
   pid: number;
   workspace: string;
   mcpUrl: string;
+  /** Requested folders the process was started without. Missing from builds before folders. */
+  missingFolders?: string[];
+}
+
+/** One process Rust is running, as `list()` reports it. */
+export interface ClaudeListedProcess {
+  spawnId: string;
+  /** In the middle of a turn. */
+  busy: boolean;
+  /** The folders it was started with. Missing from builds before folders. */
+  folders?: string[];
 }
 
 /** One thing a running process did. `line` is one line of stream-json on stdout. */
@@ -66,13 +99,29 @@ export interface ClaudeTransport {
   /** Kill the process now. The conversation stays resumable. */
   stop(spawnId: string): Promise<void>;
   /**
-   * The processes still running, and whether each is mid-turn, so a reloaded
-   * editor can adopt its own and knows whether it missed the end of a turn.
+   * The processes still running, whether each is mid-turn and what it can
+   * read, so a reloaded editor can adopt its own and knows whether it missed
+   * the end of a turn.
    */
-  list(): Promise<{ spawnId: string; busy: boolean }[]>;
+  list(): Promise<ClaudeListedProcess[]>;
   /** Which page load this is, as Rust counts them. Read once, sent with every start. */
   pageEpoch(): Promise<number>;
   listen(callback: (event: ClaudeTransportEvent) => void): Promise<() => void>;
+  /**
+   * Rust's native folder picker. The folder the user chose, or null when they
+   * cancelled. Rejects with a sentence the user can read when Rust refuses the
+   * folder (a whole drive, a system folder), or "A folder picker is already
+   * open".
+   */
+  pickFolder(near?: FolderPickerNear): Promise<AgentFolder | null>;
+  /** Take a folder off Rust's list of folders the user picked, once no chat uses it. */
+  forgetFolder(path: string): Promise<void>;
+  /**
+   * The bytes of a picture inside a folder a running process was started
+   * with. Rejects with a short sentence the agent reads (outside the folders,
+   * not a picture, over 20 MB).
+   */
+  readProjectImage(path: string): Promise<ArrayBuffer>;
 }
 
 /** The models offered in the pickers. 'default' passes no --model at all. */

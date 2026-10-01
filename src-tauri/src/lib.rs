@@ -1,4 +1,5 @@
 mod claude_code;
+mod code_folders;
 mod devtools;
 mod mcp_server;
 mod migrate;
@@ -66,6 +67,9 @@ pub fn run() {
             claude_code::abs_claude_stop,
             claude_code::abs_claude_list,
             claude_code::abs_claude_page_epoch,
+            claude_code::abs_claude_pick_folder,
+            claude_code::abs_claude_forget_folder,
+            claude_code::abs_claude_read_project_image,
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,

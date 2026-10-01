@@ -3,7 +3,8 @@
 // user's own words.
 
 import { clipText } from '@/lib/clipText';
-import type { AgentEditorContext, AgentImage } from './types';
+import { folderLabels } from './folders';
+import type { AgentEditorContext, AgentFolder, AgentImage } from './types';
 
 type ContentBlock =
   | { type: 'text'; text: string }
@@ -76,15 +77,31 @@ export function editorContextBlock(context: AgentEditorContext): string {
   return `<editor-context>\n${JSON.stringify(payload)}\n</editor-context>`;
 }
 
-/** The whole text of a turn: context, then anything the app adds, then the user's words. */
+/**
+ * A slash after the whitespace Rust skips before it looks: char::is_whitespace,
+ * which counts U+0085 where JavaScript's \s does not, and U+FEFF. A narrower
+ * set here would send a line Rust refuses.
+ */
+const LEADING_SLASH = /^[\s\u0085\uFEFF]*\//;
+
+/**
+ * The whole text of a turn: context, then anything the app adds, then the
+ * user's words.
+ *
+ * Never one that starts with "/": Claude Code runs such a message as a slash
+ * command (`/config` rewrites the user's own ~/.claude/settings.json), so Rust
+ * refuses the line. A turn that is nothing but the user's "/..." goes to the
+ * model as words instead.
+ */
 export function composeTurnText(parts: {
   context: AgentEditorContext | null;
   preface?: string;
   text: string;
 }): string {
-  return [parts.context ? editorContextBlock(parts.context) : null, parts.preface?.trim() || null, parts.text.trim()]
+  const text = [parts.context ? editorContextBlock(parts.context) : null, parts.preface?.trim() || null, parts.text.trim()]
     .filter((part): part is string => !!part)
     .join('\n\n');
+  return LEADING_SLASH.test(text) ? `The user wrote: ${text}` : text;
 }
 
 /** A screenshot the app stored before the first turn, so the agent can place it by reference. */
@@ -96,9 +113,25 @@ export interface BriefScreenshot {
 }
 
 /**
+ * What the first message says when the user wrote nothing. The chat shows it
+ * as theirs, so it names what they gave: screenshots, their code folder, or
+ * both.
+ */
+export function defaultStartText(given: { screenshots: number; folders: number }): string {
+  if (given.folders > 0) {
+    return given.screenshots > 0
+      ? 'Design store screenshots for my app from these screenshots and its code folder'
+      : 'Design store screenshots for my app from its code folder';
+  }
+  return 'Design store screenshots for my app from these screenshots';
+}
+
+/**
  * What the first turn of a new design says on top of the user's instruction:
- * which project was just made for it, and where the user's screenshots are.
- * The pictures themselves travel as image blocks in the same message.
+ * which project was just made for it, where the user's screenshots are, and
+ * whether their app's code came with it. The pictures themselves travel as
+ * image blocks in the same message; the folders' paths are in the system
+ * prompt, which Rust writes for a process started with them.
  */
 export function buildFirstRunBrief(args: {
   projectName: string;
@@ -106,7 +139,11 @@ export function buildFirstRunBrief(args: {
   placeholderName?: boolean;
   artboard: { id: string; width: number; height: number } | null;
   screenshots: BriefScreenshot[];
+  /** The code folders the process was started with, as Rust granted them. */
+  folders?: AgentFolder[];
 }): string {
+  const folders = args.folders ?? [];
+  const several = folders.length > 1;
   const lines: string[] = [];
   const board = args.artboard ? ` with one blank artboard (id ${args.artboard.id}, ${args.artboard.width}x${args.artboard.height})` : '';
   lines.push(
@@ -125,9 +162,24 @@ export function buildFirstRunBrief(args: {
     args.screenshots.forEach((shot, index) => {
       lines.push(`${index}. ${shot.ref} (${shot.width}x${shot.height}, ${shot.fileName})`);
     });
+  } else if (folders.length) {
+    lines.push('');
+    lines.push(
+      `No screenshots were uploaded, but the user's app ${several ? 'folders are' : 'folder is'} attached. Look there for real screenshots first (fastlane/screenshots/<language>, fastlane/metadata/android/<language>/images/phoneScreenshots, a screenshots or store folder, images the README shows) and put the plain screens in the device frames with import_project_image, never finished store images that already have a frame or caption. If there are none, keep the device frames the templates come with, and say so in your reply.`
+    );
   } else {
     lines.push('');
     lines.push('No screenshots were uploaded. Keep the device frames the templates come with, and say so in your reply.');
+  }
+  if (folders.length) {
+    // Whole characters only: this line reaches Rust as JSON.
+    const names = folderLabels(folders).map((name) => clipText(name, 80)).join(', ');
+    lines.push('');
+    lines.push(
+      several
+        ? `The user also attached their app folders (${names}). Your instructions list them; read them before you build.`
+        : `The user also attached their app folder (${names}). Your instructions list it; read it before you build.`
+    );
   }
   return lines.join('\n');
 }

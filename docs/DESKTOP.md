@@ -381,13 +381,24 @@ claude mcp add --transport http open-screenshot-generator http://127.0.0.1:8722/
   the renderers resolve it at draw time, the same as an image uploaded in the
   editor, so the bytes stay out of the project row, the undo history and
   autosave. A reference that does not exist is refused when the tool is called.
+  `import_project_image` (`path`, optional `name`) does the same for a PNG,
+  JPEG, WebP, GIF or SVG of up to 20 MB in a code folder attached to the app's
+  own [Claude Code agent](#claude-code-agent-desktop-only). It answers only that
+  agent, so every other client gets an error.
 - *Export*: `export_png` takes a `scale` (0.1 to 4; `0.25` gives a readable proof
   for a sixteenth of the base64) and `save:true` to write the file and return
   its **path** instead of the image. `export_all` renders every board in canvas
   order into one folder as `01_<name>.png`. Files are written by the
   `abs_mcp_write_png` Rust command, defaulting to
   *Downloads/Open Screenshot Generator*, because the JS `fs` plugin only unlocks
-  paths the user picked in a dialog and an MCP export is unattended.
+  paths the user picked in a dialog and an MCP export is unattended. It refuses
+  a relative `directory` and one with `.` or `..` in it. While an agent reads a
+  code folder it also refuses one inside that folder, a network share or
+  device path, whether written that way or resolving to one (a mapped drive, a
+  link to `\\localhost\c$`), and, on macOS and Linux, one that reaches the
+  folder by another path, such as a bind mount or the `/System/Volumes/Data`
+  firmlink, told by device and inode. The Export dialog's own saves skip these
+  checks.
 - *Templates and projects*: `list_templates`, `get_template` (the fillable
   device/text slots and their stable element ids), `apply_template` (replaces
   every artboard of the OPEN project with a filled copy of the template as one
@@ -473,7 +484,10 @@ frontend, where the design state is.
   Settings toggle calls `apply_enabled`, which broadcasts `abs-mcp-status`
   stamped with the bridge nonce below, and `register` handles startup restore.
 - Each JSON-RPC **request** is bridged to the main window over the
-  `abs-mcp-request` event as `{ callId, message, nonce }`; the frontend
+  `abs-mcp-request` event as `{ callId, message, nonce, agent, folders }`, where
+  `agent` says the request carried the app's own Claude Code token and
+  `folders` is true for an agent request while a process that reads code
+  folders is alive, stamped by Rust as the request is bridged; the frontend
   (`src/lib/mcp/desktopMcpServer.ts`) answers `initialize` / `tools/list` /
   `tools/call` and returns the response through the `abs_mcp_respond` command,
   which unblocks the waiting HTTP handler. It reads the nonce through
@@ -538,9 +552,10 @@ The agent screen's first tab, **Claude Code**, runs the AI agent in the Claude
 Code CLI the user already has installed and signed in to, on their Claude plan,
 with no login in the app. It edits the open project through the app's own MCP
 tools, and the user keeps talking to it in the **Agent** tab of the right dock.
-`src-tauri/src/claude_code.rs` finds, starts and stops the process; the frontend
-half is `src/lib/claudeCode/`, described in the Claude Code section of
-[.agents/reference.md](../.agents/reference.md).
+`src-tauri/src/claude_code.rs` finds, starts and stops the process, and
+`src-tauri/src/code_folders.rs` holds the rules for the code folders it may
+read; the frontend half is `src/lib/claudeCode/`, described in the Claude Code
+section of [.agents/reference.md](../.agents/reference.md).
 
 **Finding it.** `abs_claude_detect` takes the first file that exists, in this
 order:
@@ -572,8 +587,9 @@ unknown rather than signed out. The Mac App Store build is sandboxed
 could read neither `~/.local/bin` nor the login in `~/.claude`: detection reports
 it unavailable and a start is refused.
 
-**Launching it.** The flags are fixed in Rust. The page supplies only the model
-and the conversation to resume, both validated so neither can carry a flag:
+**Launching it.** The flags are fixed in Rust. The page supplies only the model,
+the conversation to resume and the paths of the chat's code folders, all
+validated so none can carry a flag:
 
 ```
 claude -p --input-format stream-json --output-format stream-json --verbose
@@ -593,6 +609,15 @@ has nobody to answer a permission prompt, and `dontAsk` refuses everything else.
 Never add `--bare`, which never reads the OAuth login, so the plan stops working,
 or `--safe-mode`, which turns off plugins, skills and MCP servers.
 
+A chat with code folders (below) changes three flags and nothing else:
+`--tools Skill,Read,Grep`, `--settings <ws>/spawn/<spawnId>.settings.json` and
+`--append-system-prompt-file <ws>/spawn/<spawnId>.prompt.md`. `--allowedTools`
+stays `Skill,mcp__osg-editor`: a bare `Read`, `Grep`, `Glob` or `Read(*)` in any
+allow list beats `dontAsk` and reads the whole disk (verified live). Glob stays
+off, because on Claude Code before 2.1.257 an absolute pattern lists file names
+outside the folder. There is no `--add-dir` either: it switches on any plugin the
+folder's `.claude/settings*.json` names.
+
 **The workspace.** `<ws>` is `claude-agent/` in the app's local data folder
 (`%LOCALAPPDATA%\com.dotnetdreamer.openscreenshotgenerator\claude-agent` on
 Windows, `~/Library/Application Support/com.dotnetdreamer.openscreenshotgenerator/claude-agent`
@@ -608,13 +633,16 @@ a process starting beside another never reads a half-written file:
 | `system-prompt.md` | The agent's instructions, from `src-tauri/claude-agent/system-prompt.md` |
 | `osg-mcp.json` | One http server, `osg-editor`, at the MCP server's current URL, with the bearer token in an `Authorization` header. Readable by the user only on macOS and Linux |
 | `osg-settings.json` | Exactly `{"disableAllHooks":true}`, written by Rust and passed with `--settings`. One key only: print mode silently ignores a settings file that fails validation |
+| `folders.json` | The grant book: every code folder the user picked in the native dialog, `{"v":1,"folders":[{"path","name","pickedAt"}]}`, newest first, at most 100. Rust's own, readable by the user only on macOS and Linux. A start takes a folder only if it is here |
+| `spawn/` | A folder chat's two files per process: `<spawnId>.settings.json` (`disableAllHooks`, the folders as `permissions.additionalDirectories`, the deny rules and `blockReadsOutsideWorkingDirectories`, built from typed structs) and `<spawnId>.prompt.md` (the system prompt, `project-folders.md` and the map of each folder). Deleted when the process ends, or when the app quits or the editor closes before it does; the first folder spawn of a run also deletes any left over for more than 7 days |
 
-Rust writes all of it, and the system prompt and the skills are compiled into
-the app with `include_str!`, so the page writes nothing Claude Code reads. A
-skill can make Claude Code run a command: hooks in its frontmatter do, even with
-the shell tool off (verified), and so do `!` lines in its body. A settings file
-or a plugin manifest can declare hooks as well. `osg-settings.json` turns hooks
-off whatever declares them.
+Rust writes all of it, and the system prompt, the code folder addendum
+(`project-folders.md`) and the skills are compiled into the app with
+`include_str!`, so the page writes nothing Claude Code reads. A skill can make
+Claude Code run a command: hooks in its frontmatter do, even with the shell tool
+off (verified), and so do `!` lines in its body. A settings file or a plugin
+manifest can declare hooks as well. `osg-settings.json`, or a folder chat's
+per-spawn settings file, turns hooks off whatever declares them.
 
 **The environment.** Every spawn, detection included, goes through `scrub_env`:
 
@@ -631,7 +659,13 @@ off whatever declares them.
 - Inside an AppImage, `LD_LIBRARY_PATH`, `LD_PRELOAD`, `GIO_EXTRA_MODULES` and
   `GDK_BACKEND` are removed, because a native `claude` must not load the
   AppImage's bundled libraries.
-- The child gets the merged PATH from detection, and `NO_COLOR=1`.
+- `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` is removed, and
+  `CLAUDE_CODE_DISABLE_CLAUDE_MDS=1` is set on every spawn. The app ships no
+  CLAUDE.md, and once Read exists a read would otherwise load `.claude/rules`
+  files from the folders above the working directory, the user's own included.
+- The child gets the merged PATH from detection, and `NO_COLOR=1`. A folder
+  chat also gets `CLAUDE_CODE_GLOB_NO_IGNORE=false` and
+  `CLAUDE_CODE_GLOB_HIDDEN=false`.
 
 **The MCP server and the Settings switch.** The agent reaches the design tools
 through the same local MCP server as any other client. Starting the agent calls
@@ -652,17 +686,74 @@ nonce that only the editor window can read (`abs_mcp_bridge_nonce`), and the
 editor drops a request without it. The agent's own `abs-claude-event` events
 carry the same nonce.
 
+**Code folders.** The user can attach up to three folders of their app's code to
+a chat, from the Agent panel or the start screen, and the agent reads and
+searches them without changing them. A path reaches Claude Code only through the
+native dialog. `abs_claude_pick_folder` opens it from Rust, one at a time and
+over the detached Agent window when the click came from there. It refuses a
+drive, home and the folders above it, a whole Documents, Desktop or Downloads
+folder or one that holds it, dot folders, the app's own data, temp and system
+folders, network drives, a folder the deny rules below would empty (one named
+`build` or `node_modules`, or inside one), and a path below which Claude Code
+would refuse every read (a `~` and a digit anywhere, or a folder name ending in
+a dot or a space). Two kinds of private folder leave a part of themselves alone:
+one that holds home, such as `/var` on Fedora Atomic desktops, leaves the
+folders in home to the home rules, and on a Mac `~/Library` lets through a
+folder inside iCloud Drive, Dropbox, Google Drive or OneDrive, though not the
+drive itself. It reads the pick once, so a macOS privacy prompt shows while the
+user is there, and records it in `folders.json`. Every start checks each
+requested path again and needs it in that book; `missingFolders` in the answer
+names the ones that failed, and the chat drops them with a notice.
+`abs_claude_forget_folder` takes a path out of the book once no saved chat uses
+it. The folders reach Claude Code as `permissions.additionalDirectories`, next
+to constant deny rules, each written rootless (`Read(**/.env)`, which Grep uses
+as a search exclude) and absolute on every drive (`Read(//**/.env)`, which stops
+Read): secrets (`.env` files, keys, signing and provisioning files, cloud
+credentials, `.git`), dependency and build folders, lock files, `~/.claude` (and
+`CLAUDE_CONFIG_DIR`), where Claude Code would otherwise let it read the
+transcripts of earlier design chats, and `~/.claude.json`, which holds the
+signed-in account. The prompt file ends with a map of each folder: its top
+level, up to 60 pictures with icons and screenshots first, and the files most
+likely to hold the app's name, copy and colours. Without Glob, that map is the
+only listing the agent gets.
+
+Once a chat's agent has been able to read a folder, the chat keeps two guards
+for as long as it exists, because a resumed conversation still holds what was
+read, after the folder is removed and across a relaunch: its tool calls may not
+carry a source that leaves the machine, or a CSS `url(` inside a colour, so file
+contents cannot leave through a fetch, and links in its replies show as text
+with the address beside them, not as links. The page judges a source with the
+browser's own URL parser and undoes CSS escapes before it looks for `url(`, and
+Rust's `folders` flag keeps the check on while any folder process is alive, even
+one the page has lost track of. No MCP export may be written inside a folder a
+running agent reads. `import_project_image` puts a picture from the folder on
+the canvas: the page asks `abs_claude_read_project_image`, which returns the
+bytes only for a PNG, JPEG, WebP, GIF or SVG of up to 20 MB inside a folder a
+running agent reads. A debug build takes `OSG_CLAUDE_TEST_FOLDER=<path>` in
+place of the dialog, for the live check below. The refusal messages, the full
+deny list and the map's limits are in the Claude Code section of
+[.agents/reference.md](../.agents/reference.md).
+
 **Process lifetime.** One process per chat, kept alive between messages, and at
 most four at once. A writer thread owns each process's stdin, so sending a
-message queues it and returns, and nothing ever waits on the pipe. Stop in the
-panel interrupts the turn over stdin, which keeps the process for the next
-message; `abs_claude_stop` kills it (the whole tree first, then stdin) only if
-that turn has not ended four seconds later. A kill takes the whole tree: `taskkill /T /F`
-on Windows, where an npm-installed `claude` can be `cmd.exe` running `node.exe`,
-and TERM, then KILL, to the process group on macOS and Linux (TERM first, so the
-conversation file is flushed for `--resume`). Every process dies with the editor
-window and when the app exits (`RunEvent::Exit`, which is why `lib.rs` ends in
-`.build(...).run(...)`). A reloaded editor picks its process back up through
+message queues it and returns, and nothing ever waits on the pipe. Rust lets
+through only a user message of text and pictures, none of whose text starts
+with `/` (a slash command such as `/config` would rewrite the user's global
+Claude Code settings), and an interrupt; any other line is refused. What it
+writes is the line it parsed, never the page's bytes, with U+2060, which shows
+as nothing, in front of every `@` that could open a file mention: Claude Code
+reads the file an `@path` names into the turn, checking only the deny rules,
+and every message's editor context carries artboard names the agent can set.
+Stop in the panel interrupts the turn over stdin, which keeps the process for
+the next message; `abs_claude_stop` kills it (the whole tree first, then stdin)
+only if that turn has not ended four seconds later. A kill takes the whole
+tree: `taskkill /T /F` on Windows, where an npm-installed `claude` can be
+`cmd.exe` running `node.exe`, and TERM, then KILL, to the process group on
+macOS and Linux (TERM first, so the conversation file is flushed for
+`--resume`). Every process dies with the editor window and when the app exits
+(`RunEvent::Exit`, which is why `lib.rs` ends in `.build(...).run(...)`), and
+the spawn files of a folder chat go with it. A reloaded editor picks its
+process back up through
 `abs_claude_list`, which also says whether it is mid-turn, since the page may
 have missed the line that ended the turn; any other listed process belonged to
 an editor that is gone and is stopped. A process still starting when the editor
@@ -679,13 +770,17 @@ console window flashing up.
 
 **Output.** Each stdout line is emitted to the editor window only
 (`emit_to("main", "abs-claude-event", ...)`). The `assistant-*` windows host
-third-party sites and never see a conversation. A line over 512KB has each
-inline image over 256KB emptied: the panel never shows an export at full size,
-and megabytes of base64 per export would stall the IPC bridge. The exit event
+third-party sites and never see a conversation. A line over 512KB loses its
+`tool_use_result`, the tool's raw output, which the page never reads and where
+a Read of a picture or a PDF repeats the whole file, and then has the base64
+of each inline picture or PDF over 256KB emptied: the panel never shows an
+export at full size, and megabytes of base64 per export would stall the IPC
+bridge. The exit event
 carries the last 20 stderr lines, the only place a process that dies before its
 first turn says why (no Git for Windows or PowerShell, or a flag an older Claude
-Code does not know). `start`, `send`, `close_input` and `stop` refuse any window
-but `main`, so a detached panel sends the editor an intent instead.
+Code does not know). `start`, `send`, `close_input`, `stop` and the three
+folder commands refuse any window but `main`, so a detached panel sends the
+editor an intent instead.
 
 **Verifying it live.** The unit tests (`npm run test:unit`) and the Playwright
 spec (`tests/e2e/specs/claude-agent.spec.ts`) run without Claude Code. The live
@@ -705,6 +800,39 @@ so it asks for Haiku; `AGENT_MODEL` picks another (`sonnet`, `opus`, `fable` or
 `default`). `WEBVIEW_PORT`, `TURN_TIMEOUT_MS` and `OUT_DIR` (for its
 screenshots) are the other settings. The scripts folder needs a one-time
 `npm install` (puppeteer-core).
+
+With `AGENT_FOLDER_TEST=1` the script runs the code folder check in place of
+the screenshot turns. It writes a made-up app to `~/osg-agent-verify` (under
+home, because the temp folder is refused like any other): a README with the
+app's name and its main feature, `src/theme.ts` with the brand colour,
+`assets/icon.png`, which no text file names, so only the folder map can find
+it, a `.env` holding a fake secret and `docs/control.txt` with a control word.
+A sentinel file goes outside it, in `~/osg-agent-verify-outside`. CDP cannot
+answer a native folder dialog, so the app has to be a debug build started with
+`OSG_CLAUDE_TEST_FOLDER` set to the fixture's full path:
+
+```sh
+OSG_CLAUDE_TEST_FOLDER="$HOME/osg-agent-verify" WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333 npm run tauri:dev
+AGENT_FOLDER_TEST=1 node .claude/skills/app-screenshots/scripts/verify-claude-agent-desktop.js
+```
+
+In PowerShell, set `$env:OSG_CLAUDE_TEST_FOLDER="$HOME\osg-agent-verify"` and
+`$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` first. The folder may be missing
+when the app starts, since it is checked when it is picked, and the variable
+stands in for the dialog and nothing more, so the script still clicks **Add
+your app's code folder** on the start screen. One Haiku turn should show a Read
+or Grep row, put the app's name or feature on the canvas, import the icon and
+find the control word, and neither the sentinel nor the secret may turn up in
+the saved chat, the panel, the canvas or the Claude Code conversation file.
+The script then takes the folder off the chat, deletes both folders
+(`KEEP_FIXTURE=1` keeps them) and prints which conversation under
+`~/.claude/projects` to delete by hand.
+
+The unit tests and the Playwright spec cover the page side of code folders.
+The Rust side has its own tests: `cargo test --lib` in `src-tauri/`, with a
+scratch `CARGO_TARGET_DIR` so a running `tauri dev` is not disturbed. A name
+filter runs only the tests whose path holds it, so `cargo test claude_code`
+misses nearly all of `code_folders.rs`.
 
 ## Operation tracing (timeline, screenshots, HTML report)
 
