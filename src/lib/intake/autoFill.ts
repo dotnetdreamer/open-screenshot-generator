@@ -484,13 +484,17 @@ export function suggestedFormat(
 
   const preset = DEVICE_FORMAT_PRESETS.find((entry) => entry.id === targetId) ?? null;
   if (!preset) return null;
-  // Same platform and same canvas already: the swap would be a no-op.
-  if (
-    current.category === wanted.category &&
-    current.platform === wanted.platform &&
-    template.projectData?.[0]?.size.width === preset.artboard.width &&
-    template.projectData?.[0]?.size.height === preset.artboard.height
-  ) {
+  // Same platform and already on one of its store canvases: the swap would be
+  // a no-op. An iPhone template at the large display size counts, so iPhone
+  // shots never resize an iPhone template.
+  const canvas = template.projectData?.[0]?.size;
+  const sameCanvas = DEVICE_FORMAT_PRESETS.some(
+    (entry) =>
+      (entry.id === targetId || (targetId === 'ios' && entry.id === 'ios-large')) &&
+      canvas?.width === entry.artboard.width &&
+      canvas?.height === entry.artboard.height
+  );
+  if (current.category === wanted.category && current.platform === wanted.platform && sameCanvas) {
     return null;
   }
   return preset;

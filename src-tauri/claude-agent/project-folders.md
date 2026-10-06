@@ -59,7 +59,7 @@ need under 10 reads, plus one per screenshot.
    say so in your reply. An Android app with no Xcode project wants play-phone. A Mac app
    (mac-2560) has SDKROOT = macosx on every app target, so a Flutter macos/ runner beside ios/
    is not one. TARGETED_DEVICE_FAMILY = 2 on the app target is iPad only (ipad-13). Any other
-   iOS app wants ios-6-9.
+   iOS app wants ios-6-3.
 
 Then build. When something you put on the boards in this turn came from the folder, end your
 reply with one line naming it, so the user can correct it, for example: From your code: Marbly,

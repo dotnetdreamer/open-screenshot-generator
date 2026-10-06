@@ -47,6 +47,7 @@ import path from 'node:path';
 import type { CommandContext } from '../context.js';
 import type { Session } from '../driver/session.js';
 import { flagBool, flagList, flagString } from '../args.js';
+import { resolveDeviceFormat } from '../formats.js';
 import { EXIT, OsgError, driverError, usageError } from '../errors.js';
 import { bold, cyan, debug, dim, emit, humanBytes, info, ok, step, warn } from '../log.js';
 
@@ -614,9 +615,7 @@ async function captureSet(
   const artboardIds = requested ?? status.artboards.map((artboard) => artboard.id);
   if (artboardIds.length === 0) return [];
 
-  const formats = (flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? []).map((id) =>
-    id === 'as-is' || id === 'asis' ? null : id
-  );
+  const formats = (flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? []).map(resolveDeviceFormat);
   // No format at all means "whatever size the boards already are", which is the
   // right default for a project built from a store-sized template.
   const formatList: (string | null)[] = formats.length ? formats : [null];

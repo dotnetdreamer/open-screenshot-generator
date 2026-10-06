@@ -140,7 +140,7 @@
             "name": "Do I have to design every iPhone size separately?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "No. Design at the 6.9 inch size, such as 1290 by 2796, and the App Store scales it down for smaller iPhones automatically. If you want pixel perfect control over a specific tier, the editor can resize the canvas to any accepted dimension."
+              "text": "No. Apple requires one iPhone set at the 6.3 inch size, such as 1206 by 2622, and scales it down for smaller iPhones automatically. The iPhone templates are built at the optional 6.9 inch size, and the export dialog can produce the required 1206 by 2622 from the same design. If you want pixel perfect control over a specific tier, the editor can resize the canvas to any accepted dimension."
             }
           },
           {
@@ -239,7 +239,7 @@
         <li class="feature-card">
           <span class="feature-index" aria-hidden="true">03</span>
           <h3>Every size in one click</h3>
-          <p>The export flow renders each artboard at the <a href="/app-store-screenshot-sizes">App Store dimensions</a> you target, from the 6.9 inch iPhone tier down to iPad, Mac and Apple Watch</p>
+          <p>The export flow renders each artboard at the <a href="/app-store-screenshot-sizes">App Store dimensions</a> you target, including the required 6.3 inch iPhone tier, iPad, Mac and Apple Watch</p>
         </li>
         <li class="feature-card">
           <span class="feature-index" aria-hidden="true">04</span>
@@ -269,9 +269,15 @@
           </thead>
           <tbody>
             <tr>
+              <td>iPhone 6.3"</td>
+              <td class="num">1206 × 2622</td>
+              <td><span class="badge badge-req">Required</span></td>
+              <td>1179 × 2556, landscape mirrors</td>
+            </tr>
+            <tr>
               <td>iPhone 6.9"</td>
               <td class="num">1290 × 2796</td>
-              <td><span class="badge badge-req">Required</span></td>
+              <td><span class="badge badge-opt">Optional</span></td>
               <td>1260 × 2736, 1320 × 2868, landscape mirrors</td>
             </tr>
             <tr>
@@ -296,13 +302,13 @@
         </table>
       </div>
       <div class="note-box">
-        <strong>The shortcut Apple gives you.</strong> Upload only the largest size in a device
-        family and the App Store scales it down for smaller models automatically. In practice one
-        6.9 inch iPhone set and one 13 inch iPad set cover almost every listing
+        <strong>The shortcut Apple gives you.</strong> Upload only the highest required resolution
+        in a device family and App Store Connect scales it down for smaller models automatically.
+        In practice one 6.3 inch iPhone set and one 13 inch iPad set cover almost every listing
       </div>
       <p>
-        The full reference, including the 6.5 inch fallback rule, the Apple TV and Vision Pro sizes,
-        legacy tiers and every accepted alternative, is on the
+        The full reference, including the optional 6.9 inch and iPhone Duo sizes, the Apple TV and
+        Vision Pro sizes, legacy tiers and every accepted alternative, is on the
         <a href="/app-store-screenshot-sizes">App Store screenshot sizes</a> page
       </p>
     </section>
@@ -339,7 +345,7 @@
         </details>
         <details>
           <summary>Do I have to design every iPhone size separately?</summary>
-          <p>No. Design at the 6.9 inch size, such as 1290 by 2796, and the App Store scales it down for smaller iPhones automatically. If you want pixel perfect control over a specific tier, the editor can resize the canvas to any accepted dimension</p>
+          <p>No. Apple requires one iPhone set at the 6.3 inch size, such as 1206 by 2622, and scales it down for smaller iPhones automatically. The iPhone templates are built at the optional 6.9 inch size, and the export dialog can produce the required 1206 by 2622 from the same design. If you want pixel perfect control over a specific tier, the editor can resize the canvas to any accepted dimension</p>
         </details>
         <details>
           <summary>Where do my screenshots go when I upload them?</summary>
@@ -432,7 +438,7 @@
     </div>
     <div class="footer-bottom">
       <p>© 2026 Open Screenshot Generator. Built with care, shipped for free</p>
-      <p>Store specs on this page were checked against Apple's published requirements in July 2026</p>
+      <p>Store specs on this page were checked against Apple's published requirements in October 2026</p>
     </div>
   </footer>
   <script src="/js/analytics.js" defer></script>

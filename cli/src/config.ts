@@ -66,7 +66,7 @@ export interface OsgConfig {
   screenshots?: string;
   /** Template slug to start from, or 'auto' to rank and pick. */
   template?: string;
-  /** Size preset ids to render, e.g. ['ios-6-9', 'ipad-13']. */
+  /** Size preset ids to render, e.g. ['ios-6-3', 'ipad-13']. */
   formats?: string[];
   /** Locale codes. The first is the base unless baseLocale says otherwise. */
   locales?: string[];
@@ -107,7 +107,7 @@ const CANDIDATES = [
 export const DEFAULTS: Required<Pick<OsgConfig, 'out' | 'project' | 'formats' | 'store' | 'assetsBaseUrl'>> = {
   out: 'osg/out',
   project: 'osg/project.json',
-  formats: ['ios-6-9'],
+  formats: ['ios-6-3'],
   store: 'appstore',
   // The project's own published deployment. A CLI run fetches exactly the files
   // a browser would fetch visiting the site, and caches them per machine. It is

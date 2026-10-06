@@ -1269,7 +1269,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'create_artboard',
-    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-9" for the required iPhone size, "ipad-13" for iPad). Returns the new artboard.',
+    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-3" for the required iPhone size, "ipad-13" for iPad). Returns the new artboard.',
     inputSchema: {
       type: 'object',
       properties: {

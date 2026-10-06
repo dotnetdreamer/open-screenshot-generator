@@ -133,14 +133,16 @@ function presetsInGroups(prefix: string) {
 }
 
 /**
- * The canvas tiers a store will not publish without, keyed by size. `required`
- * lives on the canvas presets rather than on the upload table, because it is a
- * statement about the listing, not about one file.
+ * The display types a store will not publish without. `required` lives on the
+ * canvas presets rather than on the upload table, because it is a statement
+ * about the listing, not about one file. It is resolved to the preset's slot,
+ * so every size that slot accepts counts, in either orientation.
  */
-const REQUIRED_APPSTORE_SIZES = new Set(
+const REQUIRED_APPSTORE_SLOTS = new Set(
   presetsInGroups('appstore-')
     .filter((preset) => preset.required)
-    .map((preset) => key(preset.width, preset.height))
+    .map((preset) => appleTargetForSize(preset.width, preset.height)?.displayType)
+    .filter((displayType): displayType is string => !!displayType)
 );
 
 /**
@@ -155,7 +157,7 @@ const APPSTORE_SCREENSHOT_SIZES: AcceptedSize[] = APPLE_DISPLAY_TARGETS.flatMap(
     height: entry.height,
     label: target.label,
     rotatable: target.allowRotated,
-    required: REQUIRED_APPSTORE_SIZES.has(key(entry.width, entry.height)),
+    required: REQUIRED_APPSTORE_SLOTS.has(target.displayType),
   }))
 );
 

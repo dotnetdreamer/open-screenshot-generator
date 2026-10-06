@@ -23,6 +23,7 @@ import {
 import { getBaseLocale, getProjectLocales, hasLocales } from '@/lib/i18n/localization';
 import { localeLabel, localeName } from '@/lib/i18n/locales';
 import { isTauri } from '@/lib/desktop';
+import { appleTargetForSize } from '@/lib/publish/storeTargets';
 
 export interface ExportSelection {
   // Export the artboards exactly as they are on the canvas.
@@ -123,7 +124,8 @@ type LocaleExportMode = 'active' | 'all' | 'custom';
 // Apple's screenshot-specification tiers for the sizes this app can generate
 // (https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
 const APP_STORE_TIER_NOTES: Partial<Record<DeviceFormat, string>> = {
-  'ios': 'Required, iPhone 6.9-inch display',
+  'ios': 'Required for the medium display slot in App Store Connect',
+  'ios-large': 'Optional, upload to the large display slot in App Store Connect',
   'ipad-pro-13': 'Required if your app runs on iPad, 13-inch display',
   'ipad-11': 'Optional, Apple scales your 13-inch shots down if missing',
 };
@@ -200,14 +202,16 @@ export function ExportDialog({
   );
 
   // App Store formats the current canvas does NOT already produce. When the
-  // project is already on one (e.g. iPhone at the exact 1290×2796 canvas),
+  // project is already on one (e.g. iPhone at the exact 1206×2622 canvas),
   // the as-is export covers it and it is left out of the generate list.
   const appStorePresets = APP_STORE_FORMAT_IDS
     .map((id) => DEVICE_FORMAT_PRESETS.find((p) => p.id === id)!)
     .filter(Boolean);
 
   const coveredByAsIs = (formatId: DeviceFormat) => {
-    if (effectiveFormat !== formatId) return false;
+    const currentPlatform = effectiveFormat === 'ios-large' ? 'ios' : effectiveFormat;
+    const formatPlatform = formatId === 'ios-large' ? 'ios' : formatId;
+    if (currentPlatform !== formatPlatform) return false;
     const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
     return (
       !!preset &&
@@ -250,6 +254,9 @@ export function ExportDialog({
     : effectiveSize
       ? `Current layout, ${effectiveSize.width}×${effectiveSize.height}`
       : 'Current layout';
+  const currentAppleTarget = effectiveSize
+    ? appleTargetForSize(effectiveSize.width, effectiveSize.height)
+    : null;
 
   const scopeDescription = !canScopeToArtboard
     ? 'Select an artboard on the canvas first'
@@ -285,6 +292,11 @@ export function ExportDialog({
             <div className="grid gap-0.5 leading-none">
               <Label htmlFor="export-as-is">Export at current sizes</Label>
               <p className="text-xs text-muted-foreground">{asIsDescription}</p>
+              {currentAppleTarget && (
+                <p className="text-xs text-muted-foreground">
+                  Upload {effectiveSize!.width}×{effectiveSize!.height} images to "{currentAppleTarget.label}" in App Store Connect
+                </p>
+              )}
             </div>
           </div>
 
@@ -317,6 +329,7 @@ export function ExportDialog({
             <div className="grid gap-3">
               {appStorePresets.map((preset) => {
                 const covered = coveredByAsIs(preset.id);
+                const target = appleTargetForSize(preset.artboard.width, preset.artboard.height);
                 return (
                   <div key={preset.id} className="flex items-start space-x-2">
                     <Checkbox
@@ -330,7 +343,7 @@ export function ExportDialog({
                         htmlFor={`gen-${preset.id}`}
                         className={covered ? 'text-muted-foreground' : undefined}
                       >
-                        {preset.label}: {preset.artboard.width}×{preset.artboard.height}
+                        {target?.label ?? preset.label}: {preset.artboard.width}×{preset.artboard.height}
                       </Label>
                       <p className="text-xs text-muted-foreground">
                         {covered

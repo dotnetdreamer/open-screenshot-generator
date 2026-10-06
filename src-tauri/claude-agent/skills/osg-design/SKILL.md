@@ -62,8 +62,11 @@ One design tool call at a time, always: each call reads the canvas the previous 
 ## Artboard sizes
 
 Store sizes, with the preset id that create_artboard and update_artboard accept:
-- iPhone 6.9 inch: 1290x2796, ios-6-9. The required App Store tier; Apple scales it down for
-  smaller iPhones. 1320x2868 (ios-6-9-promax) fills the same slot.
+- iPhone medium display: 1206x2622, ios-6-3. The required App Store tier; Apple scales it
+  down for smaller iPhones. 1179x2556 (ios-6-1) fills the same slot, and a landscape app uses
+  2622x1206 (ios-6-3-landscape).
+- iPhone large display: 1290x2796, ios-6-9. Optional, its own slot. 1320x2868
+  (ios-6-9-promax) fills the same slot.
 - iPad 13 inch: 2064x2752, ipad-13.
 - Google Play phone: 1080x1920, play-phone. 1080x2160 is play-phone-tall. Play needs at least 2
   screenshots.
@@ -123,6 +126,7 @@ can read. list_assets lists every uploaded image if you need a ref again. Copy r
   drop their screenshot files onto the canvas, which fills the device frames.
 - Measure the rewritten texts, then look at every board.
 - There are no iPad templates, and the screenshots templates are 1290x2796 with iPhone frames.
+  That is the optional large size; export generates the required 1206x2622 from it.
   Build iPad and Google Play boards from scratch.
 
 Use create_project_from_template only when the user asks for a separate project: it opens a new

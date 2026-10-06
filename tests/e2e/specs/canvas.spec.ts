@@ -286,6 +286,94 @@ test.describe('canvas gestures', () => {
 });
 
 test.describe('canvas layout', () => {
+  test('the required iPhone preset resizes the canvas and content and can be undone', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.addElementFrom('Basic', 'Rectangle', 'basic:rectangle');
+    const original = await elementPosition(app.elementsOn(0).first());
+
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    await expect(app.canvasSizeDialog.locator('#size-ios-6-9')).toBeChecked();
+    const medium = app.canvasSizeDialog.getByRole('radio', {
+      name: /iPhone 6\.3" \(Portrait\), required, 1206 by 2622/,
+    });
+    await expect(app.canvasSizeDialog.getByRole('radio').first()).toHaveAttribute('id', 'size-ios-6-3');
+    await expect(medium).not.toBeChecked();
+    await medium.click();
+    await expect(app.canvasSizeDialog.locator('#canvas-scale-content')).toBeChecked();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+
+    await expectBoardSize(app.board(0), 1206, 2622);
+    await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622 · iPhone 6\.3" \(Portrait\)/);
+    const resized = await elementPosition(app.elementsOn(0).first());
+    const factor = Math.min(1206 / 1290, 2622 / 2796);
+    expectClose(resized.width / original.width, factor, 0.001);
+    expectClose(resized.height / original.height, factor, 0.001);
+    await waitForProject(page, (project) => {
+      const boards = project.projectData as StoredBoard[];
+      return boards?.length === 1 && boards[0].size.width === 1206 && boards[0].size.height === 2622;
+    });
+
+    await app.canvasSizeButton.click();
+    await expect(medium).toBeChecked();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await app.undoButton.click();
+    await expectBoardSize(app.board(0), 1290, 2796);
+    expect(await elementPosition(app.elementsOn(0).first())).toEqual(original);
+    await waitForProject(page, (project) => {
+      const boards = project.projectData as StoredBoard[];
+      return boards?.length === 1 && boards[0].size.width === 1290 && boards[0].size.height === 2796;
+    });
+  });
+
+  test('the current canvas preview stays portrait until the landscape size is applied', async ({ app }) => {
+    await app.startBlankProject();
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    await app.canvasSizeDialog.locator('#size-ios-6-3').click();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await expectBoardSize(app.board(0), 1206, 2622);
+
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    const currentRow = app.canvasSizeDialog.getByText('Current', { exact: true }).locator('../..');
+    const currentLabel = currentRow.locator('p').last();
+    const currentIcon = currentRow.locator('[aria-hidden="true"] > div');
+    await expect(currentLabel).toHaveText('1206 × 2622 · iPhone 6.3" (Portrait)');
+    await expect(currentIcon).toBeVisible();
+    const portrait = await currentIcon.evaluate((element) => {
+      const { width, height } = element.getBoundingClientRect();
+      return { width, height };
+    });
+    expect(portrait.height).toBeGreaterThan(portrait.width);
+
+    await app.canvasSizeDialog.locator('#size-ios-6-1-landscape').click();
+    await expect(currentLabel).toHaveText('1206 × 2622 · iPhone 6.3" (Portrait)');
+    const pending = await currentIcon.evaluate((element) => {
+      const { width, height } = element.getBoundingClientRect();
+      return { width, height };
+    });
+    expect(pending.height).toBeGreaterThan(pending.width);
+    expectClose(pending.width / pending.height, portrait.width / portrait.height, 0.001);
+    await expectBoardSize(app.board(0), 1206, 2622);
+
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await expectBoardSize(app.board(0), 2556, 1179);
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    await expect(currentLabel).toHaveText('2556 × 1179 · iPhone 6.1" (Landscape)');
+    const landscape = await currentIcon.evaluate((element) => {
+      const { width, height } = element.getBoundingClientRect();
+      return { width, height };
+    });
+    expect(landscape.width).toBeGreaterThan(landscape.height);
+  });
+
   test('a second artboard lands beside the first without overlapping it', async ({ app, page }) => {
     await app.startBlankProject();
     await expect(app.artboards).toHaveCount(1);

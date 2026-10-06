@@ -105,10 +105,9 @@ export const DEVICE_PICKER_GROUPS: ReadonlyArray<{
   ),
 }));
 
-// The mutually exclusive "formats" the Devices toolbar menu switches between:
-// the two phone platforms, the App Store iPads, and the two Play Store
-// tablet presets.
-export type DeviceFormat = SwapPlatform | 'ipad-pro-13' | 'ipad-11' | 'tablet-7' | 'tablet-10';
+// The Devices toolbar formats combine a phone platform and canvas size, or
+// an App Store or Play Store tablet preset.
+export type DeviceFormat = SwapPlatform | 'ios-large' | 'ipad-pro-13' | 'ipad-11' | 'tablet-7' | 'tablet-10';
 
 /**
  * The format the project's device mockups are currently on: a phone platform
@@ -277,8 +276,11 @@ export interface DeviceFormatPreset {
   id: DeviceFormat;
   label: string;
   // The store-correct canvas for this format:
-  // - ios: App Store 6.9-inch portrait (1290×2796) — the REQUIRED iPhone
-  //   tier; accepted alternatives are 1260×2736 and 1320×2868.
+  // - ios: App Store "iPhone with Dynamic Island (medium display)" portrait
+  //   (1206×2622), the REQUIRED iPhone slot. 1179×2556 and the two landscape
+  //   sizes go in the same slot.
+  // - ios-large: the optional large display slot (1290×2796), the size the
+  //   bundled templates use. 1260×2736 and 1320×2868 are also accepted.
   // - ipad-pro-13: App Store 13-inch portrait (2064×2752) — REQUIRED if the
   //   app runs on iPad; 2048×2732 is the other accepted size.
   // - ipad-11: App Store 11-inch portrait (1668×2420) — optional tier;
@@ -292,7 +294,8 @@ export interface DeviceFormatPreset {
 
 export const DEVICE_FORMAT_PRESETS: DeviceFormatPreset[] = [
   { id: 'android', label: PLATFORM_LABELS.android, artboard: { width: 1080, height: 1920 } },
-  { id: 'ios', label: PLATFORM_LABELS.ios, artboard: { width: 1290, height: 2796 } },
+  { id: 'ios', label: PLATFORM_LABELS.ios, artboard: { width: 1206, height: 2622 } },
+  { id: 'ios-large', label: 'iPhone (large display)', artboard: { width: 1290, height: 2796 } },
   { id: 'ipad-pro-13', label: 'iPad 13-inch', artboard: { width: 2064, height: 2752 } },
   { id: 'ipad-11', label: 'iPad 11-inch', artboard: { width: 1668, height: 2420 } },
   { id: 'tablet-7', label: '7-inch tablet', artboard: { width: 1080, height: 1920 } },
@@ -301,7 +304,7 @@ export const DEVICE_FORMAT_PRESETS: DeviceFormatPreset[] = [
 
 // The formats Apple App Store Connect accepts, in submission-priority order.
 // Used by the export flow to offer generating whichever are missing.
-export const APP_STORE_FORMAT_IDS: readonly DeviceFormat[] = ['ios', 'ipad-pro-13', 'ipad-11'];
+export const APP_STORE_FORMAT_IDS: readonly DeviceFormat[] = ['ios', 'ios-large', 'ipad-pro-13', 'ipad-11'];
 
 /**
  * Uniformly scale an artboard's elements to fit a new canvas size (min of the
@@ -372,10 +375,11 @@ export function convertArtboardsToFormat(
   let skipped = 0;
   // Tablet formats (App Store iPads, Play Store tablets) share a device id
   // with their format id, so the registry lookup identifies them; phone
-  // format ids ('ios'/'android') aren't device ids and fall through.
+  // format ids aren't device ids and fall through.
   const isTablet =
     (DEVICE_REGISTRY[preset.id as DeviceType] as DeviceDescriptor | undefined)?.category ===
     'tablet';
+  const phonePlatform = preset.id === 'ios-large' ? 'ios' : preset.id as SwapPlatform;
   const next = artboards.map((ab) => {
     const { width: newW, height: newH } = preset.artboard;
     const sameSize = ab.size.width === newW && ab.size.height === newH;
@@ -392,11 +396,11 @@ export function convertArtboardsToFormat(
         ? desc.category === 'custom'
           ? null
           : (preset.id as DeviceType)
-        : swapTargetFor(device.deviceType, preset.id as SwapPlatform);
+        : swapTargetFor(device.deviceType, phonePlatform);
       if (!target) {
         const alreadyOnFormat = isTablet
           ? device.deviceType === preset.id
-          : desc.category === 'phone' && desc.platform === preset.id;
+          : desc.category === 'phone' && desc.platform === phonePlatform;
         if (!alreadyOnFormat) skipped++;
         continue;
       }

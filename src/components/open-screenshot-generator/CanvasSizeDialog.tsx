@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Portal as TooltipPortal } from '@radix-ui/react-tooltip';
 import { cn } from '@/lib/utils';
 import type { Size } from '@/types/artboard';
 import {
@@ -41,7 +43,7 @@ interface CanvasSizeDialogProps {
 
 const CUSTOM_ID = 'custom';
 
-// A proportional thumbnail of the chosen canvas shape — fits inside a fixed
+// A proportional thumbnail of a canvas shape. Fits inside a fixed
 // box so tall portrait and wide landscape sizes both read at a glance.
 function AspectPreview({ width, height }: { width: number; height: number }) {
   const valid = width > 0 && height > 0;
@@ -129,9 +131,6 @@ export function CanvasSizeDialog({
     onOpenChange(false);
   };
 
-  const previewW = Number.isFinite(numWidth) ? numWidth : 0;
-  const previewH = Number.isFinite(numHeight) ? numHeight : 0;
-
   const currentLabel = useMemo(() => {
     const match = findMatchingPreset(currentSize);
     if (!currentSize) return 'Not set';
@@ -153,7 +152,7 @@ export function CanvasSizeDialog({
         </DialogHeader>
 
         <div className="flex shrink-0 items-center gap-3 border-b bg-muted/40 px-6 py-3">
-          <AspectPreview width={previewW} height={previewH} />
+          <AspectPreview width={currentSize?.width ?? 0} height={currentSize?.height ?? 0} />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Current
@@ -172,75 +171,91 @@ export function CanvasSizeDialog({
           aria-label="Canvas size presets"
           className="show-scrollbar block min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-4"
         >
-          <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-            {CANVAS_SIZE_PRESET_GROUPS.map((group) => (
-              <section
-                key={group.key}
-                role="group"
-                aria-labelledby={`sizegrp-${group.key}`}
-                className="space-y-2"
-              >
-                <h3
-                  id={`sizegrp-${group.key}`}
-                  className="text-xs font-bold uppercase tracking-wide text-muted-foreground"
+          <TooltipProvider delayDuration={250}>
+            <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+              {CANVAS_SIZE_PRESET_GROUPS.map((group) => (
+                <section
+                  key={group.key}
+                  role="group"
+                  aria-labelledby={`sizegrp-${group.key}`}
+                  className="space-y-2"
                 >
-                  {group.label}
-                </h3>
-                <div className="space-y-1.5">
-                  {group.presets.map((preset) => {
-                    const selected = selectedId === preset.id;
-                    return (
-                      <label
-                        key={preset.id}
-                        htmlFor={`size-${preset.id}`}
-                        className={cn(
-                          'flex cursor-pointer items-center gap-3 rounded-md border p-2.5 transition-shadow hover:shadow-xl',
-                          selected
-                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                            : 'border-border'
-                        )}
-                      >
-                        <RadioGroupItem
-                          value={preset.id}
-                          id={`size-${preset.id}`}
-                          aria-label={`${preset.label}${preset.required ? ', required' : ''}, ${preset.width} by ${preset.height}${preset.aspectLabel ? `, ${preset.aspectLabel}` : ''}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
-                              <span className="truncate" title={preset.label}>
-                                {preset.label}
-                              </span>
-                              {preset.required && (
-                                <span className="shrink-0 rounded-sm border border-primary/40 bg-primary/10 px-1 py-0.5 text-[10px] font-bold uppercase leading-none text-foreground">
-                                  Required
-                                </span>
+                  <h3
+                    id={`sizegrp-${group.key}`}
+                    className="text-xs font-bold uppercase tracking-wide text-muted-foreground"
+                  >
+                    {group.label}
+                  </h3>
+                  <div className="space-y-1.5">
+                    {group.presets.map((preset) => {
+                      const selected = selectedId === preset.id;
+                      return (
+                        <Tooltip key={preset.id}>
+                          <TooltipTrigger asChild>
+                            <label
+                              htmlFor={`size-${preset.id}`}
+                              className={cn(
+                                'flex cursor-pointer items-center gap-3 rounded-md border p-2.5 transition-shadow hover:shadow-xl',
+                                selected
+                                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                  : 'border-border'
                               )}
-                            </span>
-                            <span className="flex shrink-0 flex-col items-end leading-tight">
-                              <span className="text-xs tabular-nums text-muted-foreground">
-                                {preset.width}×{preset.height}
-                              </span>
-                              {preset.aspectLabel && (
-                                <span className="text-[10px] tabular-nums text-muted-foreground">
-                                  {preset.aspectLabel}
-                                </span>
-                              )}
-                            </span>
-                          </div>
+                            >
+                              <RadioGroupItem
+                                value={preset.id}
+                                id={`size-${preset.id}`}
+                                aria-label={`${preset.label}${preset.required ? ', required' : ''}, ${preset.width} by ${preset.height}${preset.aspectLabel ? `, ${preset.aspectLabel}` : ''}`}
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <span className="block whitespace-normal break-words text-sm font-medium leading-snug">
+                                      {preset.label}
+                                    </span>
+                                    {preset.required && (
+                                      <span className="mt-1 inline-block rounded-sm border border-primary/40 bg-primary/10 px-1 py-0.5 text-[10px] font-bold uppercase leading-none text-foreground">
+                                        Required
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="flex shrink-0 flex-col items-end leading-tight">
+                                    <span className="text-xs tabular-nums text-muted-foreground">
+                                      {preset.width}×{preset.height}
+                                    </span>
+                                    {preset.aspectLabel && (
+                                      <span className="text-[10px] tabular-nums text-muted-foreground">
+                                        {preset.aspectLabel}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                                {preset.note && (
+                                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                                    {preset.note}
+                                  </p>
+                                )}
+                              </div>
+                            </label>
+                          </TooltipTrigger>
                           {preset.note && (
-                            <p className="mt-0.5 truncate text-xs text-muted-foreground" title={preset.note}>
-                              {preset.note}
-                            </p>
+                            <TooltipPortal>
+                              <TooltipContent
+                                side="top"
+                                align="start"
+                                className="z-[60] max-w-xs whitespace-normal break-words text-xs leading-relaxed"
+                              >
+                                {preset.note}
+                              </TooltipContent>
+                            </TooltipPortal>
                           )}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-          </div>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </TooltipProvider>
 
           {/* Custom size — preserves the exact old raw-resize capability. */}
           <section className="space-y-2">

@@ -17,6 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { flagList, flagString, flagNumber } from '../args.js';
 import { DEFAULTS } from '../config.js';
+import { isCanvasFormat, resolveDeviceFormat, type DeviceFormat } from '../formats.js';
 import type { CommandContext } from '../context.js';
 import type { SavedFile, Session, SessionStatus } from '../driver/session.js';
 import { EXIT, driverError, usageError } from '../errors.js';
@@ -27,33 +28,7 @@ import { canOpenAsProject } from '@/lib/projectCanvas';
  * The format ids `exportImages` understands (DeviceFormat in
  * src/lib/deviceRegistry.ts). They name a *conversion*, not a canvas size.
  */
-type DeviceFormatId = 'ios' | 'android' | 'ipad-pro-13' | 'ipad-11' | 'tablet-7' | 'tablet-10';
-
-/**
- * Config and flags speak the size-preset ids people see in the editor
- * (src/lib/sizePresets.ts, e.g. 'ios-6-9'); the bridge speaks DeviceFormat.
- * Only the presets whose canvas is byte-identical to a DeviceFormat preset are
- * here, because anything else would silently render at a size nobody asked for.
- */
-const FORMAT_ALIASES: Record<string, DeviceFormatId> = {
-  ios: 'ios',
-  android: 'android',
-  'ipad-pro-13': 'ipad-pro-13',
-  'ipad-11': 'ipad-11',
-  'tablet-7': 'tablet-7',
-  'tablet-10': 'tablet-10',
-  // sizePresets.ts ids, matched on canvas size against DEVICE_FORMAT_PRESETS.
-  'ios-6-9': 'ios', // 1290x2796
-  iphone: 'ios',
-  'ipad-13': 'ipad-pro-13', // 2064x2752
-  ipad: 'ipad-pro-13',
-  'play-phone': 'android', // 1080x1920
-  play: 'android',
-  'play-10-hd': 'tablet-10', // 1440x2560
-};
-
-/** Ways of saying "export the boards at the size they already are". */
-const CANVAS_IDS = new Set(['as-is', 'asis', 'canvas', 'current', 'none']);
+type DeviceFormatId = DeviceFormat;
 
 const POLL_MS = 200;
 /** How long a file has to sit unchanged before it counts as finished. */
@@ -436,21 +411,14 @@ function resolveFormats(ctx: CommandContext): {
   requested: string[];
 } {
   const requested = flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? DEFAULTS.formats;
-  if (requested.length === 0 || requested.some((id) => CANVAS_IDS.has(id.trim().toLowerCase()))) {
+  if (requested.length === 0 || requested.some(isCanvasFormat)) {
     return { asIs: true, generateFormats: [], requested };
   }
 
   const generateFormats: DeviceFormatId[] = [];
   for (const id of requested) {
-    const mapped = FORMAT_ALIASES[id.trim().toLowerCase()];
-    if (!mapped) {
-      throw usageError(
-        `Unknown format "${id}".`,
-        `Convertible formats: ${Object.keys(FORMAT_ALIASES).sort().join(', ')}. ` +
-          'Use --formats as-is to export the boards at the size they already are.'
-      );
-    }
-    if (!generateFormats.includes(mapped)) generateFormats.push(mapped);
+    const mapped = resolveDeviceFormat(id);
+    if (mapped && !generateFormats.includes(mapped)) generateFormats.push(mapped);
   }
   // asIs is off whenever a format was asked for: the conversion pass writes the
   // same filename the as-is pass would, so running both writes each file twice

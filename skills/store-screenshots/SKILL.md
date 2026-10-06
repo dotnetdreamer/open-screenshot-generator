@@ -177,17 +177,26 @@ npx -y open-screenshot-generator@0 render
 
 | Store | Tier | Preset id | Pixels | Status |
 | --- | --- | --- | --- | --- |
-| App Store | iPhone 6.9 inch | `ios-6-9` | 1290x2796 | required for every iPhone app |
-| App Store | iPhone 6.9 inch Pro Max | `ios-6-9-promax` | 1320x2868 | accepted alternative for the same slot |
+| App Store | iPhone medium display | `ios-6-3` | 1206x2622 | required for every iPhone app |
+| App Store | iPhone medium display, landscape | `ios-6-3-landscape` | 2622x1206 | same slot, for a landscape app; canvas preset, render as-is |
+| App Store | iPhone large display | `ios-6-9` | 1290x2796 | optional separate slot |
+| App Store | iPhone large display Pro Max | `ios-6-9-promax` | 1320x2868 | accepted large slot alternative; canvas preset, render as-is |
 | App Store | iPad 13 inch | `ipad-13` | 2064x2752 | required if the app runs on iPad |
-| App Store | Apple Watch Ultra 3 | `watch-ultra-3` | 422x514 | required for a watch app |
-| App Store | Mac | `mac-2560` | 2560x1600 | required for a Mac app |
+| App Store | Apple Watch Ultra 3 | `watch-ultra-3` | 422x514 | required for a watch app; canvas preset, render as-is |
+| App Store | Mac | `mac-2560` | 2560x1600 | required for a Mac app; canvas preset, render as-is |
 | Play | Phone | `play-phone` | 1080x1920 | required, minimum 2 shots |
-| Play | Feature graphic | `play-feature-graphic` | 1024x500 | required on every Play listing |
+| Play | Feature graphic | `play-feature-graphic` | 1024x500 | required on every Play listing; canvas preset, render as-is |
 
-Apple scales the required tier down to the smaller ones, so `formats: ['ios-6-9']` is a complete
-iPhone submission. Add `ipad-13` only if the app actually runs on iPad, and never ship an iPad tier
+Apple scales the required medium tier down to the smaller ones, so `formats: ['ios-6-3']`
+is a complete iPhone submission. The medium slot also accepts 1179x2556 and both landscape
+sizes. Add `ipad-13` only if the app actually runs on iPad, and never ship an iPad tier
 that is a stretched iPhone screenshot.
+
+Canvas presets are not all conversion ids. For a row marked "canvas preset",
+use `create_artboard` with that `preset`, or `update_artboard` with its pixel
+`width` and `height`, then render with `formats: ['as-is']`. Those tools are
+available through `osg call`, `osg edit`, and MCP. `ios` and `iphone` are aliases
+for the default 1206x2622 medium format; `ios-large` is an alias for 1290x2796.
 
 Rendered files land under `osg/out/`. Do not guess a path: `osg manifest` writes
 `osg/osg.manifest.json` naming every file that exists, with its tier, locale, board and pixel size.

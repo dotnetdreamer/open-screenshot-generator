@@ -163,7 +163,8 @@ allowed minutes. Everything else answers in seconds, and a hang means a dialog i
 
 ### Boards
 
-`create_artboard` (width and height, or a `preset` id like `ios-6-9`), `duplicate_artboard`,
+`create_artboard` (width and height, or a `preset` id like `ios-6-3`, the required iPhone size
+at 1206x2622), `duplicate_artboard`,
 `update_artboard` (rename, resize, reorder), `delete_artboard`, `set_active_artboard`,
 `set_background` (solid or a two stop gradient, and a half filled gradient is refused rather than
 stored).

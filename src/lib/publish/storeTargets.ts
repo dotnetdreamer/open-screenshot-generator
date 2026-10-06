@@ -38,13 +38,14 @@ export interface AppleDisplayTarget {
 export const APPLE_DISPLAY_TARGETS: AppleDisplayTarget[] = [
   {
     displayType: 'APP_IPHONE_67',
-    label: 'iPhone 6.9-inch and 6.7-inch',
+    label: 'iPhone with Dynamic Island (large display)',
     sizes: [
       { width: 1290, height: 2796 },
+      { width: 1260, height: 2736 },
       { width: 1320, height: 2868 },
     ],
     allowRotated: true,
-    note: 'Required for every iPhone app',
+    note: 'Optional',
   },
   {
     displayType: 'APP_IPHONE_65',
@@ -57,12 +58,13 @@ export const APPLE_DISPLAY_TARGETS: AppleDisplayTarget[] = [
   },
   {
     displayType: 'APP_IPHONE_61',
-    label: 'iPhone 6.3-inch and 6.1-inch',
+    label: 'iPhone with Dynamic Island (medium display)',
     sizes: [
       { width: 1206, height: 2622 },
       { width: 1179, height: 2556 },
     ],
     allowRotated: true,
+    note: 'Required for every iPhone app',
   },
   {
     displayType: 'APP_IPHONE_55',
@@ -227,8 +229,8 @@ export function nearestAppleSizes(width: number, height: number): string {
 //     not ScreenshotDisplayType under another name. It drops the APP_ prefix
 //     (IPHONE_67, never APP_IPHONE_67), and the five Apple Watch types have no
 //     preview member at all, because Apple takes no previews for watchOS.
-//   - The pixel sizes are a separate, much smaller table. A 6.9-inch screenshot
-//     is 1290x2796; a 6.9-inch preview is 886x1920. Uploading a screenshot-sized
+//   - The pixel sizes are a separate, much smaller table. A large display
+//     screenshot is 1290x2796; its preview is 886x1920. Uploading a screenshot-sized
 //     video fails in processing, the same way a wrong-sized PNG does.
 //
 // Sizes are Apple's published App Preview specifications:
@@ -255,14 +257,15 @@ export interface ApplePreviewTarget {
 
 /**
  * Order matters, as in APPLE_DISPLAY_TARGETS: the first entry whose sizes match
- * wins. Every modern iPhone takes the same 886x1920, so 6.9-inch leads, which
- * is also what Apple wants — it reuses the 6.9-inch preview on the smaller
- * iPhones when their own set is empty.
+ * wins. Every modern iPhone takes the same 886x1920, so the large display
+ * leads. Apple falls back from the medium display to the Face ID large display
+ * and from there to this one, so a preview here reaches every modern iPhone,
+ * while one in the medium set would not reach the large displays.
  */
 export const APPLE_PREVIEW_TARGETS: ApplePreviewTarget[] = [
   {
     previewType: 'IPHONE_67',
-    label: 'iPhone 6.9-inch and 6.7-inch',
+    label: 'iPhone with Dynamic Island (large display)',
     sizes: [{ width: 886, height: 1920 }],
     allowRotated: true,
     platform: 'IOS',
@@ -276,7 +279,7 @@ export const APPLE_PREVIEW_TARGETS: ApplePreviewTarget[] = [
   },
   {
     previewType: 'IPHONE_61',
-    label: 'iPhone 6.3-inch and 6.1-inch',
+    label: 'iPhone with Dynamic Island (medium display)',
     sizes: [{ width: 886, height: 1920 }],
     allowRotated: true,
     platform: 'IOS',

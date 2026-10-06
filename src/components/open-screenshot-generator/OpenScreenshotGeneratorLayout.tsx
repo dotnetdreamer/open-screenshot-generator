@@ -3107,11 +3107,22 @@ export function OpenScreenshotGeneratorLayout() {
     commitView(updatedArtboards);
   };
 
-  // The project's current device format (phone platform or Play Store
-  // tablet), null when mixed/none — drives the Toolbar Devices menu's button
-  // label and checkmarks.
+  // The mockup platform and canvas size drive the toolbar's format label and
+  // checkmarks. Mixed projects have no active format.
   const activeDeviceFormat = useMemo(() => {
     const format = detectArtboardsFormat(artboards);
+    if (format === 'ios') {
+      const largePreset = DEVICE_FORMAT_PRESETS.find((preset) => preset.id === 'ios-large');
+      if (
+        largePreset &&
+        artboards.every((artboard) =>
+          artboard.size.width === largePreset.artboard.width &&
+          artboard.size.height === largePreset.artboard.height
+        )
+      ) {
+        return largePreset.id;
+      }
+    }
     return format === 'mixed' ? null : format;
   }, [artboards]);
 
@@ -4791,7 +4802,7 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
   // Export flow behind the ExportDialog: capture the canvas as-is and/or
-  // generate App Store formats (iPhone 6.9-inch, iPad 13/11-inch) the project
+  // generate App Store formats (iPhone medium/large, iPad 13/11-inch) the project
   // is missing, once per language the dialog asked for. Every pass renders
   // through exportCanvasArtboards, a temporary canvas list that never touches
   // history or Dexie, so this can never corrupt the user's work.

@@ -75,11 +75,11 @@ osg/
   out/
     appstore/
       en-US/
-        ios-6-9/01-track-every-run.png        1290 x 2796
+        ios-6-3/01-track-every-run.png        1206 x 2622
         ipad-13/01-track-every-run.png        2064 x 2752
         preview-iphone/preview.mp4            886 x 1920, 30 fps, H.264
       de-DE/
-        ios-6-9/01-jeden-lauf-aufzeichnen.png 1290 x 2796
+        ios-6-3/01-jeden-lauf-aufzeichnen.png 1206 x 2622
 ```
 
 `project.json` is the artefact worth committing. The PNGs are derived and can be
@@ -326,7 +326,7 @@ The store PNG run. Renders every board, once per format and once per locale.
 
 | Flag | Effect |
 | --- | --- |
-| `--formats <ids>` | Size preset ids. Default `config.formats` |
+| `--formats <ids>` | Supported conversion ids, or `as-is` for the current canvas size. Default `config.formats` |
 | `--locales <codes>` | Languages. Default `config.locales`, or just the base |
 | `--only <board ids>` | Render a subset |
 | `--scale <n>` | 0.1 to 4. A cheap proof while iterating |
@@ -553,7 +553,7 @@ A `.ts` config is loaded with `jiti`, so there is no build step. `export default
 | `out` | string | `osg/out` | Where rendered files land |
 | `screenshots` | string | none | Directory of the app screenshots placed into the device frames |
 | `template` | string | `auto` | Template slug to start from, or `auto` to rank and pick |
-| `formats` | string[] | `['ios-6-9']` | Size preset ids to render |
+| `formats` | string[] | `['ios-6-3']` | Supported conversion ids to render, or `['as-is']` to keep the canvas sizes |
 | `locales` | string[] | the base only | Locale codes. The first is the base unless `baseLocale` says otherwise |
 | `baseLocale` | string | the first locale | The language the others derive from |
 | `store` | `appstore` \| `play` | `appstore` | Which rule set `verify` and `upload` use |
@@ -590,28 +590,34 @@ A `.ts` config is loaded with `jiti`, so there is no build step. `export default
 | `ai.baseUrl` | string | For `openai-compatible`, the endpoint |
 | `ai.apiKeyEnv` | string | The **name** of the env var holding the key. Never the key |
 
-### Size preset ids
+### Format ids and canvas presets
 
-`formats` takes the ids from [sizePresets.ts](../src/lib/sizePresets.ts). The
-ones most runs use:
+`render --formats` and `upload --formats` accept these conversion ids and aliases,
+defined in [formats.ts](../cli/src/formats.ts). Each conversion uses the dimensions
+in [deviceRegistry.ts](../src/lib/deviceRegistry.ts).
 
-| Id | Size | Note |
+| Ids | Size | Note |
 | --- | --- | --- |
-| `ios-6-9` | 1290 x 2796 | Required App Store iPhone baseline. The store scales it down to smaller iPhones |
-| `ios-6-9-promax` | 1320 x 2868 | iPhone 16/17 Pro Max native. An accepted alternative for the same slot |
-| `ios-6-5` | 1242 x 2688 | Legacy 6.5 inch class. Optional |
-| `ipad-13` | 2064 x 2752 | Required if the app runs on iPad |
+| `ios-6-3`, `ios`, `iphone` | 1206 x 2622 | Required App Store iPhone slot (medium display) |
+| `ios-6-9`, `ios-large` | 1290 x 2796 | Optional App Store iPhone large display slot |
+| `ipad-13`, `ipad-pro-13`, `ipad` | 2064 x 2752 | Required if the app runs on iPad |
 | `ipad-11` | 1668 x 2420 | Optional, auto scaled from 13 inch when absent |
-| `play-phone` | 1080 x 1920 | Play phone. Minimum two shots to publish |
-| `play-10` | 1600 x 2560 | Play 10 inch tablet |
-| `play-feature-graphic` | 1024 x 500 | Required on every Play listing. Exactly this size, no transparency |
-| `mac-2560` | 2560 x 1600 | Mac App Store. All Mac screenshots must be 16:10 |
-| `watch-ultra-3` | 422 x 514 | Required Apple Watch baseline |
-| `preview-iphone` | 886 x 1920 | App Store preview **video** size for every modern iPhone |
-| `preview-ipad` | 1200 x 1600 | App Store preview video size for every iPad tier |
+| `play-phone`, `android`, `play` | 1080 x 1920 | Play phone. Minimum two shots to publish |
+| `tablet-7` | 1080 x 1920 | Play 7 inch tablet |
+| `play-10-hd`, `tablet-10` | 1440 x 2560 | Play 10 inch tablet |
+| `as-is`, `asis`, `canvas`, `current`, `none` | Current artboard sizes | Export without conversion |
 
-`osg templates --json` and `osg doctor --json` both report the full list, so an
-agent never has to hard code them.
+The canvas catalog in [sizePresets.ts](../src/lib/sizePresets.ts) also includes
+accepted alternatives for the required slot, `ios-6-1` (1179 x 2556),
+`ios-6-3-landscape` (2622 x 1206) and `ios-6-1-landscape` (2556 x 1179), and
+`ios-6-9-promax` (1320 x 2868) for the optional large slot. These are canvas
+presets, so passing them to `render --formats` or `upload --formats` is an error.
+
+For those sizes, Watch, Mac, or a Play feature graphic, create an artboard with
+`create_artboard` and its `preset` id, or resize an existing artboard with
+`update_artboard` and explicit `width` and `height`. Then use `--formats as-is`
+to keep those dimensions. `osg call` and `osg edit` expose both tools; MCP clients
+use the same tool names. App Preview video sizes use `osg video`.
 
 ## Assets and the cache
 

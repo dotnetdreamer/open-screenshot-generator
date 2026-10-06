@@ -64,7 +64,6 @@ export function LocalFontNotice({ families, projectId, onExportJson, className }
 
   const [first, ...rest] = families;
   const label = rest.length === 0 ? first : `${first} and ${rest.length} more`;
-  const many = rest.length > 0;
 
   const handleDismiss = () => {
     setDismissed(true);
@@ -82,8 +81,8 @@ export function LocalFontNotice({ families, projectId, onExportJson, className }
     >
       <AlertTriangleIcon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
       <p className="flex-1 leading-relaxed">
-        <span className="font-medium">{label}</span> {many ? 'live' : 'lives'} in this browser, not in the
-        project. Export as JSON or save to your account so {many ? 'they travel' : 'it travels'} with it
+        To use <span className="font-medium">{label}</span> on another device, export the project as JSON
+        or save to your account
       </p>
       <Button
         variant="outline"

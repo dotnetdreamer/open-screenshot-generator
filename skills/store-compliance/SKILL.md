@@ -67,19 +67,26 @@ actually get shipped, so `verify` treats them as failures too.
 
 You do not need every size. Apple scales the required tier down to the smaller ones.
 
-| Slot | Required size | Also accepted | Status |
+| Slot | Default size | Also accepted | Status |
 | --- | --- | --- | --- |
-| iPhone 6.9 inch | 1290x2796 | 1320x2868 | required for every iPhone app |
+| iPhone with Dynamic Island (medium display) | 1206x2622 | 1179x2556, or the rotated sizes | required for every iPhone app |
+| iPhone with Dynamic Island (large display) | 1290x2796 | 1260x2736, 1320x2868, or the rotated sizes | optional separate slot |
 | iPad 13 inch | 2064x2752 | 2048x2732 | required if the app runs on iPad |
 | Apple Watch | 422x514 | 410x502, 416x496, 396x484, 368x448, 312x390 | required for a watch app |
 | Mac | 2560x1600 | 2880x1800, 1440x900, 1280x800, always 16:10 | required for a Mac app |
 | Apple TV | 1920x1080 | 3840x2160 | required for a tvOS app |
 | Apple Vision Pro | 3840x2160 | | required for a visionOS app |
 
-Older iPhone and iPad slots (6.5 inch, 6.3 inch, 5.5 inch, 4.7 inch, iPad 11 inch, 10.5 inch, 9.7
+Older iPhone and iPad slots (6.5 inch, 5.5 inch, 4.7 inch, iPad 11 inch, 10.5 inch, 9.7
 inch) still exist and are optional. Fill them only if the user asks. Every iPhone and iPad slot also
 accepts the rotated size, so a landscape app renders the same tier sideways. Watch, Mac, TV and
 Vision are one orientation only.
+
+The default CLI format is `ios-6-3` (1206x2622), and `ios` and `iphone` mean the same.
+`ios-6-9` and `ios-large` convert to the optional large slot at 1290x2796, which is the
+size the bundled templates use, so a project built from a template still needs the
+medium size for the required slot. Other canvas presets require creating or resizing the
+artboards first, then rendering or uploading with `--formats as-is` to keep their dimensions.
 
 Caps and formats:
 

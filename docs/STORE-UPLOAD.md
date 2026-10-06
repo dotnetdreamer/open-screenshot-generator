@@ -34,7 +34,8 @@ The dialog matches each image to an Apple display size and warns you if its dime
 
 | Display size | Accepted image dimensions |
 | --- | --- |
-| iPhone 6.9-inch or 6.7-inch | 1290x2796 or 1320x2868 |
+| iPhone with Dynamic Island (medium display), required | Portrait: 1179x2556 or 1206x2622. Landscape: 2556x1179 or 2622x1206 |
+| iPhone with Dynamic Island (large display), optional | 1290x2796, 1260x2736, or 1320x2868, or the rotated dimensions |
 | iPad 13-inch | 2064x2752 or 2048x2732 |
 | iPad 11-inch | 1668x2420 or 1668x2388 |
 | Mac | 2560x1600, 2880x1800, 1440x900, or 1280x800 |
