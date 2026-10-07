@@ -197,6 +197,43 @@ export function appleTargetForSize(width: number, height: number): AppleDisplayT
   return null;
 }
 
+/**
+ * The iPhone set App Store Connect will not submit a listing without:
+ * "iPhone with Dynamic Island (medium display)".
+ */
+export const REQUIRED_IPHONE_DISPLAY_TYPE = 'APP_IPHONE_61';
+
+/**
+ * True when a set of screenshot sizes has iPhone shots but none for the
+ * required iPhone set. Every other iPhone size is valid but optional, so a set
+ * made only at 1290x2796 (the app's default before Apple's change) uploads
+ * without complaint and then cannot be submitted.
+ */
+export function missesRequiredIphoneSlot(sizes: ReadonlyArray<{ width: number; height: number }>): boolean {
+  let iphone = false;
+  for (const { width, height } of sizes) {
+    const target = appleTargetForSize(width, height);
+    if (!target || !target.displayType.startsWith('APP_IPHONE_')) continue;
+    if (target.displayType === REQUIRED_IPHONE_DISPLAY_TYPE) return false;
+    iphone = true;
+  }
+  return iphone;
+}
+
+/**
+ * The size the publish dialog starts on for an App Store upload. iPhone boards
+ * at a size Apple does not require go up at the required one, so the listing
+ * can be submitted; everything else goes up as it is. `deviceFormat` is what
+ * detectArtboardsFormat reports for the boards.
+ */
+export function defaultAppStoreUploadSize(
+  screenshotSizes: ReadonlyArray<{ width: number; height: number }>,
+  deviceFormat: string | null
+): 'ios' | 'current' {
+  const iphone = deviceFormat === null || deviceFormat === 'ios' || deviceFormat === 'ios-large';
+  return iphone && missesRequiredIphoneSlot(screenshotSizes) ? 'ios' : 'current';
+}
+
 /** Every size Apple would have accepted, for the "this will not upload" hint. */
 export function nearestAppleSizes(width: number, height: number): string {
   const portrait = height >= width;

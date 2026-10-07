@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import {
 import { getBaseLocale, getProjectLocales, hasLocales } from '@/lib/i18n/localization';
 import { localeLabel, localeName } from '@/lib/i18n/locales';
 import { isTauri } from '@/lib/desktop';
-import { appleTargetForSize } from '@/lib/publish/storeTargets';
+import { appleTargetForSize, missesRequiredIphoneSlot } from '@/lib/publish/storeTargets';
 
 export interface ExportSelection {
   // Export the artboards exactly as they are on the canvas.
@@ -161,11 +161,21 @@ export function ExportDialog({
   const effectiveFormat = scopedToArtboard ? activeArtboard!.format : currentFormat;
   const effectiveSize = scopedToArtboard ? activeArtboard!.size : currentSize;
 
+  // An iPhone canvas at a size App Store Connect does not require (1290×2796
+  // from an older template, say) still needs the required one to submit, so
+  // that size starts ticked. Read when the dialog opens, like the reset below.
+  const needsRequiredIphone =
+    (currentFormat === null || currentFormat === 'ios' || currentFormat === 'ios-large') &&
+    !!currentSize &&
+    missesRequiredIphoneSlot([currentSize]);
+  const needsRequiredIphoneRef = useRef(needsRequiredIphone);
+  needsRequiredIphoneRef.current = needsRequiredIphone;
+
   useEffect(() => {
     // Reset selection whenever the dialog is reopened
     if (isOpen) {
       setAsIs(true);
-      setGenerateFormats([]);
+      setGenerateFormats(needsRequiredIphoneRef.current ? ['ios'] : []);
       setCurrentArtboardOnly(defaultCurrentArtboardOnly);
       setLocaleMode('active');
       setCustomLocales([]);

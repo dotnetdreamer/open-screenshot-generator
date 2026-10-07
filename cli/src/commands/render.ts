@@ -18,6 +18,8 @@ import path from 'node:path';
 import { flagList, flagString, flagNumber } from '../args.js';
 import { DEFAULTS } from '../config.js';
 import { isCanvasFormat, resolveDeviceFormat, type DeviceFormat } from '../formats.js';
+import { readPngFile } from '../verify/png.js';
+import { checkRequiredIphoneSlot, rulesetFor } from '../verify/rules.js';
 import type { CommandContext } from '../context.js';
 import type { SavedFile, Session, SessionStatus } from '../driver/session.js';
 import { EXIT, driverError, usageError } from '../errors.js';
@@ -548,6 +550,15 @@ export async function run(ctx: CommandContext): Promise<number> {
     `${written.length} ${written.length === 1 ? 'file' : 'files'}, ${humanBytes(bytes)}, ` +
       `${humanMs(Date.now() - started)} ${bold('->')} ${ctx.outDir}`
   );
+  // Read back from the files themselves: what was written is what gets uploaded.
+  const listing = checkRequiredIphoneSlot(
+    written.flatMap((file) => {
+      const png = file.filename.toLowerCase().endsWith('.png') ? readPngFile(file.path) : null;
+      return png ? [{ width: png.width, height: png.height }] : [];
+    }),
+    rulesetFor(ctx.config.store ?? DEFAULTS.store)
+  );
+  for (const finding of listing) warn(finding.message);
 
   if (ctx.json) {
     emit({
@@ -561,6 +572,7 @@ export async function run(ctx: CommandContext): Promise<number> {
       artboardId: only ?? null,
       files: written.map((file) => ({ filename: file.filename, path: file.path, bytes: file.bytes })),
       bytes,
+      listing,
       durationMs: Date.now() - started,
     });
   }

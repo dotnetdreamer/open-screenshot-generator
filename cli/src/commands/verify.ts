@@ -34,6 +34,7 @@ import {
   checkMp4,
   checkPng,
   checkPreviewCount,
+  checkRequiredIphoneSlot,
   checkScreenshotCount,
   rulesetFor,
   worstLevel,
@@ -254,9 +255,20 @@ export async function run(ctx: CommandContext): Promise<number> {
 
   const rows = files.map((file) => auditFile(file, path.relative(dir, file).split(path.sep).join('/'), ruleset));
   const sets = auditSets(rows, ruleset);
+  // Rules about the listing as a whole, which neither a file nor a set answers.
+  const listing = checkRequiredIphoneSlot(
+    rows.flatMap((row) => (row.kind === 'png' && row.width && row.height ? [{ width: row.width, height: row.height }] : [])),
+    ruleset
+  );
 
-  const failures = rows.filter((row) => row.level === 'fail').length + sets.filter((set) => set.level === 'fail').length;
-  const warnings = rows.filter((row) => row.level === 'warn').length + sets.filter((set) => set.level === 'warn').length;
+  const failures =
+    rows.filter((row) => row.level === 'fail').length +
+    sets.filter((set) => set.level === 'fail').length +
+    listing.filter((finding) => finding.level === 'fail').length;
+  const warnings =
+    rows.filter((row) => row.level === 'warn').length +
+    sets.filter((set) => set.level === 'warn').length +
+    listing.filter((finding) => finding.level === 'warn').length;
   const passed = rows.length - rows.filter((row) => row.level !== 'ok').length;
   const summary =
     `${plural(rows.length, 'file')} in ${plural(sets.length, 'set')}, ` +
@@ -271,9 +283,11 @@ export async function run(ctx: CommandContext): Promise<number> {
       summary: { files: rows.length, ok: passed, warnings, failures },
       files: rows,
       sets,
+      listing,
     });
   } else {
     printTable(rows, sets);
+    for (const finding of listing) info(`  ${badge(finding.level)}  ${paint(finding)}`);
     if (failures > 0) fail(summary);
     else if (warnings > 0) warn(summary);
     else ok(summary);

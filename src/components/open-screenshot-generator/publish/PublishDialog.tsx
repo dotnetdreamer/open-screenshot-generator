@@ -53,7 +53,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { openExternal } from '@/lib/desktop';
-import { DEVICE_FORMAT_PRESETS, type DeviceFormat } from '@/lib/deviceRegistry';
+import { DEVICE_FORMAT_PRESETS, detectArtboardsFormat, type DeviceFormat } from '@/lib/deviceRegistry';
 import { localeLabel } from '@/lib/i18n/locales';
 import { analyzeArtboardForVideo, projectHasVideoContent } from '@/lib/video/videoExport';
 import { getBaseLocale, getProjectLocales } from '@/lib/i18n/localization';
@@ -62,8 +62,10 @@ import { uploadAppStoreScreenshotsForLocales } from '@/lib/publish/appStoreConne
 import { uploadPlayScreenshotsForLanguages } from '@/lib/publish/googlePlay';
 import {
   appleLocaleFor,
+  defaultAppStoreUploadSize,
   localeForAppleLocale,
   localeForPlayLanguage,
+  missesRequiredIphoneSlot,
   playLanguageFor,
 } from '@/lib/publish/storeTargets';
 import {
@@ -280,6 +282,33 @@ export function PublishDialog({
     setEncoding(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // Screenshot boards only: an App Preview board goes up as a video.
+  const screenshotBoards = useMemo(
+    () => artboards.filter((artboard) => !projectHasVideoContent([artboard])),
+    [artboards]
+  );
+  const requiredIphoneMissing = useMemo(
+    () => missesRequiredIphoneSlot(screenshotBoards.map((artboard) => artboard.size)),
+    [screenshotBoards]
+  );
+
+  // The size starts where the store wants it. iPhone boards at a size App Store
+  // Connect does not require go up at the required one, so the listing can be
+  // submitted. Switching store starts that store over, which also keeps an App
+  // Store size from staying picked on the Play side.
+  useEffect(() => {
+    if (!isOpen) return;
+    setFormatId(
+      store === 'appstore'
+        ? defaultAppStoreUploadSize(
+            screenshotBoards.map((artboard) => artboard.size),
+            detectArtboardsFormat(screenshotBoards)
+          )
+        : 'current'
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, store]);
 
   /**
    * Work out how long each App Preview board runs, so the row can say whether
@@ -1174,6 +1203,12 @@ export function PublishDialog({
                     <p className="text-xs text-muted-foreground">
                       The canvas is converted in memory before capture, then restored. Your project
                       is not modified.
+                    </p>
+                  )}
+                  {store === 'appstore' && requiredIphoneMissing && (
+                    <p className="text-xs text-muted-foreground">
+                      App Store Connect needs one iPhone set at 1206×2622 before it will submit. Your
+                      canvas size only fills an optional set.
                     </p>
                   )}
 

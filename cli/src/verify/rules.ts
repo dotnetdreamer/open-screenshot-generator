@@ -33,6 +33,7 @@ import {
   APPLE_DISPLAY_TARGETS,
   PLAY_IMAGE_TARGETS,
   appleTargetForSize,
+  missesRequiredIphoneSlot,
   nearestAppleSizes,
   suggestPlayImageType,
   validatePlayImage,
@@ -508,6 +509,32 @@ export function checkScreenshotCount(count: number, label: string, ruleset: Stor
     ];
   }
   return [{ level: 'ok', code: 'set-ok', message: `${label}: ${count} screenshots` }];
+}
+
+/**
+ * A listing rule no single file can answer: App Store Connect will not submit
+ * an iPhone listing with no screenshot in the "iPhone with Dynamic Island
+ * (medium display)" set (Apple's screenshot specifications, checked
+ * 2026-10-06). Every other iPhone size uploads and is optional, so a run that
+ * made only 1290x2796, the default before that change, passes every rule above
+ * and still cannot ship. A warning, not a failure: a run that renders an
+ * optional size on purpose, beside one that rendered the required size
+ * elsewhere, is not wrong.
+ */
+export function checkRequiredIphoneSlot(
+  sizes: ReadonlyArray<{ width: number; height: number }>,
+  ruleset: StoreRuleset
+): Finding[] {
+  if (ruleset.png.sizing !== 'apple-table' || !missesRequiredIphoneSlot(sizes)) return [];
+  return [
+    {
+      level: 'warn',
+      code: 'set-required-iphone-missing',
+      message:
+        'no screenshot is at the iPhone size App Store Connect requires (1206x2622 or 1179x2556, ' +
+        'either way round), so the listing cannot be submitted. Render ios-6-3 as well',
+    },
+  ];
 }
 
 /** The same for preview videos. Returns nothing for a store that takes none. */

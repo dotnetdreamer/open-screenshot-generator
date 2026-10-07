@@ -133,8 +133,11 @@ test.describe('the export dialog', () => {
     await app.openExportDialog();
 
     await expect(page.locator('#gen-ios-large')).toBeDisabled();
+    // 1290×2796 only fills an optional set, so the size App Store Connect
+    // requires starts ticked: an older template's project still gets it.
     await expect(page.locator('#gen-ios')).toBeEnabled();
-    await expect(fileCount(page)).toHaveText('1 PNG file');
+    await expect(page.locator('#gen-ios')).toBeChecked();
+    await expect(fileCount(page)).toHaveText('2 PNG files');
     await expect(app.exportDialog.getByText('Upload 1290×2796 images to "iPhone with Dynamic Island (large display)" in App Store Connect', { exact: true })).toBeVisible();
   });
 
