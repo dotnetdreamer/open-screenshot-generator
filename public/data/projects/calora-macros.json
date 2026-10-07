@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#BFDCF2",
    "backgroundType": "gradient",
@@ -30,12 +30,12 @@
      "type": "shape",
      "name": "Cloud left",
      "position": {
-      "x": -70,
-      "y": 60
+      "x": -65.44,
+      "y": 56.27
      },
      "size": {
-      "width": 430,
-      "height": 266
+      "width": 402,
+      "height": 249.45
      },
      "rotation": 0,
      "scale": 1,
@@ -52,12 +52,12 @@
      "type": "shape",
      "name": "Cloud right",
      "position": {
-      "x": 960,
-      "y": 70
+      "x": 897.49,
+      "y": 65.64
      },
      "size": {
-      "width": 360,
-      "height": 252
+      "width": 336.56,
+      "height": 236.32
      },
      "rotation": 0,
      "scale": 1,
@@ -74,12 +74,12 @@
      "type": "shape",
      "name": "Sparkle a",
      "position": {
-      "x": 100,
-      "y": 165
+      "x": 93.49,
+      "y": 154.73
      },
      "size": {
-      "width": 95,
-      "height": 95
+      "width": 88.81,
+      "height": 89.09
      },
      "rotation": 0,
      "scale": 1,
@@ -95,12 +95,12 @@
      "type": "shape",
      "name": "Sparkle b",
      "position": {
-      "x": 1150,
-      "y": 190
+      "x": 1075.12,
+      "y": 178.18
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
@@ -116,12 +116,12 @@
      "type": "shape",
      "name": "Sparkle c",
      "position": {
-      "x": 78,
-      "y": 405
+      "x": 72.92,
+      "y": 379.8
      },
      "size": {
-      "width": 82,
-      "height": 82
+      "width": 76.66,
+      "height": 76.9
      },
      "rotation": 0,
      "scale": 1,
@@ -137,17 +137,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 105
+      "x": 28.05,
+      "y": 98.47
      },
      "size": {
-      "width": 1230,
-      "height": 600
+      "width": 1149.91,
+      "height": 562.66
      },
      "rotation": 0,
      "scale": 1,
      "content": "Know your\ncalories &\nmacros today",
-     "fontSize": 47,
+     "fontSize": 43.94,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -159,17 +159,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 730
+      "x": 135.56,
+      "y": 684.57
      },
      "size": {
-      "width": 1000,
-      "height": 200
+      "width": 934.88,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "See what's left, plus sugar,\nprotein, fat, and carbs.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6E6354",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -184,12 +184,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 207,
-      "y": 1040
+      "x": 193.52,
+      "y": 975.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -3,
      "scale": 1.46,
@@ -209,53 +209,53 @@
      "type": "shape",
      "name": "Kcal card shadow",
      "position": {
-      "x": 61,
-      "y": 1466
+      "x": 57.03,
+      "y": 1374.77
      },
      "size": {
-      "width": 290,
-      "height": 260
+      "width": 271.12,
+      "height": 243.82
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 40
+     "borderRadius": 37.4
     },
     {
      "id": "cm_rect_10",
      "type": "shape",
      "name": "Kcal card",
      "position": {
-      "x": 45,
-      "y": 1450
+      "x": 42.07,
+      "y": 1359.76
      },
      "size": {
-      "width": 290,
-      "height": 260
+      "width": 271.12,
+      "height": 243.82
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 40
+     "borderRadius": 37.4
     },
     {
      "id": "cm_txt_11",
      "type": "text",
      "name": "Kcal flame",
      "position": {
-      "x": 45,
-      "y": 1458
+      "x": 42.07,
+      "y": 1367.27
      },
      "size": {
-      "width": 290,
-      "height": 92
+      "width": 271.12,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "🔥",
-     "fontSize": 18,
+     "fontSize": 16.83,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -267,17 +267,17 @@
      "type": "text",
      "name": "Kcal value",
      "position": {
-      "x": 45,
-      "y": 1528
+      "x": 42.07,
+      "y": 1432.91
      },
      "size": {
-      "width": 290,
-      "height": 135
+      "width": 271.12,
+      "height": 126.6
      },
      "rotation": 0,
      "scale": 1,
      "content": "562",
-     "fontSize": 28,
+     "fontSize": 26.18,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -289,17 +289,17 @@
      "type": "text",
      "name": "Kcal label",
      "position": {
-      "x": 45,
-      "y": 1636
+      "x": 42.07,
+      "y": 1534.19
      },
      "size": {
-      "width": 290,
-      "height": 72
+      "width": 271.12,
+      "height": 67.52
      },
      "rotation": 0,
      "scale": 1,
      "content": "kcal left",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#6E6354",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -311,48 +311,48 @@
      "type": "shape",
      "name": "Protein pill shadow",
      "position": {
-      "x": 964,
-      "y": 1264
+      "x": 901.23,
+      "y": 1185.34
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_rect_15",
      "type": "shape",
      "name": "Protein pill",
      "position": {
-      "x": 950,
-      "y": 1250
+      "x": 888.14,
+      "y": 1172.21
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_circ_16",
      "type": "shape",
      "name": "Protein ring",
      "position": {
-      "x": 976,
-      "y": 1279
+      "x": 912.45,
+      "y": 1199.41
      },
      "size": {
-      "width": 62,
-      "height": 62
+      "width": 57.96,
+      "height": 58.14
      },
      "rotation": 0,
      "scale": 1,
@@ -364,12 +364,12 @@
      "type": "shape",
      "name": "Protein ring hole",
      "position": {
-      "x": 988,
-      "y": 1291
+      "x": 923.67,
+      "y": 1210.66
      },
      "size": {
-      "width": 38,
-      "height": 38
+      "width": 35.53,
+      "height": 35.64
      },
      "rotation": 0,
      "scale": 1,
@@ -381,17 +381,17 @@
      "type": "text",
      "name": "Protein label",
      "position": {
-      "x": 1046,
-      "y": 1260
+      "x": 977.89,
+      "y": 1181.59
      },
      "size": {
-      "width": 214,
-      "height": 100
+      "width": 200.07,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "Protein",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#221B10",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -403,48 +403,48 @@
      "type": "shape",
      "name": "Carbs pill shadow",
      "position": {
-      "x": 964,
-      "y": 1439
+      "x": 901.23,
+      "y": 1349.45
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_rect_20",
      "type": "shape",
      "name": "Carbs pill",
      "position": {
-      "x": 950,
-      "y": 1425
+      "x": 888.14,
+      "y": 1336.32
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_circ_21",
      "type": "shape",
      "name": "Carbs ring",
      "position": {
-      "x": 976,
-      "y": 1454
+      "x": 912.45,
+      "y": 1363.52
      },
      "size": {
-      "width": 62,
-      "height": 62
+      "width": 57.96,
+      "height": 58.14
      },
      "rotation": 0,
      "scale": 1,
@@ -456,12 +456,12 @@
      "type": "shape",
      "name": "Carbs ring hole",
      "position": {
-      "x": 988,
-      "y": 1466
+      "x": 923.67,
+      "y": 1374.77
      },
      "size": {
-      "width": 38,
-      "height": 38
+      "width": 35.53,
+      "height": 35.64
      },
      "rotation": 0,
      "scale": 1,
@@ -473,17 +473,17 @@
      "type": "text",
      "name": "Carbs label",
      "position": {
-      "x": 1046,
-      "y": 1435
+      "x": 977.89,
+      "y": 1345.7
      },
      "size": {
-      "width": 214,
-      "height": 100
+      "width": 200.07,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "Carbs",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#221B10",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -495,48 +495,48 @@
      "type": "shape",
      "name": "Fat pill shadow",
      "position": {
-      "x": 964,
-      "y": 1614
+      "x": 901.23,
+      "y": 1513.56
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_rect_25",
      "type": "shape",
      "name": "Fat pill",
      "position": {
-      "x": 950,
-      "y": 1600
+      "x": 888.14,
+      "y": 1500.43
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_circ_26",
      "type": "shape",
      "name": "Fat ring",
      "position": {
-      "x": 976,
-      "y": 1629
+      "x": 912.45,
+      "y": 1527.62
      },
      "size": {
-      "width": 62,
-      "height": 62
+      "width": 57.96,
+      "height": 58.14
      },
      "rotation": 0,
      "scale": 1,
@@ -548,12 +548,12 @@
      "type": "shape",
      "name": "Fat ring hole",
      "position": {
-      "x": 988,
-      "y": 1641
+      "x": 923.67,
+      "y": 1538.88
      },
      "size": {
-      "width": 38,
-      "height": 38
+      "width": 35.53,
+      "height": 35.64
      },
      "rotation": 0,
      "scale": 1,
@@ -565,17 +565,17 @@
      "type": "text",
      "name": "Fat label",
      "position": {
-      "x": 1046,
-      "y": 1610
+      "x": 977.89,
+      "y": 1509.81
      },
      "size": {
-      "width": 214,
-      "height": 100
+      "width": 200.07,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "Fat",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#221B10",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -587,48 +587,48 @@
      "type": "shape",
      "name": "Sugar pill shadow",
      "position": {
-      "x": 964,
-      "y": 1789
+      "x": 901.23,
+      "y": 1677.67
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_rect_30",
      "type": "shape",
      "name": "Sugar pill",
      "position": {
-      "x": 950,
-      "y": 1775
+      "x": 888.14,
+      "y": 1664.54
      },
      "size": {
-      "width": 320,
-      "height": 120
+      "width": 299.16,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 60
+     "borderRadius": 56.09
     },
     {
      "id": "cm_circ_31",
      "type": "shape",
      "name": "Sugar ring",
      "position": {
-      "x": 976,
-      "y": 1804
+      "x": 912.45,
+      "y": 1691.73
      },
      "size": {
-      "width": 62,
-      "height": 62
+      "width": 57.96,
+      "height": 58.14
      },
      "rotation": 0,
      "scale": 1,
@@ -640,12 +640,12 @@
      "type": "shape",
      "name": "Sugar ring hole",
      "position": {
-      "x": 988,
-      "y": 1816
+      "x": 923.67,
+      "y": 1702.99
      },
      "size": {
-      "width": 38,
-      "height": 38
+      "width": 35.53,
+      "height": 35.64
      },
      "rotation": 0,
      "scale": 1,
@@ -657,17 +657,17 @@
      "type": "text",
      "name": "Sugar label",
      "position": {
-      "x": 1046,
-      "y": 1785
+      "x": 977.89,
+      "y": 1673.92
      },
      "size": {
-      "width": 214,
-      "height": 100
+      "width": 200.07,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "Sugar",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#221B10",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -679,12 +679,12 @@
      "type": "image",
      "name": "Monstera plant",
      "position": {
-      "x": -140,
-      "y": 2110
+      "x": -130.88,
+      "y": 1978.69
      },
      "size": {
-      "width": 520,
-      "height": 782
+      "width": 486.14,
+      "height": 733.33
      },
      "rotation": 0,
      "scale": 1,
@@ -698,12 +698,12 @@
      "type": "image",
      "name": "Berry pile",
      "position": {
-      "x": 830,
-      "y": 2500
+      "x": 775.95,
+      "y": 2344.42
      },
      "size": {
-      "width": 600,
-      "height": 368
+      "width": 560.93,
+      "height": 345.1
      },
      "rotation": 0,
      "scale": 1,
@@ -722,8 +722,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F6EDDC",
    "zoom": 1,
@@ -733,12 +733,12 @@
      "type": "shape",
      "name": "Blossom white",
      "position": {
-      "x": 1035,
-      "y": 80
+      "x": 967.6,
+      "y": 75.02
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
@@ -754,12 +754,12 @@
      "type": "shape",
      "name": "Blossom pink",
      "position": {
-      "x": 1155,
-      "y": 218
+      "x": 1079.79,
+      "y": 204.43
      },
      "size": {
-      "width": 95,
-      "height": 95
+      "width": 88.81,
+      "height": 89.09
      },
      "rotation": 0,
      "scale": 1,
@@ -775,12 +775,12 @@
      "type": "shape",
      "name": "Sparkle a",
      "position": {
-      "x": 985,
-      "y": 238
+      "x": 920.86,
+      "y": 223.19
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
@@ -796,12 +796,12 @@
      "type": "shape",
      "name": "Sparkle b",
      "position": {
-      "x": 98,
-      "y": 235
+      "x": 91.62,
+      "y": 220.38
      },
      "size": {
-      "width": 85,
-      "height": 85
+      "width": 79.47,
+      "height": 79.71
      },
      "rotation": 0,
      "scale": 1,
@@ -817,17 +817,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 140
+      "x": 28.05,
+      "y": 131.29
      },
      "size": {
-      "width": 1230,
-      "height": 440
+      "width": 1149.91,
+      "height": 412.62
      },
      "rotation": 0,
      "scale": 1,
      "content": "Log in\nseconds",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -839,17 +839,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 610
+      "x": 135.56,
+      "y": 572.04
      },
      "size": {
-      "width": 1000,
-      "height": 200
+      "width": 934.88,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "Pick a meal or quick-log\nworkout and weight.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6E6354",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -864,12 +864,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 207,
-      "y": 1040
+      "x": 193.52,
+      "y": 975.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.46,
@@ -889,53 +889,53 @@
      "type": "shape",
      "name": "Sun tile shadow",
      "position": {
-      "x": 64,
-      "y": 1162
+      "x": 59.83,
+      "y": 1089.69
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_44",
      "type": "shape",
      "name": "Sun tile",
      "position": {
-      "x": 52,
-      "y": 1150
+      "x": 48.61,
+      "y": 1078.43
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FAD7BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_45",
      "type": "text",
      "name": "Sun emoji",
      "position": {
-      "x": 52,
-      "y": 1150
+      "x": 48.61,
+      "y": 1078.43
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -8,
      "scale": 1,
      "content": "☀️",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -947,53 +947,53 @@
      "type": "shape",
      "name": "Honey tile shadow",
      "position": {
-      "x": 64,
-      "y": 1532
+      "x": 59.83,
+      "y": 1436.66
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_47",
      "type": "shape",
      "name": "Honey tile",
      "position": {
-      "x": 52,
-      "y": 1520
+      "x": 48.61,
+      "y": 1425.41
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F8ECC3",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_48",
      "type": "text",
      "name": "Honey emoji",
      "position": {
-      "x": 52,
-      "y": 1520
+      "x": 48.61,
+      "y": 1425.41
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 6,
      "scale": 1,
      "content": "🍯",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1005,53 +1005,53 @@
      "type": "shape",
      "name": "Moon tile shadow",
      "position": {
-      "x": 64,
-      "y": 1902
+      "x": 59.83,
+      "y": 1783.64
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_50",
      "type": "shape",
      "name": "Moon tile",
      "position": {
-      "x": 52,
-      "y": 1890
+      "x": 48.61,
+      "y": 1772.38
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E2DAF5",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_51",
      "type": "text",
      "name": "Moon emoji",
      "position": {
-      "x": 52,
-      "y": 1890
+      "x": 48.61,
+      "y": 1772.38
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -7,
      "scale": 1,
      "content": "🌙",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1063,53 +1063,53 @@
      "type": "shape",
      "name": "Leaf tile shadow",
      "position": {
-      "x": 1105,
-      "y": 1242
+      "x": 1033.05,
+      "y": 1164.71
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_53",
      "type": "shape",
      "name": "Leaf tile",
      "position": {
-      "x": 1093,
-      "y": 1230
+      "x": 1021.83,
+      "y": 1153.45
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#D8E9C8",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_54",
      "type": "text",
      "name": "Leaf emoji",
      "position": {
-      "x": 1093,
-      "y": 1230
+      "x": 1021.83,
+      "y": 1153.45
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 7,
      "scale": 1,
      "content": "🍃",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1121,53 +1121,53 @@
      "type": "shape",
      "name": "Cake tile shadow",
      "position": {
-      "x": 1105,
-      "y": 1612
+      "x": 1033.05,
+      "y": 1511.68
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_56",
      "type": "shape",
      "name": "Cake tile",
      "position": {
-      "x": 1093,
-      "y": 1600
+      "x": 1021.83,
+      "y": 1500.43
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F6D2DE",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_57",
      "type": "text",
      "name": "Cake emoji",
      "position": {
-      "x": 1093,
-      "y": 1600
+      "x": 1021.83,
+      "y": 1500.43
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": -6,
      "scale": 1,
      "content": "🍰",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1179,53 +1179,53 @@
      "type": "shape",
      "name": "Dumbbell tile shadow",
      "position": {
-      "x": 1105,
-      "y": 1982
+      "x": 1033.05,
+      "y": 1858.66
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 8,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_59",
      "type": "shape",
      "name": "Dumbbell tile",
      "position": {
-      "x": 1093,
-      "y": 1970
+      "x": 1021.83,
+      "y": 1847.4
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 8,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#CFE0F2",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_60",
      "type": "text",
      "name": "Dumbbell emoji",
      "position": {
-      "x": 1093,
-      "y": 1970
+      "x": 1021.83,
+      "y": 1847.4
      },
      "size": {
-      "width": 145,
-      "height": 145
+      "width": 135.56,
+      "height": 135.98
      },
      "rotation": 8,
      "scale": 1,
      "content": "🏋️",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1237,12 +1237,12 @@
      "type": "image",
      "name": "Oatmeal bowl",
      "position": {
-      "x": -130,
-      "y": 2440
+      "x": -121.53,
+      "y": 2288.15
      },
      "size": {
-      "width": 640,
-      "height": 461
+      "width": 598.33,
+      "height": 432.31
      },
      "rotation": 0,
      "scale": 1,
@@ -1256,12 +1256,12 @@
      "type": "shape",
      "name": "Sparkle c",
      "position": {
-      "x": 1090,
-      "y": 2560
+      "x": 1019.02,
+      "y": 2400.69
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
@@ -1277,12 +1277,12 @@
      "type": "shape",
      "name": "Sparkle d",
      "position": {
-      "x": 1000,
-      "y": 2445
+      "x": 934.88,
+      "y": 2292.84
      },
      "size": {
-      "width": 72,
-      "height": 72
+      "width": 67.31,
+      "height": 67.52
      },
      "rotation": 0,
      "scale": 1,
@@ -1303,8 +1303,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F6EDDC",
    "zoom": 1,
@@ -1314,12 +1314,12 @@
      "type": "shape",
      "name": "Sparkle a",
      "position": {
-      "x": 90,
-      "y": 180
+      "x": 84.14,
+      "y": 168.8
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
@@ -1335,12 +1335,12 @@
      "type": "shape",
      "name": "Sparkle b",
      "position": {
-      "x": 1172,
-      "y": 122
+      "x": 1095.68,
+      "y": 114.41
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
@@ -1356,12 +1356,12 @@
      "type": "shape",
      "name": "Sparkle c",
      "position": {
-      "x": 1082,
-      "y": 300
+      "x": 1011.54,
+      "y": 281.33
      },
      "size": {
-      "width": 98,
-      "height": 98
+      "width": 91.62,
+      "height": 91.9
      },
      "rotation": 0,
      "scale": 1,
@@ -1377,12 +1377,12 @@
      "type": "shape",
      "name": "Sparkle d",
      "position": {
-      "x": 112,
-      "y": 302
+      "x": 104.71,
+      "y": 283.21
      },
      "size": {
-      "width": 78,
-      "height": 78
+      "width": 72.92,
+      "height": 73.15
      },
      "rotation": 0,
      "scale": 1,
@@ -1398,17 +1398,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 105
+      "x": 28.05,
+      "y": 98.47
      },
      "size": {
-      "width": 1230,
-      "height": 600
+      "width": 1149.91,
+      "height": 562.66
      },
      "rotation": 0,
      "scale": 1,
      "content": "Train with\nsimple\nworkout logs",
-     "fontSize": 47,
+     "fontSize": 43.94,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1420,17 +1420,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 730
+      "x": 135.56,
+      "y": 684.57
      },
      "size": {
-      "width": 1000,
-      "height": 200
+      "width": 934.88,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "Track sets, reps, load, and\nrest time per exercise.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6E6354",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1445,12 +1445,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 207,
-      "y": 1040
+      "x": 193.52,
+      "y": 975.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 2,
      "scale": 1.46,
@@ -1470,53 +1470,53 @@
      "type": "shape",
      "name": "Biceps card shadow",
      "position": {
-      "x": 1058,
-      "y": 912
+      "x": 989.11,
+      "y": 855.24
      },
      "size": {
-      "width": 200,
-      "height": 200
+      "width": 186.98,
+      "height": 187.55
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 40
+     "borderRadius": 37.4
     },
     {
      "id": "cm_rect_72",
      "type": "shape",
      "name": "Biceps card",
      "position": {
-      "x": 1044,
-      "y": 898
+      "x": 976.02,
+      "y": 842.12
      },
      "size": {
-      "width": 200,
-      "height": 200
+      "width": 186.98,
+      "height": 187.55
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 40
+     "borderRadius": 37.4
     },
     {
      "id": "cm_txt_73",
      "type": "text",
      "name": "Biceps emoji",
      "position": {
-      "x": 1044,
-      "y": 898
+      "x": 976.02,
+      "y": 842.12
      },
      "size": {
-      "width": 200,
-      "height": 200
+      "width": 186.98,
+      "height": 187.55
      },
      "rotation": 6,
      "scale": 1,
      "content": "💪",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1528,12 +1528,12 @@
      "type": "image",
      "name": "Kettlebell",
      "position": {
-      "x": -110,
-      "y": 2300
+      "x": -102.84,
+      "y": 2156.87
      },
      "size": {
-      "width": 400,
-      "height": 608
+      "width": 373.95,
+      "height": 570.16
      },
      "rotation": 0,
      "scale": 1,
@@ -1547,12 +1547,12 @@
      "type": "image",
      "name": "Dumbbell",
      "position": {
-      "x": 885,
-      "y": 2565
+      "x": 827.37,
+      "y": 2405.38
      },
      "size": {
-      "width": 680,
-      "height": 398
+      "width": 635.72,
+      "height": 373.23
      },
      "rotation": 0,
      "scale": 1,
@@ -1571,8 +1571,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F6EDDC",
    "zoom": 1,
@@ -1582,12 +1582,12 @@
      "type": "shape",
      "name": "Sparkle a",
      "position": {
-      "x": 1140,
-      "y": 140
+      "x": 1065.77,
+      "y": 131.29
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
@@ -1603,12 +1603,12 @@
      "type": "shape",
      "name": "Sparkle b",
      "position": {
-      "x": 1172,
-      "y": 420
+      "x": 1095.68,
+      "y": 393.86
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
@@ -1624,12 +1624,12 @@
      "type": "shape",
      "name": "Sparkle c",
      "position": {
-      "x": 92,
-      "y": 300
+      "x": 86.01,
+      "y": 281.33
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
@@ -1645,17 +1645,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 105
+      "x": 28.05,
+      "y": 98.47
      },
      "size": {
-      "width": 1230,
-      "height": 610
+      "width": 1149.91,
+      "height": 572.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "See your\nprogress\nin stats",
-     "fontSize": 48,
+     "fontSize": 44.87,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1667,17 +1667,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 740
+      "x": 135.56,
+      "y": 693.95
      },
      "size": {
-      "width": 1000,
-      "height": 200
+      "width": 934.88,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "Body weight, volume, and\ntraining activity calendar.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6E6354",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1692,12 +1692,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 310,
-      "y": 1040
+      "x": 289.81,
+      "y": 975.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.46,
@@ -1717,53 +1717,53 @@
      "type": "shape",
      "name": "Lifter tile shadow",
      "position": {
-      "x": 67,
-      "y": 1262
+      "x": 62.64,
+      "y": 1183.46
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_83",
      "type": "shape",
      "name": "Lifter tile",
      "position": {
-      "x": 55,
-      "y": 1250
+      "x": 51.42,
+      "y": 1172.21
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#CFE0F2",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_84",
      "type": "text",
      "name": "Lifter emoji",
      "position": {
-      "x": 55,
-      "y": 1250
+      "x": 51.42,
+      "y": 1172.21
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": -7,
      "scale": 1,
      "content": "🏋️",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1775,53 +1775,53 @@
      "type": "shape",
      "name": "Chart tile shadow",
      "position": {
-      "x": 67,
-      "y": 1642
+      "x": 62.64,
+      "y": 1539.82
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E4D6BC",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_rect_86",
      "type": "shape",
      "name": "Chart tile",
      "position": {
-      "x": 55,
-      "y": 1630
+      "x": 51.42,
+      "y": 1528.56
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#D8E9C8",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "cm_txt_87",
      "type": "text",
      "name": "Chart emoji",
      "position": {
-      "x": 55,
-      "y": 1630
+      "x": 51.42,
+      "y": 1528.56
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 6,
      "scale": 1,
      "content": "📈",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1833,12 +1833,12 @@
      "type": "image",
      "name": "Kettlebell",
      "position": {
-      "x": -120,
-      "y": 2200
+      "x": -112.19,
+      "y": 2063.09
      },
      "size": {
-      "width": 460,
-      "height": 699
+      "width": 430.05,
+      "height": 655.5
      },
      "rotation": 0,
      "scale": 1,
@@ -1852,12 +1852,12 @@
      "type": "shape",
      "name": "Sparkle d",
      "position": {
-      "x": 1120,
-      "y": 2350
+      "x": 1047.07,
+      "y": 2203.76
      },
      "size": {
-      "width": 130,
-      "height": 130
+      "width": 121.53,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
@@ -1873,12 +1873,12 @@
      "type": "shape",
      "name": "Sparkle e",
      "position": {
-      "x": 1185,
-      "y": 2555
+      "x": 1107.84,
+      "y": 2396
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
@@ -1899,8 +1899,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#BFDCF2",
    "backgroundType": "gradient",
@@ -1916,12 +1916,12 @@
      "type": "shape",
      "name": "Sun glow outer",
      "position": {
-      "x": 1020,
-      "y": -90
+      "x": 953.58,
+      "y": -84.4
      },
      "size": {
-      "width": 340,
-      "height": 340
+      "width": 317.86,
+      "height": 318.84
      },
      "rotation": 0,
      "scale": 1,
@@ -1934,12 +1934,12 @@
      "type": "shape",
      "name": "Sun glow inner",
      "position": {
-      "x": 1080,
-      "y": -30
+      "x": 1009.67,
+      "y": -28.13
      },
      "size": {
-      "width": 220,
-      "height": 220
+      "width": 205.67,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
@@ -1952,12 +1952,12 @@
      "type": "shape",
      "name": "Cloud left",
      "position": {
-      "x": -90,
-      "y": 60
+      "x": -84.14,
+      "y": 56.27
      },
      "size": {
-      "width": 380,
-      "height": 235
+      "width": 355.26,
+      "height": 220.38
      },
      "rotation": 0,
      "scale": 1,
@@ -1974,12 +1974,12 @@
      "type": "shape",
      "name": "Cloud right",
      "position": {
-      "x": 920,
-      "y": 840
+      "x": 860.09,
+      "y": 787.73
      },
      "size": {
-      "width": 300,
-      "height": 210
+      "width": 280.47,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
@@ -1996,12 +1996,12 @@
      "type": "shape",
      "name": "Sparkle a",
      "position": {
-      "x": 90,
-      "y": 880
+      "x": 84.14,
+      "y": 825.24
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
@@ -2017,17 +2017,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 15,
-      "y": 130
+      "x": 14.02,
+      "y": 121.91
      },
      "size": {
-      "width": 1260,
-      "height": 440
+      "width": 1177.95,
+      "height": 412.62
      },
      "rotation": 0,
      "scale": 1,
      "content": "Close the loop\neach day",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#221B10",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -2039,17 +2039,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 95,
-      "y": 600
+      "x": 88.81,
+      "y": 562.66
      },
      "size": {
-      "width": 1100,
-      "height": 200
+      "width": 1028.37,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "Calories burned, workouts\ndone, and progress in one view.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6E6354",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -2064,12 +2064,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 207,
-      "y": 1040
+      "x": 193.52,
+      "y": 975.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.46,
@@ -2089,12 +2089,12 @@
      "type": "image",
      "name": "Berry pile",
      "position": {
-      "x": -140,
-      "y": 2530
+      "x": -130.88,
+      "y": 2372.55
      },
      "size": {
-      "width": 560,
-      "height": 343
+      "width": 523.53,
+      "height": 321.65
      },
      "rotation": 0,
      "scale": 1,
@@ -2108,12 +2108,12 @@
      "type": "image",
      "name": "Protein shaker",
      "position": {
-      "x": 890,
-      "y": 2380
+      "x": 832.05,
+      "y": 2231.89
      },
      "size": {
-      "width": 520,
-      "height": 493
+      "width": 486.14,
+      "height": 462.32
      },
      "rotation": 0,
      "scale": 1,

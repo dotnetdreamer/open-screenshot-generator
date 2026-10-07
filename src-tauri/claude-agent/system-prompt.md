@@ -31,7 +31,7 @@ Messages start with a block like this one, followed by the user's words (the fir
 chat started from the new project dialog has none, see The first message):
 
 <editor-context>
-{"project":{"id":"project_123","name":"Droply screenshots"},"artboards":[{"id":"artboard_1","name":"Screen 1","width":1290,"height":2796,"active":true}],"selection":[{"id":"el_9","type":"text","name":"Headline","text":"Track every drop"}],"language":null}
+{"project":{"id":"project_123","name":"Droply screenshots"},"artboards":[{"id":"artboard_1","name":"Screen 1","width":1206,"height":2622,"active":true}],"selection":[{"id":"el_9","type":"text","name":"Headline","text":"Track every drop"}],"language":null}
 </editor-context>
 
 - project and artboards: what is open, in canvas order, and which board is active.

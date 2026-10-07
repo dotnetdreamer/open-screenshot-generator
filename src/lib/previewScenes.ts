@@ -10,8 +10,8 @@
  *
  *  - **Drawn at 886 x 1920**, the size App Store Connect accepts for every
  *    modern iPhone, then fitted to whatever the project's boards already are
- *    (`previewSceneSizeFor`). A screenshot project at 1290 x 2796 is the same
- *    shape to four decimal places, so the scene scales into it without
+ *    (`previewSceneSizeFor`). A screenshot project at 1206 x 2622 is the same
+ *    shape within half a percent, so the scene scales into it without visible
  *    distortion and the canvas keeps one board size. The MP4 is still
  *    886 x 1920: the export dialog's default size mode renders to Apple's spec
  *    whatever the board measures.
@@ -1862,8 +1862,8 @@ const SCENE_ASPECT = PREVIEW_SCENE_SIZE.width / PREVIEW_SCENE_SIZE.height;
 
 /**
  * How far a board's proportions may stray from the scene's and still host it.
- * 0.25 covers every portrait phone canvas in the app (1290x2796 is a 0.02%
- * drift, 1080x1920 a 22% one) and excludes the shapes a portrait phone layout
+ * 0.25 covers every portrait phone canvas in the app (1206x2622 is a 0.3%
+ * drift, 1290x2796 a 0.02% one, 1080x1920 a 22% one) and excludes the shapes a portrait phone layout
  * has no business being poured into: watch, Mac, feature graphic.
  */
 const ASPECT_TOLERANCE = 0.25;
@@ -1872,7 +1872,7 @@ const ASPECT_TOLERANCE = 0.25;
  * The size a dropped scene should take.
  *
  * Matching the boards already on the canvas is the point: a project whose
- * boards are 1290x2796 should not suddenly grow one 886x1920 board next to
+ * boards are 1206x2622 should not suddenly grow one 886x1920 board next to
  * them. It is safe because the two are the same shape, and because the video
  * export renders to Apple's 886x1920 regardless of what the board measures
  * (`sizeMode: 'appstore-portrait'`, the dialog's default). A board of a

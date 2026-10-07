@@ -369,7 +369,7 @@ function writeLocaleText(
 
 /**
  * Layout recipes in normalized coordinates (fractions of the canvas), so one
- * table serves the 1290x2796 phone canvas, the 422x514 watch canvas, and the
+ * table serves the 1206x2622 phone canvas, the 422x514 watch canvas, and the
  * 1024x500 landscape banner. The banner splits text and device left/right
  * instead, handled below.
  */
@@ -544,7 +544,7 @@ function buildNewArtboard(args: {
   });
 
   // TextElement renders glyphs at fontSize / 0.3 px, so a template headline of
-  // 42 on a 1290px board draws at 140px. Keeping the same ratio makes generated
+  // 39 on a 1206px board draws at 130px. Keeping the same ratio makes generated
   // text match hand-authored templates at any canvas size.
   const headlineSize = clamp(Math.round(size.width * 0.033), 12, 48);
   const subheadlineSize = Math.max(10, Math.round(headlineSize * 0.42));
@@ -731,7 +731,7 @@ function decorationColor(
  * One named decoration style, as real elements.
  *
  * Every box here is a fraction of the canvas, so a style that looks right on a
- * 1290x2796 phone board still looks right on the 1024x500 Play banner and on
+ * 1206x2622 phone board still looks right on the 1024x500 Play banner and on
  * the watch. Shapes are the built-in kinds only: reaching into the vector
  * library would mean the plan naming an id, and an id the model invented is a
  * missing element rather than a plain one.

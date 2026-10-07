@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundType": "gradient",
    "backgroundGradient": {
@@ -29,12 +29,12 @@
      "type": "shape",
      "name": "Wash blob 1",
      "position": {
-      "x": -260,
-      "y": 240
+      "x": -243.07,
+      "y": 225.06
      },
      "size": {
-      "width": 900,
-      "height": 820
+      "width": 841.4,
+      "height": 768.97
      },
      "rotation": 0,
      "scale": 1,
@@ -51,12 +51,12 @@
      "type": "shape",
      "name": "Wash blob 2",
      "position": {
-      "x": 560,
-      "y": 1240
+      "x": 523.53,
+      "y": 1162.83
      },
      "size": {
-      "width": 1050,
-      "height": 950
+      "width": 981.63,
+      "height": 890.88
      },
      "rotation": 40,
      "scale": 1,
@@ -73,12 +73,12 @@
      "type": "shape",
      "name": "Wash blob 3",
      "position": {
-      "x": 60,
-      "y": 2020
+      "x": 56.09,
+      "y": 1894.29
      },
      "size": {
-      "width": 780,
-      "height": 720
+      "width": 729.21,
+      "height": 675.19
      },
      "rotation": -25,
      "scale": 1,
@@ -95,17 +95,17 @@
      "type": "text",
      "name": "Giant A",
      "position": {
-      "x": -70,
-      "y": 190
+      "x": -65.44,
+      "y": 178.18
      },
      "size": {
-      "width": 320,
-      "height": 680
+      "width": 299.16,
+      "height": 637.68
      },
      "rotation": 0,
      "scale": 1,
      "content": "A",
-     "fontSize": 150,
+     "fontSize": 140.23,
      "color": "#ABC4DB",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -117,17 +117,17 @@
      "type": "text",
      "name": "Headline line 1",
      "position": {
-      "x": 150,
-      "y": 150
+      "x": 140.23,
+      "y": 140.67
      },
      "size": {
-      "width": 1040,
-      "height": 252
+      "width": 972.28,
+      "height": 236.32
      },
      "rotation": 0,
      "scale": 1,
      "content": "One word a day.",
-     "fontSize": 54,
+     "fontSize": 50.48,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -139,17 +139,17 @@
      "type": "text",
      "name": "Headline line 2 ink",
      "position": {
-      "x": 97,
-      "y": 348
+      "x": 90.68,
+      "y": 326.34
      },
      "size": {
-      "width": 560,
-      "height": 252
+      "width": 523.53,
+      "height": 236.32
      },
      "rotation": 0,
      "scale": 1,
      "content": "Can you",
-     "fontSize": 54,
+     "fontSize": 50.48,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -161,17 +161,17 @@
      "type": "text",
      "name": "Headline line 2 blue",
      "position": {
-      "x": 640,
-      "y": 348
+      "x": 598.33,
+      "y": 326.34
      },
      "size": {
-      "width": 600,
-      "height": 252
+      "width": 560.93,
+      "height": 236.32
      },
      "rotation": 0,
      "scale": 1,
      "content": "crack it?",
-     "fontSize": 54,
+     "fontSize": 50.48,
      "color": "#2563EB",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -183,12 +183,12 @@
      "type": "shape",
      "name": "Brush underline",
      "position": {
-      "x": 625,
-      "y": 560
+      "x": 584.3,
+      "y": 525.15
      },
      "size": {
-      "width": 593,
-      "height": 50
+      "width": 554.39,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -204,17 +204,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 195,
-      "y": 660
+      "x": 182.3,
+      "y": 618.93
      },
      "size": {
-      "width": 900,
-      "height": 242
+      "width": 841.4,
+      "height": 226.94
      },
      "rotation": 0,
      "scale": 1,
      "content": "A fresh daily mystery\nyou can finish in minutes.",
-     "fontSize": 27,
+     "fontSize": 25.24,
      "color": "#2A2C33",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -226,12 +226,12 @@
      "type": "shape",
      "name": "Sketch arrow",
      "position": {
-      "x": 1020,
-      "y": 670
+      "x": 953.58,
+      "y": 628.3
      },
      "size": {
-      "width": 220,
-      "height": 220
+      "width": 205.67,
+      "height": 206.31
      },
      "rotation": 115,
      "scale": 1,
@@ -240,22 +240,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      },
      "fillColor": "#17181C",
-     "strokeWidth": 6.5
+     "strokeWidth": 6.08
     },
     {
      "id": "pz_svg_11",
      "type": "shape",
      "name": "Star filled",
      "position": {
-      "x": 1150,
-      "y": 140
+      "x": 1075.12,
+      "y": 131.29
      },
      "size": {
-      "width": 64,
-      "height": 64
+      "width": 59.83,
+      "height": 60.02
      },
      "rotation": 15,
      "scale": 1,
@@ -271,12 +271,12 @@
      "type": "shape",
      "name": "Star outline",
      "position": {
-      "x": 80,
-      "y": 880
+      "x": 74.79,
+      "y": 825.24
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": -10,
      "scale": 1,
@@ -285,22 +285,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#17181C",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "pz_svg_13",
      "type": "shape",
      "name": "Star tiny",
      "position": {
-      "x": 150,
-      "y": 540
+      "x": 140.23,
+      "y": 506.39
      },
      "size": {
-      "width": 46,
-      "height": 46
+      "width": 43,
+      "height": 43.14
      },
      "rotation": -20,
      "scale": 1,
@@ -319,12 +319,12 @@
      "styleType": "normal",
      "frameColor": "#232B36",
      "position": {
-      "x": 195,
-      "y": 940
+      "x": 182.3,
+      "y": 881.5
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -5,
      "scale": 1.5,
@@ -344,17 +344,17 @@
      "type": "shape",
      "name": "Sticker shadow",
      "position": {
-      "x": 86,
-      "y": 2478
+      "x": 80.4,
+      "y": 2323.79
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -363,17 +363,17 @@
      "type": "shape",
      "name": "Sticker card",
      "position": {
-      "x": 72,
-      "y": 2464
+      "x": 67.31,
+      "y": 2310.66
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FFFFFF"
     },
     {
@@ -381,17 +381,17 @@
      "type": "text",
      "name": "Sticker emoji",
      "position": {
-      "x": 82,
-      "y": 2469
+      "x": 76.66,
+      "y": 2315.35
      },
      "size": {
-      "width": 170,
-      "height": 180
+      "width": 158.93,
+      "height": 168.8
      },
      "rotation": -8,
      "scale": 1,
      "content": "🔍",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -403,17 +403,17 @@
      "type": "shape",
      "name": "Note shadow",
      "position": {
-      "x": 654,
-      "y": 2348
+      "x": 611.41,
+      "y": 2201.88
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": 3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -422,17 +422,17 @@
      "type": "shape",
      "name": "Sticky note",
      "position": {
-      "x": 640,
-      "y": 2330
+      "x": 598.33,
+      "y": 2185
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": 3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#F7DE79"
     },
     {
@@ -440,17 +440,17 @@
      "type": "shape",
      "name": "Tape",
      "position": {
-      "x": 873.6354327800857,
-      "y": 2307.2261267654953
+      "x": 816.75,
+      "y": 2163.64
      },
      "size": {
-      "width": 170,
-      "height": 46
+      "width": 158.93,
+      "height": 43.14
      },
      "rotation": 3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 6,
+     "borderRadius": 5.61,
      "fillColor": "#FFFFFF",
      "fillOpacity": 0.5
     },
@@ -459,17 +459,17 @@
      "type": "text",
      "name": "Note text",
      "position": {
-      "x": 660,
-      "y": 2365
+      "x": 617.02,
+      "y": 2217.82
      },
      "size": {
-      "width": 580,
-      "height": 260
+      "width": 542.23,
+      "height": 243.82
      },
      "rotation": 3,
      "scale": 1,
      "content": "✓ New puzzle every day\n✓ Quick, bite-sized fun\n✓ Play anytime, anywhere",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -486,8 +486,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundType": "gradient",
    "backgroundGradient": {
@@ -502,12 +502,12 @@
      "type": "shape",
      "name": "Wash blob 1",
      "position": {
-      "x": 620,
-      "y": 140
+      "x": 579.63,
+      "y": 131.29
      },
      "size": {
-      "width": 880,
-      "height": 800
+      "width": 822.7,
+      "height": 750.21
      },
      "rotation": 20,
      "scale": 1,
@@ -524,12 +524,12 @@
      "type": "shape",
      "name": "Wash blob 2",
      "position": {
-      "x": -230,
-      "y": 1300
+      "x": -215.02,
+      "y": 1219.1
      },
      "size": {
-      "width": 950,
-      "height": 880
+      "width": 888.14,
+      "height": 825.24
      },
      "rotation": -30,
      "scale": 1,
@@ -546,12 +546,12 @@
      "type": "shape",
      "name": "Wash blob 3",
      "position": {
-      "x": 480,
-      "y": 2100
+      "x": 448.74,
+      "y": 1969.31
      },
      "size": {
-      "width": 900,
-      "height": 760
+      "width": 841.4,
+      "height": 712.7
      },
      "rotation": 0,
      "scale": 1,
@@ -568,17 +568,17 @@
      "type": "text",
      "name": "Giant ?",
      "position": {
-      "x": 1030,
-      "y": 120
+      "x": 962.93,
+      "y": 112.53
      },
      "size": {
-      "width": 260,
-      "height": 680
+      "width": 243.07,
+      "height": 637.68
      },
      "rotation": 0,
      "scale": 1,
      "content": "?",
-     "fontSize": 150,
+     "fontSize": 140.23,
      "color": "#D6CDBD",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -590,17 +590,17 @@
      "type": "text",
      "name": "Headline line 1",
      "position": {
-      "x": 118,
-      "y": 150
+      "x": 110.32,
+      "y": 140.67
      },
      "size": {
-      "width": 1140,
-      "height": 244
+      "width": 1065.77,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "Unscramble clues.",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -612,17 +612,17 @@
      "type": "text",
      "name": "Headline line 2 ink",
      "position": {
-      "x": 65,
-      "y": 341
+      "x": 60.77,
+      "y": 319.78
      },
      "size": {
-      "width": 460,
-      "height": 244
+      "width": 430.05,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "Reveal",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -634,17 +634,17 @@
      "type": "text",
      "name": "Headline line 2 blue",
      "position": {
-      "x": 490,
-      "y": 341
+      "x": 458.09,
+      "y": 319.78
      },
      "size": {
-      "width": 780,
-      "height": 244
+      "width": 729.21,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "connections.",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#2563EB",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -656,12 +656,12 @@
      "type": "shape",
      "name": "Brush underline",
      "position": {
-      "x": 475,
-      "y": 546
+      "x": 444.07,
+      "y": 512.02
      },
      "size": {
-      "width": 775,
-      "height": 50
+      "width": 724.53,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -677,17 +677,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 650
+      "x": 135.56,
+      "y": 609.55
      },
      "size": {
-      "width": 1000,
-      "height": 242
+      "width": 934.88,
+      "height": 226.94
      },
      "rotation": 0,
      "scale": 1,
      "content": "Guess early for a higher score,\nor unlock more clues.",
-     "fontSize": 27,
+     "fontSize": 25.24,
      "color": "#2A2C33",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -699,17 +699,17 @@
      "type": "text",
      "name": "Bulb doodle",
      "position": {
-      "x": 1125,
-      "y": 595
+      "x": 1051.74,
+      "y": 557.97
      },
      "size": {
-      "width": 130,
-      "height": 150
+      "width": 121.53,
+      "height": 140.67
      },
      "rotation": 10,
      "scale": 1,
      "content": "💡",
-     "fontSize": 32,
+     "fontSize": 29.92,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -721,12 +721,12 @@
      "type": "shape",
      "name": "Curl arrow",
      "position": {
-      "x": 25,
-      "y": 780
+      "x": 23.37,
+      "y": 731.46
      },
      "size": {
-      "width": 220,
-      "height": 220
+      "width": 205.67,
+      "height": 206.31
      },
      "rotation": -15,
      "scale": 1,
@@ -735,22 +735,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 8
+      "baseStrokeWidth": 7.48
      },
      "fillColor": "#17181C",
-     "strokeWidth": 6.5
+     "strokeWidth": 6.08
     },
     {
      "id": "pz_svg_33",
      "type": "shape",
      "name": "Star filled",
      "position": {
-      "x": 60,
-      "y": 120
+      "x": 56.09,
+      "y": 112.53
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": -12,
      "scale": 1,
@@ -766,12 +766,12 @@
      "type": "shape",
      "name": "Star outline",
      "position": {
-      "x": 1160,
-      "y": 820
+      "x": 1084.47,
+      "y": 768.97
      },
      "size": {
-      "width": 76,
-      "height": 76
+      "width": 71.05,
+      "height": 71.27
      },
      "rotation": 10,
      "scale": 1,
@@ -780,10 +780,10 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#17181C",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "pz_dev_35",
@@ -793,12 +793,12 @@
      "styleType": "normal",
      "frameColor": "#232B36",
      "position": {
-      "x": 195,
-      "y": 940
+      "x": 182.3,
+      "y": 881.5
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 4,
      "scale": 1.5,
@@ -818,17 +818,17 @@
      "type": "shape",
      "name": "Note shadow",
      "position": {
-      "x": 74,
-      "y": 2358
+      "x": 69.18,
+      "y": 2211.26
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -837,17 +837,17 @@
      "type": "shape",
      "name": "Sticky note",
      "position": {
-      "x": 60,
-      "y": 2430
+      "x": 56.09,
+      "y": 2278.78
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#A8CBF2"
     },
     {
@@ -855,17 +855,17 @@
      "type": "shape",
      "name": "Tape",
      "position": {
-      "x": 276.36456721991425,
-      "y": 2407.2261267654953
+      "x": 258.37,
+      "y": 2257.42
      },
      "size": {
-      "width": 170,
-      "height": 46
+      "width": 158.93,
+      "height": 43.14
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 6,
+     "borderRadius": 5.61,
      "fillColor": "#FFFFFF",
      "fillOpacity": 0.5
     },
@@ -874,17 +874,17 @@
      "type": "text",
      "name": "Note text",
      "position": {
-      "x": 80,
-      "y": 2465
+      "x": 74.79,
+      "y": 2311.6
      },
      "size": {
-      "width": 580,
-      "height": 260
+      "width": 542.23,
+      "height": 243.82
      },
      "rotation": -3,
      "scale": 1,
      "content": "✓ Unscramble the clue\n✓ Reveal its connection\n✓ Guess when you know",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -901,8 +901,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundType": "gradient",
    "backgroundGradient": {
@@ -917,12 +917,12 @@
      "type": "shape",
      "name": "Wash blob 1",
      "position": {
-      "x": -240,
-      "y": 200
+      "x": -224.37,
+      "y": 187.55
      },
      "size": {
-      "width": 880,
-      "height": 800
+      "width": 822.7,
+      "height": 750.21
      },
      "rotation": 15,
      "scale": 1,
@@ -939,12 +939,12 @@
      "type": "shape",
      "name": "Wash blob 2",
      "position": {
-      "x": 580,
-      "y": 1200
+      "x": 542.23,
+      "y": 1125.32
      },
      "size": {
-      "width": 1000,
-      "height": 900
+      "width": 934.88,
+      "height": 843.99
      },
      "rotation": -20,
      "scale": 1,
@@ -961,12 +961,12 @@
      "type": "shape",
      "name": "Wash blob 3",
      "position": {
-      "x": 100,
-      "y": 2080
+      "x": 93.49,
+      "y": 1950.56
      },
      "size": {
-      "width": 820,
-      "height": 720
+      "width": 766.6,
+      "height": 675.19
      },
      "rotation": 30,
      "scale": 1,
@@ -983,17 +983,17 @@
      "type": "shape",
      "name": "Bar 1",
      "position": {
-      "x": 1080,
-      "y": 420
+      "x": 1009.67,
+      "y": 393.86
      },
      "size": {
-      "width": 56,
-      "height": 140
+      "width": 52.35,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 14,
+     "borderRadius": 13.09,
      "fillColor": "#7C3AED",
      "fillOpacity": 0.15
     },
@@ -1002,17 +1002,17 @@
      "type": "shape",
      "name": "Bar 2",
      "position": {
-      "x": 1155,
-      "y": 340
+      "x": 1079.79,
+      "y": 318.84
      },
      "size": {
-      "width": 56,
-      "height": 220
+      "width": 52.35,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 14,
+     "borderRadius": 13.09,
      "fillColor": "#7C3AED",
      "fillOpacity": 0.15
     },
@@ -1021,17 +1021,17 @@
      "type": "shape",
      "name": "Bar 3",
      "position": {
-      "x": 1230,
-      "y": 260
+      "x": 1149.91,
+      "y": 243.82
      },
      "size": {
-      "width": 56,
-      "height": 300
+      "width": 52.35,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 14,
+     "borderRadius": 13.09,
      "fillColor": "#7C3AED",
      "fillOpacity": 0.15
     },
@@ -1040,17 +1040,17 @@
      "type": "text",
      "name": "Headline line 1",
      "position": {
-      "x": 256,
-      "y": 150
+      "x": 239.33,
+      "y": 140.67
      },
      "size": {
-      "width": 860,
-      "height": 234
+      "width": 804,
+      "height": 219.44
      },
      "rotation": 0,
      "scale": 1,
      "content": "Track streaks",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1062,17 +1062,17 @@
      "type": "text",
      "name": "Headline line 2 ink",
      "position": {
-      "x": 92,
-      "y": 333
+      "x": 86.01,
+      "y": 312.28
      },
      "size": {
-      "width": 580,
-      "height": 234
+      "width": 542.23,
+      "height": 219.44
      },
      "rotation": 0,
      "scale": 1,
      "content": "and your",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1084,17 +1084,17 @@
      "type": "text",
      "name": "Headline line 2 purple",
      "position": {
-      "x": 643,
-      "y": 333
+      "x": 601.13,
+      "y": 312.28
      },
      "size": {
-      "width": 600,
-      "height": 234
+      "width": 560.93,
+      "height": 219.44
      },
      "rotation": 0,
      "scale": 1,
      "content": "solve style",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#7C3AED",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1106,12 +1106,12 @@
      "type": "shape",
      "name": "Star at line end",
      "position": {
-      "x": 1220,
-      "y": 360
+      "x": 1140.56,
+      "y": 337.6
      },
      "size": {
-      "width": 62,
-      "height": 62
+      "width": 57.96,
+      "height": 58.14
      },
      "rotation": 20,
      "scale": 1,
@@ -1127,12 +1127,12 @@
      "type": "shape",
      "name": "Brush underline",
      "position": {
-      "x": 628,
-      "y": 530
+      "x": 587.11,
+      "y": 497.02
      },
      "size": {
-      "width": 595,
-      "height": 48
+      "width": 556.26,
+      "height": 45.01
      },
      "rotation": 0,
      "scale": 1,
@@ -1148,17 +1148,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 640
+      "x": 135.56,
+      "y": 600.17
      },
      "size": {
-      "width": 1000,
-      "height": 242
+      "width": 934.88,
+      "height": 226.94
      },
      "rotation": 0,
      "scale": 1,
      "content": "See wins, streaks,\nand which clue you solved on.",
-     "fontSize": 27,
+     "fontSize": 25.24,
      "color": "#2A2C33",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -1170,12 +1170,12 @@
      "type": "shape",
      "name": "Sketch arrow",
      "position": {
-      "x": 1065,
-      "y": 700
+      "x": 995.65,
+      "y": 656.44
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": 115,
      "scale": 1,
@@ -1184,22 +1184,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      },
      "fillColor": "#17181C",
-     "strokeWidth": 6.5
+     "strokeWidth": 6.08
     },
     {
      "id": "pz_svg_53",
      "type": "shape",
      "name": "Star outline",
      "position": {
-      "x": 95,
-      "y": 850
+      "x": 88.81,
+      "y": 797.1
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 8,
      "scale": 1,
@@ -1208,22 +1208,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#17181C",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "pz_svg_54",
      "type": "shape",
      "name": "Star filled",
      "position": {
-      "x": 1146,
-      "y": 166
+      "x": 1071.38,
+      "y": 155.67
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": -14,
      "scale": 1,
@@ -1242,12 +1242,12 @@
      "styleType": "normal",
      "frameColor": "#232B36",
      "position": {
-      "x": 195,
-      "y": 940
+      "x": 182.3,
+      "y": 881.5
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -3,
      "scale": 1.5,
@@ -1267,17 +1267,17 @@
      "type": "shape",
      "name": "Sticker shadow",
      "position": {
-      "x": 86,
-      "y": 2478
+      "x": 80.4,
+      "y": 2323.79
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": -6,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -1286,17 +1286,17 @@
      "type": "shape",
      "name": "Sticker card",
      "position": {
-      "x": 72,
-      "y": 2464
+      "x": 67.31,
+      "y": 2310.66
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": -6,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FFFFFF"
     },
     {
@@ -1304,17 +1304,17 @@
      "type": "text",
      "name": "Sticker emoji",
      "position": {
-      "x": 82,
-      "y": 2469
+      "x": 76.66,
+      "y": 2315.35
      },
      "size": {
-      "width": 170,
-      "height": 180
+      "width": 158.93,
+      "height": 168.8
      },
      "rotation": -6,
      "scale": 1,
      "content": "📅",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1326,17 +1326,17 @@
      "type": "shape",
      "name": "Note shadow",
      "position": {
-      "x": 654,
-      "y": 2348
+      "x": 611.41,
+      "y": 2201.88
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": 4,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -1345,17 +1345,17 @@
      "type": "shape",
      "name": "Sticky note",
      "position": {
-      "x": 640,
-      "y": 2330
+      "x": 598.33,
+      "y": 2185
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": 4,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#C9B4EC"
     },
     {
@@ -1363,17 +1363,17 @@
      "type": "shape",
      "name": "Tape",
      "position": {
-      "x": 876.5098181677806,
-      "y": 2307.401931707129
+      "x": 819.43,
+      "y": 2163.81
      },
      "size": {
-      "width": 170,
-      "height": 46
+      "width": 158.93,
+      "height": 43.14
      },
      "rotation": 4,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 6,
+     "borderRadius": 5.61,
      "fillColor": "#FFFFFF",
      "fillOpacity": 0.5
     },
@@ -1382,17 +1382,17 @@
      "type": "text",
      "name": "Note text",
      "position": {
-      "x": 660,
-      "y": 2365
+      "x": 617.02,
+      "y": 2217.82
      },
      "size": {
-      "width": 580,
-      "height": 260
+      "width": 542.23,
+      "height": 243.82
      },
      "rotation": 4,
      "scale": 1,
      "content": "✓ Build your streak\n✓ See your win rate\n✓ Spot your best strategy",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -1409,8 +1409,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundType": "gradient",
    "backgroundGradient": {
@@ -1425,12 +1425,12 @@
      "type": "shape",
      "name": "Wash blob 1",
      "position": {
-      "x": -250,
-      "y": 210
+      "x": -233.72,
+      "y": 196.93
      },
      "size": {
-      "width": 900,
-      "height": 820
+      "width": 841.4,
+      "height": 768.97
      },
      "rotation": 10,
      "scale": 1,
@@ -1447,12 +1447,12 @@
      "type": "shape",
      "name": "Wash blob 2",
      "position": {
-      "x": 600,
-      "y": 1260
+      "x": 560.93,
+      "y": 1181.59
      },
      "size": {
-      "width": 1000,
-      "height": 920
+      "width": 934.88,
+      "height": 862.75
      },
      "rotation": -35,
      "scale": 1,
@@ -1469,12 +1469,12 @@
      "type": "shape",
      "name": "Wash blob 3",
      "position": {
-      "x": 80,
-      "y": 2060
+      "x": 74.79,
+      "y": 1931.8
      },
      "size": {
-      "width": 800,
-      "height": 720
+      "width": 747.91,
+      "height": 675.19
      },
      "rotation": 20,
      "scale": 1,
@@ -1491,17 +1491,17 @@
      "type": "text",
      "name": "Giant R",
      "position": {
-      "x": 1010,
-      "y": 130
+      "x": 944.23,
+      "y": 121.91
      },
      "size": {
-      "width": 280,
-      "height": 680
+      "width": 261.77,
+      "height": 637.68
      },
      "rotation": 0,
      "scale": 1,
      "content": "R",
-     "fontSize": 150,
+     "fontSize": 140.23,
      "color": "#C5D9C9",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1513,17 +1513,17 @@
      "type": "text",
      "name": "Headline line 1",
      "position": {
-      "x": 260,
-      "y": 150
+      "x": 243.07,
+      "y": 140.67
      },
      "size": {
-      "width": 900,
-      "height": 244
+      "width": 841.4,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "Compete with",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1535,17 +1535,17 @@
      "type": "text",
      "name": "Headline line 2 green",
      "position": {
-      "x": 430,
-      "y": 341
+      "x": 402,
+      "y": 319.78
      },
      "size": {
-      "width": 560,
-      "height": 244
+      "width": 523.53,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "friends.",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#159A62",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1557,12 +1557,12 @@
      "type": "shape",
      "name": "Brush underline",
      "position": {
-      "x": 415,
-      "y": 546
+      "x": 387.98,
+      "y": 512.02
      },
      "size": {
-      "width": 470,
-      "height": 50
+      "width": 439.4,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -1578,17 +1578,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 650
+      "x": 135.56,
+      "y": 609.55
      },
      "size": {
-      "width": 1000,
-      "height": 242
+      "width": 934.88,
+      "height": 226.94
      },
      "rotation": 0,
      "scale": 1,
      "content": "Climb the weekly league,\nor just beat your own streak.",
-     "fontSize": 27,
+     "fontSize": 25.24,
      "color": "#2A2C33",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -1600,12 +1600,12 @@
      "type": "shape",
      "name": "Sketch arrow",
      "position": {
-      "x": 1020,
-      "y": 680
+      "x": 953.58,
+      "y": 637.68
      },
      "size": {
-      "width": 210,
-      "height": 210
+      "width": 196.33,
+      "height": 196.93
      },
      "rotation": 115,
      "scale": 1,
@@ -1614,22 +1614,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      },
      "fillColor": "#17181C",
-     "strokeWidth": 6.5
+     "strokeWidth": 6.08
     },
     {
      "id": "pz_svg_72",
      "type": "shape",
      "name": "Star filled",
      "position": {
-      "x": 65,
-      "y": 130
+      "x": 60.77,
+      "y": 121.91
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": -12,
      "scale": 1,
@@ -1645,12 +1645,12 @@
      "type": "shape",
      "name": "Star outline",
      "position": {
-      "x": 1165,
-      "y": 830
+      "x": 1089.14,
+      "y": 778.35
      },
      "size": {
-      "width": 78,
-      "height": 78
+      "width": 72.92,
+      "height": 73.15
      },
      "rotation": 10,
      "scale": 1,
@@ -1659,22 +1659,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#17181C",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "pz_svg_74",
      "type": "shape",
      "name": "Star tiny",
      "position": {
-      "x": 140,
-      "y": 560
+      "x": 130.88,
+      "y": 525.15
      },
      "size": {
-      "width": 46,
-      "height": 46
+      "width": 43,
+      "height": 43.14
      },
      "rotation": -20,
      "scale": 1,
@@ -1693,12 +1693,12 @@
      "styleType": "normal",
      "frameColor": "#232B36",
      "position": {
-      "x": 195,
-      "y": 940
+      "x": 182.3,
+      "y": 881.5
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 4,
      "scale": 1.5,
@@ -1718,17 +1718,17 @@
      "type": "shape",
      "name": "Note shadow",
      "position": {
-      "x": 654,
-      "y": 2348
+      "x": 611.41,
+      "y": 2201.88
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": 3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -1737,17 +1737,17 @@
      "type": "shape",
      "name": "Sticky note",
      "position": {
-      "x": 640,
-      "y": 2330
+      "x": 598.33,
+      "y": 2185
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": 3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#BFE3C8"
     },
     {
@@ -1755,17 +1755,17 @@
      "type": "shape",
      "name": "Tape",
      "position": {
-      "x": 873.6354327800857,
-      "y": 2307.2261267654953
+      "x": 816.75,
+      "y": 2163.64
      },
      "size": {
-      "width": 170,
-      "height": 46
+      "width": 158.93,
+      "height": 43.14
      },
      "rotation": 3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 6,
+     "borderRadius": 5.61,
      "fillColor": "#FFFFFF",
      "fillOpacity": 0.5
     },
@@ -1774,17 +1774,17 @@
      "type": "text",
      "name": "Note text",
      "position": {
-      "x": 660,
-      "y": 2365
+      "x": 617.02,
+      "y": 2217.82
      },
      "size": {
-      "width": 580,
-      "height": 260
+      "width": 542.23,
+      "height": 243.82
      },
      "rotation": 3,
      "scale": 1,
      "content": "✓ Weekly leagues\n✓ Global leaderboard\n✓ Nudge a friend",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -1796,17 +1796,17 @@
      "type": "shape",
      "name": "Sticker shadow",
      "position": {
-      "x": 86,
-      "y": 2478
+      "x": 80.4,
+      "y": 2323.79
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -1815,17 +1815,17 @@
      "type": "shape",
      "name": "Sticker card",
      "position": {
-      "x": 72,
-      "y": 2464
+      "x": 67.31,
+      "y": 2310.66
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FFFFFF"
     },
     {
@@ -1833,17 +1833,17 @@
      "type": "text",
      "name": "Sticker emoji",
      "position": {
-      "x": 82,
-      "y": 2469
+      "x": 76.66,
+      "y": 2315.35
      },
      "size": {
-      "width": 170,
-      "height": 180
+      "width": 158.93,
+      "height": 168.8
      },
      "rotation": -7,
      "scale": 1,
      "content": "🏆",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1860,8 +1860,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundType": "gradient",
    "backgroundGradient": {
@@ -1876,12 +1876,12 @@
      "type": "shape",
      "name": "Wash blob 1",
      "position": {
-      "x": 620,
-      "y": 150
+      "x": 579.63,
+      "y": 140.67
      },
      "size": {
-      "width": 880,
-      "height": 800
+      "width": 822.7,
+      "height": 750.21
      },
      "rotation": 25,
      "scale": 1,
@@ -1898,12 +1898,12 @@
      "type": "shape",
      "name": "Wash blob 2",
      "position": {
-      "x": -240,
-      "y": 1280
+      "x": -224.37,
+      "y": 1200.34
      },
      "size": {
-      "width": 960,
-      "height": 880
+      "width": 897.49,
+      "height": 825.24
      },
      "rotation": -25,
      "scale": 1,
@@ -1920,12 +1920,12 @@
      "type": "shape",
      "name": "Wash blob 3",
      "position": {
-      "x": 460,
-      "y": 2090
+      "x": 430.05,
+      "y": 1959.94
      },
      "size": {
-      "width": 900,
-      "height": 760
+      "width": 841.4,
+      "height": 712.7
      },
      "rotation": 5,
      "scale": 1,
@@ -1942,17 +1942,17 @@
      "type": "text",
      "name": "Giant O",
      "position": {
-      "x": -50,
-      "y": 170
+      "x": -46.74,
+      "y": 159.42
      },
      "size": {
-      "width": 300,
-      "height": 680
+      "width": 280.47,
+      "height": 637.68
      },
      "rotation": 0,
      "scale": 1,
      "content": "O",
-     "fontSize": 150,
+     "fontSize": 140.23,
      "color": "#E0C0B6",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1964,17 +1964,17 @@
      "type": "text",
      "name": "Headline line 1",
      "position": {
-      "x": 270,
-      "y": 150
+      "x": 252.42,
+      "y": 140.67
      },
      "size": {
-      "width": 920,
-      "height": 244
+      "width": 860.09,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "Stuck? Spend",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -1986,17 +1986,17 @@
      "type": "text",
      "name": "Headline line 2 red",
      "position": {
-      "x": 475,
-      "y": 341
+      "x": 444.07,
+      "y": 319.78
      },
      "size": {
-      "width": 500,
-      "height": 244
+      "width": 467.44,
+      "height": 228.82
      },
      "rotation": 0,
      "scale": 1,
      "content": "coins.",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#E2574A",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -2008,12 +2008,12 @@
      "type": "shape",
      "name": "Brush underline",
      "position": {
-      "x": 455,
-      "y": 546
+      "x": 425.37,
+      "y": 512.02
      },
      "size": {
-      "width": 390,
-      "height": 50
+      "width": 364.6,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -2029,17 +2029,17 @@
      "type": "text",
      "name": "Subtext",
      "position": {
-      "x": 145,
-      "y": 650
+      "x": 135.56,
+      "y": 609.55
      },
      "size": {
-      "width": 1000,
-      "height": 242
+      "width": 934.88,
+      "height": 226.94
      },
      "rotation": 0,
      "scale": 1,
      "content": "Every solve earns coins,\nhints are always close.",
-     "fontSize": 27,
+     "fontSize": 25.24,
      "color": "#2A2C33",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -2051,12 +2051,12 @@
      "type": "shape",
      "name": "Curl arrow",
      "position": {
-      "x": 25,
-      "y": 780
+      "x": 23.37,
+      "y": 731.46
      },
      "size": {
-      "width": 220,
-      "height": 220
+      "width": 205.67,
+      "height": 206.31
      },
      "rotation": -15,
      "scale": 1,
@@ -2065,22 +2065,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 8
+      "baseStrokeWidth": 7.48
      },
      "fillColor": "#17181C",
-     "strokeWidth": 6.5
+     "strokeWidth": 6.08
     },
     {
      "id": "pz_svg_92",
      "type": "shape",
      "name": "Star filled",
      "position": {
-      "x": 1150,
-      "y": 140
+      "x": 1075.12,
+      "y": 131.29
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 15,
      "scale": 1,
@@ -2096,12 +2096,12 @@
      "type": "shape",
      "name": "Star outline",
      "position": {
-      "x": 1140,
-      "y": 780
+      "x": 1065.77,
+      "y": 731.46
      },
      "size": {
-      "width": 84,
-      "height": 84
+      "width": 78.53,
+      "height": 78.77
      },
      "rotation": -8,
      "scale": 1,
@@ -2110,22 +2110,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#17181C",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "pz_svg_94",
      "type": "shape",
      "name": "Star tiny",
      "position": {
-      "x": 1120,
-      "y": 590
+      "x": 1047.07,
+      "y": 553.28
      },
      "size": {
-      "width": 46,
-      "height": 46
+      "width": 43,
+      "height": 43.14
      },
      "rotation": 18,
      "scale": 1,
@@ -2144,12 +2144,12 @@
      "styleType": "normal",
      "frameColor": "#232B36",
      "position": {
-      "x": 195,
-      "y": 940
+      "x": 182.3,
+      "y": 881.5
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -4,
      "scale": 1.5,
@@ -2169,17 +2169,17 @@
      "type": "shape",
      "name": "Note shadow",
      "position": {
-      "x": 74,
-      "y": 2348
+      "x": 69.18,
+      "y": 2201.88
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -2188,17 +2188,17 @@
      "type": "shape",
      "name": "Sticky note",
      "position": {
-      "x": 60,
-      "y": 2330
+      "x": 56.09,
+      "y": 2185
      },
      "size": {
-      "width": 620,
-      "height": 330
+      "width": 579.63,
+      "height": 309.46
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 10,
+     "borderRadius": 9.35,
      "fillColor": "#F7CDBE"
     },
     {
@@ -2206,17 +2206,17 @@
      "type": "shape",
      "name": "Tape",
      "position": {
-      "x": 276.36456721991425,
-      "y": 2307.2261267654953
+      "x": 258.37,
+      "y": 2163.64
      },
      "size": {
-      "width": 170,
-      "height": 46
+      "width": 158.93,
+      "height": 43.14
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 6,
+     "borderRadius": 5.61,
      "fillColor": "#FFFFFF",
      "fillOpacity": 0.5
     },
@@ -2225,17 +2225,17 @@
      "type": "text",
      "name": "Note text",
      "position": {
-      "x": 80,
-      "y": 2365
+      "x": 74.79,
+      "y": 2217.82
      },
      "size": {
-      "width": 580,
-      "height": 260
+      "width": 542.23,
+      "height": 243.82
      },
      "rotation": -3,
      "scale": 1,
      "content": "✓ Earn coins every solve\n✓ Spend them your way\n✓ Keep your streak alive",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -2247,17 +2247,17 @@
      "type": "shape",
      "name": "Sticker shadow",
      "position": {
-      "x": 1042,
-      "y": 2478
+      "x": 974.15,
+      "y": 2323.79
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#17181C",
      "fillOpacity": 0.15
     },
@@ -2266,17 +2266,17 @@
      "type": "shape",
      "name": "Sticker card",
      "position": {
-      "x": 1028,
-      "y": 2464
+      "x": 961.06,
+      "y": 2310.66
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FFFFFF"
     },
     {
@@ -2284,17 +2284,17 @@
      "type": "text",
      "name": "Sticker emoji",
      "position": {
-      "x": 1038,
-      "y": 2469
+      "x": 970.41,
+      "y": 2315.35
      },
      "size": {
-      "width": 170,
-      "height": 180
+      "width": 158.93,
+      "height": 168.8
      },
      "rotation": 6,
      "scale": 1,
      "content": "💰",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17181C",
      "fontFamily": "Caveat",
      "fontWeight": "700",

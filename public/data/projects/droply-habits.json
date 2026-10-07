@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#A24DF3",
       "backgroundType": "solid",
@@ -25,12 +25,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 160,
-            "y": 950
+            "x": 149.58,
+            "y": 890.88
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -6,
           "scale": 1.7,
@@ -53,17 +53,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 120
+            "x": 65.44,
+            "y": 112.53
           },
           "size": {
-            "width": 1180,
-            "height": 720
+            "width": 1103.16,
+            "height": 675.19
           },
           "rotation": 0,
           "scale": 1,
           "content": "BUILD HEALTHY\nDAILY\nHYDRATION\nHABITS",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -80,8 +80,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#B678F6",
       "backgroundType": "solid",
@@ -92,12 +92,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 100,
-            "y": -400
+            "x": 93.49,
+            "y": -375.11
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 28,
           "scale": 1.65,
@@ -120,17 +120,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 1950
+            "x": 65.44,
+            "y": 1828.65
           },
           "size": {
-            "width": 1150,
-            "height": 640
+            "width": 1075.12,
+            "height": 600.17
           },
           "rotation": 0,
           "scale": 1,
           "content": "DAILY\nHYDRATION\nGOAL",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -147,8 +147,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#A24DF3",
       "backgroundType": "solid",
@@ -159,12 +159,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 140,
-            "y": 900
+            "x": 130.88,
+            "y": 843.99
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 8,
           "scale": 1.7,
@@ -187,17 +187,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 120
+            "x": 65.44,
+            "y": 112.53
           },
           "size": {
-            "width": 1150,
-            "height": 640
+            "width": 1075.12,
+            "height": 600.17
           },
           "rotation": 0,
           "scale": 1,
           "content": "REMINDERS\nHELP YOU\nDRINK WATER",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -214,8 +214,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9A3DEB",
       "backgroundType": "solid",
@@ -226,12 +226,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 120,
-            "y": 700
+            "x": 112.19,
+            "y": 656.44
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.75,
@@ -254,17 +254,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 140
+            "x": 65.44,
+            "y": 131.29
           },
           "size": {
-            "width": 1150,
-            "height": 420
+            "width": 1075.12,
+            "height": 393.86
           },
           "rotation": 0,
           "scale": 1,
           "content": "HYDRATION\nHABITS",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -281,8 +281,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F13C97",
       "backgroundType": "solid",
@@ -293,12 +293,12 @@
           "type": "device",
           "name": "Phone Mockup Top",
           "position": {
-            "x": 195,
-            "y": -1150
+            "x": 182.3,
+            "y": -1078.43
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -321,12 +321,12 @@
           "type": "device",
           "name": "Phone Mockup Bottom",
           "position": {
-            "x": 195,
-            "y": 1600
+            "x": 182.3,
+            "y": 1500.43
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -349,17 +349,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 60,
-            "y": 915
+            "x": 56.09,
+            "y": 858.06
           },
           "size": {
-            "width": 1170,
-            "height": 420
+            "width": 1093.81,
+            "height": 393.86
           },
           "rotation": 0,
           "scale": 1,
           "content": "TRACKING\nMADE SIMPLE",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",

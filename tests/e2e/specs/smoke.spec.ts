@@ -31,9 +31,10 @@ test.describe('editor boot', () => {
   test('a blank project lands one artboard at the required iPhone size', async ({ app }) => {
     await app.startBlankProject();
     await expect(app.artboards).toHaveCount(1);
-    // 1290x2796 is the App Store's required 6.9" slot, and the app's default.
-    await expectBoardSize(app.board(0), 1290, 2796);
-    await expect(app.canvasSizeButton).toHaveAttribute('title', /1290 × 2796/);
+    // 1206x2622 is the App Store's required iPhone slot (medium display), and
+    // the app's default.
+    await expectBoardSize(app.board(0), 1206, 2622);
+    await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622/);
   });
 
   test('the editor survives every external host being unreachable', async ({ app, page }) => {

@@ -28,7 +28,7 @@ import type { VideoExportRequest, VideoExportProgress, VideoSizeMode } from './E
 
 // The export dialog for App Preview VIDEO projects. Deliberately separate from
 // the screenshot ExportDialog: a video board has no business offering to
-// generate 1290×2796 App Store *screenshot* sizes. Video is the whole point
+// generate App Store *screenshot* sizes. Video is the whole point
 // here; PNG is demoted to a single still (useful as the App Store poster
 // frame, which Apple picks from the video anyway).
 

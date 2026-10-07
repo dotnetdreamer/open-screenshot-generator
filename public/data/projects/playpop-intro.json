@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#7B70F1",
    "zoom": 1,
@@ -24,12 +24,12 @@
      "type": "shape",
      "name": "Phone backdrop",
      "position": {
-      "x": 520,
-      "y": 1660
+      "x": 486.14,
+      "y": 1556.7
      },
      "size": {
-      "width": 900,
-      "height": 750
+      "width": 841.4,
+      "height": 703.33
      },
      "rotation": 0,
      "scale": 1,
@@ -45,12 +45,12 @@
      "styleType": "normal",
      "frameColor": "#9A91F7",
      "position": {
-      "x": 640,
-      "y": 430
+      "x": 598.33,
+      "y": 403.24
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 14,
      "scale": 1.6,
@@ -70,12 +70,12 @@
      "type": "shape",
      "name": "Logo mark",
      "position": {
-      "x": 90,
-      "y": 110
+      "x": 84.14,
+      "y": 103.15
      },
      "size": {
-      "width": 85,
-      "height": 85
+      "width": 79.47,
+      "height": 79.71
      },
      "rotation": 0,
      "scale": 1,
@@ -91,17 +91,17 @@
      "type": "text",
      "name": "Logo text",
      "position": {
-      "x": 195,
-      "y": 112
+      "x": 182.3,
+      "y": 105.03
      },
      "size": {
-      "width": 260,
-      "height": 110
+      "width": 243.07,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "logo",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -113,12 +113,12 @@
      "type": "shape",
      "name": "Brush underline",
      "position": {
-      "x": 95,
-      "y": 1275
+      "x": 88.81,
+      "y": 1195.65
      },
      "size": {
-      "width": 500,
-      "height": 150
+      "width": 467.44,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
@@ -134,17 +134,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 90,
-      "y": 940
+      "x": 84.14,
+      "y": 881.5
      },
      "size": {
-      "width": 700,
-      "height": 640
+      "width": 654.42,
+      "height": 600.17
      },
      "rotation": 0,
      "scale": 1,
      "content": "Main\nintro\ntext",
-     "fontSize": 52,
+     "fontSize": 48.61,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -156,12 +156,12 @@
      "type": "shape",
      "name": "Laurel left",
      "position": {
-      "x": 110,
-      "y": 2360
+      "x": 102.84,
+      "y": 2213.13
      },
      "size": {
-      "width": 200,
-      "height": 280
+      "width": 186.98,
+      "height": 262.58
      },
      "rotation": 0,
      "scale": 1,
@@ -177,12 +177,12 @@
      "type": "shape",
      "name": "Laurel right",
      "position": {
-      "x": 430,
-      "y": 2360
+      "x": 402,
+      "y": 2213.13
      },
      "size": {
-      "width": 200,
-      "height": 280
+      "width": 186.98,
+      "height": 262.58
      },
      "rotation": 0,
      "scale": 1,
@@ -198,17 +198,17 @@
      "type": "text",
      "name": "Rating star",
      "position": {
-      "x": 250,
-      "y": 2400
+      "x": 233.72,
+      "y": 2250.64
      },
      "size": {
-      "width": 90,
-      "height": 110
+      "width": 84.14,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "★",
-     "fontSize": 28,
+     "fontSize": 26.18,
      "color": "#FFC24B",
      "fontFamily": "Arial",
      "fontWeight": "700",
@@ -220,17 +220,17 @@
      "type": "text",
      "name": "Rating value",
      "position": {
-      "x": 330,
-      "y": 2395
+      "x": 308.51,
+      "y": 2245.95
      },
      "size": {
-      "width": 160,
-      "height": 120
+      "width": 149.58,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "4.8",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -242,17 +242,17 @@
      "type": "text",
      "name": "Rating caption",
      "position": {
-      "x": 235,
-      "y": 2530
+      "x": 219.7,
+      "y": 2372.55
      },
      "size": {
-      "width": 270,
-      "height": 70
+      "width": 252.42,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "content": "Avg. rating",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -269,8 +269,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#7B70F1",
    "zoom": 1,
@@ -280,12 +280,12 @@
      "type": "shape",
      "name": "Phone backdrop",
      "position": {
-      "x": -60,
-      "y": 1450
+      "x": -56.09,
+      "y": 1359.76
      },
      "size": {
-      "width": 1000,
-      "height": 850
+      "width": 934.88,
+      "height": 797.1
      },
      "rotation": 0,
      "scale": 1,
@@ -302,11 +302,11 @@
      "frameColor": "#9A91F7",
      "position": {
       "x": 0,
-      "y": -120
+      "y": -112.53
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 8,
      "scale": 2.05,
@@ -326,17 +326,17 @@
      "type": "text",
      "name": "Caption",
      "position": {
-      "x": 145,
-      "y": 2380
+      "x": 135.56,
+      "y": 2231.89
      },
      "size": {
-      "width": 1000,
-      "height": 360
+      "width": 934.88,
+      "height": 337.6
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your heading\ntext here",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -353,8 +353,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#7B70F1",
    "zoom": 1,
@@ -364,17 +364,17 @@
      "type": "text",
      "name": "Heading",
      "position": {
-      "x": 145,
-      "y": 150
+      "x": 135.56,
+      "y": 140.67
      },
      "size": {
-      "width": 1000,
-      "height": 390
+      "width": 934.88,
+      "height": 365.73
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your heading\ntext here",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -386,12 +386,12 @@
      "type": "shape",
      "name": "Yellow squiggle",
      "position": {
-      "x": 660,
-      "y": 545
+      "x": 617.02,
+      "y": 511.08
      },
      "size": {
-      "width": 360,
-      "height": 110
+      "width": 336.56,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
@@ -400,10 +400,10 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      },
      "fillColor": "#FFCB3D",
-     "strokeWidth": 9
+     "strokeWidth": 8.41
     },
     {
      "id": "pp_dev_17",
@@ -413,12 +413,12 @@
      "styleType": "normal",
      "frameColor": "#9A91F7",
      "position": {
-      "x": 180,
-      "y": 760
+      "x": 168.28,
+      "y": 712.7
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.55,
@@ -438,12 +438,12 @@
      "type": "shape",
      "name": "Dotted arrow",
      "position": {
-      "x": 1055,
-      "y": 2440
+      "x": 986.3,
+      "y": 2288.15
      },
      "size": {
-      "width": 230,
-      "height": 200
+      "width": 215.02,
+      "height": 187.55
      },
      "rotation": -30,
      "scale": 1,
@@ -453,19 +453,19 @@
       "viewBox": "0 0 100 100"
      },
      "fillColor": "#FFCB3D",
-     "strokeWidth": 6
+     "strokeWidth": 5.61
     },
     {
      "id": "pp_shp_19",
      "type": "shape",
      "name": "Cursor",
      "position": {
-      "x": 1000,
-      "y": 2462
+      "x": 934.88,
+      "y": 2308.79
      },
      "size": {
-      "width": 95,
-      "height": 95
+      "width": 88.81,
+      "height": 89.09
      },
      "rotation": -15,
      "scale": 1,
@@ -486,8 +486,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#7B70F1",
    "zoom": 1,
@@ -497,12 +497,12 @@
      "type": "shape",
      "name": "Phone backdrop",
      "position": {
-      "x": 145,
-      "y": -500
+      "x": 135.56,
+      "y": -468.88
      },
      "size": {
-      "width": 1000,
-      "height": 1300
+      "width": 934.88,
+      "height": 1219.1
      },
      "rotation": 0,
      "scale": 1,
@@ -518,12 +518,12 @@
      "styleType": "normal",
      "frameColor": "#9A91F7",
      "position": {
-      "x": 195,
-      "y": -880
+      "x": 182.3,
+      "y": -825.24
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.5,
@@ -543,17 +543,17 @@
      "type": "text",
      "name": "Stars",
      "position": {
-      "x": 245,
-      "y": 1520
+      "x": 229.05,
+      "y": 1425.41
      },
      "size": {
-      "width": 800,
-      "height": 190
+      "width": 747.91,
+      "height": 178.18
      },
      "rotation": 0,
      "scale": 1,
      "content": "★ ★ ★ ★ ★",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFC24B",
      "fontFamily": "Arial",
      "fontWeight": "400",
@@ -565,17 +565,17 @@
      "type": "text",
      "name": "Heading",
      "position": {
-      "x": 145,
-      "y": 1810
+      "x": 135.56,
+      "y": 1697.36
      },
      "size": {
-      "width": 1000,
-      "height": 390
+      "width": 934.88,
+      "height": 365.73
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your heading\ntext here",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -587,12 +587,12 @@
      "type": "shape",
      "name": "Spark dashes",
      "position": {
-      "x": 1055,
-      "y": 1700
+      "x": 986.3,
+      "y": 1594.21
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 15,
      "scale": 1,
@@ -601,22 +601,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 8
+      "baseStrokeWidth": 7.48
      },
      "fillColor": "#FF8E7A",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "pp_shp_25",
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1010,
-      "y": 1650
+      "x": 944.23,
+      "y": 1547.32
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
@@ -637,8 +637,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#7B70F1",
    "zoom": 1,
@@ -648,17 +648,17 @@
      "type": "text",
      "name": "Heading",
      "position": {
-      "x": 145,
-      "y": 150
+      "x": 135.56,
+      "y": 140.67
      },
      "size": {
-      "width": 1000,
-      "height": 390
+      "width": 934.88,
+      "height": 365.73
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your heading\ntext here",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#FFFFFF",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -673,12 +673,12 @@
      "styleType": "normal",
      "frameColor": "#9A91F7",
      "position": {
-      "x": 180,
-      "y": 700
+      "x": 168.28,
+      "y": 656.44
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.55,
@@ -698,12 +698,12 @@
      "type": "shape",
      "name": "Check circle",
      "position": {
-      "x": 960,
-      "y": 560
+      "x": 897.49,
+      "y": 525.15
      },
      "size": {
-      "width": 300,
-      "height": 300
+      "width": 280.47,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
@@ -712,22 +712,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#4CD79A",
-     "strokeWidth": 6
+     "strokeWidth": 5.61
     },
     {
      "id": "pp_shp_29",
      "type": "shape",
      "name": "Check mark",
      "position": {
-      "x": 1035,
-      "y": 635
+      "x": 967.6,
+      "y": 595.48
      },
      "size": {
-      "width": 185,
-      "height": 185
+      "width": 172.95,
+      "height": 173.49
      },
      "rotation": 0,
      "scale": 1,

@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#EF6A52",
    "zoom": 1,
@@ -30,17 +30,17 @@
      "type": "text",
      "name": "Pre title",
      "position": {
-      "x": 60,
-      "y": 140
+      "x": 56.09,
+      "y": 131.29
      },
      "size": {
-      "width": 1170,
-      "height": 110
+      "width": 1093.81,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "Meet Vowly",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#FFE9E2",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -52,17 +52,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 260
+      "x": 56.09,
+      "y": 243.82
      },
      "size": {
-      "width": 1170,
-      "height": 360
+      "width": 1093.81,
+      "height": 337.6
      },
      "rotation": 0,
      "scale": 1,
      "content": "Create Your\nWedding Event",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -74,19 +74,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 95,
-      "y": 150
+      "x": 88.81,
+      "y": 140.67
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.9,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -98,19 +98,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1130,
-      "y": 220
+      "x": 1056.42,
+      "y": 206.31
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -122,19 +122,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1185,
-      "y": 620
+      "x": 1107.84,
+      "y": 581.42
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
      "specialProps": {
@@ -146,19 +146,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 60,
-      "y": 760
+      "x": 56.09,
+      "y": 712.7
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": -10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.85,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -170,19 +170,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1120,
-      "y": 1050
+      "x": 1047.07,
+      "y": 984.66
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.75,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -194,12 +194,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 90,
-      "y": 970
+      "x": 84.14,
+      "y": 909.64
      },
      "size": {
-      "width": 20,
-      "height": 20
+      "width": 18.7,
+      "height": 18.76
      },
      "rotation": 0,
      "scale": 1,
@@ -214,12 +214,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 330,
-      "y": 1040
+      "x": 308.51,
+      "y": 975.28
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -234,12 +234,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 620,
-      "y": 975
+      "x": 579.63,
+      "y": 914.32
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -254,12 +254,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 860,
-      "y": 1060
+      "x": 804,
+      "y": 994.03
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -274,12 +274,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 1105,
-      "y": 990
+      "x": 1033.05,
+      "y": 928.39
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -294,12 +294,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 250,
-      "y": 1300
+      "x": 233.72,
+      "y": 1219.1
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -314,12 +314,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 170,
-      "y": 2120
+      "x": 158.93,
+      "y": 1988.07
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -334,12 +334,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 250,
-      "y": 1900
+      "x": 233.72,
+      "y": 1781.76
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -354,12 +354,12 @@
      "type": "image",
      "name": "Hand phone",
      "position": {
-      "x": 320,
-      "y": 1370
+      "x": 299.16,
+      "y": 1284.74
      },
      "size": {
-      "width": 1740,
-      "height": 1725
+      "width": 1626.7,
+      "height": 1617.65
      },
      "rotation": 0,
      "scale": 1,
@@ -373,38 +373,38 @@
      "type": "image",
      "name": "Screen overlay",
      "position": {
-      "x": 462,
-      "y": 1398
+      "x": 431.92,
+      "y": 1311
      },
      "size": {
-      "width": 692,
-      "height": 1448
+      "width": 646.94,
+      "height": 1357.89
      },
      "rotation": -0.4,
      "scale": 1,
      "imageSrc": "/data/projects/app-screens/app-feed-coral.png",
      "imageAlt": "",
      "objectFit": "cover",
-     "borderRadius": 96
+     "borderRadius": 89.75
     },
     {
      "id": "vw_b1_i",
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 140,
-      "y": 1345
+      "x": 130.88,
+      "y": 1261.3
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": -15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFE9E5",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -416,19 +416,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 75,
-      "y": 1565
+      "x": 70.12,
+      "y": 1467.61
      },
      "size": {
-      "width": 140,
-      "height": 140
+      "width": 130.88,
+      "height": 131.29
      },
      "rotation": 8,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#A8241C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -440,19 +440,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 235,
-      "y": 1805
+      "x": 219.7,
+      "y": 1692.67
      },
      "size": {
-      "width": 64,
-      "height": 64
+      "width": 59.83,
+      "height": 60.02
      },
      "rotation": -6,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FF9D8E",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -464,19 +464,19 @@
      "type": "shape",
      "name": "Laurel left",
      "position": {
-      "x": -10,
-      "y": 2430
+      "x": -9.35,
+      "y": 2278.78
      },
      "size": {
-      "width": 150,
-      "height": 210
+      "width": 140.23,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.95,
      "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
      "specialProps": {
@@ -488,19 +488,19 @@
      "type": "shape",
      "name": "Laurel right",
      "position": {
-      "x": 195,
-      "y": 2430
+      "x": 182.3,
+      "y": 2278.78
      },
      "size": {
-      "width": 150,
-      "height": 210
+      "width": 140.23,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.95,
      "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
      "specialProps": {
@@ -512,17 +512,17 @@
      "type": "text",
      "name": "Rank",
      "position": {
-      "x": 37,
-      "y": 2465
+      "x": 34.59,
+      "y": 2311.6
      },
      "size": {
-      "width": 270,
-      "height": 110
+      "width": 252.42,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "#1",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -534,17 +534,17 @@
      "type": "text",
      "name": "Rank label",
      "position": {
-      "x": -43,
-      "y": 2645
+      "x": -40.2,
+      "y": 2480.4
      },
      "size": {
-      "width": 430,
-      "height": 60
+      "width": 402,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "Wedding Party App",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#FFE9E2",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -556,17 +556,17 @@
      "type": "text",
      "name": "Stars",
      "position": {
-      "x": 37,
-      "y": 2700
+      "x": 34.59,
+      "y": 2531.97
      },
      "size": {
-      "width": 270,
-      "height": 50
+      "width": 252.42,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
      "content": "★★★★★",
-     "fontSize": 12,
+     "fontSize": 11.22,
      "color": "#FFD166",
      "fontFamily": "Arial",
      "fontWeight": "400",
@@ -583,8 +583,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#EF6A52",
    "zoom": 1,
@@ -600,17 +600,17 @@
      "type": "text",
      "name": "Pre title",
      "position": {
-      "x": 60,
-      "y": 140
+      "x": 56.09,
+      "y": 131.29
      },
      "size": {
-      "width": 1170,
-      "height": 110
+      "width": 1093.81,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "Party Celebrate",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#FFE9E2",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -622,17 +622,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 260
+      "x": 56.09,
+      "y": 243.82
      },
      "size": {
-      "width": 1170,
-      "height": 360
+      "width": 1093.81,
+      "height": 337.6
      },
      "rotation": 0,
      "scale": 1,
      "content": "Funny Moments\nMade Easy",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -644,19 +644,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 70,
-      "y": 180
+      "x": 65.44,
+      "y": 168.8
      },
      "size": {
-      "width": 64,
-      "height": 64
+      "width": 59.83,
+      "height": 60.02
      },
      "rotation": 10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.85,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -668,19 +668,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1170,
-      "y": 150
+      "x": 1093.81,
+      "y": 140.67
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.9,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -692,19 +692,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1205,
-      "y": 700
+      "x": 1126.53,
+      "y": 656.44
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
      "specialProps": {
@@ -716,19 +716,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 75,
-      "y": 700
+      "x": 70.12,
+      "y": 656.44
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": -15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -740,12 +740,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 500,
-      "y": 1300
+      "x": 467.44,
+      "y": 1219.1
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -760,12 +760,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 640,
-      "y": 1180
+      "x": 598.33,
+      "y": 1106.57
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -780,12 +780,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 840,
-      "y": 1300
+      "x": 785.3,
+      "y": 1219.1
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -800,12 +800,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 990,
-      "y": 1080
+      "x": 925.53,
+      "y": 1012.79
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -820,12 +820,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 1130,
-      "y": 940
+      "x": 1056.42,
+      "y": 881.5
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -840,12 +840,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 760,
-      "y": 990
+      "x": 710.51,
+      "y": 928.39
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -860,12 +860,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": -130,
-      "y": 1430
+      "x": -121.53,
+      "y": 1341.01
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -14,
      "scale": 1.38,
@@ -888,25 +888,25 @@
      "type": "shape",
      "name": "Step curve",
      "position": {
-      "x": 280,
-      "y": 900
+      "x": 261.77,
+      "y": 843.99
      },
      "size": {
-      "width": 1010,
-      "height": 1450
+      "width": 944.23,
+      "height": 1359.76
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 5,
+     "strokeWidth": 4.67,
      "opacity": 0.85,
      "customPath": "M8 88 C 30 86, 40 62, 55 52 S 80 30, 95 18",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 1.2
+      "baseStrokeWidth": 1.12
      }
     },
     {
@@ -914,19 +914,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 286,
-      "y": 2100
+      "x": 267.38,
+      "y": 1969.31
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": -10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#A8241C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -938,25 +938,25 @@
      "type": "shape",
      "name": "Heart outline",
      "position": {
-      "x": 910,
-      "y": 2300
+      "x": 850.74,
+      "y": 2156.87
      },
      "size": {
-      "width": 210,
-      "height": 210
+      "width": 196.33,
+      "height": 196.93
      },
      "rotation": 12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 84 C24 64 12 46 14 32 C16 20 28 14 38 20 C44 23 48 28 50 34 C52 28 56 23 62 20 C72 14 84 20 86 32 C88 46 76 64 50 84 Z",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 8
+      "baseStrokeWidth": 7.48
      }
     },
     {
@@ -964,12 +964,12 @@
      "type": "shape",
      "name": "Dot ring",
      "position": {
-      "x": 736,
-      "y": 1697
+      "x": 688.07,
+      "y": 1591.39
      },
      "size": {
-      "width": 68,
-      "height": 68
+      "width": 63.57,
+      "height": 63.77
      },
      "rotation": 0,
      "scale": 1,
@@ -984,12 +984,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 744,
-      "y": 1705
+      "x": 695.55,
+      "y": 1598.89
      },
      "size": {
-      "width": 52,
-      "height": 52
+      "width": 48.61,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
@@ -1004,12 +1004,12 @@
      "type": "shape",
      "name": "Dot ring",
      "position": {
-      "x": 886,
-      "y": 1534
+      "x": 828.31,
+      "y": 1438.54
      },
      "size": {
-      "width": 68,
-      "height": 68
+      "width": 63.57,
+      "height": 63.77
      },
      "rotation": 0,
      "scale": 1,
@@ -1024,12 +1024,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 894,
-      "y": 1542
+      "x": 835.79,
+      "y": 1446.04
      },
      "size": {
-      "width": 52,
-      "height": 52
+      "width": 48.61,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
@@ -1044,12 +1044,12 @@
      "type": "shape",
      "name": "Dot ring",
      "position": {
-      "x": 1036,
-      "y": 1345
+      "x": 968.54,
+      "y": 1261.3
      },
      "size": {
-      "width": 68,
-      "height": 68
+      "width": 63.57,
+      "height": 63.77
      },
      "rotation": 0,
      "scale": 1,
@@ -1064,12 +1064,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 1044,
-      "y": 1353
+      "x": 976.02,
+      "y": 1268.8
      },
      "size": {
-      "width": 52,
-      "height": 52
+      "width": 48.61,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
@@ -1084,12 +1084,12 @@
      "type": "shape",
      "name": "Dot ring",
      "position": {
-      "x": 1162,
-      "y": 1179
+      "x": 1086.33,
+      "y": 1105.63
      },
      "size": {
-      "width": 68,
-      "height": 68
+      "width": 63.57,
+      "height": 63.77
      },
      "rotation": 0,
      "scale": 1,
@@ -1104,12 +1104,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 1170,
-      "y": 1187
+      "x": 1093.81,
+      "y": 1113.13
      },
      "size": {
-      "width": 52,
-      "height": 52
+      "width": 48.61,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
@@ -1124,17 +1124,17 @@
      "type": "text",
      "name": "Step number",
      "position": {
-      "x": 665,
-      "y": 1536
+      "x": 621.7,
+      "y": 1440.41
      },
      "size": {
-      "width": 120,
-      "height": 100
+      "width": 112.19,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "1",
-     "fontSize": 24,
+     "fontSize": 22.44,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1146,17 +1146,17 @@
      "type": "text",
      "name": "Step word",
      "position": {
-      "x": 665,
-      "y": 1621
+      "x": 621.7,
+      "y": 1520.12
      },
      "size": {
-      "width": 120,
-      "height": 60
+      "width": 112.19,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "Step",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#FFE9E2",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1168,17 +1168,17 @@
      "type": "text",
      "name": "Step number",
      "position": {
-      "x": 815,
-      "y": 1373
+      "x": 761.93,
+      "y": 1287.56
      },
      "size": {
-      "width": 120,
-      "height": 100
+      "width": 112.19,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "2",
-     "fontSize": 24,
+     "fontSize": 22.44,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1190,17 +1190,17 @@
      "type": "text",
      "name": "Step word",
      "position": {
-      "x": 815,
-      "y": 1458
+      "x": 761.93,
+      "y": 1367.27
      },
      "size": {
-      "width": 120,
-      "height": 60
+      "width": 112.19,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "Step",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#FFE9E2",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1212,17 +1212,17 @@
      "type": "text",
      "name": "Step number",
      "position": {
-      "x": 965,
-      "y": 1184
+      "x": 902.16,
+      "y": 1110.32
      },
      "size": {
-      "width": 120,
-      "height": 100
+      "width": 112.19,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "3",
-     "fontSize": 24,
+     "fontSize": 22.44,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1234,17 +1234,17 @@
      "type": "text",
      "name": "Step word",
      "position": {
-      "x": 965,
-      "y": 1269
+      "x": 902.16,
+      "y": 1190.03
      },
      "size": {
-      "width": 120,
-      "height": 60
+      "width": 112.19,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "Step",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#FFE9E2",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1256,17 +1256,17 @@
      "type": "text",
      "name": "Step number",
      "position": {
-      "x": 1091,
-      "y": 1018
+      "x": 1019.96,
+      "y": 954.65
      },
      "size": {
-      "width": 120,
-      "height": 100
+      "width": 112.19,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "4",
-     "fontSize": 24,
+     "fontSize": 22.44,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1278,17 +1278,17 @@
      "type": "text",
      "name": "Step word",
      "position": {
-      "x": 1091,
-      "y": 1103
+      "x": 1019.96,
+      "y": 1034.36
      },
      "size": {
-      "width": 120,
-      "height": 60
+      "width": 112.19,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "Step",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#FFE9E2",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1305,8 +1305,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E35544",
    "zoom": 1,
@@ -1322,19 +1322,19 @@
      "type": "shape",
      "name": "Laurel left",
      "position": {
-      "x": 150,
-      "y": 150
+      "x": 140.23,
+      "y": 140.67
      },
      "size": {
-      "width": 200,
-      "height": 280
+      "width": 186.98,
+      "height": 262.58
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.95,
      "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
      "specialProps": {
@@ -1346,19 +1346,19 @@
      "type": "shape",
      "name": "Laurel right",
      "position": {
-      "x": 940,
-      "y": 150
+      "x": 878.79,
+      "y": 140.67
      },
      "size": {
-      "width": 200,
-      "height": 280
+      "width": 186.98,
+      "height": 262.58
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.95,
      "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
      "specialProps": {
@@ -1370,19 +1370,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 618,
-      "y": 170
+      "x": 577.76,
+      "y": 159.42
      },
      "size": {
-      "width": 54,
-      "height": 54
+      "width": 50.48,
+      "height": 50.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.95,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -1394,17 +1394,17 @@
      "type": "text",
      "name": "Editors choice",
      "position": {
-      "x": 145,
-      "y": 260
+      "x": 135.56,
+      "y": 243.82
      },
      "size": {
-      "width": 1000,
-      "height": 130
+      "width": 934.88,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "content": "Editor's Choice",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1416,17 +1416,17 @@
      "type": "text",
      "name": "On store",
      "position": {
-      "x": 145,
-      "y": 395
+      "x": 135.56,
+      "y": 370.42
      },
      "size": {
-      "width": 1000,
-      "height": 95
+      "width": 934.88,
+      "height": 89.09
      },
      "rotation": 0,
      "scale": 1,
      "content": "on App Store",
-     "fontSize": 20,
+     "fontSize": 18.7,
      "color": "#FFE9E2",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1438,12 +1438,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 219,
-      "y": 640
+      "x": 204.74,
+      "y": 600.17
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.42,
@@ -1466,17 +1466,17 @@
      "type": "text",
      "name": "Pre title",
      "position": {
-      "x": 60,
-      "y": 2390
+      "x": 56.09,
+      "y": 2241.27
      },
      "size": {
-      "width": 1170,
-      "height": 95
+      "width": 1093.81,
+      "height": 89.09
      },
      "rotation": 0,
      "scale": 1,
      "content": "Wedding Fun",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#FFE9E2",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -1488,17 +1488,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 2485
+      "x": 56.09,
+      "y": 2330.35
      },
      "size": {
-      "width": 1170,
-      "height": 290
+      "width": 1093.81,
+      "height": 271.95
      },
      "rotation": 0,
      "scale": 1,
      "content": "Wedding Bets\nEveryone Will Love",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1510,19 +1510,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 95,
-      "y": 900
+      "x": 88.81,
+      "y": 843.99
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": -10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.85,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1534,19 +1534,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1150,
-      "y": 1000
+      "x": 1075.12,
+      "y": 937.77
      },
      "size": {
-      "width": 54,
-      "height": 54
+      "width": 50.48,
+      "height": 50.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -1558,19 +1558,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 110,
-      "y": 1700
+      "x": 102.84,
+      "y": 1594.21
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
      "specialProps": {
@@ -1582,19 +1582,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1160,
-      "y": 1800
+      "x": 1084.47,
+      "y": 1687.98
      },
      "size": {
-      "width": 64,
-      "height": 64
+      "width": 59.83,
+      "height": 60.02
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.85,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1606,19 +1606,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1185,
-      "y": 530
+      "x": 1107.84,
+      "y": 497.02
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.65,
      "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
      "specialProps": {
@@ -1635,8 +1635,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#EF6A52",
    "zoom": 1,
@@ -1652,17 +1652,17 @@
      "type": "text",
      "name": "Pre title",
      "position": {
-      "x": 60,
-      "y": 140
+      "x": 56.09,
+      "y": 131.29
      },
      "size": {
-      "width": 1170,
-      "height": 110
+      "width": 1093.81,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "Wedding",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#FFE9E2",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -1674,17 +1674,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 255
+      "x": 56.09,
+      "y": 239.13
      },
      "size": {
-      "width": 1170,
-      "height": 300
+      "width": 1093.81,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "content": "Bet, Celebrate,\nRemember Forever",
-     "fontSize": 34,
+     "fontSize": 31.79,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1696,12 +1696,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 300,
-      "y": 640
+      "x": 280.47,
+      "y": 600.17
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1716,12 +1716,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 520,
-      "y": 600
+      "x": 486.14,
+      "y": 562.66
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -1736,12 +1736,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 760,
-      "y": 640
+      "x": 710.51,
+      "y": 600.17
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -1756,12 +1756,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 980,
-      "y": 610
+      "x": 916.19,
+      "y": 572.04
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1776,12 +1776,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 640,
-      "y": 560
+      "x": 598.33,
+      "y": 525.15
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -1796,12 +1796,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 195,
-      "y": 700
+      "x": 182.3,
+      "y": 656.44
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.5,
@@ -1824,17 +1824,17 @@
      "type": "text",
      "name": "Caption",
      "position": {
-      "x": 95,
-      "y": 2560
+      "x": 88.81,
+      "y": 2400.69
      },
      "size": {
-      "width": 1100,
-      "height": 190
+      "width": 1028.37,
+      "height": 178.18
      },
      "rotation": 0,
      "scale": 1,
      "content": "Choose from 50+ fun ideas or\ncreate your own custom bets",
-     "fontSize": 20,
+     "fontSize": 18.7,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1846,19 +1846,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 1100,
-      "y": 735
+      "x": 1028.37,
+      "y": 689.26
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFE9E5",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -1870,19 +1870,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 80,
-      "y": 170
+      "x": 74.79,
+      "y": 159.42
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.9,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -1894,19 +1894,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1140,
-      "y": 300
+      "x": 1065.77,
+      "y": 281.33
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1918,19 +1918,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 70,
-      "y": 1400
+      "x": 65.44,
+      "y": 1312.88
      },
      "size": {
-      "width": 54,
-      "height": 54
+      "width": 50.48,
+      "height": 50.64
      },
      "rotation": -10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1942,19 +1942,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1160,
-      "y": 1600
+      "x": 1084.47,
+      "y": 1500.43
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
      "specialProps": {
@@ -1971,8 +1971,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E8503F",
    "zoom": 1,
@@ -1988,17 +1988,17 @@
      "type": "text",
      "name": "Pre title",
      "position": {
-      "x": 60,
-      "y": 140
+      "x": 56.09,
+      "y": 131.29
      },
      "size": {
-      "width": 1170,
-      "height": 110
+      "width": 1093.81,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "The Big Day",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#FFE9E2",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -2010,17 +2010,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 260
+      "x": 56.09,
+      "y": 243.82
      },
      "size": {
-      "width": 1170,
-      "height": 360
+      "width": 1093.81,
+      "height": 337.6
      },
      "rotation": 0,
      "scale": 1,
      "content": "See Who Wins\nThe Pot",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -2032,19 +2032,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 80,
-      "y": 160
+      "x": 74.79,
+      "y": 150.04
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.9,
      "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
      "specialProps": {
@@ -2056,19 +2056,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1150,
-      "y": 180
+      "x": 1075.12,
+      "y": 168.8
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.85,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -2080,19 +2080,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 60,
-      "y": 680
+      "x": 56.09,
+      "y": 637.68
      },
      "size": {
-      "width": 48,
-      "height": 48
+      "width": 44.87,
+      "height": 45.01
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M42 20 Q45.56 52.44 78 56 Q45.56 59.56 42 92 Q38.44 59.56 6 56 Q38.44 52.44 42 20 Z M76 9 Q77.7 22.3 91 24 Q77.7 25.7 76 39 Q74.3 25.7 61 24 Q74.3 22.3 76 9 Z M82 58 Q83.27 66.73 92 68 Q83.27 69.27 82 78 Q80.73 69.27 72 68 Q80.73 66.73 82 58 Z",
      "specialProps": {
@@ -2104,19 +2104,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1195,
-      "y": 640
+      "x": 1117.19,
+      "y": 600.17
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 20,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.75,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -2128,12 +2128,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 140,
-      "y": 1010
+      "x": 130.88,
+      "y": 947.15
      },
      "size": {
-      "width": 20,
-      "height": 20
+      "width": 18.7,
+      "height": 18.76
      },
      "rotation": 0,
      "scale": 1,
@@ -2148,12 +2148,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 250,
-      "y": 885
+      "x": 233.72,
+      "y": 829.92
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -2168,12 +2168,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 390,
-      "y": 790
+      "x": 364.6,
+      "y": 740.84
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -2188,12 +2188,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 540,
-      "y": 755
+      "x": 504.84,
+      "y": 708.02
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -2208,12 +2208,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 690,
-      "y": 795
+      "x": 645.07,
+      "y": 745.53
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -2228,12 +2228,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 840,
-      "y": 755
+      "x": 785.3,
+      "y": 708.02
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -2248,12 +2248,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 990,
-      "y": 795
+      "x": 925.53,
+      "y": 745.53
      },
      "size": {
-      "width": 18,
-      "height": 18
+      "width": 16.83,
+      "height": 16.88
      },
      "rotation": 0,
      "scale": 1,
@@ -2268,12 +2268,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 1120,
-      "y": 855
+      "x": 1047.07,
+      "y": 801.79
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -2288,12 +2288,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 1210,
-      "y": 1005
+      "x": 1131.21,
+      "y": 942.46
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -2308,12 +2308,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 1090,
-      "y": 740
+      "x": 1019.02,
+      "y": 693.95
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -2328,12 +2328,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 620,
-      "y": 690
+      "x": 579.63,
+      "y": 647.06
      },
      "size": {
-      "width": 14,
-      "height": 14
+      "width": 13.09,
+      "height": 13.13
      },
      "rotation": 0,
      "scale": 1,
@@ -2348,12 +2348,12 @@
      "type": "shape",
      "name": "Confetti",
      "position": {
-      "x": 300,
-      "y": 740
+      "x": 280.47,
+      "y": 693.95
      },
      "size": {
-      "width": 16,
-      "height": 16
+      "width": 14.96,
+      "height": 15
      },
      "rotation": 0,
      "scale": 1,
@@ -2368,12 +2368,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 230,
-      "y": 880
+      "x": 215.02,
+      "y": 825.24
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 8,
      "scale": 1.42,
@@ -2396,19 +2396,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 105,
-      "y": 1500
+      "x": 98.16,
+      "y": 1406.65
      },
      "size": {
-      "width": 110,
-      "height": 110
+      "width": 102.84,
+      "height": 103.15
      },
      "rotation": -12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#A8241C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -2420,19 +2420,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 1120,
-      "y": 1750
+      "x": 1047.07,
+      "y": 1641.09
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFE9E5",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {

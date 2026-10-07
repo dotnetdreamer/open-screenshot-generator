@@ -14,6 +14,13 @@ import type { Size } from '@/types/artboard';
 export const CANVAS_SIZE_MIN = 100;
 export const CANVAS_SIZE_MAX = 5000;
 
+/**
+ * The canvas a new phone project starts on: the required App Store iPhone slot,
+ * "iPhone with Dynamic Island (medium display)", in portrait. The bundled iPhone
+ * templates are built at this size too.
+ */
+export const DEFAULT_CANVAS_SIZE: Readonly<Size> = { width: 1206, height: 2622 };
+
 export interface CanvasSizePreset {
   // Stable kebab-case id, unique across the whole catalog.
   id: string;

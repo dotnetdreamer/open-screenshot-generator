@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#E8E0D2",
       "backgroundType": "solid",
@@ -34,12 +34,12 @@
           "id": "tpl_rmr_ab1_blob_dark",
           "name": "Dark Blob Bottom Left",
           "position": {
-            "x": -170,
-            "y": 2380
+            "x": -158.93,
+            "y": 2231.89
           },
           "size": {
-            "width": 720,
-            "height": 560
+            "width": 673.12,
+            "height": 525.15
           },
           "fillColor": "#3B2E1E"
         },
@@ -57,12 +57,12 @@
           "id": "tpl_rmr_ab1_blob_pink",
           "name": "Pink Blob Bottom Left",
           "position": {
-            "x": -130,
-            "y": 2550
+            "x": -121.53,
+            "y": 2391.31
           },
           "size": {
-            "width": 540,
-            "height": 430
+            "width": 504.84,
+            "height": 403.24
           },
           "fillColor": "#F0509F"
         },
@@ -71,12 +71,12 @@
           "type": "shape",
           "name": "Pink Dot",
           "position": {
-            "x": 1120,
-            "y": 2480
+            "x": 1047.07,
+            "y": 2325.67
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -99,12 +99,12 @@
           "id": "tpl_rmr_ab1_sparkle_solid",
           "name": "Sparkle Solid",
           "position": {
-            "x": 830,
-            "y": 170
+            "x": 775.95,
+            "y": 159.42
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "fillColor": "#F0509F"
         },
@@ -118,15 +118,15 @@
           "id": "tpl_rmr_ab1_headline",
           "name": "Headline",
           "position": {
-            "x": 90,
-            "y": 140
+            "x": 84.14,
+            "y": 131.29
           },
           "size": {
-            "width": 900,
-            "height": 380
+            "width": 841.4,
+            "height": 356.35
           },
           "content": "Build Your\nPerfect",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#42341F",
           "fontFamily": "Adamina"
         },
@@ -140,15 +140,15 @@
           "id": "tpl_rmr_ab1_script_home",
           "name": "Script Home",
           "position": {
-            "x": 95,
-            "y": 530
+            "x": 88.81,
+            "y": 497.02
           },
           "size": {
-            "width": 480,
-            "height": 220
+            "width": 448.74,
+            "height": 206.31
           },
           "content": "Home",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#F0509F",
           "fontFamily": "Pacifico"
         },
@@ -162,15 +162,15 @@
           "id": "tpl_rmr_ab1_script_space",
           "name": "Script Space",
           "position": {
-            "x": 140,
-            "y": 760
+            "x": 130.88,
+            "y": 712.7
           },
           "size": {
-            "width": 520,
-            "height": 220
+            "width": 486.14,
+            "height": 206.31
           },
           "content": "Space",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#F0509F",
           "fontFamily": "Pacifico"
         },
@@ -181,21 +181,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab1_sparkle_out1",
           "name": "Sparkle Outline 1",
           "position": {
-            "x": 620,
-            "y": 560
+            "x": 579.63,
+            "y": 525.15
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "fillColor": "#F0509F"
         },
@@ -206,21 +206,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab1_sparkle_out2",
           "name": "Sparkle Outline 2",
           "position": {
-            "x": 60,
-            "y": 1020
+            "x": 56.09,
+            "y": 956.52
           },
           "size": {
-            "width": 80,
-            "height": 80
+            "width": 74.79,
+            "height": 75.02
           },
           "fillColor": "#F0509F"
         },
@@ -229,12 +229,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 470,
-            "y": 640
+            "x": 439.4,
+            "y": 600.17
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 28,
           "scale": 1.5,
@@ -259,21 +259,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab1_sparkle_out3",
           "name": "Sparkle Outline 3",
           "position": {
-            "x": 500,
-            "y": 540
+            "x": 467.44,
+            "y": 506.39
           },
           "size": {
-            "width": 80,
-            "height": 80
+            "width": 74.79,
+            "height": 75.02
           },
           "fillColor": "#F0509F"
         },
@@ -291,12 +291,12 @@
           "id": "tpl_rmr_ab1_bubble",
           "name": "Speech Bubble",
           "position": {
-            "x": 20,
-            "y": 1380
+            "x": 18.7,
+            "y": 1294.12
           },
           "size": {
-            "width": 700,
-            "height": 560
+            "width": 654.42,
+            "height": 525.15
           },
           "fillColor": "#F0509F"
         },
@@ -310,15 +310,15 @@
           "id": "tpl_rmr_ab1_bubble_text",
           "name": "Bubble Text",
           "position": {
-            "x": 137,
-            "y": 1486
+            "x": 128.08,
+            "y": 1393.52
           },
           "size": {
-            "width": 500,
-            "height": 330
+            "width": 467.44,
+            "height": 309.46
           },
           "content": "New furniture,\nchallenges, and\nfeatures added\nfrequently.",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque"
         }
@@ -332,8 +332,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#E8E0D2",
       "backgroundType": "solid",
@@ -353,12 +353,12 @@
           "id": "tpl_rmr_ab2_blob_pink",
           "name": "Pink Blob Bottom Right",
           "position": {
-            "x": 880,
-            "y": 2440
+            "x": 822.7,
+            "y": 2288.15
           },
           "size": {
-            "width": 540,
-            "height": 420
+            "width": 504.84,
+            "height": 393.86
           },
           "fillColor": "#F0509F"
         },
@@ -376,12 +376,12 @@
           "id": "tpl_rmr_ab2_blob_dark",
           "name": "Dark Blob Bottom",
           "position": {
-            "x": 180,
-            "y": 2660
+            "x": 168.28,
+            "y": 2494.46
           },
           "size": {
-            "width": 700,
-            "height": 280
+            "width": 654.42,
+            "height": 262.58
           },
           "fillColor": "#3B2E1E"
         },
@@ -390,12 +390,12 @@
           "type": "shape",
           "name": "Pink Dot",
           "position": {
-            "x": 1160,
-            "y": 2330
+            "x": 1084.47,
+            "y": 2185
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
@@ -418,12 +418,12 @@
           "id": "tpl_rmr_ab2_sparkle_solid",
           "name": "Sparkle Solid",
           "position": {
-            "x": 110,
-            "y": 130
+            "x": 102.84,
+            "y": 121.91
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "fillColor": "#F0509F"
         },
@@ -434,21 +434,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab2_sparkle_out1",
           "name": "Sparkle Outline 1",
           "position": {
-            "x": 230,
-            "y": 230
+            "x": 215.02,
+            "y": 215.69
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "fillColor": "#F0509F"
         },
@@ -457,12 +457,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": -20,
-            "y": 90
+            "x": -18.7,
+            "y": 84.4
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 28,
           "scale": 1.55,
@@ -494,12 +494,12 @@
           "id": "tpl_rmr_ab2_bubble",
           "name": "Speech Bubble",
           "position": {
-            "x": 660,
-            "y": 680
+            "x": 617.02,
+            "y": 637.68
           },
           "size": {
-            "width": 640,
-            "height": 520
+            "width": 598.33,
+            "height": 487.64
           },
           "fillColor": "#F0509F"
         },
@@ -513,15 +513,15 @@
           "id": "tpl_rmr_ab2_bubble_text",
           "name": "Bubble Text",
           "position": {
-            "x": 726,
-            "y": 802
+            "x": 678.73,
+            "y": 752.09
           },
           "size": {
-            "width": 540,
-            "height": 260
+            "width": 504.84,
+            "height": 243.82
           },
           "content": "Intuitive controls\nmake designing\nsmooth and fun.",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque"
         }
@@ -535,8 +535,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#E8E0D2",
       "backgroundType": "solid",
@@ -549,21 +549,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": -15,
           "scale": 1,
           "id": "tpl_rmr_ab3_scribble",
           "name": "Scribble",
           "position": {
-            "x": 70,
-            "y": 70
+            "x": 65.44,
+            "y": 65.64
           },
           "size": {
-            "width": 240,
-            "height": 170
+            "width": 224.37,
+            "height": 159.42
           },
           "fillColor": "#3B2E1E"
         },
@@ -581,12 +581,12 @@
           "id": "tpl_rmr_ab3_sparkle_solid",
           "name": "Sparkle Solid",
           "position": {
-            "x": 1080,
-            "y": 140
+            "x": 1009.67,
+            "y": 131.29
           },
           "size": {
-            "width": 100,
-            "height": 100
+            "width": 93.49,
+            "height": 93.78
           },
           "fillColor": "#F0509F"
         },
@@ -597,21 +597,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab3_sparkle_out1",
           "name": "Sparkle Outline 1",
           "position": {
-            "x": 990,
-            "y": 300
+            "x": 925.53,
+            "y": 281.33
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "fillColor": "#F0509F"
         },
@@ -625,15 +625,15 @@
           "id": "tpl_rmr_ab3_headline1",
           "name": "Headline Line 1",
           "position": {
-            "x": 95,
-            "y": 300
+            "x": 88.81,
+            "y": 281.33
           },
           "size": {
-            "width": 900,
-            "height": 200
+            "width": 841.4,
+            "height": 187.55
           },
           "content": "Create Your",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#42341F",
           "fontFamily": "Adamina"
         },
@@ -647,15 +647,15 @@
           "id": "tpl_rmr_ab3_headline2",
           "name": "Headline Line 2",
           "position": {
-            "x": 95,
-            "y": 500
+            "x": 88.81,
+            "y": 468.88
           },
           "size": {
-            "width": 560,
-            "height": 200
+            "width": 523.53,
+            "height": 187.55
           },
           "content": "Perfect",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#42341F",
           "fontFamily": "Adamina"
         },
@@ -669,15 +669,15 @@
           "id": "tpl_rmr_ab3_script_home",
           "name": "Script Home",
           "position": {
-            "x": 620,
-            "y": 470
+            "x": 579.63,
+            "y": 440.75
           },
           "size": {
-            "width": 420,
-            "height": 230
+            "width": 392.65,
+            "height": 215.69
           },
           "content": "Home",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#F0509F",
           "fontFamily": "Pacifico"
         },
@@ -695,12 +695,12 @@
           "id": "tpl_rmr_ab3_blob_tr",
           "name": "Pink Blob Top Right",
           "position": {
-            "x": 960,
-            "y": 720
+            "x": 897.49,
+            "y": 675.19
           },
           "size": {
-            "width": 440,
-            "height": 370
+            "width": 411.35,
+            "height": 346.97
           },
           "fillColor": "#F0509F"
         },
@@ -709,12 +709,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 175,
-            "y": 820
+            "x": 163.6,
+            "y": 768.97
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.45,
@@ -746,12 +746,12 @@
           "id": "tpl_rmr_ab3_blob_bl",
           "name": "Pink Blob Bottom Left",
           "position": {
-            "x": -110,
-            "y": 2340
+            "x": -102.84,
+            "y": 2194.38
           },
           "size": {
-            "width": 500,
-            "height": 420
+            "width": 467.44,
+            "height": 393.86
           },
           "fillColor": "#F0509F"
         },
@@ -769,12 +769,12 @@
           "id": "tpl_rmr_ab3_blob_dark",
           "name": "Dark Blob Bottom Right",
           "position": {
-            "x": 1010,
-            "y": 2590
+            "x": 944.23,
+            "y": 2428.82
           },
           "size": {
-            "width": 420,
-            "height": 320
+            "width": 392.65,
+            "height": 300.09
           },
           "fillColor": "#3B2E1E"
         },
@@ -785,21 +785,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab3_sparkle_out2",
           "name": "Sparkle Outline 2",
           "position": {
-            "x": 140,
-            "y": 2130
+            "x": 130.88,
+            "y": 1997.45
           },
           "size": {
-            "width": 80,
-            "height": 80
+            "width": 74.79,
+            "height": 75.02
           },
           "fillColor": "#F0509F"
         }
@@ -813,8 +813,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#E8E0D2",
       "backgroundType": "solid",
@@ -834,12 +834,12 @@
           "id": "tpl_rmr_ab4_blob_tr",
           "name": "Pink Blob Top Right",
           "position": {
-            "x": 1030,
-            "y": 40
+            "x": 962.93,
+            "y": 37.51
           },
           "size": {
-            "width": 360,
-            "height": 310
+            "width": 336.56,
+            "height": 290.71
           },
           "fillColor": "#F0509F"
         },
@@ -857,12 +857,12 @@
           "id": "tpl_rmr_ab4_blob_dark",
           "name": "Dark Blob Bottom Left",
           "position": {
-            "x": -150,
-            "y": 2520
+            "x": -140.23,
+            "y": 2363.18
           },
           "size": {
-            "width": 500,
-            "height": 360
+            "width": 467.44,
+            "height": 337.6
           },
           "fillColor": "#3B2E1E"
         },
@@ -880,12 +880,12 @@
           "id": "tpl_rmr_ab4_sparkle_solid",
           "name": "Sparkle Solid",
           "position": {
-            "x": 1130,
-            "y": 900
+            "x": 1056.42,
+            "y": 843.99
           },
           "size": {
-            "width": 80,
-            "height": 80
+            "width": 74.79,
+            "height": 75.02
           },
           "fillColor": "#F0509F"
         },
@@ -899,15 +899,15 @@
           "id": "tpl_rmr_ab4_script_bring",
           "name": "Script Bring",
           "position": {
-            "x": 95,
-            "y": 170
+            "x": 88.81,
+            "y": 159.42
           },
           "size": {
-            "width": 480,
-            "height": 230
+            "width": 448.74,
+            "height": 215.69
           },
           "content": "Bring",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#F0509F",
           "fontFamily": "Pacifico"
         },
@@ -921,15 +921,15 @@
           "id": "tpl_rmr_ab4_serif_your",
           "name": "Serif Your",
           "position": {
-            "x": 560,
-            "y": 195
+            "x": 523.53,
+            "y": 182.86
           },
           "size": {
-            "width": 340,
-            "height": 200
+            "width": 317.86,
+            "height": 187.55
           },
           "content": "Your",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#42341F",
           "fontFamily": "Adamina"
         },
@@ -947,12 +947,12 @@
           "id": "tpl_rmr_ab4_brush",
           "name": "Brush Icon",
           "position": {
-            "x": 890,
-            "y": 120
+            "x": 832.05,
+            "y": 112.53
           },
           "size": {
-            "width": 130,
-            "height": 130
+            "width": 121.53,
+            "height": 121.91
           },
           "fillColor": "#F0509F"
         },
@@ -966,15 +966,15 @@
           "id": "tpl_rmr_ab4_headline2",
           "name": "Headline Line 2",
           "position": {
-            "x": 95,
-            "y": 400
+            "x": 88.81,
+            "y": 375.11
           },
           "size": {
-            "width": 920,
-            "height": 200
+            "width": 860.09,
+            "height": 187.55
           },
           "content": "Vision Alive",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#42341F",
           "fontFamily": "Adamina"
         },
@@ -983,12 +983,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 150,
-            "y": 700
+            "x": 140.23,
+            "y": 656.44
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.45,
@@ -1011,12 +1011,12 @@
           "type": "image",
           "name": "Character Illustration",
           "position": {
-            "x": 640,
-            "y": 1180
+            "x": 598.33,
+            "y": 1106.57
           },
           "size": {
-            "width": 640,
-            "height": 1520
+            "width": 598.33,
+            "height": 1425.41
           },
           "rotation": 0,
           "scale": 1,
@@ -1036,12 +1036,12 @@
           "id": "tpl_rmr_ab4_star1",
           "name": "Gold Star 1",
           "position": {
-            "x": 1120,
-            "y": 1860
+            "x": 1047.07,
+            "y": 1744.25
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "fillColor": "#F5C542"
         },
@@ -1059,12 +1059,12 @@
           "id": "tpl_rmr_ab4_star2",
           "name": "Gold Star 2",
           "position": {
-            "x": 1200,
-            "y": 1990
+            "x": 1121.86,
+            "y": 1866.16
           },
           "size": {
-            "width": 60,
-            "height": 60
+            "width": 56.09,
+            "height": 56.27
           },
           "fillColor": "#F5C542"
         }
@@ -1078,8 +1078,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#E8E0D2",
       "backgroundType": "solid",
@@ -1099,12 +1099,12 @@
           "id": "tpl_rmr_ab5_blob_tr",
           "name": "Pink Blob Top Right",
           "position": {
-            "x": 1060,
-            "y": 620
+            "x": 990.98,
+            "y": 581.42
           },
           "size": {
-            "width": 340,
-            "height": 300
+            "width": 317.86,
+            "height": 281.33
           },
           "fillColor": "#F0509F"
         },
@@ -1122,12 +1122,12 @@
           "id": "tpl_rmr_ab5_blob_bl",
           "name": "Pink Blob Bottom Left",
           "position": {
-            "x": -120,
-            "y": 2400
+            "x": -112.19,
+            "y": 2250.64
           },
           "size": {
-            "width": 460,
-            "height": 380
+            "width": 430.05,
+            "height": 356.35
           },
           "fillColor": "#F0509F"
         },
@@ -1145,12 +1145,12 @@
           "id": "tpl_rmr_ab5_blob_dark",
           "name": "Dark Blob Bottom Right",
           "position": {
-            "x": 1020,
-            "y": 2560
+            "x": 953.58,
+            "y": 2400.69
           },
           "size": {
-            "width": 420,
-            "height": 320
+            "width": 392.65,
+            "height": 300.09
           },
           "fillColor": "#3B2E1E"
         },
@@ -1164,15 +1164,15 @@
           "id": "tpl_rmr_ab5_headline",
           "name": "Headline",
           "position": {
-            "x": 85,
-            "y": 190
+            "x": 79.47,
+            "y": 178.18
           },
           "size": {
-            "width": 1120,
-            "height": 200
+            "width": 1047.07,
+            "height": 187.55
           },
           "content": "Compete With",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#42341F",
           "fontFamily": "Adamina"
         },
@@ -1186,15 +1186,15 @@
           "id": "tpl_rmr_ab5_script",
           "name": "Script Designers",
           "position": {
-            "x": 95,
-            "y": 390
+            "x": 88.81,
+            "y": 365.73
           },
           "size": {
-            "width": 860,
-            "height": 250
+            "width": 804,
+            "height": 234.44
           },
           "content": "Designers",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#F0509F",
           "fontFamily": "Pacifico"
         },
@@ -1205,21 +1205,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab5_sparkle_out1",
           "name": "Sparkle Outline 1",
           "position": {
-            "x": 1040,
-            "y": 180
+            "x": 972.28,
+            "y": 168.8
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "fillColor": "#F0509F"
         },
@@ -1237,12 +1237,12 @@
           "id": "tpl_rmr_ab5_sparkle_solid",
           "name": "Sparkle Solid",
           "position": {
-            "x": 950,
-            "y": 420
+            "x": 888.14,
+            "y": 393.86
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "fillColor": "#F0509F"
         },
@@ -1253,21 +1253,21 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "rotation": 0,
           "scale": 1,
           "id": "tpl_rmr_ab5_sparkle_out2",
           "name": "Sparkle Outline 2",
           "position": {
-            "x": 140,
-            "y": 700
+            "x": 130.88,
+            "y": 656.44
           },
           "size": {
-            "width": 80,
-            "height": 80
+            "width": 74.79,
+            "height": 75.02
           },
           "fillColor": "#F0509F"
         },
@@ -1276,12 +1276,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 175,
-            "y": 780
+            "x": 163.6,
+            "y": 731.46
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.45,

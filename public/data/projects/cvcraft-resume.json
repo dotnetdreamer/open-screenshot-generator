@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -30,17 +30,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -51,12 +51,12 @@
      "type": "shape",
      "name": "laurel-left",
      "position": {
-      "x": 360,
-      "y": 400
+      "x": 336.56,
+      "y": 375.11
      },
      "size": {
-      "width": 150,
-      "height": 210
+      "width": 140.23,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
@@ -75,12 +75,12 @@
      "type": "shape",
      "name": "laurel-right",
      "position": {
-      "x": 780,
-      "y": 400
+      "x": 729.21,
+      "y": 375.11
      },
      "size": {
-      "width": 150,
-      "height": 210
+      "width": 140.23,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
@@ -99,17 +99,17 @@
      "type": "text",
      "name": "laurel-copy",
      "position": {
-      "x": 420,
-      "y": 430
+      "x": 392.65,
+      "y": 403.24
      },
      "size": {
-      "width": 450,
-      "height": 140
+      "width": 420.7,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "content": "Designed by\nCareer Experts",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#9CA0AC",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -121,17 +121,17 @@
      "type": "text",
      "name": "h1-build-your",
      "position": {
-      "x": 145,
-      "y": 660
+      "x": 135.56,
+      "y": 618.93
      },
      "size": {
-      "width": 1000,
-      "height": 160
+      "width": 934.88,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Build Your",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -143,17 +143,17 @@
      "type": "text",
      "name": "h1-perfect",
      "position": {
-      "x": 150,
-      "y": 830
+      "x": 140.23,
+      "y": 778.35
      },
      "size": {
-      "width": 570,
-      "height": 160
+      "width": 532.88,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Perfect",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -165,17 +165,17 @@
      "type": "shape",
      "name": "pill-cv",
      "position": {
-      "x": 745,
-      "y": 835
+      "x": 696.49,
+      "y": 783.04
      },
      "size": {
-      "width": 200,
-      "height": 150
+      "width": 186.98,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -186,17 +186,17 @@
      "type": "text",
      "name": "pillword-cv",
      "position": {
-      "x": 745,
-      "y": 838
+      "x": 696.49,
+      "y": 785.85
      },
      "size": {
-      "width": 200,
-      "height": 150
+      "width": 186.98,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "CV",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -208,12 +208,12 @@
      "type": "device",
      "name": "phone-home",
      "position": {
-      "x": 219,
-      "y": 1010
+      "x": 204.74,
+      "y": 947.15
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.42,
@@ -236,17 +236,17 @@
      "type": "shape",
      "name": "callout-shadow",
      "position": {
-      "x": 108,
-      "y": 1512
+      "x": 100.97,
+      "y": 1417.91
      },
      "size": {
-      "width": 640,
-      "height": 210
+      "width": 598.33,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#E2DFF0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -257,17 +257,17 @@
      "type": "shape",
      "name": "callout-card",
      "position": {
-      "x": 94,
-      "y": 1498
+      "x": 87.88,
+      "y": 1404.78
      },
      "size": {
-      "width": 640,
-      "height": 210
+      "width": 598.33,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -278,35 +278,35 @@
      "type": "image",
      "name": "callout-thumb",
      "position": {
-      "x": 120,
-      "y": 1524
+      "x": 112.19,
+      "y": 1429.16
      },
      "size": {
-      "width": 110,
-      "height": 155
+      "width": 102.84,
+      "height": 145.35
      },
      "rotation": 0,
      "scale": 1,
      "imageSrc": "/data/projects/cvcraft-resume-a.png",
      "objectFit": "cover",
-     "borderRadius": 8
+     "borderRadius": 7.48
     },
     {
      "id": "cv-callout-label-13",
      "type": "text",
      "name": "callout-label",
      "position": {
-      "x": 260,
-      "y": 1560
+      "x": 243.07,
+      "y": 1462.92
      },
      "size": {
-      "width": 460,
-      "height": 90
+      "width": 430.05,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "content": "Create Resume",
-     "fontSize": 18,
+     "fontSize": 16.83,
      "color": "#7166F0",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -323,8 +323,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -340,17 +340,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -361,17 +361,17 @@
      "type": "text",
      "name": "h2-try-out",
      "position": {
-      "x": 130,
-      "y": 430
+      "x": 121.53,
+      "y": 403.24
      },
      "size": {
-      "width": 700,
-      "height": 160
+      "width": 654.42,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Try Out",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -383,17 +383,17 @@
      "type": "text",
      "name": "h2-various",
      "position": {
-      "x": 130,
-      "y": 600
+      "x": 121.53,
+      "y": 562.66
      },
      "size": {
-      "width": 700,
-      "height": 160
+      "width": 654.42,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Various",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -405,17 +405,17 @@
      "type": "shape",
      "name": "pill-templates",
      "position": {
-      "x": 122,
-      "y": 772
+      "x": 114.06,
+      "y": 723.96
      },
      "size": {
-      "width": 730,
-      "height": 150
+      "width": 682.47,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -426,17 +426,17 @@
      "type": "text",
      "name": "pillword-templates",
      "position": {
-      "x": 122,
-      "y": 775
+      "x": 114.06,
+      "y": 726.77
      },
      "size": {
-      "width": 730,
-      "height": 150
+      "width": 682.47,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Templates",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -448,17 +448,17 @@
      "type": "text",
      "name": "h2-sub",
      "position": {
-      "x": 130,
-      "y": 940
+      "x": 121.53,
+      "y": 881.5
      },
      "size": {
-      "width": 720,
-      "height": 190
+      "width": 673.12,
+      "height": 178.18
      },
      "rotation": 0,
      "scale": 1,
      "content": "6 Modern Templates\nDesign",
-     "fontSize": 20,
+     "fontSize": 18.7,
      "color": "#9CA0AC",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -470,12 +470,12 @@
      "type": "shape",
      "name": "fan-shadow-b-19",
      "position": {
-      "x": 1172,
-      "y": 952
+      "x": 1095.68,
+      "y": 892.76
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -491,12 +491,12 @@
      "type": "image",
      "name": "fan-page-b-20",
      "position": {
-      "x": 1160,
-      "y": 940
+      "x": 1084.47,
+      "y": 881.5
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -508,12 +508,12 @@
      "type": "shape",
      "name": "fan-shadow-a-21",
      "position": {
-      "x": 892,
-      "y": 1702
+      "x": 833.92,
+      "y": 1596.08
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -529,12 +529,12 @@
      "type": "image",
      "name": "fan-page-a-22",
      "position": {
-      "x": 880,
-      "y": 1690
+      "x": 822.7,
+      "y": 1584.83
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -546,12 +546,12 @@
      "type": "shape",
      "name": "fan-shadow-c-23",
      "position": {
-      "x": 632,
-      "y": 1132
+      "x": 590.85,
+      "y": 1061.55
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -567,12 +567,12 @@
      "type": "image",
      "name": "fan-page-c-24",
      "position": {
-      "x": 620,
-      "y": 1120
+      "x": 579.63,
+      "y": 1050.3
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -584,12 +584,12 @@
      "type": "shape",
      "name": "fan-shadow-a-25",
      "position": {
-      "x": 52,
-      "y": 1342
+      "x": 48.61,
+      "y": 1258.48
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -605,12 +605,12 @@
      "type": "image",
      "name": "fan-page-a-26",
      "position": {
-      "x": 40,
-      "y": 1330
+      "x": 37.4,
+      "y": 1247.23
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -622,12 +622,12 @@
      "type": "shape",
      "name": "fan-shadow-b-27",
      "position": {
-      "x": 312,
-      "y": 1888
+      "x": 291.68,
+      "y": 1770.51
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -643,12 +643,12 @@
      "type": "image",
      "name": "fan-page-b-28",
      "position": {
-      "x": 300,
-      "y": 1876
+      "x": 280.47,
+      "y": 1759.25
      },
      "size": {
-      "width": 540,
-      "height": 760
+      "width": 504.84,
+      "height": 712.7
      },
      "rotation": -18,
      "scale": 1,
@@ -665,8 +665,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -682,17 +682,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -703,17 +703,17 @@
      "type": "text",
      "name": "h3-export-your",
      "position": {
-      "x": 130,
-      "y": 430
+      "x": 121.53,
+      "y": 403.24
      },
      "size": {
-      "width": 850,
-      "height": 160
+      "width": 794.65,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Export Your",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -725,17 +725,17 @@
      "type": "text",
      "name": "h3-resume",
      "position": {
-      "x": 130,
-      "y": 600
+      "x": 121.53,
+      "y": 562.66
      },
      "size": {
-      "width": 700,
-      "height": 160
+      "width": 654.42,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Resume",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -747,17 +747,17 @@
      "type": "shape",
      "name": "pill-topdf",
      "position": {
-      "x": 122,
-      "y": 772
+      "x": 114.06,
+      "y": 723.96
      },
      "size": {
-      "width": 480,
-      "height": 150
+      "width": 448.74,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -768,17 +768,17 @@
      "type": "text",
      "name": "pillword-topdf",
      "position": {
-      "x": 122,
-      "y": 775
+      "x": 114.06,
+      "y": 726.77
      },
      "size": {
-      "width": 480,
-      "height": 150
+      "width": 448.74,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "to PDF",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -790,12 +790,12 @@
      "type": "device",
      "name": "phone-share",
      "position": {
-      "x": 219,
-      "y": 1010
+      "x": 204.74,
+      "y": 947.15
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.42,
@@ -823,8 +823,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -840,17 +840,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -861,17 +861,17 @@
      "type": "text",
      "name": "h4-make",
      "position": {
-      "x": 130,
-      "y": 430
+      "x": 121.53,
+      "y": 403.24
      },
      "size": {
-      "width": 400,
-      "height": 160
+      "width": 373.95,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Make",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -883,17 +883,17 @@
      "type": "shape",
      "name": "pill-professional",
      "position": {
-      "x": 122,
-      "y": 602
+      "x": 114.06,
+      "y": 564.54
      },
      "size": {
-      "width": 876,
-      "height": 150
+      "width": 818.96,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -904,17 +904,17 @@
      "type": "text",
      "name": "pillword-professional",
      "position": {
-      "x": 122,
-      "y": 605
+      "x": 114.06,
+      "y": 567.35
      },
      "size": {
-      "width": 876,
-      "height": 150
+      "width": 818.96,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Professional",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -926,17 +926,17 @@
      "type": "shape",
      "name": "pill-cv",
      "position": {
-      "x": 122,
-      "y": 774
+      "x": 114.06,
+      "y": 725.83
      },
      "size": {
-      "width": 240,
-      "height": 150
+      "width": 224.37,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -947,17 +947,17 @@
      "type": "text",
      "name": "pillword-cv",
      "position": {
-      "x": 122,
-      "y": 777
+      "x": 114.06,
+      "y": 728.65
      },
      "size": {
-      "width": 240,
-      "height": 150
+      "width": 224.37,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "CV",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -969,12 +969,12 @@
      "type": "device",
      "name": "phone-edit",
      "position": {
-      "x": 219,
-      "y": 1010
+      "x": 204.74,
+      "y": 947.15
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.42,
@@ -1002,8 +1002,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -1019,17 +1019,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1040,17 +1040,17 @@
      "type": "text",
      "name": "h5-create",
      "position": {
-      "x": 130,
-      "y": 430
+      "x": 121.53,
+      "y": 403.24
      },
      "size": {
-      "width": 500,
-      "height": 160
+      "width": 467.44,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Create",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1062,17 +1062,17 @@
      "type": "shape",
      "name": "pill-cover",
      "position": {
-      "x": 601,
-      "y": 432
+      "x": 561.87,
+      "y": 405.12
      },
      "size": {
-      "width": 440,
-      "height": 150
+      "width": 411.35,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1083,17 +1083,17 @@
      "type": "text",
      "name": "pillword-cover",
      "position": {
-      "x": 601,
-      "y": 435
+      "x": 561.87,
+      "y": 407.93
      },
      "size": {
-      "width": 440,
-      "height": 150
+      "width": 411.35,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Cover",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1105,17 +1105,17 @@
      "type": "shape",
      "name": "pill-letters",
      "position": {
-      "x": 122,
-      "y": 602
+      "x": 114.06,
+      "y": 564.54
      },
      "size": {
-      "width": 520,
-      "height": 150
+      "width": 486.14,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1126,17 +1126,17 @@
      "type": "text",
      "name": "pillword-letters",
      "position": {
-      "x": 122,
-      "y": 605
+      "x": 114.06,
+      "y": 567.35
      },
      "size": {
-      "width": 520,
-      "height": 150
+      "width": 486.14,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Letters",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1148,17 +1148,17 @@
      "type": "text",
      "name": "h5-with",
      "position": {
-      "x": 677,
-      "y": 600
+      "x": 632.92,
+      "y": 562.66
      },
      "size": {
-      "width": 350,
-      "height": 160
+      "width": 327.21,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "with",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1170,17 +1170,17 @@
      "type": "text",
      "name": "h5-ease",
      "position": {
-      "x": 130,
-      "y": 772
+      "x": 121.53,
+      "y": 723.96
      },
      "size": {
-      "width": 400,
-      "height": 160
+      "width": 373.95,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Ease",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1192,12 +1192,12 @@
      "type": "device",
      "name": "phone-letter-picker",
      "position": {
-      "x": 219,
-      "y": 1010
+      "x": 204.74,
+      "y": 947.15
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.42,
@@ -1225,8 +1225,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -1242,17 +1242,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1263,17 +1263,17 @@
      "type": "text",
      "name": "h6-use-a",
      "position": {
-      "x": 130,
-      "y": 430
+      "x": 121.53,
+      "y": 403.24
      },
      "size": {
-      "width": 450,
-      "height": 160
+      "width": 420.7,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Use a",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1285,17 +1285,17 @@
      "type": "shape",
      "name": "pill-ready",
      "position": {
-      "x": 523,
-      "y": 432
+      "x": 488.94,
+      "y": 405.12
      },
      "size": {
-      "width": 515,
-      "height": 150
+      "width": 481.47,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1306,17 +1306,17 @@
      "type": "text",
      "name": "pillword-ready",
      "position": {
-      "x": 523,
-      "y": 435
+      "x": 488.94,
+      "y": 407.93
      },
      "size": {
-      "width": 515,
-      "height": 150
+      "width": 481.47,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Ready-",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1328,17 +1328,17 @@
      "type": "shape",
      "name": "pill-made",
      "position": {
-      "x": 122,
-      "y": 602
+      "x": 114.06,
+      "y": 564.54
      },
      "size": {
-      "width": 425,
-      "height": 150
+      "width": 397.33,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1349,17 +1349,17 @@
      "type": "text",
      "name": "pillword-made",
      "position": {
-      "x": 122,
-      "y": 605
+      "x": 114.06,
+      "y": 567.35
      },
      "size": {
-      "width": 425,
-      "height": 150
+      "width": 397.33,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Made",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1371,17 +1371,17 @@
      "type": "text",
      "name": "h6-letter",
      "position": {
-      "x": 582,
-      "y": 600
+      "x": 544.1,
+      "y": 562.66
      },
      "size": {
-      "width": 480,
-      "height": 160
+      "width": 448.74,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Letter",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1393,17 +1393,17 @@
      "type": "text",
      "name": "h6-text",
      "position": {
-      "x": 130,
-      "y": 772
+      "x": 121.53,
+      "y": 723.96
      },
      "size": {
-      "width": 360,
-      "height": 160
+      "width": 336.56,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Text",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1415,12 +1415,12 @@
      "type": "device",
      "name": "phone-letter-text",
      "position": {
-      "x": 270,
-      "y": 1210
+      "x": 252.42,
+      "y": 1134.7
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.25,
@@ -1443,17 +1443,17 @@
      "type": "shape",
      "name": "chip-shadow",
      "position": {
-      "x": 120,
-      "y": 960
+      "x": 112.19,
+      "y": 900.26
      },
      "size": {
-      "width": 660,
-      "height": 130
+      "width": 617.02,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 18,
+     "borderRadius": 16.83,
      "fillColor": "#E4E2EE",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1464,17 +1464,17 @@
      "type": "shape",
      "name": "chip",
      "position": {
-      "x": 110,
-      "y": 950
+      "x": 102.84,
+      "y": 890.88
      },
      "size": {
-      "width": 660,
-      "height": 130
+      "width": 617.02,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 18,
+     "borderRadius": 16.83,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1485,17 +1485,17 @@
      "type": "shape",
      "name": "chip-photo",
      "position": {
-      "x": 130,
-      "y": 970
+      "x": 121.53,
+      "y": 909.64
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#D6D9E2",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1506,17 +1506,17 @@
      "type": "text",
      "name": "chip-label",
      "position": {
-      "x": 250,
-      "y": 950
+      "x": 233.72,
+      "y": 890.88
      },
      "size": {
-      "width": 504,
-      "height": 130
+      "width": 471.18,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "content": "Medical and Health\nServices Manager",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#3A3C46",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1528,17 +1528,17 @@
      "type": "shape",
      "name": "chip-shadow",
      "position": {
-      "x": 810,
-      "y": 960
+      "x": 757.26,
+      "y": 900.26
      },
      "size": {
-      "width": 430,
-      "height": 130
+      "width": 402,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 18,
+     "borderRadius": 16.83,
      "fillColor": "#E4E2EE",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1549,17 +1549,17 @@
      "type": "shape",
      "name": "chip",
      "position": {
-      "x": 800,
-      "y": 950
+      "x": 747.91,
+      "y": 890.88
      },
      "size": {
-      "width": 430,
-      "height": 130
+      "width": 402,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 18,
+     "borderRadius": 16.83,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1570,17 +1570,17 @@
      "type": "shape",
      "name": "chip-photo",
      "position": {
-      "x": 820,
-      "y": 970
+      "x": 766.6,
+      "y": 909.64
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#D6D9E2",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1591,17 +1591,17 @@
      "type": "text",
      "name": "chip-label",
      "position": {
-      "x": 940,
-      "y": 950
+      "x": 878.79,
+      "y": 890.88
      },
      "size": {
-      "width": 274,
-      "height": 130
+      "width": 256.16,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "content": "Marketing\nManager",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#3A3C46",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1613,17 +1613,17 @@
      "type": "shape",
      "name": "chip-shadow",
      "position": {
-      "x": 320,
-      "y": 1110
+      "x": 299.16,
+      "y": 1040.92
      },
      "size": {
-      "width": 480,
-      "height": 130
+      "width": 448.74,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 18,
+     "borderRadius": 16.83,
      "fillColor": "#E4E2EE",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1634,17 +1634,17 @@
      "type": "shape",
      "name": "chip",
      "position": {
-      "x": 310,
-      "y": 1100
+      "x": 289.81,
+      "y": 1031.55
      },
      "size": {
-      "width": 480,
-      "height": 130
+      "width": 448.74,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 18,
+     "borderRadius": 16.83,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1655,17 +1655,17 @@
      "type": "shape",
      "name": "chip-photo",
      "position": {
-      "x": 330,
-      "y": 1120
+      "x": 308.51,
+      "y": 1050.3
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#D6D9E2",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1676,17 +1676,17 @@
      "type": "text",
      "name": "chip-label",
      "position": {
-      "x": 450,
-      "y": 1100
+      "x": 420.7,
+      "y": 1031.55
      },
      "size": {
-      "width": 324,
-      "height": 130
+      "width": 302.9,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "content": "IT Support\nSpecialist",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#3A3C46",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1703,8 +1703,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#8E7FEF",
    "backgroundType": "gradient",
@@ -1720,17 +1720,17 @@
      "type": "shape",
      "name": "white-card",
      "position": {
-      "x": 52,
-      "y": 295
+      "x": 48.61,
+      "y": 276.64
      },
      "size": {
-      "width": 1186,
-      "height": 2420
+      "width": 1108.77,
+      "height": 2269.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 36,
+     "borderRadius": 33.66,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1741,17 +1741,17 @@
      "type": "text",
      "name": "h7-check-what",
      "position": {
-      "x": 130,
-      "y": 430
+      "x": 121.53,
+      "y": 403.24
      },
      "size": {
-      "width": 850,
-      "height": 160
+      "width": 794.65,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Check What",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1763,17 +1763,17 @@
      "type": "text",
      "name": "h7-our",
      "position": {
-      "x": 130,
-      "y": 600
+      "x": 121.53,
+      "y": 562.66
      },
      "size": {
-      "width": 320,
-      "height": 160
+      "width": 299.16,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Our",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1785,17 +1785,17 @@
      "type": "shape",
      "name": "pill-users",
      "position": {
-      "x": 390,
-      "y": 602
+      "x": 364.6,
+      "y": 564.54
      },
      "size": {
-      "width": 435,
-      "height": 150
+      "width": 406.67,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 12,
+     "borderRadius": 11.22,
      "fillColor": "#7166F0",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1806,17 +1806,17 @@
      "type": "text",
      "name": "pillword-users",
      "position": {
-      "x": 390,
-      "y": 605
+      "x": 364.6,
+      "y": 567.35
      },
      "size": {
-      "width": 435,
-      "height": 150
+      "width": 406.67,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Users",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1828,17 +1828,17 @@
      "type": "text",
      "name": "h7-say",
      "position": {
-      "x": 130,
-      "y": 772
+      "x": 121.53,
+      "y": 723.96
      },
      "size": {
-      "width": 300,
-      "height": 160
+      "width": 280.47,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Say",
-     "fontSize": 40,
+     "fontSize": 37.4,
      "color": "#17161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1850,17 +1850,17 @@
      "type": "text",
      "name": "quote",
      "position": {
-      "x": 130,
-      "y": 990
+      "x": 121.53,
+      "y": 928.39
      },
      "size": {
-      "width": 1080,
-      "height": 440
+      "width": 1009.67,
+      "height": 412.62
      },
      "rotation": 0,
      "scale": 1,
      "content": "CV Builder is a game-changer!\nCrafting resumes and cover letters\nis a breeze with modern templates\nand ready-to-use text. Highly\nrecommend!",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#26262C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1872,17 +1872,17 @@
      "type": "shape",
      "name": "name-chip",
      "position": {
-      "x": 130,
-      "y": 1470
+      "x": 121.53,
+      "y": 1378.52
      },
      "size": {
-      "width": 570,
-      "height": 90
+      "width": 532.88,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 999,
+     "borderRadius": 933.95,
      "fillColor": "#EFEFF3",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1893,17 +1893,17 @@
      "type": "text",
      "name": "name",
      "position": {
-      "x": 130,
-      "y": 1472
+      "x": 121.53,
+      "y": 1380.39
      },
      "size": {
-      "width": 570,
-      "height": 90
+      "width": 532.88,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "content": "Marvin McKinney",
-     "fontSize": 18,
+     "fontSize": 16.83,
      "color": "#3A3C46",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1915,17 +1915,17 @@
      "type": "text",
      "name": "stars",
      "position": {
-      "x": 740,
-      "y": 1466
+      "x": 691.81,
+      "y": 1374.77
      },
      "size": {
-      "width": 420,
-      "height": 100
+      "width": 392.65,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "★★★★★",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#F5B940",
      "fontFamily": "Arial",
      "fontWeight": "400",
@@ -1937,17 +1937,17 @@
      "type": "shape",
      "name": "soft-card",
      "position": {
-      "x": 130,
-      "y": 1640
+      "x": 121.53,
+      "y": 1537.94
      },
      "size": {
-      "width": 1020,
-      "height": 1010
+      "width": 953.58,
+      "height": 947.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 28,
+     "borderRadius": 26.18,
      "fillColor": "#E4E0F6",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -1958,12 +1958,12 @@
      "type": "shape",
      "name": "avatar-circle",
      "position": {
-      "x": 530,
-      "y": 1900
+      "x": 495.49,
+      "y": 1781.76
      },
      "size": {
-      "width": 220,
-      "height": 220
+      "width": 205.67,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
@@ -1978,17 +1978,17 @@
      "type": "text",
      "name": "avatar-initials",
      "position": {
-      "x": 530,
-      "y": 1905
+      "x": 495.49,
+      "y": 1786.45
      },
      "size": {
-      "width": 220,
-      "height": 220
+      "width": 205.67,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "MM",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -2000,17 +2000,17 @@
      "type": "shape",
      "name": "skeleton-bar-1",
      "position": {
-      "x": 450,
-      "y": 2210
+      "x": 420.7,
+      "y": 2072.47
      },
      "size": {
-      "width": 380,
-      "height": 26
+      "width": 355.26,
+      "height": 24.38
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 8,
+     "borderRadius": 7.48,
      "fillColor": "#CFC9EE",
      "strokeColor": "transparent",
      "strokeWidth": 0,
@@ -2021,17 +2021,17 @@
      "type": "shape",
      "name": "skeleton-bar-2",
      "position": {
-      "x": 510,
-      "y": 2270
+      "x": 476.79,
+      "y": 2128.73
      },
      "size": {
-      "width": 260,
-      "height": 22
+      "width": 243.07,
+      "height": 20.63
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 8,
+     "borderRadius": 7.48,
      "fillColor": "#CFC9EE",
      "strokeColor": "transparent",
      "strokeWidth": 0,

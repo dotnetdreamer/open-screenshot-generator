@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#FBEDF3",
       "backgroundType": "solid",
@@ -25,12 +25,12 @@
           "type": "shape",
           "name": "Blob Top Right",
           "position": {
-            "x": 800,
-            "y": -140
+            "x": 747.91,
+            "y": -131.29
           },
           "size": {
-            "width": 560,
-            "height": 520
+            "width": 523.53,
+            "height": 487.64
           },
           "rotation": 15,
           "scale": 1,
@@ -48,12 +48,12 @@
           "type": "shape",
           "name": "Pebble Top Right",
           "position": {
-            "x": 1070,
-            "y": 300
+            "x": 1000.33,
+            "y": 281.33
           },
           "size": {
-            "width": 260,
-            "height": 230
+            "width": 243.07,
+            "height": 215.69
           },
           "rotation": -10,
           "scale": 1,
@@ -71,12 +71,12 @@
           "type": "shape",
           "name": "Dot Top Right",
           "position": {
-            "x": 880,
-            "y": 390
+            "x": 822.7,
+            "y": 365.73
           },
           "size": {
-            "width": 140,
-            "height": 140
+            "width": 130.88,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
@@ -90,17 +90,17 @@
           "type": "text",
           "name": "Headline Black",
           "position": {
-            "x": 70,
-            "y": 200
+            "x": 65.44,
+            "y": 187.55
           },
           "size": {
-            "width": 820,
-            "height": 210
+            "width": 766.6,
+            "height": 196.93
           },
           "rotation": 0,
           "scale": 1,
           "content": "PREMIUM",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -112,17 +112,17 @@
           "type": "text",
           "name": "Headline Pink 1",
           "position": {
-            "x": 70,
-            "y": 430
+            "x": 65.44,
+            "y": 403.24
           },
           "size": {
-            "width": 620,
-            "height": 140
+            "width": 579.63,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "BEAUTY",
-          "fontSize": 32,
+          "fontSize": 29.92,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -134,17 +134,17 @@
           "type": "text",
           "name": "Headline Pink 2",
           "position": {
-            "x": 70,
-            "y": 600
+            "x": 65.44,
+            "y": 562.66
           },
           "size": {
-            "width": 620,
-            "height": 140
+            "width": 579.63,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "PICKS",
-          "fontSize": 32,
+          "fontSize": 29.92,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -156,12 +156,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 30,
-            "y": 1030
+            "x": 28.05,
+            "y": 965.9
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -14,
           "scale": 1.55,
@@ -183,12 +183,12 @@
           "type": "shape",
           "name": "Blob Bottom Right",
           "position": {
-            "x": 1120,
-            "y": 2540
+            "x": 1047.07,
+            "y": 2381.93
           },
           "size": {
-            "width": 320,
-            "height": 300
+            "width": 299.16,
+            "height": 281.33
           },
           "rotation": 0,
           "scale": 1,
@@ -211,8 +211,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#FBEDF3",
       "backgroundType": "solid",
@@ -223,17 +223,17 @@
           "type": "text",
           "name": "Wordmark Luxe",
           "position": {
-            "x": 360,
-            "y": 100
+            "x": 336.56,
+            "y": 93.78
           },
           "size": {
-            "width": 270,
-            "height": 140
+            "width": 252.42,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "Luxe",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -245,17 +245,17 @@
           "type": "text",
           "name": "Wordmark Glow",
           "position": {
-            "x": 645,
-            "y": 100
+            "x": 603,
+            "y": 93.78
           },
           "size": {
-            "width": 340,
-            "height": 140
+            "width": 317.86,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "Glow.",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -267,12 +267,12 @@
           "type": "shape",
           "name": "Blob Top Left",
           "position": {
-            "x": -130,
-            "y": 190
+            "x": -121.53,
+            "y": 178.18
           },
           "size": {
-            "width": 430,
-            "height": 390
+            "width": 402,
+            "height": 365.73
           },
           "rotation": -20,
           "scale": 1,
@@ -290,12 +290,12 @@
           "type": "shape",
           "name": "Dot Top Left",
           "position": {
-            "x": 250,
-            "y": 430
+            "x": 233.72,
+            "y": 403.24
           },
           "size": {
-            "width": 120,
-            "height": 120
+            "width": 112.19,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
@@ -309,17 +309,17 @@
           "type": "text",
           "name": "Headline Black",
           "position": {
-            "x": 70,
-            "y": 860
+            "x": 65.44,
+            "y": 806.48
           },
           "size": {
-            "width": 580,
-            "height": 350
+            "width": 542.23,
+            "height": 328.22
           },
           "rotation": 0,
           "scale": 1,
           "content": "UNBOX\nNEW",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -331,17 +331,17 @@
           "type": "text",
           "name": "Headline Pink",
           "position": {
-            "x": 70,
-            "y": 1260
+            "x": 65.44,
+            "y": 1181.59
           },
           "size": {
-            "width": 520,
-            "height": 430
+            "width": 486.14,
+            "height": 403.24
           },
           "rotation": 0,
           "scale": 1,
           "content": "BEAUTY\nEVERY\nMONTH",
-          "fontSize": 32,
+          "fontSize": 29.92,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -353,12 +353,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 620,
-            "y": 480
+            "x": 579.63,
+            "y": 450.13
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 3,
           "scale": 1.4,
@@ -380,12 +380,12 @@
           "type": "image",
           "name": "Parcel Boxes Photo",
           "position": {
-            "x": 60,
-            "y": 2130
+            "x": 56.09,
+            "y": 1997.45
           },
           "size": {
-            "width": 520,
-            "height": 560
+            "width": 486.14,
+            "height": 525.15
           },
           "rotation": 0,
           "scale": 1,
@@ -396,12 +396,12 @@
           "type": "shape",
           "name": "Pebble Bottom Right",
           "position": {
-            "x": 1020,
-            "y": 2400
+            "x": 953.58,
+            "y": 2250.64
           },
           "size": {
-            "width": 340,
-            "height": 320
+            "width": 317.86,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
@@ -424,8 +424,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#FBEDF3",
       "backgroundType": "solid",
@@ -436,17 +436,17 @@
           "type": "text",
           "name": "Headline Black",
           "position": {
-            "x": 290,
-            "y": 150
+            "x": 271.12,
+            "y": 140.67
           },
           "size": {
-            "width": 930,
-            "height": 350
+            "width": 869.44,
+            "height": 328.22
           },
           "rotation": 0,
           "scale": 1,
           "content": "BUILD YOUR\nPERFECT",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -458,17 +458,17 @@
           "type": "text",
           "name": "Headline Pink",
           "position": {
-            "x": 520,
-            "y": 550
+            "x": 486.14,
+            "y": 515.77
           },
           "size": {
-            "width": 700,
-            "height": 300
+            "width": 654.42,
+            "height": 281.33
           },
           "rotation": 0,
           "scale": 1,
           "content": "BEAUTY\nROUTINE",
-          "fontSize": 32,
+          "fontSize": 29.92,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -480,12 +480,12 @@
           "type": "shape",
           "name": "Curl Arrow",
           "position": {
-            "x": 830,
-            "y": 880
+            "x": 775.95,
+            "y": 825.24
           },
           "size": {
-            "width": 380,
-            "height": 440
+            "width": 355.26,
+            "height": 412.62
           },
           "rotation": 15,
           "scale": 1,
@@ -494,23 +494,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 8
+            "baseStrokeWidth": 7.48
           },
           "fillColor": "#EE5C9E",
           "strokeColor": "transparent",
-          "strokeWidth": 3.5
+          "strokeWidth": 3.27
         },
         {
           "id": "tpl_lxg_ab3_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 5,
-            "y": 800
+            "x": 4.67,
+            "y": 750.21
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.45,
@@ -532,12 +532,12 @@
           "type": "shape",
           "name": "Laurel Branches",
           "position": {
-            "x": 785,
-            "y": 2030
+            "x": 733.88,
+            "y": 1903.67
           },
           "size": {
-            "width": 540,
-            "height": 380
+            "width": 504.84,
+            "height": 356.35
           },
           "rotation": 0,
           "scale": 1,
@@ -555,17 +555,17 @@
           "type": "text",
           "name": "Rating Number",
           "position": {
-            "x": 905,
-            "y": 2070
+            "x": 846.07,
+            "y": 1941.18
           },
           "size": {
-            "width": 300,
-            "height": 170
+            "width": 280.47,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "4.8",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -577,17 +577,17 @@
           "type": "text",
           "name": "Rating Label",
           "position": {
-            "x": 905,
-            "y": 2240
+            "x": 846.07,
+            "y": 2100.6
           },
           "size": {
-            "width": 300,
-            "height": 100
+            "width": 280.47,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
           "content": "Ratings",
-          "fontSize": 18,
+          "fontSize": 16.83,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "600",
@@ -599,12 +599,12 @@
           "type": "shape",
           "name": "Gold Star 1",
           "position": {
-            "x": 915,
-            "y": 2340
+            "x": 855.42,
+            "y": 2194.38
           },
           "size": {
-            "width": 46,
-            "height": 46
+            "width": 43,
+            "height": 43.14
           },
           "rotation": 0,
           "scale": 1,
@@ -622,12 +622,12 @@
           "type": "shape",
           "name": "Gold Star 2",
           "position": {
-            "x": 973,
-            "y": 2340
+            "x": 909.64,
+            "y": 2194.38
           },
           "size": {
-            "width": 46,
-            "height": 46
+            "width": 43,
+            "height": 43.14
           },
           "rotation": 0,
           "scale": 1,
@@ -645,12 +645,12 @@
           "type": "shape",
           "name": "Gold Star 3",
           "position": {
-            "x": 1031,
-            "y": 2340
+            "x": 963.87,
+            "y": 2194.38
           },
           "size": {
-            "width": 46,
-            "height": 46
+            "width": 43,
+            "height": 43.14
           },
           "rotation": 0,
           "scale": 1,
@@ -668,12 +668,12 @@
           "type": "shape",
           "name": "Gold Star 4",
           "position": {
-            "x": 1089,
-            "y": 2340
+            "x": 1018.09,
+            "y": 2194.38
           },
           "size": {
-            "width": 46,
-            "height": 46
+            "width": 43,
+            "height": 43.14
           },
           "rotation": 0,
           "scale": 1,
@@ -691,12 +691,12 @@
           "type": "shape",
           "name": "Gold Star 5",
           "position": {
-            "x": 1147,
-            "y": 2340
+            "x": 1072.31,
+            "y": 2194.38
           },
           "size": {
-            "width": 46,
-            "height": 46
+            "width": 43,
+            "height": 43.14
           },
           "rotation": 0,
           "scale": 1,
@@ -714,12 +714,12 @@
           "type": "shape",
           "name": "Blob Bottom Right",
           "position": {
-            "x": 1130,
-            "y": 2520
+            "x": 1056.42,
+            "y": 2363.18
           },
           "size": {
-            "width": 300,
-            "height": 300
+            "width": 280.47,
+            "height": 281.33
           },
           "rotation": 0,
           "scale": 1,
@@ -742,8 +742,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#FBEDF3",
       "backgroundType": "solid",
@@ -754,17 +754,17 @@
           "type": "text",
           "name": "Headline Black",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 190
+            "width": 1028.37,
+            "height": 178.18
           },
           "rotation": 0,
           "scale": 1,
           "content": "EXCITING",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -776,17 +776,17 @@
           "type": "text",
           "name": "Headline Pink",
           "position": {
-            "x": 95,
-            "y": 370
+            "x": 88.81,
+            "y": 346.97
           },
           "size": {
-            "width": 1100,
-            "height": 320
+            "width": 1028.37,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "BEAUTY\nSURPRISES",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -798,12 +798,12 @@
           "type": "shape",
           "name": "Dot Top Left",
           "position": {
-            "x": 70,
-            "y": 70
+            "x": 65.44,
+            "y": 65.64
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -817,12 +817,12 @@
           "type": "shape",
           "name": "Pebble Top Left",
           "position": {
-            "x": -90,
-            "y": 150
+            "x": -84.14,
+            "y": 140.67
           },
           "size": {
-            "width": 260,
-            "height": 240
+            "width": 243.07,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
@@ -840,12 +840,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 60,
-            "y": 900
+            "x": 56.09,
+            "y": 843.99
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -867,12 +867,12 @@
           "type": "image",
           "name": "Shopper Photo",
           "position": {
-            "x": 720,
-            "y": 1310
+            "x": 673.12,
+            "y": 1228.48
           },
           "size": {
-            "width": 570,
-            "height": 1486
+            "width": 532.88,
+            "height": 1393.52
           },
           "rotation": 0,
           "scale": 1,
@@ -888,8 +888,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#FBEDF3",
       "backgroundType": "solid",
@@ -900,12 +900,12 @@
           "type": "shape",
           "name": "Dot Top Left",
           "position": {
-            "x": 70,
-            "y": 120
+            "x": 65.44,
+            "y": 112.53
           },
           "size": {
-            "width": 100,
-            "height": 100
+            "width": 93.49,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
@@ -919,12 +919,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 300,
-            "y": 420
+            "x": 280.47,
+            "y": 393.86
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 2,
           "scale": 1.45,
@@ -946,17 +946,17 @@
           "type": "text",
           "name": "Headline Black",
           "position": {
-            "x": 300,
-            "y": 2120
+            "x": 280.47,
+            "y": 1988.07
           },
           "size": {
-            "width": 920,
-            "height": 180
+            "width": 860.09,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "YOUR DAILY",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#161616",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -968,17 +968,17 @@
           "type": "text",
           "name": "Headline Pink",
           "position": {
-            "x": 440,
-            "y": 2310
+            "x": 411.35,
+            "y": 2166.24
           },
           "size": {
-            "width": 780,
-            "height": 330
+            "width": 729.21,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "DOSE OF\nBEAUTY",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#EE5C9E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -990,12 +990,12 @@
           "type": "shape",
           "name": "Blob Bottom Left",
           "position": {
-            "x": -140,
-            "y": 2380
+            "x": -130.88,
+            "y": 2231.89
           },
           "size": {
-            "width": 460,
-            "height": 420
+            "width": 430.05,
+            "height": 393.86
           },
           "rotation": 25,
           "scale": 1,
@@ -1013,12 +1013,12 @@
           "type": "shape",
           "name": "Dot Bottom Left",
           "position": {
-            "x": 300,
-            "y": 2640
+            "x": 280.47,
+            "y": 2475.71
           },
           "size": {
-            "width": 130,
-            "height": 130
+            "width": 121.53,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,

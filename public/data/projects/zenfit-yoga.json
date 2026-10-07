@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -24,17 +24,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 170
+      "x": 56.09,
+      "y": 159.42
      },
      "size": {
-      "width": 1170,
-      "height": 220
+      "width": 1093.81,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "Health",
-     "fontSize": 54,
+     "fontSize": 50.48,
      "color": "#14415E",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -46,17 +46,17 @@
      "type": "text",
      "name": "Subtitle",
      "position": {
-      "x": 60,
-      "y": 410
+      "x": 56.09,
+      "y": 384.48
      },
      "size": {
-      "width": 1170,
-      "height": 100
+      "width": 1093.81,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "Fitness Yoga App",
-     "fontSize": 25,
+     "fontSize": 23.37,
      "color": "#6E92A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -68,19 +68,19 @@
      "type": "shape",
      "name": "Backdrop blob",
      "position": {
-      "x": 190,
-      "y": 560
+      "x": 177.63,
+      "y": 525.15
      },
      "size": {
-      "width": 910,
-      "height": 800
+      "width": 850.74,
+      "height": 750.21
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E3F3FC",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 6 C61.4 5.92 78.15 18.92 84.64 30 C91.14 41.08 94.74 62.33 88.97 72.5 C83.2 82.67 62.7 91.17 50 91 C37.3 90.83 18.39 81.58 12.76 71.5 C7.13 61.42 10.02 41.42 16.23 30.5 C22.43 19.58 38.6 6.08 50 6 Z",
      "specialProps": {
@@ -92,19 +92,19 @@
      "type": "shape",
      "name": "Lotus flower",
      "position": {
-      "x": 470,
-      "y": 730
+      "x": 439.4,
+      "y": 684.57
      },
      "size": {
-      "width": 350,
-      "height": 350
+      "width": 327.21,
+      "height": 328.22
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 30 C57.52 -9.53 104.29 24.45 69.02 43.82 C108.94 38.76 91.07 93.74 61.76 66.18 C78.91 102.58 21.09 102.58 38.24 66.18 C8.93 93.74 -8.94 38.76 30.98 43.82 C-4.29 24.45 42.48 -9.53 50 30 Z",
      "specialProps": {
@@ -116,19 +116,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 300,
-      "y": 640
+      "x": 280.47,
+      "y": 600.17
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -140,19 +140,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 950,
-      "y": 1160
+      "x": 888.14,
+      "y": 1087.81
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 20,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -164,19 +164,19 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 1070,
-      "y": 470
+      "x": 1000.33,
+      "y": 440.75
      },
      "size": {
-      "width": 160,
-      "height": 160
+      "width": 149.58,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.35,
      "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
      "specialProps": {
@@ -189,19 +189,19 @@
      "type": "shape",
      "name": "Blue wave edge",
      "position": {
-      "x": -5,
-      "y": 1440
+      "x": -4.67,
+      "y": 1350.39
      },
      "size": {
-      "width": 1300,
-      "height": 520
+      "width": 1215.35,
+      "height": 487.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M0 26 C4.67 25.33 19.33 17 28 22 C36.67 27 43.67 55 52 56 C60.33 57 70 34.33 78 28 C86 21.67 96.33 19.67 100 18 L100 100 L0 100 Z",
      "specialProps": {
@@ -213,12 +213,12 @@
      "type": "shape",
      "name": "Blue fill",
      "position": {
-      "x": -5,
-      "y": 1930
+      "x": -4.67,
+      "y": 1809.89
      },
      "size": {
-      "width": 1300,
-      "height": 880
+      "width": 1215.35,
+      "height": 825.24
      },
      "rotation": 0,
      "scale": 1,
@@ -234,17 +234,17 @@
      "type": "text",
      "name": "Script line",
      "position": {
-      "x": 150,
-      "y": 1760
+      "x": 140.23,
+      "y": 1650.47
      },
      "size": {
-      "width": 860,
-      "height": 330
+      "width": 804,
+      "height": 309.46
      },
      "rotation": 0,
      "scale": 1,
      "content": "Best workouts\nfor you",
-     "fontSize": 36,
+     "fontSize": 33.66,
      "color": "#FFFFFF",
      "fontFamily": "Pacifico",
      "fontWeight": "400",
@@ -256,12 +256,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 950,
-      "y": 1640
+      "x": 888.14,
+      "y": 1537.94
      },
      "size": {
-      "width": 200,
-      "height": 200
+      "width": 186.98,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
@@ -276,19 +276,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 1000,
-      "y": 1690
+      "x": 934.88,
+      "y": 1584.83
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#EF6A52",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -300,12 +300,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 130,
-      "y": 1600
+      "x": 121.53,
+      "y": 1500.43
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
@@ -320,19 +320,19 @@
      "type": "shape",
      "name": "Bolt",
      "position": {
-      "x": 167,
-      "y": 1635
+      "x": 156.13,
+      "y": 1533.25
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
      "specialProps": {
@@ -344,12 +344,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 880,
-      "y": 2080
+      "x": 822.7,
+      "y": 1950.56
      },
      "size": {
-      "width": 160,
-      "height": 160
+      "width": 149.58,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
@@ -364,19 +364,19 @@
      "type": "shape",
      "name": "Flower",
      "position": {
-      "x": 917,
-      "y": 2117
+      "x": 857.29,
+      "y": 1985.26
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 30 C57.52 -9.53 104.29 24.45 69.02 43.82 C108.94 38.76 91.07 93.74 61.76 66.18 C78.91 102.58 21.09 102.58 38.24 66.18 C8.93 93.74 -8.94 38.76 30.98 43.82 C-4.29 24.45 42.48 -9.53 50 30 Z",
      "specialProps": {
@@ -388,12 +388,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 240,
-      "y": 2200
+      "x": 224.37,
+      "y": 2063.09
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -408,12 +408,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 1130,
-      "y": 1930
+      "x": 1056.42,
+      "y": 1809.89
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -428,12 +428,12 @@
      "type": "shape",
      "name": "Get started button",
      "position": {
-      "x": 445,
-      "y": 2400
+      "x": 416.02,
+      "y": 2250.64
      },
      "size": {
-      "width": 400,
-      "height": 130
+      "width": 373.95,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
@@ -442,24 +442,24 @@
      "strokeColor": "transparent",
      "strokeWidth": 0,
      "opacity": 1,
-     "borderRadius": 65
+     "borderRadius": 60.77
     },
     {
      "id": "zf_b1_btnt",
      "type": "text",
      "name": "Button label",
      "position": {
-      "x": 445,
-      "y": 2400
+      "x": 416.02,
+      "y": 2250.64
      },
      "size": {
-      "width": 400,
-      "height": 130
+      "width": 373.95,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "content": "Get started",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -476,8 +476,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -487,19 +487,19 @@
      "type": "shape",
      "name": "Backdrop blob",
      "position": {
-      "x": 100,
-      "y": 260
+      "x": 93.49,
+      "y": 243.82
      },
      "size": {
-      "width": 1090,
-      "height": 1240
+      "width": 1019.02,
+      "height": 1162.83
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E3F3FC",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 4 C60.1 4.17 73.09 21.67 79.44 33 C85.8 44.33 93.01 64.17 88.11 72 C83.2 79.83 62.99 79.83 50 80 C37.01 80.17 15.36 81 10.16 73 C4.97 65 12.18 43.5 18.82 32 C25.46 20.5 39.9 3.83 50 4 Z",
      "specialProps": {
@@ -511,19 +511,19 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 60,
-      "y": 170
+      "x": 56.09,
+      "y": 159.42
      },
      "size": {
-      "width": 180,
-      "height": 180
+      "width": 168.28,
+      "height": 168.8
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.3,
      "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
      "specialProps": {
@@ -536,19 +536,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1120,
-      "y": 250
+      "x": 1047.07,
+      "y": 234.44
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -560,12 +560,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 85,
-      "y": 1620
+      "x": 79.47,
+      "y": 1519.18
      },
      "size": {
-      "width": 170,
-      "height": 170
+      "width": 158.93,
+      "height": 159.42
      },
      "rotation": 0,
      "scale": 1,
@@ -580,19 +580,19 @@
      "type": "shape",
      "name": "User",
      "position": {
-      "x": 125,
-      "y": 1660
+      "x": 116.86,
+      "y": 1556.7
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M34 30 A16 16 0 1 0 66 30 A16 16 0 1 0 34 30 Z M18 88 C18 66 32 56 50 56 C68 56 82 66 82 88 Z",
      "specialProps": {
@@ -604,12 +604,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 1085,
-      "y": 520
+      "x": 1014.35,
+      "y": 487.64
      },
      "size": {
-      "width": 176,
-      "height": 176
+      "width": 164.54,
+      "height": 165.05
      },
      "rotation": 0,
      "scale": 1,
@@ -624,19 +624,19 @@
      "type": "shape",
      "name": "Heart",
      "position": {
-      "x": 1128,
-      "y": 562
+      "x": 1054.55,
+      "y": 527.03
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#EF6A52",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -648,12 +648,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 180,
-      "y": 330
+      "x": 168.28,
+      "y": 309.46
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -12,
      "scale": 1.55,
@@ -676,12 +676,12 @@
      "type": "shape",
      "name": "Blue block",
      "position": {
-      "x": -80,
-      "y": 2140
+      "x": -74.79,
+      "y": 2006.82
      },
      "size": {
-      "width": 1450,
-      "height": 800
+      "width": 1355.58,
+      "height": 750.21
      },
      "rotation": 0,
      "scale": 1,
@@ -690,24 +690,24 @@
      "strokeColor": "transparent",
      "strokeWidth": 0,
      "opacity": 1,
-     "borderRadius": 80
+     "borderRadius": 74.79
     },
     {
      "id": "zf_b2_h",
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 2260
+      "x": 56.09,
+      "y": 2119.36
      },
      "size": {
-      "width": 1170,
-      "height": 200
+      "width": 1093.81,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "Connect",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -719,17 +719,17 @@
      "type": "text",
      "name": "Subtitle",
      "position": {
-      "x": 60,
-      "y": 2490
+      "x": 56.09,
+      "y": 2335.04
      },
      "size": {
-      "width": 1170,
-      "height": 110
+      "width": 1093.81,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "with your body & mind",
-     "fontSize": 25,
+     "fontSize": 23.37,
      "color": "#E7F7FF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -741,19 +741,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1090,
-      "y": 2250
+      "x": 1019.02,
+      "y": 2109.98
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -765,19 +765,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 150,
-      "y": 2620
+      "x": 140.23,
+      "y": 2456.95
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.6,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -794,8 +794,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -805,17 +805,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 150
+      "x": 56.09,
+      "y": 140.67
      },
      "size": {
-      "width": 1170,
-      "height": 220
+      "width": 1093.81,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "Find",
-     "fontSize": 54,
+     "fontSize": 50.48,
      "color": "#14415E",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -827,17 +827,17 @@
      "type": "text",
      "name": "Subtitle",
      "position": {
-      "x": 60,
-      "y": 390
+      "x": 56.09,
+      "y": 365.73
      },
      "size": {
-      "width": 1170,
-      "height": 100
+      "width": 1093.81,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "your workout class",
-     "fontSize": 25,
+     "fontSize": 23.37,
      "color": "#6E92A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -849,19 +849,19 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 90,
-      "y": 550
+      "x": 84.14,
+      "y": 515.77
      },
      "size": {
-      "width": 140,
-      "height": 140
+      "width": 130.88,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.3,
      "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
      "specialProps": {
@@ -874,19 +874,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1120,
-      "y": 600
+      "x": 1047.07,
+      "y": 562.66
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -898,19 +898,19 @@
      "type": "shape",
      "name": "Blue wave edge",
      "position": {
-      "x": -5,
-      "y": 880
+      "x": -4.67,
+      "y": 825.24
      },
      "size": {
-      "width": 1300,
-      "height": 500
+      "width": 1215.35,
+      "height": 468.88
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M0 52 C3 47.67 11.67 25.67 18 26 C24.33 26.33 31 54.67 38 54 C45 53.33 52.67 22.67 60 22 C67.33 21.33 75.33 47.67 82 50 C88.67 52.33 97 38.33 100 36 L100 100 L0 100 Z",
      "specialProps": {
@@ -922,12 +922,12 @@
      "type": "shape",
      "name": "Blue fill",
      "position": {
-      "x": -5,
-      "y": 1360
+      "x": -4.67,
+      "y": 1275.36
      },
      "size": {
-      "width": 1300,
-      "height": 1436
+      "width": 1215.35,
+      "height": 1346.64
      },
      "rotation": 0,
      "scale": 1,
@@ -943,12 +943,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 80,
-      "y": 1500
+      "x": 74.79,
+      "y": 1406.65
      },
      "size": {
-      "width": 180,
-      "height": 180
+      "width": 168.28,
+      "height": 168.8
      },
      "rotation": 0,
      "scale": 1,
@@ -963,19 +963,19 @@
      "type": "shape",
      "name": "Magnifier",
      "position": {
-      "x": 123,
-      "y": 1543
+      "x": 114.99,
+      "y": 1446.98
      },
      "size": {
-      "width": 94,
-      "height": 94
+      "width": 87.88,
+      "height": 88.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M16 42 A26 26 0 1 0 68 42 A26 26 0 1 0 16 42 Z M26 42 A16 16 0 1 0 58 42 A16 16 0 1 0 26 42 Z M60 68 L68 60 L92 84 L84 92 Z",
      "specialProps": {
@@ -988,12 +988,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 1050,
-      "y": 1900
+      "x": 981.63,
+      "y": 1781.76
      },
      "size": {
-      "width": 170,
-      "height": 170
+      "width": 158.93,
+      "height": 159.42
      },
      "rotation": 0,
      "scale": 1,
@@ -1008,19 +1008,19 @@
      "type": "shape",
      "name": "Calendar",
      "position": {
-      "x": 1091,
-      "y": 1941
+      "x": 1019.96,
+      "y": 1820.21
      },
      "size": {
-      "width": 88,
-      "height": 88
+      "width": 82.27,
+      "height": 82.52
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M16 16 H84 A8 8 0 0 1 92 24 V84 A8 8 0 0 1 84 92 H16 A8 8 0 0 1 8 84 V24 A8 8 0 0 1 16 16 ZM28 6 H36 V22 H28 ZM64 6 H72 V22 H64 ZM14 36 H86 V42 H14 ZM22 52 H30 V60 H22 ZM38 52 H46 V60 H38 ZM54 52 H62 V60 H54 ZM70 52 H78 V60 H70 ZM22 68 H30 V76 H22 ZM38 68 H46 V76 H38 Z",
      "specialProps": {
@@ -1033,12 +1033,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 170,
-      "y": 2350
+      "x": 158.93,
+      "y": 2203.76
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -1053,12 +1053,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 1140,
-      "y": 1310
+      "x": 1065.77,
+      "y": 1228.48
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -1073,12 +1073,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 165,
-      "y": 700
+      "x": 154.26,
+      "y": 656.44
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.6,
@@ -1106,8 +1106,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -1117,19 +1117,19 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 80,
-      "y": 150
+      "x": 74.79,
+      "y": 140.67
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.35,
      "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
      "specialProps": {
@@ -1142,19 +1142,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1150,
-      "y": 120
+      "x": 1075.12,
+      "y": 112.53
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1166,19 +1166,19 @@
      "type": "shape",
      "name": "Blue ribbon",
      "position": {
-      "x": -80,
-      "y": 1050
+      "x": -74.79,
+      "y": 984.66
      },
      "size": {
-      "width": 1450,
-      "height": 620
+      "width": 1355.58,
+      "height": 581.42
      },
      "rotation": -18,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M0 36 Q12.5 16 25 36 Q37.5 56 50 36 Q62.5 16 75 36 Q87.5 56 100 36 L100 62 Q87.5 82 75 62 Q62.5 42 50 62 Q37.5 82 25 62 Q12.5 42 0 62 Z",
      "specialProps": {
@@ -1190,12 +1190,12 @@
      "type": "device",
      "name": "Phone back",
      "position": {
-      "x": 350,
-      "y": 300
+      "x": 327.21,
+      "y": 281.33
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 10,
      "scale": 1.26,
@@ -1218,12 +1218,12 @@
      "type": "device",
      "name": "Phone front",
      "position": {
-      "x": 120,
-      "y": 580
+      "x": 112.19,
+      "y": 543.91
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -10,
      "scale": 1.36,
@@ -1246,12 +1246,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 1150,
-      "y": 1780
+      "x": 1075.12,
+      "y": 1669.23
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
@@ -1266,12 +1266,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 90,
-      "y": 2160
+      "x": 84.14,
+      "y": 2025.58
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -1286,17 +1286,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 2360
+      "x": 56.09,
+      "y": 2213.13
      },
      "size": {
-      "width": 1170,
-      "height": 200
+      "width": 1093.81,
+      "height": 187.55
      },
      "rotation": 0,
      "scale": 1,
      "content": "Choose",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#14415E",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1308,17 +1308,17 @@
      "type": "text",
      "name": "Subtitle",
      "position": {
-      "x": 60,
-      "y": 2580
+      "x": 56.09,
+      "y": 2419.44
      },
      "size": {
-      "width": 1170,
-      "height": 100
+      "width": 1093.81,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "multiple exercises",
-     "fontSize": 25,
+     "fontSize": 23.37,
      "color": "#6E92A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1335,8 +1335,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#2FB0E8",
    "zoom": 1,
@@ -1352,17 +1352,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 150
+      "x": 56.09,
+      "y": 140.67
      },
      "size": {
-      "width": 1170,
-      "height": 220
+      "width": 1093.81,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "Monitor",
-     "fontSize": 54,
+     "fontSize": 50.48,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1374,17 +1374,17 @@
      "type": "text",
      "name": "Subtitle",
      "position": {
-      "x": 60,
-      "y": 390
+      "x": 56.09,
+      "y": 365.73
      },
      "size": {
-      "width": 1170,
-      "height": 100
+      "width": 1093.81,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "all your activities",
-     "fontSize": 25,
+     "fontSize": 23.37,
      "color": "#E7F7FF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1396,19 +1396,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 1120,
-      "y": 290
+      "x": 1047.07,
+      "y": 271.95
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.85,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1420,19 +1420,19 @@
      "type": "shape",
      "name": "Sparkle",
      "position": {
-      "x": 140,
-      "y": 680
+      "x": 130.88,
+      "y": 637.68
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.7,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1444,19 +1444,19 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 60,
-      "y": 480
+      "x": 56.09,
+      "y": 450.13
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.3,
      "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M20 50 A30 30 0 1 0 80 50 A30 30 0 1 0 20 50 Z",
      "specialProps": {
@@ -1469,19 +1469,19 @@
      "type": "shape",
      "name": "White wave edge",
      "position": {
-      "x": -5,
-      "y": 1750
+      "x": -4.67,
+      "y": 1641.09
      },
      "size": {
-      "width": 1300,
-      "height": 450
+      "width": 1215.35,
+      "height": 422
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M0 52 C3 47.67 11.67 25.67 18 26 C24.33 26.33 31 54.67 38 54 C45 53.33 52.67 22.67 60 22 C67.33 21.33 75.33 47.67 82 50 C88.67 52.33 97 38.33 100 36 L100 100 L0 100 Z",
      "specialProps": {
@@ -1493,12 +1493,12 @@
      "type": "shape",
      "name": "White fill",
      "position": {
-      "x": -5,
-      "y": 2180
+      "x": -4.67,
+      "y": 2044.33
      },
      "size": {
-      "width": 1300,
-      "height": 630
+      "width": 1215.35,
+      "height": 590.79
      },
      "rotation": 0,
      "scale": 1,
@@ -1514,12 +1514,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 85,
-      "y": 1180
+      "x": 79.47,
+      "y": 1106.57
      },
      "size": {
-      "width": 170,
-      "height": 170
+      "width": 158.93,
+      "height": 159.42
      },
      "rotation": 0,
      "scale": 1,
@@ -1534,19 +1534,19 @@
      "type": "shape",
      "name": "Chart",
      "position": {
-      "x": 126,
-      "y": 1221
+      "x": 117.8,
+      "y": 1145.02
      },
      "size": {
-      "width": 88,
-      "height": 88
+      "width": 82.27,
+      "height": 82.52
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#2FB0E8",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M14 56 H30 V90 H14 ZM42 36 H58 V90 H42 ZM70 14 H86 V90 H70 Z",
      "specialProps": {
@@ -1558,12 +1558,12 @@
      "type": "shape",
      "name": "Bubble",
      "position": {
-      "x": 1060,
-      "y": 1500
+      "x": 990.98,
+      "y": 1406.65
      },
      "size": {
-      "width": 160,
-      "height": 160
+      "width": 149.58,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
@@ -1578,19 +1578,19 @@
      "type": "shape",
      "name": "Bolt",
      "position": {
-      "x": 1100,
-      "y": 1538
+      "x": 1028.37,
+      "y": 1442.29
      },
      "size": {
-      "width": 84,
-      "height": 84
+      "width": 78.53,
+      "height": 78.77
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#EF6A52",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 1,
      "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
      "specialProps": {
@@ -1602,12 +1602,12 @@
      "type": "shape",
      "name": "Dot",
      "position": {
-      "x": 1150,
-      "y": 900
+      "x": 1075.12,
+      "y": 843.99
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -1622,12 +1622,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 165,
-      "y": 640
+      "x": 154.26,
+      "y": 600.17
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.6,

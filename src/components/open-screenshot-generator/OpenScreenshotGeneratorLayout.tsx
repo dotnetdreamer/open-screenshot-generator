@@ -87,7 +87,7 @@ import { createProjectSaveQueue } from '@/lib/projectSaveQueue';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
-import { ALL_CANVAS_SIZE_PRESETS, canvasSizeSlug } from '@/lib/sizePresets';
+import { ALL_CANVAS_SIZE_PRESETS, DEFAULT_CANVAS_SIZE, canvasSizeSlug } from '@/lib/sizePresets';
 import { artboardBackground, normalizeBackgroundImage } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
@@ -339,7 +339,7 @@ const ALIGN_HISTORY_LABELS: Record<AlignEdge, string> = {
 /**
  * How far one arrow key moves the selection, in artboard pixels.
  *
- * A store screenshot is around 1290 pixels across, so a single pixel is a
+ * A store screenshot is around 1200 pixels across, so a single pixel is a
  * hairline and Shift is what makes the key useful for real spacing.
  */
 const NUDGE_STEP = 1;
@@ -597,7 +597,7 @@ function hasAgentPanelSelection(): boolean {
 
 // A one-artboard "Blank Canvas" project at the given size. `size` follows the
 // active template tab so a blank Feature Graphic is 1024×500, not a phone.
-function createBlankProject(size: Size = { width: 1290, height: 2796 }): Project {
+function createBlankProject(size: Size = { ...DEFAULT_CANVAS_SIZE }): Project {
   return {
     id: 'blank',
     name: 'Blank Canvas',
@@ -3489,7 +3489,7 @@ export function OpenScreenshotGeneratorLayout() {
         return activeAb.size;
       }
     }
-    return artboards.length > 0 ? artboards[0].size : { width: 1290, height: 2796 }; // Updated default size
+    return artboards.length > 0 ? artboards[0].size : { ...DEFAULT_CANVAS_SIZE };
   };
 
   /** Anything about a new board that is not the default blank one. */
@@ -3510,8 +3510,7 @@ export function OpenScreenshotGeneratorLayout() {
   // already exists, and deleting the last artboard is refused.)
   const handleAddNewArtboardAfter = (currentArtboardId: string | null, options: NewArtboardOptions = {}) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
-    const defaultSize = { width: 1290, height: 2796 }; // Updated default size
-    const newSize = currentArtboard ? currentArtboard.size : defaultSize;
+    const newSize = currentArtboard ? currentArtboard.size : { ...DEFAULT_CANVAS_SIZE };
 
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
@@ -5647,7 +5646,7 @@ export function OpenScreenshotGeneratorLayout() {
       }
 
       // Arrow keys nudge the selection. Shift takes the bigger step, which is
-      // what makes the key usable on a board 1290 pixels across.
+      // what makes the key usable on a board 1206 pixels across.
       const nudge = NUDGE_DIRECTIONS[e.key];
       if (nudge && selectedElementIdsRef.current.length > 0) {
         // A Radix select, menu or dialog has focus on a plain div, so the
@@ -7859,7 +7858,7 @@ const generateRandomProjectName = (): string => {
       return ab ? { ...ab, active: ab.id === activeArtboardId } : null;
     },
     createArtboard: ({ name, width, height, preset, backgroundColor }) => {
-      let size: Size = { width: 1290, height: 2796 };
+      let size: Size = { ...DEFAULT_CANVAS_SIZE };
       if (preset) {
         const p = ALL_CANVAS_SIZE_PRESETS.find((x) => x.id === preset);
         if (p) size = { width: p.width, height: p.height };

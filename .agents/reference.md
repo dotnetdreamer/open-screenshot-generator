@@ -138,7 +138,7 @@ Each `TemplateCategory` is one tab. `defaultSize` is what "Start blank" produces
 
 | id | Tab label | Filename prefix | defaultSize | Files |
 |---|---|---|---|---|
-| `screenshots` | App Screenshots | none (`tunio-music.json`) | 1290 x 2796 | 57 |
+| `screenshots` | App Screenshots | none (`tunio-music.json`) | 1206 x 2622 | 62 |
 | `apple-watch` | Apple Watch | `watch-*` | 422 x 514 | 6 |
 | `mac` | Mac | `mac-*` | 2560 x 1600 | 12 |
 | `app-preview` | App Preview Videos | `pv-*` | 886 x 1920 | 6 |
@@ -832,7 +832,7 @@ The palette's fourth tab drops an **artboard**, not a layer. [previewScenes.ts](
 
 - **Nothing may share a position and take turns in time.** Animations do not play on the canvas or in a PNG still: every layer is drawn at rest, all at once. Three headlines swapping in one spot look perfect in the MP4 and like a smear everywhere else, which is the first thing a user sees. Time brings layers IN; it never swaps two over the same pixels.
 - **Copy carries its own contrast.** The store-legal export (`rawRecordingOnly` + `keepOverlays`) throws away backgrounds, frames and decoration and composites only `text` and `gesture` layers over the full-bleed recording, so every text layer ships a drop shadow (`SHADOW_ON_LIGHT_TEXT` / `SHADOW_ON_DARK_TEXT`).
-- **Drawn at 886x1920, fitted to the project.** `previewSceneSizeFor` keeps the board size the canvas already uses when the aspect is within 25% of the scene's (every portrait phone canvas is; 1290x2796 is a 0.02% drift), else falls back to Apple's size. `scaleSceneElement` scales positions, sizes, `fontSize`, `letterSpacing`, radii, stroke, shadow and blur; `lineHeight`, `scale`, `innerRadius` and animation timings are ratios and are left alone.
+- **Drawn at 886x1920, fitted to the project.** `previewSceneSizeFor` keeps the board size the canvas already uses when the aspect is within 25% of the scene's (every portrait phone canvas is; 1206x2622 is a 0.3% drift), else falls back to Apple's size. `scaleSceneElement` scales positions, sizes, `fontSize`, `letterSpacing`, radii, stroke, shadow and blur; `lineHeight`, `scale`, `innerRadius` and animation timings are ratios and are left alone.
 - **18 seconds** (`PREVIEW_SCENE_DURATION` on `previewDurationSeconds`), inside Apple's 15 to 30 window.
 - Text boxes are measured, never guessed: `estimateLines` counts explicit newlines **and** soft wraps (`ADVANCE_SANS` 0.54 em, `ADVANCE_CONDENSED` 0.46 for Anton/Bebas), so a label that overflows grows its box instead of being clipped. Composition blocks (`copyStack`, `chip`, `quoteCard`, `step`, `statBlock`, `cta`) all stack from those measurements.
 - Lanes keep floating cards and gesture rings apart: cards take `CLASSIC_CARD_LANE_A`/`_B`, gestures take 610 and 1120, two per scene, offset from the centre line. A gesture renders as a ring at rest, so a column of three reads as target practice.
@@ -880,7 +880,7 @@ The MCP tool path is separate: `captureArtboardForMcp` uses the same recipe but 
 1. **Rasterize once.** Each element becomes a `Layer`: `{kind:'sprite'|'video'|'device-video'|'gesture'}`. Sprites come from `captureSprite` (`toPng` at `pixelRatio: 1`, `SPRITE_FILTER` drops `data-export-exclude`, `data-interaction-handle`, `data-screen-video`). This whole phase dispatches its own `artboard:export` begin/end pair (same 100ms wait), so 3D devices supersample for the sprite pass too.
 2. **Composite per frame.** 2D canvas, `VideoFrame` -> `VideoEncoder` (WebCodecs) -> `Muxer`/`ArrayBufferTarget` from `mp4-muxer` (^5.2.2), `codec: 'avc'`, `fastStart: 'in-memory'`, `firstTimestampBehavior: 'offset'`. Codec picked by walking `H264_CODEC_CANDIDATES` through `VideoEncoder.isConfigSupported`. Output dims forced even (`Math.max(2, Math.floor(n/2)*2)`), bitrate default `12_000_000`, keyframe every `fps * 2` frames, backpressure at `encodeQueueSize > 4`.
 
-Positioning conventions: artboard space is the drawing space. `coverScale = Math.max(outW/w, outH/h)` with centering offsets, so a 1290x2796 board fills an 886x1920 export edge to edge. `withElementTransform` re-applies `position + boxW/2 + anim.dx`, `rotation`, `anim.scale` around the box center. `slideDistance = artboard.size.height * 0.05`.
+Positioning conventions: artboard space is the drawing space. `coverScale = Math.max(outW/w, outH/h)` with centering offsets, so a 1206x2622 board fills an 886x1920 export edge to edge. `withElementTransform` re-applies `position + boxW/2 + anim.dx`, `rotation`, `anim.scale` around the box center. `slideDistance = artboard.size.height * 0.05`.
 
 Timing helpers: [animation.ts](../src/lib/video/animation.ts) `animationStateAt(anim, t, slideDistance) -> { visible, opacity, dx, dy, scale }` (exit wins once `t >= exitStart`; `ENTER_DURATION_DEFAULT`/`EXIT_DURATION_DEFAULT` are 0.6). [gestures.ts](../src/lib/video/gestures.ts) `gesturePhaseAt` / `drawGesture` / `gestureEndTime` (`GESTURE_DURATION_DEFAULT` 1.2, `GESTURE_TRIGGER_DEFAULT` 0.5). An idle canvas loops gestures forever via CSS; the export — and the live player below — plays once at `triggerTime` unless `gestureRepeat`.
 
@@ -1471,7 +1471,7 @@ in the commit error; the client retries with `changesNotSentForReview=true` and 
   Console, or the Android Developer API is not enabled. Play 404 means a package typo or an app that
   has never been published, since Play refuses API edits before the first release.
 - **Play's size rule blocks the iPhone canvas.** Every side 320 to 3840 px, long side at most twice
-  the short side, 8 MB max. 1290x2796 is 2.17:1 and Play rejects it, so the dialog flags the board
+  the short side, 8 MB max. 1206x2622 is 2.17:1 and Play rejects it, so the dialog flags the board
   and the Size dropdown converts to 1080x1920. That rule is Google's, verified in their docs, not a
   guess to relax.
 - **Credentials are localStorage, unencrypted**, like the AI keys and the account session. The key is

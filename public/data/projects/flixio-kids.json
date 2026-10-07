@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0A0A0A",
       "zoom": 1,
@@ -24,12 +24,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 330,
-            "y": 700
+            "x": 308.51,
+            "y": 656.44
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -25,
           "scale": 1.7,
@@ -52,17 +52,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 90
+            "x": 65.44,
+            "y": 84.4
           },
           "size": {
-            "width": 850,
-            "height": 430
+            "width": 794.65,
+            "height": 403.24
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stream\nMovies",
-          "fontSize": 52,
+          "fontSize": 48.61,
           "color": "#E1251B",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -79,8 +79,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0A0A0A",
       "zoom": 1,
@@ -90,12 +90,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": -80,
-            "y": -200
+            "x": -74.79,
+            "y": -187.55
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 28,
           "scale": 1.75,
@@ -118,24 +118,24 @@
           "type": "shape",
           "name": "Arrow",
           "position": {
-            "x": 780,
-            "y": 80
+            "x": 729.21,
+            "y": 75.02
           },
           "size": {
-            "width": 440,
-            "height": 300
+            "width": 411.35,
+            "height": 281.33
           },
           "rotation": 15,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 6,
+          "strokeWidth": 5.61,
           "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 10
+            "baseStrokeWidth": 9.35
           }
         },
         {
@@ -143,17 +143,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 2150
+            "x": 65.44,
+            "y": 2016.2
           },
           "size": {
-            "width": 850,
-            "height": 430
+            "width": 794.65,
+            "height": 403.24
           },
           "rotation": 0,
           "scale": 1,
           "content": "Watch\ncontent",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#E1251B",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -170,8 +170,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0A0A0A",
       "zoom": 1,
@@ -181,12 +181,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 225,
-            "y": 300
+            "x": 210.35,
+            "y": 281.33
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.4,
@@ -209,24 +209,24 @@
           "type": "shape",
           "name": "Arrow",
           "position": {
-            "x": 30,
-            "y": 560
+            "x": 28.05,
+            "y": 525.15
           },
           "size": {
-            "width": 440,
-            "height": 340
+            "width": 411.35,
+            "height": 318.84
           },
           "rotation": 190,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 6,
+          "strokeWidth": 5.61,
           "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 10
+            "baseStrokeWidth": 9.35
           }
         },
         {
@@ -234,17 +234,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 95,
-            "y": 2150
+            "x": 88.81,
+            "y": 2016.2
           },
           "size": {
-            "width": 1100,
-            "height": 430
+            "width": 1028.37,
+            "height": 403.24
           },
           "rotation": 0,
           "scale": 1,
           "content": "Discover\nContent",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#E1251B",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -261,8 +261,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0A0A0A",
       "zoom": 1,
@@ -272,12 +272,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 265,
-            "y": 340
+            "x": 247.74,
+            "y": 318.84
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 8,
           "scale": 1.4,
@@ -305,8 +305,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0A0A0A",
       "zoom": 1,
@@ -316,12 +316,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 265,
-            "y": 300
+            "x": 247.74,
+            "y": 281.33
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.4,
@@ -344,17 +344,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 95,
-            "y": 2150
+            "x": 88.81,
+            "y": 2016.2
           },
           "size": {
-            "width": 1100,
-            "height": 430
+            "width": 1028.37,
+            "height": 403.24
           },
           "rotation": 0,
           "scale": 1,
           "content": "Save to\nwatch",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#E1251B",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",

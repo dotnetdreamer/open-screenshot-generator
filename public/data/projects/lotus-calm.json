@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#EFD3C8",
    "backgroundType": "gradient",
@@ -30,12 +30,12 @@
      "type": "shape",
      "name": "hill-back",
      "position": {
-      "x": -60,
-      "y": 2100
+      "x": -56.09,
+      "y": 1969.31
      },
      "size": {
-      "width": 1400,
-      "height": 640
+      "width": 1308.84,
+      "height": 600.17
      },
      "rotation": 0,
      "scale": 1,
@@ -54,12 +54,12 @@
      "type": "shape",
      "name": "hill fill",
      "position": {
-      "x": -60,
-      "y": 2480
+      "x": -56.09,
+      "y": 2325.67
      },
      "size": {
-      "width": 1400,
-      "height": 330
+      "width": 1308.84,
+      "height": 309.46
      },
      "rotation": 0,
      "scale": 1,
@@ -74,12 +74,12 @@
      "type": "shape",
      "name": "hill-front",
      "position": {
-      "x": -60,
-      "y": 2280
+      "x": -56.09,
+      "y": 2138.11
      },
      "size": {
-      "width": 1400,
-      "height": 620
+      "width": 1308.84,
+      "height": 581.42
      },
      "rotation": 0,
      "scale": 1,
@@ -98,12 +98,12 @@
      "type": "shape",
      "name": "hill fill",
      "position": {
-      "x": -60,
-      "y": 2650
+      "x": -56.09,
+      "y": 2485.09
      },
      "size": {
-      "width": 1400,
-      "height": 160
+      "width": 1308.84,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
@@ -118,25 +118,25 @@
      "type": "shape",
      "name": "bird",
      "position": {
-      "x": 1000,
-      "y": 170
+      "x": 934.88,
+      "y": 159.42
      },
      "size": {
-      "width": 70,
-      "height": 40
+      "width": 65.44,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#8a8577",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -144,25 +144,25 @@
      "type": "shape",
      "name": "bird",
      "position": {
-      "x": 1090,
-      "y": 240
+      "x": 1019.02,
+      "y": 225.06
      },
      "size": {
-      "width": 55,
-      "height": 32
+      "width": 51.42,
+      "height": 30.01
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#8a8577",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -170,25 +170,25 @@
      "type": "shape",
      "name": "ghost-phone",
      "position": {
-      "x": 480,
-      "y": 500
+      "x": 448.74,
+      "y": 468.88
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 8,
      "scale": 1.5,
      "shapeType": "custom-svg",
      "fillColor": "#8C8570",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M14 2 H86 Q98 2 98 14 V186 Q98 198 86 198 H14 Q2 198 2 186 V14 Q2 2 14 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 200",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -196,12 +196,12 @@
      "type": "device",
      "name": "phone",
      "position": {
-      "x": 660,
-      "y": 330
+      "x": 617.02,
+      "y": 309.46
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 8,
      "scale": 1.5,
@@ -224,12 +224,12 @@
      "type": "shape",
      "name": "app-icon",
      "position": {
-      "x": 90,
-      "y": 130
+      "x": 84.14,
+      "y": 121.91
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
@@ -248,12 +248,12 @@
      "type": "shape",
      "name": "lotus",
      "position": {
-      "x": 117,
-      "y": 158
+      "x": 109.38,
+      "y": 148.17
      },
      "size": {
-      "width": 95,
-      "height": 95
+      "width": 88.81,
+      "height": 89.09
      },
      "rotation": 0,
      "scale": 1,
@@ -272,17 +272,17 @@
      "type": "text",
      "name": "headline-glow",
      "position": {
-      "x": 96,
-      "y": 906
+      "x": 89.75,
+      "y": 849.62
      },
      "size": {
-      "width": 620,
-      "height": 640
+      "width": 579.63,
+      "height": 600.17
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your\nIntro\nText",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#FFFFFF",
      "fontFamily": "DM Serif Display",
      "fontWeight": "400",
@@ -294,17 +294,17 @@
      "type": "text",
      "name": "headline",
      "position": {
-      "x": 90,
-      "y": 900
+      "x": 84.14,
+      "y": 843.99
      },
      "size": {
-      "width": 620,
-      "height": 640
+      "width": 579.63,
+      "height": 600.17
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your\nIntro\nText",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#4B4433",
      "fontFamily": "DM Serif Display",
      "fontWeight": "400",
@@ -316,12 +316,12 @@
      "type": "shape",
      "name": "laurel-l",
      "position": {
-      "x": 110,
-      "y": 2320
+      "x": 102.84,
+      "y": 2175.62
      },
      "size": {
-      "width": 200,
-      "height": 280
+      "width": 186.98,
+      "height": 262.58
      },
      "rotation": 0,
      "scale": 1,
@@ -340,12 +340,12 @@
      "type": "shape",
      "name": "laurel-r",
      "position": {
-      "x": 430,
-      "y": 2320
+      "x": 402,
+      "y": 2175.62
      },
      "size": {
-      "width": 200,
-      "height": 280
+      "width": 186.98,
+      "height": 262.58
      },
      "rotation": 0,
      "scale": 1,
@@ -364,17 +364,17 @@
      "type": "text",
      "name": "badge-title",
      "position": {
-      "x": 230,
-      "y": 2360
+      "x": 215.02,
+      "y": 2213.13
      },
      "size": {
-      "width": 280,
-      "height": 160
+      "width": 261.77,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "APP OF\nTHE DAY",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#FFFFFF",
      "fontFamily": "DM Serif Display",
      "fontWeight": "400",
@@ -386,17 +386,17 @@
      "type": "text",
      "name": "badge-year",
      "position": {
-      "x": 290,
-      "y": 2530
+      "x": 271.12,
+      "y": 2372.55
      },
      "size": {
-      "width": 160,
-      "height": 60
+      "width": 149.58,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "2026",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#FFFFFF",
      "fontFamily": "Noto Sans",
      "fontWeight": "400",
@@ -413,8 +413,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F0D8CE",
    "backgroundType": "gradient",
@@ -430,25 +430,25 @@
      "type": "shape",
      "name": "bird",
      "position": {
-      "x": 150,
-      "y": 280
+      "x": 140.23,
+      "y": 262.58
      },
      "size": {
-      "width": 70,
-      "height": 40
+      "width": 65.44,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#8a8577",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -456,25 +456,25 @@
      "type": "shape",
      "name": "bird",
      "position": {
-      "x": 260,
-      "y": 230
+      "x": 243.07,
+      "y": 215.69
      },
      "size": {
-      "width": 55,
-      "height": 32
+      "width": 51.42,
+      "height": 30.01
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#8a8577",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -482,25 +482,25 @@
      "type": "shape",
      "name": "bird",
      "position": {
-      "x": 210,
-      "y": 360
+      "x": 196.33,
+      "y": 337.6
      },
      "size": {
-      "width": 45,
-      "height": 26
+      "width": 42.07,
+      "height": 24.38
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#8a8577",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M10 60 Q30 35 50 55 Q70 35 90 60",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -508,25 +508,25 @@
      "type": "shape",
      "name": "ghost-phone",
      "position": {
-      "x": 560,
-      "y": 200
+      "x": 523.53,
+      "y": 187.55
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 16,
      "scale": 1.6,
      "shapeType": "custom-svg",
      "fillColor": "#8C8570",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "opacity": 0.8,
      "customPath": "M14 2 H86 Q98 2 98 14 V186 Q98 198 86 198 H14 Q2 198 2 186 V14 Q2 2 14 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 200",
       "strokeOnly": true,
-      "baseStrokeWidth": 1
+      "baseStrokeWidth": 0.93
      }
     },
     {
@@ -534,12 +534,12 @@
      "type": "device",
      "name": "phone",
      "position": {
-      "x": 30,
-      "y": 560
+      "x": 28.05,
+      "y": 525.15
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -8,
      "scale": 1.6,
@@ -567,8 +567,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FDF7EA",
    "zoom": 1,
@@ -578,12 +578,12 @@
      "type": "shape",
      "name": "sprig",
      "position": {
-      "x": -40,
-      "y": 2540
+      "x": -37.4,
+      "y": 2381.93
      },
      "size": {
-      "width": 360,
-      "height": 300
+      "width": 336.56,
+      "height": 281.33
      },
      "rotation": -15,
      "scale": 1,
@@ -602,17 +602,17 @@
      "type": "text",
      "name": "heading",
      "position": {
-      "x": 145,
-      "y": 170
+      "x": 135.56,
+      "y": 159.42
      },
      "size": {
-      "width": 1000,
-      "height": 220
+      "width": 934.88,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "Heading Text",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#4B4433",
      "fontFamily": "DM Serif Display",
      "fontWeight": "400",
@@ -624,17 +624,17 @@
      "type": "text",
      "name": "sub",
      "position": {
-      "x": 95,
-      "y": 380
+      "x": 88.81,
+      "y": 356.35
      },
      "size": {
-      "width": 1100,
-      "height": 230
+      "width": 1028.37,
+      "height": 215.69
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your longer subheading text\ngoes here",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#6B6355",
      "fontFamily": "Noto Sans",
      "fontWeight": "400",
@@ -646,12 +646,12 @@
      "type": "device",
      "name": "phone",
      "position": {
-      "x": 210,
-      "y": 660
+      "x": 196.33,
+      "y": 618.93
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.45,
@@ -679,8 +679,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F8F2D5",
    "zoom": 1,
@@ -690,25 +690,25 @@
      "type": "shape",
      "name": "waves",
      "position": {
-      "x": 435,
-      "y": 2600
+      "x": 406.67,
+      "y": 2438.2
      },
      "size": {
-      "width": 420,
-      "height": 160
+      "width": 392.65,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E4D372",
      "strokeColor": "transparent",
-     "strokeWidth": 5,
+     "strokeWidth": 4.67,
      "opacity": 1,
      "customPath": "M0 14 Q10 2 20 14 Q30 26 40 14 Q50 2 60 14 Q70 26 80 14 Q90 2 100 14 M0 38 Q10 26 20 38 Q30 50 40 38 Q50 26 60 38 Q70 50 80 38 Q90 26 100 38 M0 62 Q10 50 20 62 Q30 74 40 62 Q50 50 60 62 Q70 74 80 62 Q90 50 100 62 M0 86 Q10 74 20 86 Q30 98 40 86 Q50 74 60 86 Q70 98 80 86 Q90 74 100 86",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 6
+      "baseStrokeWidth": 5.61
      }
     },
     {
@@ -716,17 +716,17 @@
      "type": "text",
      "name": "heading",
      "position": {
-      "x": 145,
-      "y": 170
+      "x": 135.56,
+      "y": 159.42
      },
      "size": {
-      "width": 1000,
-      "height": 220
+      "width": 934.88,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "Heading Text",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#4B4433",
      "fontFamily": "DM Serif Display",
      "fontWeight": "400",
@@ -738,17 +738,17 @@
      "type": "text",
      "name": "sub",
      "position": {
-      "x": 95,
-      "y": 380
+      "x": 88.81,
+      "y": 356.35
      },
      "size": {
-      "width": 1100,
-      "height": 230
+      "width": 1028.37,
+      "height": 215.69
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your longer subheading text\ngoes here",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#6B6355",
      "fontFamily": "Noto Sans",
      "fontWeight": "400",
@@ -760,12 +760,12 @@
      "type": "device",
      "name": "phone",
      "position": {
-      "x": 210,
-      "y": 660
+      "x": 196.33,
+      "y": 618.93
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.45,
@@ -793,8 +793,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FAE7E3",
    "zoom": 1,
@@ -804,12 +804,12 @@
      "type": "shape",
      "name": "sprig",
      "position": {
-      "x": 1000,
-      "y": 2480
+      "x": 934.88,
+      "y": 2325.67
      },
      "size": {
-      "width": 380,
-      "height": 320
+      "width": 355.26,
+      "height": 300.09
      },
      "rotation": 160,
      "scale": 1,
@@ -828,17 +828,17 @@
      "type": "text",
      "name": "heading",
      "position": {
-      "x": 145,
-      "y": 170
+      "x": 135.56,
+      "y": 159.42
      },
      "size": {
-      "width": 1000,
-      "height": 220
+      "width": 934.88,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "content": "Heading Text",
-     "fontSize": 42,
+     "fontSize": 39.27,
      "color": "#4B4433",
      "fontFamily": "DM Serif Display",
      "fontWeight": "400",
@@ -850,17 +850,17 @@
      "type": "text",
      "name": "sub",
      "position": {
-      "x": 95,
-      "y": 380
+      "x": 88.81,
+      "y": 356.35
      },
      "size": {
-      "width": 1100,
-      "height": 230
+      "width": 1028.37,
+      "height": 215.69
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your longer subheading text\ngoes here",
-     "fontSize": 21,
+     "fontSize": 19.63,
      "color": "#6B6355",
      "fontFamily": "Noto Sans",
      "fontWeight": "400",
@@ -872,12 +872,12 @@
      "type": "device",
      "name": "phone",
      "position": {
-      "x": 210,
-      "y": 660
+      "x": 196.33,
+      "y": 618.93
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.45,

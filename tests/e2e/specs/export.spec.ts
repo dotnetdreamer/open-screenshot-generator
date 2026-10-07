@@ -24,10 +24,10 @@ import { expectBoardSize } from '../helpers/canvas';
 
 // `01_` is the board's canvas position, `Blank_Artboard` its name, and the tail
 // is canvasSizeSlug() naming the store tier the canvas was exported at. The
-// quote in `iPhone 6.9"` is already gone before sanitizeFileName() sees it, so
+// quote in `iPhone 6.3"` is already gone before sanitizeFileName() sees it, so
 // the desktop name has to come out byte for byte identical to the web one.
-const AS_IS_PNG = '01_Blank_Artboard_iPhone-6_9-Portrait_1290x2796.png';
-const IPHONE_MEDIUM_PNG = '01_Blank_Artboard_iPhone-6_3-Portrait_1206x2622.png';
+const AS_IS_PNG = '01_Blank_Artboard_iPhone-6_3-Portrait_1206x2622.png';
+const IPHONE_LARGE_PNG = '01_Blank_Artboard_iPhone-6_9-Portrait_1290x2796.png';
 const IPAD_13_PNG = '01_Blank_Artboard_iPad-13-Portrait_2064x2752.png';
 
 /** The live readout the export puts up while it works. */
@@ -97,7 +97,7 @@ test.describe('the export dialog', () => {
     await expect(page.locator('#gen-ipad-11')).not.toBeChecked();
     await expect(page.locator('#export-current-artboard-only')).not.toBeChecked();
 
-    await expect(app.exportDialog.getByText('Current layout, 1290×2796')).toBeVisible();
+    await expect(app.exportDialog.getByText('Current layout, 1206×2622')).toBeVisible();
     await expect(fileCount(page)).toHaveText('1 PNG file');
     await expect(app.exportDialog.getByText('1 artboard, 1 size')).toBeVisible();
   });
@@ -109,23 +109,6 @@ test.describe('the export dialog', () => {
     await app.openPaletteCategory('Device Mockups');
     await app.addElement('iPhone', 'device:iphone');
     await page.getByTitle(/^Convert the project to another device format/).click();
-    await expect(page.getByRole('menuitemcheckbox', { name: /iPhone \(large display\).*1290×2796/ })).toBeChecked();
-    await expect(page.getByRole('menuitemcheckbox', { name: /^iPhone.*1206×2622$/ })).not.toBeChecked();
-    await page.keyboard.press('Escape');
-    await app.openExportDialog();
-
-    await expect(page.locator('#gen-ios-large')).toBeDisabled();
-    await expect(page.locator('#gen-ios')).toBeEnabled();
-    await expect(fileCount(page)).toHaveText('1 PNG file');
-    await app.exportDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await expect(app.exportDialog).toBeHidden();
-
-    await app.canvasSizeButton.click();
-    await expect(app.canvasSizeDialog).toBeVisible();
-    await app.canvasSizeDialog.locator('#size-ios-6-3').click();
-    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
-    await expect(app.canvasSizeDialog).toBeHidden();
-    await page.getByTitle(/^Convert the project to another device format/).click();
     await expect(page.getByRole('menuitemcheckbox', { name: /^iPhone.*1206×2622$/ })).toBeChecked();
     await expect(page.getByRole('menuitemcheckbox', { name: /iPhone \(large display\).*1290×2796/ })).not.toBeChecked();
     await page.keyboard.press('Escape');
@@ -135,6 +118,24 @@ test.describe('the export dialog', () => {
     await expect(page.locator('#gen-ios-large')).toBeEnabled();
     await expect(fileCount(page)).toHaveText('1 PNG file');
     await expect(app.exportDialog.getByText('Upload 1206×2622 images to "iPhone with Dynamic Island (medium display)" in App Store Connect', { exact: true })).toBeVisible();
+    await app.exportDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(app.exportDialog).toBeHidden();
+
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    await app.canvasSizeDialog.locator('#size-ios-6-9').click();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await page.getByTitle(/^Convert the project to another device format/).click();
+    await expect(page.getByRole('menuitemcheckbox', { name: /iPhone \(large display\).*1290×2796/ })).toBeChecked();
+    await expect(page.getByRole('menuitemcheckbox', { name: /^iPhone.*1206×2622$/ })).not.toBeChecked();
+    await page.keyboard.press('Escape');
+    await app.openExportDialog();
+
+    await expect(page.locator('#gen-ios-large')).toBeDisabled();
+    await expect(page.locator('#gen-ios')).toBeEnabled();
+    await expect(fileCount(page)).toHaveText('1 PNG file');
+    await expect(app.exportDialog.getByText('Upload 1290×2796 images to "iPhone with Dynamic Island (large display)" in App Store Connect', { exact: true })).toBeVisible();
   });
 
   test('the file count follows the tick boxes, and an empty selection cannot be exported', async ({ app, page }) => {
@@ -208,7 +209,7 @@ test.describe('the export dialog', () => {
 });
 
 test.describe('exporting to a file', () => {
-  test('the generated iPhone medium display PNG has the required dimensions and preserves the project', async ({
+  test('the generated iPhone large display PNG has its dimensions and preserves the project', async ({
     app,
     page,
     tauri,
@@ -222,7 +223,7 @@ test.describe('exporting to a file', () => {
     const before = await waitForProject(page, (project) =>
       JSON.stringify(project.projectData).includes('basic:rectangle')
     );
-    await expect(app.canvasSizeButton).toHaveAttribute('title', /1290 × 2796/);
+    await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622/);
 
     if (isDesktop) {
       await page.evaluate(() => {
@@ -250,13 +251,13 @@ test.describe('exporting to a file', () => {
     await app.openExportDialog();
     await expect(page.locator('#gen-ios')).toHaveAccessibleName('iPhone with Dynamic Island (medium display): 1206×2622');
     await expect(app.exportDialog.getByText('Required for the medium display slot in App Store Connect', { exact: true })).toBeVisible();
-    await expect(app.exportDialog.getByText('Upload 1290×2796 images to "iPhone with Dynamic Island (large display)" in App Store Connect', { exact: true })).toBeVisible();
+    await expect(app.exportDialog.getByText('Upload 1206×2622 images to "iPhone with Dynamic Island (medium display)" in App Store Connect', { exact: true })).toBeVisible();
     await page.locator('#export-as-is').click();
-    await page.locator('#gen-ios').click();
+    await page.locator('#gen-ios-large').click();
     await expect(fileCount(page)).toHaveText('1 PNG file');
     await app.exportDialog.getByRole('button', { name: 'Export', exact: true }).click();
 
-    expect(await exportedNames(isDesktop, tauri, downloads, 1)).toEqual([IPHONE_MEDIUM_PNG]);
+    expect(await exportedNames(isDesktop, tauri, downloads, 1)).toEqual([IPHONE_LARGE_PNG]);
     const header = isDesktop
       ? pngHeader(Uint8Array.from(await page.evaluate(() =>
         (window as unknown as { __E2E_PNG_HEADER__: number[] }).__E2E_PNG_HEADER__
@@ -264,16 +265,16 @@ test.describe('exporting to a file', () => {
       : pngHeader(await downloads[0].path());
     expect(header).toEqual({
       signature: '89504e470d0a1a0a',
-      width: 1206,
-      height: 2622,
+      width: 1290,
+      height: 2796,
       colorType: 2,
     });
 
     await expect(progressDialog(page)).toBeHidden({ timeout: 120_000 });
     await expect(app.artboards).toHaveCount(1);
     await expect(app.elementsOn(0)).toHaveCount(1);
-    await expectBoardSize(app.board(0), 1290, 2796);
-    await expect(app.canvasSizeButton).toHaveAttribute('title', /1290 × 2796/);
+    await expectBoardSize(app.board(0), 1206, 2622);
+    await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622/);
     const after = (await readProjects(page)).find((project) => project.id === before.id);
     expect(after?.projectData).toEqual(before.projectData);
   });
@@ -326,8 +327,8 @@ test.describe('exporting to a file', () => {
       // board the canvas shows at 0.3 scale.
       expect(pngHeader(path)).toEqual({
         signature: '89504e470d0a1a0a',
-        width: 1290,
-        height: 2796,
+        width: 1206,
+        height: 2622,
         colorType: 2,
       });
       expect(await tauri.files()).toEqual([]);
@@ -398,7 +399,7 @@ test.describe('exporting to a file', () => {
     // The generated format converts a temporary canvas list, so the project
     // itself must come back exactly as it was.
     await expect(app.artboards).toHaveCount(1);
-    await expect(app.canvasSizeButton).toHaveAttribute('title', /1290 × 2796/);
+    await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622/);
   });
 });
 

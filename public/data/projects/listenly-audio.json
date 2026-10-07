@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C7A5F0",
       "zoom": 1,
@@ -24,12 +24,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 430,
-            "y": 230
+            "x": 402,
+            "y": 215.69
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -14,
           "scale": 1.35,
@@ -52,12 +52,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 40,
-            "y": 480
+            "x": 37.4,
+            "y": 450.13
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -14,
           "scale": 1.35,
@@ -80,12 +80,12 @@
           "type": "shape",
           "name": "Open Wreath",
           "position": {
-            "x": 60,
-            "y": 2280
+            "x": 56.09,
+            "y": 2138.11
           },
           "size": {
-            "width": 400,
-            "height": 400
+            "width": 373.95,
+            "height": 375.11
           },
           "rotation": 0,
           "scale": 1,
@@ -103,17 +103,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 140,
-            "y": 2400
+            "x": 130.88,
+            "y": 2250.64
           },
           "size": {
-            "width": 240,
-            "height": 170
+            "width": 224.37,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "APP OF\nTHE DAY",
-          "fontSize": 15,
+          "fontSize": 14.02,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -130,8 +130,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#FFFFFF",
       "zoom": 1,
@@ -141,12 +141,12 @@
           "type": "shape",
           "name": "Circle",
           "position": {
-            "x": -380,
-            "y": 560
+            "x": -355.26,
+            "y": 525.15
           },
           "size": {
-            "width": 1650,
-            "height": 1650
+            "width": 1542.56,
+            "height": 1547.32
           },
           "rotation": 0,
           "scale": 1,
@@ -160,12 +160,12 @@
           "type": "shape",
           "name": "Badge",
           "position": {
-            "x": 760,
-            "y": 90
+            "x": 710.51,
+            "y": 84.4
           },
           "size": {
-            "width": 470,
-            "height": 470
+            "width": 439.4,
+            "height": 440.75
           },
           "rotation": 10,
           "scale": 1,
@@ -183,17 +183,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 830,
-            "y": 175
+            "x": 775.95,
+            "y": 164.11
           },
           "size": {
-            "width": 330,
-            "height": 310
+            "width": 308.51,
+            "height": 290.71
           },
           "rotation": 0,
           "scale": 1,
           "content": "500K+\nApp\nInstalls",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -205,12 +205,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 180,
-            "y": 620
+            "x": 168.28,
+            "y": 581.42
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -14,
           "scale": 1.5,
@@ -233,17 +233,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 395,
-            "y": 2440
+            "x": 369.28,
+            "y": 2288.15
           },
           "size": {
-            "width": 500,
-            "height": 130
+            "width": 467.44,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "★★★★★",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#F6A93B",
           "fontFamily": "Arial",
           "fontWeight": "normal",
@@ -255,17 +255,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 395,
-            "y": 2570
+            "x": 369.28,
+            "y": 2410.06
           },
           "size": {
-            "width": 500,
-            "height": 130
+            "width": 467.44,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "100K ratings",
-          "fontSize": 24,
+          "fontSize": 22.44,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -282,8 +282,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C7A5F0",
       "zoom": 1,
@@ -293,17 +293,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 100
+            "x": 74.79,
+            "y": 93.78
           },
           "size": {
-            "width": 1140,
-            "height": 540
+            "width": 1065.77,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "content": "Find stories in\nevery genre you\nlove most",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -315,12 +315,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 760
+            "x": 182.3,
+            "y": 712.7
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -348,8 +348,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C7A5F0",
       "zoom": 1,
@@ -359,12 +359,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 90
+            "x": 182.3,
+            "y": 84.4
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -387,17 +387,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 2050
+            "x": 74.79,
+            "y": 1922.42
           },
           "size": {
-            "width": 1140,
-            "height": 540
+            "width": 1065.77,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "content": "Turn everyday\nmoments into\nlistening time",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -414,8 +414,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C7A5F0",
       "zoom": 1,
@@ -425,17 +425,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 100
+            "x": 74.79,
+            "y": 93.78
           },
           "size": {
-            "width": 1140,
-            "height": 540
+            "width": 1065.77,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "content": "Download books\nand listen\nwithout internet",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -447,12 +447,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 760
+            "x": 182.3,
+            "y": 712.7
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,

@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#8F7BB8",
       "zoom": 1,
@@ -25,11 +25,11 @@
           "name": "Bottom Wave",
           "position": {
             "x": 0,
-            "y": 2350
+            "y": 2203.76
           },
           "size": {
-            "width": 1290,
-            "height": 450
+            "width": 1206,
+            "height": 422
           },
           "rotation": 0,
           "scale": 1,
@@ -47,17 +47,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 90
+            "x": 65.44,
+            "y": 84.4
           },
           "size": {
-            "width": 1050,
-            "height": 330
+            "width": 981.63,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "Find flights,\nhotels and more",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#1F1F1F",
           "fontFamily": "Adamina",
           "fontWeight": "bold",
@@ -69,12 +69,12 @@
           "type": "shape",
           "name": "Underline",
           "position": {
-            "x": 80,
-            "y": 440
+            "x": 74.79,
+            "y": 412.62
           },
           "size": {
-            "width": 300,
-            "height": 70
+            "width": 280.47,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
@@ -92,12 +92,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 130,
-            "y": 720
+            "x": 121.53,
+            "y": 675.19
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -18,
           "scale": 1.55,
@@ -125,8 +125,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#8F7BB8",
       "zoom": 1,
@@ -136,17 +136,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 90
+            "x": 65.44,
+            "y": 84.4
           },
           "size": {
-            "width": 950,
-            "height": 330
+            "width": 888.14,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "For all travel\nneeds",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#1F1F1F",
           "fontFamily": "Adamina",
           "fontWeight": "bold",
@@ -158,12 +158,12 @@
           "type": "shape",
           "name": "Underline",
           "position": {
-            "x": 80,
-            "y": 440
+            "x": 74.79,
+            "y": 412.62
           },
           "size": {
-            "width": 300,
-            "height": 70
+            "width": 280.47,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
@@ -181,12 +181,12 @@
           "type": "shape",
           "name": "Open Wreath",
           "position": {
-            "x": 410,
-            "y": 530
+            "x": 383.3,
+            "y": 497.02
           },
           "size": {
-            "width": 480,
-            "height": 470
+            "width": 448.74,
+            "height": 440.75
           },
           "rotation": 0,
           "scale": 1,
@@ -204,17 +204,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 525,
-            "y": 680
+            "x": 490.81,
+            "y": 637.68
           },
           "size": {
-            "width": 250,
-            "height": 190
+            "width": 233.72,
+            "height": 178.18
           },
           "rotation": 0,
           "scale": 1,
           "content": "EDITORS'\nCHOICE",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#1F1F1F",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -226,12 +226,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": -100,
-            "y": 1120
+            "x": -93.49,
+            "y": 1050.3
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -30,
           "scale": 1.8,
@@ -259,8 +259,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9DBB98",
       "zoom": 1,
@@ -270,17 +270,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 90
+            "x": 65.44,
+            "y": 84.4
           },
           "size": {
-            "width": 1050,
-            "height": 330
+            "width": 981.63,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "Explore\nDestinations",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#1F1F1F",
           "fontFamily": "Adamina",
           "fontWeight": "bold",
@@ -292,17 +292,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 440
+            "x": 65.44,
+            "y": 412.62
           },
           "size": {
-            "width": 950,
-            "height": 330
+            "width": 888.14,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "Browse and book\nexperiences that make\nyour trip unforgettable",
-          "fontSize": 18,
+          "fontSize": 16.83,
           "color": "#262626",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -314,12 +314,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 800
+            "x": 182.3,
+            "y": 750.21
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -348,8 +348,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9DC2E4",
       "zoom": 1,
@@ -359,17 +359,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 90
+            "x": 65.44,
+            "y": 84.4
           },
           "size": {
-            "width": 950,
-            "height": 330
+            "width": 888.14,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "Plan in one\nplace",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#1F1F1F",
           "fontFamily": "Adamina",
           "fontWeight": "bold",
@@ -381,24 +381,24 @@
           "type": "shape",
           "name": "Circle Scribble",
           "position": {
-            "x": 470,
-            "y": 55
+            "x": 439.4,
+            "y": 51.58
           },
           "size": {
-            "width": 340,
-            "height": 210
+            "width": 317.86,
+            "height": 196.93
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#1F1F1F",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M50 12 C26 12 12 28 13 50 C14 73 31 88 53 87 C76 86 89 68 88 47 C87 27 70 13 50 14 C36 15 24 24 19 36",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           }
         },
         {
@@ -406,17 +406,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 450
+            "x": 65.44,
+            "y": 422
           },
           "size": {
-            "width": 850,
-            "height": 270
+            "width": 794.65,
+            "height": 253.2
           },
           "rotation": 0,
           "scale": 1,
           "content": "Manage your flights,\naccommodations, and\nactivities",
-          "fontSize": 18,
+          "fontSize": 16.83,
           "color": "#262626",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -428,12 +428,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 800
+            "x": 182.3,
+            "y": 750.21
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -462,8 +462,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#E3B341",
       "zoom": 1,
@@ -473,17 +473,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 90
+            "x": 65.44,
+            "y": 84.4
           },
           "size": {
-            "width": 950,
-            "height": 330
+            "width": 888.14,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "Book Hotels\nAnytime",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#1F1F1F",
           "fontFamily": "Adamina",
           "fontWeight": "bold",
@@ -495,17 +495,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 450
+            "x": 65.44,
+            "y": 422
           },
           "size": {
-            "width": 900,
-            "height": 200
+            "width": 841.4,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
           "content": "Discover top-rated hotels and\nsecure your stay instantly",
-          "fontSize": 18,
+          "fontSize": 16.83,
           "color": "#262626",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -517,12 +517,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 800
+            "x": 182.3,
+            "y": 750.21
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,

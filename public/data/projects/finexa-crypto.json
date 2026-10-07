@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9333EA",
       "zoom": 1,
@@ -24,17 +24,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 70
+            "x": 74.79,
+            "y": 65.64
           },
           "size": {
-            "width": 500,
-            "height": 150
+            "width": 467.44,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Finexa.",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -46,12 +46,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 520,
-            "y": 260
+            "x": 486.14,
+            "y": 243.82
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 12,
           "scale": 1.75,
@@ -74,17 +74,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 660
+            "x": 74.79,
+            "y": 618.93
           },
           "size": {
-            "width": 560,
-            "height": 1350
+            "width": 523.53,
+            "height": 1265.99
           },
           "rotation": 0,
           "scale": 1,
           "content": "The\nfuture\nmoney\nbegins\nright\nhere",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#F4EFFA",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -96,12 +96,12 @@
           "type": "shape",
           "name": "Logo Mark",
           "position": {
-            "x": 80,
-            "y": 2540
+            "x": 74.79,
+            "y": 2381.93
           },
           "size": {
-            "width": 150,
-            "height": 150
+            "width": 140.23,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
@@ -124,8 +124,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9333EA",
       "zoom": 1,
@@ -135,12 +135,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 30,
-            "y": -60
+            "x": 28.05,
+            "y": -56.27
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 10,
           "scale": 2.05,
@@ -168,8 +168,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9333EA",
       "zoom": 1,
@@ -179,17 +179,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 100
+            "x": 74.79,
+            "y": 93.78
           },
           "size": {
-            "width": 1050,
-            "height": 170
+            "width": 981.63,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Invest smarter",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -201,12 +201,12 @@
           "type": "shape",
           "name": "Highlight",
           "position": {
-            "x": 80,
-            "y": 285
+            "x": 74.79,
+            "y": 267.26
           },
           "size": {
-            "width": 680,
-            "height": 150
+            "width": 635.72,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
@@ -214,7 +214,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 4,
+          "borderRadius": 3.74,
           "borderRadiusType": "uniform"
         },
         {
@@ -222,17 +222,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 285
+            "x": 74.79,
+            "y": 267.26
           },
           "size": {
-            "width": 680,
-            "height": 150
+            "width": 635.72,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "every day.",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#9333EA",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -244,12 +244,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 560
+            "x": 182.3,
+            "y": 525.15
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -273,11 +273,11 @@
           "name": "Press Band",
           "position": {
             "x": 0,
-            "y": 2360
+            "y": 2213.13
           },
           "size": {
-            "width": 1290,
-            "height": 436
+            "width": 1206,
+            "height": 408.87
           },
           "rotation": 0,
           "scale": 1,
@@ -291,17 +291,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 345,
-            "y": 2460
+            "x": 322.53,
+            "y": 2306.91
           },
           "size": {
-            "width": 600,
-            "height": 240
+            "width": 560.93,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "Forbes",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#9333EA",
           "fontFamily": "Georgia",
           "fontWeight": "bold",
@@ -318,8 +318,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9333EA",
       "zoom": 1,
@@ -329,17 +329,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 100
+            "x": 74.79,
+            "y": 93.78
           },
           "size": {
-            "width": 1050,
-            "height": 170
+            "width": 981.63,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Crypto made",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -351,12 +351,12 @@
           "type": "shape",
           "name": "Highlight",
           "position": {
-            "x": 80,
-            "y": 285
+            "x": 74.79,
+            "y": 267.26
           },
           "size": {
-            "width": 700,
-            "height": 150
+            "width": 654.42,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
@@ -364,7 +364,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 4,
+          "borderRadius": 3.74,
           "borderRadiusType": "uniform"
         },
         {
@@ -372,17 +372,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 285
+            "x": 74.79,
+            "y": 267.26
           },
           "size": {
-            "width": 700,
-            "height": 150
+            "width": 654.42,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "easy today.",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#9333EA",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -394,12 +394,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 560
+            "x": 182.3,
+            "y": 525.15
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -423,11 +423,11 @@
           "name": "Press Band",
           "position": {
             "x": 0,
-            "y": 2360
+            "y": 2213.13
           },
           "size": {
-            "width": 1290,
-            "height": 436
+            "width": 1206,
+            "height": 408.87
           },
           "rotation": 0,
           "scale": 1,
@@ -441,17 +441,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 295,
-            "y": 2420
+            "x": 275.79,
+            "y": 2269.4
           },
           "size": {
-            "width": 700,
-            "height": 330
+            "width": 654.42,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
           "content": "The\nEconomist",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#9333EA",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -468,8 +468,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9333EA",
       "zoom": 1,
@@ -479,17 +479,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 100
+            "x": 74.79,
+            "y": 93.78
           },
           "size": {
-            "width": 1050,
-            "height": 170
+            "width": 981.63,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Grow your",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -501,12 +501,12 @@
           "type": "shape",
           "name": "Highlight",
           "position": {
-            "x": 80,
-            "y": 285
+            "x": 74.79,
+            "y": 267.26
           },
           "size": {
-            "width": 900,
-            "height": 150
+            "width": 841.4,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
@@ -514,7 +514,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 4,
+          "borderRadius": 3.74,
           "borderRadiusType": "uniform"
         },
         {
@@ -522,17 +522,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 285
+            "x": 74.79,
+            "y": 267.26
           },
           "size": {
-            "width": 900,
-            "height": 150
+            "width": 841.4,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "digital wealth.",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#9333EA",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -544,12 +544,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 560
+            "x": 182.3,
+            "y": 525.15
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -573,11 +573,11 @@
           "name": "Press Band",
           "position": {
             "x": 0,
-            "y": 2360
+            "y": 2213.13
           },
           "size": {
-            "width": 1290,
-            "height": 436
+            "width": 1206,
+            "height": 408.87
           },
           "rotation": 0,
           "scale": 1,
@@ -591,17 +591,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 295,
-            "y": 2460
+            "x": 275.79,
+            "y": 2306.91
           },
           "size": {
-            "width": 700,
-            "height": 240
+            "width": 654.42,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "FORTUNE",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#9333EA",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",

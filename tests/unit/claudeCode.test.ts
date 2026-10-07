@@ -600,7 +600,8 @@ test('past chats are named, ordered and listed under the name the project has no
 test('the blank project fits the screenshots', () => {
   const fallback = { width: 1024, height: 500 };
   assert.deepEqual(pickCanvasSize([], fallback), fallback);
-  assert.deepEqual(pickCanvasSize([{ width: 1290, height: 2796 }], fallback), { width: 1290, height: 2796 });
+  // Any phone shot starts on the required App Store iPhone size.
+  assert.deepEqual(pickCanvasSize([{ width: 1290, height: 2796 }], fallback), { width: 1206, height: 2622 });
   assert.deepEqual(pickCanvasSize([{ width: 2064, height: 2752 }], fallback), { width: 2064, height: 2752 });
   assert.deepEqual(pickCanvasSize([{ width: 410, height: 502 }], fallback), { width: 422, height: 514 });
   assert.deepEqual(pickCanvasSize([{ width: 2880, height: 1800 }], fallback), { width: 2560, height: 1600 });
@@ -608,7 +609,8 @@ test('the blank project fits the screenshots', () => {
   for (const ipad of [{ width: 1668, height: 2388 }, { width: 1640, height: 2360 }, { width: 1488, height: 2266 }]) {
     assert.deepEqual(pickCanvasSize([ipad], fallback), { width: 2064, height: 2752 });
   }
-  assert.deepEqual(pickCanvasSize([{ width: 750, height: 1334 }], fallback), { width: 1290, height: 2796 });
+  assert.deepEqual(pickCanvasSize([{ width: 750, height: 1334 }], fallback), { width: 1206, height: 2622 });
+  assert.deepEqual(pickCanvasSize([{ width: 2796, height: 1290 }], fallback), { width: 2622, height: 1206 });
   // A shot shaped like no device (a window capture) leaves the default size.
   assert.deepEqual(pickCanvasSize([{ width: 830, height: 1000 }], fallback), fallback);
   assert.deepEqual(pickCanvasSize([{ width: 830, height: 1000 }, { width: 1668, height: 2388 }], fallback), {
@@ -618,7 +620,7 @@ test('the blank project fits the screenshots', () => {
   // A tie goes to the phone.
   assert.deepEqual(
     pickCanvasSize([{ width: 2064, height: 2752 }, { width: 1179, height: 2556 }], fallback),
-    { width: 1290, height: 2796 }
+    { width: 1206, height: 2622 }
   );
   assert.equal(projectNameFromInstruction('Dark copy for a habit tracker called Droply.'), 'Droply screenshots');
   assert.equal(projectNameFromInstruction('an app named Kassa Money, please'), 'Kassa Money screenshots');

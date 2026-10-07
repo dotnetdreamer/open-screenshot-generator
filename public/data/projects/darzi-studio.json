@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -30,17 +30,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "№ 01 · A MEASUREMENT STUDIO FOR TAILORS",
-          "fontSize": 8,
+          "fontSize": 7.48,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -52,17 +52,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 240
+            "x": 88.81,
+            "y": 225.06
           },
           "size": {
-            "width": 1100,
-            "height": 400
+            "width": 1028.37,
+            "height": 375.11
           },
           "rotation": 0,
           "scale": 1,
           "content": "Cut from\nreal numbers.",
-          "fontSize": 48,
+          "fontSize": 44.87,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -74,12 +74,12 @@
           "type": "shape",
           "name": "Chalk Underline",
           "position": {
-            "x": 345,
-            "y": 600
+            "x": 322.53,
+            "y": 562.66
           },
           "size": {
-            "width": 600,
-            "height": 90
+            "width": 560.93,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -97,12 +97,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 760
+            "x": 182.3,
+            "y": 712.7
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -125,37 +125,37 @@
           "type": "shape",
           "name": "Value Chip",
           "position": {
-            "x": 720,
-            "y": 1560
+            "x": 673.12,
+            "y": 1462.92
           },
           "size": {
-            "width": 310,
-            "height": 100
+            "width": 289.81,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#FFC233",
-          "strokeWidth": 2,
-          "borderRadius": 50
+          "strokeWidth": 1.87,
+          "borderRadius": 46.74
         },
         {
           "id": "tpl_dz_ab1_chip_text",
           "type": "text",
           "name": "Value Chip Text",
           "position": {
-            "x": 720,
-            "y": 1560
+            "x": 673.12,
+            "y": 1462.92
           },
           "size": {
-            "width": 310,
-            "height": 100
+            "width": 289.81,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
           "content": "Chaati · 21½",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -167,24 +167,24 @@
           "type": "shape",
           "name": "Chalk Arrow",
           "position": {
-            "x": 700,
-            "y": 2600
+            "x": 654.42,
+            "y": 2438.2
           },
           "size": {
-            "width": 130,
-            "height": 130
+            "width": 121.53,
+            "height": 121.91
           },
           "rotation": -120,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#FFC233",
           "strokeColor": "transparent",
-          "strokeWidth": 4,
+          "strokeWidth": 3.74,
           "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 10
+            "baseStrokeWidth": 9.35
           }
         },
         {
@@ -192,17 +192,17 @@
           "type": "text",
           "name": "Chalk Note",
           "position": {
-            "x": 850,
-            "y": 2590
+            "x": 794.65,
+            "y": 2428.82
           },
           "size": {
-            "width": 380,
-            "height": 160
+            "width": 355.26,
+            "height": 150.04
           },
           "rotation": -5,
           "scale": 1,
           "content": "measure twice,\ncut once",
-          "fontSize": 13,
+          "fontSize": 12.15,
           "color": "#FFC233",
           "fontFamily": "Pacifico",
           "fontWeight": "normal",
@@ -219,8 +219,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -236,17 +236,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "№ 02 · THE SCAN",
-          "fontSize": 8,
+          "fontSize": 7.48,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -258,17 +258,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 240
+            "x": 88.81,
+            "y": 225.06
           },
           "size": {
-            "width": 1100,
-            "height": 320
+            "width": 1028.37,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Tap a point.\nThe tape shows up.",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -280,17 +280,17 @@
           "type": "text",
           "name": "Body",
           "position": {
-            "x": 95,
-            "y": 580
+            "x": 88.81,
+            "y": 543.91
           },
           "size": {
-            "width": 1100,
-            "height": 230
+            "width": 1028.37,
+            "height": 215.69
           },
           "rotation": 0,
           "scale": 1,
           "content": "The camera glides to the point, a gold\nband wraps where your tape would sit,\nand you type the number.",
-          "fontSize": 15,
+          "fontSize": 14.02,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -302,12 +302,12 @@
           "type": "shape",
           "name": "Chip Chaati",
           "position": {
-            "x": 95,
-            "y": 850
+            "x": 88.81,
+            "y": 797.1
           },
           "size": {
-            "width": 330,
-            "height": 110
+            "width": 308.51,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -315,24 +315,24 @@
           "fillColor": "#FFC233",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 55
+          "borderRadius": 51.42
         },
         {
           "id": "tpl_dz_ab2_chip1_text",
           "type": "text",
           "name": "Chip Chaati Text",
           "position": {
-            "x": 95,
-            "y": 850
+            "x": 88.81,
+            "y": 797.1
           },
           "size": {
-            "width": 330,
-            "height": 110
+            "width": 308.51,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Chaati",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#181203",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -344,37 +344,37 @@
           "type": "shape",
           "name": "Chip Kamar",
           "position": {
-            "x": 455,
-            "y": 850
+            "x": 425.37,
+            "y": 797.1
           },
           "size": {
-            "width": 310,
-            "height": 110
+            "width": 289.81,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 55
+          "strokeWidth": 1.87,
+          "borderRadius": 51.42
         },
         {
           "id": "tpl_dz_ab2_chip2_text",
           "type": "text",
           "name": "Chip Kamar Text",
           "position": {
-            "x": 455,
-            "y": 850
+            "x": 425.37,
+            "y": 797.1
           },
           "size": {
-            "width": 310,
-            "height": 110
+            "width": 289.81,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Kamar",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -386,37 +386,37 @@
           "type": "shape",
           "name": "Chip Teera",
           "position": {
-            "x": 795,
-            "y": 850
+            "x": 743.23,
+            "y": 797.1
           },
           "size": {
-            "width": 290,
-            "height": 110
+            "width": 271.12,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 55
+          "strokeWidth": 1.87,
+          "borderRadius": 51.42
         },
         {
           "id": "tpl_dz_ab2_chip3_text",
           "type": "text",
           "name": "Chip Teera Text",
           "position": {
-            "x": 795,
-            "y": 850
+            "x": 743.23,
+            "y": 797.1
           },
           "size": {
-            "width": 290,
-            "height": 110
+            "width": 271.12,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Teera",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -428,37 +428,37 @@
           "type": "shape",
           "name": "Chip Baazu",
           "position": {
-            "x": 230,
-            "y": 990
+            "x": 215.02,
+            "y": 928.39
           },
           "size": {
-            "width": 310,
-            "height": 110
+            "width": 289.81,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 55
+          "strokeWidth": 1.87,
+          "borderRadius": 51.42
         },
         {
           "id": "tpl_dz_ab2_chip4_text",
           "type": "text",
           "name": "Chip Baazu Text",
           "position": {
-            "x": 230,
-            "y": 990
+            "x": 215.02,
+            "y": 928.39
           },
           "size": {
-            "width": 310,
-            "height": 110
+            "width": 289.81,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Baazu",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -470,37 +470,37 @@
           "type": "shape",
           "name": "Chip Gala",
           "position": {
-            "x": 570,
-            "y": 990
+            "x": 532.88,
+            "y": 928.39
           },
           "size": {
-            "width": 280,
-            "height": 110
+            "width": 261.77,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 55
+          "strokeWidth": 1.87,
+          "borderRadius": 51.42
         },
         {
           "id": "tpl_dz_ab2_chip5_text",
           "type": "text",
           "name": "Chip Gala Text",
           "position": {
-            "x": 570,
-            "y": 990
+            "x": 532.88,
+            "y": 928.39
           },
           "size": {
-            "width": 280,
-            "height": 110
+            "width": 261.77,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Gala",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -512,12 +512,12 @@
           "type": "shape",
           "name": "Chip More",
           "position": {
-            "x": 880,
-            "y": 990
+            "x": 822.7,
+            "y": 928.39
           },
           "size": {
-            "width": 280,
-            "height": 110
+            "width": 261.77,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -525,24 +525,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 55
+          "borderRadius": 51.42
         },
         {
           "id": "tpl_dz_ab2_chip6_text",
           "type": "text",
           "name": "Chip More Text",
           "position": {
-            "x": 880,
-            "y": 990
+            "x": 822.7,
+            "y": 928.39
           },
           "size": {
-            "width": 280,
-            "height": 110
+            "width": 261.77,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "+ 20 more",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -554,17 +554,17 @@
           "type": "text",
           "name": "Urdu Labels",
           "position": {
-            "x": 95,
-            "y": 1130
+            "x": 88.81,
+            "y": 1059.68
           },
           "size": {
-            "width": 1100,
-            "height": 160
+            "width": 1028.37,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "چھاتی · کمر · تیرا · بازو · گلا",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#98A0AC",
           "fontFamily": "Noto Nastaliq Urdu",
           "fontWeight": "normal",
@@ -576,12 +576,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 285,
-            "y": 1330
+            "x": 266.44,
+            "y": 1247.23
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.2,
@@ -604,37 +604,37 @@
           "type": "shape",
           "name": "Value Chip",
           "position": {
-            "x": 630,
-            "y": 2040
+            "x": 588.98,
+            "y": 1913.05
           },
           "size": {
-            "width": 290,
-            "height": 95
+            "width": 271.12,
+            "height": 89.09
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#FFC233",
-          "strokeWidth": 2,
-          "borderRadius": 48
+          "strokeWidth": 1.87,
+          "borderRadius": 44.87
         },
         {
           "id": "tpl_dz_ab2_chipval_text",
           "type": "text",
           "name": "Value Chip Text",
           "position": {
-            "x": 630,
-            "y": 2040
+            "x": 588.98,
+            "y": 1913.05
           },
           "size": {
-            "width": 290,
-            "height": 95
+            "width": 271.12,
+            "height": 89.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Kamar · 17",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -651,8 +651,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -668,17 +668,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "№ 03 · THE WARDROBE",
-          "fontSize": 8,
+          "fontSize": 7.48,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -690,17 +690,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 240
+            "x": 88.81,
+            "y": 225.06
           },
           "size": {
-            "width": 1100,
-            "height": 370
+            "width": 1028.37,
+            "height": 346.97
           },
           "rotation": 0,
           "scale": 1,
           "content": "Three outfits,\nstitched in.",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -712,17 +712,17 @@
           "type": "text",
           "name": "Body",
           "position": {
-            "x": 95,
-            "y": 620
+            "x": 88.81,
+            "y": 581.42
           },
           "size": {
-            "width": 1100,
-            "height": 160
+            "width": 1028.37,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "Measurement sets, necklines and cuffs —\nall drawn from Pakistani menswear.",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -734,37 +734,37 @@
           "type": "shape",
           "name": "Card Shalwar Kameez",
           "position": {
-            "x": 95,
-            "y": 830
+            "x": 88.81,
+            "y": 778.35
           },
           "size": {
-            "width": 1100,
-            "height": 540
+            "width": 1028.37,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab3_c1_name",
           "type": "text",
           "name": "C1 Name",
           "position": {
-            "x": 155,
-            "y": 880
+            "x": 144.91,
+            "y": 825.24
           },
           "size": {
-            "width": 640,
-            "height": 110
+            "width": 598.33,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Shalwar Kameez",
-          "fontSize": 24,
+          "fontSize": 22.44,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -776,17 +776,17 @@
           "type": "text",
           "name": "C1 Urdu",
           "position": {
-            "x": 795,
-            "y": 870
+            "x": 743.23,
+            "y": 815.86
           },
           "size": {
-            "width": 340,
-            "height": 130
+            "width": 317.86,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "شلوار قمیض",
-          "fontSize": 13,
+          "fontSize": 12.15,
           "color": "#FFC233",
           "fontFamily": "Noto Nastaliq Urdu",
           "fontWeight": "normal",
@@ -798,17 +798,17 @@
           "type": "text",
           "name": "C1 Points",
           "position": {
-            "x": 155,
-            "y": 990
+            "x": 144.91,
+            "y": 928.39
           },
           "size": {
-            "width": 500,
-            "height": 70
+            "width": 467.44,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "11 measure points",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -820,24 +820,24 @@
           "type": "shape",
           "name": "C1 Stitch Line",
           "position": {
-            "x": 150,
-            "y": 1060
+            "x": 140.23,
+            "y": 994.03
           },
           "size": {
-            "width": 990,
-            "height": 50
+            "width": 925.53,
+            "height": 46.89
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#3A4150",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           }
         },
         {
@@ -845,17 +845,17 @@
           "type": "text",
           "name": "C1 Desc",
           "position": {
-            "x": 155,
-            "y": 1110
+            "x": 144.91,
+            "y": 1040.92
           },
           "size": {
-            "width": 990,
-            "height": 120
+            "width": 925.53,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
           "content": "The everyday order — collar to paincha,\nside slits where they belong.",
-          "fontSize": 12.5,
+          "fontSize": 11.69,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -867,12 +867,12 @@
           "type": "shape",
           "name": "C1 Chip 1",
           "position": {
-            "x": 155,
-            "y": 1250
+            "x": 144.91,
+            "y": 1172.21
           },
           "size": {
-            "width": 250,
-            "height": 80
+            "width": 233.72,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -880,24 +880,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c1_chip1_text",
           "type": "text",
           "name": "C1 Chip 1 Text",
           "position": {
-            "x": 155,
-            "y": 1250
+            "x": 144.91,
+            "y": 1172.21
           },
           "size": {
-            "width": 250,
-            "height": 80
+            "width": 233.72,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Ban collar",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -909,12 +909,12 @@
           "type": "shape",
           "name": "C1 Chip 2",
           "position": {
-            "x": 435,
-            "y": 1250
+            "x": 406.67,
+            "y": 1172.21
           },
           "size": {
-            "width": 140,
-            "height": 80
+            "width": 130.88,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -922,24 +922,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c1_chip2_text",
           "type": "text",
           "name": "C1 Chip 2 Text",
           "position": {
-            "x": 435,
-            "y": 1250
+            "x": 406.67,
+            "y": 1172.21
           },
           "size": {
-            "width": 140,
-            "height": 80
+            "width": 130.88,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Gol",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -951,12 +951,12 @@
           "type": "shape",
           "name": "C1 Chip 3",
           "position": {
-            "x": 605,
-            "y": 1250
+            "x": 565.6,
+            "y": 1172.21
           },
           "size": {
-            "width": 260,
-            "height": 80
+            "width": 243.07,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -964,24 +964,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c1_chip3_text",
           "type": "text",
           "name": "C1 Chip 3 Text",
           "position": {
-            "x": 605,
-            "y": 1250
+            "x": 565.6,
+            "y": 1172.21
           },
           "size": {
-            "width": 260,
-            "height": 80
+            "width": 243.07,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Double kaf",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -993,37 +993,37 @@
           "type": "shape",
           "name": "Card Wasket",
           "position": {
-            "x": 95,
-            "y": 1430
+            "x": 88.81,
+            "y": 1341.01
           },
           "size": {
-            "width": 1100,
-            "height": 540
+            "width": 1028.37,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab3_c2_name",
           "type": "text",
           "name": "C2 Name",
           "position": {
-            "x": 155,
-            "y": 1480
+            "x": 144.91,
+            "y": 1387.9
           },
           "size": {
-            "width": 640,
-            "height": 110
+            "width": 598.33,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Wasket",
-          "fontSize": 24,
+          "fontSize": 22.44,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -1035,17 +1035,17 @@
           "type": "text",
           "name": "C2 Urdu",
           "position": {
-            "x": 795,
-            "y": 1470
+            "x": 743.23,
+            "y": 1378.52
           },
           "size": {
-            "width": 340,
-            "height": 130
+            "width": 317.86,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "واسکٹ",
-          "fontSize": 13,
+          "fontSize": 12.15,
           "color": "#FFC233",
           "fontFamily": "Noto Nastaliq Urdu",
           "fontWeight": "normal",
@@ -1057,17 +1057,17 @@
           "type": "text",
           "name": "C2 Points",
           "position": {
-            "x": 155,
-            "y": 1590
+            "x": 144.91,
+            "y": 1491.05
           },
           "size": {
-            "width": 500,
-            "height": 70
+            "width": 467.44,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "4 measure points",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1079,24 +1079,24 @@
           "type": "shape",
           "name": "C2 Stitch Line",
           "position": {
-            "x": 150,
-            "y": 1660
+            "x": 140.23,
+            "y": 1556.7
           },
           "size": {
-            "width": 990,
-            "height": 50
+            "width": 925.53,
+            "height": 46.89
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#3A4150",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           }
         },
         {
@@ -1104,17 +1104,17 @@
           "type": "text",
           "name": "C2 Desc",
           "position": {
-            "x": 155,
-            "y": 1710
+            "x": 144.91,
+            "y": 1603.58
           },
           "size": {
-            "width": 990,
-            "height": 120
+            "width": 925.53,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
           "content": "Worn over the kameez, measured over it —\nthe fit underneath still counts.",
-          "fontSize": 12.5,
+          "fontSize": 11.69,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1126,12 +1126,12 @@
           "type": "shape",
           "name": "C2 Chip 1",
           "position": {
-            "x": 155,
-            "y": 1850
+            "x": 144.91,
+            "y": 1734.87
           },
           "size": {
-            "width": 180,
-            "height": 80
+            "width": 168.28,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -1139,24 +1139,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c2_chip1_text",
           "type": "text",
           "name": "C2 Chip 1 Text",
           "position": {
-            "x": 155,
-            "y": 1850
+            "x": 144.91,
+            "y": 1734.87
           },
           "size": {
-            "width": 180,
-            "height": 80
+            "width": 168.28,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "V neck",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1168,12 +1168,12 @@
           "type": "shape",
           "name": "C2 Chip 2",
           "position": {
-            "x": 365,
-            "y": 1850
+            "x": 341.23,
+            "y": 1734.87
           },
           "size": {
-            "width": 180,
-            "height": 80
+            "width": 168.28,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -1181,24 +1181,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c2_chip2_text",
           "type": "text",
           "name": "C2 Chip 2 Text",
           "position": {
-            "x": 365,
-            "y": 1850
+            "x": 341.23,
+            "y": 1734.87
           },
           "size": {
-            "width": 180,
-            "height": 80
+            "width": 168.28,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "U neck",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1210,12 +1210,12 @@
           "type": "shape",
           "name": "C2 Chip 3",
           "position": {
-            "x": 575,
-            "y": 1850
+            "x": 537.56,
+            "y": 1734.87
           },
           "size": {
-            "width": 280,
-            "height": 80
+            "width": 261.77,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -1223,24 +1223,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c2_chip3_text",
           "type": "text",
           "name": "C2 Chip 3 Text",
           "position": {
-            "x": 575,
-            "y": 1850
+            "x": 537.56,
+            "y": 1734.87
           },
           "size": {
-            "width": 280,
-            "height": 80
+            "width": 261.77,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Closed neck",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1252,37 +1252,37 @@
           "type": "shape",
           "name": "Card Coat Pant",
           "position": {
-            "x": 95,
-            "y": 2030
+            "x": 88.81,
+            "y": 1903.67
           },
           "size": {
-            "width": 1100,
-            "height": 540
+            "width": 1028.37,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab3_c3_name",
           "type": "text",
           "name": "C3 Name",
           "position": {
-            "x": 155,
-            "y": 2080
+            "x": 144.91,
+            "y": 1950.56
           },
           "size": {
-            "width": 640,
-            "height": 110
+            "width": 598.33,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Coat Pant",
-          "fontSize": 24,
+          "fontSize": 22.44,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -1294,17 +1294,17 @@
           "type": "text",
           "name": "C3 Urdu",
           "position": {
-            "x": 795,
-            "y": 2070
+            "x": 743.23,
+            "y": 1941.18
           },
           "size": {
-            "width": 340,
-            "height": 130
+            "width": 317.86,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "کوٹ پتلون",
-          "fontSize": 13,
+          "fontSize": 12.15,
           "color": "#FFC233",
           "fontFamily": "Noto Nastaliq Urdu",
           "fontWeight": "normal",
@@ -1316,17 +1316,17 @@
           "type": "text",
           "name": "C3 Points",
           "position": {
-            "x": 155,
-            "y": 2190
+            "x": 144.91,
+            "y": 2053.71
           },
           "size": {
-            "width": 500,
-            "height": 70
+            "width": 467.44,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "10 measure points",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1338,24 +1338,24 @@
           "type": "shape",
           "name": "C3 Stitch Line",
           "position": {
-            "x": 150,
-            "y": 2260
+            "x": 140.23,
+            "y": 2119.36
           },
           "size": {
-            "width": 990,
-            "height": 50
+            "width": 925.53,
+            "height": 46.89
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#3A4150",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           }
         },
         {
@@ -1363,17 +1363,17 @@
           "type": "text",
           "name": "C3 Desc",
           "position": {
-            "x": 155,
-            "y": 2310
+            "x": 144.91,
+            "y": 2166.24
           },
           "size": {
-            "width": 990,
-            "height": 120
+            "width": 925.53,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
           "content": "Suit season — coat length down to the\ntrouser opening, every call that counts.",
-          "fontSize": 12.5,
+          "fontSize": 11.69,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1385,12 +1385,12 @@
           "type": "shape",
           "name": "C3 Chip 1",
           "position": {
-            "x": 155,
-            "y": 2450
+            "x": 144.91,
+            "y": 2297.53
           },
           "size": {
-            "width": 300,
-            "height": 80
+            "width": 280.47,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -1398,24 +1398,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c3_chip1_text",
           "type": "text",
           "name": "C3 Chip 1 Text",
           "position": {
-            "x": 155,
-            "y": 2450
+            "x": 144.91,
+            "y": 2297.53
           },
           "size": {
-            "width": 300,
-            "height": 80
+            "width": 280.47,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Single breast",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1427,12 +1427,12 @@
           "type": "shape",
           "name": "C3 Chip 2",
           "position": {
-            "x": 485,
-            "y": 2450
+            "x": 453.42,
+            "y": 2297.53
           },
           "size": {
-            "width": 310,
-            "height": 80
+            "width": 289.81,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -1440,24 +1440,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c3_chip2_text",
           "type": "text",
           "name": "C3 Chip 2 Text",
           "position": {
-            "x": 485,
-            "y": 2450
+            "x": 453.42,
+            "y": 2297.53
           },
           "size": {
-            "width": 310,
-            "height": 80
+            "width": 289.81,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Double breast",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1469,12 +1469,12 @@
           "type": "shape",
           "name": "C3 Chip 3",
           "position": {
-            "x": 825,
-            "y": 2450
+            "x": 771.28,
+            "y": 2297.53
           },
           "size": {
-            "width": 200,
-            "height": 80
+            "width": 186.98,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -1482,24 +1482,24 @@
           "fillColor": "#262B34",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 40
+          "borderRadius": 37.4
         },
         {
           "id": "tpl_dz_ab3_c3_chip3_text",
           "type": "text",
           "name": "C3 Chip 3 Text",
           "position": {
-            "x": 825,
-            "y": 2450
+            "x": 771.28,
+            "y": 2297.53
           },
           "size": {
-            "width": 200,
-            "height": 80
+            "width": 186.98,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Turn-up",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#B9C0CB",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1511,24 +1511,24 @@
           "type": "shape",
           "name": "Thread Line",
           "position": {
-            "x": 95,
-            "y": 2650
+            "x": 88.81,
+            "y": 2485.09
           },
           "size": {
-            "width": 1100,
-            "height": 50
+            "width": 1028.37,
+            "height": 46.89
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#A67A10",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           }
         },
         {
@@ -1536,12 +1536,12 @@
           "type": "shape",
           "name": "Thread Spool",
           "position": {
-            "x": 545,
-            "y": 2620
+            "x": 509.51,
+            "y": 2456.95
           },
           "size": {
-            "width": 200,
-            "height": 110
+            "width": 186.98,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -1564,8 +1564,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -1581,17 +1581,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "№ 04 · THE ORDER",
-          "fontSize": 8,
+          "fontSize": 7.48,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1603,17 +1603,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 240
+            "x": 88.81,
+            "y": 225.06
           },
           "size": {
-            "width": 1100,
-            "height": 380
+            "width": 1028.37,
+            "height": 356.35
           },
           "rotation": 0,
           "scale": 1,
           "content": "More than\nthe numbers.",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -1625,17 +1625,17 @@
           "type": "text",
           "name": "Body",
           "position": {
-            "x": 95,
-            "y": 640
+            "x": 88.81,
+            "y": 600.17
           },
           "size": {
-            "width": 1100,
-            "height": 220
+            "width": 1028.37,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
           "content": "A name, a mobile, twenty measurements,\nthree style calls and one voice note —\nan order keeps it all together.",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1647,12 +1647,12 @@
           "type": "shape",
           "name": "Order Slip",
           "position": {
-            "x": 145,
-            "y": 920
+            "x": 135.56,
+            "y": 862.75
           },
           "size": {
-            "width": 1000,
-            "height": 1330
+            "width": 934.88,
+            "height": 1247.23
           },
           "rotation": 0,
           "scale": 1,
@@ -1660,24 +1660,24 @@
           "fillColor": "#F0E8D8",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 28
+          "borderRadius": 26.18
         },
         {
           "id": "tpl_dz_ab4_t_title",
           "type": "text",
           "name": "Ticket Title",
           "position": {
-            "x": 205,
-            "y": 980
+            "x": 191.65,
+            "y": 919.01
           },
           "size": {
-            "width": 400,
-            "height": 70
+            "width": 373.95,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "ORDER SLIP",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#23262E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1689,17 +1689,17 @@
           "type": "text",
           "name": "Ticket No",
           "position": {
-            "x": 685,
-            "y": 980
+            "x": 640.4,
+            "y": 919.01
           },
           "size": {
-            "width": 400,
-            "height": 70
+            "width": 373.95,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Nº 0214",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#A67A10",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1711,24 +1711,24 @@
           "type": "shape",
           "name": "Ticket Divider",
           "position": {
-            "x": 200,
-            "y": 1060
+            "x": 186.98,
+            "y": 994.03
           },
           "size": {
-            "width": 890,
-            "height": 44
+            "width": 832.05,
+            "height": 41.26
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#C9BFA9",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           }
         },
         {
@@ -1736,17 +1736,17 @@
           "type": "text",
           "name": "Row 1 Key",
           "position": {
-            "x": 205,
-            "y": 1120
+            "x": 191.65,
+            "y": 1050.3
           },
           "size": {
-            "width": 280,
-            "height": 70
+            "width": 261.77,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Customer",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1758,17 +1758,17 @@
           "type": "text",
           "name": "Row 1 Value",
           "position": {
-            "x": 505,
-            "y": 1120
+            "x": 472.12,
+            "y": 1050.3
           },
           "size": {
-            "width": 580,
-            "height": 70
+            "width": 542.23,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Imran Sahib",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#23262E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1780,17 +1780,17 @@
           "type": "text",
           "name": "Row 2 Key",
           "position": {
-            "x": 205,
-            "y": 1225
+            "x": 191.65,
+            "y": 1148.77
           },
           "size": {
-            "width": 280,
-            "height": 70
+            "width": 261.77,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Mobile",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1802,17 +1802,17 @@
           "type": "text",
           "name": "Row 2 Value",
           "position": {
-            "x": 505,
-            "y": 1225
+            "x": 472.12,
+            "y": 1148.77
           },
           "size": {
-            "width": 580,
-            "height": 70
+            "width": 542.23,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "0300 ··· 0182",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#23262E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1824,17 +1824,17 @@
           "type": "text",
           "name": "Row 3 Key",
           "position": {
-            "x": 205,
-            "y": 1330
+            "x": 191.65,
+            "y": 1247.23
           },
           "size": {
-            "width": 280,
-            "height": 70
+            "width": 261.77,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Date",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1846,17 +1846,17 @@
           "type": "text",
           "name": "Row 3 Value",
           "position": {
-            "x": 505,
-            "y": 1330
+            "x": 472.12,
+            "y": 1247.23
           },
           "size": {
-            "width": 580,
-            "height": 70
+            "width": 542.23,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "12 June · backdated",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#23262E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1868,17 +1868,17 @@
           "type": "text",
           "name": "Row 4 Key",
           "position": {
-            "x": 205,
-            "y": 1435
+            "x": 191.65,
+            "y": 1345.7
           },
           "size": {
-            "width": 280,
-            "height": 70
+            "width": 261.77,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Outfit",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1890,17 +1890,17 @@
           "type": "text",
           "name": "Row 4 Value",
           "position": {
-            "x": 505,
-            "y": 1435
+            "x": 472.12,
+            "y": 1345.7
           },
           "size": {
-            "width": 580,
-            "height": 70
+            "width": 542.23,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Shalwar Kameez · 11 pts",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#23262E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1912,17 +1912,17 @@
           "type": "text",
           "name": "Row 5 Key",
           "position": {
-            "x": 205,
-            "y": 1540
+            "x": 191.65,
+            "y": 1444.16
           },
           "size": {
-            "width": 280,
-            "height": 70
+            "width": 261.77,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Style",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1934,17 +1934,17 @@
           "type": "text",
           "name": "Row 5 Value",
           "position": {
-            "x": 505,
-            "y": 1540
+            "x": 472.12,
+            "y": 1444.16
           },
           "size": {
-            "width": 580,
-            "height": 70
+            "width": 542.23,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Ban collar · double kaf",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#23262E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -1956,17 +1956,17 @@
           "type": "text",
           "name": "Row 6 Key",
           "position": {
-            "x": 205,
-            "y": 1645
+            "x": 191.65,
+            "y": 1542.63
           },
           "size": {
-            "width": 280,
-            "height": 70
+            "width": 261.77,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Note",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -1978,17 +1978,17 @@
           "type": "text",
           "name": "Row 6 Value",
           "position": {
-            "x": 505,
-            "y": 1640
+            "x": 472.12,
+            "y": 1537.94
           },
           "size": {
-            "width": 580,
-            "height": 80
+            "width": 542.23,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "sleeves a little loose",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#A67A10",
           "fontFamily": "Pacifico",
           "fontWeight": "normal",
@@ -2000,12 +2000,12 @@
           "type": "shape",
           "name": "Voice Note Strip",
           "position": {
-            "x": 205,
-            "y": 1770
+            "x": 191.65,
+            "y": 1659.85
           },
           "size": {
-            "width": 880,
-            "height": 200
+            "width": 822.7,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
@@ -2013,19 +2013,19 @@
           "fillColor": "#23262E",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 24
+          "borderRadius": 22.44
         },
         {
           "id": "tpl_dz_ab4_vn_mic",
           "type": "shape",
           "name": "Mic Icon",
           "position": {
-            "x": 245,
-            "y": 1830
+            "x": 229.05,
+            "y": 1716.12
           },
           "size": {
-            "width": 80,
-            "height": 80
+            "width": 74.79,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -2043,12 +2043,12 @@
           "type": "shape",
           "name": "Voice Wave",
           "position": {
-            "x": 370,
-            "y": 1800
+            "x": 345.91,
+            "y": 1687.98
           },
           "size": {
-            "width": 490,
-            "height": 140
+            "width": 458.09,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
@@ -2066,17 +2066,17 @@
           "type": "text",
           "name": "Voice Time",
           "position": {
-            "x": 900,
-            "y": 1835
+            "x": 841.4,
+            "y": 1720.8
           },
           "size": {
-            "width": 160,
-            "height": 70
+            "width": 149.58,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "0:42",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2088,24 +2088,24 @@
           "type": "shape",
           "name": "Perforation",
           "position": {
-            "x": 200,
-            "y": 2020
+            "x": 186.98,
+            "y": 1894.29
           },
           "size": {
-            "width": 890,
-            "height": 44
+            "width": 832.05,
+            "height": 41.26
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#C9BFA9",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           }
         },
         {
@@ -2113,17 +2113,17 @@
           "type": "text",
           "name": "Completed",
           "position": {
-            "x": 205,
-            "y": 2090
+            "x": 191.65,
+            "y": 1959.94
           },
           "size": {
-            "width": 400,
-            "height": 80
+            "width": 373.95,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Completed ✓",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#1F8A4C",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2135,17 +2135,17 @@
           "type": "text",
           "name": "JSON Note",
           "position": {
-            "x": 605,
-            "y": 2100
+            "x": 565.6,
+            "y": 1969.31
           },
           "size": {
-            "width": 480,
-            "height": 70
+            "width": 448.74,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "copies out as clean JSON",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2158,17 +2158,17 @@
           "type": "text",
           "name": "Chalk Note",
           "position": {
-            "x": 95,
-            "y": 2330
+            "x": 88.81,
+            "y": 2185
           },
           "size": {
-            "width": 1100,
-            "height": 110
+            "width": 1028.37,
+            "height": 103.15
           },
           "rotation": -2,
           "scale": 1,
           "content": "press record while the customer is still talking",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#FFC233",
           "fontFamily": "Pacifico",
           "fontWeight": "normal",
@@ -2180,17 +2180,17 @@
           "type": "text",
           "name": "Feature Row",
           "position": {
-            "x": 95,
-            "y": 2560
+            "x": 88.81,
+            "y": 2400.69
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "Voice notes · Style calls · Backdated orders",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2207,8 +2207,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -2224,17 +2224,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "№ 05 · FROM THE SHOPS",
-          "fontSize": 8,
+          "fontSize": 7.48,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2246,17 +2246,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 240
+            "x": 88.81,
+            "y": 225.06
           },
           "size": {
-            "width": 1100,
-            "height": 370
+            "width": 1028.37,
+            "height": 346.97
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stitched into\nthe routine",
-          "fontSize": 42,
+          "fontSize": 39.27,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2268,37 +2268,37 @@
           "type": "shape",
           "name": "Review Card 1",
           "position": {
-            "x": 95,
-            "y": 680
+            "x": 88.81,
+            "y": 637.68
           },
           "size": {
-            "width": 1100,
-            "height": 470
+            "width": 1028.37,
+            "height": 440.75
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab5_c1_stars",
           "type": "text",
           "name": "C1 Stars",
           "position": {
-            "x": 155,
-            "y": 730
+            "x": 144.91,
+            "y": 684.57
           },
           "size": {
-            "width": 420,
-            "height": 80
+            "width": 392.65,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "★★★★★",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFC233",
           "fontFamily": "Arial",
           "fontWeight": "normal",
@@ -2310,17 +2310,17 @@
           "type": "text",
           "name": "C1 Quote",
           "position": {
-            "x": 155,
-            "y": 820
+            "x": 144.91,
+            "y": 768.97
           },
           "size": {
-            "width": 980,
-            "height": 190
+            "width": 916.19,
+            "height": 178.18
           },
           "rotation": 0,
           "scale": 1,
           "content": "The mannequin remembers every size.\nMy diary finally stays closed.",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2332,17 +2332,17 @@
           "type": "text",
           "name": "C1 Name",
           "position": {
-            "x": 155,
-            "y": 1030
+            "x": 144.91,
+            "y": 965.9
           },
           "size": {
-            "width": 700,
-            "height": 70
+            "width": 654.42,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "— Ustad Rafiq · Lahore",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2354,37 +2354,37 @@
           "type": "shape",
           "name": "Review Card 2",
           "position": {
-            "x": 95,
-            "y": 1190
+            "x": 88.81,
+            "y": 1115.94
           },
           "size": {
-            "width": 1100,
-            "height": 470
+            "width": 1028.37,
+            "height": 440.75
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab5_c2_stars",
           "type": "text",
           "name": "C2 Stars",
           "position": {
-            "x": 155,
-            "y": 1240
+            "x": 144.91,
+            "y": 1162.83
           },
           "size": {
-            "width": 420,
-            "height": 80
+            "width": 392.65,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "★★★★★",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFC233",
           "fontFamily": "Arial",
           "fontWeight": "normal",
@@ -2396,17 +2396,17 @@
           "type": "text",
           "name": "C2 Quote",
           "position": {
-            "x": 155,
-            "y": 1330
+            "x": 144.91,
+            "y": 1247.23
           },
           "size": {
-            "width": 980,
-            "height": 190
+            "width": 916.19,
+            "height": 178.18
           },
           "rotation": 0,
           "scale": 1,
           "content": "I take the order while the customer\nis still talking. Nothing gets lost.",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2418,17 +2418,17 @@
           "type": "text",
           "name": "C2 Name",
           "position": {
-            "x": 155,
-            "y": 1540
+            "x": 144.91,
+            "y": 1444.16
           },
           "size": {
-            "width": 700,
-            "height": 70
+            "width": 654.42,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "— Bilal · Faisalabad",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2440,37 +2440,37 @@
           "type": "shape",
           "name": "Review Card 3",
           "position": {
-            "x": 95,
-            "y": 1700
+            "x": 88.81,
+            "y": 1594.21
           },
           "size": {
-            "width": 1100,
-            "height": 470
+            "width": 1028.37,
+            "height": 440.75
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab5_c3_stars",
           "type": "text",
           "name": "C3 Stars",
           "position": {
-            "x": 155,
-            "y": 1750
+            "x": 144.91,
+            "y": 1641.09
           },
           "size": {
-            "width": 420,
-            "height": 80
+            "width": 392.65,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "★★★★★",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFC233",
           "fontFamily": "Arial",
           "fontWeight": "normal",
@@ -2482,17 +2482,17 @@
           "type": "text",
           "name": "C3 Quote",
           "position": {
-            "x": 155,
-            "y": 1840
+            "x": 144.91,
+            "y": 1725.49
           },
           "size": {
-            "width": 980,
-            "height": 190
+            "width": 916.19,
+            "height": 178.18
           },
           "rotation": 0,
           "scale": 1,
           "content": "No signal in the bazaar, no problem.\nEvery order is already in my pocket.",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2504,17 +2504,17 @@
           "type": "text",
           "name": "C3 Name",
           "position": {
-            "x": 155,
-            "y": 2050
+            "x": 144.91,
+            "y": 1922.42
           },
           "size": {
-            "width": 700,
-            "height": 70
+            "width": 654.42,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "— Shahid · Peshawar",
-          "fontSize": 11.5,
+          "fontSize": 10.75,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2526,12 +2526,12 @@
           "type": "shape",
           "name": "Laurel",
           "position": {
-            "x": 445,
-            "y": 2280
+            "x": 416.02,
+            "y": 2138.11
           },
           "size": {
-            "width": 400,
-            "height": 430
+            "width": 373.95,
+            "height": 403.24
           },
           "rotation": 0,
           "scale": 1,
@@ -2549,17 +2549,17 @@
           "type": "text",
           "name": "Rating",
           "position": {
-            "x": 495,
-            "y": 2400
+            "x": 462.77,
+            "y": 2250.64
           },
           "size": {
-            "width": 300,
-            "height": 160
+            "width": 280.47,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "4.9",
-          "fontSize": 38,
+          "fontSize": 35.53,
           "color": "#FFC233",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2571,17 +2571,17 @@
           "type": "text",
           "name": "Rating Label",
           "position": {
-            "x": 445,
-            "y": 2716
+            "x": 416.02,
+            "y": 2546.98
           },
           "size": {
-            "width": 400,
-            "height": 70
+            "width": 373.95,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "loved by tailors",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2598,8 +2598,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -2615,17 +2615,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 95,
-            "y": 150
+            "x": 88.81,
+            "y": 140.67
           },
           "size": {
-            "width": 1100,
-            "height": 80
+            "width": 1028.37,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "№ 06 · NO SIGNAL REQUIRED",
-          "fontSize": 8,
+          "fontSize": 7.48,
           "color": "#FFC233",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2637,17 +2637,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 240
+            "x": 88.81,
+            "y": 225.06
           },
           "size": {
-            "width": 1100,
-            "height": 390
+            "width": 1028.37,
+            "height": 365.73
           },
           "rotation": 0,
           "scale": 1,
           "content": "Works where\nthe shop is.",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2659,17 +2659,17 @@
           "type": "text",
           "name": "Body",
           "position": {
-            "x": 95,
-            "y": 650
+            "x": 88.81,
+            "y": 609.55
           },
           "size": {
-            "width": 1100,
-            "height": 220
+            "width": 1028.37,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
           "content": "No account, no cloud, no connection lost.\nOrders, measurements and voice notes\nlive on the phone.",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2681,37 +2681,37 @@
           "type": "shape",
           "name": "Stat Card 1",
           "position": {
-            "x": 95,
-            "y": 940
+            "x": 88.81,
+            "y": 881.5
           },
           "size": {
-            "width": 540,
-            "height": 540
+            "width": 504.84,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab6_s1_num",
           "type": "text",
           "name": "Stat 1 Number",
           "position": {
-            "x": 95,
-            "y": 1010
+            "x": 88.81,
+            "y": 947.15
           },
           "size": {
-            "width": 540,
-            "height": 200
+            "width": 504.84,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
           "content": "25",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFC233",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2723,17 +2723,17 @@
           "type": "text",
           "name": "Stat 1 Label",
           "position": {
-            "x": 145,
-            "y": 1240
+            "x": 135.56,
+            "y": 1162.83
           },
           "size": {
-            "width": 440,
-            "height": 180
+            "width": 411.35,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "measurement points,\neach with its\nreal name",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2745,37 +2745,37 @@
           "type": "shape",
           "name": "Stat Card 2",
           "position": {
-            "x": 655,
-            "y": 940
+            "x": 612.35,
+            "y": 881.5
           },
           "size": {
-            "width": 540,
-            "height": 540
+            "width": 504.84,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab6_s2_num",
           "type": "text",
           "name": "Stat 2 Number",
           "position": {
-            "x": 655,
-            "y": 1010
+            "x": 612.35,
+            "y": 947.15
           },
           "size": {
-            "width": 540,
-            "height": 200
+            "width": 504.84,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
           "content": "3",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFC233",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2787,17 +2787,17 @@
           "type": "text",
           "name": "Stat 2 Label",
           "position": {
-            "x": 705,
-            "y": 1240
+            "x": 659.09,
+            "y": 1162.83
           },
           "size": {
-            "width": 440,
-            "height": 180
+            "width": 411.35,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "outfits — kameez,\nwasket, coat pant",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2809,37 +2809,37 @@
           "type": "shape",
           "name": "Stat Card 3",
           "position": {
-            "x": 95,
-            "y": 1540
+            "x": 88.81,
+            "y": 1444.16
           },
           "size": {
-            "width": 540,
-            "height": 540
+            "width": 504.84,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab6_s3_num",
           "type": "text",
           "name": "Stat 3 Number",
           "position": {
-            "x": 95,
-            "y": 1610
+            "x": 88.81,
+            "y": 1509.81
           },
           "size": {
-            "width": 540,
-            "height": 200
+            "width": 504.84,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
           "content": "14",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFC233",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2851,17 +2851,17 @@
           "type": "text",
           "name": "Stat 3 Label",
           "position": {
-            "x": 145,
-            "y": 1840
+            "x": 135.56,
+            "y": 1725.49
           },
           "size": {
-            "width": 440,
-            "height": 180
+            "width": 411.35,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "style variants —\ncollars, cuffs, hems",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2873,37 +2873,37 @@
           "type": "shape",
           "name": "Stat Card 4",
           "position": {
-            "x": 655,
-            "y": 1540
+            "x": 612.35,
+            "y": 1444.16
           },
           "size": {
-            "width": 540,
-            "height": 540
+            "width": 504.84,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
           "fillColor": "#1D2129",
           "strokeColor": "#2A303B",
-          "strokeWidth": 2,
-          "borderRadius": 36
+          "strokeWidth": 1.87,
+          "borderRadius": 33.66
         },
         {
           "id": "tpl_dz_ab6_s4_num",
           "type": "text",
           "name": "Stat 4 Number",
           "position": {
-            "x": 655,
-            "y": 1610
+            "x": 612.35,
+            "y": 1509.81
           },
           "size": {
-            "width": 540,
-            "height": 200
+            "width": 504.84,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
           "content": "0",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFC233",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -2915,17 +2915,17 @@
           "type": "text",
           "name": "Stat 4 Label",
           "position": {
-            "x": 705,
-            "y": 1840
+            "x": 659.09,
+            "y": 1725.49
           },
           "size": {
-            "width": 440,
-            "height": 180
+            "width": 411.35,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "internet needed,\never",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -2937,12 +2937,12 @@
           "type": "shape",
           "name": "Lock Icon",
           "position": {
-            "x": 600,
-            "y": 2200
+            "x": 560.93,
+            "y": 2063.09
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -2961,17 +2961,17 @@
           "type": "text",
           "name": "Lock Line",
           "position": {
-            "x": 95,
-            "y": 2330
+            "x": 88.81,
+            "y": 2185
           },
           "size": {
-            "width": 1100,
-            "height": 90
+            "width": 1028.37,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
           "content": "Everything stays on the device",
-          "fontSize": 15,
+          "fontSize": 14.02,
           "color": "#F4F5F7",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -2983,17 +2983,17 @@
           "type": "text",
           "name": "Chalk Note",
           "position": {
-            "x": 95,
-            "y": 2450
+            "x": 88.81,
+            "y": 2297.53
           },
           "size": {
-            "width": 1100,
-            "height": 100
+            "width": 1028.37,
+            "height": 93.78
           },
           "rotation": -2,
           "scale": 1,
           "content": "no account, no cloud, ever",
-          "fontSize": 12,
+          "fontSize": 11.22,
           "color": "#FFC233",
           "fontFamily": "Pacifico",
           "fontWeight": "normal",
@@ -3010,8 +3010,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#0F1115",
       "backgroundType": "gradient",
@@ -3027,17 +3027,17 @@
           "type": "text",
           "name": "Urdu Brand",
           "position": {
-            "x": 95,
-            "y": 130
+            "x": 88.81,
+            "y": 121.91
           },
           "size": {
-            "width": 1100,
-            "height": 230
+            "width": 1028.37,
+            "height": 215.69
           },
           "rotation": 0,
           "scale": 1,
           "content": "درزی سٹوڈیو",
-          "fontSize": 24,
+          "fontSize": 22.44,
           "color": "#FFC233",
           "fontFamily": "Noto Nastaliq Urdu",
           "fontWeight": "normal",
@@ -3049,17 +3049,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 360
+            "x": 88.81,
+            "y": 337.6
           },
           "size": {
-            "width": 1100,
-            "height": 240
+            "width": 1028.37,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "Try it on.",
-          "fontSize": 54,
+          "fontSize": 50.48,
           "color": "#F4F5F7",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -3071,12 +3071,12 @@
           "type": "shape",
           "name": "Chalk Underline",
           "position": {
-            "x": 395,
-            "y": 580
+            "x": 369.28,
+            "y": 543.91
           },
           "size": {
-            "width": 500,
-            "height": 90
+            "width": 467.44,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -3094,17 +3094,17 @@
           "type": "text",
           "name": "Body",
           "position": {
-            "x": 95,
-            "y": 700
+            "x": 88.81,
+            "y": 656.44
           },
           "size": {
-            "width": 1100,
-            "height": 90
+            "width": 1028.37,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
           "content": "Free, on the phone already in your pocket.",
-          "fontSize": 15,
+          "fontSize": 14.02,
           "color": "#98A0AC",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -3116,12 +3116,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 225,
-            "y": 830
+            "x": 210.35,
+            "y": 778.35
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.4,
@@ -3144,12 +3144,12 @@
           "type": "shape",
           "name": "Splash Spool",
           "position": {
-            "x": 535,
-            "y": 1430
+            "x": 500.16,
+            "y": 1341.01
           },
           "size": {
-            "width": 220,
-            "height": 120
+            "width": 205.67,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
@@ -3167,17 +3167,17 @@
           "type": "text",
           "name": "Splash Name",
           "position": {
-            "x": 345,
-            "y": 1580
+            "x": 322.53,
+            "y": 1481.67
           },
           "size": {
-            "width": 600,
-            "height": 110
+            "width": 560.93,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Darzi Studio",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFC233",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -3189,17 +3189,17 @@
           "type": "text",
           "name": "Splash Urdu",
           "position": {
-            "x": 395,
-            "y": 1690
+            "x": 369.28,
+            "y": 1584.83
           },
           "size": {
-            "width": 500,
-            "height": 130
+            "width": 467.44,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "درزی سٹوڈیو",
-          "fontSize": 11,
+          "fontSize": 10.28,
           "color": "#98A0AC",
           "fontFamily": "Noto Nastaliq Urdu",
           "fontWeight": "normal",
@@ -3211,17 +3211,17 @@
           "type": "text",
           "name": "Splash Tagline",
           "position": {
-            "x": 345,
-            "y": 1850
+            "x": 322.53,
+            "y": 1734.87
           },
           "size": {
-            "width": 600,
-            "height": 80
+            "width": 560.93,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
           "content": "the measurement studio",
-          "fontSize": 10,
+          "fontSize": 9.35,
           "color": "#565B66",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -3233,12 +3233,12 @@
           "type": "shape",
           "name": "CTA Button",
           "position": {
-            "x": 335,
-            "y": 2580
+            "x": 313.19,
+            "y": 2419.44
           },
           "size": {
-            "width": 620,
-            "height": 150
+            "width": 579.63,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
@@ -3246,24 +3246,24 @@
           "fillColor": "#FFC233",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 75
+          "borderRadius": 70.12
         },
         {
           "id": "tpl_dz_ab7_button_text",
           "type": "text",
           "name": "CTA Button Text",
           "position": {
-            "x": 335,
-            "y": 2580
+            "x": 313.19,
+            "y": 2419.44
           },
           "size": {
-            "width": 620,
-            "height": 150
+            "width": 579.63,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Get Darzi Studio",
-          "fontSize": 14,
+          "fontSize": 13.09,
           "color": "#181203",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",

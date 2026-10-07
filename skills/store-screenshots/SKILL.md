@@ -70,7 +70,7 @@ than a screenshot tool could, and the raw captures usually already exist. In ord
 
 1. **Already in the repo.** Look for `fastlane/screenshots/`, `screenshots/`, `docs/screenshots/`,
    `ios/fastlane/screenshots/`, `metadata/`, or a `*.png` set beside the README. Prefer the largest
-   ones, 1290x2796 or better for iPhone.
+   ones, 1206x2622 or better for iPhone.
 2. **Already on the store.** If the app is published, pull the live listing:
    ```bash
    npx -y open-screenshot-generator@0 import

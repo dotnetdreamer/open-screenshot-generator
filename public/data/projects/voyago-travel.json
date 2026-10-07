@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#DCE9D2",
       "zoom": 1,
@@ -24,12 +24,12 @@
           "type": "shape",
           "name": "Hill",
           "position": {
-            "x": -655,
-            "y": 880
+            "x": -612.35,
+            "y": 825.24
           },
           "size": {
-            "width": 2600,
-            "height": 2500
+            "width": 2430.7,
+            "height": 2344.42
           },
           "rotation": 0,
           "scale": 1,
@@ -43,17 +43,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 70
+            "x": 65.44,
+            "y": 65.64
           },
           "size": {
-            "width": 950,
-            "height": 170
+            "width": 888.14,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Find the Best",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -65,12 +65,12 @@
           "type": "shape",
           "name": "Deals Pill",
           "position": {
-            "x": 70,
-            "y": 250
+            "x": 65.44,
+            "y": 234.44
           },
           "size": {
-            "width": 360,
-            "height": 160
+            "width": 336.56,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
@@ -78,7 +78,7 @@
           "fillColor": "#1E5B2E",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 24,
+          "borderRadius": 22.44,
           "borderRadiusType": "uniform"
         },
         {
@@ -86,17 +86,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 250
+            "x": 65.44,
+            "y": 234.44
           },
           "size": {
-            "width": 360,
-            "height": 160
+            "width": 336.56,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "Deals",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#DCE9D2",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -108,17 +108,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 455,
-            "y": 250
+            "x": 425.37,
+            "y": 234.44
           },
           "size": {
-            "width": 730,
-            "height": 160
+            "width": 682.47,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "on Flights",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -130,12 +130,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 180,
-            "y": 1000
+            "x": 168.28,
+            "y": 937.77
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -6,
           "scale": 1.55,
@@ -158,12 +158,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 1030,
-            "y": 1180
+            "x": 962.93,
+            "y": 1106.57
           },
           "size": {
-            "width": 170,
-            "height": 170
+            "width": 158.93,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -181,12 +181,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 980,
-            "y": 1420
+            "x": 916.19,
+            "y": 1331.63
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -209,8 +209,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#DCE9D2",
       "zoom": 1,
@@ -220,12 +220,12 @@
           "type": "shape",
           "name": "Laurel 1",
           "position": {
-            "x": 395,
-            "y": 110
+            "x": 369.28,
+            "y": 103.15
           },
           "size": {
-            "width": 500,
-            "height": 390
+            "width": 467.44,
+            "height": 365.73
           },
           "rotation": 0,
           "scale": 1,
@@ -243,17 +243,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 495,
-            "y": 225
+            "x": 462.77,
+            "y": 211
           },
           "size": {
-            "width": 300,
-            "height": 90
+            "width": 280.47,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
           "content": "ESSENTIAL",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -265,17 +265,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 495,
-            "y": 315
+            "x": 462.77,
+            "y": 295.4
           },
           "size": {
-            "width": 300,
-            "height": 90
+            "width": 280.47,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
           "content": "Travel App",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -287,12 +287,12 @@
           "type": "shape",
           "name": "Laurel 2",
           "position": {
-            "x": 395,
-            "y": 620
+            "x": 369.28,
+            "y": 581.42
           },
           "size": {
-            "width": 500,
-            "height": 390
+            "width": 467.44,
+            "height": 365.73
           },
           "rotation": 0,
           "scale": 1,
@@ -310,17 +310,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 495,
-            "y": 730
+            "x": 462.77,
+            "y": 684.57
           },
           "size": {
-            "width": 300,
-            "height": 170
+            "width": 280.47,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "APP OF\nTHE DAY",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -332,12 +332,12 @@
           "type": "shape",
           "name": "Paper Plane",
           "position": {
-            "x": 800,
-            "y": 1130
+            "x": 747.91,
+            "y": 1059.68
           },
           "size": {
-            "width": 340,
-            "height": 340
+            "width": 317.86,
+            "height": 318.84
           },
           "rotation": -20,
           "scale": 1,
@@ -355,12 +355,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 160,
-            "y": 1350
+            "x": 149.58,
+            "y": 1265.99
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -18,
           "scale": 1.6,
@@ -383,24 +383,24 @@
           "type": "shape",
           "name": "Loop Line",
           "position": {
-            "x": 100,
-            "y": 2450
+            "x": 93.49,
+            "y": 2297.53
           },
           "size": {
-            "width": 560,
-            "height": 240
+            "width": 523.53,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#1E5B2E",
           "strokeColor": "transparent",
-          "strokeWidth": 5,
+          "strokeWidth": 4.67,
           "customPath": "M7.33 64 L10.32 63.65 L13.2 62.61 L15.85 60.95 L18.2 58.73 L20.15 56.07 L21.65 53.12 L22.67 50 L23.18 46.88 L23.2 43.93 L22.77 41.27 L21.95 39.05 L20.82 37.39 L19.46 36.35 L18 36 L16.54 36.35 L15.18 37.39 L14.05 39.05 L13.23 41.27 L12.8 43.93 L12.82 46.88 L13.33 50 L14.35 53.12 L15.85 56.07 L17.8 58.73 L20.15 60.95 L22.8 62.61 L25.68 63.65 L28.67 64 L31.65 63.65 L34.53 62.61 L37.19 60.95 L39.53 58.73 L41.49 56.07 L42.99 53.12 L44 50 L44.51 46.88 L44.53 43.93 L44.1 41.27 L43.28 39.05 L42.15 37.39 L40.8 36.35 L39.33 36 L37.87 36.35 L36.52 37.39 L35.38 39.05 L34.56 41.27 L34.13 43.93 L34.16 46.88 L34.67 50 L35.68 53.12 L37.18 56.07 L39.13 58.73 L41.48 60.95 L44.14 62.61 L47.01 63.65 L50 64 L52.99 63.65 L55.86 62.61 L58.52 60.95 L60.87 58.73 L62.82 56.07 L64.32 53.12 L65.33 50 L65.84 46.88 L65.87 43.93 L65.44 41.27 L64.62 39.05 L63.48 37.39 L62.13 36.35 L60.67 36 L59.2 36.35 L57.85 37.39 L56.72 39.05 L55.9 41.27 L55.47 43.93 L55.49 46.88 L56 50 L57.01 53.12 L58.51 56.07 L60.47 58.73 L62.81 60.95 L65.47 62.61 L68.35 63.65 L71.33 64 L74.32 63.65 L77.2 62.61 L79.85 60.95 L82.2 58.73 L84.15 56.07 L85.65 53.12 L86.67 50 L87.18 46.88 L87.2 43.93 L86.77 41.27 L85.95 39.05 L84.82 37.39 L83.46 36.35 L82 36 L80.54 36.35 L79.18 37.39 L78.05 39.05 L77.23 41.27 L76.8 43.93 L76.82 46.88 L77.33 50 L78.35 53.12 L79.85 56.07 L81.8 58.73 L84.15 60.95 L86.8 62.61 L89.68 63.65 L92.67 64",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 2.5
+            "baseStrokeWidth": 2.34
           }
         }
       ]
@@ -413,8 +413,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#1E5B2E",
       "zoom": 1,
@@ -424,12 +424,12 @@
           "type": "shape",
           "name": "Flourish",
           "position": {
-            "x": 800,
-            "y": 90
+            "x": 747.91,
+            "y": 84.4
           },
           "size": {
-            "width": 460,
-            "height": 240
+            "width": 430.05,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
@@ -447,12 +447,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 300,
-            "y": 40
+            "x": 280.47,
+            "y": 37.51
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.15,
@@ -475,12 +475,12 @@
           "type": "shape",
           "name": "Book Pill",
           "position": {
-            "x": 235,
-            "y": 1540
+            "x": 219.7,
+            "y": 1444.16
           },
           "size": {
-            "width": 300,
-            "height": 140
+            "width": 280.47,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
@@ -488,7 +488,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 20,
+          "borderRadius": 18.7,
           "borderRadiusType": "uniform"
         },
         {
@@ -496,17 +496,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 235,
-            "y": 1540
+            "x": 219.7,
+            "y": 1444.16
           },
           "size": {
-            "width": 300,
-            "height": 140
+            "width": 280.47,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "Book",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -518,17 +518,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 560,
-            "y": 1540
+            "x": 523.53,
+            "y": 1444.16
           },
           "size": {
-            "width": 520,
-            "height": 140
+            "width": 486.14,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "Hotels",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -540,17 +540,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 95,
-            "y": 1685
+            "x": 88.81,
+            "y": 1580.14
           },
           "size": {
-            "width": 1100,
-            "height": 150
+            "width": 1028.37,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Anywhere, Anytime",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -562,12 +562,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 300,
-            "y": 1900
+            "x": 280.47,
+            "y": 1781.76
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.15,
@@ -595,8 +595,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#1E5B2E",
       "zoom": 1,
@@ -606,24 +606,24 @@
           "type": "shape",
           "name": "Sketch Circle",
           "position": {
-            "x": 830,
-            "y": 130
+            "x": 775.95,
+            "y": 121.91
           },
           "size": {
-            "width": 640,
-            "height": 640
+            "width": 598.33,
+            "height": 600.17
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "custom-svg",
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3,
+          "strokeWidth": 2.8,
           "customPath": "M50 12 C26 12 12 28 13 50 C14 73 31 88 53 87 C76 86 89 68 88 47 C87 27 70 13 50 14 C36 15 24 24 19 36",
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           }
         },
         {
@@ -631,17 +631,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 80
+            "x": 65.44,
+            "y": 75.02
           },
           "size": {
-            "width": 850,
-            "height": 160
+            "width": 794.65,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "Discover Your",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -653,17 +653,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 245
+            "x": 65.44,
+            "y": 229.75
           },
           "size": {
-            "width": 460,
-            "height": 145
+            "width": 430.05,
+            "height": 135.98
           },
           "rotation": 0,
           "scale": 1,
           "content": "Perfect",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -675,12 +675,12 @@
           "type": "shape",
           "name": "Stay Pill",
           "position": {
-            "x": 540,
-            "y": 250
+            "x": 504.84,
+            "y": 234.44
           },
           "size": {
-            "width": 290,
-            "height": 135
+            "width": 271.12,
+            "height": 126.6
           },
           "rotation": 0,
           "scale": 1,
@@ -688,7 +688,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 20,
+          "borderRadius": 18.7,
           "borderRadiusType": "uniform"
         },
         {
@@ -696,17 +696,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 540,
-            "y": 250
+            "x": 504.84,
+            "y": 234.44
           },
           "size": {
-            "width": 290,
-            "height": 135
+            "width": 271.12,
+            "height": 126.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stay",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -718,12 +718,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 140,
-            "y": 560
+            "x": 130.88,
+            "y": 525.15
           },
           "size": {
-            "width": 130,
-            "height": 130
+            "width": 121.53,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
@@ -741,12 +741,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 280,
-            "y": 680
+            "x": 261.77,
+            "y": 637.68
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
@@ -764,12 +764,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 180,
-            "y": 760
+            "x": 168.28,
+            "y": 712.7
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.55,
@@ -797,8 +797,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#1E5B2E",
       "zoom": 1,
@@ -808,17 +808,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 80
+            "x": 65.44,
+            "y": 75.02
           },
           "size": {
-            "width": 560,
-            "height": 145
+            "width": 523.53,
+            "height": 135.98
           },
           "rotation": 0,
           "scale": 1,
           "content": "Plan Your",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -830,12 +830,12 @@
           "type": "shape",
           "name": "Trip Pill",
           "position": {
-            "x": 640,
-            "y": 85
+            "x": 598.33,
+            "y": 79.71
           },
           "size": {
-            "width": 260,
-            "height": 135
+            "width": 243.07,
+            "height": 126.6
           },
           "rotation": 0,
           "scale": 1,
@@ -843,7 +843,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 20,
+          "borderRadius": 18.7,
           "borderRadiusType": "uniform"
         },
         {
@@ -851,17 +851,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 640,
-            "y": 85
+            "x": 598.33,
+            "y": 79.71
           },
           "size": {
-            "width": 260,
-            "height": 135
+            "width": 243.07,
+            "height": 126.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Trip",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#1E5B2E",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -873,17 +873,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 930,
-            "y": 80
+            "x": 869.44,
+            "y": 75.02
           },
           "size": {
-            "width": 200,
-            "height": 145
+            "width": 186.98,
+            "height": 135.98
           },
           "rotation": 0,
           "scale": 1,
           "content": "in",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -895,17 +895,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 70,
-            "y": 240
+            "x": 65.44,
+            "y": 225.06
           },
           "size": {
-            "width": 800,
-            "height": 160
+            "width": 747.91,
+            "height": 150.04
           },
           "rotation": 0,
           "scale": 1,
           "content": "One Place",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -917,12 +917,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 420,
-            "y": 580
+            "x": 392.65,
+            "y": 543.91
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.55,
@@ -945,12 +945,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 140,
-            "y": 2280
+            "x": 130.88,
+            "y": 2138.11
           },
           "size": {
-            "width": 220,
-            "height": 220
+            "width": 205.67,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
@@ -968,12 +968,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 360,
-            "y": 2530
+            "x": 336.56,
+            "y": 2372.55
           },
           "size": {
-            "width": 100,
-            "height": 100
+            "width": 93.49,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,

@@ -21,6 +21,7 @@ import type {
 } from '@/types/artboard';
 import { DEVICE_REGISTRY, type DeviceCategory, type DevicePlatform } from '@/lib/deviceRegistry';
 import { normalizeGradient } from '@/lib/artboardBackground';
+import { DEFAULT_CANVAS_SIZE } from '@/lib/sizePresets';
 
 /** One screenshot-shaped hole in a template, in reading order. */
 export interface TemplateSlot {
@@ -193,7 +194,7 @@ export function indexTemplate(project: Project): TemplateIndexEntry {
     name: project.name,
     category: project.category,
     boardCount: boards.length,
-    canvas: boards[0]?.size ?? { width: 1290, height: 2796 },
+    canvas: boards[0]?.size ?? { ...DEFAULT_CANVAS_SIZE },
     slots,
     headlines,
     deviceTypes,

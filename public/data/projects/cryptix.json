@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#101010",
       "backgroundType": "solid",
@@ -25,12 +25,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 60,
-            "y": -20
+            "x": 56.09,
+            "y": -18.76
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 14,
           "scale": 1.5,
@@ -52,17 +52,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 1560
+            "x": 65.44,
+            "y": 1462.92
           },
           "size": {
-            "width": 1100,
-            "height": 360
+            "width": 1028.37,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Grow your\ncrypto assets",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Roboto Flex",
           "fontWeight": "600",
@@ -74,17 +74,17 @@
           "type": "text",
           "name": "Brand Word",
           "position": {
-            "x": 70,
-            "y": 1930
+            "x": 65.44,
+            "y": 1809.89
           },
           "size": {
-            "width": 720,
-            "height": 200
+            "width": 673.12,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
           "content": "CrypTix",
-          "fontSize": 46,
+          "fontSize": 43,
           "color": "#F0E717",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -96,12 +96,12 @@
           "type": "shape",
           "name": "Curl Arrow",
           "position": {
-            "x": 790,
-            "y": 1500
+            "x": 738.56,
+            "y": 1406.65
           },
           "size": {
-            "width": 360,
-            "height": 410
+            "width": 336.56,
+            "height": 384.48
           },
           "rotation": 0,
           "scale": 1,
@@ -110,28 +110,28 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 8
+            "baseStrokeWidth": 7.48
           },
           "fillColor": "#F0E717",
           "strokeColor": "transparent",
-          "strokeWidth": 3.5
+          "strokeWidth": 3.27
         },
         {
           "id": "tpl_cpx_ab1_press_gq",
           "type": "text",
           "name": "Press Logo GQ",
           "position": {
-            "x": 70,
-            "y": 2320
+            "x": 65.44,
+            "y": 2175.62
           },
           "size": {
-            "width": 240,
-            "height": 150
+            "width": 224.37,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "GQ",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "700",
@@ -143,17 +143,17 @@
           "type": "text",
           "name": "Press Logo Economist",
           "position": {
-            "x": 380,
-            "y": 2330
+            "x": 355.26,
+            "y": 2185
           },
           "size": {
-            "width": 540,
-            "height": 130
+            "width": 504.84,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "Economist",
-          "fontSize": 28,
+          "fontSize": 26.18,
           "color": "#FFFFFF",
           "fontFamily": "Georgia",
           "fontWeight": "400",
@@ -165,17 +165,17 @@
           "type": "text",
           "name": "Press Logo NY Times",
           "position": {
-            "x": 70,
-            "y": 2510
+            "x": 65.44,
+            "y": 2353.8
           },
           "size": {
-            "width": 520,
-            "height": 210
+            "width": 486.14,
+            "height": 196.93
           },
           "rotation": 0,
           "scale": 1,
           "content": "The New York\nTimes",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "700",
@@ -187,17 +187,17 @@
           "type": "text",
           "name": "Press Logo Forbes",
           "position": {
-            "x": 560,
-            "y": 2540
+            "x": 523.53,
+            "y": 2381.93
           },
           "size": {
-            "width": 380,
-            "height": 140
+            "width": 355.26,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "Forbes",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#FFFFFF",
           "fontFamily": "Georgia",
           "fontWeight": "700",
@@ -214,8 +214,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F0E717",
       "backgroundType": "solid",
@@ -226,17 +226,17 @@
           "type": "shape",
           "name": "Pill Badge",
           "position": {
-            "x": 305,
-            "y": 130
+            "x": 285.14,
+            "y": 121.91
           },
           "size": {
-            "width": 680,
-            "height": 150
+            "width": 635.72,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
-          "borderRadius": 75,
+          "borderRadius": 70.12,
           "fillColor": "#101010",
           "strokeColor": "transparent",
           "strokeWidth": 0
@@ -246,17 +246,17 @@
           "type": "text",
           "name": "Pill Label",
           "position": {
-            "x": 305,
-            "y": 130
+            "x": 285.14,
+            "y": 121.91
           },
           "size": {
-            "width": 680,
-            "height": 150
+            "width": 635.72,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Start Investing Today",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Roboto Flex",
           "fontWeight": "500",
@@ -268,17 +268,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 80,
-            "y": 360
+            "x": 74.79,
+            "y": 337.6
           },
           "size": {
-            "width": 1100,
-            "height": 360
+            "width": 1028.37,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Trade anytime\nanywhere",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#101010",
           "fontFamily": "Roboto Flex",
           "fontWeight": "600",
@@ -290,12 +290,12 @@
           "type": "shape",
           "name": "Swoosh Arrow",
           "position": {
-            "x": 25,
-            "y": 800
+            "x": 23.37,
+            "y": 750.21
           },
           "size": {
-            "width": 230,
-            "height": 170
+            "width": 215.02,
+            "height": 159.42
           },
           "rotation": 20,
           "scale": 1,
@@ -306,19 +306,19 @@
           },
           "fillColor": "#101010",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_cpx_ab2_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 210,
-            "y": 900
+            "x": 196.33,
+            "y": 843.99
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -2,
           "scale": 1.6,
@@ -345,8 +345,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F0E717",
       "backgroundType": "solid",
@@ -357,17 +357,17 @@
           "type": "shape",
           "name": "Pill Badge",
           "position": {
-            "x": 355,
-            "y": 130
+            "x": 331.88,
+            "y": 121.91
           },
           "size": {
-            "width": 580,
-            "height": 150
+            "width": 542.23,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
-          "borderRadius": 75,
+          "borderRadius": 70.12,
           "fillColor": "#101010",
           "strokeColor": "transparent",
           "strokeWidth": 0
@@ -377,17 +377,17 @@
           "type": "text",
           "name": "Pill Label",
           "position": {
-            "x": 355,
-            "y": 130
+            "x": 331.88,
+            "y": 121.91
           },
           "size": {
-            "width": 580,
-            "height": 150
+            "width": 542.23,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Build Your Wealth",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Roboto Flex",
           "fontWeight": "500",
@@ -399,17 +399,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 80,
-            "y": 360
+            "x": 74.79,
+            "y": 337.6
           },
           "size": {
-            "width": 1000,
-            "height": 360
+            "width": 934.88,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Security you\ncan trust",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#101010",
           "fontFamily": "Roboto Flex",
           "fontWeight": "600",
@@ -421,12 +421,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 245,
-            "y": 1000
+            "x": 229.05,
+            "y": 937.77
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -448,12 +448,12 @@
           "type": "shape",
           "name": "Arc Arrow",
           "position": {
-            "x": 720,
-            "y": 1150
+            "x": 673.12,
+            "y": 1078.43
           },
           "size": {
-            "width": 340,
-            "height": 300
+            "width": 317.86,
+            "height": 281.33
           },
           "rotation": -10,
           "scale": 1,
@@ -462,11 +462,11 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 9
+            "baseStrokeWidth": 8.41
           },
           "fillColor": "#F0E717",
           "strokeColor": "transparent",
-          "strokeWidth": 3.5
+          "strokeWidth": 3.27
         }
       ]
     },
@@ -478,8 +478,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F0E717",
       "backgroundType": "solid",
@@ -490,17 +490,17 @@
           "type": "shape",
           "name": "Pill Badge",
           "position": {
-            "x": 285,
-            "y": 130
+            "x": 266.44,
+            "y": 121.91
           },
           "size": {
-            "width": 720,
-            "height": 150
+            "width": 673.12,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
-          "borderRadius": 75,
+          "borderRadius": 70.12,
           "fillColor": "#101010",
           "strokeColor": "transparent",
           "strokeWidth": 0
@@ -510,17 +510,17 @@
           "type": "text",
           "name": "Pill Label",
           "position": {
-            "x": 285,
-            "y": 130
+            "x": 266.44,
+            "y": 121.91
           },
           "size": {
-            "width": 720,
-            "height": 150
+            "width": 673.12,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Learn Before You Invest",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Roboto Flex",
           "fontWeight": "500",
@@ -532,17 +532,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 80,
-            "y": 360
+            "x": 74.79,
+            "y": 337.6
           },
           "size": {
-            "width": 1100,
-            "height": 360
+            "width": 1028.37,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Grow your\ncrypto assets",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#101010",
           "fontFamily": "Roboto Flex",
           "fontWeight": "600",
@@ -554,12 +554,12 @@
           "type": "shape",
           "name": "Sparkle",
           "position": {
-            "x": 1090,
-            "y": 620
+            "x": 1019.02,
+            "y": 581.42
           },
           "size": {
-            "width": 100,
-            "height": 100
+            "width": 93.49,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
@@ -577,12 +577,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 190,
-            "y": 880
+            "x": 177.63,
+            "y": 825.24
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 12,
           "scale": 1.6,
@@ -609,8 +609,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F0E717",
       "backgroundType": "solid",
@@ -621,17 +621,17 @@
           "type": "shape",
           "name": "Pill Badge",
           "position": {
-            "x": 355,
-            "y": 130
+            "x": 331.88,
+            "y": 121.91
           },
           "size": {
-            "width": 580,
-            "height": 150
+            "width": 542.23,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
-          "borderRadius": 75,
+          "borderRadius": 70.12,
           "fillColor": "#101010",
           "strokeColor": "transparent",
           "strokeWidth": 0
@@ -641,17 +641,17 @@
           "type": "text",
           "name": "Pill Label",
           "position": {
-            "x": 355,
-            "y": 130
+            "x": 331.88,
+            "y": 121.91
           },
           "size": {
-            "width": 580,
-            "height": 150
+            "width": 542.23,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
           "content": "Keep Assets Safe",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Roboto Flex",
           "fontWeight": "500",
@@ -663,17 +663,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 80,
-            "y": 360
+            "x": 74.79,
+            "y": 337.6
           },
           "size": {
-            "width": 1000,
-            "height": 360
+            "width": 934.88,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Learn before\nyou invest",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#101010",
           "fontFamily": "Roboto Flex",
           "fontWeight": "600",
@@ -685,12 +685,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 90,
-            "y": 900
+            "x": 84.14,
+            "y": 843.99
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.55,
@@ -712,12 +712,12 @@
           "type": "shape",
           "name": "Sketch Arrow",
           "position": {
-            "x": 620,
-            "y": 1080
+            "x": 579.63,
+            "y": 1012.79
           },
           "size": {
-            "width": 320,
-            "height": 300
+            "width": 299.16,
+            "height": 281.33
           },
           "rotation": 20,
           "scale": 1,
@@ -726,23 +726,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 10
+            "baseStrokeWidth": 9.35
           },
           "fillColor": "#F0E717",
           "strokeColor": "transparent",
-          "strokeWidth": 3.5
+          "strokeWidth": 3.27
         },
         {
           "id": "tpl_cpx_ab5_photo",
           "type": "image",
           "name": "Saver Photo",
           "position": {
-            "x": 780,
-            "y": 1240
+            "x": 729.21,
+            "y": 1162.83
           },
           "size": {
-            "width": 510,
-            "height": 1556
+            "width": 476.79,
+            "height": 1459.17
           },
           "rotation": 0,
           "scale": 1,

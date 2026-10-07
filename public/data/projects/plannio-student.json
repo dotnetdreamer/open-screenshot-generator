@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F5821F",
    "zoom": 1,
@@ -24,17 +24,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 100,
-      "y": 140
+      "x": 93.49,
+      "y": 131.29
      },
      "size": {
-      "width": 950,
-      "height": 600
+      "width": 888.14,
+      "height": 562.66
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your last\nDaily\nPlanner",
-     "fontSize": 46,
+     "fontSize": 43,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -46,35 +46,35 @@
      "type": "shape",
      "name": "Chip",
      "position": {
-      "x": 110,
-      "y": 820
+      "x": 102.84,
+      "y": 768.97
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 24
+     "borderRadius": 22.44
     },
     {
      "id": "ps_txt_3",
      "type": "text",
      "name": "Chip label",
      "position": {
-      "x": 110,
-      "y": 820
+      "x": 102.84,
+      "y": 768.97
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "31",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#4E8FDB",
      "fontFamily": "Baloo 2",
      "fontWeight": "700",
@@ -86,35 +86,35 @@
      "type": "shape",
      "name": "Chip",
      "position": {
-      "x": 230,
-      "y": 820
+      "x": 215.02,
+      "y": 768.97
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 24
+     "borderRadius": 22.44
     },
     {
      "id": "ps_txt_5",
      "type": "text",
      "name": "Chip label",
      "position": {
-      "x": 230,
-      "y": 820
+      "x": 215.02,
+      "y": 768.97
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "17",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#E25C4A",
      "fontFamily": "Baloo 2",
      "fontWeight": "700",
@@ -126,35 +126,35 @@
      "type": "shape",
      "name": "Chip",
      "position": {
-      "x": 350,
-      "y": 820
+      "x": 327.21,
+      "y": 768.97
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 24
+     "borderRadius": 22.44
     },
     {
      "id": "ps_txt_7",
      "type": "text",
      "name": "Chip label",
      "position": {
-      "x": 350,
-      "y": 820
+      "x": 327.21,
+      "y": 768.97
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "✓",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#35A857",
      "fontFamily": "Baloo 2",
      "fontWeight": "700",
@@ -166,12 +166,12 @@
      "type": "device",
      "name": "iPhone 3D",
      "position": {
-      "x": 303.58957478936867,
-      "y": 638.666300932521
+      "x": 283.82,
+      "y": 598.92
      },
      "size": {
-      "width": 600,
-      "height": 1300
+      "width": 560.93,
+      "height": 1219.1
      },
      "rotation": 19,
      "scale": 1.3602569729243266,
@@ -195,12 +195,12 @@
      "type": "shape",
      "name": "Laurel left",
      "position": {
-      "x": 240,
-      "y": 2360
+      "x": 224.37,
+      "y": 2213.13
      },
      "size": {
-      "width": 240,
-      "height": 330
+      "width": 224.37,
+      "height": 309.46
      },
      "rotation": 0,
      "scale": 1,
@@ -216,12 +216,12 @@
      "type": "shape",
      "name": "Laurel right",
      "position": {
-      "x": 810,
-      "y": 2360
+      "x": 757.26,
+      "y": 2213.13
      },
      "size": {
-      "width": 240,
-      "height": 330
+      "width": 224.37,
+      "height": 309.46
      },
      "rotation": 0,
      "scale": 1,
@@ -237,17 +237,17 @@
      "type": "text",
      "name": "Built for",
      "position": {
-      "x": 295,
-      "y": 2365
+      "x": 275.79,
+      "y": 2217.82
      },
      "size": {
-      "width": 700,
-      "height": 140
+      "width": 654.42,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "content": "Built for",
-     "fontSize": 27,
+     "fontSize": 25.24,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -259,17 +259,17 @@
      "type": "text",
      "name": "Students",
      "position": {
-      "x": 295,
-      "y": 2470
+      "x": 275.79,
+      "y": 2316.29
      },
      "size": {
-      "width": 700,
-      "height": 180
+      "width": 654.42,
+      "height": 168.8
      },
      "rotation": 0,
      "scale": 1,
      "content": "Students",
-     "fontSize": 34,
+     "fontSize": 31.79,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -286,8 +286,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F5821F",
    "zoom": 1,
@@ -297,12 +297,12 @@
      "type": "shape",
      "name": "Curl top",
      "position": {
-      "x": 850,
-      "y": 430
+      "x": 794.65,
+      "y": 403.24
      },
      "size": {
-      "width": 420,
-      "height": 110
+      "width": 392.65,
+      "height": 103.15
      },
      "rotation": 10,
      "scale": 1,
@@ -311,23 +311,23 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 2.5
+      "baseStrokeWidth": 2.34
      },
      "fillColor": "#F79847",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_svg_14",
      "type": "shape",
      "name": "Curl bottom",
      "position": {
-      "x": 95,
-      "y": 2560
+      "x": 88.81,
+      "y": 2400.69
      },
      "size": {
-      "width": 420,
-      "height": 110
+      "width": 392.65,
+      "height": 103.15
      },
      "rotation": -12,
      "scale": 1,
@@ -336,28 +336,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 2.5
+      "baseStrokeWidth": 2.34
      },
      "fillColor": "#F79847",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_txt_15",
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 165
+      "x": 28.05,
+      "y": 154.73
      },
      "size": {
-      "width": 1230,
-      "height": 300
+      "width": 1149.91,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "content": "Add tasks & events\nwith natural language",
-     "fontSize": 28,
+     "fontSize": 26.18,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -372,12 +372,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 159,
-      "y": 580
+      "x": 148.65,
+      "y": 543.91
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.62,
@@ -397,35 +397,35 @@
      "type": "shape",
      "name": "NL pill",
      "position": {
-      "x": 105,
-      "y": 1770
+      "x": 98.16,
+      "y": 1659.85
      },
      "size": {
-      "width": 880,
-      "height": 88
+      "width": 822.7,
+      "height": 82.52
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 44
+     "borderRadius": 41.13
     },
     {
      "id": "ps_txt_18",
      "type": "text",
      "name": "NL text",
      "position": {
-      "x": 150,
-      "y": 1770
+      "x": 140.23,
+      "y": 1659.85
      },
      "size": {
-      "width": 660,
-      "height": 88
+      "width": 617.02,
+      "height": 82.52
      },
      "rotation": 0,
      "scale": 1,
      "content": "Grab dinner with friends at 9",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#23252A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -437,17 +437,17 @@
      "type": "text",
      "name": "NL plus",
      "position": {
-      "x": 890,
-      "y": 1770
+      "x": 832.05,
+      "y": 1659.85
      },
      "size": {
-      "width": 70,
-      "height": 88
+      "width": 65.44,
+      "height": 82.52
      },
      "rotation": 0,
      "scale": 1,
      "content": "+",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#23252A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -464,8 +464,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F5821F",
    "zoom": 1,
@@ -475,12 +475,12 @@
      "type": "shape",
      "name": "Bolt watermark",
      "position": {
-      "x": 420,
-      "y": 1250
+      "x": 392.65,
+      "y": 1172.21
      },
      "size": {
-      "width": 800,
-      "height": 1300
+      "width": 747.91,
+      "height": 1219.1
      },
      "rotation": 12,
      "scale": 1,
@@ -496,17 +496,17 @@
      "type": "text",
      "name": "Headline top",
      "position": {
-      "x": 45,
-      "y": 190
+      "x": 42.07,
+      "y": 178.18
      },
      "size": {
-      "width": 1200,
-      "height": 190
+      "width": 1121.86,
+      "height": 178.18
      },
      "rotation": 0,
      "scale": 1,
      "content": "Auto scheduled",
-     "fontSize": 39,
+     "fontSize": 36.46,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -518,53 +518,53 @@
      "type": "shape",
      "name": "Task card",
      "position": {
-      "x": 150,
-      "y": 400
+      "x": 140.23,
+      "y": 375.11
      },
      "size": {
-      "width": 470,
-      "height": 108
+      "width": 439.4,
+      "height": 101.28
      },
      "rotation": -16,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 26
+     "borderRadius": 24.31
     },
     {
      "id": "ps_rect_23",
      "type": "shape",
      "name": "Task bar",
      "position": {
-      "x": 187.75,
-      "y": 479.13
+      "x": 175.52,
+      "y": 449.31
      },
      "size": {
-      "width": 10,
-      "height": 60
+      "width": 9.35,
+      "height": 56.27
      },
      "rotation": -16,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#8B6FD9",
-     "borderRadius": 5
+     "borderRadius": 4.67
     },
     {
      "id": "ps_txt_24",
      "type": "text",
      "name": "Task title",
      "position": {
-      "x": 205.64,
-      "y": 404.71
+      "x": 192.25,
+      "y": 379.52
      },
      "size": {
-      "width": 390,
-      "height": 48
+      "width": 364.6,
+      "height": 45.01
      },
      "rotation": -16,
      "scale": 1,
      "content": "Daily Yoga",
-     "fontSize": 10,
+     "fontSize": 9.35,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -576,17 +576,17 @@
      "type": "text",
      "name": "Task sub",
      "position": {
-      "x": 217.21,
-      "y": 451.08
+      "x": 203.07,
+      "y": 423.01
      },
      "size": {
-      "width": 390,
-      "height": 36
+      "width": 364.6,
+      "height": 33.76
      },
      "rotation": -16,
      "scale": 1,
      "content": "45m",
-     "fontSize": 7.5,
+     "fontSize": 7.01,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -598,53 +598,53 @@
      "type": "shape",
      "name": "Task card",
      "position": {
-      "x": 630,
-      "y": 490
+      "x": 588.98,
+      "y": 459.51
      },
      "size": {
-      "width": 470,
-      "height": 108
+      "width": 439.4,
+      "height": 101.28
      },
      "rotation": 10,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 26
+     "borderRadius": 24.31
     },
     {
      "id": "ps_rect_27",
      "type": "shape",
      "name": "Task bar",
      "position": {
-      "x": 663.04,
-      "y": 479.27
+      "x": 619.87,
+      "y": 449.44
      },
      "size": {
-      "width": 10,
-      "height": 60
+      "width": 9.35,
+      "height": 56.27
      },
      "rotation": 10,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#4E8FDB",
-     "borderRadius": 5
+     "borderRadius": 4.67
     },
     {
      "id": "ps_txt_28",
      "type": "text",
      "name": "Task title",
      "position": {
-      "x": 695.14,
-      "y": 504.12
+      "x": 649.88,
+      "y": 472.75
      },
      "size": {
-      "width": 390,
-      "height": 48
+      "width": 364.6,
+      "height": 45.01
      },
      "rotation": 10,
      "scale": 1,
      "content": "Reread stats notes",
-     "fontSize": 10,
+     "fontSize": 9.35,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -656,17 +656,17 @@
      "type": "text",
      "name": "Task sub",
      "position": {
-      "x": 687.85,
-      "y": 551.49
+      "x": 643.06,
+      "y": 517.17
      },
      "size": {
-      "width": 390,
-      "height": 36
+      "width": 364.6,
+      "height": 33.76
      },
      "rotation": 10,
      "scale": 1,
      "content": "1h",
-     "fontSize": 7.5,
+     "fontSize": 7.01,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -678,53 +678,53 @@
      "type": "shape",
      "name": "Task card",
      "position": {
-      "x": 330,
-      "y": 565
+      "x": 308.51,
+      "y": 529.84
      },
      "size": {
-      "width": 470,
-      "height": 108
+      "width": 439.4,
+      "height": 101.28
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 26
+     "borderRadius": 24.31
     },
     {
      "id": "ps_rect_31",
      "type": "shape",
      "name": "Task bar",
      "position": {
-      "x": 361.49,
-      "y": 613.37
+      "x": 337.95,
+      "y": 575.2
      },
      "size": {
-      "width": 10,
-      "height": 60
+      "width": 9.35,
+      "height": 56.27
      },
      "rotation": -7,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E8A13D",
-     "borderRadius": 5
+     "borderRadius": 4.67
     },
     {
      "id": "ps_txt_32",
      "type": "text",
      "name": "Task title",
      "position": {
-      "x": 389.4,
-      "y": 572.47
+      "x": 364.04,
+      "y": 536.84
      },
      "size": {
-      "width": 390,
-      "height": 48
+      "width": 364.6,
+      "height": 45.01
      },
      "rotation": -7,
      "scale": 1,
      "content": "Watch Bio 210 lecture",
-     "fontSize": 10,
+     "fontSize": 9.35,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -736,17 +736,17 @@
      "type": "text",
      "name": "Task sub",
      "position": {
-      "x": 394.52,
-      "y": 620.15
+      "x": 368.83,
+      "y": 581.56
      },
      "size": {
-      "width": 390,
-      "height": 36
+      "width": 364.6,
+      "height": 33.76
      },
      "rotation": -7,
      "scale": 1,
      "content": "1h 5m",
-     "fontSize": 7.5,
+     "fontSize": 7.01,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -758,53 +758,53 @@
      "type": "shape",
      "name": "Task card",
      "position": {
-      "x": 700,
-      "y": 645
+      "x": 654.42,
+      "y": 604.86
      },
      "size": {
-      "width": 470,
-      "height": 108
+      "width": 439.4,
+      "height": 101.28
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 26
+     "borderRadius": 24.31
     },
     {
      "id": "ps_rect_35",
      "type": "shape",
      "name": "Task bar",
      "position": {
-      "x": 736.81,
-      "y": 617.24
+      "x": 688.83,
+      "y": 578.83
      },
      "size": {
-      "width": 10,
-      "height": 60
+      "width": 9.35,
+      "height": 56.27
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#35A857",
-     "borderRadius": 5
+     "borderRadius": 4.67
     },
     {
      "id": "ps_txt_36",
      "type": "text",
      "name": "Task title",
      "position": {
-      "x": 766.43,
-      "y": 661.38
+      "x": 716.52,
+      "y": 620.22
      },
      "size": {
-      "width": 390,
-      "height": 48
+      "width": 364.6,
+      "height": 45.01
      },
      "rotation": 15,
      "scale": 1,
      "content": "Meal prep for the week",
-     "fontSize": 10,
+     "fontSize": 9.35,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -816,17 +816,17 @@
      "type": "text",
      "name": "Task sub",
      "position": {
-      "x": 755.56,
-      "y": 707.94
+      "x": 706.36,
+      "y": 663.88
      },
      "size": {
-      "width": 390,
-      "height": 36
+      "width": 364.6,
+      "height": 33.76
      },
      "rotation": 15,
      "scale": 1,
      "content": "1h",
-     "fontSize": 7.5,
+     "fontSize": 7.01,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -838,12 +838,12 @@
      "type": "shape",
      "name": "Chevron",
      "position": {
-      "x": 430,
-      "y": 820
+      "x": 402,
+      "y": 768.97
      },
      "size": {
-      "width": 430,
-      "height": 240
+      "width": 402,
+      "height": 225.06
      },
      "rotation": 0,
      "scale": 1,
@@ -859,12 +859,12 @@
      "type": "shape",
      "name": "Chevron",
      "position": {
-      "x": 430,
-      "y": 1000
+      "x": 402,
+      "y": 937.77
      },
      "size": {
-      "width": 430,
-      "height": 240
+      "width": 402,
+      "height": 225.06
      },
      "rotation": 0,
      "scale": 1,
@@ -880,12 +880,12 @@
      "type": "shape",
      "name": "Chevron",
      "position": {
-      "x": 430,
-      "y": 1180
+      "x": 402,
+      "y": 1106.57
      },
      "size": {
-      "width": 430,
-      "height": 240
+      "width": 402,
+      "height": 225.06
      },
      "rotation": 0,
      "scale": 1,
@@ -901,12 +901,12 @@
      "type": "shape",
      "name": "Chevron",
      "position": {
-      "x": 430,
-      "y": 1360
+      "x": 402,
+      "y": 1275.36
      },
      "size": {
-      "width": 430,
-      "height": 240
+      "width": 402,
+      "height": 225.06
      },
      "rotation": 0,
      "scale": 1,
@@ -922,48 +922,48 @@
      "type": "shape",
      "name": "Timeline line",
      "position": {
-      "x": 299,
-      "y": 1450
+      "x": 279.53,
+      "y": 1359.76
      },
      "size": {
-      "width": 4,
-      "height": 740
+      "width": 3.74,
+      "height": 693.95
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 2
+     "borderRadius": 1.87
     },
     {
      "id": "ps_rect_43",
      "type": "shape",
      "name": "Row card",
      "position": {
-      "x": 360,
-      "y": 1450
+      "x": 336.56,
+      "y": 1359.76
      },
      "size": {
-      "width": 740,
-      "height": 140
+      "width": 691.81,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 28
+     "borderRadius": 26.18
     },
     {
      "id": "ps_circ_44",
      "type": "shape",
      "name": "Ring mask",
      "position": {
-      "x": 281,
-      "y": 1500
+      "x": 262.7,
+      "y": 1406.65
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -975,12 +975,12 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 279,
-      "y": 1498
+      "x": 260.83,
+      "y": 1404.78
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -989,28 +989,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 5
+      "baseStrokeWidth": 4.67
      },
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "ps_txt_46",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 400,
-      "y": 1474
+      "x": 373.95,
+      "y": 1382.27
      },
      "size": {
-      "width": 480,
-      "height": 52
+      "width": 448.74,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
      "content": "Daily Yoga",
-     "fontSize": 10.5,
+     "fontSize": 9.82,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1022,17 +1022,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 400,
-      "y": 1526
+      "x": 373.95,
+      "y": 1431.03
      },
      "size": {
-      "width": 480,
-      "height": 40
+      "width": 448.74,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "content": "4:30pm - 5:15pm (45min)",
-     "fontSize": 8,
+     "fontSize": 7.48,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1044,12 +1044,12 @@
      "type": "shape",
      "name": "Row checkbox",
      "position": {
-      "x": 1026,
-      "y": 1503
+      "x": 959.19,
+      "y": 1409.47
      },
      "size": {
-      "width": 34,
-      "height": 34
+      "width": 31.79,
+      "height": 31.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1058,41 +1058,41 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#C9CDD3",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_rect_49",
      "type": "shape",
      "name": "Row card",
      "position": {
-      "x": 360,
-      "y": 1640
+      "x": 336.56,
+      "y": 1537.94
      },
      "size": {
-      "width": 740,
-      "height": 140
+      "width": 691.81,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 28
+     "borderRadius": 26.18
     },
     {
      "id": "ps_circ_50",
      "type": "shape",
      "name": "Ring mask",
      "position": {
-      "x": 281,
-      "y": 1690
+      "x": 262.7,
+      "y": 1584.83
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -1104,12 +1104,12 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 279,
-      "y": 1688
+      "x": 260.83,
+      "y": 1582.95
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -1118,28 +1118,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 5
+      "baseStrokeWidth": 4.67
      },
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "ps_txt_52",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 400,
-      "y": 1664
+      "x": 373.95,
+      "y": 1560.45
      },
      "size": {
-      "width": 480,
-      "height": 52
+      "width": 448.74,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
      "content": "Reread stats notes",
-     "fontSize": 10.5,
+     "fontSize": 9.82,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1151,17 +1151,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 400,
-      "y": 1716
+      "x": 373.95,
+      "y": 1609.21
      },
      "size": {
-      "width": 480,
-      "height": 40
+      "width": 448.74,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "content": "5:00pm - 6:00pm (1h)",
-     "fontSize": 8,
+     "fontSize": 7.48,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1173,12 +1173,12 @@
      "type": "shape",
      "name": "Row checkbox",
      "position": {
-      "x": 1026,
-      "y": 1693
+      "x": 959.19,
+      "y": 1587.64
      },
      "size": {
-      "width": 34,
-      "height": 34
+      "width": 31.79,
+      "height": 31.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1187,41 +1187,41 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#C9CDD3",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_rect_55",
      "type": "shape",
      "name": "Row card",
      "position": {
-      "x": 360,
-      "y": 1830
+      "x": 336.56,
+      "y": 1716.12
      },
      "size": {
-      "width": 740,
-      "height": 140
+      "width": 691.81,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 28
+     "borderRadius": 26.18
     },
     {
      "id": "ps_circ_56",
      "type": "shape",
      "name": "Ring mask",
      "position": {
-      "x": 281,
-      "y": 1880
+      "x": 262.7,
+      "y": 1763
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -1233,12 +1233,12 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 279,
-      "y": 1878
+      "x": 260.83,
+      "y": 1761.13
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -1247,28 +1247,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 5
+      "baseStrokeWidth": 4.67
      },
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "ps_txt_58",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 400,
-      "y": 1854
+      "x": 373.95,
+      "y": 1738.62
      },
      "size": {
-      "width": 480,
-      "height": 52
+      "width": 448.74,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
      "content": "Watch Bio 210 lecture",
-     "fontSize": 10.5,
+     "fontSize": 9.82,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1280,17 +1280,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 400,
-      "y": 1906
+      "x": 373.95,
+      "y": 1787.39
      },
      "size": {
-      "width": 480,
-      "height": 40
+      "width": 448.74,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "content": "6:30pm - 7:35pm (1h 5m)",
-     "fontSize": 8,
+     "fontSize": 7.48,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1302,12 +1302,12 @@
      "type": "shape",
      "name": "Row checkbox",
      "position": {
-      "x": 1026,
-      "y": 1883
+      "x": 959.19,
+      "y": 1765.82
      },
      "size": {
-      "width": 34,
-      "height": 34
+      "width": 31.79,
+      "height": 31.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1316,41 +1316,41 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#C9CDD3",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_rect_61",
      "type": "shape",
      "name": "Row card",
      "position": {
-      "x": 360,
-      "y": 2020
+      "x": 336.56,
+      "y": 1894.29
      },
      "size": {
-      "width": 740,
-      "height": 140
+      "width": 691.81,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 28
+     "borderRadius": 26.18
     },
     {
      "id": "ps_circ_62",
      "type": "shape",
      "name": "Ring mask",
      "position": {
-      "x": 281,
-      "y": 2070
+      "x": 262.7,
+      "y": 1941.18
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -1362,12 +1362,12 @@
      "type": "shape",
      "name": "Ring",
      "position": {
-      "x": 279,
-      "y": 2068
+      "x": 260.83,
+      "y": 1939.3
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -1376,28 +1376,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 5
+      "baseStrokeWidth": 4.67
      },
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "ps_txt_64",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 400,
-      "y": 2044
+      "x": 373.95,
+      "y": 1916.8
      },
      "size": {
-      "width": 480,
-      "height": 52
+      "width": 448.74,
+      "height": 48.76
      },
      "rotation": 0,
      "scale": 1,
      "content": "Meal prep for the week",
-     "fontSize": 10.5,
+     "fontSize": 9.82,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1409,17 +1409,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 400,
-      "y": 2096
+      "x": 373.95,
+      "y": 1965.56
      },
      "size": {
-      "width": 480,
-      "height": 40
+      "width": 448.74,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
      "content": "8:00pm - 9:00pm (1h)",
-     "fontSize": 8,
+     "fontSize": 7.48,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1431,12 +1431,12 @@
      "type": "shape",
      "name": "Row checkbox",
      "position": {
-      "x": 1026,
-      "y": 2073
+      "x": 959.19,
+      "y": 1943.99
      },
      "size": {
-      "width": 34,
-      "height": 34
+      "width": 31.79,
+      "height": 31.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1445,28 +1445,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 4
+      "baseStrokeWidth": 3.74
      },
      "fillColor": "#C9CDD3",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_txt_67",
      "type": "text",
      "name": "Headline bottom",
      "position": {
-      "x": 30,
-      "y": 2373
+      "x": 28.05,
+      "y": 2225.32
      },
      "size": {
-      "width": 1230,
-      "height": 245
+      "width": 1149.91,
+      "height": 229.75
      },
      "rotation": 0,
      "scale": 1,
      "content": "When you have energy\nto do tasks",
-     "fontSize": 28,
+     "fontSize": 26.18,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1483,8 +1483,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F5821F",
    "zoom": 1,
@@ -1494,17 +1494,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 165
+      "x": 28.05,
+      "y": 154.73
      },
      "size": {
-      "width": 1230,
-      "height": 300
+      "width": 1149.91,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "content": "Bookmark fav tasks\nfor easy access",
-     "fontSize": 33,
+     "fontSize": 30.85,
      "color": "#FFFFFF",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -1516,12 +1516,12 @@
      "type": "shape",
      "name": "Bookmark outline a",
      "position": {
-      "x": 1070,
-      "y": 450
+      "x": 1000.33,
+      "y": 422
      },
      "size": {
-      "width": 190,
-      "height": 190
+      "width": 177.63,
+      "height": 178.18
      },
      "rotation": 15,
      "scale": 1,
@@ -1530,23 +1530,23 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 2
+      "baseStrokeWidth": 1.87
      },
      "fillColor": "#F79847",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_svg_70",
      "type": "shape",
      "name": "Bookmark outline b",
      "position": {
-      "x": 1120,
-      "y": 645
+      "x": 1047.07,
+      "y": 604.86
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": -12,
      "scale": 1,
@@ -1555,23 +1555,23 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 2
+      "baseStrokeWidth": 1.87
      },
      "fillColor": "#F79847",
      "strokeColor": "transparent",
-     "strokeWidth": 4
+     "strokeWidth": 3.74
     },
     {
      "id": "ps_dev3d_71",
      "type": "device",
      "name": "iPhone 3D",
      "position": {
-      "x": 118.65830626239017,
-      "y": 864.5737250300228
+      "x": 110.93,
+      "y": 810.77
      },
      "size": {
-      "width": 544.0216331990803,
-      "height": 1120
+      "width": 508.6,
+      "height": 1050.3
      },
      "rotation": 11,
      "scale": 1.8823088243511499,
@@ -1595,35 +1595,35 @@
      "type": "shape",
      "name": "Bookmarks card",
      "position": {
-      "x": 193.33333333333331,
-      "y": 1260
+      "x": 180.74,
+      "y": 1181.59
      },
      "size": {
-      "width": 900,
-      "height": 1150
+      "width": 841.4,
+      "height": 1078.43
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 44
+     "borderRadius": 41.13
     },
     {
      "id": "ps_txt_73",
      "type": "text",
      "name": "Card title",
      "position": {
-      "x": 418.7333333333333,
-      "y": 1320.64
+      "x": 391.47,
+      "y": 1238.45
      },
      "size": {
-      "width": 400,
-      "height": 90
+      "width": 373.95,
+      "height": 84.4
      },
      "rotation": -3,
      "scale": 1,
      "content": "Bookmarks",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#23252A",
      "fontFamily": "Baloo 2",
      "fontWeight": "700",
@@ -1635,35 +1635,35 @@
      "type": "shape",
      "name": "Done pill",
      "position": {
-      "x": 857.5033333333333,
-      "y": 1297.66
+      "x": 801.67,
+      "y": 1216.9
      },
      "size": {
-      "width": 170,
-      "height": 72
+      "width": 158.93,
+      "height": 67.52
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2F2F4",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "ps_txt_75",
      "type": "text",
      "name": "Done label",
      "position": {
-      "x": 857.5033333333333,
-      "y": 1297.66
+      "x": 801.67,
+      "y": 1216.9
      },
      "size": {
-      "width": 170,
-      "height": 72
+      "width": 158.93,
+      "height": 67.52
      },
      "rotation": -3,
      "scale": 1,
      "content": "Done",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1675,17 +1675,17 @@
      "type": "text",
      "name": "Caption events",
      "position": {
-      "x": 245.5933333333333,
-      "y": 1472.51
+      "x": 229.6,
+      "y": 1380.87
      },
      "size": {
-      "width": 300,
-      "height": 60
+      "width": 280.47,
+      "height": 56.27
      },
      "rotation": -3,
      "scale": 1,
      "content": "Events",
-     "fontSize": 9,
+     "fontSize": 8.41,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1697,35 +1697,35 @@
      "type": "shape",
      "name": "Row bar",
      "position": {
-      "x": 250.3433333333333,
-      "y": 1565.03
+      "x": 234.04,
+      "y": 1467.64
      },
      "size": {
-      "width": 8,
-      "height": 64
+      "width": 7.48,
+      "height": 60.02
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E8A13D",
-     "borderRadius": 4
+     "borderRadius": 3.74
     },
     {
      "id": "ps_txt_78",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 279.25333333333333,
-      "y": 1540.22
+      "x": 261.07,
+      "y": 1444.37
      },
      "size": {
-      "width": 400,
-      "height": 60
+      "width": 373.95,
+      "height": 56.27
      },
      "rotation": -3,
      "scale": 1,
      "content": "Work",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1737,17 +1737,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 284.2633333333333,
-      "y": 1605.2800000000002
+      "x": 265.75,
+      "y": 1505.38
      },
      "size": {
-      "width": 200,
-      "height": 50
+      "width": 186.98,
+      "height": 46.89
      },
      "rotation": -3,
      "scale": 1,
      "content": "4h",
-     "fontSize": 8.5,
+     "fontSize": 7.95,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1759,17 +1759,17 @@
      "type": "text",
      "name": "Row plus",
      "position": {
-      "x": 949.2433333333333,
-      "y": 1521.78
+      "x": 887.43,
+      "y": 1427.08
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": -3,
      "scale": 1,
      "content": "+",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1781,35 +1781,35 @@
      "type": "shape",
      "name": "Divider",
      "position": {
-      "x": 255.82333333333332,
-      "y": 1690.1999999999998
+      "x": 239.17,
+      "y": 1585.02
      },
      "size": {
-      "width": 760,
-      "height": 3
+      "width": 710.51,
+      "height": 2.81
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#EEEEEE",
-     "borderRadius": 1
+     "borderRadius": 0.93
     },
     {
      "id": "ps_txt_82",
      "type": "text",
      "name": "Caption tasks",
      "position": {
-      "x": 259.98333333333335,
-      "y": 1747.13
+      "x": 243.05,
+      "y": 1638.4
      },
      "size": {
-      "width": 300,
-      "height": 60
+      "width": 280.47,
+      "height": 56.27
      },
      "rotation": -3,
      "scale": 1,
      "content": "Tasks",
-     "fontSize": 9,
+     "fontSize": 8.41,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1821,35 +1821,35 @@
      "type": "shape",
      "name": "Row bar",
      "position": {
-      "x": 264.74333333333334,
-      "y": 1839.6599999999999
+      "x": 247.5,
+      "y": 1725.17
      },
      "size": {
-      "width": 8,
-      "height": 64
+      "width": 7.48,
+      "height": 60.02
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#E25C4A",
-     "borderRadius": 4
+     "borderRadius": 3.74
     },
     {
      "id": "ps_txt_84",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 293.6433333333333,
-      "y": 1814.85
+      "x": 274.52,
+      "y": 1701.91
      },
      "size": {
-      "width": 400,
-      "height": 60
+      "width": 373.95,
+      "height": 56.27
      },
      "rotation": -3,
      "scale": 1,
      "content": "Track practice",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1861,17 +1861,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 298.6533333333333,
-      "y": 1879.9
+      "x": 279.21,
+      "y": 1762.91
      },
      "size": {
-      "width": 200,
-      "height": 50
+      "width": 186.98,
+      "height": 46.89
      },
      "rotation": -3,
      "scale": 1,
      "content": "2h",
-     "fontSize": 8.5,
+     "fontSize": 7.95,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1883,17 +1883,17 @@
      "type": "text",
      "name": "Row plus",
      "position": {
-      "x": 963.6333333333332,
-      "y": 1796.4
+      "x": 900.89,
+      "y": 1684.61
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": -3,
      "scale": 1,
      "content": "+",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1905,35 +1905,35 @@
      "type": "shape",
      "name": "Row bar",
      "position": {
-      "x": 271.8033333333333,
-      "y": 1974.4699999999998
+      "x": 254.1,
+      "y": 1851.6
      },
      "size": {
-      "width": 8,
-      "height": 64
+      "width": 7.48,
+      "height": 60.02
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#35A857",
-     "borderRadius": 4
+     "borderRadius": 3.74
     },
     {
      "id": "ps_txt_88",
      "type": "text",
      "name": "Row title",
      "position": {
-      "x": 300.7133333333333,
-      "y": 1949.6599999999999
+      "x": 281.13,
+      "y": 1828.33
      },
      "size": {
-      "width": 400,
-      "height": 60
+      "width": 373.95,
+      "height": 56.27
      },
      "rotation": -3,
      "scale": 1,
      "content": "Clean room",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#23252A",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1945,17 +1945,17 @@
      "type": "text",
      "name": "Row sub",
      "position": {
-      "x": 305.7233333333333,
-      "y": 2014.7199999999998
+      "x": 285.82,
+      "y": 1889.34
      },
      "size": {
-      "width": 200,
-      "height": 50
+      "width": 186.98,
+      "height": 46.89
      },
      "rotation": -3,
      "scale": 1,
      "content": "30m",
-     "fontSize": 8.5,
+     "fontSize": 7.95,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1967,17 +1967,17 @@
      "type": "text",
      "name": "Row plus",
      "position": {
-      "x": 970.6933333333334,
-      "y": 1931.2199999999998
+      "x": 907.49,
+      "y": 1811.04
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": -3,
      "scale": 1,
      "content": "+",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#9AA0A8",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1994,8 +1994,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F5821F",
    "zoom": 1,
@@ -2005,17 +2005,17 @@
      "type": "text",
      "name": "Math doodle",
      "position": {
-      "x": 85,
-      "y": 55
+      "x": 79.47,
+      "y": 51.58
      },
      "size": {
-      "width": 300,
-      "height": 116
+      "width": 280.47,
+      "height": 108.78
      },
      "rotation": -12,
      "scale": 1,
      "content": "E = x²",
-     "fontSize": 24,
+     "fontSize": 22.44,
      "color": "#F79847",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -2027,17 +2027,17 @@
      "type": "text",
      "name": "Math doodle",
      "position": {
-      "x": 1110,
-      "y": 310
+      "x": 1037.72,
+      "y": 290.71
      },
      "size": {
-      "width": 140,
-      "height": 97
+      "width": 130.88,
+      "height": 90.96
      },
      "rotation": 8,
      "scale": 1,
      "content": "π",
-     "fontSize": 20,
+     "fontSize": 18.7,
      "color": "#F79847",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -2049,17 +2049,17 @@
      "type": "text",
      "name": "Math doodle",
      "position": {
-      "x": 1040,
-      "y": 2430
+      "x": 972.28,
+      "y": 2278.78
      },
      "size": {
-      "width": 200,
-      "height": 106
+      "width": 186.98,
+      "height": 99.4
      },
      "rotation": -10,
      "scale": 1,
      "content": "√x",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#F79847",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -2071,17 +2071,17 @@
      "type": "text",
      "name": "Math doodle",
      "position": {
-      "x": 110,
-      "y": 2570
+      "x": 102.84,
+      "y": 2410.06
      },
      "size": {
-      "width": 260,
-      "height": 87
+      "width": 243.07,
+      "height": 81.59
      },
      "rotation": 6,
      "scale": 1,
      "content": "+ x ÷",
-     "fontSize": 18,
+     "fontSize": 16.83,
      "color": "#F79847",
      "fontFamily": "Caveat",
      "fontWeight": "600",
@@ -2093,17 +2093,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 30,
-      "y": 165
+      "x": 28.05,
+      "y": 154.73
      },
      "size": {
-      "width": 1230,
-      "height": 300
+      "width": 1149.91,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "content": "Track growth\nthrough insights",
-     "fontSize": 33,
+     "fontSize": 30.85,
      "color": "#2E2416",
      "fontFamily": "Baloo 2",
      "fontWeight": "800",
@@ -2118,12 +2118,12 @@
      "styleType": "normal",
      "frameColor": "#1A1A1C",
      "position": {
-      "x": 171,
-      "y": 600
+      "x": 159.87,
+      "y": 562.66
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.58,

@@ -6,8 +6,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
  * Two things make the canvas awkward to drive and both are deliberate in the
  * app:
  *
- *  1. A board is laid out at its FULL store resolution (1290x2796 for an
- *     iPhone 6.9") and shrunk by a CSS transform. A transform contributes
+ *  1. A board is laid out at its FULL store resolution (1206x2622 for an
+ *     iPhone 6.3") and shrunk by a CSS transform. A transform contributes
  *     nothing to layout, so an element's `style.left` is in artboard pixels
  *     while its bounding rect is in screen pixels. Anything a test wants to
  *     click has to be converted, and the conversion factor is the board's own
@@ -28,7 +28,7 @@ export interface BoardGeometry {
   y: number;
   width: number;
   height: number;
-  /** The board's authored size, e.g. 1290 x 2796. */
+  /** The board's authored size, e.g. 1206 x 2622. */
   originalWidth: number;
   originalHeight: number;
   /** Screen pixels per artboard pixel, zoom included. */

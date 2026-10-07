@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -24,12 +24,12 @@
      "type": "shape",
      "name": "Mint blob",
      "position": {
-      "x": -160,
-      "y": 2020
+      "x": -149.58,
+      "y": 1894.29
      },
      "size": {
-      "width": 880,
-      "height": 780
+      "width": 822.7,
+      "height": 731.46
      },
      "rotation": 0,
      "scale": 1,
@@ -48,12 +48,12 @@
      "type": "shape",
      "name": "Sparkle 1",
      "position": {
-      "x": 1070,
-      "y": 780
+      "x": 1000.33,
+      "y": 731.46
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
@@ -72,12 +72,12 @@
      "type": "shape",
      "name": "Sparkle 2",
      "position": {
-      "x": 180,
-      "y": 850
+      "x": 168.28,
+      "y": 797.1
      },
      "size": {
-      "width": 55,
-      "height": 55
+      "width": 51.42,
+      "height": 51.58
      },
      "rotation": 15,
      "scale": 1,
@@ -96,12 +96,12 @@
      "type": "shape",
      "name": "Sparkle 3",
      "position": {
-      "x": 1160,
-      "y": 1090
+      "x": 1084.47,
+      "y": 1022.17
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -120,17 +120,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 90,
-      "y": 150
+      "x": 84.14,
+      "y": 140.67
      },
      "size": {
-      "width": 900,
-      "height": 405
+      "width": 841.4,
+      "height": 379.8
      },
      "rotation": 0,
      "scale": 1,
      "content": "Smart TV\nRemote",
-     "fontSize": 48,
+     "fontSize": 44.87,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -142,17 +142,17 @@
      "type": "shape",
      "name": "Wifi chip",
      "position": {
-      "x": 830,
-      "y": 165
+      "x": 775.95,
+      "y": 154.73
      },
      "size": {
-      "width": 120,
-      "height": 120
+      "width": 112.19,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 34,
+     "borderRadius": 31.79,
      "fillColor": "#7A5CF0",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -162,12 +162,12 @@
      "type": "shape",
      "name": "Wifi icon",
      "position": {
-      "x": 848,
-      "y": 183
+      "x": 792.78,
+      "y": 171.61
      },
      "size": {
-      "width": 84,
-      "height": 84
+      "width": 78.53,
+      "height": 78.77
      },
      "rotation": 0,
      "scale": 1,
@@ -176,28 +176,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 8
+      "baseStrokeWidth": 7.48
      },
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
-     "strokeWidth": 7
+     "strokeWidth": 6.54
     },
     {
      "id": "zr_txt_8",
      "type": "text",
      "name": "Sub",
      "position": {
-      "x": 90,
-      "y": 585
+      "x": 84.14,
+      "y": 548.59
      },
      "size": {
-      "width": 820,
-      "height": 195
+      "width": 766.6,
+      "height": 182.86
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your phone is the only\nremote you need.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6F7480",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -209,12 +209,12 @@
      "type": "image",
      "name": "Hand phone",
      "position": {
-      "x": 160,
-      "y": 1000
+      "x": 149.58,
+      "y": 937.77
      },
      "size": {
-      "width": 1740,
-      "height": 1725
+      "width": 1626.7,
+      "height": 1617.65
      },
      "rotation": 0,
      "scale": 1,
@@ -228,36 +228,36 @@
      "type": "image",
      "name": "Remote UI overlay",
      "position": {
-      "x": 302,
-      "y": 1028
+      "x": 282.33,
+      "y": 964.03
      },
      "size": {
-      "width": 692,
-      "height": 1448
+      "width": 646.94,
+      "height": 1357.89
      },
      "rotation": -0.4,
      "scale": 1,
      "imageSrc": "/data/projects/zapio-remote-screen-ui.png",
      "imageAlt": "",
      "objectFit": "cover",
-     "borderRadius": 96
+     "borderRadius": 89.75
     },
     {
      "id": "zr_shp_11",
      "type": "shape",
      "name": "Caption shadow",
      "position": {
-      "x": 134,
-      "y": 2284
+      "x": 125.27,
+      "y": 2141.86
      },
      "size": {
-      "width": 470,
-      "height": 100
+      "width": 439.4,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 50,
+     "borderRadius": 46.74,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -267,17 +267,17 @@
      "type": "shape",
      "name": "Caption pill",
      "position": {
-      "x": 120,
-      "y": 2270
+      "x": 112.19,
+      "y": 2128.73
      },
      "size": {
-      "width": 470,
-      "height": 100
+      "width": 439.4,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 50,
+     "borderRadius": 46.74,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -287,17 +287,17 @@
      "type": "text",
      "name": "Caption",
      "position": {
-      "x": 120,
-      "y": 2280
+      "x": 112.19,
+      "y": 2138.11
      },
      "size": {
-      "width": 470,
-      "height": 80
+      "width": 439.4,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "content": "Swipe to navigate",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -314,8 +314,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F4F1FB",
    "zoom": 1,
@@ -325,17 +325,17 @@
      "type": "shape",
      "name": "TV shadow",
      "position": {
-      "x": 123,
-      "y": 448
+      "x": 114.99,
+      "y": 420.12
      },
      "size": {
-      "width": 1080,
-      "height": 640
+      "width": 1009.67,
+      "height": 600.17
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 28,
+     "borderRadius": 26.18,
      "fillColor": "#E0DCEF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -345,17 +345,17 @@
      "type": "shape",
      "name": "TV frame",
      "position": {
-      "x": 105,
-      "y": 430
+      "x": 98.16,
+      "y": 403.24
      },
      "size": {
-      "width": 1080,
-      "height": 640
+      "width": 1009.67,
+      "height": 600.17
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 28,
+     "borderRadius": 26.18,
      "fillColor": "#171C28",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -365,36 +365,36 @@
      "type": "image",
      "name": "TV screen",
      "position": {
-      "x": 129,
-      "y": 457
+      "x": 120.6,
+      "y": 428.56
      },
      "size": {
-      "width": 1032,
-      "height": 586
+      "width": 964.8,
+      "height": 549.53
      },
      "rotation": 0,
      "scale": 1,
      "imageSrc": "/data/projects/zapio-remote-screen-tv.png",
      "imageAlt": "",
      "objectFit": "cover",
-     "borderRadius": 20
+     "borderRadius": 18.7
     },
     {
      "id": "zr_shp_17",
      "type": "shape",
      "name": "TV stand",
      "position": {
-      "x": 465,
-      "y": 1072
+      "x": 434.72,
+      "y": 1005.29
      },
      "size": {
-      "width": 360,
-      "height": 22
+      "width": 336.56,
+      "height": 20.63
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 11,
+     "borderRadius": 10.28,
      "fillColor": "#171C28",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -404,12 +404,12 @@
      "type": "shape",
      "name": "Mint sparkle",
      "position": {
-      "x": 140,
-      "y": 1150
+      "x": 130.88,
+      "y": 1078.43
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
@@ -428,12 +428,12 @@
      "type": "shape",
      "name": "Mint sparkle 2",
      "position": {
-      "x": 700,
-      "y": 2600
+      "x": 654.42,
+      "y": 2438.2
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 20,
      "scale": 1,
@@ -452,12 +452,12 @@
      "type": "shape",
      "name": "Coral blob",
      "position": {
-      "x": 950,
-      "y": 2560
+      "x": 888.14,
+      "y": 2400.69
      },
      "size": {
-      "width": 520,
-      "height": 460
+      "width": 486.14,
+      "height": 431.37
      },
      "rotation": 0,
      "scale": 1,
@@ -479,12 +479,12 @@
      "styleType": "normal",
      "frameColor": "#171C28",
      "position": {
-      "x": 845,
-      "y": 1150
+      "x": 789.98,
+      "y": 1078.43
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -4,
      "scale": 1.2,
@@ -504,17 +504,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 90,
-      "y": 2010
+      "x": 84.14,
+      "y": 1884.91
      },
      "size": {
-      "width": 900,
-      "height": 310
+      "width": 841.4,
+      "height": 290.71
      },
      "rotation": 0,
      "scale": 1,
      "content": "Control\nwith one tap",
-     "fontSize": 34,
+     "fontSize": 31.79,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -526,17 +526,17 @@
      "type": "text",
      "name": "Sub",
      "position": {
-      "x": 90,
-      "y": 2350
+      "x": 84.14,
+      "y": 2203.76
      },
      "size": {
-      "width": 760,
-      "height": 180
+      "width": 710.51,
+      "height": 168.8
      },
      "rotation": 0,
      "scale": 1,
      "content": "Pair once and every tap\nlands instantly.",
-     "fontSize": 17,
+     "fontSize": 15.89,
      "color": "#6F7480",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -553,8 +553,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -564,12 +564,12 @@
      "type": "shape",
      "name": "Mint corner wave",
      "position": {
-      "x": 850,
-      "y": -40
+      "x": 794.65,
+      "y": -37.51
      },
      "size": {
-      "width": 500,
-      "height": 330
+      "width": 467.44,
+      "height": 309.46
      },
      "rotation": 180,
      "scale": 1,
@@ -588,17 +588,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 150
+      "x": 56.09,
+      "y": 140.67
      },
      "size": {
-      "width": 1170,
-      "height": 405
+      "width": 1093.81,
+      "height": 379.8
      },
      "rotation": 0,
      "scale": 1,
      "content": "Works with\nyour TV",
-     "fontSize": 48,
+     "fontSize": 44.87,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -610,17 +610,17 @@
      "type": "text",
      "name": "Sub",
      "position": {
-      "x": 60,
-      "y": 585
+      "x": 56.09,
+      "y": 548.59
      },
      "size": {
-      "width": 1170,
-      "height": 195
+      "width": 1093.81,
+      "height": 182.86
      },
      "rotation": 0,
      "scale": 1,
      "content": "One app for practically\nevery screen at home.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6F7480",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -632,17 +632,17 @@
      "type": "shape",
      "name": "Row shadow 1",
      "position": {
-      "x": 223,
-      "y": 848
+      "x": 208.48,
+      "y": 795.23
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -652,17 +652,17 @@
      "type": "shape",
      "name": "Row card 1",
      "position": {
-      "x": 205,
-      "y": 830
+      "x": 191.65,
+      "y": 778.35
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -672,17 +672,17 @@
      "type": "shape",
      "name": "Row tile 1",
      "position": {
-      "x": 239,
-      "y": 862
+      "x": 223.44,
+      "y": 808.36
      },
      "size": {
-      "width": 92,
-      "height": 92
+      "width": 86.01,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#EFEAFE",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -692,12 +692,12 @@
      "type": "shape",
      "name": "Row icon 1",
      "position": {
-      "x": 257,
-      "y": 880
+      "x": 240.27,
+      "y": 825.24
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
@@ -716,17 +716,17 @@
      "type": "text",
      "name": "Row label 1",
      "position": {
-      "x": 371,
-      "y": 848
+      "x": 346.84,
+      "y": 795.23
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "Chromecast",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -738,17 +738,17 @@
      "type": "shape",
      "name": "Row shadow 2",
      "position": {
-      "x": 223,
-      "y": 1048
+      "x": 208.48,
+      "y": 982.78
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -758,17 +758,17 @@
      "type": "shape",
      "name": "Row card 2",
      "position": {
-      "x": 205,
-      "y": 1030
+      "x": 191.65,
+      "y": 965.9
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -778,17 +778,17 @@
      "type": "shape",
      "name": "Row tile 2",
      "position": {
-      "x": 239,
-      "y": 1062
+      "x": 223.44,
+      "y": 995.91
      },
      "size": {
-      "width": 92,
-      "height": 92
+      "width": 86.01,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#E2F6F0",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -798,12 +798,12 @@
      "type": "shape",
      "name": "Row icon 2",
      "position": {
-      "x": 257,
-      "y": 1080
+      "x": 240.27,
+      "y": 1012.79
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
@@ -812,28 +812,28 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 8
+      "baseStrokeWidth": 7.48
      },
      "fillColor": "#2FA98C",
      "strokeColor": "transparent",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "zr_txt_33",
      "type": "text",
      "name": "Row label 2",
      "position": {
-      "x": 371,
-      "y": 1048
+      "x": 346.84,
+      "y": 982.78
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "Android TV",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -845,17 +845,17 @@
      "type": "shape",
      "name": "Row shadow 3",
      "position": {
-      "x": 223,
-      "y": 1248
+      "x": 208.48,
+      "y": 1170.33
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -865,17 +865,17 @@
      "type": "shape",
      "name": "Row card 3",
      "position": {
-      "x": 205,
-      "y": 1230
+      "x": 191.65,
+      "y": 1153.45
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -885,17 +885,17 @@
      "type": "shape",
      "name": "Row tile 3",
      "position": {
-      "x": 239,
-      "y": 1262
+      "x": 223.44,
+      "y": 1183.46
      },
      "size": {
-      "width": 92,
-      "height": 92
+      "width": 86.01,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FEEDE6",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -905,12 +905,12 @@
      "type": "shape",
      "name": "Row icon 3",
      "position": {
-      "x": 257,
-      "y": 1280
+      "x": 240.27,
+      "y": 1200.34
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
@@ -928,17 +928,17 @@
      "type": "text",
      "name": "Row label 3",
      "position": {
-      "x": 371,
-      "y": 1248
+      "x": 346.84,
+      "y": 1170.33
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "Samsung TV",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -950,17 +950,17 @@
      "type": "shape",
      "name": "Row shadow 4",
      "position": {
-      "x": 223,
-      "y": 1448
+      "x": 208.48,
+      "y": 1357.89
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -970,17 +970,17 @@
      "type": "shape",
      "name": "Row card 4",
      "position": {
-      "x": 205,
-      "y": 1430
+      "x": 191.65,
+      "y": 1341.01
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -990,17 +990,17 @@
      "type": "shape",
      "name": "Row tile 4",
      "position": {
-      "x": 239,
-      "y": 1462
+      "x": 223.44,
+      "y": 1371.02
      },
      "size": {
-      "width": 92,
-      "height": 92
+      "width": 86.01,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#E9EBF2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1010,12 +1010,12 @@
      "type": "shape",
      "name": "Row icon 4",
      "position": {
-      "x": 257,
-      "y": 1480
+      "x": 240.27,
+      "y": 1387.9
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
@@ -1033,17 +1033,17 @@
      "type": "text",
      "name": "Row label 4",
      "position": {
-      "x": 371,
-      "y": 1448
+      "x": 346.84,
+      "y": 1357.89
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "LG TV",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1055,17 +1055,17 @@
      "type": "shape",
      "name": "Row shadow 5",
      "position": {
-      "x": 223,
-      "y": 1648
+      "x": 208.48,
+      "y": 1545.44
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1075,17 +1075,17 @@
      "type": "shape",
      "name": "Row card 5",
      "position": {
-      "x": 205,
-      "y": 1630
+      "x": 191.65,
+      "y": 1528.56
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1095,17 +1095,17 @@
      "type": "shape",
      "name": "Row tile 5",
      "position": {
-      "x": 239,
-      "y": 1662
+      "x": 223.44,
+      "y": 1558.57
      },
      "size": {
-      "width": 92,
-      "height": 92
+      "width": 86.01,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#FBF3DC",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1115,12 +1115,12 @@
      "type": "shape",
      "name": "Row icon 5",
      "position": {
-      "x": 257,
-      "y": 1680
+      "x": 240.27,
+      "y": 1575.45
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
@@ -1139,17 +1139,17 @@
      "type": "text",
      "name": "Row label 5",
      "position": {
-      "x": 371,
-      "y": 1648
+      "x": 346.84,
+      "y": 1545.44
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "Bravia",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1161,17 +1161,17 @@
      "type": "shape",
      "name": "Row shadow 6",
      "position": {
-      "x": 223,
-      "y": 1848
+      "x": 208.48,
+      "y": 1733
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1181,17 +1181,17 @@
      "type": "shape",
      "name": "Row card 6",
      "position": {
-      "x": 205,
-      "y": 1830
+      "x": 191.65,
+      "y": 1716.12
      },
      "size": {
-      "width": 880,
-      "height": 156
+      "width": 822.7,
+      "height": 146.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 26,
+     "borderRadius": 24.31,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1201,17 +1201,17 @@
      "type": "shape",
      "name": "Row tile 6",
      "position": {
-      "x": 239,
-      "y": 1862
+      "x": 223.44,
+      "y": 1746.12
      },
      "size": {
-      "width": 92,
-      "height": 92
+      "width": 86.01,
+      "height": 86.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 24,
+     "borderRadius": 22.44,
      "fillColor": "#E2F6F0",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1221,12 +1221,12 @@
      "type": "shape",
      "name": "Row icon 6",
      "position": {
-      "x": 257,
-      "y": 1880
+      "x": 240.27,
+      "y": 1763
      },
      "size": {
-      "width": 56,
-      "height": 56
+      "width": 52.35,
+      "height": 52.52
      },
      "rotation": 0,
      "scale": 1,
@@ -1244,17 +1244,17 @@
      "type": "text",
      "name": "Row label 6",
      "position": {
-      "x": 371,
-      "y": 1848
+      "x": 346.84,
+      "y": 1733
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "Fire TV",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1266,17 +1266,17 @@
      "type": "shape",
      "name": "More shadow",
      "position": {
-      "x": 469,
-      "y": 2080
+      "x": 438.46,
+      "y": 1950.56
      },
      "size": {
-      "width": 380,
-      "height": 110
+      "width": 355.26,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 55,
+     "borderRadius": 51.42,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1286,17 +1286,17 @@
      "type": "shape",
      "name": "More pill",
      "position": {
-      "x": 455,
-      "y": 2066
+      "x": 425.37,
+      "y": 1937.43
      },
      "size": {
-      "width": 380,
-      "height": 110
+      "width": 355.26,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 55,
+     "borderRadius": 51.42,
      "fillColor": "#7A5CF0",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1306,17 +1306,17 @@
      "type": "text",
      "name": "More text",
      "position": {
-      "x": 415,
-      "y": 2069
+      "x": 387.98,
+      "y": 1940.24
      },
      "size": {
-      "width": 460,
-      "height": 105
+      "width": 430.05,
+      "height": 98.47
      },
      "rotation": 0,
      "scale": 1,
      "content": "+ 100 more",
-     "fontSize": 20,
+     "fontSize": 18.7,
      "color": "#FFFFFF",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1328,12 +1328,12 @@
      "type": "shape",
      "name": "Sparkle b1",
      "position": {
-      "x": 110,
-      "y": 2380
+      "x": 102.84,
+      "y": 2231.89
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
@@ -1352,12 +1352,12 @@
      "type": "shape",
      "name": "Sparkle b2",
      "position": {
-      "x": 250,
-      "y": 2520
+      "x": 233.72,
+      "y": 2363.18
      },
      "size": {
-      "width": 55,
-      "height": 55
+      "width": 51.42,
+      "height": 51.58
      },
      "rotation": 20,
      "scale": 1,
@@ -1376,12 +1376,12 @@
      "type": "shape",
      "name": "Sparkle b3",
      "position": {
-      "x": 150,
-      "y": 2620
+      "x": 140.23,
+      "y": 2456.95
      },
      "size": {
-      "width": 40,
-      "height": 40
+      "width": 37.4,
+      "height": 37.51
      },
      "rotation": 0,
      "scale": 1,
@@ -1405,8 +1405,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F7F5FC",
    "zoom": 1,
@@ -1416,12 +1416,12 @@
      "type": "shape",
      "name": "Mint blob",
      "position": {
-      "x": -150,
-      "y": 2520
+      "x": -140.23,
+      "y": 2363.18
      },
      "size": {
-      "width": 520,
-      "height": 460
+      "width": 486.14,
+      "height": 431.37
      },
      "rotation": 0,
      "scale": 1,
@@ -1440,12 +1440,12 @@
      "type": "shape",
      "name": "Sparkle left",
      "position": {
-      "x": 110,
-      "y": 960
+      "x": 102.84,
+      "y": 900.26
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
@@ -1464,12 +1464,12 @@
      "type": "shape",
      "name": "Mint sparkle right",
      "position": {
-      "x": 1150,
-      "y": 1750
+      "x": 1075.12,
+      "y": 1641.09
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 20,
      "scale": 1,
@@ -1488,12 +1488,12 @@
      "type": "shape",
      "name": "Sparkle small",
      "position": {
-      "x": 1180,
-      "y": 690
+      "x": 1103.16,
+      "y": 647.06
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -1512,17 +1512,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 150
+      "x": 56.09,
+      "y": 140.67
      },
      "size": {
-      "width": 1170,
-      "height": 370
+      "width": 1093.81,
+      "height": 346.97
      },
      "rotation": 0,
      "scale": 1,
      "content": "Search at\nfull speed",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1534,17 +1534,17 @@
      "type": "text",
      "name": "Sub",
      "position": {
-      "x": 60,
-      "y": 550
+      "x": 56.09,
+      "y": 515.77
      },
      "size": {
-      "width": 1170,
-      "height": 195
+      "width": 1093.81,
+      "height": 182.86
      },
      "rotation": 0,
      "scale": 1,
      "content": "Type with your phone,\nnot with arrow keys.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6F7480",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1559,12 +1559,12 @@
      "styleType": "normal",
      "frameColor": "#171C28",
      "position": {
-      "x": 210,
-      "y": 880
+      "x": 196.33,
+      "y": 825.24
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.45,
@@ -1584,17 +1584,17 @@
      "type": "shape",
      "name": "Chip shadow",
      "position": {
-      "x": 724,
-      "y": 784
+      "x": 676.86,
+      "y": 735.21
      },
      "size": {
-      "width": 560,
-      "height": 96
+      "width": 523.53,
+      "height": 90.03
      },
      "rotation": 5,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 48,
+     "borderRadius": 44.87,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1604,17 +1604,17 @@
      "type": "shape",
      "name": "Chip pill",
      "position": {
-      "x": 710,
-      "y": 770
+      "x": 663.77,
+      "y": 722.08
      },
      "size": {
-      "width": 560,
-      "height": 96
+      "width": 523.53,
+      "height": 90.03
      },
      "rotation": 5,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 48,
+     "borderRadius": 44.87,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1624,17 +1624,17 @@
      "type": "text",
      "name": "Chip text",
      "position": {
-      "x": 710,
-      "y": 778
+      "x": 663.77,
+      "y": 729.58
      },
      "size": {
-      "width": 560,
-      "height": 80
+      "width": 523.53,
+      "height": 75.02
      },
      "rotation": 5,
      "scale": 1,
      "content": "No more arrow keys",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -1651,8 +1651,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -1662,12 +1662,12 @@
      "type": "shape",
      "name": "Teal corner wave",
      "position": {
-      "x": -60,
-      "y": 2506
+      "x": -56.09,
+      "y": 2350.05
      },
      "size": {
-      "width": 500,
-      "height": 330
+      "width": 467.44,
+      "height": 309.46
      },
      "rotation": 0,
      "scale": 1,
@@ -1686,12 +1686,12 @@
      "type": "shape",
      "name": "Coral circle",
      "position": {
-      "x": 1060,
-      "y": 2640
+      "x": 990.98,
+      "y": 2475.71
      },
      "size": {
-      "width": 420,
-      "height": 380
+      "width": 392.65,
+      "height": 356.35
      },
      "rotation": 0,
      "scale": 1,
@@ -1710,12 +1710,12 @@
      "type": "shape",
      "name": "Sparkle a",
      "position": {
-      "x": 140,
-      "y": 900
+      "x": 130.88,
+      "y": 843.99
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
@@ -1734,12 +1734,12 @@
      "type": "shape",
      "name": "Sparkle b",
      "position": {
-      "x": 1140,
-      "y": 1300
+      "x": 1065.77,
+      "y": 1219.1
      },
      "size": {
-      "width": 55,
-      "height": 55
+      "width": 51.42,
+      "height": 51.58
      },
      "rotation": 20,
      "scale": 1,
@@ -1758,12 +1758,12 @@
      "type": "shape",
      "name": "Sparkle c",
      "position": {
-      "x": 1180,
-      "y": 2350
+      "x": 1103.16,
+      "y": 2203.76
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -1782,17 +1782,17 @@
      "type": "text",
      "name": "Headline",
      "position": {
-      "x": 60,
-      "y": 150
+      "x": 56.09,
+      "y": 140.67
      },
      "size": {
-      "width": 1170,
-      "height": 370
+      "width": 1093.81,
+      "height": 346.97
      },
      "rotation": 0,
      "scale": 1,
      "content": "Paired in\nseconds",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "700",
@@ -1804,17 +1804,17 @@
      "type": "text",
      "name": "Sub",
      "position": {
-      "x": 60,
-      "y": 550
+      "x": 56.09,
+      "y": 515.77
      },
      "size": {
-      "width": 1170,
-      "height": 195
+      "width": 1093.81,
+      "height": 182.86
      },
      "rotation": 0,
      "scale": 1,
      "content": "Zapio finds every TV\non your Wi-Fi.",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#6F7480",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -1829,12 +1829,12 @@
      "styleType": "normal",
      "frameColor": "#171C28",
      "position": {
-      "x": 210,
-      "y": 830
+      "x": 196.33,
+      "y": 778.35
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.45,
@@ -1854,17 +1854,17 @@
      "type": "shape",
      "name": "Caption shadow",
      "position": {
-      "x": 409,
-      "y": 2634
+      "x": 382.37,
+      "y": 2470.08
      },
      "size": {
-      "width": 500,
-      "height": 100
+      "width": 467.44,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 50,
+     "borderRadius": 46.74,
      "fillColor": "#E4E1F2",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1874,17 +1874,17 @@
      "type": "shape",
      "name": "Caption pill",
      "position": {
-      "x": 395,
-      "y": 2620
+      "x": 369.28,
+      "y": 2456.95
      },
      "size": {
-      "width": 500,
-      "height": 100
+      "width": 467.44,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
-     "borderRadius": 50,
+     "borderRadius": 46.74,
      "fillColor": "#FFFFFF",
      "strokeColor": "transparent",
      "strokeWidth": 0
@@ -1894,17 +1894,17 @@
      "type": "text",
      "name": "Caption",
      "position": {
-      "x": 395,
-      "y": 2630
+      "x": 369.28,
+      "y": 2466.33
      },
      "size": {
-      "width": 500,
-      "height": 80
+      "width": 467.44,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "content": "Works over Wi-Fi",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#14161C",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",

@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#2F9155",
       "backgroundType": "solid",
@@ -25,17 +25,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 25,
-            "y": 140
+            "x": 23.37,
+            "y": 131.29
           },
           "size": {
-            "width": 1240,
-            "height": 360
+            "width": 1159.26,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Your favourite\nmeals delivered",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -47,12 +47,12 @@
           "type": "shape",
           "name": "Dot Cluster",
           "position": {
-            "x": -70,
-            "y": 620
+            "x": -65.44,
+            "y": 581.42
           },
           "size": {
-            "width": 380,
-            "height": 380
+            "width": 355.26,
+            "height": 356.35
           },
           "rotation": 0,
           "scale": 1,
@@ -71,12 +71,12 @@
           "type": "shape",
           "name": "Squiggle",
           "position": {
-            "x": 1010,
-            "y": 490
+            "x": 944.23,
+            "y": 459.51
           },
           "size": {
-            "width": 300,
-            "height": 140
+            "width": 280.47,
+            "height": 131.29
           },
           "rotation": -15,
           "scale": 1,
@@ -85,23 +85,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 9
+            "baseStrokeWidth": 8.41
           },
           "fillColor": "#A9DFC1",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_fst_ab1_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 300,
-            "y": 1000
+            "x": 280.47,
+            "y": 937.77
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -5,
           "scale": 1.5,
@@ -123,12 +123,12 @@
           "type": "shape",
           "name": "Wordmark Sketch Frame",
           "position": {
-            "x": 55,
-            "y": 2430
+            "x": 51.42,
+            "y": 2278.78
           },
           "size": {
-            "width": 480,
-            "height": 260
+            "width": 448.74,
+            "height": 243.82
           },
           "rotation": 0,
           "scale": 1,
@@ -137,28 +137,28 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_fst_ab1_wordmark_text",
           "type": "text",
           "name": "Wordmark",
           "position": {
-            "x": 75,
-            "y": 2470
+            "x": 70.12,
+            "y": 2316.29
           },
           "size": {
-            "width": 440,
-            "height": 180
+            "width": 411.35,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "feasto.",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#FFFFFF",
           "fontFamily": "Pacifico",
           "fontWeight": "400",
@@ -170,12 +170,12 @@
           "type": "shape",
           "name": "Squiggle Line",
           "position": {
-            "x": 660,
-            "y": 2600
+            "x": 617.02,
+            "y": 2438.2
           },
           "size": {
-            "width": 260,
-            "height": 90
+            "width": 243.07,
+            "height": 84.4
           },
           "rotation": 8,
           "scale": 1,
@@ -184,11 +184,11 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 10
+            "baseStrokeWidth": 9.35
           },
           "fillColor": "#A9DFC1",
           "strokeColor": "transparent",
-          "strokeWidth": 2.5
+          "strokeWidth": 2.34
         }
       ]
     },
@@ -200,8 +200,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#2F9155",
       "backgroundType": "solid",
@@ -212,12 +212,12 @@
           "type": "device",
           "name": "Phone Mockup Top",
           "position": {
-            "x": 90,
-            "y": -930
+            "x": 84.14,
+            "y": -872.12
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.35,
@@ -239,12 +239,12 @@
           "type": "image",
           "name": "Chef Photo",
           "position": {
-            "x": 640,
-            "y": 620
+            "x": 598.33,
+            "y": 581.42
           },
           "size": {
-            "width": 650,
-            "height": 2176
+            "width": 607.67,
+            "height": 2040.58
           },
           "rotation": 0,
           "scale": 1,
@@ -255,17 +255,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 30,
-            "y": 1135
+            "x": 28.05,
+            "y": 1064.37
           },
           "size": {
-            "width": 660,
-            "height": 360
+            "width": 617.02,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Eat what\nyou love",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -277,12 +277,12 @@
           "type": "device",
           "name": "Phone Mockup Bottom",
           "position": {
-            "x": 70,
-            "y": 1720
+            "x": 65.44,
+            "y": 1612.96
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.35,
@@ -304,12 +304,12 @@
           "type": "shape",
           "name": "Sparkle Large",
           "position": {
-            "x": 560,
-            "y": 560
+            "x": 523.53,
+            "y": 525.15
           },
           "size": {
-            "width": 90,
-            "height": 90
+            "width": 84.14,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
@@ -327,12 +327,12 @@
           "type": "shape",
           "name": "Sparkle Small",
           "position": {
-            "x": 60,
-            "y": 700
+            "x": 56.09,
+            "y": 656.44
           },
           "size": {
-            "width": 70,
-            "height": 70
+            "width": 65.44,
+            "height": 65.64
           },
           "rotation": 0,
           "scale": 1,
@@ -355,8 +355,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#2F9155",
       "backgroundType": "solid",
@@ -367,17 +367,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 135
+            "x": 88.81,
+            "y": 126.6
           },
           "size": {
-            "width": 1100,
-            "height": 360
+            "width": 1028.37,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Hot meals in\nminutes",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -389,12 +389,12 @@
           "type": "shape",
           "name": "Marker Stroke",
           "position": {
-            "x": 430,
-            "y": 500
+            "x": 402,
+            "y": 468.88
           },
           "size": {
-            "width": 430,
-            "height": 80
+            "width": 402,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -412,12 +412,12 @@
           "type": "shape",
           "name": "Squiggle",
           "position": {
-            "x": 40,
-            "y": 560
+            "x": 37.4,
+            "y": 525.15
           },
           "size": {
-            "width": 220,
-            "height": 100
+            "width": 205.67,
+            "height": 93.78
           },
           "rotation": 12,
           "scale": 1,
@@ -426,23 +426,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 9
+            "baseStrokeWidth": 8.41
           },
           "fillColor": "#A9DFC1",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_fst_ab3_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 320,
-            "y": 900
+            "x": 299.16,
+            "y": 843.99
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -464,12 +464,12 @@
           "type": "image",
           "name": "Food Photo",
           "position": {
-            "x": 30,
-            "y": 2340
+            "x": 28.05,
+            "y": 2194.38
           },
           "size": {
-            "width": 430,
-            "height": 456
+            "width": 402,
+            "height": 427.62
           },
           "rotation": 0,
           "scale": 1,
@@ -485,8 +485,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#2F9155",
       "backgroundType": "solid",
@@ -497,17 +497,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 135
+            "x": 88.81,
+            "y": 126.6
           },
           "size": {
-            "width": 1100,
-            "height": 360
+            "width": 1028.37,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Tap order\nenjoy",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -519,17 +519,17 @@
           "type": "text",
           "name": "Script Accent",
           "position": {
-            "x": 95,
-            "y": 520
+            "x": 88.81,
+            "y": 487.64
           },
           "size": {
-            "width": 1100,
-            "height": 220
+            "width": 1028.37,
+            "height": 206.31
           },
           "rotation": -6,
           "scale": 1,
           "content": "Quick delivery",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#A9DFC1",
           "fontFamily": "Pacifico",
           "fontWeight": "400",
@@ -541,12 +541,12 @@
           "type": "shape",
           "name": "Squiggle",
           "position": {
-            "x": 60,
-            "y": 640
+            "x": 56.09,
+            "y": 600.17
           },
           "size": {
-            "width": 240,
-            "height": 110
+            "width": 224.37,
+            "height": 103.15
           },
           "rotation": -10,
           "scale": 1,
@@ -555,23 +555,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 9
+            "baseStrokeWidth": 8.41
           },
           "fillColor": "#A9DFC1",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_fst_ab4_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 280,
-            "y": 1050
+            "x": 261.77,
+            "y": 984.66
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 12,
           "scale": 1.55,
@@ -593,12 +593,12 @@
           "type": "image",
           "name": "Snack Photo",
           "position": {
-            "x": 20,
-            "y": 2400
+            "x": 18.7,
+            "y": 2250.64
           },
           "size": {
-            "width": 400,
-            "height": 396
+            "width": 373.95,
+            "height": 371.36
           },
           "rotation": 0,
           "scale": 1,
@@ -614,8 +614,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#2F9155",
       "backgroundType": "solid",
@@ -626,12 +626,12 @@
           "type": "shape",
           "name": "Sketch Frame",
           "position": {
-            "x": 165,
-            "y": 120
+            "x": 154.26,
+            "y": 112.53
           },
           "size": {
-            "width": 960,
-            "height": 460
+            "width": 897.49,
+            "height": 431.37
           },
           "rotation": 0,
           "scale": 1,
@@ -640,28 +640,28 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_fst_ab5_frame_script",
           "type": "text",
           "name": "Frame Script",
           "position": {
-            "x": 225,
-            "y": 170
+            "x": 210.35,
+            "y": 159.42
           },
           "size": {
-            "width": 760,
-            "height": 360
+            "width": 710.51,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "Top rated by\nusers",
-          "fontSize": 32,
+          "fontSize": 29.92,
           "color": "#FFFFFF",
           "fontFamily": "Pacifico",
           "fontWeight": "400",
@@ -673,12 +673,12 @@
           "type": "shape",
           "name": "Star Doodle",
           "position": {
-            "x": 985,
-            "y": 400
+            "x": 920.86,
+            "y": 375.11
           },
           "size": {
-            "width": 110,
-            "height": 110
+            "width": 102.84,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -687,28 +687,28 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 2.5
+          "strokeWidth": 2.34
         },
         {
           "id": "tpl_fst_ab5_quote1",
           "type": "text",
           "name": "Testimonial 1",
           "position": {
-            "x": 165,
-            "y": 680
+            "x": 154.26,
+            "y": 637.68
           },
           "size": {
-            "width": 960,
-            "height": 250
+            "width": 897.49,
+            "height": 234.44
           },
           "rotation": 0,
           "scale": 1,
           "content": "I use this almost daily. The\noffers and discounts make it\neven better!",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "400",
@@ -720,12 +720,12 @@
           "type": "shape",
           "name": "Quote 1 Star 1",
           "position": {
-            "x": 350,
-            "y": 950
+            "x": 327.21,
+            "y": 890.88
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -743,12 +743,12 @@
           "type": "shape",
           "name": "Quote 1 Star 2",
           "position": {
-            "x": 404,
-            "y": 950
+            "x": 377.69,
+            "y": 890.88
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -766,12 +766,12 @@
           "type": "shape",
           "name": "Quote 1 Star 3",
           "position": {
-            "x": 458,
-            "y": 950
+            "x": 428.18,
+            "y": 890.88
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -789,12 +789,12 @@
           "type": "shape",
           "name": "Quote 1 Star 4",
           "position": {
-            "x": 512,
-            "y": 950
+            "x": 478.66,
+            "y": 890.88
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -812,12 +812,12 @@
           "type": "shape",
           "name": "Quote 1 Star 5",
           "position": {
-            "x": 566,
-            "y": 950
+            "x": 529.14,
+            "y": 890.88
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -835,17 +835,17 @@
           "type": "text",
           "name": "Quote 1 Name",
           "position": {
-            "x": 700,
-            "y": 930
+            "x": 654.42,
+            "y": 872.12
           },
           "size": {
-            "width": 420,
-            "height": 100
+            "width": 392.65,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
           "content": "-Sam",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -857,17 +857,17 @@
           "type": "text",
           "name": "Testimonial 2",
           "position": {
-            "x": 95,
-            "y": 1240
+            "x": 88.81,
+            "y": 1162.83
           },
           "size": {
-            "width": 1100,
-            "height": 320
+            "width": 1028.37,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Super convenient app! Ordering\nfood is quick and the delivery is\nusually on time. Love the\ntracking feature.",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "400",
@@ -879,12 +879,12 @@
           "type": "shape",
           "name": "Quote 2 Star 1",
           "position": {
-            "x": 350,
-            "y": 1580
+            "x": 327.21,
+            "y": 1481.67
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -902,12 +902,12 @@
           "type": "shape",
           "name": "Quote 2 Star 2",
           "position": {
-            "x": 404,
-            "y": 1580
+            "x": 377.69,
+            "y": 1481.67
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -925,12 +925,12 @@
           "type": "shape",
           "name": "Quote 2 Star 3",
           "position": {
-            "x": 458,
-            "y": 1580
+            "x": 428.18,
+            "y": 1481.67
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -948,12 +948,12 @@
           "type": "shape",
           "name": "Quote 2 Star 4",
           "position": {
-            "x": 512,
-            "y": 1580
+            "x": 478.66,
+            "y": 1481.67
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -971,12 +971,12 @@
           "type": "shape",
           "name": "Quote 2 Star 5",
           "position": {
-            "x": 566,
-            "y": 1580
+            "x": 529.14,
+            "y": 1481.67
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -994,17 +994,17 @@
           "type": "text",
           "name": "Quote 2 Name",
           "position": {
-            "x": 700,
-            "y": 1560
+            "x": 654.42,
+            "y": 1462.92
           },
           "size": {
-            "width": 420,
-            "height": 100
+            "width": 392.65,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
           "content": "-Olivia",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -1016,17 +1016,17 @@
           "type": "text",
           "name": "Testimonial 3",
           "position": {
-            "x": 165,
-            "y": 1870
+            "x": 154.26,
+            "y": 1753.63
           },
           "size": {
-            "width": 960,
-            "height": 250
+            "width": 897.49,
+            "height": 234.44
           },
           "rotation": 0,
           "scale": 1,
           "content": "The app works well, just wish\nthere were more discounts\navailable regularly.",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "400",
@@ -1038,12 +1038,12 @@
           "type": "shape",
           "name": "Quote 3 Star 1",
           "position": {
-            "x": 350,
-            "y": 2140
+            "x": 327.21,
+            "y": 2006.82
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -1061,12 +1061,12 @@
           "type": "shape",
           "name": "Quote 3 Star 2",
           "position": {
-            "x": 404,
-            "y": 2140
+            "x": 377.69,
+            "y": 2006.82
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -1084,12 +1084,12 @@
           "type": "shape",
           "name": "Quote 3 Star 3",
           "position": {
-            "x": 458,
-            "y": 2140
+            "x": 428.18,
+            "y": 2006.82
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -1107,12 +1107,12 @@
           "type": "shape",
           "name": "Quote 3 Star 4",
           "position": {
-            "x": 512,
-            "y": 2140
+            "x": 478.66,
+            "y": 2006.82
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -1130,12 +1130,12 @@
           "type": "shape",
           "name": "Quote 3 Star 5",
           "position": {
-            "x": 566,
-            "y": 2140
+            "x": 529.14,
+            "y": 2006.82
           },
           "size": {
-            "width": 42,
-            "height": 42
+            "width": 39.27,
+            "height": 39.39
           },
           "rotation": 0,
           "scale": 1,
@@ -1153,17 +1153,17 @@
           "type": "text",
           "name": "Quote 3 Name",
           "position": {
-            "x": 700,
-            "y": 2120
+            "x": 654.42,
+            "y": 1988.07
           },
           "size": {
-            "width": 420,
-            "height": 100
+            "width": 392.65,
+            "height": 93.78
           },
           "rotation": 0,
           "scale": 1,
           "content": "-David",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -1175,12 +1175,12 @@
           "type": "shape",
           "name": "Award Laurel",
           "position": {
-            "x": 330,
-            "y": 2290
+            "x": 308.51,
+            "y": 2147.49
           },
           "size": {
-            "width": 630,
-            "height": 460
+            "width": 588.98,
+            "height": 431.37
           },
           "rotation": 0,
           "scale": 1,
@@ -1198,17 +1198,17 @@
           "type": "text",
           "name": "Rating Number",
           "position": {
-            "x": 515,
-            "y": 2330
+            "x": 481.47,
+            "y": 2185
           },
           "size": {
-            "width": 260,
-            "height": 180
+            "width": 243.07,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "4.8",
-          "fontSize": 44,
+          "fontSize": 41.13,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -1220,17 +1220,17 @@
           "type": "text",
           "name": "Rating Label",
           "position": {
-            "x": 495,
-            "y": 2510
+            "x": 462.77,
+            "y": 2353.8
           },
           "size": {
-            "width": 300,
-            "height": 140
+            "width": 280.47,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "Rating on\napp store",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "600",
@@ -1242,12 +1242,12 @@
           "type": "shape",
           "name": "Award Star 1",
           "position": {
-            "x": 521,
-            "y": 2660
+            "x": 487.07,
+            "y": 2494.46
           },
           "size": {
-            "width": 40,
-            "height": 40
+            "width": 37.4,
+            "height": 37.51
           },
           "rotation": 0,
           "scale": 1,
@@ -1265,12 +1265,12 @@
           "type": "shape",
           "name": "Award Star 2",
           "position": {
-            "x": 573,
-            "y": 2660
+            "x": 535.69,
+            "y": 2494.46
           },
           "size": {
-            "width": 40,
-            "height": 40
+            "width": 37.4,
+            "height": 37.51
           },
           "rotation": 0,
           "scale": 1,
@@ -1288,12 +1288,12 @@
           "type": "shape",
           "name": "Award Star 3",
           "position": {
-            "x": 625,
-            "y": 2660
+            "x": 584.3,
+            "y": 2494.46
           },
           "size": {
-            "width": 40,
-            "height": 40
+            "width": 37.4,
+            "height": 37.51
           },
           "rotation": 0,
           "scale": 1,
@@ -1311,12 +1311,12 @@
           "type": "shape",
           "name": "Award Star 4",
           "position": {
-            "x": 677,
-            "y": 2660
+            "x": 632.92,
+            "y": 2494.46
           },
           "size": {
-            "width": 40,
-            "height": 40
+            "width": 37.4,
+            "height": 37.51
           },
           "rotation": 0,
           "scale": 1,
@@ -1334,12 +1334,12 @@
           "type": "shape",
           "name": "Award Star 5",
           "position": {
-            "x": 729,
-            "y": 2660
+            "x": 681.53,
+            "y": 2494.46
           },
           "size": {
-            "width": 40,
-            "height": 40
+            "width": 37.4,
+            "height": 37.51
           },
           "rotation": 0,
           "scale": 1,

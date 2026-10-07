@@ -125,8 +125,7 @@ can read. list_assets lists every uploaded image if you need a ref again. Copy r
   and put the refs in the frames. Otherwise keep every sample screen, and tell the user they can
   drop their screenshot files onto the canvas, which fills the device frames.
 - Measure the rewritten texts, then look at every board.
-- There are no iPad templates, and the screenshots templates are 1290x2796 with iPhone frames.
-  That is the optional large size; export generates the required 1206x2622 from it.
+- There are no iPad templates, and the screenshots templates are 1206x2622 with iPhone frames.
   Build iPad and Google Play boards from scratch.
 
 Use create_project_from_template only when the user asks for a separate project: it opens a new
@@ -141,20 +140,20 @@ index with the current number of boards). Duplicating the first board every time
 set. Check the order with list_artboards before you reply. Vary the layout a little across the
 set so it does not read as one board five times.
 
-A proven phone layout on 1290x2796, from the proportions the app's own generator uses:
+A proven phone layout on 1206x2622, from the proportions the app's own generator uses:
 - background: set_background with gradient color1, color2 and angle.
-- headline: x 77, y 154, width 1135, height 391; fontSize 43, fontWeight "700", lineHeight
+- headline: x 72, y 144, width 1061, height 367; fontSize 40, fontWeight "700", lineHeight
   1.15, textAlign "center".
-- subline: x 129, y 559, width 1032, height 196; fontSize 18, fontWeight "400", lineHeight 1.35.
-- device: subType iphone-17-pro-max, x 272, y 1118, width 746, height 1622, screenshotSrc the
+- subline: x 121, y 524, width 965, height 184; fontSize 17, fontWeight "400", lineHeight 1.35.
+- device: subType iphone-17-pro-max, x 253, y 1049, width 700, height 1521, screenshotSrc the
   asset ref, screenshotObjectFit "cover".
 
 As one add_elements call:
 
     {"elements":[
-     {"type":"text","name":"Headline","content":"Track every drop","x":77,"y":154,"width":1135,"height":391,"fontSize":43,"fontFamily":"Poppins","fontWeight":"700","lineHeight":1.15,"textAlign":"center","color":"#FFFFFF"},
-     {"type":"text","name":"Subline","content":"Gentle reminders that fit your day","x":129,"y":559,"width":1032,"height":196,"fontSize":18,"fontFamily":"Poppins","fontWeight":"400","lineHeight":1.35,"textAlign":"center","color":"#E8ECFF"},
-     {"type":"device","subType":"iphone-17-pro-max","name":"Phone","x":272,"y":1118,"width":746,"height":1622,"screenshotSrc":"asset:asset_1727_ab12cd","screenshotObjectFit":"cover"}
+     {"type":"text","name":"Headline","content":"Track every drop","x":72,"y":144,"width":1061,"height":367,"fontSize":40,"fontFamily":"Poppins","fontWeight":"700","lineHeight":1.15,"textAlign":"center","color":"#FFFFFF"},
+     {"type":"text","name":"Subline","content":"Gentle reminders that fit your day","x":121,"y":524,"width":965,"height":184,"fontSize":17,"fontFamily":"Poppins","fontWeight":"400","lineHeight":1.35,"textAlign":"center","color":"#E8ECFF"},
+     {"type":"device","subType":"iphone-17-pro-max","name":"Phone","x":253,"y":1049,"width":700,"height":1521,"screenshotSrc":"asset:asset_1727_ab12cd","screenshotObjectFit":"cover"}
     ]}
 
 Other canvases keep the proportions. The headline box sits 6% from the left and 5.5% from the
@@ -172,8 +171,8 @@ on a proof board.
 
 ## Text
 
-- Glyphs render at about 3.3x fontSize (fontSize / 0.3). On a 1290 wide phone board a headline
-  is 36 to 48, a subline 14 to 20 and small print 10 to 12; scale with the board width. The
+- Glyphs render at about 3.3x fontSize (fontSize / 0.3). On a 1206 wide phone board a headline
+  is 34 to 45, a subline 13 to 19 and small print 9 to 11; scale with the board width. The
   templates use about 15 to 23 for a watch headline, 20 to 34 on a Mac board and 15 to 20 on the
   feature graphic.
 - Text wraps inside its box, sits centred vertically in it, and the box clips. A newline in

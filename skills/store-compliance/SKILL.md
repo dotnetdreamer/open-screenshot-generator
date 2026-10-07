@@ -83,9 +83,9 @@ accepts the rotated size, so a landscape app renders the same tier sideways. Wat
 Vision are one orientation only.
 
 The default CLI format is `ios-6-3` (1206x2622), and `ios` and `iphone` mean the same.
-`ios-6-9` and `ios-large` convert to the optional large slot at 1290x2796, which is the
-size the bundled templates use, so a project built from a template still needs the
-medium size for the required slot. Other canvas presets require creating or resizing the
+`ios-6-9` and `ios-large` convert to the optional large slot at 1290x2796. The bundled
+templates are built at 1206x2622, so a project built from one already fits the
+required slot. Other canvas presets require creating or resizing the
 artboards first, then rendering or uploading with `--formats as-is` to keep their dimensions.
 
 Caps and formats:
@@ -110,7 +110,7 @@ Caps and formats:
 
 PNG or JPEG, 8 MB maximum per image.
 
-**Play's aspect rule blocks the iPhone canvas.** 1290x2796 is 2.17:1, and Play needs the long side to
+**Play's aspect rule blocks the iPhone canvas.** 1206x2622 is 2.17:1, and Play needs the long side to
 be at most twice the short side. Play rejects it. Use the `play-phone` preset (1080x1920) for the
 Play tier rather than re-uploading the App Store files. That rule is Google's, verified in their own
 docs, and it is not negotiable.

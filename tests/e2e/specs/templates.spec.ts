@@ -51,8 +51,8 @@ test.describe('templates', () => {
 
     // Templates are authored at the required App Store size and must not be
     // silently rescaled on the way in.
-    await expect(app.board(0)).toHaveAttribute('data-original-width', '1290');
-    await expect(app.board(0)).toHaveAttribute('data-original-height', '2796');
+    await expect(app.board(0)).toHaveAttribute('data-original-width', '1206');
+    await expect(app.board(0)).toHaveAttribute('data-original-height', '2622');
   });
 
   test('a picked template is persisted, so a reload does not lose it', async ({ app, page }) => {

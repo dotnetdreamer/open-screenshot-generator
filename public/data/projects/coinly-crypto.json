@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#2E63E7",
       "backgroundType": "gradient",
@@ -30,17 +30,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 110
+            "x": 74.79,
+            "y": 103.15
           },
           "size": {
-            "width": 1050,
-            "height": 520
+            "width": 981.63,
+            "height": 487.64
           },
           "rotation": 0,
           "scale": 1,
           "content": "Buy and sell\ncrypto\ninstantly",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -52,17 +52,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 680
+            "x": 74.79,
+            "y": 637.68
           },
           "size": {
-            "width": 650,
-            "height": 260
+            "width": 607.67,
+            "height": 243.82
           },
           "rotation": 0,
           "scale": 1,
           "content": "Access the market\nwhenever you want\nsecurely",
-          "fontSize": 18,
+          "fontSize": 16.83,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -74,12 +74,12 @@
           "type": "shape",
           "name": "QR Icon",
           "position": {
-            "x": 80,
-            "y": 990
+            "x": 74.79,
+            "y": 928.39
           },
           "size": {
-            "width": 110,
-            "height": 110
+            "width": 102.84,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -97,17 +97,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 215,
-            "y": 990
+            "x": 201,
+            "y": 928.39
           },
           "size": {
-            "width": 350,
-            "height": 120
+            "width": 327.21,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
           "content": "BUY SELL\nCRYPTO",
-          "fontSize": 16,
+          "fontSize": 14.96,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -119,12 +119,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 230,
-            "y": 1200
+            "x": 215.02,
+            "y": 1125.32
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 12,
           "scale": 1.6,
@@ -152,8 +152,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C21858",
       "zoom": 1,
@@ -163,17 +163,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 80,
-            "y": 110
+            "x": 74.79,
+            "y": 103.15
           },
           "size": {
-            "width": 1050,
-            "height": 350
+            "width": 981.63,
+            "height": 328.22
           },
           "rotation": 0,
           "scale": 1,
           "content": "Invest in\ndigital assets",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -185,12 +185,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 150,
-            "y": 560
+            "x": 140.23,
+            "y": 525.15
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.65,
@@ -218,8 +218,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#28B446",
       "zoom": 1,
@@ -229,12 +229,12 @@
           "type": "shape",
           "name": "Pill",
           "position": {
-            "x": 495,
-            "y": 100
+            "x": 462.77,
+            "y": 93.78
           },
           "size": {
-            "width": 300,
-            "height": 110
+            "width": 280.47,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -242,7 +242,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 55,
+          "borderRadius": 51.42,
           "borderRadiusType": "uniform"
         },
         {
@@ -250,17 +250,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 495,
-            "y": 100
+            "x": 462.77,
+            "y": 93.78
           },
           "size": {
-            "width": 300,
-            "height": 110
+            "width": 280.47,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Market",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -272,17 +272,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 95,
-            "y": 250
+            "x": 88.81,
+            "y": 234.44
           },
           "size": {
-            "width": 1100,
-            "height": 400
+            "width": 1028.37,
+            "height": 375.11
           },
           "rotation": 0,
           "scale": 1,
           "content": "Track prices\nin real-time",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -294,17 +294,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 195,
-            "y": 620
+            "x": 182.3,
+            "y": 581.42
           },
           "size": {
-            "width": 900,
-            "height": 240
+            "width": 841.4,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "Monitor live prices across\nmultiple cryptocurrencies",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -316,12 +316,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 830
+            "x": 182.3,
+            "y": 778.35
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -349,8 +349,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9D2BE8",
       "zoom": 1,
@@ -360,12 +360,12 @@
           "type": "shape",
           "name": "Pill",
           "position": {
-            "x": 495,
-            "y": 100
+            "x": 462.77,
+            "y": 93.78
           },
           "size": {
-            "width": 300,
-            "height": 110
+            "width": 280.47,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -373,7 +373,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 55,
+          "borderRadius": 51.42,
           "borderRadiusType": "uniform"
         },
         {
@@ -381,17 +381,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 495,
-            "y": 100
+            "x": 462.77,
+            "y": 93.78
           },
           "size": {
-            "width": 300,
-            "height": 110
+            "width": 280.47,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Crypto",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -403,17 +403,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 95,
-            "y": 250
+            "x": 88.81,
+            "y": 234.44
           },
           "size": {
-            "width": 1100,
-            "height": 400
+            "width": 1028.37,
+            "height": 375.11
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stay ahead of\ncrypto changes",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -425,17 +425,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 195,
-            "y": 620
+            "x": 182.3,
+            "y": 581.42
           },
           "size": {
-            "width": 900,
-            "height": 240
+            "width": 841.4,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "Advanced encryption keeps\nfunds protected 24/7",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -447,12 +447,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 830
+            "x": 182.3,
+            "y": 778.35
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -480,8 +480,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C21858",
       "zoom": 1,
@@ -491,12 +491,12 @@
           "type": "shape",
           "name": "Pill",
           "position": {
-            "x": 495,
-            "y": 100
+            "x": 462.77,
+            "y": 93.78
           },
           "size": {
-            "width": 300,
-            "height": 110
+            "width": 280.47,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
@@ -504,7 +504,7 @@
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 55,
+          "borderRadius": 51.42,
           "borderRadiusType": "uniform"
         },
         {
@@ -512,17 +512,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 495,
-            "y": 100
+            "x": 462.77,
+            "y": 93.78
           },
           "size": {
-            "width": 300,
-            "height": 110
+            "width": 280.47,
+            "height": 103.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Assets",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#111111",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -534,17 +534,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 95,
-            "y": 250
+            "x": 88.81,
+            "y": 234.44
           },
           "size": {
-            "width": 1100,
-            "height": 400
+            "width": 1028.37,
+            "height": 375.11
           },
           "rotation": 0,
           "scale": 1,
           "content": "Keep your assets\nsafe always",
-          "fontSize": 36,
+          "fontSize": 33.66,
           "color": "#FFFFFF",
           "fontFamily": "DM Serif Display",
           "fontWeight": "bold",
@@ -556,17 +556,17 @@
           "type": "text",
           "name": "Text",
           "position": {
-            "x": 195,
-            "y": 620
+            "x": 182.3,
+            "y": 581.42
           },
           "size": {
-            "width": 900,
-            "height": 240
+            "width": 841.4,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "Gain crypto knowledge with\nbuilt-in learning tools",
-          "fontSize": 17,
+          "fontSize": 15.89,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "normal",
@@ -578,12 +578,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 195,
-            "y": 830
+            "x": 182.3,
+            "y": 778.35
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,

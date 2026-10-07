@@ -1,4 +1,5 @@
 import type { Size } from '@/types/artboard';
+import { DEFAULT_CANVAS_SIZE } from '@/lib/sizePresets';
 
 // Categories for the "Start a New Project" template picker. Each category is a
 // tab in that dialog: its `files` are the template JSONs under
@@ -39,7 +40,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     id: 'screenshots',
     label: 'App Screenshots',
     blurb: 'Portrait App Store and Play Store screenshot layouts.',
-    defaultSize: { width: 1290, height: 2796 },
+    defaultSize: { ...DEFAULT_CANVAS_SIZE },
     previewAspect: '3 / 1',
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',

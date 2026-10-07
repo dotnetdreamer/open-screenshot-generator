@@ -6,7 +6,7 @@
 // very tall phone) and downscales each board for the carousel.
 //
 // Everything is re-encoded to JPEG at feed resolution. A raw capture is a
-// 1290x2796 PNG, several megabytes each, and these are stored in IndexedDB and
+// 1206x2622 PNG, several megabytes each, and these are stored in IndexedDB and
 // will one day be uploaded: nobody needs print resolution to decide whether
 // they like a layout.
 
@@ -127,7 +127,7 @@ export async function downscaleBoard(board: CapturedBoard): Promise<ComposedImag
 export function guessSurface(size: Size | undefined): DiscoverSurface {
   if (!size?.width || !size?.height) return 'screenshots';
   const ratio = size.width / size.height;
-  // An App Preview board (886x1920) and a screenshot board (1290x2796) have the
+  // An App Preview board (886x1920) and a screenshot board (1206x2622) have the
   // same aspect ratio to three decimal places, so only the exact size tells
   // them apart.
   if (size.width === 886 && size.height === 1920) return 'app-preview';

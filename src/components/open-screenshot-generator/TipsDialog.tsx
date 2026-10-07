@@ -78,7 +78,7 @@ interface Tip {
 
 /** Example project names for tip one, with the size each store slot expects. */
 const SIZE_EXAMPLES: { icon: LucideIcon; name: string; size: string }[] = [
-  { icon: SmartphoneIcon, name: 'MyApp iPhone', size: '1290 × 2796' },
+  { icon: SmartphoneIcon, name: 'MyApp iPhone', size: '1206 × 2622' },
   { icon: TabletIcon, name: 'MyApp iPad 13-inch', size: '2064 × 2752' },
   { icon: SmartphoneIcon, name: 'MyApp Android phone', size: '1080 × 1920' },
   { icon: TabletIcon, name: 'MyApp Android tablet', size: '1440 × 2560' },

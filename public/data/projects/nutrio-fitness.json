@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -24,12 +24,12 @@
      "type": "shape",
      "name": "Lavender blob top-left",
      "position": {
-      "x": -220,
-      "y": -220
+      "x": -205.67,
+      "y": -206.31
      },
      "size": {
-      "width": 980,
-      "height": 760
+      "width": 916.19,
+      "height": 712.7
      },
      "rotation": 0,
      "scale": 1,
@@ -45,17 +45,17 @@
      "type": "text",
      "name": "Heading",
      "position": {
-      "x": 90,
-      "y": 120
+      "x": 84.14,
+      "y": 112.53
      },
      "size": {
-      "width": 960,
-      "height": 420
+      "width": 897.49,
+      "height": 393.86
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your personalized\nfitness and\nnutrition app",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#23233F",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "600",
@@ -67,12 +67,12 @@
      "type": "shape",
      "name": "Indigo blob bottom-left",
      "position": {
-      "x": -260,
-      "y": 2360
+      "x": -243.07,
+      "y": 2213.13
      },
      "size": {
-      "width": 760,
-      "height": 680
+      "width": 710.51,
+      "height": 637.68
      },
      "rotation": 0,
      "scale": 1,
@@ -91,12 +91,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": 560,
-      "y": 430
+      "x": 523.53,
+      "y": 403.24
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.7,
      "rotation": 15,
@@ -119,12 +119,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": -140,
-      "y": 860
+      "x": -130.88,
+      "y": 806.48
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.7,
      "rotation": -25,
@@ -149,8 +149,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -160,12 +160,12 @@
      "type": "shape",
      "name": "Pink blob top",
      "position": {
-      "x": 230,
-      "y": -260
+      "x": 215.02,
+      "y": -243.82
      },
      "size": {
-      "width": 1050,
-      "height": 920
+      "width": 981.63,
+      "height": 862.75
      },
      "rotation": 0,
      "scale": 1,
@@ -181,12 +181,12 @@
      "type": "shape",
      "name": "White zigzag",
      "position": {
-      "x": 800,
-      "y": 60
+      "x": 747.91,
+      "y": 56.27
      },
      "size": {
-      "width": 220,
-      "height": 120
+      "width": 205.67,
+      "height": 112.53
      },
      "rotation": 20,
      "scale": 1,
@@ -195,100 +195,100 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      },
      "fillColor": "#FFFFFF",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "nf_rect_8",
      "type": "shape",
      "name": "Hanging stripe 1",
      "position": {
-      "x": 760,
-      "y": 560
+      "x": 710.51,
+      "y": 525.15
      },
      "size": {
-      "width": 16,
-      "height": 220
+      "width": 14.96,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F8A5AD",
-     "borderRadius": 8
+     "borderRadius": 7.48
     },
     {
      "id": "nf_rect_9",
      "type": "shape",
      "name": "Hanging stripe 2",
      "position": {
-      "x": 804,
-      "y": 560
+      "x": 751.65,
+      "y": 525.15
      },
      "size": {
-      "width": 16,
-      "height": 220
+      "width": 14.96,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F8A5AD",
-     "borderRadius": 8
+     "borderRadius": 7.48
     },
     {
      "id": "nf_rect_10",
      "type": "shape",
      "name": "Hanging stripe 3",
      "position": {
-      "x": 848,
-      "y": 560
+      "x": 792.78,
+      "y": 525.15
      },
      "size": {
-      "width": 16,
-      "height": 220
+      "width": 14.96,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F8A5AD",
-     "borderRadius": 8
+     "borderRadius": 7.48
     },
     {
      "id": "nf_rect_11",
      "type": "shape",
      "name": "Hanging stripe 4",
      "position": {
-      "x": 892,
-      "y": 560
+      "x": 833.92,
+      "y": 525.15
      },
      "size": {
-      "width": 16,
-      "height": 220
+      "width": 14.96,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F8A5AD",
-     "borderRadius": 8
+     "borderRadius": 7.48
     },
     {
      "id": "nf_rect_12",
      "type": "shape",
      "name": "Hanging stripe 5",
      "position": {
-      "x": 936,
-      "y": 560
+      "x": 875.05,
+      "y": 525.15
      },
      "size": {
-      "width": 16,
-      "height": 220
+      "width": 14.96,
+      "height": 206.31
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F8A5AD",
-     "borderRadius": 8
+     "borderRadius": 7.48
     },
     {
      "id": "nf_phone_13",
@@ -298,12 +298,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": -210,
-      "y": 1150
+      "x": -196.33,
+      "y": 1078.43
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.62,
      "rotation": -32,
@@ -326,12 +326,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": 170,
-      "y": 980
+      "x": 158.93,
+      "y": 919.01
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.62,
      "rotation": -12,
@@ -354,12 +354,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": 600,
-      "y": 1120
+      "x": 560.93,
+      "y": 1050.3
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.62,
      "rotation": 10,
@@ -384,8 +384,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -395,12 +395,12 @@
      "type": "shape",
      "name": "Pink blob top-right",
      "position": {
-      "x": 600,
-      "y": -280
+      "x": 560.93,
+      "y": -262.58
      },
      "size": {
-      "width": 980,
-      "height": 840
+      "width": 916.19,
+      "height": 787.73
      },
      "rotation": 0,
      "scale": 1,
@@ -416,12 +416,12 @@
      "type": "shape",
      "name": "White zigzag",
      "position": {
-      "x": 820,
-      "y": 120
+      "x": 766.6,
+      "y": 112.53
      },
      "size": {
-      "width": 230,
-      "height": 130
+      "width": 215.02,
+      "height": 121.91
      },
      "rotation": 15,
      "scale": 1,
@@ -430,22 +430,22 @@
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      },
      "fillColor": "#FFFFFF",
-     "strokeWidth": 5
+     "strokeWidth": 4.67
     },
     {
      "id": "nf_blob_soft_18",
      "type": "shape",
      "name": "Lavender blob mid-left",
      "position": {
-      "x": -200,
-      "y": 1650
+      "x": -186.98,
+      "y": 1547.32
      },
      "size": {
-      "width": 520,
-      "height": 460
+      "width": 486.14,
+      "height": 431.37
      },
      "rotation": 0,
      "scale": 1,
@@ -464,12 +464,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": -120,
-      "y": 240
+      "x": -112.19,
+      "y": 225.06
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.55,
      "rotation": -18,
@@ -492,12 +492,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": 520,
-      "y": 1450
+      "x": 486.14,
+      "y": 1359.76
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.55,
      "rotation": 0,
@@ -522,8 +522,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -536,12 +536,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": 195,
-      "y": -820
+      "x": 182.3,
+      "y": -768.97
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.5,
      "rotation": 0,
@@ -561,17 +561,17 @@
      "type": "text",
      "name": "Caption",
      "position": {
-      "x": 195,
-      "y": 1290
+      "x": 182.3,
+      "y": 1209.72
      },
      "size": {
-      "width": 900,
-      "height": 360
+      "width": 841.4,
+      "height": 337.6
      },
      "rotation": 0,
      "scale": 1,
      "content": "Personalized\nworkouts",
-     "fontSize": 38,
+     "fontSize": 35.53,
      "color": "#23233F",
      "fontFamily": "Bricolage Grotesque",
      "fontWeight": "500",
@@ -583,12 +583,12 @@
      "type": "shape",
      "name": "Pink dot grid",
      "position": {
-      "x": 400,
-      "y": 1760
+      "x": 373.95,
+      "y": 1650.47
      },
      "size": {
-      "width": 520,
-      "height": 420
+      "width": 486.14,
+      "height": 393.86
      },
      "rotation": 0,
      "scale": 1,
@@ -605,12 +605,12 @@
      "type": "shape",
      "name": "Yellow blob bottom",
      "position": {
-      "x": -110,
-      "y": 2280
+      "x": -102.84,
+      "y": 2138.11
      },
      "size": {
-      "width": 1500,
-      "height": 900
+      "width": 1402.33,
+      "height": 843.99
      },
      "rotation": 0,
      "scale": 1,
@@ -631,8 +631,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#FFFFFF",
    "zoom": 1,
@@ -642,12 +642,12 @@
      "type": "shape",
      "name": "Lavender blob top-right",
      "position": {
-      "x": 760,
-      "y": -180
+      "x": 710.51,
+      "y": -168.8
      },
      "size": {
-      "width": 820,
-      "height": 700
+      "width": 766.6,
+      "height": 656.44
      },
      "rotation": 0,
      "scale": 1,
@@ -663,12 +663,12 @@
      "type": "shape",
      "name": "Yellow blob bottom",
      "position": {
-      "x": -160,
-      "y": 2200
+      "x": -149.58,
+      "y": 2063.09
      },
      "size": {
-      "width": 1600,
-      "height": 950
+      "width": 1495.81,
+      "height": 890.88
      },
      "rotation": 0,
      "scale": 1,
@@ -684,12 +684,12 @@
      "type": "shape",
      "name": "Pink dot grid left",
      "position": {
-      "x": -80,
-      "y": 1500
+      "x": -74.79,
+      "y": 1406.65
      },
      "size": {
-      "width": 360,
-      "height": 300
+      "width": 336.56,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
@@ -709,12 +709,12 @@
      "styleType": "normal",
      "frameColor": "#2A2A2E",
      "position": {
-      "x": 160,
-      "y": 330
+      "x": 149.58,
+      "y": 309.46
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "scale": 1.8,
      "rotation": -5,

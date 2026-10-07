@@ -127,8 +127,8 @@ test.describe('canvas zoom', () => {
     const zoomedIn = await boardGeometry(board);
     expectClose(zoomedIn.width, start.width * 1.2, 1);
     // Zoom is a transform on the board layer, so the board is still authored at
-    // 1290x2796 and only the screen pixels per artboard pixel moved.
-    await expectBoardSize(board, 1290, 2796);
+    // 1206x2622 and only the screen pixels per artboard pixel moved.
+    await expectBoardSize(board, 1206, 2622);
     expectClose(zoomedIn.scale, start.scale * 1.2, 0.01);
 
     await app.zoomOutButton.click();
@@ -286,7 +286,7 @@ test.describe('canvas gestures', () => {
 });
 
 test.describe('canvas layout', () => {
-  test('the required iPhone preset resizes the canvas and content and can be undone', async ({ app, page }) => {
+  test('a blank project starts on the required iPhone size, and another preset resizes it and its content', async ({ app, page }) => {
     await app.startBlankProject();
     await app.ensurePaletteOpen();
     await app.addElementFrom('Basic', 'Rectangle', 'basic:rectangle');
@@ -294,48 +294,44 @@ test.describe('canvas layout', () => {
 
     await app.canvasSizeButton.click();
     await expect(app.canvasSizeDialog).toBeVisible();
-    await expect(app.canvasSizeDialog.locator('#size-ios-6-9')).toBeChecked();
     const medium = app.canvasSizeDialog.getByRole('radio', {
       name: /iPhone 6\.3" \(Portrait\), required, 1206 by 2622/,
     });
     await expect(app.canvasSizeDialog.getByRole('radio').first()).toHaveAttribute('id', 'size-ios-6-3');
-    await expect(medium).not.toBeChecked();
-    await medium.click();
+    await expect(medium).toBeChecked();
+    const large = app.canvasSizeDialog.locator('#size-ios-6-9');
+    await expect(large).not.toBeChecked();
+    await large.click();
     await expect(app.canvasSizeDialog.locator('#canvas-scale-content')).toBeChecked();
     await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
     await expect(app.canvasSizeDialog).toBeHidden();
 
-    await expectBoardSize(app.board(0), 1206, 2622);
-    await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622 · iPhone 6\.3" \(Portrait\)/);
+    await expectBoardSize(app.board(0), 1290, 2796);
+    await expect(app.canvasSizeButton).toHaveAttribute('title', /1290 × 2796 · iPhone 6\.9" \(Portrait\)/);
     const resized = await elementPosition(app.elementsOn(0).first());
-    const factor = Math.min(1206 / 1290, 2622 / 2796);
+    const factor = Math.min(1290 / 1206, 2796 / 2622);
     expectClose(resized.width / original.width, factor, 0.001);
     expectClose(resized.height / original.height, factor, 0.001);
     await waitForProject(page, (project) => {
       const boards = project.projectData as StoredBoard[];
-      return boards?.length === 1 && boards[0].size.width === 1206 && boards[0].size.height === 2622;
+      return boards?.length === 1 && boards[0].size.width === 1290 && boards[0].size.height === 2796;
     });
 
     await app.canvasSizeButton.click();
-    await expect(medium).toBeChecked();
+    await expect(large).toBeChecked();
     await app.canvasSizeDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(app.canvasSizeDialog).toBeHidden();
     await app.undoButton.click();
-    await expectBoardSize(app.board(0), 1290, 2796);
+    await expectBoardSize(app.board(0), 1206, 2622);
     expect(await elementPosition(app.elementsOn(0).first())).toEqual(original);
     await waitForProject(page, (project) => {
       const boards = project.projectData as StoredBoard[];
-      return boards?.length === 1 && boards[0].size.width === 1290 && boards[0].size.height === 2796;
+      return boards?.length === 1 && boards[0].size.width === 1206 && boards[0].size.height === 2622;
     });
   });
 
   test('the current canvas preview stays portrait until the landscape size is applied', async ({ app }) => {
     await app.startBlankProject();
-    await app.canvasSizeButton.click();
-    await expect(app.canvasSizeDialog).toBeVisible();
-    await app.canvasSizeDialog.locator('#size-ios-6-3').click();
-    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
-    await expect(app.canvasSizeDialog).toBeHidden();
     await expectBoardSize(app.board(0), 1206, 2622);
 
     await app.canvasSizeButton.click();
@@ -387,7 +383,7 @@ test.describe('canvas layout', () => {
     await addArtboard.click();
 
     await expect(app.artboards).toHaveCount(2);
-    await expectBoardSize(app.board(1), 1290, 2796);
+    await expectBoardSize(app.board(1), 1206, 2622);
 
     const first = await boardGeometry(app.board(0));
     const second = await boardGeometry(app.board(1));

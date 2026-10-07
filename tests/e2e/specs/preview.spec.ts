@@ -105,7 +105,7 @@ test.describe('full screen preview', () => {
 
     // The header names the board the editor had selected, at export size.
     await expect(dialog.getByText('Blank Artboard', { exact: true })).toBeVisible();
-    await expect(dialog.getByText('1290 × 2796px')).toBeVisible();
+    await expect(dialog.getByText('1206 × 2622px')).toBeVisible();
     await expect(dialog.getByText('1 / 1')).toBeVisible();
     expect(await page.locator('[role="dialog"] [data-element-id]').count()).toBe(0);
   });

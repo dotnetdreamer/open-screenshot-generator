@@ -39,7 +39,7 @@ function seedProject(id: string, name: string): SeedProject {
         id: 'artboard_seeded_1',
         name: 'Seeded Artboard',
         // 1024x500 is the Play Store feature graphic, and deliberately NOT the
-        // 1290x2796 default: a board of this size on screen can only have come
+        // 1206x2622 default: a board of this size on screen can only have come
         // out of the seeded row.
         size: { width: 1024, height: 500 },
         backgroundColor: '#FFFFFF',
@@ -170,7 +170,7 @@ test.describe('a project persists', () => {
     await app.waitForBoot();
 
     await expect(app.artboards).toHaveCount(1);
-    await expectBoardSize(app.board(0), 1290, 2796);
+    await expectBoardSize(app.board(0), 1206, 2622);
     await expect(app.elementsOn(0)).toHaveCount(1);
     await expect(app.board(0).locator('[data-text-body="true"]')).toHaveText('Persisted headline');
     // AGENTS.md rule 3: text renders at fontSize / 0.3, so a 48pt headline is
@@ -314,7 +314,7 @@ test.describe('a project moves out to a file', () => {
       const parsed = JSON.parse(await fs.readFile(saved as string, 'utf8'));
       expect(parsed.id).toBe(stored.id);
       expect(parsed.projectData).toHaveLength(1);
-      expect(parsed.projectData[0].size).toEqual({ width: 1290, height: 2796 });
+      expect(parsed.projectData[0].size).toEqual({ width: 1206, height: 2622 });
       expect(JSON.stringify(parsed.projectData)).toContain('Bundled headline');
     }
 
@@ -422,7 +422,7 @@ test.describe('a project comes back in from a file', () => {
     // the canvas alone, not blank it.
     await expect(toast(page, 'This file is missing its artboard data.')).toBeVisible();
     await expect(app.artboards).toHaveCount(1);
-    await expectBoardSize(app.board(0), 1290, 2796);
+    await expectBoardSize(app.board(0), 1206, 2622);
     await expect(app.board(0).locator('[data-text-body="true"]')).toHaveText('Still here');
     expect(await readProjects(page)).toHaveLength(1);
   });

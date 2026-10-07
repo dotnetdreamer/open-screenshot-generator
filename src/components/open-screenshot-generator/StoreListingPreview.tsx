@@ -9,7 +9,7 @@ import type { ArtboardState } from '@/types/artboard';
 /**
  * The screenshots inside a mock store listing, at phone point size.
  *
- * The point is scale, not decoration. A board is designed at 1290×2796 on a
+ * The point is scale, not decoration. A board is designed at 1206×2622 on a
  * desktop canvas and looks great there; in the actual App Store carousel it is
  * about 224pt wide, and in a search result about 105pt, which is where a
  * 40px headline stops being readable. This surface is the only place in the

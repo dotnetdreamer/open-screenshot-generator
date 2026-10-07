@@ -90,7 +90,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 // the tools end to end.
 const EXAMPLE_PROMPTS: string[] = [
   'Find an App Store template with 3 device frames, start a project from it called "Habit Tracker", and rewrite the headlines for a habit tracking app.',
-  'Create a new 1290×2796 artboard called "Onboarding" with a purple-to-blue gradient background.',
+  'Create a new 1206×2622 artboard called "Onboarding" with a purple-to-blue gradient background.',
   'On the active artboard, add a bold white headline "Plan your week" near the top, then a rounded rectangle card below it.',
   'Add a 3D iPhone tilted to the left on the active artboard, then put an App Store badge under it.',
   'Show me my recent projects, open the newest one and describe what is on each artboard.',

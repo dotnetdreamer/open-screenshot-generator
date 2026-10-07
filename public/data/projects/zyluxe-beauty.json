@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#8B30D9",
       "backgroundType": "solid",
@@ -25,17 +25,17 @@
           "type": "text",
           "name": "Brand Mark Top",
           "position": {
-            "x": 950,
-            "y": -60
+            "x": 888.14,
+            "y": -56.27
           },
           "size": {
-            "width": 400,
-            "height": 360
+            "width": 373.95,
+            "height": 337.6
           },
           "rotation": 0,
           "scale": 1,
           "content": "u",
-          "fontSize": 80,
+          "fontSize": 74.79,
           "color": "#FFFFFF",
           "fontFamily": "Pacifico",
           "fontWeight": "bold",
@@ -47,17 +47,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 80,
-            "y": 150
+            "x": 74.79,
+            "y": 140.67
           },
           "size": {
-            "width": 900,
-            "height": 320
+            "width": 841.4,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Beauty\ncurated",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -69,17 +69,17 @@
           "type": "text",
           "name": "Subheadline",
           "position": {
-            "x": 85,
-            "y": 520
+            "x": 79.47,
+            "y": 487.64
           },
           "size": {
-            "width": 1020,
-            "height": 260
+            "width": 953.58,
+            "height": 243.82
           },
           "rotation": 0,
           "scale": 1,
           "content": "Everything needed for your\ncomplete beauty routine",
-          "fontSize": 18,
+          "fontSize": 16.83,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "600",
@@ -91,12 +91,12 @@
           "type": "shape",
           "name": "Rating Seal",
           "position": {
-            "x": 740,
-            "y": 880
+            "x": 691.81,
+            "y": 825.24
           },
           "size": {
-            "width": 420,
-            "height": 420
+            "width": 392.65,
+            "height": 393.86
           },
           "rotation": 12,
           "scale": 1,
@@ -111,17 +111,17 @@
           "type": "text",
           "name": "Rating Text",
           "position": {
-            "x": 790,
-            "y": 970
+            "x": 738.56,
+            "y": 909.64
           },
           "size": {
-            "width": 320,
-            "height": 240
+            "width": 299.16,
+            "height": 225.06
           },
           "rotation": -14,
           "scale": 1,
           "content": "4.8\nrating",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#8B30D9",
           "fontFamily": "Georgia",
           "fontStyle": "italic",
@@ -134,17 +134,17 @@
           "type": "text",
           "name": "Award 1 Rank",
           "position": {
-            "x": 145,
-            "y": 1540
+            "x": 135.56,
+            "y": 1444.16
           },
           "size": {
-            "width": 700,
-            "height": 120
+            "width": 654.42,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
           "content": "#1",
-          "fontSize": 28,
+          "fontSize": 26.18,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -156,17 +156,17 @@
           "type": "text",
           "name": "Award 1 Label",
           "position": {
-            "x": 145,
-            "y": 1665
+            "x": 135.56,
+            "y": 1561.38
           },
           "size": {
-            "width": 700,
-            "height": 220
+            "width": 654.42,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
           "content": "Users' choice\naward",
-          "fontSize": 21,
+          "fontSize": 19.63,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -178,12 +178,12 @@
           "type": "shape",
           "name": "Award 1 Laurel Left",
           "position": {
-            "x": 110,
-            "y": 1530
+            "x": 102.84,
+            "y": 1434.79
           },
           "size": {
-            "width": 100,
-            "height": 370
+            "width": 93.49,
+            "height": 346.97
           },
           "rotation": 0,
           "scale": 1,
@@ -201,12 +201,12 @@
           "type": "shape",
           "name": "Award 1 Laurel Right",
           "position": {
-            "x": 780,
-            "y": 1530
+            "x": 729.21,
+            "y": 1434.79
           },
           "size": {
-            "width": 100,
-            "height": 370
+            "width": 93.49,
+            "height": 346.97
           },
           "rotation": 0,
           "scale": 1,
@@ -224,17 +224,17 @@
           "type": "text",
           "name": "Award 2 Label",
           "position": {
-            "x": 145,
-            "y": 2060
+            "x": 135.56,
+            "y": 1931.8
           },
           "size": {
-            "width": 700,
-            "height": 220
+            "width": 654.42,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
           "content": "Featured by\nexperts",
-          "fontSize": 21,
+          "fontSize": 19.63,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -246,12 +246,12 @@
           "type": "shape",
           "name": "Award 2 Laurel Left",
           "position": {
-            "x": 110,
-            "y": 2030
+            "x": 102.84,
+            "y": 1903.67
           },
           "size": {
-            "width": 100,
-            "height": 290
+            "width": 93.49,
+            "height": 271.95
           },
           "rotation": 0,
           "scale": 1,
@@ -269,12 +269,12 @@
           "type": "shape",
           "name": "Award 2 Laurel Right",
           "position": {
-            "x": 780,
-            "y": 2030
+            "x": 729.21,
+            "y": 1903.67
           },
           "size": {
-            "width": 100,
-            "height": 290
+            "width": 93.49,
+            "height": 271.95
           },
           "rotation": 0,
           "scale": 1,
@@ -292,17 +292,17 @@
           "type": "text",
           "name": "Logo",
           "position": {
-            "x": 80,
-            "y": 2520
+            "x": 74.79,
+            "y": 2363.18
           },
           "size": {
-            "width": 620,
-            "height": 190
+            "width": 579.63,
+            "height": 178.18
           },
           "rotation": 0,
           "scale": 1,
           "content": "Zyluxe.",
-          "fontSize": 34,
+          "fontSize": 31.79,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -314,17 +314,17 @@
           "type": "text",
           "name": "Brand Mark Bottom",
           "position": {
-            "x": 1000,
-            "y": 2520
+            "x": 934.88,
+            "y": 2363.18
           },
           "size": {
-            "width": 260,
-            "height": 220
+            "width": 243.07,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
           "content": "u",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Pacifico",
           "fontWeight": "bold",
@@ -341,8 +341,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#8B30D9",
       "backgroundType": "solid",
@@ -353,17 +353,17 @@
           "type": "text",
           "name": "Brand Mark",
           "position": {
-            "x": 380,
-            "y": -80
+            "x": 355.26,
+            "y": -75.02
           },
           "size": {
-            "width": 700,
-            "height": 420
+            "width": 654.42,
+            "height": 393.86
           },
           "rotation": -6,
           "scale": 1,
           "content": "u",
-          "fontSize": 110,
+          "fontSize": 102.84,
           "color": "#FFFFFF",
           "fontFamily": "Pacifico",
           "fontWeight": "bold",
@@ -375,12 +375,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 130,
-            "y": 300
+            "x": 121.53,
+            "y": 281.33
           },
           "size": {
-            "width": 1030,
-            "height": 2110
+            "width": 962.93,
+            "height": 1978.69
           },
           "rotation": 7,
           "scale": 1.15,
@@ -407,8 +407,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F1E2FA",
       "backgroundType": "solid",
@@ -419,17 +419,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 130
+            "x": 88.81,
+            "y": 121.91
           },
           "size": {
-            "width": 1060,
-            "height": 320
+            "width": 990.98,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Personalized\nbeauty picks",
-          "fontSize": 33,
+          "fontSize": 30.85,
           "color": "#7A1CA8",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -441,17 +441,17 @@
           "type": "text",
           "name": "Headline Accent",
           "position": {
-            "x": 95,
-            "y": 470
+            "x": 88.81,
+            "y": 440.75
           },
           "size": {
-            "width": 1060,
-            "height": 320
+            "width": 990.98,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "delivered every\nmonth",
-          "fontSize": 33,
+          "fontSize": 30.85,
           "color": "#C878F0",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -463,12 +463,12 @@
           "type": "shape",
           "name": "Pill: Stylish",
           "position": {
-            "x": 20,
-            "y": 900
+            "x": 18.7,
+            "y": 843.99
           },
           "size": {
-            "width": 350,
-            "height": 170
+            "width": 327.21,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -476,24 +476,24 @@
           "fillColor": "#8B30D9",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 85
+          "borderRadius": 79.47
         },
         {
           "id": "tpl_zx_ab3_pill1_text",
           "type": "text",
           "name": "Pill Text: Stylish",
           "position": {
-            "x": 20,
-            "y": 900
+            "x": 18.7,
+            "y": 843.99
           },
           "size": {
-            "width": 350,
-            "height": 170
+            "width": 327.21,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stylish",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -505,12 +505,12 @@
           "type": "shape",
           "name": "Pill: Luxury",
           "position": {
-            "x": 420,
-            "y": 900
+            "x": 392.65,
+            "y": 843.99
           },
           "size": {
-            "width": 370,
-            "height": 170
+            "width": 345.91,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -518,24 +518,24 @@
           "fillColor": "#8B30D9",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 85
+          "borderRadius": 79.47
         },
         {
           "id": "tpl_zx_ab3_pill2_text",
           "type": "text",
           "name": "Pill Text: Luxury",
           "position": {
-            "x": 420,
-            "y": 900
+            "x": 392.65,
+            "y": 843.99
           },
           "size": {
-            "width": 370,
-            "height": 170
+            "width": 345.91,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Luxury",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -547,12 +547,12 @@
           "type": "shape",
           "name": "Pill: Styling",
           "position": {
-            "x": 840,
-            "y": 900
+            "x": 785.3,
+            "y": 843.99
           },
           "size": {
-            "width": 560,
-            "height": 170
+            "width": 523.53,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -560,24 +560,24 @@
           "fillColor": "#8B30D9",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 85
+          "borderRadius": 79.47
         },
         {
           "id": "tpl_zx_ab3_pill3_text",
           "type": "text",
           "name": "Pill Text: Styling",
           "position": {
-            "x": 840,
-            "y": 900
+            "x": 785.3,
+            "y": 843.99
           },
           "size": {
-            "width": 560,
-            "height": 170
+            "width": 523.53,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Styling",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -589,12 +589,12 @@
           "type": "shape",
           "name": "Pill: Trending",
           "position": {
-            "x": -260,
-            "y": 1130
+            "x": -243.07,
+            "y": 1059.68
           },
           "size": {
-            "width": 420,
-            "height": 170
+            "width": 392.65,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -602,24 +602,24 @@
           "fillColor": "#8B30D9",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 85
+          "borderRadius": 79.47
         },
         {
           "id": "tpl_zx_ab3_pill4_text",
           "type": "text",
           "name": "Pill Text: Trending",
           "position": {
-            "x": -260,
-            "y": 1130
+            "x": -243.07,
+            "y": 1059.68
           },
           "size": {
-            "width": 420,
-            "height": 170
+            "width": 392.65,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Trending",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -631,12 +631,12 @@
           "type": "shape",
           "name": "Pill: Unique",
           "position": {
-            "x": 220,
-            "y": 1130
+            "x": 205.67,
+            "y": 1059.68
           },
           "size": {
-            "width": 360,
-            "height": 170
+            "width": 336.56,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -644,24 +644,24 @@
           "fillColor": "#8B30D9",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 85
+          "borderRadius": 79.47
         },
         {
           "id": "tpl_zx_ab3_pill5_text",
           "type": "text",
           "name": "Pill Text: Unique",
           "position": {
-            "x": 220,
-            "y": 1130
+            "x": 205.67,
+            "y": 1059.68
           },
           "size": {
-            "width": 360,
-            "height": 170
+            "width": 336.56,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Unique",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -673,12 +673,12 @@
           "type": "shape",
           "name": "Pill: Popular",
           "position": {
-            "x": 630,
-            "y": 1130
+            "x": 588.98,
+            "y": 1059.68
           },
           "size": {
-            "width": 390,
-            "height": 170
+            "width": 364.6,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
@@ -686,24 +686,24 @@
           "fillColor": "#8B30D9",
           "strokeColor": "transparent",
           "strokeWidth": 0,
-          "borderRadius": 85
+          "borderRadius": 79.47
         },
         {
           "id": "tpl_zx_ab3_pill6_text",
           "type": "text",
           "name": "Pill Text: Popular",
           "position": {
-            "x": 630,
-            "y": 1130
+            "x": 588.98,
+            "y": 1059.68
           },
           "size": {
-            "width": 390,
-            "height": 170
+            "width": 364.6,
+            "height": 159.42
           },
           "rotation": 0,
           "scale": 1,
           "content": "Popular",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -715,12 +715,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 165,
-            "y": 1480
+            "x": 154.26,
+            "y": 1387.9
           },
           "size": {
-            "width": 960,
-            "height": 1960
+            "width": 897.49,
+            "height": 1838.03
           },
           "rotation": 0,
           "scale": 1,
@@ -747,8 +747,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#ECD8F7",
       "backgroundType": "solid",
@@ -759,17 +759,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 140
+            "x": 88.81,
+            "y": 131.29
           },
           "size": {
-            "width": 1060,
-            "height": 320
+            "width": 990.98,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Customized\nbeauty",
-          "fontSize": 33,
+          "fontSize": 30.85,
           "color": "#7A1CA8",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -781,17 +781,17 @@
           "type": "text",
           "name": "Headline Accent",
           "position": {
-            "x": 95,
-            "y": 480
+            "x": 88.81,
+            "y": 450.13
           },
           "size": {
-            "width": 1060,
-            "height": 180
+            "width": 990.98,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "made simple",
-          "fontSize": 33,
+          "fontSize": 30.85,
           "color": "#C878F0",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -803,12 +803,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 120,
-            "y": 780
+            "x": 112.19,
+            "y": 731.46
           },
           "size": {
-            "width": 1050,
-            "height": 2150
+            "width": 981.63,
+            "height": 2016.2
           },
           "rotation": 0,
           "scale": 1,
@@ -835,8 +835,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F1E2FA",
       "backgroundType": "solid",
@@ -847,17 +847,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 140
+            "x": 88.81,
+            "y": 131.29
           },
           "size": {
-            "width": 1080,
-            "height": 320
+            "width": 1009.67,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Get tailored\nbeauty products",
-          "fontSize": 33,
+          "fontSize": 30.85,
           "color": "#7A1CA8",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -869,17 +869,17 @@
           "type": "text",
           "name": "Headline Accent",
           "position": {
-            "x": 95,
-            "y": 480
+            "x": 88.81,
+            "y": 450.13
           },
           "size": {
-            "width": 1080,
-            "height": 180
+            "width": 1009.67,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
           "content": "matched to you",
-          "fontSize": 33,
+          "fontSize": 30.85,
           "color": "#C878F0",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "bold",
@@ -891,12 +891,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 120,
-            "y": 760
+            "x": 112.19,
+            "y": 712.7
           },
           "size": {
-            "width": 1050,
-            "height": 2150
+            "width": 981.63,
+            "height": 2016.2
           },
           "rotation": 0,
           "scale": 1,

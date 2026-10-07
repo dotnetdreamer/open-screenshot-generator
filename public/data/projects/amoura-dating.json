@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F7EFE6",
    "zoom": 1,
@@ -24,17 +24,17 @@
      "type": "text",
      "name": "b1-headline-1",
      "position": {
-      "x": 70,
-      "y": 170
+      "x": 65.44,
+      "y": 159.42
      },
      "size": {
-      "width": 1150,
-      "height": 160
+      "width": 1075.12,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Meet Someone",
-     "fontSize": 33,
+     "fontSize": 30.85,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -46,17 +46,17 @@
      "type": "text",
      "name": "b1-headline-2",
      "position": {
-      "x": 70,
-      "y": 316
+      "x": 65.44,
+      "y": 296.33
      },
      "size": {
-      "width": 1150,
-      "height": 210
+      "width": 1075.12,
+      "height": 196.93
      },
      "rotation": 0,
      "scale": 1,
      "content": "Real",
-     "fontSize": 44,
+     "fontSize": 41.13,
      "color": "#C8283C",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -69,19 +69,19 @@
      "type": "shape",
      "name": "b1-brush-underline",
      "position": {
-      "x": 415,
-      "y": 528
+      "x": 387.98,
+      "y": 495.14
      },
      "size": {
-      "width": 460,
-      "height": 62
+      "width": 430.05,
+      "height": 58.14
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C8283C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M3 21 C 45 10, 100 8, 140 10 C 165 11, 185 9, 197 5 L 198 11 C 186 15, 164 17, 138 16 C 100 15, 48 17, 7 27 Z",
      "specialProps": {
       "viewBox": "0 0 200 30"
@@ -92,17 +92,17 @@
      "type": "text",
      "name": "b1-subline",
      "position": {
-      "x": 70,
-      "y": 634
+      "x": 65.44,
+      "y": 594.55
      },
      "size": {
-      "width": 1150,
-      "height": 80
+      "width": 1075.12,
+      "height": 75.02
      },
      "rotation": 0,
      "scale": 1,
      "content": "Every profile verified by a human",
-     "fontSize": 15,
+     "fontSize": 14.02,
      "color": "#6E5A56",
      "fontFamily": "Outfit",
      "fontWeight": "400",
@@ -114,17 +114,17 @@
      "type": "text",
      "name": "b1-press",
      "position": {
-      "x": 70,
-      "y": 724
+      "x": 65.44,
+      "y": 678.94
      },
      "size": {
-      "width": 1150,
-      "height": 70
+      "width": 1075.12,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "content": "The Daily Muse calls it the anti swipe app",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#A85D50",
      "fontFamily": "Playfair Display",
      "fontWeight": "500",
@@ -137,19 +137,19 @@
      "type": "shape",
      "name": "b1-heart-decor",
      "position": {
-      "x": 120,
-      "y": 1080
+      "x": 112.19,
+      "y": 1012.79
      },
      "size": {
-      "width": 100,
-      "height": 100
+      "width": 93.49,
+      "height": 93.78
      },
      "rotation": -14,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#F2C9C0",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -160,19 +160,19 @@
      "type": "shape",
      "name": "b1-sparkle-mid",
      "position": {
-      "x": 300,
-      "y": 1660
+      "x": 280.47,
+      "y": 1556.7
      },
      "size": {
-      "width": 58,
-      "height": 58
+      "width": 54.22,
+      "height": 54.39
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -183,12 +183,12 @@
      "type": "device",
      "name": "b1-phone",
      "position": {
-      "x": 573,
-      "y": 1056
+      "x": 535.69,
+      "y": 990.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 8,
      "scale": 1.29,
@@ -211,12 +211,12 @@
      "type": "image",
      "name": "b1-hand-cup",
      "position": {
-      "x": -30,
-      "y": 2230
+      "x": -28.05,
+      "y": 2091.22
      },
      "size": {
-      "width": 620,
-      "height": 700
+      "width": 579.63,
+      "height": 656.44
      },
      "rotation": 0,
      "scale": 1,
@@ -230,19 +230,19 @@
      "type": "shape",
      "name": "b1-seam-burst",
      "position": {
-      "x": 1055,
-      "y": 745
+      "x": 986.3,
+      "y": 698.64
      },
      "size": {
-      "width": 470,
-      "height": 470
+      "width": 439.4,
+      "height": 440.75
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C8283C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 68 C 41 61, 35 55, 35 47.5 C 35 42, 38.6 39.5, 42.3 39.5 C 45.3 39.5, 47.9 41.5, 50 44.5 C 52.1 41.5, 54.7 39.5, 57.7 39.5 C 61.4 39.5, 65 42, 65 47.5 C 65 55, 59 61, 50 68 Z M51.7 23 L48.3 23 L50 4 Z M64.97 27.47 L62.03 25.77 L68.5 17.96 Z M74.23 37.97 L72.53 35.03 L89.84 27 Z M77 51.7 L77 48.3 L87 50 Z M72.53 64.97 L74.23 62.03 L89.84 73 Z M62.03 74.23 L64.97 72.53 L68.5 82.04 Z M48.3 77 L51.7 77 L50 96 Z M35.03 72.53 L37.97 74.23 L31.5 82.04 Z M25.77 62.03 L27.47 64.97 L10.16 73 Z M23 48.3 L23 51.7 L13 50 Z M27.47 35.03 L25.77 37.97 L10.16 27 Z M37.97 25.77 L35.03 27.47 L31.5 17.96 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -253,19 +253,19 @@
      "type": "shape",
      "name": "b1-burst-sparkle-1",
      "position": {
-      "x": 1052,
-      "y": 738
+      "x": 983.5,
+      "y": 692.07
      },
      "size": {
-      "width": 76,
-      "height": 76
+      "width": 71.05,
+      "height": 71.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -276,19 +276,19 @@
      "type": "shape",
      "name": "b1-burst-sparkle-2",
      "position": {
-      "x": 1116,
-      "y": 1168
+      "x": 1043.33,
+      "y": 1095.31
      },
      "size": {
-      "width": 54,
-      "height": 54
+      "width": 50.48,
+      "height": 50.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -304,8 +304,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F7EFE6",
    "zoom": 1,
@@ -315,17 +315,17 @@
      "type": "text",
      "name": "b2-headline-1a",
      "position": {
-      "x": 40,
-      "y": 190
+      "x": 37.4,
+      "y": 178.18
      },
      "size": {
-      "width": 520,
-      "height": 150
+      "width": 486.14,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "When It",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -337,17 +337,17 @@
      "type": "text",
      "name": "b2-headline-1b",
      "position": {
-      "x": 563,
-      "y": 190
+      "x": 526.34,
+      "y": 178.18
      },
      "size": {
-      "width": 560,
-      "height": 150
+      "width": 523.53,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Clicks,",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#C8283C",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -360,17 +360,17 @@
      "type": "text",
      "name": "b2-headline-2",
      "position": {
-      "x": 70,
-      "y": 336
+      "x": 65.44,
+      "y": 315.09
      },
      "size": {
-      "width": 1150,
-      "height": 150
+      "width": 1075.12,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "You Both Know",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -382,17 +382,17 @@
      "type": "text",
      "name": "b2-stars",
      "position": {
-      "x": 620,
-      "y": 590
+      "x": 579.63,
+      "y": 553.28
      },
      "size": {
-      "width": 360,
-      "height": 90
+      "width": 336.56,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "content": "★★★★★",
-     "fontSize": 18,
+     "fontSize": 16.83,
      "color": "#D9A441",
      "fontFamily": "Arial",
      "fontWeight": "400",
@@ -404,17 +404,17 @@
      "type": "text",
      "name": "b2-rating",
      "position": {
-      "x": 1000,
-      "y": 588
+      "x": 934.88,
+      "y": 551.41
      },
      "size": {
-      "width": 160,
-      "height": 90
+      "width": 149.58,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "content": "4.8",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -426,53 +426,53 @@
      "type": "shape",
      "name": "b2-chip-shadow",
      "position": {
-      "x": 614,
-      "y": 744
+      "x": 574.02,
+      "y": 697.7
      },
      "size": {
-      "width": 660,
-      "height": 140
+      "width": 617.02,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 34
+     "borderRadius": 31.79
     },
     {
      "id": "amoura-b2-chip-19",
      "type": "shape",
      "name": "b2-chip",
      "position": {
-      "x": 600,
-      "y": 730
+      "x": 560.93,
+      "y": 684.57
      },
      "size": {
-      "width": 660,
-      "height": 140
+      "width": 617.02,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 34
+     "borderRadius": 31.79
     },
     {
      "id": "amoura-b2-chip-text-20",
      "type": "text",
      "name": "b2-chip-text",
      "position": {
-      "x": 600,
-      "y": 730
+      "x": 560.93,
+      "y": 684.57
      },
      "size": {
-      "width": 660,
-      "height": 140
+      "width": 617.02,
+      "height": 131.29
      },
      "rotation": 0,
      "scale": 1,
      "content": "“Met my person in week two”",
-     "fontSize": 12,
+     "fontSize": 11.22,
      "color": "#23181B",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -484,19 +484,19 @@
      "type": "shape",
      "name": "b2-heart-decor",
      "position": {
-      "x": 1075,
-      "y": 1720
+      "x": 1005,
+      "y": 1612.96
      },
      "size": {
-      "width": 96,
-      "height": 96
+      "width": 89.75,
+      "height": 90.03
      },
      "rotation": 12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#F2C9C0",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -507,19 +507,19 @@
      "type": "shape",
      "name": "b2-sparkle-low",
      "position": {
-      "x": 990,
-      "y": 2360
+      "x": 925.53,
+      "y": 2213.13
      },
      "size": {
-      "width": 58,
-      "height": 58
+      "width": 54.22,
+      "height": 54.39
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -530,12 +530,12 @@
      "type": "device",
      "name": "b2-phone",
      "position": {
-      "x": -57,
-      "y": 1056
+      "x": -53.29,
+      "y": 990.28
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -8,
      "scale": 1.29,
@@ -558,19 +558,19 @@
      "type": "shape",
      "name": "b2-seam-burst",
      "position": {
-      "x": -235,
-      "y": 745
+      "x": -219.7,
+      "y": 698.64
      },
      "size": {
-      "width": 470,
-      "height": 470
+      "width": 439.4,
+      "height": 440.75
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C8283C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 68 C 41 61, 35 55, 35 47.5 C 35 42, 38.6 39.5, 42.3 39.5 C 45.3 39.5, 47.9 41.5, 50 44.5 C 52.1 41.5, 54.7 39.5, 57.7 39.5 C 61.4 39.5, 65 42, 65 47.5 C 65 55, 59 61, 50 68 Z M51.7 23 L48.3 23 L50 4 Z M64.97 27.47 L62.03 25.77 L68.5 17.96 Z M74.23 37.97 L72.53 35.03 L89.84 27 Z M77 51.7 L77 48.3 L87 50 Z M72.53 64.97 L74.23 62.03 L89.84 73 Z M62.03 74.23 L64.97 72.53 L68.5 82.04 Z M48.3 77 L51.7 77 L50 96 Z M35.03 72.53 L37.97 74.23 L31.5 82.04 Z M25.77 62.03 L27.47 64.97 L10.16 73 Z M23 48.3 L23 51.7 L13 50 Z M27.47 35.03 L25.77 37.97 L10.16 27 Z M37.97 25.77 L35.03 27.47 L31.5 17.96 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -581,19 +581,19 @@
      "type": "shape",
      "name": "b2-burst-sparkle-1",
      "position": {
-      "x": 162,
-      "y": 738
+      "x": 151.45,
+      "y": 692.07
      },
      "size": {
-      "width": 76,
-      "height": 76
+      "width": 71.05,
+      "height": 71.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -604,19 +604,19 @@
      "type": "shape",
      "name": "b2-burst-sparkle-2",
      "position": {
-      "x": 120,
-      "y": 1168
+      "x": 112.19,
+      "y": 1095.31
      },
      "size": {
-      "width": 54,
-      "height": 54
+      "width": 50.48,
+      "height": 50.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -632,8 +632,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F7EFE6",
    "zoom": 1,
@@ -643,17 +643,17 @@
      "type": "text",
      "name": "b3-headline-1",
      "position": {
-      "x": 70,
-      "y": 180
+      "x": 65.44,
+      "y": 168.8
      },
      "size": {
-      "width": 1150,
-      "height": 160
+      "width": 1075.12,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Conversations",
-     "fontSize": 31,
+     "fontSize": 28.98,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -665,17 +665,17 @@
      "type": "text",
      "name": "b3-headline-2a",
      "position": {
-      "x": 94,
-      "y": 335
+      "x": 87.88,
+      "y": 314.15
      },
      "size": {
-      "width": 640,
-      "height": 160
+      "width": 598.33,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "That Actually",
-     "fontSize": 31,
+     "fontSize": 28.98,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -687,17 +687,17 @@
      "type": "text",
      "name": "b3-headline-2b",
      "position": {
-      "x": 769,
-      "y": 335
+      "x": 718.93,
+      "y": 314.15
      },
      "size": {
-      "width": 440,
-      "height": 160
+      "width": 411.35,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Flow",
-     "fontSize": 31,
+     "fontSize": 28.98,
      "color": "#C8283C",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -710,24 +710,24 @@
      "type": "shape",
      "name": "b3-bubble-left",
      "position": {
-      "x": -100,
-      "y": 1140
+      "x": -93.49,
+      "y": 1069.06
      },
      "size": {
-      "width": 560,
-      "height": 460
+      "width": 523.53,
+      "height": 431.37
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E8AFA0",
      "strokeColor": "transparent",
-     "strokeWidth": 9,
+     "strokeWidth": 8.41,
      "customPath": "M16 12 H84 Q94 12 94 22 V60 Q94 70 84 70 H42 L26 88 L31 70 H16 Q6 70 6 60 V22 Q6 12 16 12 Z",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 2
+      "baseStrokeWidth": 1.87
      }
     },
     {
@@ -735,24 +735,24 @@
      "type": "shape",
      "name": "b3-bubble-right",
      "position": {
-      "x": 860,
-      "y": 1540
+      "x": 804,
+      "y": 1444.16
      },
      "size": {
-      "width": 560,
-      "height": 460
+      "width": 523.53,
+      "height": 431.37
      },
      "rotation": 6,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E8AFA0",
      "strokeColor": "transparent",
-     "strokeWidth": 9,
+     "strokeWidth": 8.41,
      "customPath": "M16 12 H84 Q94 12 94 22 V60 Q94 70 84 70 H69 L74 88 L58 70 H16 Q6 70 6 60 V22 Q6 12 16 12 Z",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 2
+      "baseStrokeWidth": 1.87
      }
     },
     {
@@ -760,12 +760,12 @@
      "type": "device",
      "name": "b3-phone",
      "position": {
-      "x": 285,
-      "y": 980
+      "x": 266.44,
+      "y": 919.01
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.2,
@@ -788,53 +788,53 @@
      "type": "shape",
      "name": "b3-pill1-shadow",
      "position": {
-      "x": 74,
-      "y": 664
+      "x": 69.18,
+      "y": 622.68
      },
      "size": {
-      "width": 420,
-      "height": 110
+      "width": 392.65,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 55
+     "borderRadius": 51.42
     },
     {
      "id": "amoura-b3-pill1-34",
      "type": "shape",
      "name": "b3-pill1",
      "position": {
-      "x": 60,
-      "y": 650
+      "x": 56.09,
+      "y": 609.55
      },
      "size": {
-      "width": 420,
-      "height": 110
+      "width": 392.65,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 55
+     "borderRadius": 51.42
     },
     {
      "id": "amoura-b3-pill1-text-35",
      "type": "text",
      "name": "b3-pill1-text",
      "position": {
-      "x": 60,
-      "y": 650
+      "x": 56.09,
+      "y": 609.55
      },
      "size": {
-      "width": 420,
-      "height": 110
+      "width": 392.65,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "Coffee or chai",
-     "fontSize": 12,
+     "fontSize": 11.22,
      "color": "#23181B",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -846,53 +846,53 @@
      "type": "shape",
      "name": "b3-pill2-shadow",
      "position": {
-      "x": 844,
-      "y": 794
+      "x": 789.04,
+      "y": 744.59
      },
      "size": {
-      "width": 440,
-      "height": 110
+      "width": 411.35,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 55
+     "borderRadius": 51.42
     },
     {
      "id": "amoura-b3-pill2-37",
      "type": "shape",
      "name": "b3-pill2",
      "position": {
-      "x": 830,
-      "y": 780
+      "x": 775.95,
+      "y": 731.46
      },
      "size": {
-      "width": 440,
-      "height": 110
+      "width": 411.35,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 55
+     "borderRadius": 51.42
     },
     {
      "id": "amoura-b3-pill2-text-38",
      "type": "text",
      "name": "b3-pill2-text",
      "position": {
-      "x": 830,
-      "y": 780
+      "x": 775.95,
+      "y": 731.46
      },
      "size": {
-      "width": 440,
-      "height": 110
+      "width": 411.35,
+      "height": 103.15
      },
      "rotation": 0,
      "scale": 1,
      "content": "Dream trip goes where",
-     "fontSize": 11.5,
+     "fontSize": 10.75,
      "color": "#23181B",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -904,24 +904,24 @@
      "type": "shape",
      "name": "b3-arrow",
      "position": {
-      "x": 906,
-      "y": 906
+      "x": 847,
+      "y": 849.62
      },
      "size": {
-      "width": 230,
-      "height": 210
+      "width": 215.02,
+      "height": 196.93
      },
      "rotation": 118,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C8283C",
      "strokeColor": "transparent",
-     "strokeWidth": 7,
+     "strokeWidth": 6.54,
      "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      }
     },
     {
@@ -929,12 +929,12 @@
      "type": "shape",
      "name": "b3-dot-1",
      "position": {
-      "x": 545,
-      "y": 2565
+      "x": 509.51,
+      "y": 2405.38
      },
      "size": {
-      "width": 44,
-      "height": 44
+      "width": 41.13,
+      "height": 41.26
      },
      "rotation": 0,
      "scale": 1,
@@ -946,12 +946,12 @@
      "type": "shape",
      "name": "b3-dot-2",
      "position": {
-      "x": 610,
-      "y": 2540
+      "x": 570.28,
+      "y": 2381.93
      },
      "size": {
-      "width": 58,
-      "height": 58
+      "width": 54.22,
+      "height": 54.39
      },
      "rotation": 0,
      "scale": 1,
@@ -963,12 +963,12 @@
      "type": "shape",
      "name": "b3-dot-3",
      "position": {
-      "x": 690,
-      "y": 2505
+      "x": 645.07,
+      "y": 2349.11
      },
      "size": {
-      "width": 74,
-      "height": 74
+      "width": 69.18,
+      "height": 69.39
      },
      "rotation": 0,
      "scale": 1,
@@ -980,19 +980,19 @@
      "type": "shape",
      "name": "b3-sparkle",
      "position": {
-      "x": 170,
-      "y": 2360
+      "x": 158.93,
+      "y": 2213.13
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1008,8 +1008,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#F7EFE6",
    "zoom": 1,
@@ -1019,17 +1019,17 @@
      "type": "text",
      "name": "b4-headline-1a",
      "position": {
-      "x": 40,
-      "y": 190
+      "x": 37.4,
+      "y": 178.18
      },
      "size": {
-      "width": 570,
-      "height": 160
+      "width": 532.88,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Plan the",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1041,17 +1041,17 @@
      "type": "text",
      "name": "b4-headline-1b",
      "position": {
-      "x": 645,
-      "y": 190
+      "x": 603,
+      "y": 178.18
      },
      "size": {
-      "width": 520,
-      "height": 160
+      "width": 486.14,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Date",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#C8283C",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1064,17 +1064,17 @@
      "type": "text",
      "name": "b4-headline-2",
      "position": {
-      "x": 70,
-      "y": 336
+      "x": 65.44,
+      "y": 315.09
      },
      "size": {
-      "width": 1150,
-      "height": 160
+      "width": 1075.12,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "in App",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1086,19 +1086,19 @@
      "type": "shape",
      "name": "b4-sparkle-top",
      "position": {
-      "x": 1140,
-      "y": 560
+      "x": 1065.77,
+      "y": 525.15
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1109,19 +1109,19 @@
      "type": "shape",
      "name": "b4-heart-decor",
      "position": {
-      "x": 84,
-      "y": 690
+      "x": 78.53,
+      "y": 647.06
      },
      "size": {
-      "width": 84,
-      "height": 84
+      "width": 78.53,
+      "height": 78.77
      },
      "rotation": -10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#F2C9C0",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1132,12 +1132,12 @@
      "type": "device",
      "name": "b4-phone",
      "position": {
-      "x": 160,
-      "y": 950
+      "x": 149.58,
+      "y": 890.88
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -6,
      "scale": 1.2,
@@ -1160,76 +1160,76 @@
      "type": "shape",
      "name": "b4-card-back",
      "position": {
-      "x": 884,
-      "y": 1234
+      "x": 826.44,
+      "y": 1157.21
      },
      "size": {
-      "width": 400,
-      "height": 330
+      "width": 373.95,
+      "height": 309.46
      },
      "rotation": 5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "amoura-b4-card-51",
      "type": "shape",
      "name": "b4-card",
      "position": {
-      "x": 850,
-      "y": 1210
+      "x": 794.65,
+      "y": 1134.7
      },
      "size": {
-      "width": 410,
-      "height": 330
+      "width": 383.3,
+      "height": 309.46
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#FFFFFF",
-     "borderRadius": 36
+     "borderRadius": 33.66
     },
     {
      "id": "amoura-b4-card-day-52",
      "type": "text",
      "name": "b4-card-day",
      "position": {
-      "x": 902,
-      "y": 1252
+      "x": 843.27,
+      "y": 1174.09
      },
      "size": {
-      "width": 320,
-      "height": 60
+      "width": 299.16,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "content": "FRIDAY 7PM",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#C8283C",
      "fontFamily": "Outfit",
      "fontWeight": "700",
      "textAlign": "left",
      "lineHeight": 1.15,
-     "letterSpacing": 3
+     "letterSpacing": 2.8
     },
     {
      "id": "amoura-b4-card-place-53",
      "type": "text",
      "name": "b4-card-place",
      "position": {
-      "x": 902,
-      "y": 1316
+      "x": 843.27,
+      "y": 1234.1
      },
      "size": {
-      "width": 320,
-      "height": 100
+      "width": 299.16,
+      "height": 93.78
      },
      "rotation": 0,
      "scale": 1,
      "content": "Cafe Fern",
-     "fontSize": 19,
+     "fontSize": 17.76,
      "color": "#23181B",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1241,19 +1241,19 @@
      "type": "shape",
      "name": "b4-card-check",
      "position": {
-      "x": 902,
-      "y": 1436
+      "x": 843.27,
+      "y": 1346.64
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C8283C",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1264,17 +1264,17 @@
      "type": "text",
      "name": "b4-card-booked",
      "position": {
-      "x": 980,
-      "y": 1440
+      "x": 916.19,
+      "y": 1350.39
      },
      "size": {
-      "width": 220,
-      "height": 54
+      "width": 205.67,
+      "height": 50.64
      },
      "rotation": 0,
      "scale": 1,
      "content": "Booked",
-     "fontSize": 11,
+     "fontSize": 10.28,
      "color": "#6E5A56",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -1286,35 +1286,35 @@
      "type": "shape",
      "name": "b4-safety-chip",
      "position": {
-      "x": 726,
-      "y": 1668
+      "x": 678.73,
+      "y": 1564.2
      },
      "size": {
-      "width": 548,
-      "height": 104
+      "width": 512.32,
+      "height": 97.53
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 52
+     "borderRadius": 48.61
     },
     {
      "id": "amoura-b4-safety-text-57",
      "type": "text",
      "name": "b4-safety-text",
      "position": {
-      "x": 726,
-      "y": 1668
+      "x": 678.73,
+      "y": 1564.2
      },
      "size": {
-      "width": 548,
-      "height": 104
+      "width": 512.32,
+      "height": 97.53
      },
      "rotation": 0,
      "scale": 1,
      "content": "Location shared with a friend",
-     "fontSize": 10.5,
+     "fontSize": 9.82,
      "color": "#6E3730",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -1326,12 +1326,12 @@
      "type": "image",
      "name": "b4-cups",
      "position": {
-      "x": 850,
-      "y": 2360
+      "x": 794.65,
+      "y": 2213.13
      },
      "size": {
-      "width": 560,
-      "height": 500
+      "width": 523.53,
+      "height": 468.88
      },
      "rotation": 0,
      "scale": 1,
@@ -1350,8 +1350,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#C8283C",
    "zoom": 1,
@@ -1361,19 +1361,19 @@
      "type": "shape",
      "name": "b5-laurel-left",
      "position": {
-      "x": 285,
-      "y": 100
+      "x": 266.44,
+      "y": 93.78
      },
      "size": {
-      "width": 210,
-      "height": 300
+      "width": 196.33,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1384,19 +1384,19 @@
      "type": "shape",
      "name": "b5-laurel-right",
      "position": {
-      "x": 795,
-      "y": 100
+      "x": 743.23,
+      "y": 93.78
      },
      "size": {
-      "width": 210,
-      "height": 300
+      "width": 196.33,
+      "height": 281.33
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1407,40 +1407,40 @@
      "type": "text",
      "name": "b5-members",
      "position": {
-      "x": 345,
-      "y": 140
+      "x": 322.53,
+      "y": 131.29
      },
      "size": {
-      "width": 600,
-      "height": 70
+      "width": 560.93,
+      "height": 65.64
      },
      "rotation": 0,
      "scale": 1,
      "content": "Members Choice",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#F7EFE6",
      "fontFamily": "Outfit",
      "fontWeight": "600",
      "textAlign": "center",
      "lineHeight": 1.15,
-     "letterSpacing": 2
+     "letterSpacing": 1.87
     },
     {
      "id": "amoura-b5-rating-62",
      "type": "text",
      "name": "b5-rating",
      "position": {
-      "x": 345,
-      "y": 200
+      "x": 322.53,
+      "y": 187.55
      },
      "size": {
-      "width": 600,
-      "height": 230
+      "width": 560.93,
+      "height": 215.69
      },
      "rotation": 0,
      "scale": 1,
      "content": "4.8",
-     "fontSize": 50,
+     "fontSize": 46.74,
      "color": "#F7EFE6",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1452,17 +1452,17 @@
      "type": "text",
      "name": "b5-headline-1a",
      "position": {
-      "x": 130,
-      "y": 460
+      "x": 121.53,
+      "y": 431.37
      },
      "size": {
-      "width": 440,
-      "height": 170
+      "width": 411.35,
+      "height": 159.42
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your",
-     "fontSize": 33,
+     "fontSize": 30.85,
      "color": "#F7EFE6",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1474,17 +1474,17 @@
      "type": "text",
      "name": "b5-headline-1b",
      "position": {
-      "x": 605,
-      "y": 460
+      "x": 565.6,
+      "y": 431.37
      },
      "size": {
-      "width": 500,
-      "height": 170
+      "width": 467.44,
+      "height": 159.42
      },
      "rotation": 0,
      "scale": 1,
      "content": "Story",
-     "fontSize": 33,
+     "fontSize": 30.85,
      "color": "#D9A441",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1497,17 +1497,17 @@
      "type": "text",
      "name": "b5-headline-2",
      "position": {
-      "x": 70,
-      "y": 618
+      "x": 65.44,
+      "y": 579.54
      },
      "size": {
-      "width": 1150,
-      "height": 170
+      "width": 1075.12,
+      "height": 159.42
      },
      "rotation": 0,
      "scale": 1,
      "content": "Starts Here",
-     "fontSize": 33,
+     "fontSize": 30.85,
      "color": "#F7EFE6",
      "fontFamily": "Playfair Display",
      "fontWeight": "700",
@@ -1519,35 +1519,35 @@
      "type": "shape",
      "name": "b5-subline-pill",
      "position": {
-      "x": 325,
-      "y": 812
+      "x": 303.84,
+      "y": 761.47
      },
      "size": {
-      "width": 640,
-      "height": 108
+      "width": 598.33,
+      "height": 101.28
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F7EFE6",
-     "borderRadius": 54
+     "borderRadius": 50.48
     },
     {
      "id": "amoura-b5-subline-text-67",
      "type": "text",
      "name": "b5-subline-text",
      "position": {
-      "x": 325,
-      "y": 812
+      "x": 303.84,
+      "y": 761.47
      },
      "size": {
-      "width": 640,
-      "height": 108
+      "width": 598.33,
+      "height": 101.28
      },
      "rotation": 0,
      "scale": 1,
      "content": "Join half a million members",
-     "fontSize": 12.5,
+     "fontSize": 11.69,
      "color": "#C8283C",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -1559,19 +1559,19 @@
      "type": "shape",
      "name": "b5-sparkle-1",
      "position": {
-      "x": 170,
-      "y": 470
+      "x": 158.93,
+      "y": 440.75
      },
      "size": {
-      "width": 62,
-      "height": 62
+      "width": 57.96,
+      "height": 58.14
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1582,19 +1582,19 @@
      "type": "shape",
      "name": "b5-sparkle-2",
      "position": {
-      "x": 1085,
-      "y": 705
+      "x": 1014.35,
+      "y": 661.13
      },
      "size": {
-      "width": 50,
-      "height": 50
+      "width": 46.74,
+      "height": 46.89
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#D9A441",
      "strokeColor": "transparent",
-     "strokeWidth": 3,
+     "strokeWidth": 2.8,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
       "viewBox": "0 0 100 100"
@@ -1605,12 +1605,12 @@
      "type": "device",
      "name": "b5-phone",
      "position": {
-      "x": 297,
-      "y": 985
+      "x": 277.66,
+      "y": 923.7
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.16,
@@ -1633,53 +1633,53 @@
      "type": "shape",
      "name": "b5-chip1-shadow",
      "position": {
-      "x": 54,
-      "y": 2461
+      "x": 50.48,
+      "y": 2307.85
      },
      "size": {
-      "width": 470,
-      "height": 120
+      "width": 439.4,
+      "height": 112.53
      },
      "rotation": -5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 30
+     "borderRadius": 28.05
     },
     {
      "id": "amoura-b5-chip1-72",
      "type": "shape",
      "name": "b5-chip1",
      "position": {
-      "x": 40,
-      "y": 2445
+      "x": 37.4,
+      "y": 2292.84
      },
      "size": {
-      "width": 470,
-      "height": 120
+      "width": 439.4,
+      "height": 112.53
      },
      "rotation": -5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F7EFE6",
-     "borderRadius": 30
+     "borderRadius": 28.05
     },
     {
      "id": "amoura-b5-chip1-text-73",
      "type": "text",
      "name": "b5-chip1-text",
      "position": {
-      "x": 40,
-      "y": 2445
+      "x": 37.4,
+      "y": 2292.84
      },
      "size": {
-      "width": 470,
-      "height": 120
+      "width": 439.4,
+      "height": 112.53
      },
      "rotation": -5,
      "scale": 1,
      "content": "He laughed at my bio",
-     "fontSize": 11.5,
+     "fontSize": 10.75,
      "color": "#23181B",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -1691,17 +1691,17 @@
      "type": "text",
      "name": "b5-chip1-star",
      "position": {
-      "x": 66,
-      "y": 2475
+      "x": 61.7,
+      "y": 2320.98
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": -5,
      "scale": 1,
      "content": "★",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#D9A441",
      "fontFamily": "Arial",
      "fontWeight": "400",
@@ -1713,53 +1713,53 @@
      "type": "shape",
      "name": "b5-chip2-shadow",
      "position": {
-      "x": 474,
-      "y": 2606
+      "x": 443.13,
+      "y": 2443.82
      },
      "size": {
-      "width": 430,
-      "height": 120
+      "width": 402,
+      "height": 112.53
      },
      "rotation": 2,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 30
+     "borderRadius": 28.05
     },
     {
      "id": "amoura-b5-chip2-76",
      "type": "shape",
      "name": "b5-chip2",
      "position": {
-      "x": 460,
-      "y": 2590
+      "x": 430.05,
+      "y": 2428.82
      },
      "size": {
-      "width": 430,
-      "height": 120
+      "width": 402,
+      "height": 112.53
      },
      "rotation": 2,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F7EFE6",
-     "borderRadius": 30
+     "borderRadius": 28.05
     },
     {
      "id": "amoura-b5-chip2-text-77",
      "type": "text",
      "name": "b5-chip2-text",
      "position": {
-      "x": 460,
-      "y": 2590
+      "x": 430.05,
+      "y": 2428.82
      },
      "size": {
-      "width": 430,
-      "height": 120
+      "width": 402,
+      "height": 112.53
      },
      "rotation": 2,
      "scale": 1,
      "content": "We met in ten days",
-     "fontSize": 11.5,
+     "fontSize": 10.75,
      "color": "#23181B",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -1771,17 +1771,17 @@
      "type": "text",
      "name": "b5-chip2-star",
      "position": {
-      "x": 486,
-      "y": 2620
+      "x": 454.35,
+      "y": 2456.95
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 2,
      "scale": 1,
      "content": "★",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#D9A441",
      "fontFamily": "Arial",
      "fontWeight": "400",
@@ -1793,53 +1793,53 @@
      "type": "shape",
      "name": "b5-chip3-shadow",
      "position": {
-      "x": 794,
-      "y": 2471
+      "x": 742.3,
+      "y": 2317.23
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F2C9C0",
-     "borderRadius": 30
+     "borderRadius": 28.05
     },
     {
      "id": "amoura-b5-chip3-80",
      "type": "shape",
      "name": "b5-chip3",
      "position": {
-      "x": 780,
-      "y": 2455
+      "x": 729.21,
+      "y": 2302.22
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#F7EFE6",
-     "borderRadius": 30
+     "borderRadius": 28.05
     },
     {
      "id": "amoura-b5-chip3-text-81",
      "type": "text",
      "name": "b5-chip3-text",
      "position": {
-      "x": 780,
-      "y": 2455
+      "x": 729.21,
+      "y": 2302.22
      },
      "size": {
-      "width": 500,
-      "height": 120
+      "width": 467.44,
+      "height": 112.53
      },
      "rotation": 5,
      "scale": 1,
      "content": "Deleted every other app",
-     "fontSize": 11.5,
+     "fontSize": 10.75,
      "color": "#23181B",
      "fontFamily": "Outfit",
      "fontWeight": "600",
@@ -1851,17 +1851,17 @@
      "type": "text",
      "name": "b5-chip3-star",
      "position": {
-      "x": 806,
-      "y": 2485
+      "x": 753.52,
+      "y": 2330.35
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": 5,
      "scale": 1,
      "content": "★",
-     "fontSize": 13,
+     "fontSize": 12.15,
      "color": "#D9A441",
      "fontFamily": "Arial",
      "fontWeight": "400",

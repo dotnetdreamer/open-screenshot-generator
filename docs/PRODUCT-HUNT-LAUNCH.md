@@ -88,7 +88,7 @@ Craft here is what gets you featured; only about 10 percent of launches are. Eve
 1. **Hero.** Editor with a finished template set, caption: "The open source Canva for App Store screenshots"
 2. **Templates.** The gallery grid, caption: "Start from templates already sized for both stores"
 3. **Drop in and pose.** Screenshot clipped into a tilted 3D iPhone, caption: "Your screens stay clipped to the glass, even in 3D"
-4. **Export.** The export dialog with real sizes visible (1290x2796, 2064x2752), caption: "Every size Apple and Google ask for, one click"
+4. **Export.** The export dialog with real sizes visible (1206x2622, 2064x2752), caption: "Every size Apple and Google ask for, one click"
 5. **Video.** Recording playing inside a frame plus the conform mode, caption: "App preview videos, encoded in your browser"
 6. **AI agent.** Upload plus one sentence producing a full project, caption: "Or let the agent build your listing from raw screenshots"
 7. **The architecture.** Simple diagram: your browser, IndexedDB, no server. Caption: "No account. No upload. No watermark. Free forever"

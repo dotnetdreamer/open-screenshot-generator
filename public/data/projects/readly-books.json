@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#C33A08",
       "backgroundType": "gradient",
@@ -30,17 +30,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 60,
-            "y": 120
+            "x": 56.09,
+            "y": 112.53
           },
           "size": {
-            "width": 1210,
-            "height": 560
+            "width": 1131.21,
+            "height": 525.15
           },
           "rotation": 0,
           "scale": 1,
           "content": "Discover big ideas\nfrom bestselling\nbooks quickly",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -52,12 +52,12 @@
           "type": "shape",
           "name": "Sketch Circle Around Books",
           "position": {
-            "x": 20,
-            "y": 430
+            "x": 18.7,
+            "y": 403.24
           },
           "size": {
-            "width": 520,
-            "height": 220
+            "width": 486.14,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
@@ -66,23 +66,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_rdl_ab1_underline",
           "type": "shape",
           "name": "Underline Swoosh",
           "position": {
-            "x": 395,
-            "y": 425
+            "x": 369.28,
+            "y": 398.55
           },
           "size": {
-            "width": 730,
-            "height": 80
+            "width": 682.47,
+            "height": 75.02
           },
           "rotation": 0,
           "scale": 1,
@@ -100,12 +100,12 @@
           "type": "shape",
           "name": "Sketch Heart",
           "position": {
-            "x": -70,
-            "y": 700
+            "x": -65.44,
+            "y": 656.44
           },
           "size": {
-            "width": 270,
-            "height": 250
+            "width": 252.42,
+            "height": 234.44
           },
           "rotation": -12,
           "scale": 1,
@@ -114,23 +114,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 8
+            "baseStrokeWidth": 7.48
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_rdl_ab1_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 280,
-            "y": 1150
+            "x": 261.77,
+            "y": 1078.43
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -14,
           "scale": 1.7,
@@ -157,8 +157,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#F2600A",
       "backgroundType": "solid",
@@ -169,12 +169,12 @@
           "type": "shape",
           "name": "Sketch Burst",
           "position": {
-            "x": 1020,
-            "y": -80
+            "x": 953.58,
+            "y": -75.02
           },
           "size": {
-            "width": 340,
-            "height": 340
+            "width": 317.86,
+            "height": 318.84
           },
           "rotation": 0,
           "scale": 1,
@@ -192,12 +192,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 345,
-            "y": 1250
+            "x": 322.53,
+            "y": 1172.21
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -4,
           "scale": 1.55,
@@ -219,17 +219,17 @@
           "type": "shape",
           "name": "Brand Pill",
           "position": {
-            "x": 365,
-            "y": 2530
+            "x": 341.23,
+            "y": 2372.55
           },
           "size": {
-            "width": 560,
-            "height": 210
+            "width": 523.53,
+            "height": 196.93
           },
           "rotation": 0,
           "scale": 1,
           "shapeType": "rectangle",
-          "borderRadius": 100,
+          "borderRadius": 93.49,
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
           "strokeWidth": 0
@@ -239,17 +239,17 @@
           "type": "text",
           "name": "Brand Text",
           "position": {
-            "x": 365,
-            "y": 2530
+            "x": 341.23,
+            "y": 2372.55
           },
           "size": {
-            "width": 560,
-            "height": 210
+            "width": 523.53,
+            "height": 196.93
           },
           "rotation": 0,
           "scale": 1,
           "content": "READLY!",
-          "fontSize": 27,
+          "fontSize": 25.24,
           "color": "#F2600A",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -266,8 +266,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#8E1F04",
       "backgroundType": "gradient",
@@ -283,12 +283,12 @@
           "type": "shape",
           "name": "Sketch Frame",
           "position": {
-            "x": 75,
-            "y": 120
+            "x": 70.12,
+            "y": 112.53
           },
           "size": {
-            "width": 1140,
-            "height": 640
+            "width": 1065.77,
+            "height": 600.17
           },
           "rotation": 0,
           "scale": 1,
@@ -297,28 +297,28 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 4
+            "baseStrokeWidth": 3.74
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 4
+          "strokeWidth": 3.74
         },
         {
           "id": "tpl_rdl_ab3_headline",
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 105,
-            "y": 170
+            "x": 98.16,
+            "y": 159.42
           },
           "size": {
-            "width": 1080,
-            "height": 540
+            "width": 1009.67,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stay consistent\nwith easy daily\nreading goals",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -330,12 +330,12 @@
           "type": "shape",
           "name": "Corner Sparkle",
           "position": {
-            "x": 1130,
-            "y": 690
+            "x": 1056.42,
+            "y": 647.06
           },
           "size": {
-            "width": 120,
-            "height": 120
+            "width": 112.19,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
@@ -353,12 +353,12 @@
           "type": "shape",
           "name": "Gold Trophy",
           "position": {
-            "x": 40,
-            "y": 780
+            "x": 37.4,
+            "y": 731.46
           },
           "size": {
-            "width": 300,
-            "height": 330
+            "width": 280.47,
+            "height": 309.46
           },
           "rotation": -8,
           "scale": 1,
@@ -377,12 +377,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 345,
-            "y": 1320
+            "x": 322.53,
+            "y": 1237.85
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.5,
@@ -409,8 +409,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#D5470A",
       "backgroundType": "gradient",
@@ -426,17 +426,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 45,
-            "y": 130
+            "x": 42.07,
+            "y": 121.91
           },
           "size": {
-            "width": 1200,
-            "height": 540
+            "width": 1121.86,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "content": "Learn while\ndriving walking or\nrelaxing anytime",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -448,12 +448,12 @@
           "type": "shape",
           "name": "Scribble Underline",
           "position": {
-            "x": 350,
-            "y": 680
+            "x": 327.21,
+            "y": 637.68
           },
           "size": {
-            "width": 590,
-            "height": 120
+            "width": 551.58,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
@@ -462,23 +462,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 5
+            "baseStrokeWidth": 4.67
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_rdl_ab4_heart",
           "type": "shape",
           "name": "Sketch Heart",
           "position": {
-            "x": 1020,
-            "y": -70
+            "x": 953.58,
+            "y": -65.64
           },
           "size": {
-            "width": 330,
-            "height": 300
+            "width": 308.51,
+            "height": 281.33
           },
           "rotation": 18,
           "scale": 1,
@@ -487,23 +487,23 @@
           "specialProps": {
             "viewBox": "0 0 100 100",
             "strokeOnly": true,
-            "baseStrokeWidth": 8
+            "baseStrokeWidth": 7.48
           },
           "fillColor": "#FFFFFF",
           "strokeColor": "transparent",
-          "strokeWidth": 3
+          "strokeWidth": 2.8
         },
         {
           "id": "tpl_rdl_ab4_device",
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 345,
-            "y": 1340
+            "x": 322.53,
+            "y": 1256.61
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.45,
@@ -525,12 +525,12 @@
           "type": "shape",
           "name": "Medal Ribbon",
           "position": {
-            "x": 995,
-            "y": 1120
+            "x": 930.21,
+            "y": 1050.3
           },
           "size": {
-            "width": 100,
-            "height": 220
+            "width": 93.49,
+            "height": 206.31
           },
           "rotation": 12,
           "scale": 1,
@@ -544,12 +544,12 @@
           "type": "shape",
           "name": "Medal Disc",
           "position": {
-            "x": 930,
-            "y": 930
+            "x": 869.44,
+            "y": 872.12
           },
           "size": {
-            "width": 230,
-            "height": 230
+            "width": 215.02,
+            "height": 215.69
           },
           "rotation": 0,
           "scale": 1,
@@ -567,12 +567,12 @@
           "type": "shape",
           "name": "Medal Star",
           "position": {
-            "x": 985,
-            "y": 985
+            "x": 920.86,
+            "y": 923.7
           },
           "size": {
-            "width": 120,
-            "height": 120
+            "width": 112.19,
+            "height": 112.53
           },
           "rotation": 0,
           "scale": 1,
@@ -595,8 +595,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#9C2405",
       "backgroundType": "gradient",
@@ -612,17 +612,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 95,
-            "y": 130
+            "x": 88.81,
+            "y": 121.91
           },
           "size": {
-            "width": 1100,
-            "height": 540
+            "width": 1028.37,
+            "height": 506.39
           },
           "rotation": 0,
           "scale": 1,
           "content": "Stay consistent\nwith easy daily\nreading goals",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -634,12 +634,12 @@
           "type": "shape",
           "name": "Sketch Burst",
           "position": {
-            "x": 1050,
-            "y": 40
+            "x": 981.63,
+            "y": 37.51
           },
           "size": {
-            "width": 230,
-            "height": 230
+            "width": 215.02,
+            "height": 215.69
           },
           "rotation": 0,
           "scale": 1,
@@ -657,12 +657,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 345,
-            "y": 1330
+            "x": 322.53,
+            "y": 1247.23
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.45,
@@ -684,12 +684,12 @@
           "type": "shape",
           "name": "Rosette Ribbon Left",
           "position": {
-            "x": 960,
-            "y": 980
+            "x": 897.49,
+            "y": 919.01
           },
           "size": {
-            "width": 90,
-            "height": 210
+            "width": 84.14,
+            "height": 196.93
           },
           "rotation": -18,
           "scale": 1,
@@ -703,12 +703,12 @@
           "type": "shape",
           "name": "Rosette Ribbon Right",
           "position": {
-            "x": 1050,
-            "y": 980
+            "x": 981.63,
+            "y": 919.01
           },
           "size": {
-            "width": 90,
-            "height": 210
+            "width": 84.14,
+            "height": 196.93
           },
           "rotation": 18,
           "scale": 1,
@@ -722,12 +722,12 @@
           "type": "shape",
           "name": "Rosette Disc",
           "position": {
-            "x": 945,
-            "y": 795
+            "x": 883.47,
+            "y": 745.53
           },
           "size": {
-            "width": 220,
-            "height": 220
+            "width": 205.67,
+            "height": 206.31
           },
           "rotation": 0,
           "scale": 1,
@@ -745,12 +745,12 @@
           "type": "shape",
           "name": "Rosette Inner Circle",
           "position": {
-            "x": 990,
-            "y": 840
+            "x": 925.53,
+            "y": 787.73
           },
           "size": {
-            "width": 130,
-            "height": 130
+            "width": 121.53,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
@@ -764,12 +764,12 @@
           "type": "image",
           "name": "Books Photo",
           "position": {
-            "x": 900,
-            "y": 2280
+            "x": 841.4,
+            "y": 2138.11
           },
           "size": {
-            "width": 390,
-            "height": 516
+            "width": 364.6,
+            "height": 483.89
           },
           "rotation": 0,
           "scale": 1,

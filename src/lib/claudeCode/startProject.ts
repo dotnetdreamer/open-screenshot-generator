@@ -13,11 +13,11 @@ interface Size {
  * shaped like no device (a cropped screen, a window capture) does not vote,
  * and with no votes at all the project gets the default size.
  */
-const PHONE: Size = { width: 1290, height: 2796 };
+const PHONE: Size = { width: 1206, height: 2622 };
 const TABLET: Size = { width: 2064, height: 2752 };
 const WATCH: Size = { width: 422, height: 514 };
 const MAC: Size = { width: 2560, height: 1600 };
-const PHONE_LANDSCAPE: Size = { width: 2796, height: 1290 };
+const PHONE_LANDSCAPE: Size = { width: 2622, height: 1206 };
 const TABLET_LANDSCAPE: Size = { width: 2752, height: 2064 };
 
 // Height over width. Phones are 1.78 (16:9) and taller. iPads run from 1.33

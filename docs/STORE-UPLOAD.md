@@ -73,7 +73,7 @@ The dialog suggests a destination from each artboard's size. Check it before upl
 | App icon | One, exactly 512x512 |
 | Android TV banner | One, exactly 1280x720 |
 
-For Play screenshots, each side must be 320 to 3840 pixels, the long side can be at most twice the short side, and each image must be at most 8 MB. An iPhone image at 1290x2796 is too tall for Play. Choose **Android phone 1080x1920** in the **Size** menu instead.
+For Play screenshots, each side must be 320 to 3840 pixels, the long side can be at most twice the short side, and each image must be at most 8 MB. An iPhone image at 1206x2622 is too tall for Play. Choose **Android phone 1080x1920** in the **Size** menu instead.
 
 ### If the app is in review
 

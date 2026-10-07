@@ -13,8 +13,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#3D3560",
       "backgroundType": "solid",
@@ -25,17 +25,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 110
+            "x": 65.44,
+            "y": 103.15
           },
           "size": {
-            "width": 1150,
-            "height": 340
+            "width": 1075.12,
+            "height": 318.84
           },
           "rotation": 0,
           "scale": 1,
           "content": "Shop Better\nSave More",
-          "fontSize": 40,
+          "fontSize": 37.4,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -47,17 +47,17 @@
           "type": "text",
           "name": "Subheadline",
           "position": {
-            "x": 70,
-            "y": 470
+            "x": 65.44,
+            "y": 440.75
           },
           "size": {
-            "width": 620,
-            "height": 320
+            "width": 579.63,
+            "height": 300.09
           },
           "rotation": 0,
           "scale": 1,
           "content": "Your safe place\nto shop online\nanytime.",
-          "fontSize": 22,
+          "fontSize": 20.57,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "500",
@@ -69,12 +69,12 @@
           "type": "shape",
           "name": "Logo Squircle",
           "position": {
-            "x": 70,
-            "y": 850
+            "x": 65.44,
+            "y": 797.1
           },
           "size": {
-            "width": 150,
-            "height": 150
+            "width": 140.23,
+            "height": 140.67
           },
           "rotation": 0,
           "scale": 1,
@@ -92,17 +92,17 @@
           "type": "text",
           "name": "Logo Z",
           "position": {
-            "x": 70,
-            "y": 862
+            "x": 65.44,
+            "y": 808.36
           },
           "size": {
-            "width": 150,
-            "height": 130
+            "width": 140.23,
+            "height": 121.91
           },
           "rotation": 0,
           "scale": 1,
           "content": "Z",
-          "fontSize": 28,
+          "fontSize": 26.18,
           "color": "#3D3560",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -114,12 +114,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 470,
-            "y": 700
+            "x": 439.4,
+            "y": 656.44
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -12,
           "scale": 1.35,
@@ -142,12 +142,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 700,
-            "y": 1440
+            "x": 654.42,
+            "y": 1350.39
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 8,
           "scale": 1.35,
@@ -170,12 +170,12 @@
           "type": "shape",
           "name": "Laurel Left",
           "position": {
-            "x": 60,
-            "y": 2280
+            "x": 56.09,
+            "y": 2138.11
           },
           "size": {
-            "width": 240,
-            "height": 330
+            "width": 224.37,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
@@ -193,12 +193,12 @@
           "type": "shape",
           "name": "Laurel Right",
           "position": {
-            "x": 480,
-            "y": 2280
+            "x": 448.74,
+            "y": 2138.11
           },
           "size": {
-            "width": 240,
-            "height": 330
+            "width": 224.37,
+            "height": 309.46
           },
           "rotation": 0,
           "scale": 1,
@@ -216,17 +216,17 @@
           "type": "text",
           "name": "Rating",
           "position": {
-            "x": 190,
-            "y": 2320
+            "x": 177.63,
+            "y": 2175.62
           },
           "size": {
-            "width": 400,
-            "height": 240
+            "width": 373.95,
+            "height": 225.06
           },
           "rotation": 0,
           "scale": 1,
           "content": "4.8\nRating",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#EFE6DA",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -238,17 +238,17 @@
           "type": "text",
           "name": "Stars",
           "position": {
-            "x": 230,
-            "y": 2560
+            "x": 215.02,
+            "y": 2400.69
           },
           "size": {
-            "width": 320,
-            "height": 90
+            "width": 299.16,
+            "height": 84.4
           },
           "rotation": 0,
           "scale": 1,
           "content": "★★★★★",
-          "fontSize": 20,
+          "fontSize": 18.7,
           "color": "#EFE6DA",
           "fontFamily": "Arial",
           "fontWeight": "400",
@@ -265,8 +265,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#3D3560",
       "backgroundType": "solid",
@@ -277,17 +277,17 @@
           "type": "text",
           "name": "Hashtags",
           "position": {
-            "x": 440,
-            "y": 110
+            "x": 411.35,
+            "y": 103.15
           },
           "size": {
-            "width": 780,
-            "height": 250
+            "width": 729.21,
+            "height": 234.44
           },
           "rotation": 0,
           "scale": 1,
           "content": "#fastfashion\n#zeeb",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#FFFFFF",
           "fontFamily": "Bricolage Grotesque",
           "fontWeight": "700",
@@ -299,12 +299,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": -60,
-            "y": 500
+            "x": -56.09,
+            "y": 468.88
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -10,
           "scale": 1.8,
@@ -327,12 +327,12 @@
           "type": "shape",
           "name": "Cart Icon",
           "position": {
-            "x": 1060,
-            "y": 2600
+            "x": 990.98,
+            "y": 2438.2
           },
           "size": {
-            "width": 180,
-            "height": 180
+            "width": 168.28,
+            "height": 168.8
           },
           "rotation": 0,
           "scale": 1,
@@ -355,8 +355,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#EFE6DA",
       "backgroundType": "solid",
@@ -367,17 +367,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 70,
-            "y": 110
+            "x": 65.44,
+            "y": 103.15
           },
           "size": {
-            "width": 700,
-            "height": 140
+            "width": 654.42,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "BEST PRICES",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#2F2A52",
           "fontFamily": "Fira Sans Condensed",
           "fontWeight": "600",
@@ -389,17 +389,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 260
+            "x": 65.44,
+            "y": 243.82
           },
           "size": {
-            "width": 980,
-            "height": 480
+            "width": 916.19,
+            "height": 450.13
           },
           "rotation": 0,
           "scale": 1,
           "content": "EASY\nBUYING",
-          "fontSize": 62,
+          "fontSize": 57.96,
           "color": "#2F2A52",
           "fontFamily": "Fira Sans Condensed",
           "fontWeight": "800",
@@ -411,12 +411,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 180,
-            "y": 850
+            "x": 168.28,
+            "y": 797.1
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": -4,
           "scale": 1.55,
@@ -444,8 +444,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#EFE6DA",
       "backgroundType": "solid",
@@ -456,17 +456,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 70,
-            "y": 110
+            "x": 65.44,
+            "y": 103.15
           },
           "size": {
-            "width": 700,
-            "height": 140
+            "width": 654.42,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "EFFICIENT",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#2F2A52",
           "fontFamily": "Fira Sans Condensed",
           "fontWeight": "600",
@@ -478,17 +478,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 260
+            "x": 65.44,
+            "y": 243.82
           },
           "size": {
-            "width": 1050,
-            "height": 480
+            "width": 981.63,
+            "height": 450.13
           },
           "rotation": 0,
           "scale": 1,
           "content": "FAST\nDELIVERY",
-          "fontSize": 62,
+          "fontSize": 57.96,
           "color": "#2F2A52",
           "fontFamily": "Fira Sans Condensed",
           "fontWeight": "800",
@@ -500,12 +500,12 @@
           "type": "shape",
           "name": "Puffy Star",
           "position": {
-            "x": -60,
-            "y": 830
+            "x": -56.09,
+            "y": 778.35
           },
           "size": {
-            "width": 200,
-            "height": 200
+            "width": 186.98,
+            "height": 187.55
           },
           "rotation": 0,
           "scale": 1,
@@ -523,12 +523,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 180,
-            "y": 870
+            "x": 168.28,
+            "y": 815.86
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 5,
           "scale": 1.55,
@@ -556,8 +556,8 @@
         "y": 15
       },
       "size": {
-        "width": 1290,
-        "height": 2796
+        "width": 1206,
+        "height": 2622
       },
       "backgroundColor": "#EFE6DA",
       "backgroundType": "solid",
@@ -568,17 +568,17 @@
           "type": "text",
           "name": "Kicker",
           "position": {
-            "x": 70,
-            "y": 110
+            "x": 65.44,
+            "y": 103.15
           },
           "size": {
-            "width": 700,
-            "height": 140
+            "width": 654.42,
+            "height": 131.29
           },
           "rotation": 0,
           "scale": 1,
           "content": "ONLY",
-          "fontSize": 30,
+          "fontSize": 28.05,
           "color": "#2F2A52",
           "fontFamily": "Fira Sans Condensed",
           "fontWeight": "600",
@@ -590,17 +590,17 @@
           "type": "text",
           "name": "Headline",
           "position": {
-            "x": 70,
-            "y": 260
+            "x": 65.44,
+            "y": 243.82
           },
           "size": {
-            "width": 1050,
-            "height": 480
+            "width": 981.63,
+            "height": 450.13
           },
           "rotation": 0,
           "scale": 1,
           "content": "TRUSTED\nBRANDS",
-          "fontSize": 62,
+          "fontSize": 57.96,
           "color": "#2F2A52",
           "fontFamily": "Fira Sans Condensed",
           "fontWeight": "800",
@@ -612,12 +612,12 @@
           "type": "device",
           "name": "Phone Mockup",
           "position": {
-            "x": 180,
-            "y": 850
+            "x": 168.28,
+            "y": 797.1
           },
           "size": {
-            "width": 600,
-            "height": 1200
+            "width": 560.93,
+            "height": 1125.32
           },
           "rotation": 0,
           "scale": 1.55,

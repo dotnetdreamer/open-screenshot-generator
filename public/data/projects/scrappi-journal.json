@@ -13,8 +13,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E4C9A1",
    "zoom": 1,
@@ -34,8 +34,8 @@
       "y": 0
      },
      "size": {
-      "width": 1290,
-      "height": 2796
+      "width": 1206,
+      "height": 2622
      },
      "rotation": 0,
      "scale": 1,
@@ -49,17 +49,17 @@
      "type": "text",
      "name": "headline-1",
      "position": {
-      "x": 70,
-      "y": 118
+      "x": 65.44,
+      "y": 110.66
      },
      "size": {
-      "width": 1150,
-      "height": 165
+      "width": 1075.12,
+      "height": 154.73
      },
      "rotation": 0,
      "scale": 1,
      "content": "Your life",
-     "fontSize": 34,
+     "fontSize": 31.79,
      "color": "#3B2A1A",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -71,12 +71,12 @@
      "type": "image",
      "name": "headline strip",
      "position": {
-      "x": 260,
-      "y": 288
+      "x": 243.07,
+      "y": 270.08
      },
      "size": {
-      "width": 770,
-      "height": 164
+      "width": 719.86,
+      "height": 153.79
      },
      "rotation": -2,
      "scale": 1,
@@ -90,17 +90,17 @@
      "type": "text",
      "name": "headline-2",
      "position": {
-      "x": 70,
-      "y": 298
+      "x": 65.44,
+      "y": 279.45
      },
      "size": {
-      "width": 1150,
-      "height": 160
+      "width": 1075.12,
+      "height": 150.04
      },
      "rotation": -2,
      "scale": 1,
      "content": "scrapbooked",
-     "fontSize": 34,
+     "fontSize": 31.79,
      "color": "#E4572E",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -112,17 +112,17 @@
      "type": "text",
      "name": "subline",
      "position": {
-      "x": 95,
-      "y": 492
+      "x": 88.81,
+      "y": 461.38
      },
      "size": {
-      "width": 1100,
-      "height": 90
+      "width": 1028.37,
+      "height": 84.4
      },
      "rotation": 0,
      "scale": 1,
      "content": "Photos, moods and moments, one cozy page",
-     "fontSize": 14,
+     "fontSize": 13.09,
      "color": "#6B4A2A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -134,12 +134,12 @@
      "type": "image",
      "name": "deckle page",
      "position": {
-      "x": 60,
-      "y": 880
+      "x": 56.09,
+      "y": 825.24
      },
      "size": {
-      "width": 1170,
-      "height": 1702
+      "width": 1093.81,
+      "height": 1596.08
      },
      "rotation": 1,
      "scale": 1,
@@ -153,12 +153,12 @@
      "type": "image",
      "name": "paperclip",
      "position": {
-      "x": 150,
-      "y": 795
+      "x": 140.23,
+      "y": 745.53
      },
      "size": {
-      "width": 96,
-      "height": 185
+      "width": 89.75,
+      "height": 173.49
      },
      "rotation": -8,
      "scale": 1,
@@ -172,12 +172,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": 66,
-      "y": 942.4799999999999
+      "x": 61.7,
+      "y": 883.83
      },
      "size": {
-      "width": 990,
-      "height": 1742.4
+      "width": 925.53,
+      "height": 1633.97
      },
      "rotation": -3,
      "scale": 1,
@@ -191,12 +191,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 165,
-      "y": 990
+      "x": 154.26,
+      "y": 928.39
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -3,
      "scale": 1.32,
@@ -219,12 +219,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": 55,
-      "y": 928
+      "x": 51.42,
+      "y": 870.25
      },
      "size": {
-      "width": 360,
-      "height": 101.88
+      "width": 336.56,
+      "height": 95.54
      },
      "rotation": -13,
      "scale": 1,
@@ -238,12 +238,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 685,
-      "y": 942
+      "x": 640.4,
+      "y": 883.38
      },
      "size": {
-      "width": 360,
-      "height": 101.88
+      "width": 336.56,
+      "height": 95.54
      },
      "rotation": 12,
      "scale": 1,
@@ -257,12 +257,12 @@
      "type": "image",
      "name": "polaroid slot",
      "position": {
-      "x": 960,
-      "y": 1430
+      "x": 897.49,
+      "y": 1341.01
      },
      "size": {
-      "width": 330,
-      "height": 396
+      "width": 308.51,
+      "height": 371.36
      },
      "rotation": 7,
      "scale": 1,
@@ -276,12 +276,12 @@
      "type": "image",
      "name": "pressed flower",
      "position": {
-      "x": 985,
-      "y": 2330
+      "x": 920.86,
+      "y": 2185
      },
      "size": {
-      "width": 280,
-      "height": 280
+      "width": 261.77,
+      "height": 262.58
      },
      "rotation": -14,
      "scale": 1,
@@ -300,8 +300,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E4C9A1",
    "zoom": 1,
@@ -321,8 +321,8 @@
       "y": 0
      },
      "size": {
-      "width": 1290,
-      "height": 2796
+      "width": 1206,
+      "height": 2622
      },
      "rotation": 0,
      "scale": 1,
@@ -336,12 +336,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 985,
-      "y": -32
+      "x": 920.86,
+      "y": -30.01
      },
      "size": {
-      "width": 400,
-      "height": 113.19999999999999
+      "width": 373.95,
+      "height": 106.16
      },
      "rotation": 14,
      "scale": 1,
@@ -355,17 +355,17 @@
      "type": "text",
      "name": "headline",
      "position": {
-      "x": 45,
-      "y": 118
+      "x": 42.07,
+      "y": 110.66
      },
      "size": {
-      "width": 1200,
-      "height": 160
+      "width": 1121.86,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Type it or tape it",
-     "fontSize": 30,
+     "fontSize": 28.05,
      "color": "#3B2A1A",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -377,17 +377,17 @@
      "type": "text",
      "name": "subline",
      "position": {
-      "x": 95,
-      "y": 288
+      "x": 88.81,
+      "y": 270.08
      },
      "size": {
-      "width": 1100,
-      "height": 85
+      "width": 1028.37,
+      "height": 79.71
      },
      "rotation": 0,
      "scale": 1,
      "content": "Write entries or collage them",
-     "fontSize": 13.5,
+     "fontSize": 12.62,
      "color": "#6B4A2A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -399,12 +399,12 @@
      "type": "image",
      "name": "deckle page",
      "position": {
-      "x": 40,
-      "y": 560
+      "x": 37.4,
+      "y": 525.15
      },
      "size": {
-      "width": 1210,
-      "height": 1760
+      "width": 1131.21,
+      "height": 1650.47
      },
      "rotation": -1,
      "scale": 1,
@@ -418,12 +418,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": -86.25,
-      "y": 768.5999999999999
+      "x": -80.63,
+      "y": 720.77
      },
      "size": {
-      "width": 862.5,
-      "height": 1518.0000000000002
+      "width": 806.34,
+      "height": 1423.53
      },
      "rotation": -6,
      "scale": 1,
@@ -438,11 +438,11 @@
      "name": "Phone",
      "position": {
       "x": 0,
-      "y": 810
+      "y": 759.59
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -6,
      "scale": 1.15,
@@ -465,12 +465,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": -90,
-      "y": 792
+      "x": -84.14,
+      "y": 742.71
      },
      "size": {
-      "width": 320,
-      "height": 90.55999999999999
+      "width": 299.16,
+      "height": 84.92
      },
      "rotation": -16,
      "scale": 1,
@@ -484,12 +484,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 470,
-      "y": 728
+      "x": 439.4,
+      "y": 682.7
      },
      "size": {
-      "width": 320,
-      "height": 90.55999999999999
+      "width": 299.16,
+      "height": 84.92
      },
      "rotation": 8,
      "scale": 1,
@@ -503,12 +503,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": 593.75,
-      "y": 1218.6
+      "x": 555.09,
+      "y": 1142.76
      },
      "size": {
-      "width": 862.5,
-      "height": 1518.0000000000002
+      "width": 806.34,
+      "height": 1423.53
      },
      "rotation": 7,
      "scale": 1,
@@ -522,12 +522,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 680,
-      "y": 1260
+      "x": 635.72,
+      "y": 1181.59
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 7,
      "scale": 1.15,
@@ -550,12 +550,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": 655,
-      "y": 1168
+      "x": 612.35,
+      "y": 1095.31
      },
      "size": {
-      "width": 330,
-      "height": 93.38999999999999
+      "width": 308.51,
+      "height": 87.58
      },
      "rotation": -10,
      "scale": 1,
@@ -569,12 +569,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 1130,
-      "y": 1292
+      "x": 1056.42,
+      "y": 1211.6
      },
      "size": {
-      "width": 330,
-      "height": 93.38999999999999
+      "width": 308.51,
+      "height": 87.58
      },
      "rotation": 14,
      "scale": 1,
@@ -588,17 +588,17 @@
      "type": "text",
      "name": "or-note",
      "position": {
-      "x": 905,
-      "y": 890
+      "x": 846.07,
+      "y": 834.61
      },
      "size": {
-      "width": 300,
-      "height": 140
+      "width": 280.47,
+      "height": 131.29
      },
      "rotation": 8,
      "scale": 1,
      "content": "or!!",
-     "fontSize": 26,
+     "fontSize": 24.31,
      "color": "#E4572E",
      "fontFamily": "Permanent Marker",
      "fontWeight": "400",
@@ -610,25 +610,25 @@
      "type": "shape",
      "name": "sketch arrow",
      "position": {
-      "x": 830,
-      "y": 1050
+      "x": 775.95,
+      "y": 984.66
      },
      "size": {
-      "width": 320,
-      "height": 100
+      "width": 299.16,
+      "height": 93.78
      },
      "rotation": 28,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 6,
+     "strokeWidth": 5.61,
      "opacity": 1,
      "customPath": "M10 50 H90 M78 38 L92 50 L78 62 M22 38 L8 50 L22 62",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 5
+      "baseStrokeWidth": 4.67
      }
     },
     {
@@ -636,12 +636,12 @@
      "type": "image",
      "name": "scrap left",
      "position": {
-      "x": -50,
-      "y": 2560
+      "x": -46.74,
+      "y": 2400.69
      },
      "size": {
-      "width": 400,
-      "height": 286
+      "width": 373.95,
+      "height": 268.2
      },
      "rotation": 10,
      "scale": 1,
@@ -655,12 +655,12 @@
      "type": "image",
      "name": "scrap right",
      "position": {
-      "x": 1000,
-      "y": 2640
+      "x": 934.88,
+      "y": 2475.71
      },
      "size": {
-      "width": 380,
-      "height": 271
+      "width": 355.26,
+      "height": 254.14
      },
      "rotation": -14,
      "scale": 1,
@@ -679,8 +679,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E4C9A1",
    "zoom": 1,
@@ -700,8 +700,8 @@
       "y": 0
      },
      "size": {
-      "width": 1290,
-      "height": 2796
+      "width": 1206,
+      "height": 2622
      },
      "rotation": 0,
      "scale": 1,
@@ -715,17 +715,17 @@
      "type": "text",
      "name": "headline-1",
      "position": {
-      "x": 60,
-      "y": 128
+      "x": 56.09,
+      "y": 120.03
      },
      "size": {
-      "width": 480,
-      "height": 150
+      "width": 448.74,
+      "height": 140.67
      },
      "rotation": 0,
      "scale": 1,
      "content": "Moods as",
-     "fontSize": 31,
+     "fontSize": 28.98,
      "color": "#3B2A1A",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -737,53 +737,53 @@
      "type": "shape",
      "name": "pill shadow",
      "position": {
-      "x": 528,
-      "y": 134
+      "x": 493.62,
+      "y": 125.66
      },
      "size": {
-      "width": 518,
-      "height": 138
+      "width": 484.27,
+      "height": 129.41
      },
      "rotation": -1.5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#7DBEA3",
-     "borderRadius": 69
+     "borderRadius": 64.51
     },
     {
      "id": "scrappi-rect-34",
      "type": "shape",
      "name": "pill",
      "position": {
-      "x": 520,
-      "y": 126
+      "x": 486.14,
+      "y": 118.16
      },
      "size": {
-      "width": 518,
-      "height": 138
+      "width": 484.27,
+      "height": 129.41
      },
      "rotation": -1.5,
      "scale": 1,
      "shapeType": "rectangle",
      "fillColor": "#A8DEC9",
-     "borderRadius": 69
+     "borderRadius": 64.51
     },
     {
      "id": "scrappi-txt-35",
      "type": "text",
      "name": "headline-2",
      "position": {
-      "x": 520,
-      "y": 128
+      "x": 486.14,
+      "y": 120.03
      },
      "size": {
-      "width": 518,
-      "height": 136
+      "width": 484.27,
+      "height": 127.54
      },
      "rotation": -1.5,
      "scale": 1,
      "content": "stickers",
-     "fontSize": 31,
+     "fontSize": 28.98,
      "color": "#3B2A1A",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -795,17 +795,17 @@
      "type": "text",
      "name": "subline",
      "position": {
-      "x": 60,
-      "y": 298
+      "x": 56.09,
+      "y": 279.45
      },
      "size": {
-      "width": 900,
-      "height": 85
+      "width": 841.4,
+      "height": 79.71
      },
      "rotation": 0,
      "scale": 1,
      "content": "Log the day in one peel",
-     "fontSize": 13.5,
+     "fontSize": 12.62,
      "color": "#6B4A2A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -817,19 +817,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 1130,
-      "y": 100
+      "x": 1056.42,
+      "y": 93.78
      },
      "size": {
-      "width": 95,
-      "height": 95
+      "width": 88.81,
+      "height": 89.09
      },
      "rotation": 15,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E4572E",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -841,19 +841,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 1060,
-      "y": 230
+      "x": 990.98,
+      "y": 215.69
      },
      "size": {
-      "width": 60,
-      "height": 60
+      "width": 56.09,
+      "height": 56.27
      },
      "rotation": -10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -865,12 +865,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": -46.25,
-      "y": 731.3999999999999
+      "x": -43.24,
+      "y": 685.88
      },
      "size": {
-      "width": 1012.5,
-      "height": 1782.0000000000002
+      "width": 946.57,
+      "height": 1671.1
      },
      "rotation": 0,
      "scale": 1,
@@ -884,12 +884,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 55,
-      "y": 780
+      "x": 51.42,
+      "y": 731.46
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 0,
      "scale": 1.35,
@@ -912,12 +912,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": -40,
-      "y": 722
+      "x": -37.4,
+      "y": 677.07
      },
      "size": {
-      "width": 350,
-      "height": 99.05
+      "width": 327.21,
+      "height": 92.89
      },
      "rotation": -12,
      "scale": 1,
@@ -931,12 +931,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 605,
-      "y": 728
+      "x": 565.6,
+      "y": 682.7
      },
      "size": {
-      "width": 350,
-      "height": 99.05
+      "width": 327.21,
+      "height": 92.89
      },
      "rotation": 11,
      "scale": 1,
@@ -950,12 +950,12 @@
      "type": "image",
      "name": "sticker sheet",
      "position": {
-      "x": 848,
-      "y": 780
+      "x": 792.78,
+      "y": 731.46
      },
      "size": {
-      "width": 430,
-      "height": 881
+      "width": 402,
+      "height": 826.17
      },
      "rotation": -3,
      "scale": 1,
@@ -969,19 +969,19 @@
      "type": "shape",
      "name": "peel heart die-cut",
      "position": {
-      "x": 780,
-      "y": 1010
+      "x": 729.21,
+      "y": 947.15
      },
      "size": {
-      "width": 150,
-      "height": 150
+      "width": 140.23,
+      "height": 140.67
      },
      "rotation": 14,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFDF6",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -993,19 +993,19 @@
      "type": "shape",
      "name": "peel heart",
      "position": {
-      "x": 803,
-      "y": 1033
+      "x": 750.71,
+      "y": 968.71
      },
      "size": {
-      "width": 104,
-      "height": 104
+      "width": 97.23,
+      "height": 97.53
      },
      "rotation": 14,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#F2A0B4",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
      "specialProps": {
@@ -1017,19 +1017,19 @@
      "type": "shape",
      "name": "peel star die-cut",
      "position": {
-      "x": 776,
-      "y": 1445
+      "x": 725.47,
+      "y": 1355.08
      },
      "size": {
-      "width": 148,
-      "height": 148
+      "width": 138.36,
+      "height": 138.79
      },
      "rotation": -12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFDF6",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1041,19 +1041,19 @@
      "type": "shape",
      "name": "peel star",
      "position": {
-      "x": 793,
-      "y": 1462
+      "x": 741.36,
+      "y": 1371.02
      },
      "size": {
-      "width": 114,
-      "height": 114
+      "width": 106.58,
+      "height": 106.91
      },
      "rotation": -12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C99A3C",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1065,19 +1065,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 1160,
-      "y": 1925
+      "x": 1084.47,
+      "y": 1805.2
      },
      "size": {
-      "width": 90,
-      "height": 90
+      "width": 84.14,
+      "height": 84.4
      },
      "rotation": 20,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E4572E",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1089,19 +1089,19 @@
      "type": "shape",
      "name": "doodle-star",
      "position": {
-      "x": 880,
-      "y": 1990
+      "x": 822.7,
+      "y": 1866.16
      },
      "size": {
-      "width": 110,
-      "height": 110
+      "width": 102.84,
+      "height": 103.15
      },
      "rotation": -14,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L58.82 37.86 L91.85 36.4 L64.27 54.64 L77.63 88.02 L50 65 L24.73 84.79 L35.73 54.64 L6.25 35.79 L41.18 37.86 Z",
      "specialProps": {
@@ -1113,19 +1113,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 1040,
-      "y": 2075
+      "x": 972.28,
+      "y": 1945.87
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": 5,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1137,12 +1137,12 @@
      "type": "image",
      "name": "pressed flower",
      "position": {
-      "x": 990,
-      "y": 2140
+      "x": 925.53,
+      "y": 2006.82
      },
      "size": {
-      "width": 250,
-      "height": 250
+      "width": 233.72,
+      "height": 234.44
      },
      "rotation": 18,
      "scale": 1,
@@ -1156,17 +1156,17 @@
      "type": "text",
      "name": "marker note",
      "position": {
-      "x": 795,
-      "y": 1745
+      "x": 743.23,
+      "y": 1636.41
      },
      "size": {
-      "width": 480,
-      "height": 105
+      "width": 448.74,
+      "height": 98.47
      },
      "rotation": -5,
      "scale": 1,
      "content": "today was a 10",
-     "fontSize": 18,
+     "fontSize": 16.83,
      "color": "#E4572E",
      "fontFamily": "Permanent Marker",
      "fontWeight": "400",
@@ -1178,25 +1178,25 @@
      "type": "shape",
      "name": "note arrow",
      "position": {
-      "x": 679,
-      "y": 1333
+      "x": 634.79,
+      "y": 1250.05
      },
      "size": {
-      "width": 220,
-      "height": 290
+      "width": 205.67,
+      "height": 271.95
      },
      "rotation": -92,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 7,
+     "strokeWidth": 6.54,
      "opacity": 1,
      "customPath": "M10 78 C28 34 58 24 84 40 M70 28 L86 41 L68 52",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 10
+      "baseStrokeWidth": 9.35
      }
     }
    ]
@@ -1209,8 +1209,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E4C9A1",
    "zoom": 1,
@@ -1230,8 +1230,8 @@
       "y": 0
      },
      "size": {
-      "width": 1290,
-      "height": 2796
+      "width": 1206,
+      "height": 2622
      },
      "rotation": 0,
      "scale": 1,
@@ -1245,17 +1245,17 @@
      "type": "text",
      "name": "headline",
      "position": {
-      "x": 50,
-      "y": 118
+      "x": 46.74,
+      "y": 110.66
      },
      "size": {
-      "width": 1190,
-      "height": 160
+      "width": 1112.51,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "One page a day",
-     "fontSize": 32,
+     "fontSize": 29.92,
      "color": "#3B2A1A",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -1267,17 +1267,17 @@
      "type": "text",
      "name": "subline",
      "position": {
-      "x": 95,
-      "y": 288
+      "x": 88.81,
+      "y": 270.08
      },
      "size": {
-      "width": 1100,
-      "height": 85
+      "width": 1028.37,
+      "height": 79.71
      },
      "rotation": 0,
      "scale": 1,
      "content": "Tiny habit, giant memory box",
-     "fontSize": 13.5,
+     "fontSize": 12.62,
      "color": "#6B4A2A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -1289,12 +1289,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": 328.75,
-      "y": 771.3999999999999
+      "x": 307.34,
+      "y": 723.39
      },
      "size": {
-      "width": 1012.5,
-      "height": 1782.0000000000002
+      "width": 946.57,
+      "height": 1671.1
      },
      "rotation": 4,
      "scale": 1,
@@ -1308,12 +1308,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 430,
-      "y": 820
+      "x": 402,
+      "y": 768.97
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 4,
      "scale": 1.35,
@@ -1336,12 +1336,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": 345,
-      "y": 762
+      "x": 322.53,
+      "y": 714.58
      },
      "size": {
-      "width": 350,
-      "height": 99.05
+      "width": 327.21,
+      "height": 92.89
      },
      "rotation": -12,
      "scale": 1,
@@ -1355,12 +1355,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 995,
-      "y": 788
+      "x": 930.21,
+      "y": 738.96
      },
      "size": {
-      "width": 350,
-      "height": 99.05
+      "width": 327.21,
+      "height": 92.89
      },
      "rotation": 13,
      "scale": 1,
@@ -1374,25 +1374,25 @@
      "type": "shape",
      "name": "tally-marks",
      "position": {
-      "x": 85,
-      "y": 880
+      "x": 79.47,
+      "y": 825.24
      },
      "size": {
-      "width": 230,
-      "height": 138
+      "width": 215.02,
+      "height": 129.41
      },
      "rotation": -3,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 6,
+     "strokeWidth": 5.61,
      "opacity": 1,
      "customPath": "M14 10 L11 52 M34 8 L32 50 M54 10 L51 52 M74 8 L72 50 M4 46 L92 12",
      "specialProps": {
       "viewBox": "0 0 100 60",
       "strokeOnly": true,
-      "baseStrokeWidth": 3
+      "baseStrokeWidth": 2.8
      }
     },
     {
@@ -1400,25 +1400,25 @@
      "type": "shape",
      "name": "tally-marks",
      "position": {
-      "x": 90,
-      "y": 1055
+      "x": 84.14,
+      "y": 989.35
      },
      "size": {
-      "width": 230,
-      "height": 138
+      "width": 215.02,
+      "height": 129.41
      },
      "rotation": 2,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 6,
+     "strokeWidth": 5.61,
      "opacity": 1,
      "customPath": "M14 10 L11 52 M34 8 L32 50 M54 10 L51 52 M74 8 L72 50 M4 46 L92 12",
      "specialProps": {
       "viewBox": "0 0 100 60",
       "strokeOnly": true,
-      "baseStrokeWidth": 3
+      "baseStrokeWidth": 2.8
      }
     },
     {
@@ -1426,25 +1426,25 @@
      "type": "shape",
      "name": "tally-marks",
      "position": {
-      "x": 82,
-      "y": 1230
+      "x": 76.66,
+      "y": 1153.45
      },
      "size": {
-      "width": 230,
-      "height": 138
+      "width": 215.02,
+      "height": 129.41
      },
      "rotation": -2,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 6,
+     "strokeWidth": 5.61,
      "opacity": 1,
      "customPath": "M14 10 L11 52 M34 8 L32 50 M54 10 L51 52 M74 8 L72 50 M4 46 L92 12",
      "specialProps": {
       "viewBox": "0 0 100 60",
       "strokeOnly": true,
-      "baseStrokeWidth": 3
+      "baseStrokeWidth": 2.8
      }
     },
     {
@@ -1452,25 +1452,25 @@
      "type": "shape",
      "name": "doodle line",
      "position": {
-      "x": 300,
-      "y": 1310
+      "x": 280.47,
+      "y": 1228.48
      },
      "size": {
-      "width": 130,
-      "height": 210
+      "width": 121.53,
+      "height": 196.93
      },
      "rotation": 55,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 5,
+     "strokeWidth": 4.67,
      "opacity": 1,
      "customPath": "M2 50 H14 M22 50 H34 M42 50 H54 M62 50 H74 M82 50 H94",
      "specialProps": {
       "viewBox": "0 0 100 100",
       "strokeOnly": true,
-      "baseStrokeWidth": 5
+      "baseStrokeWidth": 4.67
      }
     },
     {
@@ -1478,19 +1478,19 @@
      "type": "shape",
      "name": "star",
      "position": {
-      "x": 70,
-      "y": 1445
+      "x": 65.44,
+      "y": 1355.08
      },
      "size": {
-      "width": 165,
-      "height": 165
+      "width": 154.26,
+      "height": 154.73
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFDF6",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1502,19 +1502,19 @@
      "type": "shape",
      "name": "star",
      "position": {
-      "x": 88,
-      "y": 1462
+      "x": 82.27,
+      "y": 1371.02
      },
      "size": {
-      "width": 130,
-      "height": 130
+      "width": 121.53,
+      "height": 121.91
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C99A3C",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1526,19 +1526,19 @@
      "type": "shape",
      "name": "star",
      "position": {
-      "x": 225,
-      "y": 1560
+      "x": 210.35,
+      "y": 1462.92
      },
      "size": {
-      "width": 140,
-      "height": 140
+      "width": 130.88,
+      "height": 131.29
      },
      "rotation": 14,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFDF6",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1550,19 +1550,19 @@
      "type": "shape",
      "name": "star",
      "position": {
-      "x": 240,
-      "y": 1575
+      "x": 224.37,
+      "y": 1476.98
      },
      "size": {
-      "width": 110,
-      "height": 110
+      "width": 102.84,
+      "height": 103.15
      },
      "rotation": 14,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C99A3C",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1574,19 +1574,19 @@
      "type": "shape",
      "name": "star",
      "position": {
-      "x": 60,
-      "y": 1650
+      "x": 56.09,
+      "y": 1547.32
      },
      "size": {
-      "width": 125,
-      "height": 125
+      "width": 116.86,
+      "height": 117.22
      },
      "rotation": -16,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#FFFDF6",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1598,19 +1598,19 @@
      "type": "shape",
      "name": "star",
      "position": {
-      "x": 73,
-      "y": 1663
+      "x": 68.25,
+      "y": 1559.51
      },
      "size": {
-      "width": 98,
-      "height": 98
+      "width": 91.62,
+      "height": 91.9
      },
      "rotation": -16,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C99A3C",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
      "specialProps": {
@@ -1622,19 +1622,19 @@
      "type": "shape",
      "name": "laurel-left",
      "position": {
-      "x": 8,
-      "y": 1840
+      "x": 7.48,
+      "y": 1725.49
      },
      "size": {
-      "width": 190,
-      "height": 255
+      "width": 177.63,
+      "height": 239.13
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C99A3C",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
      "specialProps": {
@@ -1646,19 +1646,19 @@
      "type": "shape",
      "name": "laurel-right",
      "position": {
-      "x": 238,
-      "y": 1840
+      "x": 222.5,
+      "y": 1725.49
      },
      "size": {
-      "width": 190,
-      "height": 255
+      "width": 177.63,
+      "height": 239.13
      },
      "rotation": 0,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#C99A3C",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
      "specialProps": {
@@ -1670,17 +1670,17 @@
      "type": "text",
      "name": "laurel text",
      "position": {
-      "x": 38,
-      "y": 1900
+      "x": 35.53,
+      "y": 1781.76
      },
      "size": {
-      "width": 360,
-      "height": 130
+      "width": 336.56,
+      "height": 121.91
      },
      "rotation": 0,
      "scale": 1,
      "content": "Journal app\nof the year",
-     "fontSize": 12,
+     "fontSize": 11.22,
      "color": "#8A5A1A",
      "fontFamily": "Baloo 2",
      "fontWeight": "700",
@@ -1692,12 +1692,12 @@
      "type": "image",
      "name": "day tab",
      "position": {
-      "x": 115,
-      "y": 2480
+      "x": 107.51,
+      "y": 2325.67
      },
      "size": {
-      "width": 285,
-      "height": 153
+      "width": 266.44,
+      "height": 143.48
      },
      "rotation": -4,
      "scale": 1,
@@ -1711,17 +1711,17 @@
      "type": "text",
      "name": "day-47",
      "position": {
-      "x": 125,
-      "y": 2498
+      "x": 116.86,
+      "y": 2342.55
      },
      "size": {
-      "width": 265,
-      "height": 110
+      "width": 247.74,
+      "height": 103.15
      },
      "rotation": -4,
      "scale": 1,
      "content": "day 47",
-     "fontSize": 16,
+     "fontSize": 14.96,
      "color": "#3B2A1A",
      "fontFamily": "Permanent Marker",
      "fontWeight": "400",
@@ -1733,12 +1733,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": 150,
-      "y": 2438
+      "x": 140.23,
+      "y": 2286.28
      },
      "size": {
-      "width": 220,
-      "height": 62.25999999999999
+      "width": 205.67,
+      "height": 58.39
      },
      "rotation": -12,
      "scale": 1,
@@ -1757,8 +1757,8 @@
     "y": 15
    },
    "size": {
-    "width": 1290,
-    "height": 2796
+    "width": 1206,
+    "height": 2622
    },
    "backgroundColor": "#E4C9A1",
    "zoom": 1,
@@ -1778,8 +1778,8 @@
       "y": 0
      },
      "size": {
-      "width": 1290,
-      "height": 2796
+      "width": 1206,
+      "height": 2622
      },
      "rotation": 0,
      "scale": 1,
@@ -1793,17 +1793,17 @@
      "type": "text",
      "name": "headline",
      "position": {
-      "x": 40,
-      "y": 118
+      "x": 37.4,
+      "y": 110.66
      },
      "size": {
-      "width": 1210,
-      "height": 160
+      "width": 1131.21,
+      "height": 150.04
      },
      "rotation": 0,
      "scale": 1,
      "content": "Look back and smile",
-     "fontSize": 31,
+     "fontSize": 28.98,
      "color": "#3B2A1A",
      "fontFamily": "Calistoga",
      "fontWeight": "400",
@@ -1815,17 +1815,17 @@
      "type": "text",
      "name": "subline",
      "position": {
-      "x": 95,
-      "y": 285
+      "x": 88.81,
+      "y": 267.26
      },
      "size": {
-      "width": 1100,
-      "height": 85
+      "width": 1028.37,
+      "height": 79.71
      },
      "rotation": 0,
      "scale": 1,
      "content": "This day, every year",
-     "fontSize": 13.5,
+     "fontSize": 12.62,
      "color": "#6B4A2A",
      "fontFamily": "Baloo 2",
      "fontWeight": "600",
@@ -1837,17 +1837,17 @@
      "type": "text",
      "name": "marker note",
      "position": {
-      "x": 335,
-      "y": 640
+      "x": 313.19,
+      "y": 600.17
      },
      "size": {
-      "width": 620,
-      "height": 130
+      "width": 579.63,
+      "height": 121.91
      },
      "rotation": -5,
      "scale": 1,
      "content": "remember this??",
-     "fontSize": 22,
+     "fontSize": 20.57,
      "color": "#E4572E",
      "fontFamily": "Permanent Marker",
      "fontWeight": "400",
@@ -1859,19 +1859,19 @@
      "type": "shape",
      "name": "confetti",
      "position": {
-      "x": 45,
-      "y": 660
+      "x": 42.07,
+      "y": 618.93
      },
      "size": {
-      "width": 250,
-      "height": 250
+      "width": 233.72,
+      "height": 234.44
      },
      "rotation": 10,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#DF855B",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M5.82 14.17 L19.68 22.17 L22.18 17.83 L8.32 9.83 ZM39.34 15.09 L54.37 9.61 L52.66 4.91 L37.63 10.39 ZM74.35 11.81 L81.12 26.31 L85.65 24.19 L78.88 9.69 ZM19.46 53.99 L28.64 40.88 L24.54 38.01 L15.36 51.12 ZM49.63 40.34 L65.08 44.49 L66.37 39.66 L50.92 35.51 ZM82.88 54.64 L95.99 45.46 L93.12 41.36 L80.01 50.54 ZM6.91 71.34 L12.39 86.37 L17.09 84.66 L11.61 69.63 ZM34.56 75.85 L50.31 73.07 L49.44 68.15 L33.69 70.93 ZM62.26 78.77 L74.52 89.06 L77.74 85.23 L65.48 74.94 ZM88.17 84.18 L96.17 70.32 L91.83 67.82 L83.83 81.68 ZM28.8 26 A3.2 3.2 0 1 0 35.2 26 A3.2 3.2 0 1 0 28.8 26 ZM62.8 60 A3.2 3.2 0 1 0 69.2 60 A3.2 3.2 0 1 0 62.8 60 ZM46.8 90 A3.2 3.2 0 1 0 53.2 90 A3.2 3.2 0 1 0 46.8 90 ZM82.8 30 A3.2 3.2 0 1 0 89.2 30 A3.2 3.2 0 1 0 82.8 30 ZM6.8 60 A3.2 3.2 0 1 0 13.2 60 A3.2 3.2 0 1 0 6.8 60 Z",
      "specialProps": {
@@ -1883,19 +1883,19 @@
      "type": "shape",
      "name": "confetti",
      "position": {
-      "x": 1010,
-      "y": 620
+      "x": 944.23,
+      "y": 581.42
      },
      "size": {
-      "width": 240,
-      "height": 240
+      "width": 224.37,
+      "height": 225.06
      },
      "rotation": -25,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#B38D57",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M5.82 14.17 L19.68 22.17 L22.18 17.83 L8.32 9.83 ZM39.34 15.09 L54.37 9.61 L52.66 4.91 L37.63 10.39 ZM74.35 11.81 L81.12 26.31 L85.65 24.19 L78.88 9.69 ZM19.46 53.99 L28.64 40.88 L24.54 38.01 L15.36 51.12 ZM49.63 40.34 L65.08 44.49 L66.37 39.66 L50.92 35.51 ZM82.88 54.64 L95.99 45.46 L93.12 41.36 L80.01 50.54 ZM6.91 71.34 L12.39 86.37 L17.09 84.66 L11.61 69.63 ZM34.56 75.85 L50.31 73.07 L49.44 68.15 L33.69 70.93 ZM62.26 78.77 L74.52 89.06 L77.74 85.23 L65.48 74.94 ZM88.17 84.18 L96.17 70.32 L91.83 67.82 L83.83 81.68 ZM28.8 26 A3.2 3.2 0 1 0 35.2 26 A3.2 3.2 0 1 0 28.8 26 ZM62.8 60 A3.2 3.2 0 1 0 69.2 60 A3.2 3.2 0 1 0 62.8 60 ZM46.8 90 A3.2 3.2 0 1 0 53.2 90 A3.2 3.2 0 1 0 46.8 90 ZM82.8 30 A3.2 3.2 0 1 0 89.2 30 A3.2 3.2 0 1 0 82.8 30 ZM6.8 60 A3.2 3.2 0 1 0 13.2 60 A3.2 3.2 0 1 0 6.8 60 Z",
      "specialProps": {
@@ -1907,19 +1907,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 120,
-      "y": 960
+      "x": 112.19,
+      "y": 900.26
      },
      "size": {
-      "width": 85,
-      "height": 85
+      "width": 79.47,
+      "height": 79.71
      },
      "rotation": 12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E4572E",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1931,19 +1931,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 1135,
-      "y": 940
+      "x": 1061.09,
+      "y": 881.5
      },
      "size": {
-      "width": 75,
-      "height": 75
+      "width": 70.12,
+      "height": 70.33
      },
      "rotation": -8,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -1955,12 +1955,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": -48.75,
-      "y": 1089.4
+      "x": -45.58,
+      "y": 1021.6
      },
      "size": {
-      "width": 637.5,
-      "height": 1122
+      "width": 595.99,
+      "height": 1052.18
      },
      "rotation": -10,
      "scale": 1,
@@ -1974,12 +1974,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": 701.25,
-      "y": 1089.4
+      "x": 655.59,
+      "y": 1021.6
      },
      "size": {
-      "width": 637.5,
-      "height": 1122
+      "width": 595.99,
+      "height": 1052.18
      },
      "rotation": 10,
      "scale": 1,
@@ -1993,12 +1993,12 @@
      "type": "image",
      "name": "paper shadow",
      "position": {
-      "x": 326.25,
-      "y": 959.4
+      "x": 305.01,
+      "y": 899.69
      },
      "size": {
-      "width": 637.5,
-      "height": 1122
+      "width": 595.99,
+      "height": 1052.18
      },
      "rotation": 2,
      "scale": 1,
@@ -2012,12 +2012,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 15,
-      "y": 1120
+      "x": 14.02,
+      "y": 1050.3
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": -10,
      "scale": 0.85,
@@ -2040,12 +2040,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 765,
-      "y": 1120
+      "x": 715.19,
+      "y": 1050.3
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 10,
      "scale": 0.85,
@@ -2068,12 +2068,12 @@
      "type": "device",
      "name": "Phone",
      "position": {
-      "x": 390,
-      "y": 990
+      "x": 364.6,
+      "y": 928.39
      },
      "size": {
-      "width": 600,
-      "height": 1200
+      "width": 560.93,
+      "height": 1125.32
      },
      "rotation": 2,
      "scale": 0.85,
@@ -2096,12 +2096,12 @@
      "type": "image",
      "name": "tab 2024",
      "position": {
-      "x": 145,
-      "y": 1032
+      "x": 135.56,
+      "y": 967.78
      },
      "size": {
-      "width": 240,
-      "height": 129
+      "width": 224.37,
+      "height": 120.97
      },
      "rotation": -10,
      "scale": 1,
@@ -2115,17 +2115,17 @@
      "type": "text",
      "name": "year-2024",
      "position": {
-      "x": 145,
-      "y": 1042
+      "x": 135.56,
+      "y": 977.15
      },
      "size": {
-      "width": 240,
-      "height": 108
+      "width": 224.37,
+      "height": 101.28
      },
      "rotation": -10,
      "scale": 1,
      "content": "2024",
-     "fontSize": 17,
+     "fontSize": 15.89,
      "color": "#3B2A1A",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -2137,12 +2137,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": 175,
-      "y": 1002
+      "x": 163.6,
+      "y": 939.64
      },
      "size": {
-      "width": 210,
-      "height": 59.42999999999999
+      "width": 196.33,
+      "height": 55.73
      },
      "rotation": -18,
      "scale": 1,
@@ -2156,12 +2156,12 @@
      "type": "image",
      "name": "tab 2025",
      "position": {
-      "x": 525,
-      "y": 892
+      "x": 490.81,
+      "y": 836.49
      },
      "size": {
-      "width": 240,
-      "height": 129
+      "width": 224.37,
+      "height": 120.97
      },
      "rotation": 3,
      "scale": 1,
@@ -2175,17 +2175,17 @@
      "type": "text",
      "name": "year-2025",
      "position": {
-      "x": 525,
-      "y": 902
+      "x": 490.81,
+      "y": 845.87
      },
      "size": {
-      "width": 240,
-      "height": 108
+      "width": 224.37,
+      "height": 101.28
      },
      "rotation": 3,
      "scale": 1,
      "content": "2025",
-     "fontSize": 17,
+     "fontSize": 15.89,
      "color": "#3B2A1A",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -2197,12 +2197,12 @@
      "type": "image",
      "name": "washi straw",
      "position": {
-      "x": 555,
-      "y": 862
+      "x": 518.86,
+      "y": 808.36
      },
      "size": {
-      "width": 210,
-      "height": 59.42999999999999
+      "width": 196.33,
+      "height": 55.73
      },
      "rotation": 8,
      "scale": 1,
@@ -2216,12 +2216,12 @@
      "type": "image",
      "name": "tab 2026",
      "position": {
-      "x": 900,
-      "y": 1032
+      "x": 841.4,
+      "y": 967.78
      },
      "size": {
-      "width": 240,
-      "height": 129
+      "width": 224.37,
+      "height": 120.97
      },
      "rotation": 10,
      "scale": 1,
@@ -2235,17 +2235,17 @@
      "type": "text",
      "name": "year-2026",
      "position": {
-      "x": 900,
-      "y": 1042
+      "x": 841.4,
+      "y": 977.15
      },
      "size": {
-      "width": 240,
-      "height": 108
+      "width": 224.37,
+      "height": 101.28
      },
      "rotation": 10,
      "scale": 1,
      "content": "2026",
-     "fontSize": 17,
+     "fontSize": 15.89,
      "color": "#3B2A1A",
      "fontFamily": "Caveat",
      "fontWeight": "700",
@@ -2257,12 +2257,12 @@
      "type": "image",
      "name": "washi mint",
      "position": {
-      "x": 930,
-      "y": 1002
+      "x": 869.44,
+      "y": 939.64
      },
      "size": {
-      "width": 210,
-      "height": 59.42999999999999
+      "width": 196.33,
+      "height": 55.73
      },
      "rotation": 16,
      "scale": 1,
@@ -2276,12 +2276,12 @@
      "type": "image",
      "name": "scrap",
      "position": {
-      "x": -45,
-      "y": 2590
+      "x": -42.07,
+      "y": 2428.82
      },
      "size": {
-      "width": 380,
-      "height": 271
+      "width": 355.26,
+      "height": 254.14
      },
      "rotation": 9,
      "scale": 1,
@@ -2295,12 +2295,12 @@
      "type": "image",
      "name": "pressed flower",
      "position": {
-      "x": 1000,
-      "y": 2450
+      "x": 934.88,
+      "y": 2297.53
      },
      "size": {
-      "width": 265,
-      "height": 265
+      "width": 247.74,
+      "height": 248.51
      },
      "rotation": 14,
      "scale": 1,
@@ -2314,19 +2314,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 90,
-      "y": 2430
+      "x": 84.14,
+      "y": 2278.78
      },
      "size": {
-      "width": 80,
-      "height": 80
+      "width": 74.79,
+      "height": 75.02
      },
      "rotation": 18,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#3B2A1A",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {
@@ -2338,19 +2338,19 @@
      "type": "shape",
      "name": "sparkle",
      "position": {
-      "x": 1180,
-      "y": 2300
+      "x": 1103.16,
+      "y": 2156.87
      },
      "size": {
-      "width": 70,
-      "height": 70
+      "width": 65.44,
+      "height": 65.64
      },
      "rotation": -12,
      "scale": 1,
      "shapeType": "custom-svg",
      "fillColor": "#E4572E",
      "strokeColor": "transparent",
-     "strokeWidth": 4,
+     "strokeWidth": 3.74,
      "opacity": 1,
      "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
      "specialProps": {

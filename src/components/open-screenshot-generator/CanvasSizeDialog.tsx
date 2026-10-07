@@ -22,6 +22,7 @@ import {
   CANVAS_SIZE_PRESET_GROUPS,
   CANVAS_SIZE_MIN,
   CANVAS_SIZE_MAX,
+  DEFAULT_CANVAS_SIZE,
   ALL_CANVAS_SIZE_PRESETS,
   findMatchingPreset,
   isValidCanvasSize,
@@ -86,8 +87,8 @@ export function CanvasSizeDialog({
     if (!isOpen) return;
     const cs = currentSizeRef.current;
     const match = findMatchingPreset(cs);
-    setWidth(String(cs?.width ?? 1290));
-    setHeight(String(cs?.height ?? 2796));
+    setWidth(String(cs?.width ?? DEFAULT_CANVAS_SIZE.width));
+    setHeight(String(cs?.height ?? DEFAULT_CANVAS_SIZE.height));
     setSelectedId(match ? match.id : CUSTOM_ID);
     setScaleContent(true);
   }, [isOpen]);
