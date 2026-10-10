@@ -9,7 +9,7 @@
 // read and written by the store (store.ts) and nothing else.
 
 import { clipText } from '@/lib/clipText';
-import type { AgentFolder, AgentItem } from './types';
+import type { AgentContextUsage, AgentFolder, AgentItem } from './types';
 
 export interface AgentChatRecord {
   /** Made with the chat's first message. Claude Code's own id comes later. */
@@ -40,6 +40,11 @@ export interface AgentChatRecord {
   readFolders?: boolean;
   /** The folder paths the chat's last turn ran with. Null before its first turn, missing from older chats. */
   ranFolders?: string[] | null;
+  /**
+   * The chat's last context reading, so its ring is back when it is opened
+   * again. Not indexed, like the folders. Missing from older chats.
+   */
+  context?: AgentContextUsage | null;
 }
 
 export type AgentChatSummary = Omit<AgentChatRecord, 'items'>;

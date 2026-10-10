@@ -170,6 +170,14 @@ asks for no key and no login. It is not a plan mode:
   tab's options menu. Effort is Max unless they pick another, because a better design is worth
   the extra time and plan usage. A new model or effort applies from the next message, which
   restarts the process on the same conversation.
+- A ring beside **Send** always shows how full the model's context window is. It counts what
+  Claude Code reports for the latest model call: the whole prompt plus the output, thinking
+  included, since the next call carries all of it. The window is the one Claude Code reports for
+  the model (1M tokens for Opus 5.5, 200k for Haiku 4.5): Claude Code 2.1.285 and later is asked
+  as soon as its process starts, so the ring is right before the first reply; an older one says
+  at the end of a turn, and until then the ring shows the token count. The ring turns amber at
+  75% and red at 90%. Near the limit Claude Code summarizes the chat so far: the transcript says
+  so, and the ring comes back lower once Claude Code has measured what is left.
 
 What the model is told:
 

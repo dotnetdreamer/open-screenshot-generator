@@ -8,3 +8,4 @@
 {"type":"user","message":{"role":"user","content":[{"type":"text","text":"Brief\n\n/help"}]},"parent_tool_use_id":null,"session_id":""}
 {"type":"user","message":{"role":"user","content":[{"type":"text","text":"Use these、@a.png and　@b.png。@c.png"}]},"parent_tool_use_id":null,"session_id":""}
 {"type":"control_request","request_id":"stop-mg7x1k2q","request":{"subtype":"interrupt"}}
+{"type":"control_request","request_id":"context-mg7x1k2q","request":{"subtype":"get_context_usage"}}

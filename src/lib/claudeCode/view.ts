@@ -10,6 +10,7 @@ import { clipText } from '@/lib/clipText';
 import { chatListItems, type AgentChatListItem } from './chats';
 import { MAX_FOLDER_PATH, folderLabels } from './folders';
 import type {
+  AgentContextUsage,
   AgentDetectionState,
   AgentItem,
   AgentLastTurn,
@@ -37,6 +38,8 @@ export interface AgentPanelView {
   rateLimit: AgentRateLimit | null;
   lastTurn: AgentLastTurn | null;
   turnStartedAt: number | null;
+  /** How full the context window is, for the ring beside Send. Null until there is a reading. */
+  context: AgentContextUsage | null;
   /** Whether there is a conversation to carry on, even with no process running. */
   resumable: boolean;
   /** What the next message is about, for the chip above the input: "Headline". */
@@ -101,6 +104,7 @@ export function toAgentPanelView(
     rateLimit: session.rateLimit,
     lastTurn: session.lastTurn,
     turnStartedAt: session.turnStartedAt,
+    context: session.context,
     resumable: !!session.sessionId,
     contextLabel,
     chats: chatListItems(agent.chats, agent.chat.id, project.nameOf),

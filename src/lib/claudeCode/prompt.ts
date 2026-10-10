@@ -42,6 +42,17 @@ export function encodeInterrupt(requestId: string): string {
   return JSON.stringify({ type: 'control_request', request_id: requestId, request: { subtype: 'interrupt' } });
 }
 
+/**
+ * Ask Claude Code how full its context window is. It answers at once, even
+ * before the first message and in the middle of a turn, with a
+ * control_response holding the window (`rawMaxTokens`), the last call's usage
+ * (`apiUsage`) and its own estimate (`totalTokens`). Nothing is added to the
+ * conversation, unlike the /context command.
+ */
+export function encodeContextUsageRequest(requestId: string): string {
+  return JSON.stringify({ type: 'control_request', request_id: requestId, request: { subtype: 'get_context_usage' } });
+}
+
 const MAX_CONTEXT_ARTBOARDS = 30;
 const MAX_CONTEXT_SELECTION = 10;
 const MAX_SELECTION_TEXT = 160;

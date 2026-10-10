@@ -38,7 +38,14 @@ import {
   reduceStreamMessage,
   stripToolPrefix,
 } from './streamReducer';
-import { composeTurnText, encodeInterrupt, encodeUserMessage } from './prompt';
+import { composeTurnText, encodeContextUsageRequest, encodeInterrupt, encodeUserMessage } from './prompt';
+import {
+  CONTEXT_REQUEST_PREFIX,
+  answersContextQuestions,
+  learnContextWindow,
+  sanitizeContextUsage,
+  sanitizeContextWindows,
+} from './contextUsage';
 import {
   FOLDER_CAP_NOTICE,
   FOLDER_PICKER_OPEN,
@@ -61,6 +68,7 @@ import {
   CLAUDE_EFFORT_CHOICES,
   DEFAULT_CLAUDE_EFFORT,
   INITIAL_AGENT_STATE,
+  type AgentContextUsage,
   type AgentDetectionState,
   type AgentEditorContext,
   type AgentFolder,
@@ -160,6 +168,8 @@ const STORAGE_KEY = 'osg-claude-agent-v1';
 const MODEL_KEY = 'osg-claude-agent-model';
 const EFFORT_KEY = 'osg-claude-agent-effort';
 const PANEL_KEY = 'osg-claude-agent-panel';
+/** The context window each model reported, so a new chat's ring shows from its first call. */
+const WINDOWS_KEY = 'osg-claude-agent-windows';
 /** Items kept across a reload. The rest of a long chat is still in Claude Code's own file. */
 const PERSIST_ITEMS = 150;
 const PERSIST_RESULT_CHARS = 300;
@@ -242,6 +252,8 @@ let chatsLoaded: Promise<void> = Promise.resolve();
 let adopted: Promise<void> = Promise.resolve();
 /** Bumped by every followProject, so an older one that is still reading gives way. */
 let followToken = 0;
+/** Context windows by model id, learned from the results of earlier turns (WINDOWS_KEY). */
+let contextWindows: Record<string, number> = {};
 
 function readPageEpoch(t: ClaudeTransport): Promise<number | undefined> {
   // Without it Rust judges by when the start arrives, which is still right
@@ -368,6 +380,26 @@ function writeStorage(key: string, value: string | null): void {
   }
 }
 
+/** Remember the window a reading reports, for the next chat on its model. */
+function learnWindow(context: AgentContextUsage | null): void {
+  const next = learnContextWindow(contextWindows, context);
+  if (next === contextWindows) return;
+  contextWindows = next;
+  writeStorage(WINDOWS_KEY, JSON.stringify(next));
+}
+
+/**
+ * Ask the process how full its context window is. The answer is a
+ * control_response the reducer reads, so the ring has Claude Code's own
+ * window and count before the first call and right after a summary, rather
+ * than at the end of a turn. Only a Claude Code known to answer is asked.
+ */
+async function askContextUsage(t: ClaudeTransport, id: string): Promise<void> {
+  if (!answersContextQuestions(snapshot.detection.result?.version)) return;
+  const line = encodeContextUsageRequest(`${CONTEXT_REQUEST_PREFIX}${Date.now().toString(36)}`);
+  await t.send(id, line).catch(() => {});
+}
+
 /** What survives a reload: enough to show the chat and resume it, no pictures. */
 function slimForStorage(items: AgentItem[]): AgentItem[] {
   return items.slice(-PERSIST_ITEMS).map((item) => {
@@ -395,6 +427,8 @@ interface Persisted {
   items: AgentItem[];
   /** Which saved chat this is. Missing in saves from before Past chats. */
   chat?: AgentChatMeta;
+  /** The last context reading, for the ring. Missing in older saves. */
+  context?: AgentContextUsage | null;
 }
 
 function schedulePersist(): void {
@@ -420,6 +454,7 @@ function schedulePersist(): void {
       processFolders,
       items: slimForStorage(session.items),
       chat,
+      context: session.context,
     };
     writeStorage(STORAGE_KEY, JSON.stringify(persisted));
     void saveChat();
@@ -449,6 +484,7 @@ function saveChat(): Promise<void> {
     folders: chat.folders,
     readFolders: chat.readFolders,
     ranFolders: chat.ranFolders,
+    context: session.context,
   };
   setChats(upsertChatSummary(snapshot.chats, toChatSummary(record)));
   return db.agentChats
@@ -492,6 +528,11 @@ function hydrate(): void {
   const storedEffort = readStorage(EFFORT_KEY) as ClaudeEffortChoice | null;
   const effort = storedEffort && EFFORTS.includes(storedEffort) ? storedEffort : DEFAULT_CLAUDE_EFFORT;
   const panelEnabled = readStorage(PANEL_KEY) === '1';
+  try {
+    contextWindows = sanitizeContextWindows(JSON.parse(readStorage(WINDOWS_KEY) ?? 'null'));
+  } catch {
+    contextWindows = {};
+  }
 
   let persisted: Persisted | null = null;
   try {
@@ -511,6 +552,7 @@ function hydrate(): void {
         // below puts it back if the process outlived the reload.
         items: markExited({ ...INITIAL_AGENT_STATE, status: 'stopped', items: persisted.items }, Date.now()).items,
         status: persisted.sessionId || persisted.items.length ? 'stopped' : 'idle',
+        context: sanitizeContextUsage(persisted.context),
       }
     : INITIAL_AGENT_STATE;
 
@@ -774,7 +816,8 @@ function onEvent(event: ClaudeTransportEvent): void {
     }
     recordStream(message);
     const isResult = isObject(message) && message.type === 'result';
-    const next = reduceStreamMessage(snapshot.session, message, now, { folders: snapshot.chat.folders });
+    const next = reduceStreamMessage(snapshot.session, message, now, { folders: snapshot.chat.folders, contextWindows });
+    learnWindow(next.context);
     if (isResult && isObject(message)) {
       clearInterruptTimer();
       const stopped = /^abort|interrupt/i.test(String(message.terminal_reason ?? ''));
@@ -786,7 +829,7 @@ function onEvent(event: ClaudeTransportEvent): void {
         if (stopRequested) {
           // Stopped while the missing conversation was being looked for.
           // Nothing ran, and the next message starts a fresh one.
-          setSession({ ...snapshot.session, sessionId: null }, { immediate: true });
+          setSession({ ...snapshot.session, sessionId: null, context: null }, { immediate: true });
           stoppedBeforeSending();
           return;
         }
@@ -801,6 +844,12 @@ function onEvent(event: ClaudeTransportEvent): void {
       lastTurn = null;
     }
     setSession(next, { immediate: isResult });
+    // A summary leaves the count unknown until the next call; Claude Code's
+    // estimate of what is left fills the gap at once.
+    const t = getTransport();
+    if (t && isObject(message) && message.type === 'system' && message.subtype === 'compact_boundary') {
+      void askContextUsage(t, event.spawnId);
+    }
     return;
   }
 
@@ -846,7 +895,8 @@ async function retryWithoutResume(): Promise<void> {
   const now = Date.now();
   setSession(
     appendNotice(
-      { ...snapshot.session, sessionId: null },
+      // The reading was of the conversation that is gone.
+      { ...snapshot.session, sessionId: null, context: null },
       { id: `notice-fresh-${now}`, tone: 'info', text: 'The earlier conversation was gone, so this is a new one' },
       now
     ),
@@ -934,6 +984,9 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
   if (processFolders.length) markReadFolders();
   if (missing.size) dropMissingFolders(missing);
   else refreshFolderFlags();
+  // Asked before the turn's message goes out, so the message is the last line
+  // Rust's duplicate check compares an IPC retry with.
+  await askContextUsage(t, id);
   return id;
 }
 
@@ -1170,6 +1223,7 @@ async function openChat(id: string): Promise<boolean> {
         model: record.model,
         items,
         status: record.sessionId || items.length ? 'stopped' : 'idle',
+        context: sanitizeContextUsage(record.context),
       },
       chat: {
         id: record.id,

@@ -216,6 +216,28 @@ export interface AgentRateLimit {
   type: string | null;
 }
 
+/**
+ * How much of the model's context window the conversation takes up, from the
+ * token counts Claude Code prints (contextUsage.ts reads them).
+ */
+export interface AgentContextUsage {
+  /**
+   * The latest model call's prompt (input, cache reads and cache writes) plus
+   * what it wrote, thinking included, since the next call carries all of it.
+   * Null after Claude Code summarized the conversation, until the next call
+   * measures what is left.
+   */
+  used: number | null;
+  /**
+   * What Claude Code says the model holds. It differs by model (1M for Opus
+   * 5.5, 200k for Haiku 4.5 on Claude Code 2.1.285), so it is never assumed.
+   * Null until a turn on this model has ended, unless an earlier one taught it.
+   */
+  window: number | null;
+  /** The model `used` and `window` describe. */
+  model: string | null;
+}
+
 export interface AgentSessionState {
   status: AgentStatus;
   /** Claude Code's conversation id, from `system/init`. What --resume takes. */
@@ -232,6 +254,8 @@ export interface AgentSessionState {
   /** `system/init` reported an API key rather than the subscription login. */
   billedToApiKey: boolean;
   rateLimit: AgentRateLimit | null;
+  /** Null until the conversation's first model call. */
+  context: AgentContextUsage | null;
 }
 
 export const INITIAL_AGENT_STATE: AgentSessionState = {
@@ -245,6 +269,7 @@ export const INITIAL_AGENT_STATE: AgentSessionState = {
   toolsConnected: null,
   billedToApiKey: false,
   rateLimit: null,
+  context: null,
 };
 
 export interface AgentDetectionState {

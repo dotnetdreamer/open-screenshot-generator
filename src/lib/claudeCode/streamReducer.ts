@@ -12,10 +12,12 @@
 //   ...
 //   {"type":"result","subtype":"success","is_error":false,"result":..,"duration_ms":..}
 // Each content block arrives as its own assistant message. `init` is repeated
-// at the start of every turn.
+// at the start of every turn. The token counts on the assistant lines and the
+// result give the context ring its reading (contextUsage.ts says which ones).
 
+import { CONTEXT_REQUEST_PREFIX, contextWindowOf, lastCallTokens, reportedContext, usageTokens } from './contextUsage';
 import { toolDetail } from './toolLabels';
-import type { AgentFolder, AgentItem, AgentSessionState } from './types';
+import type { AgentContextUsage, AgentFolder, AgentItem, AgentSessionState } from './types';
 
 /** Longest tool answer kept in the transcript. The panel shows a line of it. */
 const MAX_RESULT_CHARS = 1200;
@@ -33,10 +35,20 @@ export function keepsToolImage(name: string): boolean {
   return !CLAUDE_CODE_TOOLS.has(name);
 }
 
-/** What folding needs to know beyond the stream: the chat's code folders, for how a file path reads. */
+/** What folding needs to know beyond the stream. */
 export interface ReduceOptions {
+  /** The chat's code folders, for how a file path reads. */
   folders?: readonly AgentFolder[];
+  /**
+   * Context windows learned from earlier turns, by model id. Only a `result`
+   * says how big a model's window is, and a new chat's first calls come
+   * before its first one.
+   */
+  contextWindows?: Readonly<Record<string, number>>;
 }
+
+/** The notice for a compact_boundary, which shrinks the context. */
+export const COMPACTED_NOTICE = 'Claude Code summarized the chat so far to free up context';
 
 /** A transcript longer than this drops its oldest items. */
 export const MAX_ITEMS = 400;
@@ -93,6 +105,40 @@ function toolResultText(content: unknown, withImage: boolean): { text: string; i
 
 function clip(text: string, max = MAX_RESULT_CHARS): string {
   return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+/**
+ * The context as one main-thread model call measured it, or `context` as it
+ * was when the line says nothing about it. Every content block of a call is a
+ * line of its own with the same usage, so the repeats change nothing.
+ */
+function measuredContext(
+  context: AgentContextUsage | null,
+  message: Json | null,
+  options: ReduceOptions
+): AgentContextUsage | null {
+  const model = str(message?.model);
+  if (!model || model === '<synthetic>') return context;
+  const used = usageTokens(message?.usage);
+  if (used === null) return context;
+  const window = (model === context?.model ? context.window : null) ?? options.contextWindows?.[model] ?? null;
+  if (context?.used === used && context.window === window && context.model === model) return context;
+  return { used, window, model };
+}
+
+/**
+ * The context at the end of a turn: the last call with its final output, and
+ * the model's window. An interrupted turn reports neither, and keeps what its
+ * assistant lines measured.
+ */
+function finalContext(state: AgentSessionState, msg: Json): AgentContextUsage | null {
+  const { context } = state;
+  const model = context?.model ?? state.model;
+  const used = lastCallTokens(msg.usage) ?? context?.used ?? null;
+  const window = contextWindowOf(msg.modelUsage, model) ?? context?.window ?? null;
+  if (used === null && window === null) return context;
+  if (context?.used === used && context.window === window && context.model === model) return context;
+  return { used, window, model };
 }
 
 const SIGN_IN_MESSAGE = 'Claude Code is not signed in. Run claude in a terminal, sign in, then send your message again';
@@ -195,7 +241,28 @@ export function reduceStreamMessage(
         ]),
       };
     }
+    if (subtype === 'compact_boundary') {
+      // Claude Code replaced the earlier messages with a summary. What is left
+      // is unknown until the next call measures it: compact_metadata's
+      // post_tokens counts the messages but not the system prompt or tools.
+      const id = `notice-compact-${str(msg.uuid) ?? now}`;
+      if (state.items.some((item) => item.id === id)) return state;
+      return {
+        ...state,
+        context: state.context ? { ...state.context, used: null } : null,
+        items: trimItems([...state.items, { kind: 'notice', id, tone: 'info', text: COMPACTED_NOTICE, at: now }]),
+      };
+    }
     return state;
+  }
+
+  if (type === 'control_response') {
+    // The answer to a context question the store asked. An interrupt's
+    // answer, or an error, says nothing about the context.
+    const response = isObject(msg.response) ? msg.response : null;
+    if (response?.subtype !== 'success' || !str(response.request_id)?.startsWith(CONTEXT_REQUEST_PREFIX)) return state;
+    const context = reportedContext(state.context, response.response);
+    return context === state.context ? state : { ...state, context };
   }
 
   if (type === 'rate_limit_event') {
@@ -247,8 +314,9 @@ export function reduceStreamMessage(
         ];
       }
     });
-    if (items === state.items) return state;
-    return { ...state, items: trimItems(items) };
+    const context = measuredContext(state.context, message, options);
+    if (items === state.items && context === state.context) return state;
+    return { ...state, items: items === state.items ? items : trimItems(items), context };
   }
 
   if (type === 'user') {
@@ -299,6 +367,7 @@ export function reduceStreamMessage(
         costUsd: num(msg.total_cost_usd),
       },
       items,
+      context: finalContext(state, msg),
     };
     if (stopped) {
       next.items = trimItems([

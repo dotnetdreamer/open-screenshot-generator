@@ -32,8 +32,9 @@
 //! plan. The system prompt and the skills are compiled into the app from
 //! src-tauri/claude-agent/. The frontend picks the model, the effort level, the
 //! conversation to resume and which picked folders to grant, and stdin takes a user message,
-//! its `@` mentions defused, or an interrupt and nothing else, so nothing the
-//! page sends changes what Claude Code loads.
+//! its `@` mentions defused, an interrupt or a question about the context
+//! window and nothing else, so nothing the page sends changes what Claude Code
+//! loads.
 
 use std::collections::{HashMap, VecDeque};
 use std::io::{BufRead, BufReader, Read, Write};
@@ -1248,12 +1249,16 @@ fn ends_turn(line: &str) -> bool {
         && serde_json::from_str::<Value>(line).is_ok_and(|value| value.get("type").and_then(Value::as_str) == Some("result"))
 }
 
-/// The two kinds of line abs_claude_send passes on.
+/// The three kinds of line abs_claude_send passes on.
 #[derive(Debug, PartialEq, Eq)]
 enum StdinLine {
     /// A user message, which starts a turn.
     Turn,
     Interrupt,
+    /// `get_context_usage`, which Claude Code answers with a control_response
+    /// giving the context window's size and fill. It reads and changes
+    /// nothing, and it adds nothing to the conversation.
+    ContextUsage,
 }
 
 /// A stdin line abs_claude_send takes, and what it writes in its place.
@@ -1280,9 +1285,10 @@ fn has_exactly(map: &Map<String, Value>, keys: &[&str]) -> bool {
 /// adds a folder and turns hooks back on (verified live), `mcp_set_servers`
 /// starts a stdio server past `--strict-mcp-config`, and a text block that
 /// starts with `/` runs as a slash command, where `/config` rewrites the
-/// user's own ~/.claude/settings.json. So only the two shapes prompt.ts writes
-/// get through, key for key, and a line that does not parse is refused. The
-/// size is checked before anything is parsed.
+/// user's own ~/.claude/settings.json. So only the shapes prompt.ts writes
+/// get through, key for key: a user message, an interrupt and a context
+/// question. A line that does not parse is refused. The size is checked
+/// before anything is parsed.
 fn check_stdin_line(line: &str) -> Result<CheckedLine, &'static str> {
     if line.len() > MAX_STDIN_LINE {
         return Err(LINE_TOO_LONG);
@@ -1292,7 +1298,7 @@ fn check_stdin_line(line: &str) -> Result<CheckedLine, &'static str> {
     };
     let kind = match top.get("type").and_then(Value::as_str) {
         Some("user") => check_user_message(&mut top).map(|()| StdinLine::Turn)?,
-        Some("control_request") => check_interrupt(&top).map(|()| StdinLine::Interrupt)?,
+        Some("control_request") => check_control_request(&top)?,
         _ => return Err(LINE_REFUSED),
     };
     let line = serde_json::to_string(&Value::Object(top)).map_err(|_| LINE_REFUSED)?;
@@ -1389,17 +1395,19 @@ fn check_user_message(top: &mut Map<String, Value>) -> Result<(), &'static str> 
     Ok(())
 }
 
-/// `{"type":"control_request","request_id":"...","request":{"subtype":"interrupt"}}`.
-fn check_interrupt(top: &Map<String, Value>) -> Result<(), &'static str> {
+/// `{"type":"control_request","request_id":"...","request":{"subtype":"interrupt"}}`,
+/// or the same asking `get_context_usage`. Every other subtype is refused,
+/// and so is either of these with any other key.
+fn check_control_request(top: &Map<String, Value>) -> Result<StdinLine, &'static str> {
     let shaped = has_exactly(top, &["type", "request_id", "request"]) && top["request_id"].is_string();
-    let interrupt = matches!(
-        top.get("request"),
-        Some(Value::Object(request)) if has_exactly(request, &["subtype"]) && request["subtype"] == "interrupt"
-    );
-    if shaped && interrupt {
-        Ok(())
-    } else {
-        Err(LINE_REFUSED)
+    let subtype = match top.get("request") {
+        Some(Value::Object(request)) if has_exactly(request, &["subtype"]) => request["subtype"].as_str(),
+        _ => None,
+    };
+    match subtype {
+        Some("interrupt") if shaped => Ok(StdinLine::Interrupt),
+        Some("get_context_usage") if shaped => Ok(StdinLine::ContextUsage),
+        _ => Err(LINE_REFUSED),
     }
 }
 
@@ -1817,7 +1825,8 @@ fn spawn_session<R: Runtime>(
 }
 
 /// Queue one stream-json message (a single line of JSON) for the process: a
-/// user message or an interrupt, and nothing else. What goes to the process
+/// user message, an interrupt or a context question, and nothing else. Only a
+/// user message makes the process busy. What goes to the process
 /// is the line check_stdin_line writes back, not the page's own. Returns at
 /// once: the writer thread does the IO, and a process that dies before
 /// reading it reports why through its exit event.
@@ -2054,6 +2063,8 @@ mod tests {
         assert_eq!(kind_of(reordered), Ok(StdinLine::Turn));
         let interrupt = r#"{"type":"control_request","request_id":"x","request":{"subtype":"interrupt"}}"#;
         assert_eq!(kind_of(interrupt), Ok(StdinLine::Interrupt));
+        let usage = r#"{"type":"control_request","request_id":"x","request":{"subtype":"get_context_usage"}}"#;
+        assert_eq!(kind_of(usage), Ok(StdinLine::ContextUsage));
         assert!(ends_turn(r#"{"type":"result","subtype":"success","is_error":false}"#));
         // What Claude Code 2.1.285 prints.
         assert!(ends_turn(r#"{"duration_api_ms":2391,"stop_reason":"end_turn","session_id":"s","is_error":false,"type":"result","subtype":"success"}"#));
@@ -2201,7 +2212,7 @@ mod tests {
     }
 
     #[test]
-    fn stdin_takes_messages_and_interrupts_only() {
+    fn stdin_takes_messages_interrupts_and_context_questions_only() {
         // What the page sends: the text first, then any pictures.
         let text = user_line(json!([{ "type": "text", "text": "<editor-context>\n{}\n</editor-context>\n\nMake it blue" }]));
         assert_eq!(kind_of(&text), Ok(StdinLine::Turn));
@@ -2216,8 +2227,10 @@ mod tests {
         assert_eq!(kind_of(exact), Ok(StdinLine::Turn));
         let interrupt = r#"{"type":"control_request","request_id":"interrupt-1727600000000","request":{"subtype":"interrupt"}}"#;
         assert_eq!(kind_of(interrupt), Ok(StdinLine::Interrupt));
+        let usage = r#"{"type":"control_request","request_id":"context-mg7x1k2q","request":{"subtype":"get_context_usage"}}"#;
+        assert_eq!(kind_of(usage), Ok(StdinLine::ContextUsage));
         // What goes to the process says the same as what came in.
-        for line in [&text, &pictures, &exact.to_string(), &interrupt.to_string()] {
+        for line in [&text, &pictures, &exact.to_string(), &interrupt.to_string(), &usage.to_string()] {
             let written = check_stdin_line(line).unwrap().line;
             assert_eq!(serde_json::from_str::<Value>(&written).unwrap(), serde_json::from_str::<Value>(line).unwrap());
             assert!(!written.contains('\n'), "one line");
@@ -2231,6 +2244,12 @@ mod tests {
             json!({ "type": "control_request", "request_id": "x", "request": { "subtype": "interrupt", "extra": 1 } }).to_string(),
             json!({ "type": "control_request", "request_id": 7, "request": { "subtype": "interrupt" } }).to_string(),
             json!({ "type": "control_request", "request_id": "x", "request": { "subtype": "interrupt" }, "more": true }).to_string(),
+            // The context question takes nothing but its subtype either.
+            json!({ "type": "control_request", "request_id": "x", "request": { "subtype": "get_context_usage", "model": "x" } }).to_string(),
+            json!({ "type": "control_request", "request_id": 7, "request": { "subtype": "get_context_usage" } }).to_string(),
+            json!({ "type": "control_request", "request_id": "x", "request": { "subtype": "get_context_usage" }, "more": true }).to_string(),
+            // Other reads are not on the list: the settings name paths and the account.
+            json!({ "type": "control_request", "request_id": "x", "request": { "subtype": "get_settings" } }).to_string(),
             json!({ "type": "update_environment_variables", "variables": { "CLAUDE_CODE_OAUTH_TOKEN": "x" } }).to_string(),
             // A slash command on its own, last, or after whitespace.
             json!({ "type": "user", "message": { "role": "user", "content": "/config permissionMode=acceptEdits" }, "parent_tool_use_id": null, "session_id": "" }).to_string(),
@@ -2345,12 +2364,13 @@ mod tests {
         let opens_mention = |before: Option<char>| {
             before.map_or(true, |c| c.is_whitespace() || matches!(c, '\u{feff}' | '\u{3002}' | '\u{3001}' | '\u{ff1f}' | '\u{ff01}'))
         };
-        let (mut turns, mut interrupts, mut defused) = (0, 0, 0);
+        let (mut turns, mut interrupts, mut questions, mut defused) = (0, 0, 0, 0);
         for line in golden.lines().filter(|line| !line.is_empty()) {
             let checked = check_stdin_line(line).unwrap_or_else(|error| panic!("refused ({error}): {line}"));
             match checked.kind {
                 StdinLine::Turn => turns += 1,
                 StdinLine::Interrupt => interrupts += 1,
+                StdinLine::ContextUsage => questions += 1,
             }
             assert!(!checked.line.contains('\n'), "one line");
             let sent: Value = serde_json::from_str(line).unwrap();
@@ -2373,7 +2393,11 @@ mod tests {
             // With the breaks taken out, the process gets what the page sent.
             assert_eq!(written, sent, "{line}");
         }
-        assert!(turns > 0 && interrupts > 0, "{turns} turns and {interrupts} interrupts in {}", path.display());
+        assert!(
+            turns > 0 && interrupts > 0 && questions > 0,
+            "{turns} turns, {interrupts} interrupts and {questions} context questions in {}",
+            path.display()
+        );
         assert!(defused > 0, "no line in {} had a mention to defuse", path.display());
     }
 

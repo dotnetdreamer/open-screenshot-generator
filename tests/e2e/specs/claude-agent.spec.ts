@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { test, expect, type Page } from '../fixtures/test';
 import { TauriHarness } from '../fixtures/tauri';
 import { holdProjects, readProjects, waitForProject, type StoredProject } from '../fixtures/db';
@@ -88,6 +90,14 @@ async function play(tauri: TauriHarness, spawnId: string, messages: unknown[]) {
   for (const message of messages) {
     await tauri.emitFromBackend(CLAUDE_EVENT, { spawnId, kind: 'stdout', line: JSON.stringify(message), nonce: NONCE });
   }
+}
+
+/** The lines of a real Claude Code run the unit tests replay too, parsed. */
+function recorded(file: string): unknown[] {
+  return readFileSync(path.join(process.cwd(), 'tests', 'unit', 'fixtures', 'claude', file), 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 }
 
 const init = (uuid: string) => ({
@@ -530,6 +540,114 @@ test.describe('a Claude Code run', () => {
     });
 
     expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('the ring beside Send always shows how full the context window is, from the counts Claude Code prints', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+
+    await app.startBlankProject();
+    await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Chat with Claude Code');
+    const panel = app.activeDockPanel;
+    const ring = panel.getByRole('meter', { name: 'Context window' });
+    const input = panel.getByLabel('Message the agent');
+    await expect(panel.getByText('Talk to the agent')).toBeVisible();
+    // Nothing is in the window before the first message.
+    await expect(ring).toHaveText('0%');
+    await expect(ring).toHaveAttribute('aria-valuenow', '0');
+
+    // A real Claude Code 2.1.285 run on Haiku: a Read, a second turn, then a
+    // turn that opens with a summary. This Claude Code (2.1.202) is not asked
+    // about its window, so only the end of a turn says how big it is.
+    const lines = recorded('context-haiku.jsonl');
+    await input.fill('Read notes.txt, then tell me the secret word');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    const first = (await tauri.waitForCall('abs_claude_start')).args.args as StartArgs;
+    expect((await sentLines(tauri)).map((line) => line.type)).toEqual(['user']);
+    await play(tauri, first.spawnId, lines.slice(0, 7));
+    await expect(panel.getByText('The secret word is pelican.')).toBeVisible();
+    // Until then the ring gives the count it has.
+    await expect(ring).toHaveText('10.5k');
+    await play(tauri, first.spawnId, lines.slice(7, 8));
+    await expect(ring).toHaveText('5%');
+    await expect(ring).toHaveAttribute('aria-valuenow', '5');
+    await expect(ring).toHaveAttribute(
+      'title',
+      '5% of the context window used (10.5k of 200k tokens)\nNear the limit, Claude Code summarizes the chat so far'
+    );
+
+    await input.fill('Thanks. Now reply with just the word OK.');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    await play(tauri, first.spawnId, lines.slice(8, 12));
+    await expect(ring).toHaveAttribute('aria-valuetext', '5% of the context window used (10.6k of 200k tokens)');
+
+    // Claude Code summarizes before a call: the count is unknown until the
+    // next call measures what is left, and the transcript says why it dropped.
+    await input.fill('What was the secret word? One word.');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    await play(tauri, first.spawnId, [lines[17], lines[15], lines[16], lines[18]]);
+    await expect(noticeLine(panel, 'Claude Code summarized the chat so far to free up context')).toBeVisible();
+    await expect(ring).toHaveText('');
+    await expect(ring).toHaveAttribute('aria-valuetext', 'Claude Code has not reported the context window yet');
+    await play(tauri, first.spawnId, lines.slice(26, 29));
+    await expect(ring).toHaveText('6%');
+    await expect(ring).toHaveAttribute('aria-valuetext', '6% of the context window used (11.4k of 200k tokens)');
+
+    // Haiku's window is known now, so a new chat's ring has it from its first call.
+    await panel.getByRole('button', { name: 'Start a new chat' }).click();
+    await expect(ring).toHaveText('0%');
+    await input.fill('Another set');
+    await panel.getByRole('button', { name: 'Send' }).click();
+    await expect.poll(async () => (await tauri.callsTo('abs_claude_start')).length).toBe(2);
+    const second = (await tauri.callsTo('abs_claude_start'))[1].args.args as StartArgs;
+    await play(tauri, second.spawnId, lines.slice(0, 2));
+    await expect(ring).toHaveText('4%');
+    await expect(ring).toHaveAttribute('aria-valuetext', '4% of the context window used (8k of 200k tokens)');
+
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test.describe('with a Claude Code that answers context questions', () => {
+    test.use({ tauriConfig: { responses: { abs_claude_detect: { ...READY, version: '2.1.285 (Claude Code)' } } } });
+
+    test('a new process is asked about its window first, and the ring has it before any model call', async ({
+      app,
+      page,
+      tauri,
+      isDesktop,
+    }) => {
+      test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+
+      await app.startBlankProject();
+      await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Chat with Claude Code');
+      const panel = app.activeDockPanel;
+      const ring = panel.getByRole('meter', { name: 'Context window' });
+      await expect(panel.getByText('Talk to the agent')).toBeVisible();
+      await expect(ring).toHaveText('0%');
+
+      await panel.getByLabel('Message the agent').fill('Reply with just OK.');
+      await panel.getByRole('button', { name: 'Send' }).click();
+      const { spawnId } = (await tauri.waitForCall('abs_claude_start')).args.args as StartArgs;
+      // The question goes before the message.
+      await expect.poll(async () => (await tauri.callsTo('abs_claude_send')).length).toBe(2);
+      const written = (await tauri.callsTo('abs_claude_send')).map((call) => JSON.parse(String(call.args.line)));
+      expect(written.map((line) => line.type)).toEqual(['control_request', 'user']);
+      expect(written[0].request).toEqual({ subtype: 'get_context_usage' });
+
+      // Claude Code 2.1.285's real answers to that question, before and after the turn.
+      const [answer, ...turn] = recorded('context-ask-fresh.jsonl') as Array<Record<string, any>>;
+      await play(tauri, spawnId, [{ ...answer, response: { ...answer.response, request_id: written[0].request_id } }]);
+      await expect(ring).toHaveText('4%');
+      await expect(ring).toHaveAttribute('aria-valuetext', '4% of the context window used (7.9k of 200k tokens)');
+      await play(tauri, spawnId, turn);
+      await expect(ring).toHaveAttribute('aria-valuetext', '5% of the context window used (9.4k of 200k tokens)');
+
+      expect(await tauri.unhandled()).toEqual([]);
+    });
   });
 
   test('an open project can reach the agent from the dock, and the tab can go away again', async ({

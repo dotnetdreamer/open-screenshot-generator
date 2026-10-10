@@ -49,9 +49,11 @@ import { saveImageAsset } from '@/lib/mcp/assetStore';
 import { useImageSrc } from '@/lib/mediaStore';
 import { toolImageAlt, toolLabel, toolSkipped } from '@/lib/claudeCode/toolLabels';
 import { FOLDER_CAP_NOTICE, MAX_FOLDERS } from '@/lib/claudeCode/folders';
+import { contextMeter } from '@/lib/claudeCode/contextUsage';
 import {
   CLAUDE_EFFORT_CHOICES,
   CLAUDE_MODEL_CHOICES,
+  type AgentContextUsage,
   type AgentItem,
   type ClaudeEffortChoice,
   type ClaudeModelChoice,
@@ -299,6 +301,54 @@ function AttachmentThumb({ attachment, onRemove }: { attachment: AgentAttachment
       >
         <X className="h-3 w-3" />
       </button>
+    </div>
+  );
+}
+
+/** The ring's radius in its 16-unit box, and the length of the circle it draws. */
+const RING_RADIUS = 6;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
+/**
+ * How full the context window is, beside Send, whenever the agent can run.
+ * The arc is the share used, to scale, so a new chat's sliver looks empty and
+ * its label says "<1%". `empty` is a chat with nothing sent yet.
+ */
+function ContextRing({ context, empty }: { context: AgentContextUsage | null; empty: boolean }) {
+  const meter = contextMeter(context, { empty });
+  return (
+    <div
+      role="meter"
+      aria-label="Context window"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={meter.percent}
+      aria-valuetext={meter.description}
+      title={`${meter.description}\nNear the limit, Claude Code summarizes the chat so far`}
+      className={cn(
+        'flex h-7 items-center gap-1 px-1 text-[11px] tabular-nums',
+        meter.level === 'full'
+          ? 'text-destructive'
+          : meter.level === 'high'
+            ? 'text-amber-600 dark:text-amber-500'
+            : 'text-muted-foreground'
+      )}
+    >
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 -rotate-90" aria-hidden="true">
+        <circle cx="8" cy="8" r={RING_RADIUS} fill="none" stroke="currentColor" strokeWidth="2" opacity="0.25" />
+        {meter.fraction > 0 && (
+          <circle
+            cx="8"
+            cy="8"
+            r={RING_RADIUS}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeDasharray={`${meter.fraction * RING_LENGTH} ${RING_LENGTH}`}
+          />
+        )}
+      </svg>
+      {meter.label && <span>{meter.label}</span>}
     </div>
   );
 }
@@ -1024,29 +1074,34 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
                 event.target.value = '';
               }}
             />
-            {working ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                className="h-7 gap-1.5 px-2.5 text-xs"
-                onClick={stop}
-                title="Stop the agent"
-              >
-                <Square className="h-3 w-3 fill-current" />
-                Stop
-              </Button>
-            ) : (
-              <Button
-                size="icon"
-                className="h-7 w-7 rounded-full"
-                onClick={submit}
-                disabled={!canSend}
-                title="Send"
-                aria-label="Send"
-              >
-                <ArrowUp className="h-4 w-4" />
-              </Button>
-            )}
+            <div className="flex items-center gap-1">
+              {view.available && !needsSetup && (
+                <ContextRing context={view.context} empty={view.items.length === 0 && !view.resumable} />
+              )}
+              {working ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 gap-1.5 px-2.5 text-xs"
+                  onClick={stop}
+                  title="Stop the agent"
+                >
+                  <Square className="h-3 w-3 fill-current" />
+                  Stop
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  className="h-7 w-7 rounded-full"
+                  onClick={submit}
+                  disabled={!canSend}
+                  title="Send"
+                  aria-label="Send"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
