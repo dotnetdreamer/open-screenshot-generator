@@ -20,7 +20,7 @@ Key facts
 
 ## Pages
 
-- [Home](https://openscrgen.app/): product overview, exported examples, features, templates and FAQ
+- [Home](https://openscrgen.app/): current editor and agent workflow, a 32 second product film, agent connections, exported examples, features, templates and FAQ
 - [App Store screenshot generator](https://openscrgen.app/app-store-screenshot-generator): the free editor for Apple's store, with the sizes it exports
 - [Play Store screenshot generator](https://openscrgen.app/play-store-screenshot-generator): Google Play screenshots and feature graphics
 - [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): App Store screenshot dimensions and device requirements

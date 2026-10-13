@@ -7,9 +7,11 @@ Make screenshots and preview videos for the App Store and Google Play. Start wit
 
 Open the [web editor](https://editor.openscrgen.app), download the [desktop app](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest), or [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud).
 
-<p align="center">
-  <img src="docs/demo.gif" alt="Adding app screenshots to device frames and exporting the finished designs" width="900">
-</p>
+<div align="center">
+
+https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
+
+</div>
 
 ## What's new
 

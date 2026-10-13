@@ -80,6 +80,8 @@
     />
 
     <link rel="stylesheet" href="css/home.css" />
+    <link rel="stylesheet" href="css/hero.css" />
+    <link rel="stylesheet" href="css/agent-connections.css" />
 
     <script type="application/ld+json">
       {
@@ -219,6 +221,19 @@
                 "text": "Check the listing and export the sizes and languages you need"
               }
             ]
+          },
+          {
+            "@type": "VideoObject",
+            "@id": "https://openscrgen.app/#launch-film",
+            "name": "The editor and your agent, in action",
+            "description": "A 32 second example workflow showing the current editor, the desktop agent, editable screenshot artboards, language tools, and store export",
+            "thumbnailUrl": "https://openscrgen.app/assets/video/launch-promo-poster.jpg",
+            "contentUrl": "https://openscrgen.app/assets/video/launch-promo.mp4",
+            "duration": "PT32S",
+            "uploadDate": "2026-10-13",
+            "inLanguage": "en",
+            "encodingFormat": "video/mp4",
+            "isFamilyFriendly": true
           }
         ]
       }
@@ -237,7 +252,8 @@
           <span>Open Screenshot<br /><strong>Generator</strong></span>
         </a>
         <nav class="site-nav" aria-label="Main navigation">
-          <a href="#features">The editor</a><a href="#localization">Languages</a
+          <a href="#features">The editor</a><a href="#agent-tools">Your agent</a
+          ><a href="#localization">Languages</a
           ><a href="#templates">Templates</a><a href="#how">How it works</a>
         </nav>
         <div class="header-actions">
@@ -288,9 +304,9 @@
         aria-label="Mobile navigation"
         hidden
       >
-        <a href="#features">The editor</a><a href="#localization">Languages</a
-        ><a href="#templates">Templates</a><a href="#how">How it works</a
-        ><a href="#faq">Questions</a>
+        <a href="#features">The editor</a><a href="#agent-tools">Your agent</a
+        ><a href="#localization">Languages</a><a href="#templates">Templates</a
+        ><a href="#how">How it works</a><a href="#faq">Questions</a>
       </nav>
     </header>
 
@@ -298,82 +314,105 @@
       <section class="hero wrap" aria-labelledby="hero-title">
         <div class="hero-intro">
           <p class="eyebrow">
-            <span class="status-dot" aria-hidden="true"></span> The open source
-            screenshot studio
+            <span class="status-dot" aria-hidden="true"></span> Free and open
+            source
           </p>
           <h1 id="hero-title">
-            Make your app look<br /><span class="selected-words"
-              >as good as it works<span
-                class="corner c1"
-                aria-hidden="true"
-              ></span
-              ><span class="corner c2" aria-hidden="true"></span
-              ><span class="corner c3" aria-hidden="true"></span
-              ><span class="corner c4" aria-hidden="true"></span
-            ></span>
+            The screenshot editor<br /><span class="agent-highlight"
+              >that works with your agent</span
+            >
           </h1>
           <p class="hero-sub">
-            Design App Store and Google Play screenshots, translate the set, and
-            make preview videos. Use the free editor in your browser or on
-            desktop
+            Ask the agent to choose a template, place your screens, and write
+            the headlines. Keep editing the result on the same canvas
           </p>
           <div class="button-row">
             <a class="button primary" href="https://editor.openscrgen.app/"
               >Open the editor <span aria-hidden="true">↗</span></a
-            ><a class="button secondary" href="#templates"
-              >Explore the templates <span aria-hidden="true">↓</span></a
+            ><a
+              class="button secondary"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"
+              >Get the desktop app <span aria-hidden="true">↗</span></a
             >
           </div>
           <p class="hero-note">
-            <span>No account needed</span><span>No watermark</span
-            ><span>No export limit</span>
+            <span>No watermark</span><span>No export limit</span
+            ><span>Bring your own agent</span>
           </p>
         </div>
-        <div class="showcase">
-          <div class="showcase-toolbar">
-            <span class="showcase-label"
-              ><span class="tiny-frame" aria-hidden="true"></span
-              ><span id="showcase-name">Kassa</span
-              ><span class="showcase-divider">/</span> Exported in our
-              editor</span
+        <figure class="hero-shell">
+          <div class="hero-shell-chrome">
+            <span class="hero-window-dots" aria-hidden="true"
+              ><i></i><i></i><i></i></span
+            ><span class="hero-shell-name"
+              >Your project, in Open Screenshot Generator</span
+            ><span class="hero-example-label"
+              >Desktop agent / Example workflow</span
             >
-            <div
-              class="segmented showcase-options"
-              role="group"
-              aria-label="Choose a screenshot example"
+          </div>
+          <div class="hero-stage" id="hero-stage">
+            <img
+              class="hero-editor-image"
+              src="assets/video/hero-editor-poster.jpg"
+              alt="Open Screenshot Generator desktop editor with a finance screenshot project and the Claude Code agent beside the canvas"
+              width="1920"
+              height="840"
+              fetchpriority="high"
+            />
+            <video
+              class="hero-editor-video"
+              id="hero-preview"
+              muted
+              loop
+              playsinline
+              preload="none"
+              poster="assets/video/hero-editor-poster.jpg"
+              data-src="assets/video/hero-editor-loop.mp4"
+              aria-label="Example of editing a screenshot project with the desktop agent"
+            ></video>
+          </div>
+          <figcaption class="hero-shell-caption">
+            <span
+              ><span class="status-dot" aria-hidden="true"></span> Desktop
+              agent, example workflow</span
             >
-              <button type="button" data-showcase="finance" aria-pressed="true">
-                Finance</button
-              ><button
+            <div class="hero-preview-actions">
+              <button
+                id="hero-motion-toggle"
+                class="preview-motion"
                 type="button"
-                data-showcase="journal"
-                aria-pressed="false"
+                aria-controls="hero-preview"
+                aria-pressed="true"
+                hidden
               >
-                Journal</button
-              ><button type="button" data-showcase="photo" aria-pressed="false">
-                Photo
-              </button>
+                <svg
+                  viewBox="0 0 16 16"
+                  width="12"
+                  height="12"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M4 3h3v10H4zm5 0h3v10H9z" /></svg
+                ><span>Pause preview</span></button
+              ><a
+                class="promo-open"
+                aria-haspopup="dialog"
+                aria-controls="promo-dialog"
+                href="assets/video/launch-promo.mp4"
+                data-promo-open
+                ><svg
+                  viewBox="0 0 16 16"
+                  width="13"
+                  height="13"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="m5 3 8 5-8 5z" /></svg
+                >Watch the 32 second film</a
+              >
             </div>
-          </div>
-          <img
-            id="showcase-image"
-            src="assets/img/showcase-kassa-money.png"
-            alt="Five Kassa finance app screenshots with blue typography, device frames, and a shared cream background"
-            width="3000"
-            height="1000"
-            fetchpriority="high"
-          />
-          <div class="showcase-bottom">
-            <p id="showcase-caption" aria-live="polite">
-              One template, a complete screenshot set
-            </p>
-            <a
-              id="showcase-link"
-              href="https://editor.openscrgen.app/?template=kassa-money"
-              >Use this template <span aria-hidden="true">↗</span></a
-            >
-          </div>
-        </div>
+          </figcaption>
+        </figure>
         <dl class="proof-strip">
           <div>
             <dt>101</dt>
@@ -392,6 +431,210 @@
             <dd>For the whole editor</dd>
           </div>
         </dl>
+      </section>
+
+      <section
+        class="agent-connections"
+        id="agent-tools"
+        aria-labelledby="agent-map-title"
+      >
+        <div class="wrap section-space">
+          <div class="agent-map-heading">
+            <p class="eyebrow">Your agent, inside the editor</p>
+            <h2 id="agent-map-title">
+              Your agent, connected<br /><span>to the design tools</span>
+            </h2>
+            <p>
+              Choose a model you already use. Let the agent work with templates,
+              layers and languages, then adjust the result on the same canvas
+            </p>
+          </div>
+          <div class="agent-map">
+            <svg
+              class="agent-map-wires"
+              viewBox="0 0 1200 400"
+              preserveAspectRatio="none"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M230 70C330 70 310 200 450 200M230 160C320 160 320 200 450 200M230 250C320 250 320 200 450 200M230 340C330 340 310 200 450 200M750 200C875 200 860 55 980 55M750 200C870 200 870 127 980 127M750 200H980M750 200C870 200 870 273 980 273M750 200C875 200 860 345 980 345"
+              />
+              <circle
+                cx="405"
+                cy="200"
+                r="4"
+                fill="currentColor"
+                stroke="none"
+              />
+              <circle
+                cx="795"
+                cy="200"
+                r="4"
+                fill="currentColor"
+                stroke="none"
+              />
+            </svg>
+            <div class="agent-map-column">
+              <p class="agent-map-label">
+                <span>01</span> Choose your connection
+              </p>
+              <ul class="agent-route-list">
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <rect x="3" y="5" width="18" height="14" rx="3" />
+                      <path d="m7 9 3 3-3 3m6 0h4" /></svg
+                  ></span>
+                  <div>
+                    <strong>Claude Code</strong
+                    ><small>Agent panel on desktop</small>
+                  </div>
+                </li>
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path
+                        d="M21 11a8 8 0 0 1-8 8H5l-3 3V11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8Z"
+                      />
+                      <path d="M7 9h10M7 13h6" /></svg
+                  ></span>
+                  <div>
+                    <strong>ChatGPT and Gemini</strong
+                    ><small>Your account through desktop or extension</small>
+                  </div>
+                </li>
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path d="m8 5-5 7 5 7m8-14 5 7-5 7m-2-16-4 18" /></svg
+                  ></span>
+                  <div>
+                    <strong>Your API key</strong
+                    ><small>Claude, OpenAI, Gemini, OpenRouter</small>
+                  </div>
+                </li>
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <rect x="5" y="5" width="14" height="14" rx="3" />
+                      <path
+                        d="M9 9h6v6H9zM9 2v3m6-3v3M9 19v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3"
+                      /></svg
+                  ></span>
+                  <div>
+                    <strong>Ollama and LM Studio</strong
+                    ><small>Local models on desktop</small>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="agent-map-project">
+              <div class="agent-project-brand">
+                <img src="assets/logo.svg" alt="" width="37" height="37" />
+                <div>
+                  <strong>Open Screenshot<br />Generator</strong
+                  ><span>The same editable project</span>
+                </div>
+              </div>
+              <figure class="agent-project-canvas">
+                <img
+                  src="assets/img/showcase-kassa-money.png"
+                  width="3000"
+                  height="1000"
+                  loading="lazy"
+                  alt="Five editable Kassa finance screenshots from an Open Screenshot Generator template"
+                />
+                <figcaption>A real template from the editor</figcaption>
+              </figure>
+              <div
+                class="agent-project-tools"
+                aria-label="Examples of editor tools"
+              >
+                <span>Choose a template</span><span>Edit a layer</span
+                ><span>Add languages</span>
+              </div>
+              <p class="agent-project-editable">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m5 12 4 4L19 6" /></svg
+                >Every layer stays yours to edit
+              </p>
+            </div>
+            <div class="agent-map-column">
+              <p class="agent-map-label">
+                <span>02</span> Work on the real project
+              </p>
+              <ul class="agent-tool-list">
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="18" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  <div>
+                    <strong>Templates and layouts</strong
+                    ><small>Headlines, layers, spacing and color</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="7" y="2" width="10" height="20" rx="2" />
+                    <path d="M10 5h4M11 19h2" />
+                  </svg>
+                  <div>
+                    <strong>Device frames</strong
+                    ><small>Your screenshots in flat or 3D frames</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M3 5h12M9 3v2M5 5c1 5 4 8 8 10M13 5c-1 5-4 8-8 10m8 6 5-12 5 12m-8-4h6"
+                    />
+                  </svg>
+                  <div>
+                    <strong>Languages</strong
+                    ><small>Translated copy and local screenshots</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                    <path d="m10 8 6 4-6 4V8Z" />
+                  </svg>
+                  <div>
+                    <strong>Preview scenes</strong
+                    ><small>Recordings, animations and timing</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />
+                  </svg>
+                  <div>
+                    <strong>PNG export</strong
+                    ><small>Individual artboards or the full set</small>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="agent-map-footer">
+            <p>
+              Coding agents can use the same tools through MCP or the CLI. Build
+              preview scenes with the agent, then export MP4 in the editor or
+              CLI
+            </p>
+            <a
+              class="text-link"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/AI-AGENT.md"
+              >Explore the agent options <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
       </section>
 
       <section
@@ -816,6 +1059,51 @@
             >
           </div>
         </div>
+        <div class="showcase">
+          <div class="showcase-toolbar">
+            <span class="showcase-label"
+              ><span class="tiny-frame" aria-hidden="true"></span
+              ><span id="showcase-name">Kassa</span
+              ><span class="showcase-divider">/</span> Exported in our
+              editor</span
+            >
+            <div
+              class="segmented showcase-options"
+              role="group"
+              aria-label="Choose a screenshot example"
+            >
+              <button type="button" data-showcase="finance" aria-pressed="true">
+                Finance</button
+              ><button
+                type="button"
+                data-showcase="journal"
+                aria-pressed="false"
+              >
+                Journal</button
+              ><button type="button" data-showcase="photo" aria-pressed="false">
+                Photo
+              </button>
+            </div>
+          </div>
+          <img
+            id="showcase-image"
+            src="assets/img/showcase-kassa-money.png"
+            alt="Five Kassa finance app screenshots with blue typography, device frames, and a shared cream background"
+            width="3000"
+            height="1000"
+            loading="lazy"
+          />
+          <div class="showcase-bottom">
+            <p id="showcase-caption" aria-live="polite">
+              One template, a complete screenshot set
+            </p>
+            <a
+              id="showcase-link"
+              href="https://editor.openscrgen.app/?template=kassa-money"
+              >Use this template <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
         <div class="template-grid">
           <a
             class="tpl-card"
@@ -1137,6 +1425,62 @@
         </div>
       </div>
     </footer>
+    <dialog
+      class="promo-dialog"
+      id="promo-dialog"
+      aria-labelledby="promo-title"
+    >
+      <div class="promo-dialog-heading">
+        <div>
+          <p class="eyebrow">Open Screenshot Generator</p>
+          <h2 id="promo-title">The editor and your agent, in action</h2>
+        </div>
+        <button
+          class="promo-close"
+          type="button"
+          aria-label="Close the film"
+          autofocus
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </div>
+      <video
+        id="launch-promo"
+        controls
+        playsinline
+        preload="none"
+        poster="assets/video/launch-promo-poster.jpg"
+        data-src="assets/video/launch-promo.mp4"
+        aria-label="A 32 second example workflow showing the editor, agent, language tools, and export"
+      >
+        <track
+          kind="captions"
+          src="assets/video/launch-promo.vtt"
+          srclang="en"
+          label="English"
+        />
+      </video>
+      <div class="promo-dialog-footer">
+        <span
+          >A current product walkthrough with an example agent
+          conversation</span
+        ><a
+          href="assets/video/launch-promo.mp4"
+          download="open-screenshot-generator-promo.mp4"
+          >Save the film <span aria-hidden="true">↓</span></a
+        >
+      </div>
+    </dialog>
     <script src="js/home.js" defer></script>
     <script src="/js/analytics.js" defer></script>
   </body>

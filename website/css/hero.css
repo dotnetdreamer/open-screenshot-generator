@@ -1,0 +1,336 @@
+.hero-intro {
+  padding: 40px 0 34px;
+}
+.hero h1 {
+  font-size: clamp(39px, 4.7vw, 66px);
+  letter-spacing: -2.9px;
+  line-height: 1.13;
+  margin: 15px 0 19px;
+}
+.agent-highlight {
+  color: var(--teal);
+}
+.hero-sub {
+  max-width: 620px;
+  font-size: 14px;
+  margin-bottom: 23px;
+}
+.hero .hero-note {
+  font-size: 10px;
+}
+.hero-shell {
+  position: relative;
+  background: var(--ink-soft);
+  border: 1px solid #44635f;
+  border-radius: 13px;
+  box-shadow:
+    0 30px 90px #0000003a,
+    0 0 70px #6aa99a0b;
+}
+.hero-shell-chrome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  min-height: 40px;
+  padding: 10px 17px;
+  border-radius: 12px 12px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+}
+.hero-window-dots {
+  display: flex;
+  gap: 5px;
+}
+.hero-window-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #789990;
+}
+.hero-window-dots i:first-child {
+  background: var(--gold);
+}
+.hero-window-dots i:nth-child(2) {
+  background: #afc8b2;
+}
+.hero-shell-name {
+  margin-right: auto;
+}
+.hero-example-label {
+  color: var(--teal);
+}
+.hero-stage {
+  position: relative;
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+  background: #111719;
+  border-block: 1px solid #344545;
+}
+.hero-editor-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.hero-editor-video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.hero-stage.is-playing .hero-editor-video {
+  opacity: 1;
+}
+.hero-shell-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.hero-shell-caption > span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.hero-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.preview-motion,
+.promo-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 10px;
+  min-height: 32px;
+  line-height: 1.5;
+}
+.preview-motion {
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  color: var(--muted);
+}
+.preview-motion:hover {
+  color: var(--paper);
+}
+.promo-open {
+  padding: 3px 0;
+  color: var(--gold);
+  font-weight: 500;
+}
+.promo-open:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.templates-section .showcase {
+  margin-bottom: 30px;
+}
+.promo-dialog {
+  padding: 0;
+  width: min(1100px, calc(100% - 48px));
+  max-height: calc(100dvh - 56px);
+  overflow: auto;
+  color: var(--paper);
+  background: var(--ink);
+  border: 1px solid #496965;
+  border-radius: 12px;
+  box-shadow: 0 30px 120px #000a;
+}
+.promo-dialog::backdrop {
+  background: #020809dc;
+  backdrop-filter: blur(8px);
+}
+.promo-dialog-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 22px 24px;
+}
+.promo-dialog-heading h2 {
+  font-size: 21px;
+  letter-spacing: -0.6px;
+  margin-top: 5px;
+}
+.promo-dialog-heading .eyebrow {
+  font-size: 9px;
+}
+.promo-close {
+  color: var(--muted);
+  border: 1px solid var(--line);
+  background: var(--ink-soft);
+  border-radius: 6px;
+  padding: 9px;
+  display: grid;
+  place-items: center;
+}
+.promo-close:hover {
+  color: var(--paper);
+  border-color: var(--teal);
+}
+.promo-dialog video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #020809;
+}
+.promo-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 17px 24px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.promo-dialog-footer a {
+  color: var(--teal);
+  flex: none;
+}
+.promo-dialog-footer a span {
+  margin-left: 10px;
+}
+@media (max-width: 1050px) {
+  .site-nav {
+    gap: 18px;
+  }
+  .header-actions {
+    gap: 12px;
+  }
+  .hero h1 {
+    font-size: 54px;
+  }
+}
+@media (max-width: 800px) {
+  .hero h1 {
+    font-size: clamp(37px, 6.2vw, 51px);
+    letter-spacing: -2px;
+  }
+  .hero-shell-chrome {
+    padding: 10px 13px;
+    font-size: 8px;
+  }
+  .hero-example-label {
+    font-size: 7px;
+  }
+  .hero-shell-caption {
+    padding: 13px;
+    font-size: 9px;
+  }
+  .hero-preview-actions {
+    gap: 12px;
+  }
+  .preview-motion,
+  .promo-open {
+    font-size: 9px;
+  }
+}
+@media (max-width: 560px) {
+  .hero-intro {
+    padding: 34px 0 26px;
+  }
+  .hero h1 {
+    font-size: clamp(29px, 7.7vw, 40px);
+    letter-spacing: -1.5px;
+  }
+  .hero-sub {
+    font-size: 12px;
+    max-width: 340px;
+  }
+  .hero .hero-note {
+    font-size: 8px;
+    gap: 13px;
+  }
+  .hero .button-row .button {
+    gap: 12px;
+  }
+  .hero-shell {
+    border-radius: 8px;
+  }
+  .hero-shell-chrome {
+    padding: 9px 10px;
+    min-height: 34px;
+    gap: 9px;
+  }
+  .hero-shell-name {
+    font-size: 7px;
+  }
+  .hero-example-label {
+    display: none;
+  }
+  .hero-window-dots {
+    gap: 3px;
+  }
+  .hero-window-dots i {
+    width: 4px;
+    height: 4px;
+  }
+  .hero-stage {
+    aspect-ratio: 1.6 / 1;
+  }
+  .hero-editor-image {
+    width: 160%;
+    max-width: none;
+    object-fit: cover;
+    object-position: right;
+    transform: translateX(-37.5%);
+  }
+  .hero-editor-video {
+    object-position: 70% center;
+  }
+  .hero-shell-caption {
+    flex-direction: column;
+    align-items: start;
+    padding: 12px;
+    gap: 10px;
+    font-size: 8px;
+  }
+  .hero-preview-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .preview-motion,
+  .promo-open {
+    font-size: 9px;
+    min-height: 44px;
+  }
+  .hero-shell-caption > span .status-dot {
+    width: 5px;
+    height: 5px;
+  }
+  .promo-dialog {
+    width: calc(100% - 24px);
+    max-height: calc(100dvh - 32px);
+  }
+  .promo-dialog-heading {
+    padding: 16px;
+    gap: 15px;
+  }
+  .promo-dialog-heading h2 {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .promo-dialog-heading .eyebrow {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+  .promo-close {
+    padding: 7px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .promo-dialog-footer {
+    padding: 14px 16px;
+    font-size: 8px;
+    gap: 15px;
+  }
+}

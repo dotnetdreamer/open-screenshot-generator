@@ -3,9 +3,11 @@
 The marketing site for [openscrgen.app](https://openscrgen.app/). Static HTML,
 CSS and JavaScript, with no build step or bundler
 
-- `index.html` is the homepage, styled by `css/home.css` with interactions in `js/home.js`
+- `index.html` is the homepage, styled by `css/home.css`, `css/hero.css` and
+  `css/agent-connections.css`, with interactions in `js/home.js`
 - `js/home.js` switches between three exported template sets, updates a headline
-  example in four languages, and opens the mobile navigation
+  example in four languages, opens the mobile navigation, and controls the
+  hero preview and film dialog
 - `css/main.css` serves the other landing and legal pages. The homepage no longer
   loads `js/main.js` or `js/film.js`
 - `privacy.html` and `terms.html` are the legal pages
@@ -15,11 +17,27 @@ CSS and JavaScript, with no build step or bundler
   describe the site for search engines and other readers
 - `vercel.json` sets the caching and security headers
 
-The homepage uses native scrolling and the normal cursor. Preview videos are shown
-through a screenshot of the editor timeline. Headings, feature copy, images,
-template links and FAQs are present in the HTML without JavaScript; the template
-and language examples show their initial state. Fonts load from Google Fonts,
-and the stylesheet respects reduced motion
+The homepage uses native scrolling and the normal cursor. Its hero shows the
+current editor and Agent dock. The silent 10 second preview pauses outside the
+viewport and stays still when reduced motion is requested. A visitor starts the
+32 second film through a native dialog with playback controls and captions
+
+Headings, feature copy, images, template links and FAQs are present in the HTML
+without JavaScript; the template and language examples show their initial state,
+and the film link opens the MP4. Fonts load from Google Fonts
+
+## Product footage
+
+`assets/video/launch-promo.mp4` is the 32 second film; `hero-editor-loop.mp4`
+is the silent 1920 by 840 preview. Their JPG posters keep the editor visible
+before playback, and `launch-promo.vtt` supplies the film captions
+
+The visuals use current product captures from `promo/public/launch/`. The Agent
+dock uses an isolated example conversation, labelled on screen, with no live
+provider requests. The hero image is a rendered frame from that capture
+
+Rebuild instructions, the original score and the Remotion compositions are
+listed in [promo/launch-README.md](../promo/launch-README.md)
 
 ## Copy rules
 
