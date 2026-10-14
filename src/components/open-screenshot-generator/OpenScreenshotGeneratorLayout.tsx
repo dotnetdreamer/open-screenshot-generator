@@ -9402,7 +9402,9 @@ const generateRandomProjectName = (): string => {
                               <DropdownMenuItem
                                 className="gap-2"
                                 onSelect={() => {
-                                  claudeAgent.setChatAgent('claude-code');
+                                  if (!claudeAgent.setChatAgent('claude-code')) {
+                                    void claudeAgent.newChat(undefined, { agent: 'claude-code' });
+                                  }
                                   claudeAgent.setPanelEnabled(true);
                                   revealDockTab('agent');
                                 }}
@@ -9413,7 +9415,9 @@ const generateRandomProjectName = (): string => {
                               <DropdownMenuItem
                                 className="gap-2"
                                 onSelect={() => {
-                                  claudeAgent.setChatAgent('codex');
+                                  if (!claudeAgent.setChatAgent('codex')) {
+                                    void claudeAgent.newChat(undefined, { agent: 'codex' });
+                                  }
                                   claudeAgent.setPanelEnabled(true);
                                   revealDockTab('agent');
                                 }}

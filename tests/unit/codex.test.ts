@@ -201,6 +201,26 @@ test('errors, refusals and exits in words', () => {
   assert.equal(describeCodexExit(null, []), 'Codex stopped');
 });
 
+test('clipped Codex messages keep complete emoji for detached-panel IPC', () => {
+  const atBoundary = (limit: number) => `${'x'.repeat(limit - 1)}🎉!`;
+  const expected = (limit: number) => `${'x'.repeat(limit - 1)}…`;
+  for (const limit of [80, 400]) {
+    const state = reduceCodexNotification(INITIAL_AGENT_STATE, 'warning', { message: atBoundary(limit) }, 1);
+    const [notice] = notices(state);
+    assert.doesNotThrow(() => encodeURIComponent(notice.id));
+    assert.doesNotThrow(() => encodeURIComponent(notice.text));
+  }
+  assert.equal(describeCodexError({ message: atBoundary(400) }), expected(400));
+  assert.equal(describeCodexExit(1, [atBoundary(300)]), `Codex stopped: ${expected(300)}`);
+  const state = reduceCodexNotification(INITIAL_AGENT_STATE, 'item/completed', {
+    item: {
+      type: 'mcpToolCall', id: 'emoji-result', server: 'osg-editor', tool: 'get_artboard', status: 'completed',
+      result: { content: [{ type: 'text', text: atBoundary(1200) }] },
+    },
+  }, 1);
+  assert.equal(tools(state)[0].result, expected(1200));
+});
+
 test('a turn asks for the effort picked, or the highest its model has below it', () => {
   assert.equal(clampCodexEffort('max', ['low', 'medium', 'high', 'xhigh', 'max']), 'max');
   assert.equal(clampCodexEffort('max', ['low', 'medium', 'high', 'xhigh']), 'xhigh');

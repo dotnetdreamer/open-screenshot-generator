@@ -210,3 +210,44 @@ test.describe('the Agent panel', () => {
     expect(await tauri.unhandled()).toEqual([]);
   });
 });
+
+test.describe('reopening hidden agent chats', () => {
+  test.use({
+    tauriConfig: {
+      responses: {
+        abs_codex_detect: CODEX_READY,
+        abs_claude_detect: { found: true, loggedIn: true, authMethod: 'claude.ai', subscriptionType: 'max' },
+      },
+    },
+  });
+
+  for (const agent of ['Codex', 'Claude Code'] as const) {
+    test(`keeps a hidden ${agent} chat and starts a new chat for the other agent`, async ({ app, page, tauri, isDesktop }) => {
+      test.skip(!isDesktop, 'the agent runs in the desktop app');
+      await app.startBlankProject();
+      const toolbarMenu = page.getByTitle('Panel and display options');
+      await app.chooseFromMenu(toolbarMenu, `Chat with ${agent}`);
+      const panel = app.activeDockPanel;
+      const text = `Keep this ${agent} conversation`;
+      await panel.getByLabel('Message the agent').fill(text);
+      await panel.getByRole('button', { name: 'Send', exact: true }).click();
+      const prefix = agent === 'Codex' ? 'abs_codex' : 'abs_claude';
+      await tauri.waitForCall(`${prefix}_send`);
+
+      await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
+      await app.chooseFromMenu(toolbarMenu, `Chat with ${agent}`);
+      await expect(panel.getByText(text, { exact: true })).toBeVisible();
+      expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(0);
+      expect(await tauri.callsTo(`${prefix}_start`)).toHaveLength(1);
+
+      await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
+      const other = agent === 'Codex' ? 'Claude Code' : 'Codex';
+      await app.chooseFromMenu(toolbarMenu, `Chat with ${other}`);
+      await expect(panel.getByRole('radio', { name: other, exact: true })).toHaveAttribute('aria-checked', 'true');
+      await expect(panel.getByText(text, { exact: true })).toHaveCount(0);
+      await tauri.waitForCall(`${prefix}_stop`);
+      expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(1);
+      expect(await tauri.unhandled()).toEqual([]);
+    });
+  }
+});

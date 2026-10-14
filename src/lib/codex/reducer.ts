@@ -20,6 +20,7 @@
 import { MAX_ITEMS } from '@/lib/claudeCode/streamReducer';
 import { toolDetail } from '@/lib/claudeCode/toolLabels';
 import type { AgentItem, AgentRateLimit, AgentSessionState } from '@/lib/claudeCode/types';
+import { clipText } from '@/lib/clipText';
 
 /** Longest tool answer kept in the transcript. The panel shows a line of it. */
 const MAX_RESULT_CHARS = 1200;
@@ -54,7 +55,7 @@ function trimItems(items: AgentItem[]): AgentItem[] {
 }
 
 function clip(text: string, max = MAX_RESULT_CHARS): string {
-  return text.length > max ? `${text.slice(0, max)}…` : text;
+  return clipText(text, max);
 }
 
 function withNotice(
@@ -99,7 +100,7 @@ export function describeCodexExit(code: number | null, stderrTail: string[]): st
   const tail = stderrTail.map((line) => line.trim()).filter(Boolean);
   if (looksSignedOutCodex(tail.join('\n'))) return CODEX_SIGN_IN_MESSAGE;
   const last = [...tail].reverse().find((line) => !/^\s*at\s/.test(line));
-  if (last) return `Codex stopped: ${last.length > 300 ? `${last.slice(0, 300)}…` : last}`;
+  if (last) return `Codex stopped: ${clipText(last, 300)}`;
   return code === null ? 'Codex stopped' : `Codex stopped (exit code ${code})`;
 }
 
