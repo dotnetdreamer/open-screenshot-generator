@@ -1,6 +1,6 @@
 # Mac App Store preparation
 
-The [App Store Connect record](https://appstoreconnect.apple.com/apps/6822657542/distribution/macos/version/inflight) is prepared for a free public release. Version 0.1.36 remains in Prepare for Submission, with manual release selected. Screenshots are deferred. No build has been uploaded and the app has not been submitted.
+The [App Store Connect record](https://appstoreconnect.apple.com/apps/6822657542/distribution/macos/version/inflight) is prepared for a free public release. Version 1.0.0 remains in Prepare for Submission, with manual release selected. Screenshots are deferred. A signed universal build, version 1.0.0 (1), has been uploaded; the app has not been submitted.
 
 ## Saved listing
 
@@ -59,15 +59,36 @@ These changes are local and need deployment to the existing website. Vercel's co
 
 ## Remaining submission work
 
-- Add screenshots later, as requested, and upload a signed Mac App Store build. [Desktop packaging instructions](../DESKTOP.md#mac-app-store-macos) describe the Store overlay. The entitlements still contain `YOURTEAMID`, and no provisioning profile is present locally.
+- Add screenshots later, as requested. [Desktop packaging instructions](../DESKTOP.md#mac-app-store-macos) describe the Store overlay and future uploads.
 - Deploy the support, privacy, and terms updates. Set the actual log and backup retention policy and confirm how deletion affects backups. The backend has account deletion, but no user-facing in-app deletion control was found. Validate account sign-in and deletion requirements if those features ship.
 - Complete the two unresolved privacy types and the provider review, then publish the privacy label.
 - Complete Content Rights after confirming redistribution rights for the shipped artwork. [THIRD-PARTY-ASSETS.md](../../THIRD-PARTY-ASSETS.md) records incomplete template artwork provenance and separately licensed Adobe Stock images. The Content Rights attestation remains unanswered.
 - Complete encryption documentation for the actual binary. The current HTTP plugin bundles rustls and ring, so select standard encryption implemented in addition to Apple's operating system encryption. No proprietary algorithms were found. France is selected for distribution. Apple's [encryption documentation table](https://developer.apple.com/help/app-store-connect/reference/app-information/export-compliance-documentation-for-encryption/) calls for a French declaration for that configuration. No declaration or Apple compliance code is present locally.
-- Validate native exports, online features, and loopback OAuth or MCP functionality in the signed sandbox. The current entitlements permit outbound networking but do not include a server entitlement. Make accessibility claims only after evaluating the shipped interface.
+- Validate native exports, online features, and loopback OAuth or MCP functionality in the signed sandbox. The signed entitlements include both network client and server permissions. The server permission is explained in App Store Connect for the loopback OAuth callback and optional local MCP service. Make accessibility claims only after evaluating the shipped interface.
 
 App Store Connect also displays an updated Paid Applications Schedule notice for the account. The free listing can be prepared, but any account agreement requirement shown at submission must be resolved by the Account Holder.
 
 ## Validation
 
 Saved listing fields and review details were read back after reload. Free prices were verified for all 175 configured regions, and availability is set for app release. Website HTML, links, and desktop and mobile rendering checks passed. The UI copy check and `git diff --check` passed. Typecheck remains blocked by unrelated dependencies and type errors in `promo` and `promo-i18n`; this preparation changes no application code.
+
+## Signed build
+
+Version 1.0.0, build 1 was built on October 14, 2026 for Apple Silicon and Intel.
+The app signature passes `codesign --verify --deep --strict`. The embedded Mac
+App Store profile matches team `9XCZL2PPRH`, the app identifier, and the installed
+Apple Distribution certificate. The profile expires August 5, 2027 and is kept
+in the ignored `src-tauri/embedded.provisionprofile` file. Both team identifiers
+are configured in `Entitlements.plist`.
+
+The signed installer is
+`src-tauri/target/universal-apple-darwin/release/bundle/pkg/Open Screenshot Generator_1.0.0_1.pkg`.
+Its SHA-256 is `9c9073312ba42a75693cea7cc9201af74e6333cab0e3f890421bc5ecf687206d`.
+The package uses the existing Mac Installer Distribution certificate. Private
+signing keys, the provisioning profile, and build artifacts are not committed.
+
+Apple validation and upload both succeeded with no errors. The upload delivery
+UUID is `a64828aa-2e05-4feb-83ea-b535b39dab58`. Apple processing completed with
+build and import status `VALID`. Build 1.0.0 (1) is selected and saved in the
+version draft, with status `Missing Compliance`. Encryption compliance and the
+remaining submission work still need completion.

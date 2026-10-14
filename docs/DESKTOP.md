@@ -321,8 +321,10 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
    - a Mac App Store provisioning profile for the App ID. Download it as
      `src-tauri/embedded.provisionprofile` (already gitignored via
      `*.provisionprofile`; do not commit it).
-2. Edit `src-tauri/Entitlements.plist` and replace both `YOURTEAMID`
-   placeholders with your Apple Developer Team ID. Uploads are rejected when
+     Use `chmod 644 src-tauri/embedded.provisionprofile` so the installed app
+     contains a profile readable by every user. Apple rejects root-only files.
+2. Verify that both team identifiers in `src-tauri/Entitlements.plist` match
+   your Apple Developer Team ID. This project's team is `9XCZL2PPRH`. Uploads are rejected when
    the `com.apple.application-identifier` entitlement does not match the
    provisioning profile.
 3. Create the app record in [App Store Connect](https://appstoreconnect.apple.com).
@@ -338,7 +340,10 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
    Set `APPLE_SIGNING_IDENTITY="Apple Distribution: <Team Name> (<TeamID>)"` in
    the environment so Tauri signs the bundle. `Entitlements.plist` already
    enables the App Sandbox (mandatory for the Mac App Store), user-selected
-   read/write (save/open dialogs), and outbound network (Google Fonts).
+   read/write (save/open dialogs), outbound networking, and incoming networking
+   for the Google OAuth callback and optional MCP service, both bound to loopback.
+   The overlay sets build number `1`; increment `bundle.macOS.bundleVersion`
+   for every subsequent upload, including uploads for a new app version.
 5. Wrap the signed `.app` in an installer package:
 
    ```sh
@@ -347,8 +352,19 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
      /Applications "Open Screenshot Generator.pkg"
    ```
 
-6. Upload with the Transporter app (or `xcrun altool --upload-app`), then
-   complete the listing in App Store Connect and submit for review.
+6. Validate and upload with the Transporter app or an App Store Connect API key:
+
+   ```sh
+   xcrun altool --validate-app "Open Screenshot Generator.pkg" \
+     --api-key <KeyID> --api-issuer <IssuerID>
+   xcrun altool --upload-package "Open Screenshot Generator.pkg" \
+     --api-key <KeyID> --api-issuer <IssuerID> --show-progress --wait
+   ```
+
+   Keep the private key at `~/.appstoreconnect/private_keys/AuthKey_<KeyID>.p8`
+   or pass its path with `--p8-file-path`. Do not commit the key. Once Apple
+   processes the build, select it in the version draft and complete the remaining
+   listing and compliance requirements before submitting for review.
 
 For distribution OUTSIDE the Mac App Store (direct .dmg download), use a
 "Developer ID Application" certificate instead, skip the sandbox overlay, and

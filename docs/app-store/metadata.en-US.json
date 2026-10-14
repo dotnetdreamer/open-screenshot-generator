@@ -8,7 +8,8 @@
   "secondaryCategory": "Developer Tools",
   "name": "Open Screenshot Generator",
   "subtitle": "App mockups and preview videos",
-  "version": "0.1.36",
+  "version": "1.0.0",
+  "buildNumber": "1",
   "promotionalText": "Create store screenshots with device frames, templates and editable text. Export PNGs at store sizes, with no watermark or export limit.",
   "description": "Make screenshots and preview videos for your app's store listing. Start with a template, add your app screenshots, edit the text and colors, then export the finished files.\n\nDesign your screenshot set\nChoose from templates for phones, tablets, watches and desktop apps. Add device frames, including 3D views, and arrange text, images, shapes and backgrounds on a shared canvas.\n\nPrepare the sizes you need\nPreview your screenshot set as a store listing before you export. Export PNGs at App Store and Google Play sizes, or create preview videos from screen recordings on supported macOS versions.\n\nKeep your languages together\nMake several language versions in one project. Adjust each language's text and screenshots, use built-in fonts, or import your own fonts.\n\nSave your work\nProjects save on your device. Keep project versions and export a copy so you can continue editing later. The core editor works without an account.\n\nFree and open source\nCreate and export screenshots without a watermark or an export limit. Optional online services, including AI providers you choose, have their own terms and may charge for their use.",
   "keywords": "mockup,design,device,template,preview,video,localization,developer,marketing,graphics,frame",
@@ -18,6 +19,9 @@
   "copyright": "2026 Idrees Khan",
   "reviewNotes": "Open Screenshot Generator is a free editor for app store screenshots, device mockups and preview videos. There are no in-app purchases or subscriptions.\n\nThe core editor does not require sign-in. To test it:\n1. Choose a screenshot template on the start screen.\n2. Select a device frame and add an image, or edit the template's text and colors.\n3. Open the export dialog and export a PNG at a store size.\n4. Open a preview video template and add a screen recording to test the timeline and video export on a supported macOS version.\n\nProjects and imported media save locally. Online cloud saving, community features, connected storage, translation and cloud AI use network services. AI features are optional and use a provider chosen by the user.\n\nClaude Code and Codex are unavailable in this sandboxed Mac App Store edition. Core design and PNG export do not depend on these tools.\n\nSupport: pak437337@live.com",
   "publicSupportEmail": "pak437337@live.com",
+  "sandboxInformation": {
+    "com.apple.security.network.server": "Google sign-in starts a temporary OAuth callback listener on 127.0.0.1 using an ephemeral port. The optional MCP service also listens on 127.0.0.1 to let local tools work with the editor. Both listeners are restricted to loopback and are not exposed to the local network."
+  },
   "price": "Free",
   "availability": "All available countries and regions",
   "releaseOption": "Manual"

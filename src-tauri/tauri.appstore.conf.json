@@ -2,7 +2,9 @@
   "$schema": "https://schema.tauri.app/config/2",
   "bundle": {
     "targets": ["app"],
+    "copyright": "2026 Idrees Khan",
     "macOS": {
+      "bundleVersion": "1",
       "entitlements": "./Entitlements.plist",
       "files": {
         "embedded.provisionprofile": "./embedded.provisionprofile"
