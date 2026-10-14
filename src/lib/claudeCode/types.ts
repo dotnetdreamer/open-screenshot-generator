@@ -272,11 +272,26 @@ export const INITIAL_AGENT_STATE: AgentSessionState = {
   context: null,
 };
 
-export interface AgentDetectionState {
+/** Where looking for an agent's CLI is, and what it found. Claude Code's by default. */
+export interface AgentDetectionState<Result = ClaudeDetection> {
   status: 'unknown' | 'checking' | 'done';
-  result: ClaudeDetection | null;
+  result: Result | null;
   error: string | null;
 }
+
+/**
+ * Which CLI a chat talks to. Picked before the chat's first message and fixed
+ * from then on, since each keeps the conversation in its own files.
+ */
+export type AgentKind = 'claude-code' | 'codex';
+
+export const AGENT_KINDS: AgentKind[] = ['claude-code', 'codex'];
+
+/** What the panel calls each agent. */
+export const AGENT_NAMES: Record<AgentKind, string> = {
+  'claude-code': 'Claude Code',
+  codex: 'Codex',
+};
 
 /** A picture going to Claude with a message. */
 export interface AgentImage {

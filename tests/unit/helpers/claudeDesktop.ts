@@ -1,6 +1,7 @@
-// A stand-in for the desktop app around the Claude Code store, in node: the
-// IPC answers Rust would give, the process's output played back through the
-// same event, localStorage, and the two IndexedDB tables the store writes.
+// A stand-in for the desktop app around the agent store, in node: the IPC
+// answers Rust would give for Claude Code and for Codex, each process's output
+// played back through the same event, localStorage, and the two IndexedDB
+// tables the store writes.
 // Each test file is bundled on its own, so each one that imports this gets
 // its own copy of it and of the store, hydrated by its first call.
 
@@ -16,6 +17,21 @@ export const NONCE = 'nonce-e2e';
 /** The conversation id every played init reports. */
 export const SESSION = '6e6cdc77-0d28-43a0-955d-9cad1fb02032';
 export const marbly = { name: 'Marbly', path: '/Users/me/code/Marbly' };
+/** The thread every Codex start opens, unless a test answers otherwise. */
+export const CODEX_THREAD = '01a13963-abeb-7f92-b6ea-64f6cb531353';
+/** What Codex detection finds: signed in on Plus, two models with different effort levels. */
+export const CODEX_READY = {
+  found: true,
+  path: '/opt/homebrew/bin/codex',
+  version: 'codex-cli 0.162.0',
+  loggedIn: true,
+  authMethod: 'chatgpt',
+  planType: 'plus',
+  models: [
+    { id: 'gpt-6.1-sol', displayName: 'GPT-6.1-Sol', efforts: ['low', 'medium', 'high', 'xhigh'], defaultEffort: 'low', isDefault: true },
+    { id: 'gpt-6-luna', displayName: 'GPT-6-Luna', efforts: ['low', 'medium'], defaultEffort: 'medium', isDefault: false },
+  ],
+};
 export const web = { name: 'web', path: '/Users/me/code/web' };
 
 export const invokes: Invoke[] = [];
@@ -32,6 +48,19 @@ export const defaults: Record<string, Answer> = {
   abs_claude_stop: () => null,
   abs_claude_pick_folder: () => marbly,
   abs_claude_forget_folder: () => null,
+  abs_codex_page_epoch: () => 1,
+  abs_codex_list: () => [],
+  abs_codex_detect: () => CODEX_READY,
+  abs_codex_start: (args) => ({
+    pid: 5151,
+    threadId: args.args.resume ?? CODEX_THREAD,
+    resumed: !!args.args.resume,
+    model: args.args.model ?? 'gpt-6.1-sol',
+    mcpUrl: 'http://127.0.0.1:8722/mcp',
+  }),
+  abs_codex_send: () => null,
+  abs_codex_interrupt: () => null,
+  abs_codex_stop: () => null,
   'plugin:event|listen': () => 1,
 };
 /** What each command answers now. A test changes an entry and calls resetAnswers when done. */
@@ -109,6 +138,41 @@ export function play(message: Record<string, unknown>, spawnId: string = lastSta
     id: 1,
     payload: { spawnId, kind: 'stdout', line: JSON.stringify(message), nonce: NONCE },
   });
+}
+
+export const lastCodexStart = () => callsTo('abs_codex_start').at(-1)!.args.args as Record<string, any>;
+/** What each Codex turn went out with: text, pictures, model and effort. */
+export const codexTurns = () => callsTo('abs_codex_send').map((entry) => entry.args.turn as Record<string, any>);
+
+/** One event from a Codex process, the latest one started unless named, the way codex.rs relays it. */
+export function playCodex(
+  event: Record<string, unknown> & { kind: string },
+  spawnId: string = lastCodexStart().spawnId
+): void {
+  const listen = callsTo('plugin:event|listen').find((entry) => entry.args.event === 'abs-codex-event');
+  assert.ok(listen, 'the store listens to Codex before anything starts');
+  callbacks.get(listen.args.handler as number)!({
+    event: 'abs-codex-event',
+    id: 1,
+    payload: { spawnId, ...event, nonce: NONCE },
+  });
+}
+
+/** A notification, as playCodex sends it. */
+export const notify = (method: string, params: Record<string, unknown>, spawnId?: string) =>
+  playCodex({ kind: 'notification', method, params }, spawnId);
+
+/** The end of a Codex turn: its reply, then turn/completed with the status given. */
+export function endCodexTurn(turnId: string, status = 'completed', spawnId?: string): void {
+  notify('turn/started', { threadId: CODEX_THREAD, turn: { id: turnId, status: 'inProgress', items: [] } }, spawnId);
+  if (status === 'completed') {
+    notify(
+      'item/completed',
+      { threadId: CODEX_THREAD, turnId, item: { type: 'agentMessage', id: `msg-${turnId}`, text: 'Done' } },
+      spawnId
+    );
+  }
+  notify('turn/completed', { threadId: CODEX_THREAD, turn: { id: turnId, status, items: [], durationMs: 1200 } }, spawnId);
 }
 
 export function endTurn(uuid: string, spawnId?: string): void {

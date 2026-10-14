@@ -23,6 +23,8 @@ const LABELS: Record<string, ToolLabel> = {
   Read: { running: 'Reading a file...', done: 'Read a file', error: 'Could not read a file' },
   Grep: { running: 'Searching your files...', done: 'Searched your files', error: 'Could not search your files' },
   import_project_image: { running: 'Importing an image...', done: 'Imported an image' },
+  // Codex's sub-agent tools, which the agent is told not to use.
+  helper_agent: { running: 'Working with a helper agent...', done: 'Worked with a helper agent' },
   list_artboards: { running: 'Looking at the artboards...', done: 'Looked at the artboards' },
   get_artboard: { running: 'Reading an artboard...', done: 'Read an artboard' },
   create_artboard: { running: 'Adding an artboard...', done: 'Added an artboard' },

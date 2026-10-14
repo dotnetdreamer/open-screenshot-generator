@@ -1,5 +1,6 @@
 mod claude_code;
 mod code_folders;
+mod codex;
 mod devtools;
 mod mcp_server;
 mod migrate;
@@ -25,11 +26,15 @@ pub fn run() {
         .manage(web_session::WebSessionState::default())
         .manage(mcp_server::McpState::default())
         .manage(claude_code::ClaudeState::default())
+        .manage(codex::CodexState::default())
         .manage(oauth::OauthState::default())
         .manage(webview_crash::WebviewCrashState::default())
-        // A reload of the editor must not strand a Claude Code process that
-        // was still starting for the page it replaced (claude_code.rs).
-        .on_page_load(|webview, payload| claude_code::on_page_load(webview, payload));
+        // A reload of the editor must not strand a Claude Code or Codex
+        // process that was still starting for the page it replaced.
+        .on_page_load(|webview, payload| {
+            claude_code::on_page_load(webview, payload);
+            codex::on_page_load(webview, payload);
+        });
 
     // On macOS, the OS kills WKWebView WebContent processes under memory
     // pressure; without a handler here Tauri's default silently reloads the
@@ -70,6 +75,13 @@ pub fn run() {
             claude_code::abs_claude_pick_folder,
             claude_code::abs_claude_forget_folder,
             claude_code::abs_claude_read_project_image,
+            codex::abs_codex_detect,
+            codex::abs_codex_start,
+            codex::abs_codex_send,
+            codex::abs_codex_interrupt,
+            codex::abs_codex_stop,
+            codex::abs_codex_list,
+            codex::abs_codex_page_epoch,
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,
@@ -100,8 +112,9 @@ pub fn run() {
             web_session::register(app.handle());
             // Restore the MCP server if the user left it enabled last session.
             mcp_server::register(app.handle());
-            // Claude Code processes the agent started die with the editor.
+            // Claude Code and Codex processes the agent started die with the editor.
             claude_code::register(app.handle());
+            codex::register(app.handle());
             Ok(())
         })
         .build(tauri::generate_context!())
@@ -111,6 +124,7 @@ pub fn run() {
             // this covers quitting the app outright (Cmd+Q on macOS).
             if let tauri::RunEvent::Exit = event {
                 claude_code::kill_all(app);
+                codex::kill_all(app);
             }
         });
 }

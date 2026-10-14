@@ -1,7 +1,7 @@
 "use client";
 
-// The Agent tab of the right dock: the Claude Code conversation and the box that
-// keeps it going.
+// The Agent tab of the right dock: the conversation with Claude Code or Codex,
+// and the box that keeps it going.
 //
 // A view only, like every panel RightDockPanels holds: it renders the snapshot
 // it is given and reports what the user did through the handlers. The editor
@@ -51,19 +51,26 @@ import { toolImageAlt, toolLabel, toolSkipped } from '@/lib/claudeCode/toolLabel
 import { FOLDER_CAP_NOTICE, MAX_FOLDERS } from '@/lib/claudeCode/folders';
 import { contextMeter } from '@/lib/claudeCode/contextUsage';
 import {
+  AGENT_KINDS,
+  AGENT_NAMES,
   CLAUDE_EFFORT_CHOICES,
   CLAUDE_MODEL_CHOICES,
   type AgentContextUsage,
   type AgentItem,
+  type AgentKind,
   type ClaudeEffortChoice,
   type ClaudeModelChoice,
 } from '@/lib/claudeCode/types';
+import { clampCodexEffort } from '@/lib/codex/effort';
+import { CODEX_EFFORT_CHOICES, type CodexEffortChoice } from '@/lib/codex/types';
 import type { AgentAttachment, AgentPanelFolder, AgentPanelView } from '@/lib/claudeCode/view';
 import type { AgentChatListItem } from '@/lib/claudeCode/chats';
 import { RunHistoryDialog } from '../start/RunHistoryDialog';
 import { AgentMarkdown } from './AgentMarkdown';
 import { ClaudeCodeLogo } from './ClaudeCodeLogo';
 import { ClaudeCodeSetup, accountLine, readinessOf } from './ClaudeCodeSetup';
+import { CodexLogo } from './CodexLogo';
+import { CodexSetup, codexAccountLine, codexReadinessOf } from './CodexSetup';
 
 export interface AgentPanelHandlers {
   onSend: (text: string, attachments: AgentAttachment[]) => void;
@@ -73,6 +80,11 @@ export interface AgentPanelHandlers {
   onSetModel: (model: ClaudeModelChoice) => void;
   /** Like the model, it applies from the next message. */
   onSetEffort: (effort: ClaudeEffortChoice) => void;
+  /** Point a chat that has not begun at the other CLI. */
+  onSetAgent: (agent: AgentKind) => void;
+  /** The model the next Codex turn asks for: 'default' or a model id from view.codexModels. */
+  onSetCodexModel: (model: string) => void;
+  onSetCodexEffort: (effort: CodexEffortChoice) => void;
   onHide: () => void;
   /** Go back to a past chat, and to its project when another one is open. */
   onOpenChat: (chatId: string) => void;
@@ -145,6 +157,38 @@ function prettyModel(id: string | null): string | null {
   if (!match) return id;
   const family = match[1].charAt(0).toUpperCase() + match[1].slice(1);
   return match[3] ? `${family} ${match[2]}.${match[3]}` : `${family} ${match[2]}`;
+}
+
+/** The mark of the CLI a chat talks to. */
+function AgentLogo({ agent, className, tile = false }: { agent: AgentKind; className?: string; tile?: boolean }) {
+  return agent === 'codex' ? <CodexLogo className={className} tile={tile} /> : <ClaudeCodeLogo className={className} tile={tile} />;
+}
+
+/**
+ * The two CLIs a chat can talk to, as a pair of buttons. Only a chat with
+ * nothing sent in it can switch: each keeps its conversation in its own files.
+ */
+function AgentPicker({ agent, onPick }: { agent: AgentKind; onPick: (agent: AgentKind) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Agent" className="flex rounded-lg border bg-muted/30 p-0.5">
+      {AGENT_KINDS.map((kind) => (
+        <button
+          key={kind}
+          type="button"
+          role="radio"
+          aria-checked={agent === kind}
+          onClick={() => onPick(kind)}
+          className={cn(
+            'inline-flex flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 py-1 text-xs transition-colors',
+            agent === kind ? 'bg-background font-medium text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <AgentLogo agent={kind} className="h-3.5 w-3.5" />
+          {AGENT_NAMES[kind]}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function formatElapsed(ms: number): string {
@@ -314,8 +358,16 @@ const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
  * The arc is the share used, to scale, so a new chat's sliver looks empty and
  * its label says "<1%". `empty` is a chat with nothing sent yet.
  */
-function ContextRing({ context, empty }: { context: AgentContextUsage | null; empty: boolean }) {
-  const meter = contextMeter(context, { empty });
+function ContextRing({
+  context,
+  empty,
+  agentName,
+}: {
+  context: AgentContextUsage | null;
+  empty: boolean;
+  agentName: string;
+}) {
+  const meter = contextMeter(context, { empty, agentName });
   return (
     <div
       role="meter"
@@ -324,7 +376,7 @@ function ContextRing({ context, empty }: { context: AgentContextUsage | null; em
       aria-valuemax={100}
       aria-valuenow={meter.percent}
       aria-valuetext={meter.description}
-      title={`${meter.description}\nNear the limit, Claude Code summarizes the chat so far`}
+      title={`${meter.description}\nNear the limit, ${agentName} summarizes the chat so far`}
       className={cn(
         'flex h-7 items-center gap-1 px-1 text-[11px] tabular-nums',
         meter.level === 'full'
@@ -396,9 +448,17 @@ function ChatGroup({
               onClick={() => onOpen(chat.id)}
               className="min-w-0 flex-1 px-2 py-1.5 text-left disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span className="block truncate text-xs font-medium">{chat.title}</span>
+              <span className="flex min-w-0 items-center gap-1.5">
+                <AgentLogo agent={chat.agent} className="h-3 w-3 text-muted-foreground" />
+                <span className="truncate text-xs font-medium">{chat.title}</span>
+              </span>
               <span className="block truncate text-[11px] text-muted-foreground">
-                {[showProject ? (chat.projectName ?? 'Unnamed project') : null, chat.current ? 'Open now' : ago(chat.updatedAt)]
+                {[
+                  showProject ? (chat.projectName ?? 'Unnamed project') : null,
+                  chat.current ? 'Open now' : ago(chat.updatedAt),
+                  // Only a Codex row names its agent: a row without one is a Claude Code chat.
+                  chat.agent === 'codex' ? 'Codex' : null,
+                ]
                   .filter(Boolean)
                   .join(' · ')}
               </span>
@@ -509,8 +569,15 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
   }, [attachments]);
 
   const working = view.status === 'working' || view.status === 'starting';
-  const readiness = readinessOf(view.detection);
-  const needsSetup = readiness === 'missing' || readiness === 'signed-out' || readiness === 'sandboxed' || readiness === 'broken';
+  const codex = view.agent === 'codex';
+  const agentName = AGENT_NAMES[view.agent];
+  const readiness = codex ? codexReadinessOf(view.codexDetection) : readinessOf(view.detection);
+  const needsSetup =
+    readiness === 'missing' ||
+    readiness === 'signed-out' ||
+    readiness === 'keyring' ||
+    readiness === 'sandboxed' ||
+    readiness === 'broken';
   const blocked = !view.available || offline || (needsSetup && readiness !== 'broken');
   // A folder the agent was not started with is worth a message on its own.
   const canSend =
@@ -642,17 +709,34 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
   }, [text]);
 
   const rows = useMemo(() => groupRows(view.items), [view.items]);
-  const account = accountLine(view.detection.result);
+  const account = codex ? codexAccountLine(view.codexDetection.result) : accountLine(view.detection.result);
+  // The Codex model the next turn asks for, its menu entry, and the effort it
+  // goes out with, which is the one picked or the highest the model has below it.
+  const codexChoice = view.codexModels.find((choice) => choice.value === view.codexModel) ?? null;
+  const codexMenu =
+    codexChoice || view.codexModel === 'default'
+      ? view.codexModels
+      : [...view.codexModels, { value: view.codexModel, label: view.codexModel, efforts: [] }];
+  const codexEfforts = codexChoice?.efforts ?? [];
+  const codexEffort = clampCodexEffort(view.codexEffort, codexEfforts);
+  const codexEffortMenu = codexEfforts.length
+    ? CODEX_EFFORT_CHOICES.filter((choice) => codexEfforts.includes(choice.value))
+    : CODEX_EFFORT_CHOICES;
   // The header's line is about 30 characters wide in a default dock, so the
   // picker's "Your default model" loses its first word here.
-  const modelName =
-    prettyModel(view.resolvedModel) ??
-    (view.model === 'default' ? 'Default model' : CLAUDE_MODEL_CHOICES.find((c) => c.value === view.model)?.label) ??
-    null;
-  const effortName = CLAUDE_EFFORT_CHOICES.find((c) => c.value === view.effort)?.label.toLowerCase() ?? null;
+  const modelName = codex
+    ? view.codexModel !== 'default'
+      ? (codexChoice?.label ?? view.codexModel)
+      : (view.codexModels.find((choice) => choice.value === view.resolvedModel)?.label ?? view.resolvedModel ?? 'Default model')
+    : (prettyModel(view.resolvedModel) ??
+      (view.model === 'default' ? 'Default model' : CLAUDE_MODEL_CHOICES.find((c) => c.value === view.model)?.label) ??
+      null);
+  const effortName = codex
+    ? (CODEX_EFFORT_CHOICES.find((c) => c.value === codexEffort)?.label.toLowerCase() ?? null)
+    : (CLAUDE_EFFORT_CHOICES.find((c) => c.value === view.effort)?.label.toLowerCase() ?? null);
   // "Opus 5.5, max effort". Haiku has no effort levels, so for it the line
   // would claim something untrue.
-  const usesEffort = !/haiku/i.test(view.resolvedModel ?? view.model);
+  const usesEffort = codex || !/haiku/i.test(view.resolvedModel ?? view.model);
   const modelLine = modelName && effortName && usesEffort ? `${modelName}, ${effortName} effort` : modelName;
   const statusLine = working
     ? view.status === 'starting'
@@ -710,9 +794,9 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
   const placeholder = offline
     ? 'Waiting for the editor window'
     : !view.available
-      ? 'Claude Code runs in the desktop app'
+      ? `${agentName} runs in the desktop app`
       : blocked
-        ? 'Set up Claude Code first'
+        ? `Set up ${agentName} first`
         : 'Ask the agent to change something';
 
   const rateLimited = view.rateLimit?.status === 'rejected';
@@ -734,9 +818,9 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
       }}
     >
       <div className="flex h-11 shrink-0 items-center gap-2 border-b px-3">
-        <ClaudeCodeLogo className="h-4 w-4" />
+        <AgentLogo agent={view.agent} className="h-4 w-4" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-semibold leading-tight">Claude Code</p>
+          <p className="truncate text-xs font-semibold leading-tight">{agentName}</p>
           {statusLine && (
             <p className="truncate text-[11px] leading-tight text-muted-foreground" title={statusLine}>
               {statusLine}
@@ -781,28 +865,53 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60" data-agent-panel="">
             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Model</DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={view.model}
-              onValueChange={(value) => handlers.onSetModel(value as ClaudeModelChoice)}
-            >
-              {CLAUDE_MODEL_CHOICES.map((choice) => (
-                <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
-                  {choice.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
+            {codex ? (
+              <DropdownMenuRadioGroup value={view.codexModel} onValueChange={(value) => handlers.onSetCodexModel(value)}>
+                {codexMenu.map((choice) => (
+                  <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
+                    {choice.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            ) : (
+              <DropdownMenuRadioGroup
+                value={view.model}
+                onValueChange={(value) => handlers.onSetModel(value as ClaudeModelChoice)}
+              >
+                {CLAUDE_MODEL_CHOICES.map((choice) => (
+                  <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
+                    {choice.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Effort</DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-              value={view.effort}
-              onValueChange={(value) => handlers.onSetEffort(value as ClaudeEffortChoice)}
-            >
-              {CLAUDE_EFFORT_CHOICES.map((choice) => (
-                <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
-                  {choice.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
+            {codex ? (
+              // The level the next turn goes out with, which is the one picked
+              // or the highest this model has below it.
+              <DropdownMenuRadioGroup
+                value={codexEffort}
+                onValueChange={(value) => handlers.onSetCodexEffort(value as CodexEffortChoice)}
+              >
+                {codexEffortMenu.map((choice) => (
+                  <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
+                    {choice.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            ) : (
+              <DropdownMenuRadioGroup
+                value={view.effort}
+                onValueChange={(value) => handlers.onSetEffort(value as ClaudeEffortChoice)}
+              >
+                {CLAUDE_EFFORT_CHOICES.map((choice) => (
+                  <DropdownMenuRadioItem key={choice.value} value={choice.value} className="text-xs">
+                    {choice.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            )}
             <DropdownMenuSeparator />
             {!detached && (
               <DropdownMenuItem className="gap-2 text-xs" onSelect={() => setHistoryOpen(true)}>
@@ -812,7 +921,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             )}
             <DropdownMenuItem className="gap-2 text-xs" onSelect={handlers.onDetect}>
               <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
-              Check Claude Code again
+              {`Check ${agentName} again`}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 text-xs" onSelect={handlers.onHide}>
@@ -845,14 +954,27 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
           />
         ) : (
           <>
-            {needsSetup && (
-              <ClaudeCodeSetup
-                detection={view.detection}
-                onRetry={handlers.onDetect}
-                onOpenLink={handlers.onOpenLink}
-                className="mb-3 text-xs"
-              />
+            {view.agentSwitchable && view.available && !offline && (
+              <div className="mb-3">
+                <AgentPicker agent={view.agent} onPick={handlers.onSetAgent} />
+              </div>
             )}
+            {needsSetup &&
+              (codex ? (
+                <CodexSetup
+                  detection={view.codexDetection}
+                  onRetry={handlers.onDetect}
+                  onOpenLink={handlers.onOpenLink}
+                  className="mb-3 text-xs"
+                />
+              ) : (
+                <ClaudeCodeSetup
+                  detection={view.detection}
+                  onRetry={handlers.onDetect}
+                  onOpenLink={handlers.onOpenLink}
+                  className="mb-3 text-xs"
+                />
+              ))}
 
             {view.omitted > 0 && (
               <p className="mb-2 text-center text-[11px] text-muted-foreground">
@@ -862,7 +984,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
 
             {rows.length === 0 && !working ? (
               <div className="flex flex-col items-center px-2 pt-4 text-center">
-                <ClaudeCodeLogo tile className="h-10 w-10" />
+                <AgentLogo agent={view.agent} tile className="h-10 w-10" />
                 <p className="mt-3 text-sm font-semibold">Talk to the agent</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Ask for a change and watch the canvas. The agent edits this project with the app&apos;s design tools.
@@ -870,7 +992,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
                 {account && <p className="mt-1 text-xs text-muted-foreground">{account}</p>}
                 {!blocked && (
                   <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-                    {(view.folders.length > 0 ? FOLDER_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
+                    {(view.folders.length > 0 && !codex ? FOLDER_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
@@ -925,7 +1047,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             {working && (
               <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>{view.status === 'starting' ? 'Starting Claude Code...' : 'Working...'}</span>
+                <span>{view.status === 'starting' ? `Starting ${agentName}...` : 'Working...'}</span>
                 {view.turnStartedAt && <span className="tabular-nums">{formatElapsed(now - view.turnStartedAt)}</span>}
               </div>
             )}
@@ -942,11 +1064,17 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             )}
           >
             <TriangleAlert className="mt-px h-3 w-3 shrink-0" />
-            {rateLimited
-              ? resetAt
-                ? `Your Claude plan hit its usage limit. It resets at ${resetAt}`
-                : 'Your Claude plan hit its usage limit'
-              : 'Close to your Claude plan usage limit'}
+            {codex
+              ? rateLimited
+                ? resetAt
+                  ? `Your ChatGPT plan hit its Codex usage limit. It resets at ${resetAt}`
+                  : 'Your ChatGPT plan hit its Codex usage limit'
+                : 'Close to your Codex usage limit'
+              : rateLimited
+                ? resetAt
+                  ? `Your Claude plan hit its usage limit. It resets at ${resetAt}`
+                  : 'Your Claude plan hit its usage limit'
+                : 'Close to your Claude plan usage limit'}
           </p>
         )}
         {view.contextLabel && (
@@ -958,7 +1086,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             <span className="truncate">About {view.contextLabel}</span>
           </p>
         )}
-        {view.folders.length > 0 && (
+        {view.folders.length > 0 && !codex && (
           // For the whole chat, unlike the pictures below, which go with one message.
           <ul aria-label="Folders Claude Code can read" className="mb-1.5 flex flex-wrap gap-1">
             {view.folders.map((folder, index) => (
@@ -1048,20 +1176,23 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
               </Button>
               {/* Never disabled while the dialog is open, only busy: disabling
                   it would drop the keyboard focus the dialog hands back. At the
-                  cap a click explains the cap instead of opening the dialog. */}
-              <Button
-                ref={addFolderRef}
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground"
-                onClick={addFolder}
-                disabled={blocked}
-                aria-busy={picking || undefined}
-                title="Add your app's code folder"
-                aria-label="Add your app's code folder"
-              >
-                {picking ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderPlus className="h-4 w-4" />}
-              </Button>
+                  cap a click explains the cap instead of opening the dialog.
+                  Not there for Codex, which reads no folder. */}
+              {!codex && (
+                <Button
+                  ref={addFolderRef}
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground"
+                  onClick={addFolder}
+                  disabled={blocked}
+                  aria-busy={picking || undefined}
+                  title="Add your app's code folder"
+                  aria-label="Add your app's code folder"
+                >
+                  {picking ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderPlus className="h-4 w-4" />}
+                </Button>
+              )}
             </div>
             <input
               ref={fileRef}
@@ -1076,7 +1207,11 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             />
             <div className="flex items-center gap-1">
               {view.available && !needsSetup && (
-                <ContextRing context={view.context} empty={view.items.length === 0 && !view.resumable} />
+                <ContextRing
+                  context={view.context}
+                  empty={view.items.length === 0 && !view.resumable}
+                  agentName={agentName}
+                />
               )}
               {working ? (
                 <Button

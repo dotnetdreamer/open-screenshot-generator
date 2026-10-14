@@ -622,6 +622,78 @@ Rules 29 and 30 hold: `AgentPanel` is a view, and the editor window owns the pro
 
 ---
 
+## The Codex agent (desktop only)
+
+The Agent panel can talk to Codex as well as to Claude Code: the Codex tab of the agent screen (second, after Claude Code) starts a run with it, and any chat with nothing in it yet switches between the two (`setChatAgent`). The desktop app runs the Codex CLI the user already signed in to with ChatGPT, as `codex app-server`, on their ChatGPT plan. It gets the same MCP design tools and the same transcript, Past chats, editor context, first-run brief and context ring as Claude Code (previous section), and no code folders. User-facing notes are in [docs/AI-AGENT.md](../docs/AI-AGENT.md) section 5; the process, the Codex home and the protocol in [docs/DESKTOP.md](../docs/DESKTOP.md).
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [codex.rs](../src-tauri/src/codex.rs) | Finds the binary (`find_binary`, `extension_binaries` for the ChatGPT extension's copy), writes the Codex home (`prepare_workspace`, `CONFIG_TOML`), links the login (`link_login`), the detection probe (`probe`), the spawn (`agent_command`, `mcp_overrides`, `scrub_env`), the JSON-RPC client (`Running::request`, `call`, `on_line`, `on_response`), the answers to Codex's own requests (`server_request_answer`), what reaches the page (`relayed`, `elide_images`), the turn checks (`turn_input`) and the `$` mention defusal (`defuse_skill_mentions`). Commands `abs_codex_detect`, `abs_codex_start`, `abs_codex_send`, `abs_codex_interrupt`, `abs_codex_stop`, `abs_codex_list`, `abs_codex_page_epoch` |
+| [codex-agent/system-prompt.md](../src-tauri/codex-agent/system-prompt.md) | Codex's prompt, sent as the thread's `developerInstructions` with the three skills of `claude-agent/skills/` after it in full (`developer_instructions`), each without its frontmatter under "# Design guide: <name>". Pinned to LF in .gitattributes |
+| [codex/types.ts](../src/lib/codex/types.ts) | `CodexDetection`, `CodexModel`, the effort choices (no `ultra`), `CodexTransport` and its events |
+| [codex/desktopTransport.ts](../src/lib/codex/desktopTransport.ts) | `CodexTransport` over Tauri, listening on `abs-codex-event` with the bridge nonce |
+| [codex/reducer.ts](../src/lib/codex/reducer.ts) | Pure fold of one notification into `AgentSessionState` (`reduceCodexNotification`), `describeCodexError`, `describeCodexExit`, `failCodexTurn` |
+| [codex/effort.ts](../src/lib/codex/effort.ts) | `clampCodexEffort`: the level picked, or the highest the model has below it. The store sends it and the panel shows it |
+| [store.ts](../src/lib/claudeCode/store.ts) | The shared store: `AgentChatMeta.agent`, `newChatAgent`, `setChatAgent`, `detectCodex`, `setCodexModel`, `setCodexEffort`, and for a Codex chat `ensureCodexProcess`, `sendCodexTurn`, `onCodexEvent`, `adoptCodex` |
+| [CodexSetup.tsx](../src/components/open-screenshot-generator/agent/CodexSetup.tsx), [CodexLogo.tsx](../src/components/open-screenshot-generator/agent/CodexLogo.tsx), [CodexModePanel.tsx](../src/components/open-screenshot-generator/start/CodexModePanel.tsx) | The setup cards (not installed, not signed in, a keychain login, sandboxed, broken), OpenAI's mark (Simple Icons 13.21.0, CC0, in the text colour) and the agent screen's Codex tab |
+
+### The process
+
+```
+codex app-server
+  -c mcp_servers.osg-editor.url=http://127.0.0.1:<port>/mcp
+  -c mcp_servers.osg-editor.bearer_token_env_var=OSG_MCP_TOKEN
+  -c mcp_servers.osg-editor.default_tools_approval_mode=approve
+  -c mcp_servers.osg-editor.startup_timeout_sec=30 -c mcp_servers.osg-editor.tool_timeout_sec=240
+  -c mcp_servers.osg-editor.supports_parallel_tool_calls=false
+```
+
+- cwd `codex-agent/session/`, `CODEX_HOME=codex-agent/home/`, `HOME=codex-agent/user/` on macOS and Linux, `OSG_MCP_TOKEN`, the merged PATH, `NO_COLOR=1`, and every `OPENAI_`, `CODEX_`, `CLAUDE` and `ANTHROPIC_` variable but `CODEX_CA_CERTIFICATE` removed (`scrubbed_var`, a prefix rule because Codex's list grows every release; the Claude ones because a `tauri dev` run from a Claude Code terminal passes that session's messaging token down, seen live).
+- `home/config.toml` is `CONFIG_TOML`, written whenever it differs. `home/auth.json` links to the user's (`$CODEX_HOME` of the app's environment, else `~/.codex`): a symlink on Unix, on Windows a symlink or else a hard link made again each start. Codex 0.162 writes a login and a refreshed token in place (`OpenOptions` with truncate), so both land in the user's file; checked by logging in through a link in a scratch home. With no user `auth.json` the link is removed and the start fails with the sign-in sentence.
+- `initialize` (`clientInfo.name` `open_screenshot_generator`, `experimentalApi: false`), `initialized`, `skills/list` for the cwd, then `thread/resume` (`excludeTurns: true`) or `thread/start`, each with `cwd`, `approvalPolicy: "never"`, `sandbox: "read-only"`, `developerInstructions` and the model when one was picked. A failed resume, "no rollout found for thread id ...", falls back to `thread/start`, and `StartInfo.resumed` is false. The start returns once the thread exists, so the page sends its first turn to a ready process.
+- `abs_codex_send { spawnId, turn: { text, images, model?, effort? } }` builds `turn/start { threadId, input: [{type:"text", text, text_elements: []}, {type:"image", url:"data:..."}...], model?, effort? }`. Refused while `busy`, and when the thread is not known yet. The duplicate check hashes the text, the model, the effort and each picture's type and length.
+- `busy` is set by a send and by `turn/started`, cleared by `turn/completed` and by a failed `turn/start` (relayed as `turnFailed`). `turn_id` comes from the `turn/start` answer or `turn/started`; `abs_codex_interrupt` sends `turn/interrupt` for it, or, before Codex has named the turn, remembers to (`interrupt_wanted`).
+- Server requests are answered in Rust: `item/commandExecution/requestApproval` and `item/fileChange/requestApproval` `{decision:"decline"}`, the v1 `execCommandApproval` and `applyPatchApproval` `{decision:{denied:{rejection}}}`, `item/permissions/requestApproval` `{permissions:{}, scope:"turn"}`, `mcpServer/elicitation/request` `{action:"decline"}`, `item/tool/requestUserInput` `{answers:{}}`, `item/tool/call` `{contentItems:[], success:false}`, anything else `-32601` (an `account/chatgptAuthTokens/refresh` included: the app never runs external auth).
+- Relayed (`FORWARDED`): `turn/started`, `turn/completed` (its `items` emptied), `item/started`, `item/completed` (not `userMessage`, `reasoning` or `hookPrompt`), `item/agentMessage/delta`, `thread/tokenUsage/updated`, `account/rateLimits/updated`, `mcpServer/startupStatus/updated`, `error`, `warning`, `configWarning`, `deprecationNotice`, `thread/compacted`, `model/rerouted`, and only for the chat's thread once it is known. A relayed line over 512KB has each image's `data` or `url` over 256KB emptied and `elided: true`.
+- At most 4 processes. `kill_all` runs with the editor window's `Destroyed` and on `RunEvent::Exit`. `mcp_server::stop_if_unused` counts Codex's sessions and starts too (`codex::has_sessions`). `on_page_load` bumps Codex's page epoch beside Claude Code's.
+
+### What the model sees, as checked on 0.162 against a stand-in Responses API
+
+- Tools: one `functions` namespace with `exec` (JavaScript in a V8 isolate: no `require`, `fetch`, `process`, `Deno`, and `import('fs')` refused), `wait` and `request_user_input_async`, and a `collaboration` namespace of sub-agent tools that the model catalog's `multi_agent_version` brings whatever the features say. Inside `exec`: the design tools as `tools.mcp__osg_editor__<tool>`, `list_mcp_resources`, `list_mcp_resource_templates`, `read_mcp_resource`, `clock__curr_time` and `apply_patch`, which the read-only sandbox refuses. With ChatGPT auth and `apps` on, a `codex_apps` server from chatgpt.com joins the MCP servers; `apps = false` keeps it out (checked with the real login through `mcpServerStatus/list`).
+- Messages: Codex's own base prompt, then the developer instructions, then the user's turn. The permission, environment, collaboration-mode and skill-list messages are switched off in `CONFIG_TOML`; the multi-agent role messages stay.
+- A design tool call made in a script arrives as an `mcpToolCall` item (`server`, `tool`, `arguments`, `status` `inProgress`, `completed` or `failed`, `result.content`, `error`). The script itself makes no item, so a syntax error in it shows only to the model. A design tool that returns `isError` arrives as `failed` with its text in `result.content`.
+
+### The page side
+
+- `AgentChatMeta.agent` and `AgentChatRecord.agent` (not indexed, so no Dexie version; a chat saved before Codex is Claude Code's). `newChatAgent` (`osg-agent-kind`) is what a new chat starts with; `setChatAgent` switches the chat on screen only while it has no items, no conversation and no turn, and always records the pick. The persisted save gains `processAgent`, and `adopt()` lists both CLIs (`adoptClaude`, `adoptCodex`), takes back the chat's own process and stops every other.
+- `ensureCodexProcess` runs detection first when nothing has yet (the effort rule needs each model's levels, and Codex hands an effort the model lacks to the API as it is, checked against a stand-in), starts with `resume` set to the chat's thread, and puts "The earlier conversation was gone, so this is a new one" in the transcript when `resumed` is false. Model and effort need no restart: `codexTurnChoice` sends the picked model (`osg-codex-agent-model`, absent for Codex's default) and `clampCodexEffort` of the picked effort (`osg-codex-agent-effort`, Max by default) against the model's levels from detection. An API key login (`authMethod: "apiKey"`) gets the billing notice at the start.
+- `sendCodexTurn` composes the text exactly as a Claude Code turn (`composeTurnText`: the editor context, the preface called with no folders, the user's words). `stop()` calls `interrupt`, and the same 4s timer kills the process if the turn has not ended.
+- The reducer keys rows by `cx-<item id>`. An `agentMessage` builds up from its deltas and is replaced by the finished text; its `questions` are appended as lines. `mcpToolCall` is a tool row named by its tool, with `toolDetail`, the result text and the first picture; a completed design call sets `toolsConnected`. `commandExecution` and `fileChange` become a warning notice, never a row. An `error` with `willRetry` says "Codex is busy, retrying" once in a row; one without waits for `turn/completed`, which says it (`state.error` holds it meanwhile), or is said at once outside a turn. A 401 or 403 (`httpConnectionFailed.httpStatusCode`) or `unauthorized` is the sign-in sentence, `usageLimitExceeded` the plan's usage limit. `thread/tokenUsage/updated` sets the context to `last.totalTokens` of `modelContextWindow`; a summary sets `used` to null with one notice however Codex reports it. `account/rateLimits/updated` maps to the panel's rate limit (`rejected` when a limit is reached, `allowed_warning` from 90% used).
+- `agentReadsFolders()` is false for a Codex process, `foldersPending` false for a Codex chat, `pickFolder({ addToChat })` and `addFolder` refuse with "Code folders work with Claude Code only", and `newChat` drops the folders for a Codex chat.
+- View: `agent`, `agentSwitchable`, `codexDetection`, `codexModel`, `codexEffort` and `codexModels` (`codexModelChoices`: Codex's default, then each detected model with its levels). `slimAgentView` empties the detection's model list, which `codexModels` carries.
+- Panel: the header, the logo, the setup card, the model and effort menus, "Check Codex again", the rate-limit line, the placeholder and the ring's wording follow `view.agent`; a Codex chat has no folder button or chips. An empty chat shows the `AgentPicker` (a radiogroup labelled "Agent"). Past chats rows carry the agent's mark, and a Codex row says "Codex". Intents `agentSetAgent`, `agentSetCodexModel`, `agentSetCodexEffort`; `agentDetect` asks the chat's CLI. The dock menu offers "Chat with Codex" beside "Chat with Claude Code".
+
+### Tests
+
+- [codex.test.ts](../tests/unit/codex.test.ts) folds the four fixtures in [fixtures/codex/](../tests/unit/fixtures/codex/), recorded from a real Codex 0.162 app-server with a scripted stand-in model and design server and put through the same filter as `relayed`: a turn of four design calls (one failing, one with a picture) and a streamed reply, a turn interrupted mid-tool, and turns refused with a 401 and with the usage limit. It also covers sub-agent filtering, the design server failing, a missing code-mode runner, a refused command, rate limits, summaries, reroutes, retries and the effort rule. [codexStore.test.ts](../tests/unit/codexStore.test.ts) drives the store against the stand-in in [helpers/claudeDesktop.ts](../tests/unit/helpers/claudeDesktop.ts) (`CODEX_READY`, `playCodex`, `notify`, `endCodexTurn`): the switch, what a start and each turn send, a model change without a restart, folders refused, Stop, a refused turn, an exit, Past chats with a resume, and a resume Codex no longer has. [codexAdopt.test.ts](../tests/unit/codexAdopt.test.ts) is a reload with a busy Codex process. [agentBrief.test.ts](../tests/unit/agentBrief.test.ts) holds the Codex prompt to the server's tools, with `osg_editor` and `apply_patch` allowed in it only (`CODEX_WORDS`).
+- Rust: `cargo test --lib codex`.
+- The e2e IPC mock ([tauri-runtime.ts](../tests/e2e/fixtures/tauri-runtime.ts)) models `abs_codex_*` with nothing installed, and keeps its processes in sessionStorage like Claude Code's.
+
+### Traps
+
+- **`-c mcp_servers={}` does not remove a server.** Codex merges a table override, so the user's own servers would survive it; and `-c 'mcp_servers."a.b".enabled=false'` does not parse. That is why the agent has a home of its own rather than overrides on the user's.
+- **`config.toml` is validated before `-c` is merged.** A server table there without its URL fails with "invalid transport", so the whole server goes on the command line.
+- **An unknown `--disable <feature>` is a hard error; an unknown key in `[features]` is ignored.** The features live in the file for that reason.
+- **`code_mode_host = false` leaves the model no tools.** Codex warns "Code Mode is unavailable because code-mode host is disabled" and fails `exec` closed; the panel turns the warning into `CODEX_NO_RUNNER_NOTICE`.
+- **MCP tools need approval by default.** With `approval_policy = "never"` a design call fails with "MCP tool call requires approval, but approval policy is never" unless the server says `default_tools_approval_mode = approve` (the other values, `auto`, `prompt` and `writes`, all fail the same way).
+- **`$name` loads a skill.** Codex matches it anywhere in the text, case-sensitively, digits first included, and skills in `~/.agents/skills` are found whatever `CODEX_HOME` is. `[skills.bundled] enabled = false` keeps Codex's own out of the home, `HOME` hides the user's on macOS and Linux, and the defusal covers whatever `skills/list` still reports, which is all Windows has (the app sets no `HOME` or `USERPROFILE` there). `skip_host_skill_discovery` changes nothing.
+- **`ultra` hands the turn to sub-agents.** It is not an effort level the agent offers or Rust accepts.
+- **A resume answers with an error, not an empty thread.** The fallback to `thread/start` is Rust's; the page only reads `resumed`.
+
+---
+
 ## Translation and the font system
 
 Two different things share the word "translate" here, and mixing them up is the main way to break a project.

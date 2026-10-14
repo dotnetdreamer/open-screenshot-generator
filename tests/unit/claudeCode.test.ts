@@ -497,10 +497,16 @@ test('the detached view is slim', () => {
   }));
   const view: AgentPanelView = {
     available: true,
+    agent: 'claude-code',
+    agentSwitchable: false,
     detection: { status: 'done', result: { found: true }, error: null },
+    codexDetection: { status: 'unknown', result: null, error: null },
     status: 'ready',
     model: 'default',
     effort: 'max',
+    codexModel: 'default',
+    codexEffort: 'max',
+    codexModels: [{ value: 'default', label: "Codex's default model", efforts: [] }],
     resolvedModel: null,
     items,
     omitted: 0,
@@ -514,6 +520,7 @@ test('the detached view is slim', () => {
     contextLabel: null,
     chats: Array.from({ length: 50 }, (_, index) => ({
       id: `chat-${index}`,
+      agent: 'claude-code' as const,
       title: 't'.repeat(80),
       projectId: `project_${index}`,
       projectName: 'n'.repeat(120),

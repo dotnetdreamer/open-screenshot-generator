@@ -1,16 +1,22 @@
 "use client";
 
-// The Claude Code conversation, owned by the editor window.
+// The agent conversation, owned by the editor window.
 //
 // One module-level store rather than component state, because nothing that
 // renders it lives long enough: the Agent panel unmounts on every tab switch,
 // when the dock collapses and when it is detached, and the start dialog that
 // begins a chat closes as soon as it has. The store holds the process, folds
-// its stdout into a transcript (streamReducer.ts), and keeps the transcript in
-// localStorage so a reload or a relaunch shows the chat and resumes it. Every
-// chat is also saved in Past chats (chats.ts), and the chat on screen follows
-// the project the editor has open. A chat can carry up to three folders of the
-// user's app code (folders.ts), which its process is started able to read.
+// its output into a transcript, and keeps the transcript in localStorage so a
+// reload or a relaunch shows the chat and resumes it. Every chat is also saved
+// in Past chats (chats.ts), and the chat on screen follows the project the
+// editor has open.
+//
+// A chat talks to one of two CLIs, picked before its first message: Claude
+// Code, whose stream-json streamReducer.ts folds, or Codex, whose app-server
+// notifications src/lib/codex/reducer.ts folds into the same transcript. A
+// Claude Code chat can carry up to three folders of the user's app code
+// (folders.ts), which its process is started able to read. A Codex chat has
+// none.
 //
 // A detached panel window never touches this module. It renders the snapshot
 // the editor sends it and asks the editor to act (rule 29 in AGENTS.md).
@@ -20,6 +26,19 @@ import { db } from '@/database';
 import { isTauri } from '@/lib/desktop';
 import { clipText } from '@/lib/clipText';
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
+import { codexTransport } from '@/lib/codex/desktopTransport';
+import { clampCodexEffort } from '@/lib/codex/effort';
+import { describeCodexExit, failCodexTurn, reduceCodexNotification } from '@/lib/codex/reducer';
+import {
+  CODEX_EFFORT_CHOICES,
+  DEFAULT_CODEX_EFFORT,
+  type CodexDetection,
+  type CodexEffortChoice,
+  type CodexModelChoice,
+  type CodexStartInfo,
+  type CodexTransport,
+  type CodexTransportEvent,
+} from '@/lib/codex/types';
 import { desktopTransport } from './desktopTransport';
 import {
   KEEP_CHATS,
@@ -65,6 +84,7 @@ import {
   unreferencedPaths,
 } from './folders';
 import {
+  AGENT_KINDS,
   CLAUDE_EFFORT_CHOICES,
   DEFAULT_CLAUDE_EFFORT,
   INITIAL_AGENT_STATE,
@@ -74,6 +94,7 @@ import {
   type AgentFolder,
   type AgentImage,
   type AgentItem,
+  type AgentKind,
   type AgentSessionState,
   type ClaudeDetection,
   type ClaudeEffortChoice,
@@ -85,14 +106,22 @@ import {
 } from './types';
 
 export interface ClaudeAgentSnapshot {
-  /** This build can run Claude Code at all. Only the desktop app can spawn it. */
+  /** This build can run the agent at all. Only the desktop app can spawn it. */
   available: boolean;
   session: AgentSessionState;
+  /** Claude Code's detection. */
   detection: AgentDetectionState;
   model: ClaudeModelChoice;
-  /** Every process starts with it. Max unless the user picked another. */
+  /** Every Claude Code process starts with it. Max unless the user picked another. */
   effort: ClaudeEffortChoice;
-  /** The Agent tab is in the dock. Turned on the first time Claude Code is picked. */
+  codexDetection: AgentDetectionState<CodexDetection>;
+  /** The model every Codex turn asks for: 'default', or one of the detected models' ids. */
+  codexModel: CodexModelChoice;
+  /** Every Codex turn asks for it, or the highest its model has below it. */
+  codexEffort: CodexEffortChoice;
+  /** The agent a new chat starts with: the one the user picked last. */
+  newChatAgent: AgentKind;
+  /** The Agent tab is in the dock. Turned on the first time the agent is picked. */
   panelEnabled: boolean;
   /** Which saved chat the conversation on screen is, and the project it belongs to. */
   chat: AgentChatMeta;
@@ -111,6 +140,8 @@ export interface ClaudeAgentSnapshot {
 export interface AgentChatMeta {
   /** Null until the chat's first message, which is when it is first saved. */
   id: string | null;
+  /** Which CLI the chat talks to. Switchable until the chat has begun (setChatAgent). */
+  agent: AgentKind;
   projectId: string | null;
   projectName: string | null;
   createdAt: number | null;
@@ -132,6 +163,7 @@ export interface AgentChatMeta {
 
 const NO_CHAT: AgentChatMeta = {
   id: null,
+  agent: 'claude-code',
   projectId: null,
   projectName: null,
   createdAt: null,
@@ -167,6 +199,10 @@ export interface AgentTurnInput {
 const STORAGE_KEY = 'osg-claude-agent-v1';
 const MODEL_KEY = 'osg-claude-agent-model';
 const EFFORT_KEY = 'osg-claude-agent-effort';
+const CODEX_MODEL_KEY = 'osg-codex-agent-model';
+const CODEX_EFFORT_KEY = 'osg-codex-agent-effort';
+/** The agent a new chat starts with. Nothing until the user picks Codex once, which means Claude Code. */
+const AGENT_KEY = 'osg-agent-kind';
 const PANEL_KEY = 'osg-claude-agent-panel';
 /** The context window each model reported, so a new chat's ring shows from its first call. */
 const WINDOWS_KEY = 'osg-claude-agent-windows';
@@ -182,6 +218,9 @@ const NOTIFY_DELAY_MS = 60;
 
 const MODELS: ClaudeModelChoice[] = ['default', 'fable', 'opus', 'sonnet', 'haiku'];
 const EFFORTS: ClaudeEffortChoice[] = CLAUDE_EFFORT_CHOICES.map((choice) => choice.value);
+const CODEX_EFFORTS: CodexEffortChoice[] = CODEX_EFFORT_CHOICES.map((choice) => choice.value);
+/** What Rust takes as a Codex model id (valid_model in codex.rs). */
+const CODEX_MODEL_ID = /^[A-Za-z0-9_.][A-Za-z0-9_.-]{0,63}$/;
 
 const SERVER_SNAPSHOT: ClaudeAgentSnapshot = {
   available: false,
@@ -189,6 +228,10 @@ const SERVER_SNAPSHOT: ClaudeAgentSnapshot = {
   detection: { status: 'unknown', result: null, error: null },
   model: 'default',
   effort: DEFAULT_CLAUDE_EFFORT,
+  codexDetection: { status: 'unknown', result: null, error: null },
+  codexModel: 'default',
+  codexEffort: DEFAULT_CODEX_EFFORT,
+  newChatAgent: 'claude-code',
   panelEnabled: false,
   chat: NO_CHAT,
   chats: [],
@@ -206,8 +249,12 @@ let persistTimer: ReturnType<typeof setTimeout> | null = null;
 
 let transport: ClaudeTransport | null = null;
 let listening: Promise<void> | null = null;
+let codexClient: CodexTransport | null = null;
+let codexListening: Promise<void> | null = null;
 /** The process this window is talking to, if any. Events for any other id are ignored. */
 let spawnId: string | null = null;
+/** Which CLI that process is. Null with no process. */
+let processAgent: AgentKind | null = null;
 /**
  * The model choice that process was started with. Null when it is not known
  * (a process adopted after a reload), which makes the next send restart it on
@@ -231,6 +278,8 @@ let interruptTimer: ReturnType<typeof setTimeout> | null = null;
 let stderrTail: string[] = [];
 let detectedAt = 0;
 let detecting: Promise<ClaudeDetection | null> | null = null;
+let codexDetectedAt = 0;
+let codexDetecting: Promise<CodexDetection | null> | null = null;
 let contextProvider: (() => AgentEditorContext | null) | null = null;
 let recorder: OperationRecorder | null = null;
 let turnSeq = 0;
@@ -242,6 +291,8 @@ let turnToken = 0;
 let lastTurn: { line: string; resumedFrom: string | null } | null = null;
 /** The page load this page is (ClaudeStartArgs.pageEpoch), read once. */
 let pageEpoch: Promise<number | undefined> | null = null;
+/** The same for Codex, which counts page loads of its own (codex.rs). */
+let codexPageEpoch: Promise<number | undefined> | null = null;
 /** Past chats as read at startup. followProject waits for it before it picks one. */
 let chatsLoaded: Promise<void> = Promise.resolve();
 /**
@@ -265,6 +316,9 @@ function readPageEpoch(t: ClaudeTransport): Promise<number | undefined> {
 /** Thrown when a start was overtaken by a new chat before it finished. */
 class TurnAbandoned extends Error {}
 
+/** Why a Codex chat takes no code folder: Codex has no reads the app can fence to one. */
+export const CODEX_NO_FOLDERS = 'Code folders work with Claude Code only';
+
 // ---------------------------------------------------------------------------
 // Plumbing
 // ---------------------------------------------------------------------------
@@ -273,6 +327,26 @@ function getTransport(): ClaudeTransport | null {
   if (typeof window === 'undefined') return null;
   if (!transport && isTauri()) transport = desktopTransport;
   return transport;
+}
+
+function getCodexTransport(): CodexTransport | null {
+  if (typeof window === 'undefined') return null;
+  if (!codexClient && isTauri()) codexClient = codexTransport;
+  return codexClient;
+}
+
+function readCodexPageEpoch(t: CodexTransport): Promise<number | undefined> {
+  codexPageEpoch ??= t.pageEpoch().catch(() => undefined);
+  return codexPageEpoch;
+}
+
+/** Kill a process of either CLI. The conversation stays resumable. */
+function stopProcess(id: string, agent: AgentKind | null): void {
+  if (agent === 'codex') {
+    void getCodexTransport()?.stop(id).catch(() => {});
+  } else {
+    void getTransport()?.stop(id).catch(() => {});
+  }
 }
 
 function notifyNow(): void {
@@ -295,11 +369,11 @@ function set(next: Partial<ClaudeAgentSnapshot>, options: { immediate?: boolean 
 
 /**
  * Whether the running process can read code folders now. import_project_image
- * asks before it reads a picture. A process whose folders are not known counts
- * as reading them.
+ * asks before it reads a picture. A Claude Code process whose folders are not
+ * known counts as reading them. A Codex process never reads any.
  */
 function agentReadsFolders(): boolean {
-  return !!spawnId && (processFolders === null || processFolders.length > 0);
+  return !!spawnId && processAgent !== 'codex' && (processFolders === null || processFolders.length > 0);
 }
 
 /**
@@ -318,7 +392,8 @@ function agentMayHoldFolderData(): boolean {
 /** The folder flags follow the process, which lives in module variables rather than in the snapshot. */
 function withFolderFlags(state: ClaudeAgentSnapshot): ClaudeAgentSnapshot {
   const foldersLive = agentReadsFolders();
-  const foldersPending = hasUnreadFolder(state.chat.folders, state.chat.ranFolders);
+  // A Codex chat never sends its folders anywhere, so none is waiting to be read.
+  const foldersPending = state.chat.agent !== 'codex' && hasUnreadFolder(state.chat.folders, state.chat.ranFolders);
   if (state.foldersLive === foldersLive && state.foldersPending === foldersPending) return state;
   return { ...state, foldersLive, foldersPending };
 }
@@ -347,6 +422,7 @@ function refreshFolderFlags(): void {
 /** This window stops talking to its process. The conversation stays resumable. */
 function dropProcess(): void {
   spawnId = null;
+  processAgent = null;
   processModel = null;
   processEffort = null;
   processFolders = null;
@@ -418,6 +494,8 @@ interface Persisted {
   sessionId: string | null;
   resolvedModel: string | null;
   spawnId: string | null;
+  /** Which CLI the running process is. Missing in older saves, which only knew Claude Code. */
+  processAgent?: AgentKind | null;
   /** The choice the running process was started on. Missing in older saves. */
   processModel?: ClaudeModelChoice | null;
   /** The effort the running process was started with. Missing in older saves. */
@@ -449,6 +527,7 @@ function schedulePersist(): void {
       sessionId: session.sessionId,
       resolvedModel: session.model,
       spawnId,
+      processAgent,
       processModel,
       processEffort,
       processFolders,
@@ -473,6 +552,7 @@ function saveChat(): Promise<void> {
   const now = Date.now();
   const record: AgentChatRecord = {
     id: chat.id,
+    agent: chat.agent,
     sessionId: session.sessionId,
     projectId: chat.projectId,
     projectName: chat.projectName,
@@ -519,6 +599,11 @@ function isChatMeta(value: unknown): value is AgentChatMeta {
   return isObject(value) && (value.id === null || typeof value.id === 'string');
 }
 
+/** A saved agent, or Claude Code for a chat saved before there was a choice. */
+function sanitizeAgent(value: unknown): AgentKind {
+  return AGENT_KINDS.includes(value as AgentKind) ? (value as AgentKind) : 'claude-code';
+}
+
 function hydrate(): void {
   if (hydrated || typeof window === 'undefined') return;
   hydrated = true;
@@ -527,6 +612,12 @@ function hydrate(): void {
   const model = storedModel && MODELS.includes(storedModel) ? storedModel : 'default';
   const storedEffort = readStorage(EFFORT_KEY) as ClaudeEffortChoice | null;
   const effort = storedEffort && EFFORTS.includes(storedEffort) ? storedEffort : DEFAULT_CLAUDE_EFFORT;
+  const storedCodexModel = readStorage(CODEX_MODEL_KEY);
+  const codexModel = storedCodexModel && CODEX_MODEL_ID.test(storedCodexModel) ? storedCodexModel : 'default';
+  const storedCodexEffort = readStorage(CODEX_EFFORT_KEY) as CodexEffortChoice | null;
+  const codexEffort =
+    storedCodexEffort && CODEX_EFFORTS.includes(storedCodexEffort) ? storedCodexEffort : DEFAULT_CODEX_EFFORT;
+  const newChatAgent = sanitizeAgent(readStorage(AGENT_KEY));
   const panelEnabled = readStorage(PANEL_KEY) === '1';
   try {
     contextWindows = sanitizeContextWindows(JSON.parse(readStorage(WINDOWS_KEY) ?? 'null'));
@@ -556,13 +647,14 @@ function hydrate(): void {
       }
     : INITIAL_AGENT_STATE;
 
-  let chat: AgentChatMeta = NO_CHAT;
+  let chat: AgentChatMeta = { ...NO_CHAT, agent: newChatAgent };
   if (persisted && isChatMeta(persisted.chat)) {
     const saved = persisted.chat;
     const folders = sanitizeFolders(saved.folders);
     chat = {
       ...NO_CHAT,
       ...saved,
+      agent: sanitizeAgent(saved.agent),
       folders,
       readFolders: savedReadFolders(saved.readFolders, folders),
       ranFolders: savedRanFolders(persisted.sessionId, saved.ranFolders, folders),
@@ -574,13 +666,25 @@ function hydrate(): void {
     chat = { ...chat, id: newChatId(), createdAt: session.items[0]?.at ?? Date.now() };
   }
 
-  snapshot = withFolderFlags({ ...snapshot, available, model, effort, panelEnabled, session, chat });
+  snapshot = withFolderFlags({
+    ...snapshot,
+    available,
+    model,
+    effort,
+    codexModel,
+    codexEffort,
+    newChatAgent,
+    panelEnabled,
+    session,
+    chat,
+  });
   const t = getTransport();
   if (available && t) {
     void readPageEpoch(t);
     const savedEffort = persisted?.processEffort;
     adopted = adopt(
       persisted?.spawnId ?? null,
+      sanitizeAgent(persisted?.processAgent),
       persisted?.processModel ?? null,
       savedEffort && EFFORTS.includes(savedEffort) ? savedEffort : null,
       sanitizePaths(persisted?.processFolders)
@@ -603,13 +707,29 @@ function hydrate(): void {
  */
 async function adopt(
   id: string | null,
+  agent: AgentKind,
+  model: ClaudeModelChoice | null,
+  effort: ClaudeEffortChoice | null,
+  savedFolders: string[] | null
+): Promise<void> {
+  const gen = generation;
+  // Processes of either CLI that a gone editor left are swept whichever one
+  // the chat uses.
+  await Promise.all([
+    adoptClaude(agent === 'claude-code' ? id : null, gen, model, effort, savedFolders),
+    adoptCodex(agent === 'codex' ? id : null, gen),
+  ]);
+}
+
+async function adoptClaude(
+  id: string | null,
+  gen: number,
   model: ClaudeModelChoice | null,
   effort: ClaudeEffortChoice | null,
   savedFolders: string[] | null
 ): Promise<void> {
   const t = getTransport();
   if (!t) return;
-  const gen = generation;
   try {
     await ensureListener(t);
     const running = await t.list();
@@ -624,6 +744,7 @@ async function adopt(
       return;
     }
     spawnId = id;
+    processAgent = 'claude-code';
     processModel = model;
     processEffort = effort;
     processFolders = sanitizePaths(mine.folders) ?? savedFolders;
@@ -644,6 +765,44 @@ async function adopt(
   }
 }
 
+/**
+ * adopt() for Codex: Rust's list says whether the chat's process is still
+ * running, mid-turn or not, and which conversation it is on.
+ */
+async function adoptCodex(id: string | null, gen: number): Promise<void> {
+  const t = getCodexTransport();
+  if (!t) return;
+  try {
+    await ensureCodexListener(t);
+    const running = await t.list();
+    for (const other of running) {
+      if (other.spawnId !== id && other.spawnId !== spawnId) void t.stop(other.spawnId).catch(() => {});
+    }
+    const mine = id ? running.find((session) => session.spawnId === id) : undefined;
+    if (!mine || !id) return;
+    if (spawnId || gen !== generation) {
+      void t.stop(id).catch(() => {});
+      return;
+    }
+    spawnId = id;
+    processAgent = 'codex';
+    processModel = null;
+    processEffort = null;
+    processFolders = [];
+    setSession(
+      {
+        ...snapshot.session,
+        sessionId: mine.threadId ?? snapshot.session.sessionId,
+        status: mine.busy ? 'working' : 'ready',
+        turnStartedAt: mine.busy ? Date.now() : null,
+      },
+      { immediate: true }
+    );
+  } catch {
+    // Nothing to adopt. The next message resumes the conversation instead.
+  }
+}
+
 function ensureListener(t: ClaudeTransport): Promise<void> {
   if (!listening) {
     listening = t
@@ -657,9 +816,23 @@ function ensureListener(t: ClaudeTransport): Promise<void> {
   return listening;
 }
 
-function errorText(error: unknown): string {
+function ensureCodexListener(t: CodexTransport): Promise<void> {
+  if (!codexListening) {
+    codexListening = t
+      .listen(onCodexEvent)
+      .then(() => undefined)
+      .catch((error) => {
+        codexListening = null;
+        throw error;
+      });
+  }
+  return codexListening;
+}
+
+function errorText(error: unknown, agent: AgentKind = 'claude-code'): string {
   if (error instanceof Error) return error.message;
-  return typeof error === 'string' ? error : 'Something stopped Claude Code from starting';
+  if (typeof error === 'string') return error;
+  return agent === 'codex' ? 'Something stopped Codex from starting' : 'Something stopped Claude Code from starting';
 }
 
 function clearInterruptTimer(): void {
@@ -694,17 +867,58 @@ const recordedTools = new Map<string, string>();
 function startRecorder(input: AgentTurnInput): void {
   finishRecorder('cancelled');
   recordedTools.clear();
+  const codex = snapshot.chat.agent === 'codex';
+  const chosen = codex ? snapshot.codexModel : snapshot.model;
   try {
     recorder = new OperationRecorder({
-      mode: 'claude-code',
-      provider: 'claude-code',
-      providerLabel: 'Claude',
-      model: snapshot.session.model ?? (snapshot.model === 'default' ? undefined : snapshot.model),
+      mode: codex ? 'codex' : 'claude-code',
+      provider: codex ? 'codex' : 'claude-code',
+      providerLabel: codex ? 'Codex' : 'Claude',
+      model: snapshot.session.model ?? (chosen === 'default' ? undefined : chosen),
       instruction: input.text,
       screenshotCount: input.images?.length ?? 0,
     });
   } catch {
     recorder = null;
+  }
+}
+
+/**
+ * What a Codex turn did, for the run log: its replies, and each design tool
+ * call with its arguments and result.
+ */
+function recordCodex(method: string, params: unknown): void {
+  if (!recorder || !isObject(params)) return;
+  try {
+    if (method === 'mcpServer/startupStatus/updated') {
+      recorder.note('Codex design tools', `${String(params.name ?? '')}: ${String(params.status ?? '')}`);
+      return;
+    }
+    if (method !== 'item/completed' || !isObject(params.item)) return;
+    const item = params.item;
+    if (item.type === 'agentMessage' && typeof item.text === 'string' && item.text.trim()) {
+      recorder.message('provider-to-app', 'Reply', { detail: item.text });
+    } else if (item.type === 'mcpToolCall') {
+      const name = String(item.tool ?? 'tool');
+      recorder.message('provider-to-app', `Tool call: ${name}`, {
+        detail: JSON.stringify(item.arguments ?? {}, null, 2),
+        code: name,
+      });
+      const result = isObject(item.result) ? item.result : null;
+      const body = Array.isArray(result?.content)
+        ? result.content
+            .map((part) => (isObject(part) && typeof part.text === 'string' ? part.text : isObject(part) && part.type === 'image' ? '[image]' : ''))
+            .join('\n')
+        : isObject(item.error)
+          ? String(item.error.message ?? '')
+          : '';
+      recorder.message('app-to-provider', 'Tool result', {
+        detail: body,
+        code: item.status === 'failed' ? 'tool-error' : undefined,
+      });
+    }
+  } catch {
+    // The log is for looking back; the turn goes ahead without it.
   }
 }
 
@@ -798,7 +1012,7 @@ function stoppedBeforeSending(): void {
 
 function onEvent(event: ClaudeTransportEvent): void {
   // Anything else is an older process winding down.
-  if (!spawnId || event.spawnId !== spawnId) return;
+  if (!spawnId || processAgent === 'codex' || event.spawnId !== spawnId) return;
   const now = Date.now();
 
   if (event.kind === 'stderr') {
@@ -877,6 +1091,69 @@ function onEvent(event: ClaudeTransportEvent): void {
 }
 
 /**
+ * What a Codex process said. Its notifications fold into the transcript the
+ * same way Claude Code's lines do; a turn/start Codex refused and the exit end
+ * the turn here.
+ */
+function onCodexEvent(event: CodexTransportEvent): void {
+  if (!spawnId || processAgent !== 'codex' || event.spawnId !== spawnId) return;
+  const now = Date.now();
+
+  if (event.kind === 'stderr') {
+    stderrTail.push(event.line);
+    if (stderrTail.length > 20) stderrTail.shift();
+    return;
+  }
+
+  if (event.kind === 'notification') {
+    recordCodex(event.method, event.params);
+    const ended = event.method === 'turn/completed';
+    const next = reduceCodexNotification(snapshot.session, event.method, event.params, now, {
+      threadId: snapshot.session.sessionId,
+    });
+    if (ended) {
+      clearInterruptTimer();
+      const turn = isObject(event.params) && isObject(event.params.turn) ? event.params.turn : null;
+      const status = turn ? String(turn.status ?? '') : '';
+      const failed = status === 'failed';
+      finishRecorder(
+        status === 'interrupted' ? 'cancelled' : failed ? 'error' : 'success',
+        failed ? { code: 'turn-failed', message: String((isObject(turn?.error) && turn.error.message) || 'Codex reported an error') } : undefined
+      );
+      stopRequested = false;
+    }
+    setSession(next, { immediate: ended });
+    return;
+  }
+
+  if (event.kind === 'turnFailed') {
+    clearInterruptTimer();
+    stopRequested = false;
+    setSession(failCodexTurn(snapshot.session, event.message, now), { immediate: true });
+    finishRecorder('error', { code: 'turn-refused', message: event.message });
+    return;
+  }
+
+  // exit
+  const wasWorking = snapshot.session.status === 'working' || snapshot.session.status === 'starting';
+  const tail = event.stderrTail?.length ? event.stderrTail : stderrTail;
+  dropProcess();
+  clearInterruptTimer();
+  let session = markExited(snapshot.session, now);
+  if (wasWorking && stopRequested) {
+    session = appendNotice(session, { id: `notice-stopped-${now}`, tone: 'info', text: 'Stopped' }, now);
+    finishRecorder('cancelled');
+  } else if (wasWorking) {
+    const message = describeCodexExit(event.code, tail);
+    session = appendNotice(session, { id: `notice-exit-${now}`, tone: 'error', text: message }, now);
+    finishRecorder('error', { code: 'exit', message, detail: tail.join('\n') });
+  }
+  stopRequested = false;
+  lastTurn = null;
+  setSession(session, { immediate: true });
+}
+
+/**
  * `--resume` pointed at a conversation Claude Code no longer has (it prunes
  * old ones). Start a fresh one and send the same turn again, once.
  */
@@ -936,11 +1213,16 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
   // are fixed at spawn.
   if (
     spawnId &&
-    (processModel !== snapshot.model || processEffort !== snapshot.effort || !sameFolderSet(processFolders, wanted))
+    (processAgent !== 'claude-code' ||
+      processModel !== snapshot.model ||
+      processEffort !== snapshot.effort ||
+      !sameFolderSet(processFolders, wanted))
   ) {
     const old = spawnId;
+    const oldAgent = processAgent;
     dropProcess();
-    await t.stop(old).catch(() => {});
+    if (oldAgent === 'codex') await getCodexTransport()?.stop(old).catch(() => {});
+    else await t.stop(old).catch(() => {});
   }
   if (spawnId) return spawnId;
   await ensureListener(t);
@@ -953,6 +1235,7 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
   // before the invoke returns, and onEvent drops anything for another id. Its
   // folders count as readable from here, so the MCP guard is already up.
   spawnId = id;
+  processAgent = 'claude-code';
   processModel = snapshot.model;
   processEffort = snapshot.effort;
   processFolders = wanted;
@@ -990,6 +1273,125 @@ async function ensureProcess(t: ClaudeTransport): Promise<string> {
   return id;
 }
 
+/** The model a Codex start or turn asks for, or undefined for Codex's own default. */
+function codexModelArg(): string | undefined {
+  return snapshot.codexModel === 'default' ? undefined : snapshot.codexModel;
+}
+
+/**
+ * The model and effort a Codex turn goes out with. The effort is the one
+ * picked, or the highest the model has below it: Codex refuses a level a
+ * model does not take, and its models differ.
+ */
+function codexTurnChoice(): { model?: string; effort: CodexEffortChoice } {
+  const model = codexModelArg();
+  const models = snapshot.codexDetection.result?.models ?? [];
+  const entry = model ? models.find((candidate) => candidate.id === model) : models.find((candidate) => candidate.isDefault);
+  return { model, effort: clampCodexEffort(snapshot.codexEffort, entry?.efforts ?? []) };
+}
+
+/**
+ * The id of a running Codex process for this chat, starting one if there is
+ * none. Unlike Claude Code's, a change of model or effort needs no new
+ * process: each turn says which it wants.
+ */
+async function ensureCodexProcess(t: CodexTransport): Promise<string> {
+  if (spawnId && processAgent !== 'codex') {
+    const old = spawnId;
+    dropProcess();
+    await getTransport()?.stop(old).catch(() => {});
+  }
+  if (spawnId) return spawnId;
+  // Each turn's effort is held to its model's levels, which only detection
+  // lists, and Codex hands a level the model lacks to the API as it is.
+  if (!snapshot.codexDetection.result) await detectCodex();
+  await ensureCodexListener(t);
+  const epoch = await readCodexPageEpoch(t);
+  if (spawnId) return ensureCodexProcess(t);
+  const id = `cx-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  spawnId = id;
+  processAgent = 'codex';
+  processModel = null;
+  processEffort = null;
+  processFolders = [];
+  stderrTail = [];
+  const resume = snapshot.session.sessionId ?? undefined;
+  let info: CodexStartInfo;
+  try {
+    info = await t.start({ spawnId: id, model: codexModelArg(), resume, pageEpoch: epoch });
+  } catch (error) {
+    if (spawnId === id) dropProcess();
+    throw error;
+  }
+  if (spawnId !== id) {
+    void t.stop(id).catch(() => {});
+    throw new TurnAbandoned();
+  }
+  const now = Date.now();
+  let session: AgentSessionState = { ...snapshot.session, sessionId: info.threadId, model: info.model ?? snapshot.session.model };
+  if (resume && !info.resumed) {
+    // Codex keeps no conversation forever. The reading was of the one that is gone.
+    session = appendNotice(
+      { ...session, context: null },
+      { id: `notice-fresh-${now}`, tone: 'info', text: 'The earlier conversation was gone, so this is a new one' },
+      now
+    );
+  }
+  if (snapshot.codexDetection.result?.authMethod === 'apiKey' && !session.billedToApiKey) {
+    session = appendNotice(
+      { ...session, billedToApiKey: true },
+      { id: `notice-billing-${now}`, tone: 'warning', text: 'This chat is billed to an OpenAI API key, not your ChatGPT plan' },
+      now
+    );
+  }
+  setSession(session, { immediate: true });
+  try {
+    recorder?.note(
+      'Codex started the conversation',
+      [
+        `model: ${info.model ?? 'default'}`,
+        `conversation: ${info.threadId}${resume && !info.resumed ? ' (new, the earlier one was gone)' : ''}`,
+        `billed through: ${snapshot.codexDetection.result?.authMethod ?? 'unknown'}`,
+      ].join('\n')
+    );
+  } catch {
+    // The log is for looking back.
+  }
+  refreshFolderFlags();
+  return id;
+}
+
+/** A message for the chat's Codex process: the same words a Claude Code turn carries, as text and pictures. */
+async function sendCodexTurn(
+  input: AgentTurnInput,
+  context: AgentEditorContext | null,
+  gen: number,
+  token: number
+): Promise<void> {
+  const t = getCodexTransport();
+  let id: string | null = null;
+  try {
+    if (!t) throw new Error('Codex runs in the desktop app');
+    id = await ensureCodexProcess(t);
+    if (gen !== generation || token !== turnToken) return;
+    if (stopRequested) {
+      stoppedBeforeSending();
+      return;
+    }
+    // A Codex chat has no code folders, so a brief never names one.
+    const own = typeof input.preface === 'function' ? input.preface([]) : input.preface;
+    const fullText = composeTurnText({ context, preface: own?.trim() ?? '', text: input.text });
+    recordSent(fullText);
+    lastTurn = null;
+    const { model, effort } = codexTurnChoice();
+    await t.send(id, { text: fullText, images: input.images ?? [], model, effort });
+  } catch (error) {
+    if (error instanceof TurnAbandoned || gen !== generation || token !== turnToken) return;
+    if (id && spawnId !== id) return;
+    failTurn(error);
+  }
+}
+
 /** Folders the process was started without leave the chat, each with a word in the transcript. */
 function dropMissingFolders(missing: Set<string>): void {
   const { chat } = snapshot;
@@ -1012,12 +1414,12 @@ function dropMissingFolders(missing: Set<string>): void {
 }
 
 function failTurn(error: unknown): void {
-  const t = getTransport();
-  const message = errorText(error);
-  if (spawnId && t) {
+  const message = errorText(error, snapshot.chat.agent);
+  if (spawnId) {
     const dead = spawnId;
+    const agent = processAgent;
     dropProcess();
-    void t.stop(dead).catch(() => {});
+    stopProcess(dead, agent);
   }
   const now = Date.now();
   setSession(
@@ -1030,8 +1432,11 @@ function failTurn(error: unknown): void {
 
 async function send(input: AgentTurnInput): Promise<void> {
   hydrate();
+  const codex = snapshot.chat.agent === 'codex';
   const t = getTransport();
-  if (!t) throw new Error('Claude Code runs in the desktop app');
+  if (!t || (codex && !getCodexTransport())) {
+    throw new Error(codex ? 'Codex runs in the desktop app' : 'Claude Code runs in the desktop app');
+  }
   const { status } = snapshot.session;
   if (status === 'working' || status === 'starting') {
     throw new Error('The agent is still working. Stop it before sending another message');
@@ -1076,6 +1481,10 @@ async function send(input: AgentTurnInput): Promise<void> {
   startRecorder(input);
 
   const gen = generation;
+  if (codex) {
+    await sendCodexTurn(input, context, gen, token);
+    return;
+  }
   let id: string | null = null;
   try {
     id = await ensureProcess(t);
@@ -1122,6 +1531,7 @@ async function stop(): Promise<void> {
   // No process yet: send() sees stopRequested once it is up, and holds the
   // message back.
   if (!id) return;
+  const agent = processAgent;
   const token = turnToken;
   clearInterruptTimer();
   // Armed before the interrupt goes out, for this turn only: a turn that ends
@@ -1129,12 +1539,13 @@ async function stop(): Promise<void> {
   interruptTimer = setTimeout(() => {
     interruptTimer = null;
     if (spawnId === id && turnToken === token && stopRequested && snapshot.session.status === 'working') {
-      void t.stop(id).catch(() => {});
+      stopProcess(id, agent);
     }
   }, INTERRUPT_GRACE_MS);
   try {
     // Interrupting keeps the process, and so the conversation, warm.
-    await t.send(id, encodeInterrupt(`stop-${Date.now().toString(36)}`));
+    if (agent === 'codex') await getCodexTransport()?.interrupt(id);
+    else await t.send(id, encodeInterrupt(`stop-${Date.now().toString(36)}`));
   } catch {
     // Rust does not know the id yet (still starting) or the process is gone.
     // In the first case send() holds the message back; in the second the exit
@@ -1144,14 +1555,14 @@ async function stop(): Promise<void> {
 
 /** End the process of the chat on screen. Its conversation stays resumable. */
 function leaveChat(): void {
-  const t = getTransport();
   const id = spawnId;
+  const agent = processAgent;
   generation += 1;
   dropProcess();
   stopRequested = false;
   lastTurn = null;
   clearInterruptTimer();
-  if (t && id) void t.stop(id).catch(() => {});
+  if (id) stopProcess(id, agent);
   finishRecorder('cancelled');
   refreshFolderFlags();
 }
@@ -1170,29 +1581,59 @@ function openProject(): { projectId: string; projectName: string | null } | null
  * An empty chat, for `project` or else the project open now. The chat being
  * left is saved first, so Past chats has it. `folders` are the code folders it
  * starts with: the start screen's, or the chat's own when the panel's New chat
- * stays on the same project. None otherwise.
+ * stays on the same project. None otherwise, and none for Codex. `agent` is
+ * the CLI it talks to, the one picked last when it is not given.
  */
 async function newChat(
   project?: { projectId: string | null; projectName: string | null },
-  options: { folders?: AgentFolder[] } = {}
+  options: { folders?: AgentFolder[]; agent?: AgentKind } = {}
 ): Promise<void> {
   hydrate();
   void saveChat();
   leaveChat();
   const target = project ?? openProject();
+  const agent = options.agent && AGENT_KINDS.includes(options.agent) ? options.agent : snapshot.newChatAgent;
   set(
     {
       session: { ...INITIAL_AGENT_STATE },
       chat: {
         ...NO_CHAT,
+        agent,
         projectId: target?.projectId ?? null,
         projectName: target?.projectName ?? null,
-        folders: sanitizeFolders(options.folders ?? []),
+        folders: agent === 'codex' ? [] : sanitizeFolders(options.folders ?? []),
       },
       folderNotice: null,
     },
     { immediate: true }
   );
+}
+
+/**
+ * Point the chat on screen at the other CLI. Only a chat that has not begun
+ * can switch: each CLI keeps its conversation in its own files. Either way the
+ * choice is what the next new chat starts with. False when the chat kept its
+ * agent.
+ */
+function setChatAgent(agent: AgentKind): boolean {
+  hydrate();
+  if (!AGENT_KINDS.includes(agent)) return false;
+  writeStorage(AGENT_KEY, agent);
+  const { session, chat } = snapshot;
+  if (chat.agent === agent) {
+    if (snapshot.newChatAgent !== agent) set({ newChatAgent: agent });
+    return true;
+  }
+  const begun = session.items.length > 0 || !!session.sessionId || session.status === 'working' || session.status === 'starting';
+  if (begun) {
+    set({ newChatAgent: agent });
+    return false;
+  }
+  // A process can be up for a chat with nothing in it, after a Stop pressed
+  // while it was starting. It belongs to the other CLI now.
+  if (spawnId) leaveChat();
+  set({ chat: { ...snapshot.chat, agent }, newChatAgent: agent, folderNotice: null }, { immediate: true });
+  return true;
 }
 
 /**
@@ -1227,6 +1668,7 @@ async function openChat(id: string): Promise<boolean> {
       },
       chat: {
         id: record.id,
+        agent: sanitizeAgent(record.agent),
         projectId: record.projectId,
         projectName: record.projectName,
         createdAt: record.createdAt,
@@ -1295,6 +1737,7 @@ async function pickFolder(options: { near?: FolderPickerNear; addToChat?: boolea
   };
   const t = getTransport();
   if (!t) return refuse('Code folders need the desktop app');
+  if (options.addToChat && snapshot.chat.agent === 'codex') return refuse(CODEX_NO_FOLDERS);
   if (snapshot.folderPicking) return refuse(FOLDER_PICKER_OPEN);
   if (options.addToChat && snapshot.chat.folders.length >= MAX_FOLDERS) return refuse(FOLDER_CAP_NOTICE);
   const gen = generation;
@@ -1327,6 +1770,10 @@ function addFolder(folder: AgentFolder): boolean {
   const clean = sanitizeFolder(folder);
   if (!clean) return false;
   const { chat } = snapshot;
+  if (chat.agent === 'codex') {
+    set({ folderNotice: CODEX_NO_FOLDERS }, { immediate: true });
+    return false;
+  }
   const index = chat.folders.findIndex((entry) => entry.path === clean.path);
   if (index >= 0) {
     // Without a word, picking it again would look like nothing happened.
@@ -1368,11 +1815,11 @@ async function removeFolder(path: string): Promise<boolean> {
 
 /** Stop the process between turns. The chat's ranFolders stays, so the next message says what changed. */
 function endIdleProcess(): void {
-  const t = getTransport();
   const id = spawnId;
+  const agent = processAgent;
   dropProcess();
   lastTurn = null;
-  if (t && id) void t.stop(id).catch(() => {});
+  if (id) stopProcess(id, agent);
   setSession(markExited(snapshot.session, Date.now()), { immediate: true });
 }
 
@@ -1447,11 +1894,55 @@ async function detect(force = false): Promise<ClaudeDetection | null> {
   return detecting;
 }
 
+/** detect() for Codex: whether it is installed and signed in, and which models the login has. */
+async function detectCodex(force = false): Promise<CodexDetection | null> {
+  hydrate();
+  const t = getCodexTransport();
+  if (!t) return null;
+  if (codexDetecting) return codexDetecting;
+  const detection = snapshot.codexDetection;
+  if (!force && detection.status === 'done' && detection.result && Date.now() - codexDetectedAt < DETECT_TTL_MS) {
+    return detection.result;
+  }
+  set({ codexDetection: { status: 'checking', result: detection.result, error: null } }, { immediate: true });
+  codexDetecting = t
+    .detect()
+    .then((result) => {
+      codexDetectedAt = Date.now();
+      set({ codexDetection: { status: 'done', result, error: null } }, { immediate: true });
+      return result;
+    })
+    .catch((error) => {
+      set({ codexDetection: { status: 'done', result: null, error: errorText(error, 'codex') } }, { immediate: true });
+      return null;
+    })
+    .finally(() => {
+      codexDetecting = null;
+    });
+  return codexDetecting;
+}
+
 function setModel(model: ClaudeModelChoice): void {
   hydrate();
   if (!MODELS.includes(model) || model === snapshot.model) return;
   writeStorage(MODEL_KEY, model);
   set({ model }, { immediate: true });
+}
+
+/** Takes effect on the next Codex turn, which says which model it wants. */
+function setCodexModel(model: CodexModelChoice): void {
+  hydrate();
+  if (model !== 'default' && !CODEX_MODEL_ID.test(model)) return;
+  if (model === snapshot.codexModel) return;
+  writeStorage(CODEX_MODEL_KEY, model === 'default' ? null : model);
+  set({ codexModel: model }, { immediate: true });
+}
+
+function setCodexEffort(effort: CodexEffortChoice): void {
+  hydrate();
+  if (!CODEX_EFFORTS.includes(effort) || effort === snapshot.codexEffort) return;
+  writeStorage(CODEX_EFFORT_KEY, effort);
+  set({ codexEffort: effort }, { immediate: true });
 }
 
 /** Like the model, it takes effect on the next message, which restarts the process. */
@@ -1489,14 +1980,18 @@ export const claudeAgent = {
   getSnapshot,
   subscribe,
   detect,
+  detectCodex,
   send,
   stop,
   newChat,
+  setChatAgent,
   openChat,
   deleteChat,
   followProject,
   setModel,
   setEffort,
+  setCodexModel,
+  setCodexEffort,
   setPanelEnabled,
   hidePanel,
   pickFolder,
