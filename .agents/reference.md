@@ -977,6 +977,7 @@ npm run tauri:build   # release bundles in src-tauri/target/release/bundle/
 - **Never set `NEXT_PUBLIC_BASE_PATH` for a desktop build.** That is only for the GitHub Pages deploy; with it set every asset in the bundle 404s.
 - Version lives in four files that must agree (`tauri.conf.json`, `package.json`, `Cargo.toml`, `Cargo.lock`). Use `node scripts/set-version.mjs patch|minor|major|<exact>` (`--dry-run` computes the next version without writing), never hand-edit.
 - Releases are manual only: Actions > "Release desktop app (Tauri)" > Run workflow. The workflow has `workflow_dispatch` and nothing else, so nothing builds on push or tag. Store overlays are `--config src-tauri/tauri.microsoftstore.conf.json` / `tauri.appstore.conf.json`.
+- The Microsoft Store gets an **MSIX**, not the installers: `npm run tauri:msix` builds the exe with `--no-bundle` and [msix-pack.mjs](../scripts/msix-pack.mjs) packs it with the Windows SDK's makepri/makeappx, using [AppxManifest.xml](../src-tauri/msix/AppxManifest.xml) and the committed tiles in `src-tauri/msix/Assets/` (redraw them with `npm run assets:msix` after an icon change; `tauri icon`'s `Square*Logo.png` reach nothing). The script refuses a 0.x version (the Store rejects a first part of 0) and the placeholder Partner Center identity; `--local` packs a test package anyway. See [DESKTOP.md](../docs/DESKTOP.md#microsoft-store-windows).
 
 ### Web vs desktop split
 

@@ -12,6 +12,10 @@ name: Release desktop app (Tauri)
 #         version when you want to choose it yourself
 #   dry_run: build the installers and attach them to the run as artifacts,
 #         without bumping the version, tagging, or publishing a release
+#   microsoft_store: also pack the Windows exe as an MSIX and submit it to the
+#         Microsoft Store. On a dry run the MSIX is built and attached to the
+#         run, but not submitted. Setup: docs/DESKTOP.md, "Publishing from
+#         GitHub Actions".
 #
 # A real run bumps the version across all four files that carry it, commits
 # that to the default branch, tags it, and publishes a release with the
@@ -35,6 +39,10 @@ on:
         default: ''
       dry_run:
         description: 'Build only: no version bump, no tag, no release'
+        type: boolean
+        default: false
+      microsoft_store:
+        description: 'Also submit the Windows build to the Microsoft Store (version 1.0.0 or later)'
         type: boolean
         default: false
 
@@ -75,6 +83,25 @@ jobs:
           # for the duplicate-tag check below, and on a dry run that is all we
           # want.
           version=$(node scripts/set-version.mjs "$selector" --dry-run)
+
+          # Checked before anything is tagged, so a Store run that cannot
+          # succeed stops here instead of after a full release. A dry run packs
+          # the version already in the repo, a real run the new one.
+          if [ '${{ inputs.microsoft_store }}' = 'true' ]; then
+            packed="$version"
+            if [ '${{ inputs.dry_run }}' = 'true' ]; then
+              packed=$(node -p "require('./src-tauri/tauri.conf.json').version")
+            fi
+            case "$packed" in
+              0.*)
+                echo "::error::The Microsoft Store rejects a version that starts with 0, and this run would pack ${packed}. Release 1.0.0 or later to publish there."
+                exit 1 ;;
+            esac
+            if [ -z '${{ vars.MSSTORE_PRODUCT_ID }}' ]; then
+              echo "::error::The MSSTORE_PRODUCT_ID repository variable is not set. See docs/DESKTOP.md, \"Publishing from GitHub Actions\"."
+              exit 1
+            fi
+          fi
 
           if [ '${{ inputs.dry_run }}' = 'true' ]; then
             echo "Dry run: would release v${version}. Not bumping, tagging or publishing."
@@ -317,6 +344,25 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload 'v${{ needs.version.outputs.version }}' 'Open.Screenshot.Generator_${{ needs.version.outputs.version }}_x64_portable.zip' --clobber
 
+      # The Store gets the same exe as the installers, packed as an MSIX. It is
+      # unsigned on purpose: Microsoft signs it after certification. It goes to
+      # the run, not the release, because an unsigned MSIX will not install
+      # anywhere but the Store or a machine in Developer Mode.
+      #
+      # The file is named after the version it packs, which on a dry run is the
+      # one already in the repo rather than needs.version.outputs.version.
+      - name: Pack the MSIX for the Microsoft Store
+        if: matrix.platform == 'windows-latest' && inputs.microsoft_store
+        run: node scripts/msix-pack.mjs
+
+      - name: Upload the MSIX as a run artifact
+        if: matrix.platform == 'windows-latest' && inputs.microsoft_store
+        uses: actions/upload-artifact@v4
+        with:
+          name: microsoft-store-msix
+          if-no-files-found: error
+          path: src-tauri/target/release/bundle/msix/*.msix
+
       # The AppImage carries the WebKitGTK it was built against, and that build
       # is pinned to ubuntu-22.04 so the binary keeps the oldest glibc we
       # support. On distros whose Mesa has moved on that WebKit cannot create an
@@ -367,6 +413,68 @@ jobs:
             src-tauri/target/**/release/bundle/appimage/*.AppImage
             src-tauri/target/**/release/bundle/deb/*.deb
             Open.Screenshot.Generator_*_portable.zip
+
+  # Submits the MSIX from the Windows leg to the Microsoft Store. msstore
+  # replaces the package in a copy of the last published submission, keeps its
+  # listing, and commits it to certification. It waits only for the commit to
+  # be accepted, a few minutes, not for certification, which can take days.
+  #
+  # The credentials live in the microsoft-store environment, so no other job
+  # can read them. Like npm, it needs every build leg to succeed; after fixing
+  # a failed leg, "Re-run failed jobs" runs this one too.
+  microsoft-store:
+    needs: [version, build]
+    if: ${{ inputs.microsoft_store && !inputs.dry_run }}
+    runs-on: windows-latest
+    environment: microsoft-store
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: microsoft-store-msix
+          path: msix
+
+      - name: Check the Store credentials
+        shell: bash
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          missing=''
+          [ -n "$TENANT_ID" ] || missing="$missing MSSTORE_TENANT_ID"
+          [ -n "$SELLER_ID" ] || missing="$missing MSSTORE_SELLER_ID"
+          [ -n "$CLIENT_ID" ] || missing="$missing MSSTORE_CLIENT_ID"
+          [ -n "$CLIENT_SECRET" ] || missing="$missing MSSTORE_CLIENT_SECRET"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing secrets in the microsoft-store environment:${missing}. See docs/DESKTOP.md, \"Publishing from GitHub Actions\"."
+            exit 1
+          fi
+
+      # Installs the Microsoft Store Developer CLI (msstore).
+      - uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      - name: Sign in to Partner Center
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+
+      # The .msix path goes in as the positional argument, which the CLI's MSIX
+      # publisher takes as is. The docs' --inputFile flag does not exist; the
+      # real one is --inputDirectory, for a folder to search.
+      - name: Submit to the Microsoft Store
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+        run: |
+          $msix = Get-ChildItem msix -Filter *.msix | Select-Object -First 1
+          msstore publish $msix.FullName --appId $env:PRODUCT_ID
+
+      - name: Summary
+        run: |
+          "Submitted v${{ needs.version.outputs.version }} to the Microsoft Store. Follow certification at https://partner.microsoft.com/dashboard/products/${{ vars.MSSTORE_PRODUCT_ID }}/overview" >> $env:GITHUB_STEP_SUMMARY
 
   # Puts the same version of the CLI on npm. GitHub never starts a workflow
   # from an event made with the GITHUB_TOKEN, so the release published above

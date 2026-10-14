@@ -26,6 +26,8 @@
     "tauri": "tauri",
     "tauri:dev": "npm run build:assistant-agent && tauri dev",
     "tauri:build": "npm run build:assistant-agent && tauri build",
+    "tauri:msix": "npm run build:assistant-agent && tauri build --no-bundle && node scripts/msix-pack.mjs",
+    "assets:msix": "node scripts/msix-assets.mjs",
     "osg": "node cli/dist/cli.js",
     "cli:build": "npm run build && cd cli && npm ci && npm run build && npm run pack:editor",
     "cli:pack": "npm run cli:build && cd cli && npm pack --dry-run",
