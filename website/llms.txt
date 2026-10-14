@@ -1,42 +1,47 @@
 # Open Screenshot Generator
 
-> Open Screenshot Generator is a free design studio for App Store and Play Store graphics, with its source code public on GitHub. It runs entirely in the browser with no account and no backend. Users pick a template, drop in their app screenshots, and export PNGs at the exact sizes Google Play and the Apple App Store require. It also exports App Store preview videos as MP4, encoded locally with WebCodecs in browsers that support it, such as Chrome and Edge, and always in the desktop app.
+> Open Screenshot Generator is a free editor for App Store and Google Play screenshots, feature graphics and preview videos, with its source code public on GitHub. Choose from 101 templates, add app screenshots, edit the layout and export PNGs at store dimensions. The web editor and desktop app share the same design tools, with 57 language options, editable AI results, live collaboration and saved project versions. Design and export run locally. Cloud saving, account storage, collaboration, AI providers and direct store uploads are optional
 
-Key facts:
+Key facts
 
-- The editor lives at https://editor.openscrgen.app/ and requires no signup.
-- Everything runs client side. Projects, screenshots, and recordings are stored in the browser's IndexedDB and never uploaded anywhere. Clearing the browser's site data deletes them, so exported files are the real output.
-- Device frames cover iPhone, Android, tablets, Macs, and Apple Watch, including 3D poses with perspective control.
-- The export flow renders each artboard to PNG at the required store dimensions for Google Play and the App Store.
-- A preview video mode exports MP4 files, and a store ready mode conforms raw captures to 886 by 1920 at 30 fps in H.264 for App Store Connect. Video export needs WebCodecs, so it works in Chrome, Edge, and the desktop app, while PNG export works in any modern browser.
-- An AI agent can build a complete project from the user's screenshots plus one sentence of instructions. It works with the user's own API key for Anthropic, OpenAI, or Google, with an existing Claude, ChatGPT, or Gemini account, or with keyless providers in the desktop app. The signed in account mode is fully automatic in the desktop app, while the browser uses a small companion extension with a manual copy and paste fallback. Anything sent to a provider is governed by that provider's terms, and the agent is entirely optional.
-- Desktop apps are available for Windows, macOS, and Linux.
-- The source code is public at https://github.com/dotnetdreamer/open-screenshot-generator.
+- The editor lives at https://editor.openscrgen.app/. Local design and export need no account, with no watermark, paid tier or export cap
+- The 101 templates cover iPhone and Android screenshots, Apple Watch, Mac, app preview videos and Google Play feature graphics. Add app screenshots to see them placed in template previews before choosing a project
+- Projects, screenshots and recordings are saved locally in IndexedDB. Clearing browser site data removes local work, so keep a project copy for work you want to preserve. Sign in to use optional cloud saving, or connect your own Google Drive or GitHub account
+- Device frames cover iPhone, Android, tablets, Macs and Apple Watch. Real 3D device poses are available for iPhone, Android, Apple Watch, MacBook and iMac
+- A project can use 57 language options. Languages share the base layout while keeping their own text and screenshots. Fonts, positions and other drawing properties can also differ for one language, and Arabic, Hebrew, Persian and Urdu support text direction from right to left
+- PNG export can generate several store sizes and selected languages in one run. The browser saves individual files. The desktop app can save them in a chosen folder with a subfolder for each language
+- Preview videos export as H.264 MP4. For App Store Connect, use the mode based on screen recordings at a supported preview size and 30 fps, with a duration of 15 to 30 seconds. Styled videos include the background, device frame and other artwork for websites or social posts. MP4 export needs Chrome, Edge or the desktop app
+- The listing preview shows screenshots in App Store and Google Play layouts, in light or dark appearance. A separate comparison view shows the project's languages together
+- An optional AI agent can choose a template, place screenshots and draft text in an editable project. Use your own API key, an existing assistant account or the desktop app's built in providers. The desktop app also supports local Ollama and LM Studio, and Claude Code on the user's existing Claude plan. Assistant account mode uses a built in window on desktop or a companion extension and manual copy and paste in the browser. Content sent to an AI provider follows that provider's terms
+- Live collaboration lets people edit the same project through an invite link and see the other participants. Collaboration creates a cloud copy and requires sign in. Saved project versions can be restored or opened as a separate project
+- The desktop app uploads screenshots directly to App Store Connect and Google Play using the user's store credentials. It can also upload App Store preview videos. Google Play uses a YouTube link for video rather than a video upload
+- Desktop apps are available for Windows, macOS and Linux
+- The source code is public at https://github.com/dotnetdreamer/open-screenshot-generator
 
 ## Pages
 
-- [Home](https://openscrgen.app/): product overview, the three step workflow, features, templates, and FAQ.
-- [App Store screenshot generator](https://openscrgen.app/app-store-screenshot-generator): the free editor pointed at Apple's store, with the sizes it exports.
-- [Play Store screenshot generator](https://openscrgen.app/play-store-screenshot-generator): Google Play screenshots plus the required 1024 by 500 feature graphic.
-- [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): every accepted dimension for 2026, checked against Apple's published specifications, including the required 6.3 inch iPhone tier (1206x2622), the optional 6.9 inch tier (1290x2796), and the required 13 inch iPad tier (2064x2752).
-- [Google Play screenshot sizes](https://openscrgen.app/google-play-screenshot-sizes): screenshot rules (320 to 3840px, max 2:1 ratio), the required 1024x500 feature graphic, the 512x512 icon, and the 1080px featuring rule.
-- [App preview video maker](https://openscrgen.app/app-preview-video-maker): browser based MP4 export conformed to Apple's app preview spec (886x1920, 30 fps, H.264, 15 to 30 seconds), plus Google Play's YouTube video rules.
-- [App Store screenshot templates](https://openscrgen.app/app-store-screenshot-templates): 96 free templates for iPhone and Android screenshot sets, Apple Watch, Mac, app preview videos, and Google Play feature graphics. Each opens directly in the editor via a template deep link.
-- [iPhone mockup generator](https://openscrgen.app/iphone-mockup-generator): free iPhone frames from the 17 Pro Max to a classic bezel model, plus a 3D iPhone, exported at App Store sizes.
-- [Android mockup generator](https://openscrgen.app/android-mockup-generator): punch hole, notch, and status bar chassis plus tablets, exported at Google Play sizes.
-- [iPad mockup generator](https://openscrgen.app/ipad-mockup-generator): iPad Pro 13 inch and iPad 11 inch frames at the required 2064x2752 tier.
-- [MacBook mockup generator](https://openscrgen.app/macbook-mockup-generator): MacBook and iMac frames, including a 3D MacBook, at Mac App Store 16:10 sizes.
-- [Apple Watch mockup generator](https://openscrgen.app/apple-watch-mockup-generator): a 3D Apple Watch at the required 422x514 size.
-- [AppScreens alternative](https://openscrgen.app/appscreens-alternative): an honest comparison with AppScreens, including where each tool wins.
-- [AppMockUp alternative](https://openscrgen.app/appmockup-alternative): an honest comparison with AppMockUp Studio, free versus free.
-- [Smartmockups alternative](https://openscrgen.app/smartmockups-alternative): where to go now that Smartmockups redirects to Canva.
-- [Previewed alternative](https://openscrgen.app/previewed-alternative): an honest comparison with Previewed, including its free tier limits.
-- [Privacy policy](https://openscrgen.app/privacy): no accounts, no analytics, and no data collection by design.
-- [Terms of use](https://openscrgen.app/terms): plain language terms for the free service.
+- [Home](https://openscrgen.app/): current editor and agent workflow, a 32 second product film, agent connections, exported examples, features, templates and FAQ
+- [App Store screenshot generator](https://openscrgen.app/app-store-screenshot-generator): the free editor for Apple's store, with the sizes it exports
+- [Play Store screenshot generator](https://openscrgen.app/play-store-screenshot-generator): Google Play screenshots and feature graphics
+- [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): App Store screenshot dimensions and device requirements
+- [Google Play screenshot sizes](https://openscrgen.app/google-play-screenshot-sizes): Google Play screenshot dimensions, feature graphics and icon requirements
+- [App preview video maker](https://openscrgen.app/app-preview-video-maker): MP4 export for App Store previews and styled promotional videos, plus Google Play video guidance
+- [App Store screenshot templates](https://openscrgen.app/app-store-screenshot-templates): 101 free templates for iPhone and Android screenshot sets, Apple Watch, Mac, app preview videos and Google Play feature graphics. Each opens directly in the editor
+- [iPhone mockup generator](https://openscrgen.app/iphone-mockup-generator): free iPhone frames and 3D poses, exported at App Store sizes
+- [Android mockup generator](https://openscrgen.app/android-mockup-generator): Android phone and tablet frames, exported at Google Play sizes
+- [iPad mockup generator](https://openscrgen.app/ipad-mockup-generator): iPad frames for App Store screenshots
+- [MacBook mockup generator](https://openscrgen.app/macbook-mockup-generator): MacBook and iMac frames, including 3D poses, at Mac App Store sizes
+- [Apple Watch mockup generator](https://openscrgen.app/apple-watch-mockup-generator): Apple Watch screenshot templates and 3D poses
+- [AppScreens alternative](https://openscrgen.app/appscreens-alternative): a comparison with AppScreens
+- [AppMockUp alternative](https://openscrgen.app/appmockup-alternative): a comparison with AppMockUp Studio
+- [Smartmockups alternative](https://openscrgen.app/smartmockups-alternative): a comparison with Smartmockups
+- [Previewed alternative](https://openscrgen.app/previewed-alternative): a comparison with Previewed
+- [Privacy policy](https://openscrgen.app/privacy): privacy information for the website and editor
+- [Terms of use](https://openscrgen.app/terms): plain language terms for the free service
 
 ## Related
 
-- [The editor](https://editor.openscrgen.app/): the actual application.
-- [GitHub repository](https://github.com/dotnetdreamer/open-screenshot-generator): source code, issues, and releases.
-- [Desktop downloads](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest): installers for Windows, macOS, and Linux.
-- [Video walkthrough](https://youtu.be/RJmQgoreR2s): a guided tour on YouTube.
+- [The editor](https://editor.openscrgen.app/): the application
+- [GitHub repository](https://github.com/dotnetdreamer/open-screenshot-generator): source code, issues and releases
+- [Desktop downloads](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest): installers for Windows, macOS and Linux
+- [Video walkthrough](https://youtu.be/RJmQgoreR2s): a guided tour on YouTube

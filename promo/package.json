@@ -4,6 +4,10 @@
   "private": true,
   "description": "Remotion promo video for Open Screenshot Generator",
   "scripts": {
+    "render:launch": "remotion render PromoLaunch ../website/assets/video/launch-promo.mp4 --codec=h264 --crf=20 --audio-codec=aac --audio-bitrate=192k --pixel-format=yuv420p",
+    "render:hero": "remotion render HeroLaunch ../website/assets/video/hero-editor-loop.mp4 --codec=h264 --crf=24 --pixel-format=yuv420p --muted",
+    "gen:launch-score": "node scripts/gen-launch-score.cjs",
+    "encode:launch": "node scripts/encode-launch.cjs",
     "studio": "remotion studio",
     "render": "remotion render Promo out/open-screenshot-generator-promo.mp4",
     "render:fast": "remotion render PromoFast out/open-screenshot-generator-promo-fast.mp4",

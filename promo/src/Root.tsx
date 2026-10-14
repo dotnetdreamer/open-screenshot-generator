@@ -12,10 +12,27 @@ import { AI_DURATION, PromoAI, PromoAIMobile } from "./PromoAI";
 import { STEPS_DURATION, StepsPromo } from "./steps/StepsPromo";
 import { PromoVs, VS_DURATION } from "./vs/PromoVs";
 import { FEATURES_DURATION, PromoFeatures } from "./features/PromoFeatures";
+import { HERO_DURATION, HeroLaunch, LAUNCH_DURATION, PromoLaunch } from "./launch/LaunchPromo";
 
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Composition
+        id="PromoLaunch"
+        component={PromoLaunch}
+        durationInFrames={LAUNCH_DURATION}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
+      <Composition
+        id="HeroLaunch"
+        component={HeroLaunch}
+        durationInFrames={HERO_DURATION}
+        fps={30}
+        width={1920}
+        height={840}
+      />
       {/* The feature reel: what the editor does, then every release since
           July, each beat dated on the rail that rides the second act. */}
       <Composition

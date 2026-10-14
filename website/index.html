@@ -1,588 +1,1487 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8LQTR1SPDK"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-8LQTR1SPDK');
-  </script>
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-8LQTR1SPDK"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-8LQTR1SPDK");
+    </script>
 
-  <title>Open Screenshot Generator | Design & Translate App Store Screenshots</title>
-  <meta name="description" content="Pick a template, drop in your screenshots, automatically translate your text, and export every size Google Play and the App Store ask for. Free, private, and runs in your browser." />
-  <link rel="canonical" href="https://openscrgen.app/" />
-  <meta name="robots" content="index, follow" />
-  <meta name="theme-color" content="#0a1214" />
+    <title>
+      Open Screenshot Generator | App Store Screenshots & Preview Videos
+    </title>
+    <meta
+      name="description"
+      content="Make App Store and Google Play screenshots with 101 templates, 57 language options, and preview videos. Free and open source, in your browser or on your desktop"
+    />
+    <link rel="canonical" href="https://openscrgen.app/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0a1719" />
 
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Open Screenshot Generator" />
-  <meta property="og:title" content="Open Screenshot Generator | Design & Translate App Store Screenshots" />
-  <meta property="og:description" content="Pick a template, drop in your screenshots, automatically translate your text, and export every size Google Play and the App Store ask for. Free, private, and runs in your browser." />
-  <meta property="og:url" content="https://openscrgen.app/" />
-  <meta property="og:image" content="https://openscrgen.app/assets/img/og-image.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Open Screenshot Generator | Design & Translate App Store Screenshots" />
-  <meta name="twitter:description" content="Pick a template, drop in your screenshots, automatically translate your text, and export every size Google Play and the App Store ask for. Free, private, and runs in your browser." />
-  <meta name="twitter:image" content="https://openscrgen.app/assets/img/og-image.png" />
-  <meta name="twitter:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Open Screenshot Generator" />
+    <meta
+      property="og:title"
+      content="Open Screenshot Generator | App Store Screenshots & Preview Videos"
+    />
+    <meta
+      property="og:description"
+      content="Make App Store and Google Play screenshots with 101 templates, 57 language options, and preview videos. Free and open source, in your browser or on your desktop"
+    />
+    <meta property="og:url" content="https://openscrgen.app/" />
+    <meta
+      property="og:image"
+      content="https://openscrgen.app/assets/img/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="App screenshot sets made in Open Screenshot Generator"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Open Screenshot Generator | App Store Screenshots & Preview Videos"
+    />
+    <meta
+      name="twitter:description"
+      content="Make App Store and Google Play screenshots with 101 templates, 57 language options, and preview videos. Free and open source, in your browser or on your desktop"
+    />
+    <meta
+      name="twitter:image"
+      content="https://openscrgen.app/assets/img/og-image.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="App screenshot sets made in Open Screenshot Generator"
+    />
 
-  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
-  <link rel="manifest" href="site.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=Space+Grotesk:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
 
-  <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/home.css" />
+    <link rel="stylesheet" href="css/hero.css" />
+    <link rel="stylesheet" href="css/agent-connections.css" />
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
+    <script type="application/ld+json">
       {
-        "@type": "Organization",
-        "@id": "https://openscrgen.app/#org",
-        "name": "Open Screenshot Generator",
-        "url": "https://openscrgen.app/",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://openscrgen.app/assets/apple-touch-icon.png",
-          "width": 180,
-          "height": 180
-        },
-        "sameAs": [
-          "https://github.com/dotnetdreamer/open-screenshot-generator"
-        ]
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://openscrgen.app/#website",
-        "url": "https://openscrgen.app/",
-        "name": "Open Screenshot Generator",
-        "description": "A free design studio for App Store and Play Store screenshots, feature graphics, and app preview videos, with its source code public on GitHub.",
-        "inLanguage": "en",
-        "publisher": {
-          "@id": "https://openscrgen.app/#org"
-        }
-      },
-      {
-        "@type": "SoftwareApplication",
-        "@id": "https://openscrgen.app/#app",
-        "name": "Open Screenshot Generator",
-        "url": "https://editor.openscrgen.app/",
-        "applicationCategory": "DesignApplication",
-        "operatingSystem": "Web, Windows, macOS, Linux",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
-        "description": "A browser based editor for designing app store screenshots and App Store preview videos. Lay out artboards, place device mockups, load your app screenshots or screen recordings, add text and shapes, and export PNGs or MP4s at the exact sizes Google Play and the Apple App Store ask for. Everything runs client side, and nothing leaves your machine unless the optional AI agent is asked to talk to a provider.",
-        "screenshot": "https://openscrgen.app/assets/img/shot-editor.webp",
-        "featureList": [
-          "Templates for App Store and Play Store screenshots",
-          "Device frames for iPhone, Android, tablets, Macs, and Apple Watch",
-          "3D device poses with perspective presets",
-          "App preview video export to MP4 in the browser",
-          "Store ready video conforming for App Store Connect",
-          "Automated text translation in 50+ languages",
-          "AI agent that builds a project from your screenshots",
-          "Everything runs client side, no account and no upload"
-        ],
-        "sameAs": [
-          "https://github.com/dotnetdreamer/open-screenshot-generator"
-        ]
-      },
-      {
-        "@type": "HowTo",
-        "@id": "https://openscrgen.app/#howto",
-        "name": "How to create App Store and Play Store screenshots with Open Screenshot Generator",
-        "description": "Three steps take you from raw screenshots to store ready graphics.",
-        "step": [
+        "@context": "https://schema.org",
+        "@graph": [
           {
-            "@type": "HowToStep",
-            "position": 1,
-            "name": "Pick a template",
-            "text": "Open the gallery and choose a starting point. Every template is already sized for the stores.",
-            "image": "https://openscrgen.app/assets/img/step-1-template.webp"
+            "@type": "Organization",
+            "@id": "https://openscrgen.app/#org",
+            "name": "Open Screenshot Generator",
+            "url": "https://openscrgen.app/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://openscrgen.app/assets/apple-touch-icon.png",
+              "width": 180,
+              "height": 180
+            },
+            "sameAs": [
+              "https://github.com/dotnetdreamer/open-screenshot-generator"
+            ]
           },
           {
-            "@type": "HowToStep",
-            "position": 2,
-            "name": "Drop in your screenshots",
-            "text": "Upload screens straight from your phone or emulator. They snap into the device frames and stay clipped to the glass.",
-            "image": "https://openscrgen.app/assets/img/step-2-upload.webp"
-          },
-          {
-            "@type": "HowToStep",
-            "position": 3,
-            "name": "Export for both stores",
-            "text": "One click renders every artboard at the exact pixel sizes Google Play and the App Store expect.",
-            "image": "https://openscrgen.app/assets/img/step-3-export.webp"
-          }
-        ]
-      },
-      {
-        "@type": "VideoObject",
-        "@id": "https://openscrgen.app/#film",
-        "name": "The old way versus Open Screenshot Generator",
-        "description": "A one minute film contrasting the usual way of producing App Store and Play Store screenshots, size by size and language by language, with doing the whole set in Open Screenshot Generator. Covers the template library, the editor, one pass export for every store size, 57 language translation, app preview video export, the AI agent, and the fact that nothing leaves your machine.",
-        "thumbnailUrl": "https://openscrgen.app/assets/video/promo-desktop-poster.webp",
-        "contentUrl": "https://openscrgen.app/assets/video/promo-desktop.mp4",
-        "encodingFormat": "video/mp4",
-        "duration": "PT58S",
-        "uploadDate": "2026-08-16",
-        "isFamilyFriendly": true,
-        "inLanguage": "en"
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://openscrgen.app/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Is Open Screenshot Generator really free?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. The editor is free. There is no account, no watermark, and no paid tier. The full source code is public on GitHub."
+            "@type": "WebSite",
+            "@id": "https://openscrgen.app/#website",
+            "url": "https://openscrgen.app/",
+            "name": "Open Screenshot Generator",
+            "description": "Make App Store and Google Play screenshots with 101 templates, 57 language options, and preview videos. Free and open source, in your browser or on your desktop",
+            "inLanguage": "en",
+            "publisher": {
+              "@id": "https://openscrgen.app/#org"
             }
           },
           {
-            "@type": "Question",
-            "name": "Where do my screenshots go when I upload them?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Nowhere. The whole editor runs client side in your browser. Projects and uploads are stored in your browser storage on your own machine, and there is no backend to send them to. That storage is a working copy. Clearing your browser site data deletes it, so treat exported PNGs and MP4s as the real output."
-            }
+            "@type": "SoftwareApplication",
+            "@id": "https://openscrgen.app/#app",
+            "name": "Open Screenshot Generator",
+            "url": "https://editor.openscrgen.app/",
+            "applicationCategory": "DesignApplication",
+            "operatingSystem": "Web, Windows, macOS, Linux",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "Free and open source editor for App Store and Google Play screenshots, feature graphics, and preview videos. Design and export locally, or use optional cloud saving, collaboration, connected storage, and AI. Desktop adds direct store uploads and local AI providers",
+            "screenshot": "https://openscrgen.app/assets/img/product-editor.png",
+            "featureList": [
+              "101 templates for screenshots, feature graphics, and preview videos",
+              "Device frames and real 3D device poses",
+              "57 language options with text and image overrides",
+              "PNG export at store dimensions",
+              "MP4 export in Chrome, Edge, and desktop",
+              "AI assisted editable projects",
+              "Live collaboration and saved project versions",
+              "Local saving and optional cloud, Google Drive, or GitHub storage",
+              "Direct App Store Connect and Google Play uploads on desktop",
+              "Free editor with no watermark or export limit"
+            ],
+            "sameAs": [
+              "https://github.com/dotnetdreamer/open-screenshot-generator"
+            ]
           },
           {
-            "@type": "Question",
-            "name": "Which sizes can it export?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The export flow asks which store and which device classes you are targeting, then renders each artboard to PNG at the required dimensions for Google Play and the App Store, including iPhone and iPad sizes."
-            }
+            "@type": "FAQPage",
+            "@id": "https://openscrgen.app/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is the editor really free?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. All templates and design tools are free, with no watermark or export limit. The source is public under the MIT license. If you use an external AI provider, that provider may charge for its service"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Do I need an account?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "You can design, save locally, and export without an account. Sign in if you want cloud saving or live collaboration. You can also connect your own Google Drive or GitHub account"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where are my projects saved?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Local projects live in your browser storage. Clearing site data removes them, so save a project copy you want to keep. Cloud saving, sharing, connected accounts, store uploads, and AI use the services you choose"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I change the design for each language?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Each language inherits the base layout. Translate the text, adjust fonts and sizing, or use different screenshots and backgrounds for one language. The editor offers 57 language options, with store availability depending on the language"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I make preview videos?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Add a screen recording, adjust timing, animation, and audio, then export MP4. Use the App Store preview export for your screen recording, or export a styled video for a website or social post. Video export requires Chrome, Edge, or the desktop app"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What does the desktop app add?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The same editor, plus direct uploads to App Store Connect and Google Play, Claude Code, local AI providers, and built in coding agent tools. Desktop apps are available for macOS, Windows, and Linux"
+                }
+              }
+            ]
           },
           {
-            "@type": "Question",
-            "name": "Can it make App Store preview videos?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Drop a screen recording into a phone frame, add your headline and tap hints, and export an MP4. A separate mode conforms your raw capture to exactly what App Store Connect accepts, which is 886 by 1920 at 30 fps in H.264. Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On other browsers the export stops with a clear message, and PNG export works everywhere."
-            }
+            "@type": "HowTo",
+            "@id": "https://openscrgen.app/#how",
+            "name": "How to make app store screenshots",
+            "step": [
+              {
+                "@type": "HowToStep",
+                "position": 1,
+                "name": "Bring your screenshots",
+                "text": "Drop in your app screenshots to fill the template previews"
+              },
+              {
+                "@type": "HowToStep",
+                "position": 2,
+                "name": "Make the set yours",
+                "text": "Choose a template and edit headlines, fonts, colors, and languages"
+              },
+              {
+                "@type": "HowToStep",
+                "position": 3,
+                "name": "Preview and export",
+                "text": "Check the listing and export the sizes and languages you need"
+              }
+            ]
           },
           {
-            "@type": "Question",
-            "name": "Does the AI agent need an API key?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Not necessarily. You can bring your own key for Anthropic, OpenAI, or Google, or use the accounts you are already signed into, like Claude, ChatGPT, or Gemini. The desktop app drives the signed in mode automatically. In the browser it works through a small companion extension, with a manual copy and paste fallback. The desktop app also ships keyless providers."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do I need design skills?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "No. Templates carry the design decisions for you. Pick one, swap in your screenshots, adjust the words, and export. If you enjoy designing, the full editor with text, shapes, fonts, and 3D device poses is there too."
-            }
+            "@type": "VideoObject",
+            "@id": "https://openscrgen.app/#launch-film",
+            "name": "The editor and your agent, in action",
+            "description": "A 32 second example workflow showing the current editor, the desktop agent, editable screenshot artboards, language tools, and store export",
+            "thumbnailUrl": "https://openscrgen.app/assets/video/launch-promo-poster.jpg",
+            "contentUrl": "https://openscrgen.app/assets/video/launch-promo.mp4",
+            "duration": "PT32S",
+            "uploadDate": "2026-10-13",
+            "inLanguage": "en",
+            "encodingFormat": "video/mp4",
+            "isFamilyFriendly": true
           }
         ]
       }
-    ]
-  }
-  </script>
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
-
-  <canvas id="gl" aria-hidden="true"></canvas>
-  <div class="grain" aria-hidden="true"></div>
-
-  <header class="site-header" id="top">
-    <a class="brand" href="#top" aria-label="Open Screenshot Generator, back to top">
-      <img src="assets/logo.svg" alt="" width="34" height="34" />
-      <span class="brand-name">Open Screenshot <em>Generator</em></span>
-    </a>
-    <nav class="site-nav" aria-label="Main">
-      <a href="#how">How it works</a>
-      <a href="#templates">Templates</a>
-      <a href="#features">Features</a>
-      <a href="#agent">AI agent</a>
-      <a href="#faq">FAQ</a>
-    </nav>
-    <div class="header-actions">
-      <a class="btn btn-ghost btn-small btn-icon" href="https://github.com/dotnetdreamer/open-screenshot-generator" target="_blank" rel="noopener" title="View the source on GitHub" aria-label="View the source on GitHub">
-        <svg class="gh-mark" viewBox="0 0 16 16" width="17" height="17" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
-        <span class="btn-icon-label">GitHub</span>
-      </a>
-      <a class="btn btn-gold btn-small" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
-    </div>
-  </header>
-
-  <main id="main">
-
-    <!-- ============ HERO ============ -->
-    <section class="hero" id="hero">
-      <p class="eyebrow reveal">Free. Source on GitHub. Runs in your browser</p>
-      <h1 class="hero-title">
-        <span class="selection">
-          <span class="handle tl"></span><span class="handle tr"></span><span class="handle bl"></span><span class="handle br"></span>
-          <span class="line">Make your app</span>
-          <span class="line">impossible to <em>scroll past</em></span>
-        </span>
-      </h1>
-      <p class="hero-sub reveal">
-        Open Screenshot Generator is a design studio for App Store and Play Store graphics.
-        Pick a template, drop in your screenshots, and export every size both stores ask for.
-        Your work stays on your machine unless you invite the AI agent to help
-      </p>
-      <div class="hero-cta reveal">
-        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
-        <a class="btn btn-ghost" href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest" rel="noopener">Download for desktop</a>
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" id="top">
+      <div class="header-inner wrap">
+        <a
+          class="brand"
+          href="#top"
+          aria-label="Open Screenshot Generator, home"
+        >
+          <img src="assets/logo.svg" alt="" width="38" height="38" />
+          <span>Open Screenshot<br /><strong>Generator</strong></span>
+        </a>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="#features">The editor</a><a href="#agent-tools">Your agent</a
+          ><a href="#localization">Languages</a
+          ><a href="#templates">Templates</a><a href="#how">How it works</a>
+        </nav>
+        <div class="header-actions">
+          <a
+            class="github-link"
+            href="https://github.com/dotnetdreamer/open-screenshot-generator"
+            aria-label="View the source on GitHub"
+            ><svg
+              viewBox="0 0 24 24"
+              width="21"
+              height="21"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              aria-hidden="true"
+            >
+              <path
+                d="M9 19c-4.3 1.3-4.3-2.2-6-2.7M15 22v-3.4c.1-1-.3-1.7-.8-2.1 2.6-.3 5.3-1.3 5.3-5.9 0-1.3-.5-2.3-1.2-3.1.1-.3.5-1.5-.1-3.1 0 0-1-.3-3.3 1.2a11.1 11.1 0 0 0-6 0C6.6 4.1 5.6 4.4 5.6 4.4 5 6 5.4 7.2 5.5 7.5a4.5 4.5 0 0 0-1.2 3.1c0 4.6 2.7 5.6 5.3 5.9-.4.4-.8 1.1-.8 2.1V22"
+              /></svg
+          ></a>
+          <a class="button primary small" href="https://editor.openscrgen.app/"
+            >Open the editor <span aria-hidden="true">↗</span></a
+          >
+          <button
+            class="menu-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="mobile-nav"
+            aria-label="Open navigation"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              aria-hidden="true"
+            >
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        </div>
       </div>
-      <p class="hero-fineprint reveal">Free forever. No account. No watermark</p>
-      <div class="scroll-hint" aria-hidden="true"><span></span>Scroll</div>
+      <nav
+        class="mobile-nav wrap"
+        id="mobile-nav"
+        aria-label="Mobile navigation"
+        hidden
+      >
+        <a href="#features">The editor</a><a href="#agent-tools">Your agent</a
+        ><a href="#localization">Languages</a><a href="#templates">Templates</a
+        ><a href="#how">How it works</a><a href="#faq">Questions</a>
+      </nav>
+    </header>
 
-      <div class="hero-fallback" aria-hidden="true">
-        <img src="assets/img/strip-cinevault-stream.webp" alt="" loading="eager" />
-        <img src="assets/img/strip-breathora-breathing.webp" alt="" loading="lazy" />
-      </div>
-    </section>
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-intro">
+          <p class="eyebrow">
+            <span class="status-dot" aria-hidden="true"></span> Free and open
+            source
+          </p>
+          <h1 id="hero-title">
+            The screenshot editor<br /><span class="agent-highlight"
+              >that works with your agent</span
+            >
+          </h1>
+          <p class="hero-sub">
+            Ask the agent to choose a template, place your screens, and write
+            the headlines. Keep editing the result on the same canvas
+          </p>
+          <div class="button-row">
+            <a class="button primary" href="https://editor.openscrgen.app/"
+              >Open the editor <span aria-hidden="true">↗</span></a
+            ><a
+              class="button secondary"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"
+              >Get the desktop app <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <p class="hero-note">
+            <span>No watermark</span><span>No export limit</span
+            ><span>Bring your own agent</span>
+          </p>
+        </div>
+        <figure class="hero-shell">
+          <div class="hero-shell-chrome">
+            <span class="hero-window-dots" aria-hidden="true"
+              ><i></i><i></i><i></i></span
+            ><span class="hero-shell-name"
+              >Your project, in Open Screenshot Generator</span
+            ><span class="hero-example-label"
+              >Desktop agent / Example workflow</span
+            >
+          </div>
+          <div class="hero-stage" id="hero-stage">
+            <img
+              class="hero-editor-image"
+              src="assets/video/hero-editor-poster.jpg"
+              alt="Open Screenshot Generator desktop editor with a finance screenshot project and the Claude Code agent beside the canvas"
+              width="1920"
+              height="840"
+              fetchpriority="high"
+            />
+            <video
+              class="hero-editor-video"
+              id="hero-preview"
+              muted
+              loop
+              playsinline
+              preload="none"
+              poster="assets/video/hero-editor-poster.jpg"
+              data-src="assets/video/hero-editor-loop.mp4"
+              aria-label="Example of editing a screenshot project with the desktop agent"
+            ></video>
+          </div>
+          <figcaption class="hero-shell-caption">
+            <span
+              ><span class="status-dot" aria-hidden="true"></span> Desktop
+              agent, example workflow</span
+            >
+            <div class="hero-preview-actions">
+              <button
+                id="hero-motion-toggle"
+                class="preview-motion"
+                type="button"
+                aria-controls="hero-preview"
+                aria-pressed="true"
+                hidden
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  width="12"
+                  height="12"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M4 3h3v10H4zm5 0h3v10H9z" /></svg
+                ><span>Pause preview</span></button
+              ><a
+                class="promo-open"
+                aria-haspopup="dialog"
+                aria-controls="promo-dialog"
+                href="assets/video/launch-promo.mp4"
+                data-promo-open
+                ><svg
+                  viewBox="0 0 16 16"
+                  width="13"
+                  height="13"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="m5 3 8 5-8 5z" /></svg
+                >Watch the 32 second film</a
+              >
+            </div>
+          </figcaption>
+        </figure>
+        <dl class="proof-strip">
+          <div>
+            <dt>101</dt>
+            <dd>Templates to start with</dd>
+          </div>
+          <div>
+            <dt>57</dt>
+            <dd>Language options</dd>
+          </div>
+          <div>
+            <dt>PNG + MP4</dt>
+            <dd>Screenshots and videos</dd>
+          </div>
+          <div>
+            <dt>$0</dt>
+            <dd>For the whole editor</dd>
+          </div>
+        </dl>
+      </section>
 
-    <!-- ============ PROMO FILM ============ -->
-    <section class="film" id="film" aria-labelledby="film-title">
-      <p class="eyebrow reveal">One minute. The whole difference</p>
-      <h2 class="film-title reveal" id="film-title">The old way took an afternoon. This takes <em>one pass</em></h2>
-      <div class="film-frame reveal">
-        <!-- Source is chosen and attached by js/film.js: the landscape cut on
-             wide screens, the portrait cut on phones, and neither is fetched
-             until the panel is close to the viewport. -->
-        <video
-          class="film-video"
-          id="promo-film"
-          muted
-          loop
-          playsinline
-          preload="none"
-          poster="assets/video/promo-desktop-poster.webp"
-          data-src-wide="assets/video/promo-desktop.mp4"
-          data-src-tall="assets/video/promo-mobile.mp4"
-          data-poster-wide="assets/video/promo-desktop-poster.webp"
-          data-poster-tall="assets/video/promo-mobile-poster.webp"
-          aria-label="A one minute film comparing the old way of making store screenshots with Open Screenshot Generator"
-        ></video>
-        <button class="film-play" type="button" id="film-play" aria-controls="promo-film">
-          <span class="film-play-icon" aria-hidden="true"></span>
-          <span class="film-play-label">Play the film</span>
-        </button>
-        <button class="film-sound" type="button" id="film-sound" aria-pressed="false">Sound off</button>
-      </div>
-      <div class="hero-cta reveal">
-        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
-        <a class="btn btn-ghost" href="#how">See the three steps</a>
-      </div>
-    </section>
-
-    <!-- ============ MARQUEE ============ -->
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee-track">
-        <span>App Store screenshots</span><i>✦</i>
-        <span>Play Store screenshots</span><i>✦</i>
-        <span>Preview videos</span><i>✦</i>
-        <span>Automated translation</span><i>✦</i>
-        <span>Feature graphics</span><i>✦</i>
-        <span>Apple Watch</span><i>✦</i>
-        <span>iPhone and Android</span><i>✦</i>
-        <span>Tablets and Macs</span><i>✦</i>
-        <span>3D device poses</span><i>✦</i>
-        <!-- Duplicate pass so the minus fifty percent loop is seamless -->
-        <span>App Store screenshots</span><i>✦</i>
-        <span>Play Store screenshots</span><i>✦</i>
-        <span>Preview videos</span><i>✦</i>
-        <span>Automated translation</span><i>✦</i>
-        <span>Feature graphics</span><i>✦</i>
-        <span>Apple Watch</span><i>✦</i>
-        <span>iPhone and Android</span><i>✦</i>
-        <span>Tablets and Macs</span><i>✦</i>
-        <span>3D device poses</span><i>✦</i>
-      </div>
-    </div>
-
-    <!-- ============ STEPS ============ -->
-    <section class="steps" id="how" aria-labelledby="how-title">
-      <div class="steps-pin">
-        <div class="steps-copy">
-          <p class="eyebrow">How it works</p>
-          <h2 id="how-title">Three steps, and that is the whole process</h2>
-          <ol class="steps-list">
-            <li class="step-item is-active" data-step="0">
-              <span class="step-num" aria-hidden="true">1</span>
-              <h3>Pick a template</h3>
-              <p>Open the gallery and choose a starting point. There are designs for fitness, finance, podcasts, games, chat and plenty more, each one already sized for the stores</p>
-            </li>
-            <li class="step-item" data-step="1">
-              <span class="step-num" aria-hidden="true">2</span>
-              <h3>Drop in your screenshots</h3>
-              <p>Upload screens straight from your phone or emulator. They snap into the device frames and stay clipped to the glass, even when you tilt the phone in 3D</p>
-            </li>
-            <li class="step-item" data-step="2">
-              <span class="step-num" aria-hidden="true">3</span>
-              <h3>Export for both stores</h3>
-              <p>One click renders every artboard at the exact pixel sizes Google Play and the App Store expect. No resizing in another tool and no rejections over pixels</p>
-            </li>
-          </ol>
-          <div class="steps-progress" aria-hidden="true">
-            <span class="steps-counter">01</span>
-            <span class="steps-bar"><span class="steps-bar-fill"></span></span>
-            <span>03</span>
+      <section
+        class="agent-connections"
+        id="agent-tools"
+        aria-labelledby="agent-map-title"
+      >
+        <div class="wrap section-space">
+          <div class="agent-map-heading">
+            <p class="eyebrow">Your agent, inside the editor</p>
+            <h2 id="agent-map-title">
+              Your agent, connected<br /><span>to the design tools</span>
+            </h2>
+            <p>
+              Choose a model you already use. Let the agent work with templates,
+              layers and languages, then adjust the result on the same canvas
+            </p>
+          </div>
+          <div class="agent-map">
+            <svg
+              class="agent-map-wires"
+              viewBox="0 0 1200 400"
+              preserveAspectRatio="none"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M230 70C330 70 310 200 450 200M230 160C320 160 320 200 450 200M230 250C320 250 320 200 450 200M230 340C330 340 310 200 450 200M750 200C875 200 860 55 980 55M750 200C870 200 870 127 980 127M750 200H980M750 200C870 200 870 273 980 273M750 200C875 200 860 345 980 345"
+              />
+              <circle
+                cx="405"
+                cy="200"
+                r="4"
+                fill="currentColor"
+                stroke="none"
+              />
+              <circle
+                cx="795"
+                cy="200"
+                r="4"
+                fill="currentColor"
+                stroke="none"
+              />
+            </svg>
+            <div class="agent-map-column">
+              <p class="agent-map-label">
+                <span>01</span> Choose your connection
+              </p>
+              <ul class="agent-route-list">
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <rect x="3" y="5" width="18" height="14" rx="3" />
+                      <path d="m7 9 3 3-3 3m6 0h4" /></svg
+                  ></span>
+                  <div>
+                    <strong>Claude Code</strong
+                    ><small>Agent panel on desktop</small>
+                  </div>
+                </li>
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path
+                        d="M21 11a8 8 0 0 1-8 8H5l-3 3V11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8Z"
+                      />
+                      <path d="M7 9h10M7 13h6" /></svg
+                  ></span>
+                  <div>
+                    <strong>ChatGPT and Gemini</strong
+                    ><small>Your account through desktop or extension</small>
+                  </div>
+                </li>
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <path d="m8 5-5 7 5 7m8-14 5 7-5 7m-2-16-4 18" /></svg
+                  ></span>
+                  <div>
+                    <strong>Your API key</strong
+                    ><small>Claude, OpenAI, Gemini, OpenRouter</small>
+                  </div>
+                </li>
+                <li class="agent-route">
+                  <span class="agent-route-icon" aria-hidden="true"
+                    ><svg viewBox="0 0 24 24">
+                      <rect x="5" y="5" width="14" height="14" rx="3" />
+                      <path
+                        d="M9 9h6v6H9zM9 2v3m6-3v3M9 19v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3"
+                      /></svg
+                  ></span>
+                  <div>
+                    <strong>Ollama and LM Studio</strong
+                    ><small>Local models on desktop</small>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="agent-map-project">
+              <div class="agent-project-brand">
+                <img src="assets/logo.svg" alt="" width="37" height="37" />
+                <div>
+                  <strong>Open Screenshot<br />Generator</strong
+                  ><span>The same editable project</span>
+                </div>
+              </div>
+              <figure class="agent-project-canvas">
+                <img
+                  src="assets/img/showcase-kassa-money.png"
+                  width="3000"
+                  height="1000"
+                  loading="lazy"
+                  alt="Five editable Kassa finance screenshots from an Open Screenshot Generator template"
+                />
+                <figcaption>A real template from the editor</figcaption>
+              </figure>
+              <div
+                class="agent-project-tools"
+                aria-label="Examples of editor tools"
+              >
+                <span>Choose a template</span><span>Edit a layer</span
+                ><span>Add languages</span>
+              </div>
+              <p class="agent-project-editable">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m5 12 4 4L19 6" /></svg
+                >Every layer stays yours to edit
+              </p>
+            </div>
+            <div class="agent-map-column">
+              <p class="agent-map-label">
+                <span>02</span> Work on the real project
+              </p>
+              <ul class="agent-tool-list">
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="18" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  <div>
+                    <strong>Templates and layouts</strong
+                    ><small>Headlines, layers, spacing and color</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="7" y="2" width="10" height="20" rx="2" />
+                    <path d="M10 5h4M11 19h2" />
+                  </svg>
+                  <div>
+                    <strong>Device frames</strong
+                    ><small>Your screenshots in flat or 3D frames</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M3 5h12M9 3v2M5 5c1 5 4 8 8 10M13 5c-1 5-4 8-8 10m8 6 5-12 5 12m-8-4h6"
+                    />
+                  </svg>
+                  <div>
+                    <strong>Languages</strong
+                    ><small>Translated copy and local screenshots</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="2" />
+                    <path d="m10 8 6 4-6 4V8Z" />
+                  </svg>
+                  <div>
+                    <strong>Preview scenes</strong
+                    ><small>Recordings, animations and timing</small>
+                  </div>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v12m-4-4 4 4 4-4M4 17v4h16v-4" />
+                  </svg>
+                  <div>
+                    <strong>PNG export</strong
+                    ><small>Individual artboards or the full set</small>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="agent-map-footer">
+            <p>
+              Coding agents can use the same tools through MCP or the CLI. Build
+              preview scenes with the agent, then export MP4 in the editor or
+              CLI
+            </p>
+            <a
+              class="text-link"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/AI-AGENT.md"
+              >Explore the agent options <span aria-hidden="true">↗</span></a
+            >
           </div>
         </div>
-        <div class="steps-stage" aria-hidden="false">
-          <figure class="step-fallback" data-step="0">
-            <img src="assets/img/step-1-template.webp" alt="The template gallery, showing screenshot sets for yoga, blogging, breathing and wedding apps" loading="lazy" width="1680" height="1260" />
+      </section>
+
+      <section
+        class="light-section"
+        id="features"
+        aria-labelledby="features-title"
+      >
+        <div class="wrap section-space">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">01 / Design</p>
+              <h2 id="features-title">One canvas for<br />the whole release</h2>
+            </div>
+            <p>
+              Keep the whole set in view while you adjust the details. Every
+              headline, device, image, and shape is a layer you can edit
+            </p>
+          </div>
+          <figure class="editor-frame">
+            <div class="window-bar">
+              <span class="window-dots" aria-hidden="true"
+                ><i></i><i></i><i></i></span
+              ><span>Open Screenshot Generator</span
+              ><span class="window-state">Your project, your canvas</span>
+            </div>
+            <img
+              src="assets/img/product-editor.png"
+              alt="The editor with five purple finance app artboards, an element library, editable layers, and design properties"
+              width="1600"
+              height="820"
+              loading="lazy"
+            />
+            <figcaption>
+              <span>Layers and groups</span><span>Imported fonts</span
+              ><span>Shared backgrounds</span
+              ><span>Undo and saved versions</span>
+            </figcaption>
           </figure>
-          <figure class="step-fallback" data-step="1">
-            <img src="assets/img/step-2-upload.webp" alt="The editor with an uploaded fitness app screenshot selected inside an iPhone frame" loading="lazy" width="1680" height="1260" />
-          </figure>
-          <figure class="step-fallback" data-step="2">
-            <img src="assets/img/step-3-export.webp" alt="The export preview showing a finished artboard at 1290 by 2796 pixels" loading="lazy" width="1680" height="1260" />
-          </figure>
+          <div class="design-details">
+            <article class="device-card">
+              <div class="device-art" aria-hidden="true">
+                <span class="device-orbit"></span
+                ><img
+                  class="device-phone"
+                  src="assets/img/device-iphone-tilted.webp"
+                  alt=""
+                  width="800"
+                  height="900"
+                  loading="lazy"
+                /><img
+                  class="device-watch"
+                  src="assets/img/device-watch.webp"
+                  alt=""
+                  width="800"
+                  height="800"
+                  loading="lazy"
+                /><span class="pose-label">Real 3D device poses</span>
+              </div>
+              <div class="detail-copy">
+                <h3>A frame for every screen</h3>
+                <p>
+                  iPhone, Android, iPad, Mac, and Apple Watch. Choose flat
+                  frames or real 3D poses, then place your app inside
+                </p>
+              </div>
+            </article>
+            <article class="tools-card">
+              <div class="type-art" aria-hidden="true">
+                <span class="type-tool">T</span>
+                <div class="type-selection">
+                  Make it<br /><span>your own</span><i class="corner c1"></i
+                  ><i class="corner c2"></i><i class="corner c3"></i
+                  ><i class="corner c4"></i>
+                </div>
+                <div class="type-swatches">
+                  <i></i><i></i><i></i><i></i
+                  ><span>Typeface, color, spacing</span>
+                </div>
+              </div>
+              <div class="detail-copy">
+                <h3>Your brand, down to the last detail</h3>
+                <p>
+                  Bring your fonts and images. Add shapes, badges, and gestures.
+                  Span a background across the set and adjust each artboard
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="locale-section"
+        id="localization"
+        aria-labelledby="locale-title"
+      >
+        <div class="wrap locale-layout section-space">
+          <div class="feature-copy">
+            <p class="eyebrow">02 / Localization</p>
+            <h2 id="locale-title">
+              One layout<br /><span>57 language options</span>
+            </h2>
+            <p>
+              Translate your headlines without rebuilding the design. Every
+              language starts with the base layout, with its own copy, fonts,
+              and app screenshots where you need them
+            </p>
+            <ul class="check-list">
+              <li>Review translations together in one table</li>
+              <li>Adjust text and images for each language</li>
+              <li>Arabic and Hebrew text flows right to left</li>
+              <li>Export the languages you choose in one run</li>
+            </ul>
+            <a class="text-link" href="https://editor.openscrgen.app/"
+              >Make a set in your languages
+              <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="locale-demo">
+            <div class="locale-demo-top">
+              <span class="eyebrow">Headline example</span
+              ><span class="locale-counter">01 / 04</span>
+            </div>
+            <div class="locale-preview" aria-live="polite">
+              <div class="locale-artboard">
+                <p class="locale-brand">KASSA</p>
+                <h3 id="locale-headline" lang="en">
+                  Every cent<br />accounted
+                </h3>
+                <div class="demo-phone">
+                  <span class="phone-notch" aria-hidden="true"></span
+                  ><img
+                    src="assets/img/example-finance-screen.png"
+                    alt="Kassa app activity screen used as the same image in each language example"
+                    width="600"
+                    height="1300"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <div class="locale-notes">
+                <span class="annotation"
+                  ><svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.4"
+                    aria-hidden="true"
+                  >
+                    <path d="m4 8 4 4-4 4m7-4h9" /></svg
+                  >Same layout</span
+                ><span class="annotation second"
+                  >Your words<br />in their language</span
+                ><code class="locale-code">en-US</code>
+              </div>
+            </div>
+            <div
+              class="segmented locale-options"
+              role="group"
+              aria-label="Choose an example language"
+            >
+              <button type="button" data-locale="en" aria-pressed="true">
+                English</button
+              ><button type="button" data-locale="de" aria-pressed="false">
+                Deutsch</button
+              ><button
+                type="button"
+                data-locale="ja"
+                aria-pressed="false"
+                lang="ja"
+              >
+                日本語</button
+              ><button
+                type="button"
+                data-locale="ar"
+                aria-pressed="false"
+                lang="ar"
+              >
+                العربية
+              </button>
+            </div>
+            <p class="demo-note">
+              An example of changing the headline while keeping the design
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="light-section" id="video" aria-labelledby="video-title">
+        <div class="wrap section-space">
+          <div class="video-layout">
+            <div class="feature-copy">
+              <p class="eyebrow">03 / Motion</p>
+              <h2 id="video-title">Show what<br />your app does</h2>
+              <p>
+                Bring in a screen recording, set the timing, and add motion and
+                audio. Make a preview for the App Store, or a styled video for
+                your website and social posts
+              </p>
+              <a class="text-link" href="/app-preview-video-maker"
+                >Explore preview videos <span aria-hidden="true">↗</span></a
+              >
+              <p class="feature-note">
+                MP4 export works in Chrome, Edge, and the desktop app
+              </p>
+            </div>
+            <figure class="video-editor">
+              <img
+                src="assets/img/product-video.png"
+                alt="App preview project with three scenes, a multitrack animation timeline, and screen recording controls"
+                width="1600"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <span class="status-dot" aria-hidden="true"></span>Screen
+                recordings, animation, and audio on one timeline
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="team-section" aria-labelledby="team-title">
+        <div class="wrap section-space">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">04 / A little help</p>
+              <h2 id="team-title">
+                You don't have to<br />make the whole set alone
+              </h2>
+            </div>
+            <p>
+              Ask an agent for a first pass, or invite a teammate into the
+              project. The result stays editable in the same canvas
+            </p>
+          </div>
+          <div class="team-grid">
+            <article class="team-card">
+              <div
+                class="agent-example"
+                aria-label="Example of an agent request"
+              >
+                <div class="agent-message">
+                  Use these screens in a clean finance template and write the
+                  headlines for my app <span aria-hidden="true">↗</span>
+                </div>
+                <div class="agent-result">
+                  <span class="agent-result-icon" aria-hidden="true">✳</span>
+                  <div>
+                    <strong>A first pass you can edit</strong
+                    ><span>Template, screenshots, and headlines</span>
+                  </div>
+                </div>
+                <img
+                  src="assets/img/showcase-kassa-money.png"
+                  alt="An example finance template that can be filled and edited by the agent"
+                  width="3000"
+                  height="1000"
+                  loading="lazy"
+                />
+              </div>
+              <div class="detail-copy">
+                <h3>Let your agent do the first pass</h3>
+                <p>
+                  Give the agent your screenshots and a brief. Use your own API
+                  key or an assistant account. Desktop adds Claude Code and
+                  local providers
+                </p>
+                <a
+                  class="text-link"
+                  href="https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/AI-AGENT.md"
+                  >See the agent options <span aria-hidden="true">↗</span></a
+                >
+              </div>
+            </article>
+            <article class="team-card">
+              <div
+                class="collab-example"
+                aria-label="Illustration of collaboration and saved versions"
+              >
+                <div class="collab-top">
+                  <span class="avatars" aria-hidden="true"
+                    ><i>Y</i><i>M</i><i>A</i></span
+                  ><span>The team, in the same project</span>
+                </div>
+                <div class="version-row">
+                  <span class="version-dot" aria-hidden="true"></span>
+                  <div>
+                    <strong>Ready for review</strong
+                    ><span>Named project version</span>
+                  </div>
+                  <span class="version-tag">Saved</span>
+                </div>
+                <div class="version-row">
+                  <span class="version-dot muted" aria-hidden="true"></span>
+                  <div>
+                    <strong>Before the new headlines</strong
+                    ><span>A previous direction</span>
+                  </div>
+                  <span class="version-tag subdued">Restore</span>
+                </div>
+                <div class="collab-note">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1"
+                    />
+                    <circle cx="12" cy="12" r="3" /></svg
+                  >Illustration of shared editing and project versions
+                </div>
+              </div>
+              <div class="detail-copy">
+                <h3>Work on the same release together</h3>
+                <p>
+                  Invite people to edit live. Save a named version before a big
+                  change, and restore an earlier direction when you need it.
+                  Live editing uses a signed in cloud project
+                </p>
+              </div>
+            </article>
+          </div>
+          <div class="cli-line">
+            <span class="cli-icon" aria-hidden="true">&gt;_</span>
+            <div>
+              <h3>Already working with a coding agent?</h3>
+              <p>
+                The CLI and MCP tools let your agent fill templates, edit
+                artboards, and export the set
+              </p>
+            </div>
+            <a
+              class="text-link"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator#command-line-and-coding-agents"
+              >Connect your workflow <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="light-section export-section"
+        id="export"
+        aria-labelledby="export-title"
+      >
+        <div class="wrap section-space export-layout">
+          <div class="feature-copy">
+            <p class="eyebrow">05 / The finish</p>
+            <h2 id="export-title">From the canvas<br />to the store listing</h2>
+            <p>
+              Preview the set as shoppers will see it. Export at the dimensions
+              you need for the App Store and Google Play, with the languages you
+              choose
+            </p>
+            <ul class="check-list">
+              <li>iPhone, iPad, Android, Mac, and Apple Watch sizes</li>
+              <li>Google Play feature graphics alongside screenshots</li>
+              <li>Direct uploads to both stores from the desktop app</li>
+            </ul>
+            <a
+              class="button dark-button"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"
+              >Get the desktop app <span aria-hidden="true">↗</span></a
+            >
+            <p class="feature-note">Available for macOS, Windows, and Linux</p>
+          </div>
+          <div class="export-proof">
+            <figure class="export-dialog">
+              <img
+                src="assets/img/product-export.png"
+                alt="PNG export dialog for the current or selected artboards, with additional iPhone and iPad sizes"
+                width="900"
+                height="1023"
+                loading="lazy"
+              />
+            </figure>
+            <figure class="store-preview">
+              <img
+                src="assets/img/product-listing.png"
+                alt="App Store listing preview showing the completed purple screenshot set as a shopper would see it"
+                width="640"
+                height="1132"
+                loading="lazy"
+              />
+            </figure>
+            <span class="export-annotation"
+              >Check the listing before you ship
+              <span aria-hidden="true">↗</span></span
+            >
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="templates-section wrap section-space"
+        id="templates"
+        aria-labelledby="templates-title"
+      >
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">The starting points</p>
+            <h2 id="templates-title">
+              A starting point<br />that fits your app
+            </h2>
+          </div>
+          <div class="heading-action">
+            <p>
+              101 templates for screenshots, videos, feature graphics, Mac, and
+              Apple Watch. Start with a complete design, then make it yours
+            </p>
+            <a class="text-link" href="/app-store-screenshot-templates"
+              >Browse the template gallery <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+        <div class="showcase">
+          <div class="showcase-toolbar">
+            <span class="showcase-label"
+              ><span class="tiny-frame" aria-hidden="true"></span
+              ><span id="showcase-name">Kassa</span
+              ><span class="showcase-divider">/</span> Exported in our
+              editor</span
+            >
+            <div
+              class="segmented showcase-options"
+              role="group"
+              aria-label="Choose a screenshot example"
+            >
+              <button type="button" data-showcase="finance" aria-pressed="true">
+                Finance</button
+              ><button
+                type="button"
+                data-showcase="journal"
+                aria-pressed="false"
+              >
+                Journal</button
+              ><button type="button" data-showcase="photo" aria-pressed="false">
+                Photo
+              </button>
+            </div>
+          </div>
+          <img
+            id="showcase-image"
+            src="assets/img/showcase-kassa-money.png"
+            alt="Five Kassa finance app screenshots with blue typography, device frames, and a shared cream background"
+            width="3000"
+            height="1000"
+            loading="lazy"
+          />
+          <div class="showcase-bottom">
+            <p id="showcase-caption" aria-live="polite">
+              One template, a complete screenshot set
+            </p>
+            <a
+              id="showcase-link"
+              href="https://editor.openscrgen.app/?template=kassa-money"
+              >Use this template <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+        <div class="template-grid">
+          <a
+            class="tpl-card"
+            href="https://editor.openscrgen.app/?template=kassa-money"
+            ><img
+              src="assets/img/showcase-kassa-money.png"
+              alt="Cream and electric blue finance screenshot template"
+              width="3000"
+              height="1000"
+              loading="lazy"
+            />
+            <div>
+              <h3>Kassa</h3>
+              <span>Finance</span><i aria-hidden="true">↗</i>
+            </div></a
+          ><a
+            class="tpl-card"
+            href="https://editor.openscrgen.app/?template=scrappi-journal"
+            ><img
+              src="assets/img/showcase-scrappi-journal.png"
+              alt="Paper, tape, and sticker inspired journaling screenshot template"
+              width="3000"
+              height="1000"
+              loading="lazy"
+            />
+            <div>
+              <h3>Scrappi</h3>
+              <span>Journaling</span><i aria-hidden="true">↗</i>
+            </div></a
+          ><a
+            class="tpl-card"
+            href="https://editor.openscrgen.app/?template=pixara-ai"
+            ><img
+              src="assets/img/showcase-pixara-ai.png"
+              alt="Dark photo editing screenshot template with pink accents"
+              width="3000"
+              height="1000"
+              loading="lazy"
+            />
+            <div>
+              <h3>Pixara</h3>
+              <span>Photo editing</span><i aria-hidden="true">↗</i>
+            </div></a
+          ><a
+            class="tpl-card"
+            href="https://editor.openscrgen.app/?template=calora-macros"
+            ><img
+              src="assets/templates/calora-macros.webp"
+              alt="Warm cream nutrition and workout screenshot template"
+              width="720"
+              height="240"
+              loading="lazy"
+            />
+            <div>
+              <h3>Calora</h3>
+              <span>Health and fitness</span><i aria-hidden="true">↗</i>
+            </div></a
+          ><a
+            class="tpl-card"
+            href="https://editor.openscrgen.app/?template=runzo-coach"
+            ><img
+              src="assets/templates/runzo-coach.webp"
+              alt="Light green running coach screenshot template"
+              width="720"
+              height="240"
+              loading="lazy"
+            />
+            <div>
+              <h3>Runzo</h3>
+              <span>Running</span><i aria-hidden="true">↗</i>
+            </div></a
+          ><a
+            class="tpl-card"
+            href="https://editor.openscrgen.app/?template=darzi-studio"
+            ><img
+              src="assets/templates/darzi-studio.webp"
+              alt="Dark fashion screenshot template with gold accents"
+              width="720"
+              height="240"
+              loading="lazy"
+            />
+            <div>
+              <h3>Darzi</h3>
+              <span>Fashion</span><i aria-hidden="true">↗</i>
+            </div></a
+          >
+        </div>
+        <p class="gallery-note">
+          These are sample apps from the template library, designed and exported
+          in Open Screenshot Generator
+        </p>
+      </section>
+
+      <section class="light-section" id="how" aria-labelledby="how-title">
+        <div class="wrap section-space">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Your next release</p>
+              <h2 id="how-title">
+                Your screenshots in<br />a finished set out
+              </h2>
+            </div>
+            <p>
+              Start with the screens you already have. The editor fills template
+              previews with your screenshots so you can choose the design that
+              fits
+            </p>
+          </div>
+          <ol class="workflow">
+            <li>
+              <span class="step-number">01</span>
+              <h3>Bring your screenshots</h3>
+              <p>
+                Drop in the screens from your app. They fill the template
+                previews before you choose a design
+              </p>
+            </li>
+            <li>
+              <span class="step-number">02</span>
+              <h3>Make the set yours</h3>
+              <p>
+                Choose a template. Change the headlines, fonts, colors, and
+                languages in the editor
+              </p>
+            </li>
+            <li>
+              <span class="step-number">03</span>
+              <h3>Preview and export</h3>
+              <p>
+                Check the store listing, choose the sizes you need, and export
+                the set
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section
+        class="ownership-section wrap section-space"
+        aria-labelledby="ownership-title"
+      >
+        <div class="ownership-copy">
+          <p class="eyebrow">Free and open source</p>
+          <h2 id="ownership-title">
+            The whole editor<br /><span>Yours to use</span>
+          </h2>
+          <p>
+            Design and export for free, without a watermark or an export cap.
+            Start without an account. Save on your device, or choose cloud,
+            Google Drive, or GitHub when you want a copy elsewhere
+          </p>
+          <a
+            class="text-link"
+            href="https://github.com/dotnetdreamer/open-screenshot-generator"
+            >Read the source on GitHub <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <div class="ownership-price">
+          <span class="eyebrow">The price of the editor</span>
+          <p>$0</p>
+          <span>Every template. Every design tool</span
+          ><a class="button primary" href="https://editor.openscrgen.app/"
+            >Open the editor <span aria-hidden="true">↗</span></a
+          ><small>Optional AI providers have their own terms and costs</small>
+        </div>
+      </section>
+
+      <section
+        class="faq-section light-section"
+        id="faq"
+        aria-labelledby="faq-title"
+      >
+        <div class="wrap section-space faq-layout">
+          <div>
+            <p class="eyebrow">Before you start</p>
+            <h2 id="faq-title">A few<br />useful answers</h2>
+            <a
+              class="text-link"
+              href="https://github.com/dotnetdreamer/open-screenshot-generator#readme"
+              >Read the documentation <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="faq-list">
+            <details>
+              <summary>Is the editor really free?</summary>
+              <p>
+                Yes. All templates and design tools are free, with no watermark
+                or export limit. The source is public under the MIT license. If
+                you use an external AI provider, that provider may charge for
+                its service
+              </p>
+            </details>
+            <details>
+              <summary>Do I need an account?</summary>
+              <p>
+                You can design, save locally, and export without an account.
+                Sign in if you want cloud saving or live collaboration. You can
+                also connect your own Google Drive or GitHub account
+              </p>
+            </details>
+            <details>
+              <summary>Where are my projects saved?</summary>
+              <p>
+                Local projects live in your browser storage. Clearing site data
+                removes them, so save a project copy you want to keep. Cloud
+                saving, sharing, connected accounts, store uploads, and AI use
+                the services you choose
+              </p>
+            </details>
+            <details>
+              <summary>Can I change the design for each language?</summary>
+              <p>
+                Yes. Each language inherits the base layout. Translate the text,
+                adjust fonts and sizing, or use different screenshots and
+                backgrounds for one language. The editor offers 57 language
+                options, with store availability depending on the language
+              </p>
+            </details>
+            <details>
+              <summary>Can I make preview videos?</summary>
+              <p>
+                Yes. Add a screen recording, adjust timing, animation, and
+                audio, then export MP4. Use the App Store preview export for
+                your screen recording, or export a styled video for a website or
+                social post. Video export requires Chrome, Edge, or the desktop
+                app
+              </p>
+            </details>
+            <details>
+              <summary>What does the desktop app add?</summary>
+              <p>
+                The same editor, plus direct uploads to App Store Connect and
+                Google Play, Claude Code, local AI providers, and built in
+                coding agent tools. Desktop apps are available for macOS,
+                Windows, and Linux
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta wrap" aria-labelledby="cta-title">
+        <p class="eyebrow">For the app you've been building</p>
+        <h2 id="cta-title">Give it a store page<br />you're proud to ship</h2>
+        <div class="button-row">
+          <a class="button primary" href="https://editor.openscrgen.app/"
+            >Make your screenshot set <span aria-hidden="true">↗</span></a
+          ><a
+            class="button secondary"
+            href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"
+            >Download for desktop <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <p class="hero-note">Free to use, with the source on GitHub</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a class="brand" href="#top"
+              ><img src="assets/logo.svg" alt="" width="40" height="40" /><span
+                >Open Screenshot<br /><strong>Generator</strong></span
+              ></a
+            >
+            <p>
+              Screenshots, languages, and preview videos<br />One editor for
+              your next release
+            </p>
+          </div>
+          <nav aria-label="Product links">
+            <h3>Product</h3>
+            <a href="https://editor.openscrgen.app/">Open the editor</a
+            ><a href="/app-store-screenshot-templates">Templates</a
+            ><a href="/app-preview-video-maker">Preview videos</a
+            ><a
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"
+              >Desktop app</a
+            >
+          </nav>
+          <nav aria-label="Tool links">
+            <h3>Free tools</h3>
+            <a href="/app-store-screenshot-generator">App Store screenshots</a
+            ><a href="/play-store-screenshot-generator"
+              >Google Play screenshots</a
+            ><a href="/iphone-mockup-generator">iPhone mockups</a
+            ><a href="/android-mockup-generator">Android mockups</a
+            ><a href="/macbook-mockup-generator">MacBook mockups</a
+            ><a href="/ipad-mockup-generator">iPad mockups</a
+            ><a href="/apple-watch-mockup-generator">Apple Watch mockups</a>
+          </nav>
+          <nav aria-label="Resource links">
+            <h3>Resources</h3>
+            <a href="/app-store-screenshot-sizes">App Store sizes</a
+            ><a href="/google-play-screenshot-sizes">Google Play sizes</a
+            ><a href="/appscreens-alternative">Compare AppScreens</a
+            ><a href="/appmockup-alternative">Compare AppMockUp</a
+            ><a href="/previewed-alternative">Compare Previewed</a
+            ><a href="/smartmockups-alternative">Compare Smartmockups</a>
+          </nav>
+          <nav aria-label="Project links">
+            <h3>The project</h3>
+            <a href="https://github.com/dotnetdreamer/open-screenshot-generator"
+              >GitHub</a
+            ><a
+              href="https://github.com/dotnetdreamer/open-screenshot-generator#readme"
+              >Documentation</a
+            ><a
+              href="https://github.com/dotnetdreamer/open-screenshot-generator/issues"
+              >Report an issue</a
+            ><a href="/privacy">Privacy</a><a href="/terms">Terms</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2026 Open Screenshot Generator</p>
+          <p>Free to use. Open to contributions</p>
+          <a href="#top">Back to top <span aria-hidden="true">↑</span></a>
         </div>
       </div>
-    </section>
-
-    <!-- ============ TEMPLATES WALL ============ -->
-    <section class="wall" id="templates" aria-labelledby="wall-title">
-      <div class="wall-pin">
-        <div class="wall-head">
-          <p class="eyebrow">Templates</p>
-          <h2 id="wall-title">Start ahead of the <em>blank page</em></h2>
-          <p class="wall-sub">Every set below was designed and exported inside the app. Streaming, meditation, crypto, podcasts, beauty, games. Pick one and make it yours</p>
+    </footer>
+    <dialog
+      class="promo-dialog"
+      id="promo-dialog"
+      aria-labelledby="promo-title"
+    >
+      <div class="promo-dialog-heading">
+        <div>
+          <p class="eyebrow">Open Screenshot Generator</p>
+          <h2 id="promo-title">The editor and your agent, in action</h2>
         </div>
-        <div class="wall-fallback">
-          <img src="assets/img/strip-cinevault-stream.webp" alt="A dark streaming app screenshot set with gold headlines" loading="lazy" width="1536" height="512" />
-          <img src="assets/img/strip-breathora-breathing.webp" alt="A deep green screenshot set for a breathing and mindfulness app" loading="lazy" width="1536" height="512" />
-          <img src="assets/img/strip-luxe-glow.webp" alt="A soft pink screenshot set for a beauty subscription app" loading="lazy" width="1536" height="512" />
-          <img src="assets/img/strip-coinly-crypto.webp" alt="A screenshot set for a crypto portfolio app" loading="lazy" width="1536" height="512" />
-          <img src="assets/img/strip-playverse-games.webp" alt="A colorful screenshot set for a gaming app" loading="lazy" width="1536" height="512" />
-        </div>
+        <button
+          class="promo-close"
+          type="button"
+          aria-label="Close the film"
+          autofocus
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
       </div>
-    </section>
-
-    <!-- ============ FEATURES ============ -->
-    <section class="features" id="features" aria-labelledby="features-title">
-      <p class="eyebrow reveal">What you get</p>
-      <h2 id="features-title" class="reveal">A real design tool, not a screenshot stamper</h2>
-      <ul class="feature-grid">
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">01</span>
-          <h3>Every device that matters</h3>
-          <p>iPhone, Android, tablets, Macs and Apple Watch. Rotate them, scale them, or tilt them into 3D poses. Screenshots stay clipped to the glass whatever you do to the frame</p>
-        </li>
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">02</span>
-          <h3>Design tools that respect you</h3>
-          <p>Text, shapes, arrows, blobs, speech bubbles and images, all freely placed on artboards with layers and undo across the whole project. A curated set of Google Fonts includes Arabic and Urdu families</p>
-        </li>
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">03</span>
-          <h3>App preview videos too</h3>
-          <p>Drop a screen recording into a phone frame, dress it with headlines and tap hints, and export an MP4. A second mode conforms your raw capture to exactly what App Store Connect accepts, so uploads stop bouncing. Video export needs a browser with WebCodecs, like Chrome or Edge, and the desktop app always has it</p>
-        </li>
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">04</span>
-          <h3>An AI agent that does the layout</h3>
-          <p>Hand it your screenshots and one sentence about what you want. It picks a template, places every screen in the right frame, and rewrites the copy for your app</p>
-        </li>
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">05</span>
-          <h3>Private by architecture</h3>
-          <p>There is no backend. Projects live in your browser storage, exports render on your own machine, and your screenshots never travel unless you hand them to the AI provider you choose. Privacy here is not a policy, it is a missing server</p>
-        </li>
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">06</span>
-          <h3 id="feature-translation">Automatic Text Translation</h3>
-          <p>Localize your graphics for global markets instantly. With a single click, translate all your text elements into over 50 different languages without leaving the editor</p>
-        </li>
-        <li class="feature-card reveal">
-          <span class="feature-index" aria-hidden="true">07</span>
-          <h3>Source in the open, browser and desktop</h3>
-          <p>The full source code is public on GitHub. Use it in any modern browser, or grab the desktop app for Windows, macOS and Linux</p>
-        </li>
-      </ul>
-    </section>
-
-    <!-- ============ AI AGENT ============ -->
-    <section class="agent" id="agent" aria-labelledby="agent-title">
-      <div class="agent-copy">
-        <p class="eyebrow reveal">The AI agent</p>
-        <h2 id="agent-title" class="reveal">Upload screenshots. Say what you want. <em>Done</em></h2>
-        <p class="reveal">The agent takes your screens plus a sentence like put these in a clean dark template, then chooses the template, fills every frame, and rewrites the headlines for your app. It never draws freehand, so a weak plan gives you an odd design rather than a broken one</p>
-        <ul class="agent-modes">
-          <li class="reveal"><strong>Use my API key</strong> Calls go straight from your browser to Anthropic, OpenAI or Google. Your key stays on your machine</li>
-          <li class="reveal"><strong>Free, use my account</strong> Works with the Claude, ChatGPT or Gemini session you already have open. Fully automatic in the desktop app. In the browser it works through a small companion extension, with a manual copy and paste fallback</li>
-          <li class="reveal"><strong>Free, built in</strong> The desktop app ships keyless providers, including local Ollama and LM Studio</li>
-        </ul>
+      <video
+        id="launch-promo"
+        controls
+        playsinline
+        preload="none"
+        poster="assets/video/launch-promo-poster.jpg"
+        data-src="assets/video/launch-promo.mp4"
+        aria-label="A 32 second example workflow showing the editor, agent, language tools, and export"
+      >
+        <track
+          kind="captions"
+          src="assets/video/launch-promo.vtt"
+          srclang="en"
+          label="English"
+        />
+      </video>
+      <div class="promo-dialog-footer">
+        <span
+          >A current product walkthrough with an example agent
+          conversation</span
+        ><a
+          href="assets/video/launch-promo.mp4"
+          download="open-screenshot-generator-promo.mp4"
+          >Save the film <span aria-hidden="true">↓</span></a
+        >
       </div>
-      <figure class="agent-shot reveal">
-        <img src="assets/img/shot-agent.webp" alt="The AI agent dialog, asking for screenshots and a sentence about what to build" loading="lazy" width="1920" height="1080" />
-      </figure>
-    </section>
-
-    <!-- ============ PRIVACY ============ -->
-    <section class="privacy-hero" id="privacy-first" aria-labelledby="privacy-title">
-      <h2 id="privacy-title" class="privacy-line">
-        <span class="line">Nothing leaves</span>
-        <span class="line"><em>your machine</em></span>
-      </h2>
-      <p class="privacy-sub reveal">No account. No analytics. No upload. The editor is a static page, your projects live in your own browser storage, and the exports are rendered locally. You could cut your internet after it loads and keep working on the project you have open. The optional AI agent is the one exception, and it only talks to the provider you pick</p>
-    </section>
-
-    <!-- ============ CTA ============ -->
-    <section class="cta" id="get-started" aria-labelledby="cta-title">
-      <h2 id="cta-title" class="reveal">Your store page could look better <em>tonight</em></h2>
-      <p class="reveal">Open the editor, pick a template, and export something you are proud to ship</p>
-      <div class="hero-cta reveal">
-        <a class="btn btn-gold" href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
-        <a class="btn btn-ghost" href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">Star it on GitHub</a>
-        <a class="btn btn-ghost" href="https://youtu.be/gfABjk1Q_Z0" rel="noopener">Watch the walkthrough</a>
-      </div>
-    </section>
-
-    <!-- ============ Free tools and guides ============ -->
-    <section id="resources" aria-labelledby="resources-title">
-      <p class="eyebrow reveal">Free tools and guides</p>
-      <h2 id="resources-title" class="reveal">Pick the page that matches <em>your task</em></h2>
-      <ul class="related-grid">
-        <li><a href="/app-store-screenshot-templates">App Store screenshot templates<span>96 store ready sets, one click opens the editor</span></a></li>
-        <li><a href="/iphone-mockup-generator">iPhone mockup generator<span>Seven iPhone frames plus a 3D pose</span></a></li>
-        <li><a href="/android-mockup-generator">Android mockup generator<span>Punch hole, notch and bar chassis for Google Play</span></a></li>
-        <li><a href="/ipad-mockup-generator">iPad mockup generator<span>iPad Pro 13 inch and iPad 11 inch frames</span></a></li>
-        <li><a href="/macbook-mockup-generator">MacBook mockup generator<span>Mac App Store shots with a 3D MacBook</span></a></li>
-        <li><a href="/apple-watch-mockup-generator">Apple Watch mockup generator<span>A 3D watch at the required store size</span></a></li>
-        <li><a href="/app-store-screenshot-sizes">App Store screenshot sizes<span>Every accepted size, verified against Apple</span></a></li>
-        <li><a href="/google-play-screenshot-sizes">Google Play screenshot sizes<span>Screenshots, feature graphic and icon specs</span></a></li>
-        <li><a href="/app-preview-video-maker">App preview video maker<span>Turn a screen recording into a store ready MP4</span></a></li>
-      </ul>
-    </section>
-
-    <!-- ============ FAQ ============ -->
-    <section class="faq" id="faq" aria-labelledby="faq-title">
-      <p class="eyebrow reveal">Questions</p>
-      <h2 id="faq-title" class="reveal">Fair questions, straight answers</h2>
-      <div class="faq-list">
-        <details class="reveal">
-          <summary>Is Open Screenshot Generator really free?</summary>
-          <p>Yes. The editor is free. There is no account, no watermark, and no paid tier. The full source code is public on GitHub</p>
-        </details>
-        <details class="reveal">
-          <summary>Where do my screenshots go when I upload them?</summary>
-          <p>Nowhere. The whole editor runs client side in your browser. Projects and uploads are stored in your browser storage on your own machine, and there is no backend to send them to. That storage is a working copy. Clearing your browser site data deletes it, so treat exported PNGs and MP4s as the real output</p>
-        </details>
-        <details class="reveal">
-          <summary>Which sizes can it export?</summary>
-          <p>The export flow asks which store and which device classes you are targeting, then renders each artboard to PNG at the required dimensions for Google Play and the App Store, including iPhone and iPad sizes</p>
-        </details>
-        <details class="reveal">
-          <summary>Can it make App Store preview videos?</summary>
-          <p>Yes. Drop a screen recording into a phone frame, add your headline and tap hints, and export an MP4. A separate mode conforms your raw capture to exactly what App Store Connect accepts, which is 886 by 1920 at 30 fps in H.264. Encoding happens in your browser and nothing is uploaded. Video export uses WebCodecs, which Chrome, Edge and the desktop app support. On other browsers the export stops with a clear message, and PNG export works everywhere</p>
-        </details>
-        <details class="reveal">
-          <summary>Does the AI agent need an API key?</summary>
-          <p>Not necessarily. You can bring your own key for Anthropic, OpenAI or Google, or use the accounts you are already signed into, like Claude, ChatGPT or Gemini. The desktop app drives the signed in mode automatically. In the browser it works through a small companion extension, with a manual copy and paste fallback. The desktop app also ships keyless providers</p>
-        </details>
-        <details class="reveal">
-          <summary>Do I need design skills?</summary>
-          <p>No. Templates carry the design decisions for you. Pick one, swap in your screenshots, adjust the words, and export. If you enjoy designing, the full editor with text, shapes, fonts and 3D device poses is there too</p>
-        </details>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="site-footer">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <a class="brand" href="#top" aria-label="Open Screenshot Generator, back to top">
-          <img src="assets/logo.svg" alt="" width="40" height="40" />
-          <span class="brand-name">Open Screenshot <em>Generator</em></span>
-        </a>
-        <p>Store ready screenshots, feature graphics and preview videos, designed in your browser and kept on your machine</p>
-      </div>
-      <nav class="footer-col" aria-label="Free tools">
-        <h3>Free tools</h3>
-        <a href="/app-store-screenshot-generator">App Store screenshot generator</a>
-        <a href="/play-store-screenshot-generator">Play Store screenshot generator</a>
-        <a href="/app-preview-video-maker">App preview video maker</a>
-        <a href="/app-store-screenshot-templates">Screenshot templates</a>
-        <a href="/iphone-mockup-generator">iPhone mockup generator</a>
-        <a href="/android-mockup-generator">Android mockup generator</a>
-        <a href="/ipad-mockup-generator">iPad mockup generator</a>
-        <a href="/macbook-mockup-generator">MacBook mockup generator</a>
-        <a href="/apple-watch-mockup-generator">Apple Watch mockup generator</a>
-      </nav>
-      <nav class="footer-col" aria-label="Guides">
-        <h3>Guides and compare</h3>
-        <a href="/app-store-screenshot-sizes">App Store screenshot sizes</a>
-        <a href="/google-play-screenshot-sizes">Google Play screenshot sizes</a>
-        <a href="/appscreens-alternative">AppScreens alternative</a>
-        <a href="/appmockup-alternative">AppMockUp alternative</a>
-        <a href="/smartmockups-alternative">Smartmockups alternative</a>
-        <a href="/previewed-alternative">Previewed alternative</a>
-      </nav>
-      <nav class="footer-col" aria-label="Product">
-        <h3>Product</h3>
-        <a href="https://editor.openscrgen.app/" rel="noopener">Open the editor</a>
-        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest" rel="noopener">Desktop downloads</a>
-        <a href="https://youtu.be/gfABjk1Q_Z0" rel="noopener">Video walkthrough</a>
-        <a href="#how">How it works</a>
-      </nav>
-      <nav class="footer-col" aria-label="Project">
-        <h3>Project</h3>
-        <a href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">GitHub</a>
-        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Report an issue</a>
-        <a href="https://github.com/dotnetdreamer/open-screenshot-generator#readme" rel="noopener">Documentation</a>
-      </nav>
-      <nav class="footer-col" aria-label="Legal">
-        <h3>Legal</h3>
-        <a href="/privacy">Privacy policy</a>
-        <a href="/terms">Terms of use</a>
-        <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">Contact</a>
-      </nav>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2026 Open Screenshot Generator. Built with care, shipped for free</p>
-      <p>All product screens on this page were exported from the app itself</p>
-    </div>
-  </footer>
-
-  <script>
-    // Progressive enhancement flag: CSS hides fallbacks only when JS and WebGL are alive.
-    document.documentElement.classList.add('js');
-    // Watchdog: if the module or a CDN script never finishes (offline, blocked,
-    // parse error), fall back to the static images instead of hiding content.
-    setTimeout(function () {
-      var c = document.documentElement.classList;
-      if (!c.contains('webgl') && !c.contains('no-webgl')) c.add('no-webgl');
-    }, 7000);
-  </script>
-  <script type="importmap">
-    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.185.0/build/three.module.js" } }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-  <script type="module" src="js/main.js"></script>
-  <script src="js/film.js" defer></script>
-  <script src="/js/analytics.js" defer></script>
-</body>
+    </dialog>
+    <script src="js/home.js" defer></script>
+    <script src="/js/analytics.js" defer></script>
+  </body>
 </html>
