@@ -13,20 +13,20 @@
     gtag('config', 'G-8LQTR1SPDK');
   </script>
   <title>Privacy policy | Open Screenshot Generator</title>
-  <meta name="description" content="The Open Screenshot Generator privacy policy. The editor runs entirely in your browser, there is no account and no backend, and your screenshots never leave your machine." />
+  <meta name="description" content="How Open Screenshot Generator handles local projects, optional cloud storage, community sharing, AI providers, and website analytics." />
   <link rel="canonical" href="https://openscrgen.app/privacy" />
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#0a1214" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Open Screenshot Generator" />
   <meta property="og:title" content="Privacy policy | Open Screenshot Generator" />
-  <meta property="og:description" content="The editor runs entirely in your browser. No account, no backend, no analytics, and your screenshots never leave your machine." />
+  <meta property="og:description" content="How Open Screenshot Generator handles local projects, optional cloud storage, community sharing, AI providers, and website analytics." />
   <meta property="og:url" content="https://openscrgen.app/privacy" />
   <meta property="og:image" content="https://openscrgen.app/assets/img/og-image.png" />
   <meta property="og:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Privacy policy | Open Screenshot Generator" />
-  <meta name="twitter:description" content="The editor runs entirely in your browser. No account, no backend, no analytics, and your screenshots never leave your machine." />
+  <meta name="twitter:description" content="How Open Screenshot Generator handles local projects, optional cloud storage, community sharing, AI providers, and website analytics." />
   <meta name="twitter:image" content="https://openscrgen.app/assets/img/og-image.png" />
   <meta name="twitter:image:alt" content="The Open Screenshot Generator editor with an app screenshot dropped into an iPhone frame." />
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
@@ -60,56 +60,77 @@
 
   <main id="main" class="legal">
     <h1>Privacy policy</h1>
-    <p class="updated">Last updated on July 14, 2026</p>
+    <p class="updated">Last updated on October 14, 2026</p>
 
-    <p><strong>The short version.</strong> Open Screenshot Generator was built so that your work never has to leave your computer. The editor has no accounts, no backend, and no analytics. Your projects, screenshots, and recordings are stored in your own browser and are never uploaded to us. We could not look at your designs even if we wanted to, because there is no server for them to reach</p>
+    <p>The editor saves projects on your device and renders exports locally. You can use the core editor without an account. Optional features send data off your device: cloud storage, saving to your own Google Drive or GitHub, community posts, live collaboration, store uploads, translation, and cloud AI. Cloud auto save is on by default when you are signed in and cloud storage is available.</p>
 
     <h2>Who we are</h2>
-    <p>Open Screenshot Generator is a free project with its source code public on GitHub. This policy covers the marketing website at openscrgen.app, the editor at editor.openscrgen.app, and the desktop app. If you have any question about it, open an issue on <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">GitHub</a></p>
+    <p>Open Screenshot Generator is a free project with its source code public on <a href="https://github.com/dotnetdreamer/open-screenshot-generator" rel="noopener">GitHub</a>. This policy covers openscrgen.app, editor.openscrgen.app, the desktop app, and the project's cloud and community services. For privacy questions, email <a href="mailto:pak437337@live.com">pak437337@live.com</a>.</p>
 
     <h2>What the editor stores, and where</h2>
     <ul>
-      <li>Projects you create are saved in your browser's IndexedDB storage, on your machine</li>
-      <li>Screenshots and screen recordings you upload are stored in the same local database. They are never transmitted anywhere</li>
-      <li>PNG and MP4 exports are rendered locally in your browser and downloaded straight to your disk</li>
-      <li>A few preferences, such as panel layout, are kept in your browser's localStorage</li>
-      <li>Clearing your browser's site data removes all of it. We keep no copy, because we never had one</li>
+      <li>Projects, imported screenshots, recordings, sounds, and fonts are saved in the editor's local database on your device.</li>
+      <li>PNG and MP4 exports are rendered on your device and saved to your disk.</li>
+      <li>Preferences and connected account sessions are kept in local browser or app storage. Account access and refresh tokens can remain there across restarts.</li>
+      <li>AI API keys are kept in memory unless you choose to remember them. Remembered API keys and store upload credentials are saved locally without encryption.</li>
+      <li>Clearing the editor's local data removes local projects and settings. Cloud copies, public posts, and files saved to your own accounts must be removed separately.</li>
     </ul>
 
-    <h2>The AI features are optional and direct</h2>
-    <p>The AI agent only runs when you ask it to, and it talks directly to the provider you choose. There is no middle server operated by us</p>
-    <ul>
-      <li>If you bring your own API key, requests go from your browser straight to Anthropic, OpenAI, or Google. Your key is kept in memory, and it is only written to localStorage if you tick the remember option</li>
-      <li>If you use your own account with a provider such as Claude, ChatGPT, or Gemini, the app drives the session you already have with that provider. Your login stays between you and them</li>
-      <li>Whatever you send to a provider, such as screenshots or instructions, is handled under that provider's own privacy policy. Choose a provider you trust</li>
-    </ul>
+    <h2>Accounts and cloud storage</h2>
+    <p>Connecting Google or GitHub is optional. When the cloud or community service is available, the editor can use that connection to sign you in to our service. Your provider access token is sent to our backend for verification. The backend stores an account identifier, email address, display name, handle, and, when available, profile picture. We use this information to authenticate your account, associate saved content with you, and show your community profile.</p>
+    <p>When you are signed in, cloud auto save is on by default. It uploads the open project's content and referenced media and fonts to our service, including screenshots, recordings, sound files, and text. You can turn cloud auto save off in Settings. Turning the setting off or signing out stops future automatic saves; existing cloud copies remain until you delete them.</p>
+    <p>Cloud projects are private unless you enable link sharing. A shared link lets anyone who has the link access the project and its assets. Turning sharing off stops access through that link, but does not remove copies that someone has already saved.</p>
 
-    <h2>This website</h2>
-    <p>The site you are reading is a set of static pages. It sets no cookies and runs no analytics or tracking scripts. Like any website, it is delivered by servers that may keep standard technical logs</p>
+    <h2>Saving to your own accounts and app stores</h2>
+    <p>You can save projects to your own Google Drive or GitHub gists. Those saves send project content, media, and fonts directly to the provider. Automatic sync to your own storage is off by default and only updates projects that you previously saved there or opened from that account. Provider permissions and privacy policies apply.</p>
+    <p>Desktop store upload features send the screenshots or preview videos you select directly to App Store Connect or Google Play using your store credentials. Our cloud service does not receive those credentials or handle those store uploads.</p>
+
+    <h2>Community posts and live collaboration</h2>
+    <p>Publishing to Discover uploads the exported images, title, caption, tags, and related project information you choose to share. Posts and comments are public and associated with your profile. The service also stores likes, saved posts, and follows associated with your account. Discover searches send your search text to the service.</p>
+    <p>Live collaboration shares project changes and participant information with the people in your session. Referenced media comes from the shared cloud project. A signalling service introduces participants, and WebRTC connections carry live changes between them, using a relay when needed. These connections expose network information such as IP addresses to the services involved and, during direct connections, to other participants. Keep collaboration invitations private.</p>
+
+    <h2>AI and translation</h2>
+    <p>AI features run when you ask them to. Cloud AI requests send your instructions, attached screenshots, and relevant editor or chat context directly to the provider you choose. Providers can retain this information according to their policies and your account settings.</p>
     <ul>
-      <li>This website is hosted by Vercel, which may log requests, including IP addresses, under the <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel privacy policy</a></li>
-      <li>The editor is hosted by GitHub Pages, which may log requests in the same way, under the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub privacy statement</a></li>
-      <li>Fonts load from Google Fonts on both this website and the editor, so your browser requests font files from Google under the <a href="https://policies.google.com/privacy" rel="noopener">Google privacy policy</a></li>
-      <li>The three.js and GSAP libraries load from the jsDelivr content delivery network under the <a href="https://www.jsdelivr.com/terms/privacy-policy" rel="noopener">jsDelivr privacy policy</a></li>
+      <li>API requests go to the provider or endpoint you select, such as Anthropic, OpenAI, Google, OpenRouter, or a compatible service.</li>
+      <li>AI modes that use a provider's website use your session with that provider. Its cookies, account settings, and privacy policy apply inside the provider window.</li>
+      <li>Desktop Claude Code and Codex agents use your installed agent and its provider login. Claude Code can read source files in code folders you explicitly attach, and that source can become part of the context sent to Anthropic.</li>
+      <li>Local AI endpoints, such as Ollama or LM Studio on this device, process requests locally. A remote endpoint you configure sends requests to that remote service.</li>
+      <li>If you connect an external AI client through MCP, that client can receive project content through the tools you use. The client's own data handling applies.</li>
+    </ul>
+    <p>When server translation is available and you use it, artboard text is sent to the configured translation service. AI translation sends text to the AI provider you select.</p>
+
+    <h2>Website analytics, advertising, and network services</h2>
+    <p>The marketing website and web editor load Google Analytics. Analytics records page views and interaction events, such as opening the editor, choosing a template, importing screenshots, and exporting. The editor's custom events describe the action, format, or count rather than sending project content or imported file names. Google Analytics can use cookies and browser identifiers and receives technical information about the connection.</p>
+    <p>The web editor also loads Google AdSense. Google's advertising services can use cookies, identifiers, and technical information. Google's policies and advertising settings govern that processing. These Analytics and AdSense scripts are disabled in the desktop editor.</p>
+    <ul>
+      <li>The marketing website is hosted by Vercel and the web editor by GitHub Pages. Hosting services can keep request logs, including IP addresses. See the <a href="https://vercel.com/legal/privacy-policy" rel="noopener">Vercel privacy policy</a> and <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub privacy statement</a>.</li>
+      <li>Our cloud, community, and relay infrastructure keeps technical request logs for operation and troubleshooting. Logs can include IP addresses, requested URLs, search query parameters, status codes, and request times.</li>
+      <li>Loading Google Fonts sends font requests to Google. Google also provides public STUN servers used to establish collaboration connections. See the <a href="https://policies.google.com/privacy" rel="noopener">Google privacy policy</a>.</li>
+      <li>Some website libraries load from jsDelivr. See the <a href="https://www.jsdelivr.com/terms/privacy-policy" rel="noopener">jsDelivr privacy policy</a>.</li>
     </ul>
 
     <h2>The desktop app</h2>
-    <p>The desktop app works the same way as the browser version. Your projects and media stay on your device. It only reaches the network for things you explicitly ask for, such as loading templates and fonts, checking a provider you selected, or running the AI agent</p>
+    <p>The desktop app stores projects locally and does not load the editor's Google Analytics or AdSense scripts. Optional cloud, community, collaboration, AI, translation, and store features still use the network as described above. Font loading and checks for configured services can also make network requests. Provider websites opened inside AI windows can run their own scripts and use cookies.</p>
+
+    <h2>Retention and deletion</h2>
+    <p>Local data remains on your device until you remove it or clear the editor's data. Our service stores cloud account data and content to provide the features described here. You can delete individual cloud projects and your own community posts in the app. To request deletion of your cloud or community account and associated content, email <a href="mailto:pak437337@live.com">pak437337@live.com</a> with the provider and account you used. We may need information to verify that the account is yours.</p>
+    <p>Signing out does not delete cloud content. Removing local data does not remove files from Google Drive, GitHub, an AI provider, or an app store. Manage those copies with the relevant provider. Technical logs and backups can have separate retention periods; contact us for details about retention and deletion requests.</p>
 
     <h2>Children</h2>
-    <p>The service does not knowingly collect personal information from anyone, including children, because it does not collect personal information at all</p>
+    <p>If you believe a child has provided personal data through our cloud, community, or support services, email <a href="mailto:pak437337@live.com">pak437337@live.com</a> so we can investigate and handle a deletion request.</p>
 
     <h2>Changes to this policy</h2>
-    <p>If the way the project handles data ever changes, this page will be updated and the date at the top will move. Significant changes will also be noted in the project's release notes on GitHub</p>
+    <p>When this policy changes, we update the date at the top of this page.</p>
 
     <h2>Contact</h2>
-    <p>Questions, concerns, or requests can go to the <a href="https://github.com/dotnetdreamer/open-screenshot-generator/issues" rel="noopener">issue tracker on GitHub</a></p>
+    <p>For privacy questions, access or deletion requests, and support, email <a href="mailto:pak437337@live.com">pak437337@live.com</a> or visit the <a href="/support">support page</a>. Avoid posting private account or project information in public GitHub issues.</p>
   </main>
 
   <footer class="site-footer">
     <div class="footer-bottom">
       <p>© 2026 Open Screenshot Generator. Built with care, shipped for free</p>
-      <p><a href="/" style="color: inherit;">Home</a> · <a href="/privacy" style="color: inherit;">Privacy</a> · <a href="/terms" style="color: inherit;">Terms</a></p>
+      <p><a href="/" style="color: inherit;">Home</a> · <a href="/support" style="color: inherit;">Support</a> · <a href="/privacy" style="color: inherit;">Privacy</a> · <a href="/terms" style="color: inherit;">Terms</a></p>
     </div>
   </footer>
   <script src="/js/analytics.js" defer></script>
