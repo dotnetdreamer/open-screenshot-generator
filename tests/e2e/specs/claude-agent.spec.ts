@@ -756,6 +756,7 @@ test.describe('a Claude Code run', () => {
     await detached.getByRole('button', { name: 'Agent options' }).click();
     await expect(effort('Max')).toHaveAttribute('aria-checked', 'true');
     await effort('Low').click();
+    await agentWindow.getByRole('menu').waitFor({ state: 'detached' });
     await expect.poll(() => page.evaluate(() => localStorage.getItem('osg-claude-agent-effort'))).toBe('low');
     await detached.getByRole('button', { name: 'Agent options' }).click();
     await expect(effort('Low')).toHaveAttribute('aria-checked', 'true');

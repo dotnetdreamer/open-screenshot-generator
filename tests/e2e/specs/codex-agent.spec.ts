@@ -235,9 +235,10 @@ test.describe('reopening hidden agent chats', () => {
       await tauri.waitForCall(`${prefix}_send`);
 
       await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
+      await tauri.waitForCall(`${prefix}_stop`);
       await app.chooseFromMenu(toolbarMenu, `Chat with ${agent}`);
       await expect(panel.getByText(text, { exact: true })).toBeVisible();
-      expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(0);
+      expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(1);
       expect(await tauri.callsTo(`${prefix}_start`)).toHaveLength(1);
 
       await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
