@@ -82,7 +82,7 @@ const PROJECT_FOLDERS_PROMPT: &str = include_str!("../claude-agent/project-folde
 /// The skills, by name. Only a chat with a code folder has Read, and only for
 /// that folder, so each has to stand on its own; osg-design is loaded before
 /// the first design tool call and the other two when a request needs them.
-const SKILLS: &[(&str, &str)] = &[
+pub(crate) const SKILLS: &[(&str, &str)] = &[
     ("osg-design", include_str!("../claude-agent/skills/osg-design/SKILL.md")),
     ("osg-languages", include_str!("../claude-agent/skills/osg-languages/SKILL.md")),
     ("osg-app-preview", include_str!("../claude-agent/skills/osg-app-preview/SKILL.md")),
@@ -341,7 +341,7 @@ fn known_locations() -> Vec<PathBuf> {
 /// rc file rather than the profile, and an npm-installed `claude` is a node
 /// script that finds node through that PATH.
 #[cfg(not(windows))]
-fn login_shell_path() -> Option<String> {
+pub(crate) fn login_shell_path() -> Option<String> {
     let shell = std::env::var("SHELL")
         .ok()
         .filter(|s| !s.is_empty())
@@ -364,16 +364,22 @@ fn login_shell_path() -> Option<String> {
 }
 
 #[cfg(windows)]
-fn login_shell_path() -> Option<String> {
+pub(crate) fn login_shell_path() -> Option<String> {
     None
 }
 
 /// This process's PATH with the login shell's in front of it, duplicates
 /// dropped. What the child gets, and where the binary is looked for.
 fn effective_path(state: &ClaudeState) -> String {
+    let shell = state.shell_path.lock().unwrap().clone().unwrap_or_default();
+    merged_path(&shell)
+}
+
+/// `shell`, a PATH a login shell reported, in front of this process's own,
+/// duplicates dropped. codex.rs builds its child's PATH the same way.
+pub(crate) fn merged_path(shell: &str) -> String {
     let separator = if cfg!(windows) { ';' } else { ':' };
     let own = std::env::var("PATH").unwrap_or_default();
-    let shell = state.shell_path.lock().unwrap().clone().unwrap_or_default();
     let mut seen = std::collections::HashSet::new();
     let mut parts = Vec::new();
     for part in shell.split(separator).chain(own.split(separator)) {
@@ -414,10 +420,10 @@ fn find_binary(state: &ClaudeState) -> Option<PathBuf> {
         .or_else(|| known_locations().into_iter().find(|candidate| candidate.is_file()))
 }
 
-struct Captured {
-    success: bool,
-    stdout: String,
-    stderr: String,
+pub(crate) struct Captured {
+    pub(crate) success: bool,
+    pub(crate) stdout: String,
+    pub(crate) stderr: String,
 }
 
 /// Read a pipe on its own thread, chunk by chunk, so a caller can stop waiting
@@ -467,10 +473,21 @@ fn run_capture(
     env: &[(&str, &str)],
     timeout: Duration,
 ) -> Result<Captured, Captured> {
+    run_capture_with(program, args, env, timeout, scrub_env)
+}
+
+/// run_capture with another program's environment rules, for codex.rs.
+pub(crate) fn run_capture_with(
+    program: &Path,
+    args: &[&str],
+    env: &[(&str, &str)],
+    timeout: Duration,
+    scrub: fn(&mut Command),
+) -> Result<Captured, Captured> {
     let failed = |message: String| Captured { success: false, stdout: String::new(), stderr: message };
     let mut command = Command::new(program);
     command.args(args).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
-    scrub_env(&mut command);
+    scrub(&mut command);
     for (key, value) in env {
         command.env(key, value);
     }
@@ -515,7 +532,7 @@ fn run_capture(
     }
 }
 
-fn first_line(text: &str) -> String {
+pub(crate) fn first_line(text: &str) -> String {
     text.lines().map(str::trim).find(|l| !l.is_empty()).unwrap_or("").chars().take(300).collect()
 }
 
@@ -523,7 +540,7 @@ const SANDBOXED: &str = "Claude Code cannot run from the Mac App Store version o
 
 /// The Mac App Store build runs sandboxed, and a child process inherits the
 /// sandbox: it could read neither ~/.local/bin nor the login in ~/.claude.
-fn sandboxed() -> bool {
+pub(crate) fn sandboxed() -> bool {
     std::env::var_os("APP_SANDBOX_CONTAINER_ID").is_some()
 }
 
@@ -598,7 +615,7 @@ fn workspace_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
 /// chat right behind the old one), and a rewrite empties a file before it
 /// fills it again, so an unchanged file is left alone. That also spares a
 /// file a dying process on Windows still holds open.
-fn write_if_changed(path: &Path, bytes: &[u8]) -> Result<(), String> {
+pub(crate) fn write_if_changed(path: &Path, bytes: &[u8]) -> Result<(), String> {
     if std::fs::read(path).is_ok_and(|current| current == bytes) {
         return Ok(());
     }
@@ -1051,7 +1068,7 @@ pub struct ListedSession {
     folders: Vec<String>,
 }
 
-fn valid_spawn_id(id: &str) -> bool {
+pub(crate) fn valid_spawn_id(id: &str) -> bool {
     (1..=64).contains(&id.len()) && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 
@@ -1084,7 +1101,7 @@ fn check_start_folders(folders: Option<&[String]>) -> Result<(), String> {
     Ok(())
 }
 
-fn valid_uuid(id: &str) -> bool {
+pub(crate) fn valid_uuid(id: &str) -> bool {
     id.len() == 36
         && id.char_indices().all(|(i, c)| match i {
             8 | 13 | 18 | 23 => c == '-',
@@ -1164,7 +1181,7 @@ fn scrub_env(command: &mut Command) {
 
 /// Without this every spawn from a GUI app opens a console window on Windows.
 /// `tauri dev` builds are console apps, so the flash only shows in release.
-fn hide_console(command: &mut Command) {
+pub(crate) fn hide_console(command: &mut Command) {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -1179,7 +1196,7 @@ fn hide_console(command: &mut Command) {
 /// Kill a process and everything it started. An npm-installed `claude` on
 /// Windows can be `cmd.exe` running `node.exe`, and killing only the shell
 /// leaves node running with the pipes open.
-fn kill_tree(pid: u32) {
+pub(crate) fn kill_tree(pid: u32) {
     #[cfg(windows)]
     {
         let mut command = Command::new("taskkill");
@@ -1421,7 +1438,7 @@ fn emit<R: Runtime>(app: &AppHandle<R>, mut payload: Value) {
 
 /// Read a pipe line by line. Lossy on bad UTF-8 rather than stopping, since a
 /// stopped reader would leave the child blocked on a full pipe.
-fn pump_lines(pipe: impl Read, mut on_line: impl FnMut(String)) {
+pub(crate) fn pump_lines(pipe: impl Read, mut on_line: impl FnMut(String)) {
     let mut reader = BufReader::new(pipe);
     let mut buf = Vec::new();
     loop {
@@ -1528,7 +1545,7 @@ fn agent_command(binary: &Path, plan: &SpawnPlan<'_>) -> Command {
 }
 
 /// Undoes a `starting` count however start_blocking leaves.
-struct StartingGuard<'a>(&'a AtomicUsize);
+pub(crate) struct StartingGuard<'a>(pub(crate) &'a AtomicUsize);
 
 impl Drop for StartingGuard<'_> {
     fn drop(&mut self) {

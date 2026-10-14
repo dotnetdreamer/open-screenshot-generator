@@ -106,6 +106,8 @@ export function tauriInitScript(config: TauriMockConfig): string {
      * too: it is kept in sessionStorage, which lasts as long as the tab.
      */
     claudeProcesses: loadClaudeProcesses(),
+    /** The Codex processes started and not stopped, by spawn id, with their thread. Kept like claudeProcesses. */
+    codexProcesses: loadCodexProcesses(),
   };
   window.__E2E_TAURI__ = state;
 
@@ -115,6 +117,21 @@ export function tauriInitScript(config: TauriMockConfig): string {
       return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
     } catch {
       return {};
+    }
+  }
+  function loadCodexProcesses() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('__e2e_tauri_codex_processes__') || '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    } catch {
+      return {};
+    }
+  }
+  function saveCodexProcesses() {
+    try {
+      sessionStorage.setItem('__e2e_tauri_codex_processes__', JSON.stringify(state.codexProcesses));
+    } catch {
+      // As for the Claude Code processes.
     }
   }
   function saveClaudeProcesses() {
@@ -408,6 +425,32 @@ export function tauriInitScript(config: TauriMockConfig): string {
       // A tauri::ipc::Response in Rust, so the page gets an ArrayBuffer.
       case 'abs_claude_read_project_image':
         return readProjectImage(args.path);
+      // Codex (codex.rs), modelled the same way: none is installed by
+      // default, and a spec that drives it answers detect through
+      // config.responses and plays notifications with
+      // emitFromBackend('abs-codex-event', ...).
+      case 'abs_codex_detect':
+        return { found: false, models: [] };
+      case 'abs_codex_start': {
+        const start = args.args || {};
+        const threadId = typeof start.resume === 'string' ? start.resume : '01a13963-abeb-7f92-b6ea-64f6cb531353';
+        if (typeof start.spawnId === 'string') {
+          state.codexProcesses[start.spawnId] = threadId;
+          saveCodexProcesses();
+        }
+        return { pid: 5151, threadId, resumed: typeof start.resume === 'string', model: 'gpt-6.1-sol', mcpUrl: 'http://127.0.0.1:8722/mcp' };
+      }
+      case 'abs_codex_stop':
+        delete state.codexProcesses[args.spawnId];
+        saveCodexProcesses();
+        return null;
+      case 'abs_codex_send':
+      case 'abs_codex_interrupt':
+        return null;
+      case 'abs_codex_list':
+        return Object.entries(state.codexProcesses).map(([spawnId, threadId]) => ({ spawnId, busy: false, threadId }));
+      case 'abs_codex_page_epoch':
+        return 1;
 
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {

@@ -23,13 +23,15 @@ import { VersionsPanel } from '../VersionsPanel';
 import { LayersPanel } from '../LayersPanel';
 import { AgentPanel } from '../agent/AgentPanel';
 import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
+import { CodexLogo } from '../agent/CodexLogo';
 import type { ArtboardElement, ArtboardState, ElementSelectModifiers } from '@/types/artboard';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
 import { DETACHABLE_PANELS, type DetachablePanel } from '@/lib/panels/url';
-import type { ClaudeEffortChoice, ClaudeModelChoice, FolderPickerNear } from '@/lib/claudeCode/types';
+import type { AgentKind, ClaudeEffortChoice, ClaudeModelChoice, FolderPickerNear } from '@/lib/claudeCode/types';
+import type { CodexEffortChoice } from '@/lib/codex/types';
 import type { AgentAttachment } from '@/lib/claudeCode/view';
 
 /**
@@ -86,6 +88,10 @@ export interface DockHandlers {
   onAgentDetect: () => void;
   onAgentSetModel: (model: ClaudeModelChoice) => void;
   onAgentSetEffort: (effort: ClaudeEffortChoice) => void;
+  /** Point a chat that has not begun at the other CLI. */
+  onAgentSetAgent: (agent: AgentKind) => void;
+  onAgentSetCodexModel: (model: string) => void;
+  onAgentSetCodexEffort: (effort: CodexEffortChoice) => void;
   onAgentHide: () => void;
   onAgentOpenChat: (chatId: string) => void;
   onAgentDeleteChat: (chatId: string) => void;
@@ -181,7 +187,12 @@ export function RightDockPanels({
               className="gap-1 rounded-none border-b-2 border-transparent bg-transparent px-0.5 text-xs text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:shadow-none"
             >
               {/* aria-hidden, so the tab's accessible name stays "Agent". */}
-              {value === 'agent' && <ClaudeCodeLogo className="h-3.5 w-3.5" />}
+              {value === 'agent' &&
+                (data.agent?.agent === 'codex' ? (
+                  <CodexLogo className="h-3.5 w-3.5" />
+                ) : (
+                  <ClaudeCodeLogo className="h-3.5 w-3.5" />
+                ))}
               {TAB_LABELS[value]}
             </TabsTrigger>
           ))}
@@ -283,6 +294,9 @@ export function RightDockPanels({
                 onDetect: handlers.onAgentDetect,
                 onSetModel: handlers.onAgentSetModel,
                 onSetEffort: handlers.onAgentSetEffort,
+                onSetAgent: handlers.onAgentSetAgent,
+                onSetCodexModel: handlers.onAgentSetCodexModel,
+                onSetCodexEffort: handlers.onAgentSetCodexEffort,
                 onHide: handlers.onAgentHide,
                 onOpenChat: handlers.onAgentOpenChat,
                 onDeleteChat: handlers.onAgentDeleteChat,

@@ -131,11 +131,12 @@ import { claudeAgent, readAgentPanelEnabled, useClaudeAgent } from '@/lib/claude
 import { buildAttachmentNote, buildFirstRunBrief, defaultStartText } from '@/lib/claudeCode/prompt';
 import { assetToImage, screenshotToImage } from '@/lib/claudeCode/images';
 import { importProjectImage } from '@/lib/claudeCode/projectImages';
-import type { AgentFolder } from '@/lib/claudeCode/types';
+import type { AgentFolder, AgentKind } from '@/lib/claudeCode/types';
 import { agentContextLabel as describeAgentContext, buildAgentContext } from '@/lib/claudeCode/context';
 import { PLACEHOLDER_PROJECT_NAME, pickCanvasSize, projectNameFromInstruction } from '@/lib/claudeCode/startProject';
 import { toAgentPanelView, type AgentAttachment } from '@/lib/claudeCode/view';
 import { ClaudeCodeLogo } from './agent/ClaudeCodeLogo';
+import { CodexLogo } from './agent/CodexLogo';
 import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
@@ -1330,11 +1331,15 @@ export function OpenScreenshotGeneratorLayout() {
   // on a fresh visit (see the dialog's onOpenChange), or switch the user away
   // from the one the agent is about to be told is open.
   const claudeStartingRef = useRef(false);
-  // A relaunch brings the tab back with no idea whether Claude Code is still
-  // installed and signed in. Ask once; the store keeps the answer a minute.
+  // A relaunch brings the tab back with no idea whether the chat's CLI is
+  // still installed and signed in. Ask once; the store keeps the answer a
+  // minute. Codex is asked only for a Codex chat, since asking starts it.
+  const agentKind = claudeAgentState.chat.agent;
   useEffect(() => {
-    if (agentEnabled) void claudeAgent.detect();
-  }, [agentEnabled]);
+    if (!agentEnabled) return;
+    void claudeAgent.detect();
+    if (agentKind === 'codex') void claudeAgent.detectCodex();
+  }, [agentEnabled, agentKind]);
   const { clipboardItem, clipboardItems, copyManyToClipboard } = useClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -6482,14 +6487,23 @@ export function OpenScreenshotGeneratorLayout() {
     onAgentNewChat: () => {
       // A new chat on the project the old one was about keeps its code
       // folders. When the editor has moved to another project, it starts
-      // without them.
+      // without them. It talks to the same CLI either way.
       const { chat } = claudeAgent.getSnapshot();
       const sameProject = !chat.projectId || chat.projectId === activeProjectIdRef.current;
-      void claudeAgent.newChat(undefined, { folders: sameProject ? chat.folders : [] });
+      void claudeAgent.newChat(undefined, { folders: sameProject ? chat.folders : [], agent: chat.agent });
     },
-    onAgentDetect: () => void claudeAgent.detect(true),
+    onAgentDetect: () => {
+      if (claudeAgent.getSnapshot().chat.agent === 'codex') void claudeAgent.detectCodex(true);
+      else void claudeAgent.detect(true);
+    },
     onAgentSetModel: (model) => claudeAgent.setModel(model),
     onAgentSetEffort: (effort) => claudeAgent.setEffort(effort),
+    onAgentSetAgent: (agent) => {
+      claudeAgent.setChatAgent(agent);
+      if (agent === 'codex') void claudeAgent.detectCodex();
+    },
+    onAgentSetCodexModel: (model) => claudeAgent.setCodexModel(model),
+    onAgentSetCodexEffort: (effort) => claudeAgent.setCodexEffort(effort),
     onAgentHide: () => {
       claudeAgent.hidePanel();
       if (rightDockTab === 'agent') selectRightDockTab('properties');
@@ -7069,21 +7083,25 @@ const generateRandomProjectName = (): string => {
     TEMPLATE_CATEGORIES.find((c) => c.id === templateTab) ?? TEMPLATE_CATEGORIES[0];
 
   /**
-   * Hand a new design to Claude Code: an empty project for it to work in, the
-   * screenshots stored as assets it can place by reference, the Agent tab open
-   * on a chat that holds the code folders picked there, and the first message
-   * on its way. Throws a sentence the agent screen shows when there is no
-   * project to work in.
+   * Hand a new design to Claude Code or Codex: an empty project for it to work
+   * in, the screenshots stored as assets it can place by reference, the Agent
+   * tab open on a chat that holds the code folders picked there (Claude Code
+   * only), and the first message on its way. Throws a sentence the agent
+   * screen shows when there is no project to work in.
    */
   const handleStartClaudeCode = async ({
     instruction,
     screenshots,
-    folders = [],
+    folders: pickedFolders = [],
+    agent = 'claude-code',
   }: {
     instruction: string;
     screenshots: UploadedScreenshot[];
     folders?: AgentFolder[];
+    agent?: AgentKind;
   }) => {
+    // Codex reads no code folder, so a run with it starts without one.
+    const folders = agent === 'codex' ? [] : pickedFolders;
     let created: Awaited<ReturnType<typeof createProjectFromTemplateData>>;
     let stored: { ref: string; width: number; height: number; fileName: string }[];
     claudeStartingRef.current = true;
@@ -7109,9 +7127,11 @@ const generateRandomProjectName = (): string => {
     revealDockTab('agent');
     if (isMobileViewport) setIsMobileDockOpen(true);
     // Counts only: never a folder's name or path.
-    track('agent_claude_code_start', { screenshots: screenshots.length, folders: folders.length });
+    if (agent === 'codex') track('agent_codex_start', { screenshots: screenshots.length });
+    else track('agent_claude_code_start', { screenshots: screenshots.length, folders: folders.length });
 
-    await claudeAgent.newChat({ projectId: created.projectId, projectName: created.name }, { folders });
+    claudeAgent.setChatAgent(agent);
+    await claudeAgent.newChat({ projectId: created.projectId, projectName: created.name }, { folders, agent });
     // What the chat really holds: at most three, one per path.
     const chatFolders = claudeAgent.getSnapshot().chat.folders;
     const board = created.artboards[0];
@@ -7133,7 +7153,7 @@ const generateRandomProjectName = (): string => {
         images: screenshots.map(screenshotToImage),
         skipContext: true,
       })
-      .catch((error) => console.error('Could not start Claude Code', error));
+      .catch((error) => console.error(`Could not start ${agent === 'codex' ? 'Codex' : 'Claude Code'}`, error));
   };
   const templateCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -9382,12 +9402,24 @@ const generateRandomProjectName = (): string => {
                               <DropdownMenuItem
                                 className="gap-2"
                                 onSelect={() => {
+                                  claudeAgent.setChatAgent('claude-code');
                                   claudeAgent.setPanelEnabled(true);
                                   revealDockTab('agent');
                                 }}
                               >
                                 <ClaudeCodeLogo className="h-4 w-4" />
                                 Chat with Claude Code
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="gap-2"
+                                onSelect={() => {
+                                  claudeAgent.setChatAgent('codex');
+                                  claudeAgent.setPanelEnabled(true);
+                                  revealDockTab('agent');
+                                }}
+                              >
+                                <CodexLogo className="h-4 w-4" />
+                                Chat with Codex
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                             </>
@@ -9538,7 +9570,7 @@ const generateRandomProjectName = (): string => {
                     aria-label="Open agent chat"
                     data-export-exclude
                   >
-                    <ClaudeCodeLogo className="h-5 w-5" />
+                    {agentKind === 'codex' ? <CodexLogo className="h-5 w-5" /> : <ClaudeCodeLogo className="h-5 w-5" />}
                   </Button>
                 )}
               </>

@@ -52,7 +52,7 @@ export function accountLine(result: ClaudeDetection | null): string | null {
   return plan ? `Uses your Claude ${plan} plan` : 'Uses your Claude plan';
 }
 
-function isWindows(): boolean {
+export function isWindows(): boolean {
   return typeof navigator !== 'undefined' && /windows/i.test(navigator.userAgent);
 }
 
@@ -84,7 +84,7 @@ export function CommandLine({ command, className }: { command: string; className
   );
 }
 
-function CheckAgainButton({ onRetry, checking }: { onRetry: () => void; checking: boolean }) {
+export function CheckAgainButton({ onRetry, checking }: { onRetry: () => void; checking: boolean }) {
   return (
     <Button size="sm" variant="outline" onClick={onRetry} disabled={checking}>
       <RefreshCw className={cn('mr-2 h-3.5 w-3.5', checking && 'animate-spin')} />

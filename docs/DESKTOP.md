@@ -23,6 +23,8 @@ The rest of this page is for people building or changing the desktop app. It use
 | `src-tauri/assistant/agent.js` | Built bundle of `src/lib/ai/webAssistantAgent.ts`, injected into the provider windows (run `build:assistant-agent`) |
 | `src-tauri/src/claude_code.rs` | The Claude Code agent: finds the `claude` CLI, runs it headless on the user's Claude plan, relays its output to the editor window |
 | `src/lib/claudeCode/` | The agent's session store, stream reducer and brief; the Agent tab in the dock renders from it |
+| `src-tauri/src/codex.rs` | The Codex agent: finds the `codex` CLI, runs `codex app-server` in a Codex home of its own on the user's ChatGPT plan, speaks its protocol and relays the conversation to the editor window |
+| `src/lib/codex/` | Codex's transport, the reducer that folds its notifications into the same transcript, and the effort rule |
 | `src/lib/desktop.ts` | Frontend helper: native save dialogs in Tauri, anchor downloads on the web |
 | `src/lib/ai/freeProviders.ts` | Keyless AI providers for the desktop free mode (Pollinations, Ollama, LM Studio) |
 | `src/lib/ai/webAdapters.ts` | One registry (identity + DOM selectors) shared by the desktop agent, the extension, and the UI |
@@ -1009,6 +1011,159 @@ The Rust side has its own tests: `cargo test --lib` in `src-tauri/`, with a
 scratch `CARGO_TARGET_DIR` so a running `tauri dev` is not disturbed. A name
 filter runs only the tests whose path holds it, so `cargo test claude_code`
 misses nearly all of `code_folders.rs`.
+
+## Codex agent (desktop only)
+
+The agent screen's second tab, **Codex**, and any Agent tab chat switched to
+Codex before its first message, run the agent in the Codex CLI the user already
+has installed and signed in to with ChatGPT, on their ChatGPT plan, with no
+login in the app. It edits the open project through the same MCP tools as
+Claude Code. `src-tauri/src/codex.rs` finds, starts and stops the process and
+speaks its protocol; the frontend half is `src/lib/codex/` plus the shared store
+in `src/lib/claudeCode/store.ts`, described in the Codex section of
+[.agents/reference.md](../.agents/reference.md). A Codex chat has no code
+folders.
+
+**Finding it.** `abs_codex_detect` takes the first file that exists, in this
+order: `OSG_CODEX_PATH`; every PATH directory (the login shell's PATH in front,
+as for Claude Code), for `codex` or, on Windows, `codex.exe` then `codex.cmd`;
+the installer locations (npm's native `codex.exe` inside
+`@openai\codex\vendor\<triple>\codex` and its `codex.cmd` shim, `~/.local/bin`,
+Scoop and WinGet on Windows; `~/.local/bin`, `~/.npm-global/bin`, `~/.bun/bin`,
+`~/.volta/bin`, `~/.nix-profile/bin`, `/opt/homebrew/bin`, `/usr/local/bin`,
+`/home/linuxbrew/.linuxbrew/bin` and `/usr/bin` elsewhere); and last the copy
+the ChatGPT extension ships in VS Code, VS Code Insiders, Cursor, Windsurf or
+VSCodium, under `<editor>/extensions/openai.chatgpt-<version>-<platform>/bin/<platform>/`,
+the newest version first. It runs `codex --version` (20 seconds), links the
+login (below), and then a short `codex app-server` probe that answers
+`initialize`, `account/read` (without refreshing the token) and `model/list`,
+then is killed. The probe starts no conversation and uses no plan usage. It
+reports the plan ("Uses your ChatGPT Plus plan"), whether it is an API key
+instead, and the models the login has; the e-mail address stays in Rust. The
+Mac App Store build reports it unavailable, as for Claude Code.
+
+**The Codex home.** Codex reads its settings, skills, plugins, MCP servers,
+hooks, AGENTS.md and memories from its home folder, `~/.codex`. None of the
+user's are any use to a design agent, and some would hand it a shell, a browser
+or another MCP server, so the agent runs with a home of its own:
+
+| Path, under `codex-agent/` in the app's local data folder | What |
+| --- | --- |
+| `home/` | `CODEX_HOME` for the process. Rust writes `config.toml` (below) on every start, and Codex keeps its conversations, caches and logs here |
+| `home/auth.json` | A link to the user's own `auth.json` (`$CODEX_HOME/auth.json` as the app was started with it, else `~/.codex/auth.json`): a symbolic link on macOS and Linux, and on Windows a symbolic link or, without Developer Mode, a hard link made again on every start. Codex writes a refreshed token in place, so through the link it lands in the user's file and their own Codex stays signed in (checked on 0.162). Rust never writes the user's file, and removes only the link when the user has no login |
+| `user/` | An empty folder, `HOME` for the process on macOS and Linux, so the skills in `~/.agents/skills` are not found |
+| `session/` | The working directory, empty |
+
+A login Codex keeps in the system keychain (`cli_auth_credentials_store =
+"keyring"` or `"auto"`) has no file to link to; detection says so, and the
+setup card offers `codex login -c cli_auth_credentials_store=file`.
+
+`config.toml` turns off everything but the design tools: `web_search =
+"disabled"`, `sandbox_mode = "read-only"`, `approval_policy = "never"`, no
+`notify`, no project docs, no update check, no analytics or feedback, the
+permission, environment, apps and collaboration instructions left out, the
+skill list left out and Codex's bundled skills not installed, the user-input
+tool off, and the features for the shell, unified exec, shell snapshots, apps,
+plugins, hooks, memories, image generation, image viewing, the browser,
+computer use, multi-agent, goals, the sleep tool, tool suggestions, skill
+search, realtime, worktrees and the guardian off. A feature this Codex does not
+know is ignored, so one file serves old and new versions. `code_mode_host`
+stays on: the current models reach every tool, the design tools too, by writing
+JavaScript for `exec`, which runs in a V8 isolate with no file system, no
+network and no Node (checked: `require`, `fetch`, `process` and `import('fs')`
+all fail). What `exec` can call is the design tools, three MCP resource tools
+for the design server, a clock, and `apply_patch`, which the read-only sandbox
+refuses ("writing is blocked by read-only sandbox; rejected by user approval
+settings"). The sub-agent tools come with the model and cannot be switched off;
+a sub-agent would have the same tools, and the brief tells the model not to use
+them.
+
+**Launching it.** The page supplies only the model, the conversation to resume
+and its page count, all validated:
+
+```
+codex app-server
+  -c mcp_servers.osg-editor.url=http://127.0.0.1:<port>/mcp
+  -c mcp_servers.osg-editor.bearer_token_env_var=OSG_MCP_TOKEN
+  -c mcp_servers.osg-editor.default_tools_approval_mode=approve
+  -c mcp_servers.osg-editor.startup_timeout_sec=30
+  -c mcp_servers.osg-editor.tool_timeout_sec=240
+  -c mcp_servers.osg-editor.supports_parallel_tool_calls=false
+```
+
+The server goes on the command line rather than in `config.toml` because Codex
+validates the file before it merges `-c`, and a server table without a URL
+fails that. The values are unquoted so an npm `codex.cmd` shim passes them on
+as they are, and the token is in the environment, never on the command line or
+in a file. `approve` is what lets the design tools run with approvals set to
+never; nothing else is approved. The tool timeout is longer than the MCP
+server's own 180 seconds for its slowest tools.
+
+**The environment.** Every `OPENAI_` variable is removed (`OPENAI_API_KEY`
+alone would bill API credit instead of the plan, `OPENAI_BASE_URL` would send
+the conversation elsewhere), and so is every `CODEX_` variable but
+`CODEX_CA_CERTIFICATE`, which a corporate proxy needs: they carry other logins
+(`CODEX_API_KEY`, `CODEX_ACCESS_TOKEN`), other servers, another home and, when
+the app was started from inside a Codex session, that session's sandbox and
+thread. `RUST_LOG` goes too, and so does every `CLAUDE` and `ANTHROPIC_`
+variable: an app started from a Claude Code terminal hands its children that
+session's id, socket and messaging token. The child gets `CODEX_HOME`, `OSG_MCP_TOKEN`, the
+merged PATH, `NO_COLOR=1` and, on macOS and Linux, `HOME`.
+
+**The protocol.** Rust is the JSON-RPC client; the page never writes a line.
+A start sends `initialize`, `initialized`, `skills/list` (so a `$name` mention of
+any skill Codex can see is defused, below), then `thread/resume` for a chat that
+has a conversation or `thread/start`, both with the cwd, `approvalPolicy:
+"never"`, `sandbox: "read-only"` and the brief as `developerInstructions`. A
+resume Codex refuses ("no rollout found") becomes a new thread, and the start
+says so (`resumed: false`). `abs_codex_send` takes a turn as text and base64
+pictures (PNG, JPEG, WebP or GIF, up to 8 of 12 MB each), with the model and the
+effort for that turn, and Rust builds `turn/start` from it: the text, then each
+picture as a `data:` URL, never a URL of anything else. It refuses a turn while
+one runs, since Codex would take it as a steer. Codex reads `$name` anywhere in
+a turn's text as a mention of the skill of that name and adds the skill's whole
+file to the turn (checked on 0.162, inside a word too), so Rust inserts U+2060
+after every `$` that would name a skill `skills/list` returned; with the app's
+own home that list is normally empty, and a price such as "$5" goes through as
+written. `@path` in the text reads nothing. Stop sends `turn/interrupt`,
+waiting for Codex to name the turn when it has not yet. Every request Codex
+sends back is answered by Rust: command and file-change approvals with
+`decline`, permission requests with nothing granted, elicitations with
+`decline`, user-input requests with no answers, and anything else, a token
+refresh for external auth included, with an error. With approvals set to never,
+none of them should arrive at all.
+
+**Output.** Only the notifications the panel uses reach the editor window
+(`emit_to("main", "abs-codex-event", ...)`, with the bridge nonce): turns,
+items, reply deltas, token usage, rate limits, the design server's startup,
+errors, warnings, summaries and reroutes. Once the thread is known, anything
+about another thread (a sub-agent's) stays in Rust. The user's own message is
+dropped, since the panel has it already and its pictures are megabytes, and so
+is reasoning; a relayed line over 512KB has each inline picture over 256KB
+emptied. stderr and the exit go the same way as for Claude Code.
+
+**Process lifetime.** One process per chat, kept alive between messages, at
+most four at once. A writer thread owns stdin. A model or effort change needs
+no new process, since each turn names both. Stop interrupts the turn, and
+the page kills the process only if the turn has not ended four seconds later.
+A reloaded editor takes its process back through `abs_codex_list`, which says
+whether it is mid-turn and which thread it is on, and stops any other listed
+process of either CLI. A start from a page that is gone is refused or killed,
+counted by Codex's own page epoch (`abs_codex_page_epoch`), and a spawn id is
+single use. Every process dies with the editor window and when the app exits.
+While a Codex process runs or starts, the MCP server stays up for it whatever
+the Settings switch says, as for Claude Code.
+
+**Verifying it.** `npm run test:unit` covers the reducer against notifications
+recorded from a real Codex 0.162 app-server (`tests/unit/fixtures/codex/`) and
+the store against a stand-in for the IPC; `cargo test --lib codex` in
+`src-tauri/` covers the config, the command line and environment, the login
+link, the extension lookup, the answers to Codex's requests, what is relayed,
+the turn checks and the mention defusal. To try the lockdown itself without
+spending plan usage, point a scratch `CODEX_HOME` holding the same
+`config.toml` at a local stand-in for the Responses API (a `model_provider`
+with a `base_url` on localhost) and read the request Codex sends: its
+`additional_tools` input is the whole tool list the model would see.
 
 ## Operation tracing (timeline, screenshots, HTML report)
 

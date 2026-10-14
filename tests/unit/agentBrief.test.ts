@@ -1,6 +1,8 @@
 // The agent's brief lives in src-tauri/claude-agent/ and is compiled into the
 // desktop app: the system prompt, the skills, and project-folders.md, which Rust
 // adds to the prompt when the user attached their app's code folder to the chat.
+// Codex gets a prompt of its own, src-tauri/codex-agent/system-prompt.md, with
+// the same skills after it.
 // They name the design tools by hand, and a renamed or removed tool fails
 // without an error anywhere: the agent reaches for something that is not there.
 // So the Markdown is held to the MCP server's own tools/list, read the way the
@@ -18,6 +20,17 @@ const ROOT = path.join(process.cwd(), 'src-tauri', 'claude-agent');
 /** What the agent reads about the user's code folder, only in a chat that has one. */
 const FOLDERS = 'project-folders.md';
 
+/** Codex's prompt, which lives beside the Claude Code brief rather than in it. */
+const CODEX = '../codex-agent/system-prompt.md';
+
+/**
+ * Codex names its tools by itself, not the design server: apply_patch is a
+ * tool Codex always lists, and osg_editor is the server's name as Codex
+ * writes it inside exec (tools.mcp__osg_editor__list_artboards). Allowed in
+ * Codex's prompt only.
+ */
+const CODEX_WORDS = new Set(['osg_editor', 'apply_patch']);
+
 /** The skill folders. Folders only: Finder leaves a .DS_Store beside them. */
 function skillNames(): string[] {
   return fs
@@ -27,7 +40,7 @@ function skillNames(): string[] {
 }
 
 function brief(): Array<{ file: string; text: string }> {
-  return ['system-prompt.md', FOLDERS, ...skillNames().map((skill) => `skills/${skill}/SKILL.md`)].map((file) => ({
+  return ['system-prompt.md', FOLDERS, CODEX, ...skillNames().map((skill) => `skills/${skill}/SKILL.md`)].map((file) => ({
     file,
     text: fs.readFileSync(path.join(ROOT, file), 'utf8'),
   }));
@@ -62,7 +75,7 @@ const FILE_WORDS = new Set([
 ]);
 
 function isToolName(file: string, word: string): boolean {
-  return !EXAMPLE_IDS.has(word) && !(file === FOLDERS && FILE_WORDS.has(word));
+  return !EXAMPLE_IDS.has(word) && !(file === FOLDERS && FILE_WORDS.has(word)) && !(file === CODEX && CODEX_WORDS.has(word));
 }
 
 async function toolNames(): Promise<Set<string>> {
@@ -95,16 +108,25 @@ test('every tool the brief names is one the server has', async () => {
     [],
     `FILE_WORDS allows names ${FOLDERS} no longer uses`
   );
+  const codex = files.find((entry) => entry.file === CODEX)!.text;
+  assert.deepEqual(
+    [...CODEX_WORDS].filter((word) => !codex.includes(word)),
+    [],
+    'CODEX_WORDS allows names the Codex prompt no longer uses'
+  );
 });
 
 test('the brief loads its skills by the names they have', () => {
   const skills = skillNames();
   const files = brief();
   const prompt = files.find((entry) => entry.file === 'system-prompt.md')!.text;
+  // Codex reads the skills as part of its prompt, so its prompt says which part stands for which name.
+  const codex = files.find((entry) => entry.file === CODEX)!.text;
   for (const skill of skills) {
     const text = files.find((entry) => entry.file === `skills/${skill}/SKILL.md`)!.text;
     assert.match(text, new RegExp(`^---\\nname: ${skill}\\n`), `skills/${skill}/SKILL.md is named after its folder`);
     assert.ok(prompt.includes(`osg-agent:${skill}`), `the system prompt never mentions osg-agent:${skill}`);
+    assert.ok(codex.includes(`osg-agent:${skill}`), `the Codex prompt never mentions osg-agent:${skill}`);
   }
   // And the other way round: nothing sends the agent to a skill that is not there.
   for (const { file, text } of files) {

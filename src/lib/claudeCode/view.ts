@@ -7,12 +7,14 @@
 
 import type { ClaudeAgentSnapshot } from './store';
 import { clipText } from '@/lib/clipText';
+import type { CodexDetection, CodexEffortChoice, CodexModelChoice } from '@/lib/codex/types';
 import { chatListItems, type AgentChatListItem } from './chats';
 import { MAX_FOLDER_PATH, folderLabels } from './folders';
 import type {
   AgentContextUsage,
   AgentDetectionState,
   AgentItem,
+  AgentKind,
   AgentLastTurn,
   AgentRateLimit,
   AgentStatus,
@@ -21,14 +23,26 @@ import type {
 } from './types';
 
 export interface AgentPanelView {
-  /** This build can run Claude Code (the desktop app). */
+  /** This build can run the agent (the desktop app). */
   available: boolean;
+  /** Which CLI the chat talks to. */
+  agent: AgentKind;
+  /** Nothing has been sent in the chat yet, so it can still switch to the other CLI. */
+  agentSwitchable: boolean;
+  /** Claude Code's detection. */
   detection: AgentDetectionState;
+  /** Codex's, for a Codex chat's setup card and account line. */
+  codexDetection: AgentDetectionState<CodexDetection>;
   status: AgentStatus;
   model: ClaudeModelChoice;
-  /** The effort picked for the next process. Claude Code never reports it back. */
+  /** The effort picked for the next Claude Code process. Claude Code never reports it back. */
   effort: ClaudeEffortChoice;
-  /** The model Claude Code reported, once a turn has started. */
+  /** The model the next Codex turn asks for. */
+  codexModel: CodexModelChoice;
+  codexEffort: CodexEffortChoice;
+  /** What the Codex model menu offers: its default, then the models its detection listed. */
+  codexModels: AgentPanelModel[];
+  /** The model the CLI reported, once a turn has started. */
   resolvedModel: string | null;
   items: AgentItem[];
   /** Earlier items this view leaves out. */
@@ -66,6 +80,25 @@ export interface AgentPanelView {
   linksAsText: boolean;
 }
 
+/** One entry of the Codex model menu. */
+export interface AgentPanelModel {
+  /** 'default', or what turn/start takes. */
+  value: string;
+  label: string;
+  /** The effort levels it takes. Empty when nobody knows, which offers them all. */
+  efforts: string[];
+}
+
+/** The Codex model menu: Codex's own default first, then each model its login has. */
+export function codexModelChoices(detection: CodexDetection | null): AgentPanelModel[] {
+  const models = detection?.models ?? [];
+  const fallback = models.find((model) => model.isDefault);
+  return [
+    { value: 'default', label: "Codex's default model", efforts: fallback?.efforts ?? [] },
+    ...models.map((model) => ({ value: model.id, label: model.displayName || model.id, efforts: model.efforts })),
+  ];
+}
+
 /** A code folder as the panel shows it. */
 export interface AgentPanelFolder {
   name: string;
@@ -92,10 +125,17 @@ export function toAgentPanelView(
   const labels = folderLabels(agent.chat.folders);
   return {
     available: agent.available,
+    agent: agent.chat.agent,
+    agentSwitchable:
+      session.items.length === 0 && !session.sessionId && session.status !== 'working' && session.status !== 'starting',
     detection: agent.detection,
+    codexDetection: agent.codexDetection,
     status: session.status,
     model: agent.model,
     effort: agent.effort,
+    codexModel: agent.codexModel,
+    codexEffort: agent.codexEffort,
+    codexModels: codexModelChoices(agent.codexDetection.result),
     resolvedModel: session.model,
     items: session.items,
     omitted: 0,
@@ -180,5 +220,12 @@ export function slimAgentView(view: AgentPanelView): AgentPanelView {
       label: clipText(folder.label, 80),
     })),
     folderNotice: view.folderNotice === null ? null : clipText(view.folderNotice, 200),
+    // codexModels carries what the menu needs of the list.
+    codexDetection: view.codexDetection.result
+      ? { ...view.codexDetection, result: { ...view.codexDetection.result, models: [] } }
+      : view.codexDetection,
+    codexModels: view.codexModels
+      .slice(0, 21)
+      .map((model) => ({ value: model.value, label: clipText(model.label, 60), efforts: model.efforts.slice(0, 8) })),
   };
 }

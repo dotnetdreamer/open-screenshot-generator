@@ -41,7 +41,7 @@ import {
 } from '@/lib/ai/promptBuilder';
 import { buildTemplateCatalog, serializeCatalog } from '@/lib/ai/templateCatalog';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
-import type { AgentFolder } from '@/lib/claudeCode/types';
+import type { AgentFolder, AgentKind } from '@/lib/claudeCode/types';
 import { describeEndpoint } from '@/lib/ai/providers';
 import { WEB_PROVIDERS, type WebProviderId } from '@/lib/ai/webAdapters';
 import {
@@ -63,6 +63,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
 import { ApiKeyModePanel, type ApiKeyRunArgs } from './ApiKeyModePanel';
 import { ClaudeCodeModePanel } from './ClaudeCodeModePanel';
+import { CodexModePanel } from './CodexModePanel';
+import { CodexLogo } from '../agent/CodexLogo';
 import { CodeFolderPicker } from './CodeFolderPicker';
 import { FreeProviderModePanel } from './FreeProviderModePanel';
 import { OperationTimelineDialog } from './OperationTimelineDialog';
@@ -82,15 +84,17 @@ interface AgentStartScreenProps {
   /** Changes on every handoff, so re-entering seeds the set exactly once. */
   handoffToken?: number;
   /**
-   * Hand the run to Claude Code. The layout makes the project, closes this
-   * dialog and opens the Agent panel, which is why this mode has no plan to
-   * review here. Rejects with a message the screen shows as its error.
+   * Hand the run to Claude Code or Codex. The layout makes the project, closes
+   * this dialog and opens the Agent panel, which is why these modes have no
+   * plan to review here. Rejects with a message the screen shows as its error.
    */
   onStartClaudeCode?: (args: {
     instruction: string;
     screenshots: UploadedScreenshot[];
-    /** Code folders picked on this screen, which the new chat starts with. */
+    /** Code folders picked on this screen, which a new Claude Code chat starts with. */
     folders?: AgentFolder[];
+    /** Which CLI the chat talks to. Claude Code when left out. */
+    agent?: AgentKind;
   }) => Promise<void>;
 }
 
@@ -583,7 +587,7 @@ export function AgentStartScreen({
     [acceptPlanFromReply, relayPrompt, screenshots, catalogArtifacts, instruction]
   );
 
-  const startClaudeCode = async () => {
+  const startClaudeCode = async (agent: AgentKind = 'claude-code') => {
     if (!onStartClaudeCode || claudeStartingRef.current) return;
     claudeStartingRef.current = true;
     setClaudeStarting(true);
@@ -591,7 +595,7 @@ export function AgentStartScreen({
     setResult(null);
     setErrorOpId(null);
     try {
-      await onStartClaudeCode({ instruction: instruction.trim(), screenshots, folders });
+      await onStartClaudeCode({ instruction: instruction.trim(), screenshots, folders, agent });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -687,12 +691,18 @@ export function AgentStartScreen({
           </div>
         </div>
         <Tabs value={mode} onValueChange={setMode} className="w-full">
-          {/* Four tabs do not fit a phone in one row. */}
+          {/* Five tabs do not fit a phone in one row. */}
           <TabsList className="h-auto flex-wrap justify-start">
             <TabsTrigger value="claude-code" className="gap-1.5">
               <ClaudeCodeLogo className="h-3.5 w-3.5" />
               Claude Code
             </TabsTrigger>
+            {onStartClaudeCode && (
+              <TabsTrigger value="codex" className="gap-1.5">
+                <CodexLogo className="h-3.5 w-3.5" />
+                Codex
+              </TabsTrigger>
+            )}
             <TabsTrigger value="web" className="gap-1.5">
               <UserRound className="h-3.5 w-3.5" />
               Free, use my account
@@ -718,6 +728,17 @@ export function AgentStartScreen({
               onStart={() => void startClaudeCode()}
             />
           </TabsContent>
+          {onStartClaudeCode && (
+            <TabsContent value="codex" className="mt-4">
+              <CodexModePanel
+                desktop={desktop}
+                // Codex reads no code folder, so a folder alone is not enough.
+                disabled={busy || (screenshots.length === 0 && !instruction.trim())}
+                starting={claudeStarting}
+                onStart={() => void startClaudeCode('codex')}
+              />
+            </TabsContent>
+          )}
           <TabsContent value="web" className="mt-4">
             <WebSessionModePanel
               busy={busy}

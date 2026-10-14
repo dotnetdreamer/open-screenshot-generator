@@ -148,6 +148,11 @@ export class Editor {
     const menuItem = this.page.getByRole('menuitem', { name: item });
     await expect(menuItem.first()).toBeVisible({ timeout: 10_000 });
     await menuItem.first().click();
+    // The menu fades out after the pick and hands focus back to its trigger
+    // when it is gone. A menu opened again before then loses that focus and
+    // closes, so the next step waits for this one. Not fatal: a page behind a
+    // popup can keep the fade from finishing.
+    await this.page.getByRole('menu').first().waitFor({ state: 'detached', timeout: 5_000 }).catch(() => {});
   }
 
   // ------------------------------------------------------------ canvas tools

@@ -17,7 +17,7 @@
 
 import { db } from '@/database';
 
-export type OperationMode = 'web' | 'free' | 'api' | 'claude-code';
+export type OperationMode = 'web' | 'free' | 'api' | 'claude-code' | 'codex';
 export type OperationStatus = 'running' | 'success' | 'error' | 'cancelled';
 
 export type TimelineKind =
@@ -284,4 +284,5 @@ export const MODE_LABEL: Record<OperationMode, string> = {
   free: 'Built-in free',
   api: 'API key',
   'claude-code': 'Claude Code',
+  codex: 'Codex',
 };

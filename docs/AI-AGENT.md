@@ -4,9 +4,11 @@ The agent can start a design from screenshots of your app and a short descriptio
 
 1. Open the editor and choose the AI agent on the start screen.
 2. Add your app screenshots and describe the result you want, such as "a dark design for a running app".
-3. Choose how to run the agent. With Claude Code the design appears in a new project while you watch. The other choices show you the project first, for you to review.
+3. Choose how to run the agent. With Claude Code or Codex the design appears in a new project while you watch. The other choices show you the project first, for you to review.
 
 In the desktop app the first choice is **Claude Code**. If Claude Code is installed and signed in on your computer, the agent runs there on your Claude plan, with nothing to sign in to in the app. It builds the design in a new project, and you keep asking for changes in the **Agent** tab of the right panel. Each message counts toward your plan's usage limits.
+
+The second choice, **Codex**, works the same way on your ChatGPT plan: it uses the Codex CLI you already signed in to with ChatGPT, including the copy that comes with the ChatGPT extension for VS Code. In the Agent tab, a chat with nothing in it yet has a **Claude Code** and **Codex** switch, so you can pick either one for each chat. Codex cannot read your app's code folder.
 
 Claude Code can also read your app's code. Add up to three folders with **Add your app's code folder**, on the start screen or under the message box in the Agent tab, and the agent uses your app's real name, icon, colours and store text, and any screenshots already in the folder. It reads the folder and never changes a file in it. Pick the top folder of your app, not a subfolder such as `src`, so the store text and the README are inside it.
 
@@ -16,7 +18,7 @@ The agent picks a template, places screenshots, and suggests text. Check the tex
 
 ## How it works for developers
 
-Sections 1 to 3 explain how the three plan modes ("Free, use my account", "Free, built in" and "Use my API key") give an AI model information about the templates. The catalog is too large for some chat message limits, so the app sends a link to it or a shortened version. Each of these methods produces an `AgentPlan`, which [buildProjectFromPlan.ts](../src/lib/ai/buildProjectFromPlan.ts) turns into an editable project. Claude Code mode has no plan and no catalog in its prompt: see [section 4](#4-claude-code-mode-the-agent-edits-the-live-project).
+Sections 1 to 3 explain how the three plan modes ("Free, use my account", "Free, built in" and "Use my API key") give an AI model information about the templates. The catalog is too large for some chat message limits, so the app sends a link to it or a shortened version. Each of these methods produces an `AgentPlan`, which [buildProjectFromPlan.ts](../src/lib/ai/buildProjectFromPlan.ts) turns into an editable project. Claude Code mode has no plan and no catalog in its prompt: see [section 4](#4-claude-code-mode-the-agent-edits-the-live-project). Codex mode is the same idea on the Codex CLI: see [section 5](#5-codex-mode-the-same-live-editing-on-a-chatgpt-plan).
 
 ## 1. URL mode: the repository hosts the catalog
 
@@ -237,6 +239,44 @@ App Store icon"), so the user can correct it.
 - On the web the start screen shows the same row, and its button explains that code folders
   need the desktop app. Claude Code run in a terminal inside the app's folder and connected
   through the MCP relay reads the code on its own.
+
+## 5. Codex mode: the same live editing, on a ChatGPT plan
+
+Used by the **Codex** tab, the second one, in the desktop app, and by any Agent tab chat
+switched to Codex before its first message. The app runs the Codex CLI the user already has
+installed and signed in to with ChatGPT, as `codex app-server` over stdio, and speaks its
+JSON-RPC protocol itself. The work is billed to the user's ChatGPT plan, and the app asks for
+no key and no login. Everything in section 4 about the live project holds: no `AgentPlan`, the
+app's MCP design tools, one undo step per call, Past chats, the editor context, the first
+message's brief and the context ring. What differs:
+
+- The model reaches the design tools by writing JavaScript for Codex's `exec` tool, which runs
+  in a V8 isolate with no file system, no network and no Node, and calls
+  `tools.mcp__osg_editor__<tool>(...)`. Each design call made there shows in the panel as a
+  step, as with Claude Code. The brief says so, and tells the model to hand `export_png`'s
+  picture to `image()`, since only what a script passes to `text()` and `image()` reaches it.
+- Codex runs with a Codex home of the app's own. The user's `~/.codex` setup (MCP servers,
+  skills, plugins, hooks, AGENTS.md, memories, profiles) is never loaded. Only the login is
+  shared: the app's home links to the user's `auth.json`, so a token Codex refreshes is written
+  to the user's own file. A login Codex keeps in the system keychain cannot be shared that way,
+  and the setup card says how to sign in with a file instead.
+- Shell, web search, file edits, apps, plugins, image generation, browser and computer use are
+  off, the sandbox is read only and approvals are refused, so a command or a patch that came up
+  anyway would be turned down rather than run. The design server is the only MCP server, and
+  its tools are pre-approved.
+- A model or effort picked mid-chat applies from the next message with no restart: Codex takes
+  both with each turn. The model menu lists the models the user's login has, and an effort the
+  model does not take is lowered to the highest it has below it. Codex's own `ultra` is left
+  out, since it hands the work to sub-agents.
+- Codex reads no code folder. The folder button is not there in a Codex chat, and the start
+  screen's folder row says only the Claude Code tab reads it.
+- Codex treats `$name` in a message as a mention of the skill of that name. With the app's own
+  home there are none, and Rust inserts an invisible character after any `$` that would name one
+  anyway, so an artboard named after a skill never loads it.
+
+What the model is told: `src-tauri/codex-agent/system-prompt.md`, sent as the thread's
+developer instructions after Codex's own base prompt, then the three skills from section 4 in
+full, since this agent cannot load a skill by itself.
 
 The code is in [src/lib/claudeCode/](../src/lib/claudeCode/) (the session store, the stream
 reducer and what goes to stdin),

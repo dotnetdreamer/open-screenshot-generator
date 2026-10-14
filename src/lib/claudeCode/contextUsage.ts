@@ -187,9 +187,13 @@ export interface ContextMeter {
 
 /**
  * What the ring shows. It always shows something: `empty` is a chat with no
- * message and no conversation yet, where nothing is in the window.
+ * message and no conversation yet, where nothing is in the window. `agentName`
+ * is the CLI that reports the counts, named when it has not yet.
  */
-export function contextMeter(context: AgentContextUsage | null, { empty = false } = {}): ContextMeter {
+export function contextMeter(
+  context: AgentContextUsage | null,
+  { empty = false, agentName = 'Claude Code' }: { empty?: boolean; agentName?: string } = {}
+): ContextMeter {
   const used = context?.used ?? null;
   const window = context?.window ?? null;
   if (used !== null && window !== null) {
@@ -210,9 +214,9 @@ export function contextMeter(context: AgentContextUsage | null, { empty = false 
     return {
       ...unknown,
       label: formatTokens(used),
-      description: `${formatTokens(used)} tokens in the context window. Claude Code has not reported the window size yet`,
+      description: `${formatTokens(used)} tokens in the context window. ${agentName} has not reported the window size yet`,
     };
   }
   if (empty) return { ...unknown, label: '0%', description: 'Nothing in the context window yet' };
-  return { ...unknown, label: '', description: 'Claude Code has not reported the context window yet' };
+  return { ...unknown, label: '', description: `${agentName} has not reported the context window yet` };
 }

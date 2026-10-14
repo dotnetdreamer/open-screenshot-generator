@@ -9,12 +9,14 @@
 // read and written by the store (store.ts) and nothing else.
 
 import { clipText } from '@/lib/clipText';
-import type { AgentContextUsage, AgentFolder, AgentItem } from './types';
+import type { AgentContextUsage, AgentFolder, AgentItem, AgentKind } from './types';
 
 export interface AgentChatRecord {
-  /** Made with the chat's first message. Claude Code's own id comes later. */
+  /** Made with the chat's first message. The CLI's own conversation id comes later. */
   id: string;
-  /** Claude Code's conversation id, what --resume takes. Null until a turn has started. */
+  /** Which CLI the chat talks to. Not indexed, like the folders. Missing from chats saved before Codex, which are Claude Code's. */
+  agent?: AgentKind;
+  /** The CLI's conversation id: what Claude Code's --resume takes, or Codex's thread id. Null until a turn has started. */
   sessionId: string | null;
   projectId: string | null;
   /** The project's name when the chat last saw it. The list prefers the current one. */
@@ -52,6 +54,7 @@ export type AgentChatSummary = Omit<AgentChatRecord, 'items'>;
 /** One row of Past chats, as the panel draws it. */
 export interface AgentChatListItem {
   id: string;
+  agent: AgentKind;
   title: string;
   projectId: string | null;
   projectName: string | null;
@@ -106,6 +109,7 @@ export function chatListItems(
 ): AgentChatListItem[] {
   return chats.map((chat) => ({
     id: chat.id,
+    agent: chat.agent === 'codex' ? 'codex' : 'claude-code',
     title: chat.title,
     projectId: chat.projectId,
     projectName: (chat.projectId ? nameOf(chat.projectId) : null) ?? chat.projectName,

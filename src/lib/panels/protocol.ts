@@ -31,7 +31,8 @@ import type { HistoryEntry } from '@/lib/historyLabels';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { LocaleOverrideState } from '@/components/open-screenshot-generator/LayersPanel';
 import type { DetachableKey } from '@/lib/i18n/project';
-import type { ClaudeEffortChoice, ClaudeModelChoice } from '@/lib/claudeCode/types';
+import type { AgentKind, ClaudeEffortChoice, ClaudeModelChoice } from '@/lib/claudeCode/types';
+import type { CodexEffortChoice } from '@/lib/codex/types';
 import { slimAgentView, type AgentAttachment, type AgentPanelView } from '@/lib/claudeCode/view';
 import type { DetachablePanel } from './url';
 
@@ -177,6 +178,10 @@ export type DockIntent =
   | { name: 'agentDetect' }
   | { name: 'agentSetModel'; model: ClaudeModelChoice }
   | { name: 'agentSetEffort'; effort: ClaudeEffortChoice }
+  /** Point a chat that has not begun at the other CLI. */
+  | { name: 'agentSetAgent'; agent: AgentKind }
+  | { name: 'agentSetCodexModel'; model: string }
+  | { name: 'agentSetCodexEffort'; effort: CodexEffortChoice }
   | { name: 'agentHide' }
   | { name: 'agentOpenChat'; chatId: string }
   | { name: 'agentDeleteChat'; chatId: string }

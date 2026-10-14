@@ -249,6 +249,15 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'agentSetEffort':
         h.onAgentSetEffort(intent.effort);
         break;
+      case 'agentSetAgent':
+        h.onAgentSetAgent(intent.agent);
+        break;
+      case 'agentSetCodexModel':
+        if (typeof intent.model === 'string') h.onAgentSetCodexModel(intent.model);
+        break;
+      case 'agentSetCodexEffort':
+        h.onAgentSetCodexEffort(intent.effort);
+        break;
       case 'agentHide':
         h.onAgentHide();
         break;

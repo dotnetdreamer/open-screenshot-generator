@@ -99,8 +99,8 @@ pub struct McpState {
     server: Mutex<Option<RunningServer>>,
     pending: Pending,
     next_id: Arc<AtomicU64>,
-    /// The secret the app's own Claude Code agent sends as a bearer token.
-    /// Minted on first use and kept for the life of the process.
+    /// The secret the app's own agent, Claude Code or Codex, sends as a bearer
+    /// token. Minted on first use and kept for the life of the process.
     agent_token: Mutex<Option<String>>,
     /// Proves an event came from this process. Any window allowed to emit
     /// events (the assistant windows, which host third-party sites) could
@@ -216,14 +216,14 @@ fn shut_down(mut server: RunningServer) {
 /// a process running or starting, and, when `keep_if_enabled` is set, the
 /// user's external-tools switch.
 ///
-/// Decided and done under the server lock. A start counts itself
-/// (claude_code's `starting`) before ensure_running takes that lock, so it
+/// Decided and done under the server lock. A start counts itself (the
+/// `starting` of claude_code.rs or codex.rs) before ensure_running takes that lock, so it
 /// either sees the count here and keeps the server, or waits and starts a new
 /// one. The lock is held through shut_down as well, which waits for the port to
 /// come free, so that new one gets the port back instead of the next one along.
 fn stop_if_unused<R: Runtime>(app: &AppHandle<R>, state: &McpState, keep_if_enabled: bool) {
     let mut guard = state.server.lock().unwrap();
-    if crate::claude_code::has_sessions(app) {
+    if crate::claude_code::has_sessions(app) || crate::codex::has_sessions(app) {
         return;
     }
     if keep_if_enabled && crate::settings::current(app).mcp_server_enabled {
@@ -318,7 +318,8 @@ fn is_request(msg: &Value) -> bool {
         && !matches!(msg.get("id"), None | Some(Value::Null))
 }
 
-/// Whether a request carries the app's own Claude Code agent's token. Checked
+/// Whether a request carries the token of the app's own agent (Claude Code or
+/// Codex). Checked
 /// whatever the Settings switch says, and handed to the page with every
 /// bridged request as `agent`, since only the agent may reach the code folders
 /// its chat holds (import_project_image).
@@ -737,7 +738,7 @@ pub fn apply_enabled<R: Runtime>(app: &AppHandle<R>, enabled: bool) {
     let _ = app.emit("abs-mcp-status", payload);
 }
 
-/// Start the server for the app's own Claude Code agent (claude_code.rs), which
+/// Start the server for the app's own agent (claude_code.rs, codex.rs), which
 /// reaches the design tools through it like any other MCP client, and hand back
 /// the bearer token that agent has to send.
 ///
