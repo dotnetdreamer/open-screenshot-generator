@@ -17,7 +17,7 @@
 // from whichever storage account is connected, so the connect buttons below are
 // the only door either list has.
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   CloudIcon,
   ExternalLinkIcon,
@@ -115,6 +115,7 @@ export function AccountDialog({
   const [tab, setTab] = useState<AccountTab>(initialTab);
 
   const [busyProvider, setBusyProvider] = useState<CloudProviderId | null>(null);
+  const signInAttempt = useRef<AbortController | null>(null);
   const [showTokenField, setShowTokenField] = useState(false);
   const [token, setToken] = useState('');
   const [deviceCode, setDeviceCode] = useState<{ userCode: string; verificationUri: string } | null>(null);
@@ -123,6 +124,28 @@ export function AccountDialog({
   const [isListing, setIsListing] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<CloudProjectSummary | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const cancelSignIn = useCallback(() => {
+    const attempt = signInAttempt.current;
+    signInAttempt.current = null;
+    attempt?.abort();
+    setBusyProvider(null);
+    setDeviceCode(null);
+  }, []);
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) cancelSignIn();
+    onOpenChange(nextOpen);
+  };
+
+  useLayoutEffect(() => {
+    if (!open) cancelSignIn();
+    return () => {
+      const attempt = signInAttempt.current;
+      signInAttempt.current = null;
+      attempt?.abort();
+    };
+  }, [open, cancelSignIn]);
 
   const refreshProjects = useCallback(async () => {
     if (!isSignedIn) return;
@@ -153,6 +176,7 @@ export function AccountDialog({
   }, [open, isSignedIn, refreshProjects, initialTab]);
 
   const handleSignIn = async (id: CloudProviderId) => {
+    if (signInAttempt.current) return;
     const provider = getProvider(id);
 
     // Without the sign-in Worker there is no secretless redirect flow on the
@@ -168,13 +192,19 @@ export function AccountDialog({
       return;
     }
 
+    const attempt = new AbortController();
+    signInAttempt.current = attempt;
     setBusyProvider(id);
     setDeviceCode(null);
     try {
       const next = await provider.signIn({
+        signal: attempt.signal,
         token: id === 'github' ? token : undefined,
-        onUserCode: (info) => setDeviceCode(info),
+        onUserCode: (info) => {
+          if (signInAttempt.current === attempt && !attempt.signal.aborted) setDeviceCode(info);
+        },
       });
+      if (signInAttempt.current !== attempt || attempt.signal.aborted) return;
       setSession(next);
       setToken('');
       setShowTokenField(false);
@@ -186,7 +216,7 @@ export function AccountDialog({
       // they never asked for makes signing in feel like a detour.
       if (hint) onOpenChange(false);
     } catch (error) {
-      if (!(error instanceof AccountCancelledError)) {
+      if (signInAttempt.current === attempt && !attempt.signal.aborted && !(error instanceof AccountCancelledError)) {
         toast({
           title: `Could not connect to ${provider.label}`,
           description: error instanceof Error ? error.message : 'Something went wrong.',
@@ -194,7 +224,11 @@ export function AccountDialog({
         });
       }
     } finally {
-      setBusyProvider(null);
+      if (signInAttempt.current === attempt) {
+        signInAttempt.current = null;
+        setBusyProvider(null);
+        setDeviceCode(null);
+      }
     }
   };
 
@@ -247,7 +281,7 @@ export function AccountDialog({
 
   return (
     <>
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -436,6 +470,7 @@ export function AccountDialog({
                     variant="outline"
                     className="h-11 w-full justify-start"
                     disabled={!!busyProvider}
+                    aria-busy={isBusy}
                     onClick={() => handleSignIn(id)}
                   >
                     {isBusy ? (
@@ -448,6 +483,12 @@ export function AccountDialog({
                       <span className="ml-auto text-xs text-muted-foreground">no video</span>
                     )}
                   </Button>
+
+                  {isBusy && (
+                    <Button variant="ghost" size="sm" className="w-full" onClick={cancelSignIn}>
+                      Cancel sign-in
+                    </Button>
+                  )}
 
                   {/* Said here rather than only at the point of failure. The
                       limit is invisible until you have already picked GitHub,
@@ -536,7 +577,7 @@ export function AccountDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
             Close
           </Button>
         </DialogFooter>

@@ -37,8 +37,9 @@ import {
   type ProgressFn,
   type ProjectBundle,
   type ProjectManifest,
+  type SignInOptions,
 } from '../types';
-import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow } from '../transport';
+import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow, throwIfSignInCancelled } from '../transport';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 // No fallback to CLIENT_ID: Google rejects a 127.0.0.1 redirect on a Web
@@ -156,49 +157,68 @@ function loadGis(): Promise<GoogleIdentityApi> {
 
 /** One access token from GIS. `prompt: ''` reuses consent when we already have it. */
 function requestWebToken(
-  prompt: string
+  prompt: string,
+  signal?: AbortSignal
 ): Promise<{ token: string; expiresIn: number; scope?: string }> {
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      signal?.removeEventListener('abort', onAbort);
+      fn();
+    };
+    const onAbort = () => finish(() => reject(new AccountCancelledError()));
+    signal?.addEventListener('abort', onAbort, { once: true });
+    if (signal?.aborted) {
+      onAbort();
+      return;
+    }
     loadGis()
       .then((api) => {
+        if (settled) return;
         const client = api.accounts.oauth2.initTokenClient({
           client_id: CLIENT_ID,
           scope: SCOPES,
           prompt,
           callback: (response) => {
+            if (settled) return;
             if (response.error || !response.access_token) {
               // popup_closed / access_denied are the user backing out, not faults.
               if (/popup_closed|access_denied|user_cancel/i.test(response.error ?? '')) {
-                reject(new AccountCancelledError());
+                finish(() => reject(new AccountCancelledError()));
               } else {
-                reject(new Error(response.error_description ?? response.error ?? 'Google sign-in failed.'));
+                finish(() => reject(new Error(response.error_description ?? response.error ?? 'Google sign-in failed.')));
               }
               return;
             }
-            resolve({
-              token: response.access_token,
+            const token = response.access_token;
+            finish(() => resolve({
+              token,
               expiresIn: response.expires_in ?? 3600,
               scope: response.scope,
-            });
+            }));
           },
           error_callback: (error) => {
             if (/popup_closed|popup_failed_to_open/i.test(error.type ?? '')) {
-              reject(new AccountCancelledError());
+              finish(() => reject(new AccountCancelledError()));
             } else {
-              reject(new Error(error.message ?? 'Google sign-in failed.'));
+              finish(() => reject(new Error(error.message ?? 'Google sign-in failed.')));
             }
           },
         });
         client.requestAccessToken({ prompt });
       })
-      .catch(reject);
+      .catch((error) => finish(() => reject(error)));
   });
 }
 
 // --- desktop loopback -------------------------------------------------------
 
-async function signInDesktop(): Promise<AccountSession> {
+async function signInDesktop(options: SignInOptions = {}): Promise<AccountSession> {
+  throwIfSignInCancelled(options.signal);
   const { verifier, challenge } = await createPkcePair();
+  throwIfSignInCancelled(options.signal);
   const state = randomState();
 
   const { code, redirectUri } = await runLoopbackFlow(
@@ -215,7 +235,7 @@ async function signInDesktop(): Promise<AccountSession> {
         access_type: 'offline',
         prompt: 'consent',
       })}`,
-    { expectedState: state }
+    { expectedState: state, signal: options.signal }
   );
 
   const tokens = await requestJson<{
@@ -223,6 +243,7 @@ async function signInDesktop(): Promise<AccountSession> {
     refresh_token?: string;
     expires_in?: number;
   }>('https://oauth2.googleapis.com/token', {
+    signal: options.signal,
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: formEncode({
@@ -235,7 +256,8 @@ async function signInDesktop(): Promise<AccountSession> {
     }),
   });
 
-  const account = await fetchAccount(tokens.access_token);
+  const account = await fetchAccount(tokens.access_token, options.signal);
+  throwIfSignInCancelled(options.signal);
   return {
     provider: 'google',
     account,
@@ -273,15 +295,17 @@ async function refreshDesktopToken(session: AccountSession): Promise<AccountSess
 
 // --- Drive REST -------------------------------------------------------------
 
-async function fetchAccount(accessToken: string): Promise<Account> {
+async function fetchAccount(accessToken: string, signal?: AbortSignal): Promise<Account> {
   const info = await requestJson<{
     sub: string;
     name?: string;
     email?: string;
     picture?: string;
   }>('https://openidconnect.googleapis.com/v1/userinfo', {
+    signal,
     headers: { Authorization: `Bearer ${accessToken}` },
   });
+  throwIfSignInCancelled(signal);
   return {
     id: info.sub,
     name: info.name ?? info.email ?? 'Google account',
@@ -481,13 +505,16 @@ export const googleDriveProvider: CloudProvider = {
     return !!(DESKTOP_CLIENT_ID && DESKTOP_CLIENT_SECRET && !looksLikeClientId(DESKTOP_CLIENT_SECRET));
   },
 
-  async signIn(): Promise<AccountSession> {
+  async signIn(options: SignInOptions = {}): Promise<AccountSession> {
+    throwIfSignInCancelled(options.signal);
     if (!this.isConfigured()) throw new Error(this.configHint);
-    if (isTauri()) return signInDesktop();
+    if (isTauri()) return signInDesktop(options);
 
-    const { token, expiresIn, scope } = await requestWebToken('consent');
+    const { token, expiresIn, scope } = await requestWebToken('consent', options.signal);
+    throwIfSignInCancelled(options.signal);
     assertDriveGranted(scope);
-    const account = await fetchAccount(token);
+    const account = await fetchAccount(token, options.signal);
+    throwIfSignInCancelled(options.signal);
     return {
       provider: 'google',
       account,

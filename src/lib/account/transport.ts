@@ -13,6 +13,34 @@
 import { isTauri, openExternal } from '@/lib/desktop';
 import { AccountCancelledError } from './types';
 
+export function throwIfSignInCancelled(signal?: AbortSignal | null): void {
+  if (signal?.aborted) throw new AccountCancelledError();
+}
+
+/** Stop waiting for a sign-in operation and discard its late result. */
+export function abortableSignIn<T>(promise: Promise<T>, signal?: AbortSignal | null): Promise<T> {
+  if (!signal) return promise;
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      signal.removeEventListener('abort', onAbort);
+      reject(new AccountCancelledError());
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    if (signal.aborted) onAbort();
+    promise.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort);
+        if (signal.aborted) reject(new AccountCancelledError());
+        else resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(signal.aborted ? new AccountCancelledError() : error);
+      }
+    );
+  });
+}
+
 /**
  * fetch that ignores CORS on desktop. Dynamic import keeps the Tauri HTTP
  * plugin out of the web bundle, mirroring src/lib/desktop.ts and
@@ -58,13 +86,27 @@ export async function requestJson<T>(
   init: RequestInit & { fetchImpl?: typeof fetch } = {}
 ): Promise<T> {
   const { fetchImpl, ...rest } = init;
-  const doFetch = fetchImpl ?? (await bridgeFetch());
-  const response = await doFetch(url, { cache: 'no-store', ...rest });
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(describeHttpError(response.status, text));
+  throwIfSignInCancelled(rest.signal);
+  const doFetch = fetchImpl ?? (await abortableSignIn(bridgeFetch(), rest.signal));
+  throwIfSignInCancelled(rest.signal);
+  // The desktop HTTP plugin keeps abort listeners after reading the response.
+  // A completed request must stop receiving cancellation from later sign-in steps.
+  const requestController = rest.signal ? new AbortController() : undefined;
+  const onAbort = () => requestController?.abort();
+  rest.signal?.addEventListener('abort', onAbort, { once: true });
+  try {
+    throwIfSignInCancelled(rest.signal);
+    const response = await abortableSignIn(doFetch(url, {
+      cache: 'no-store', ...rest, signal: requestController?.signal ?? rest.signal,
+    }), rest.signal);
+    const text = await abortableSignIn(response.text(), rest.signal);
+    if (!response.ok) {
+      throw new Error(describeHttpError(response.status, text));
+    }
+    return (text ? JSON.parse(text) : {}) as T;
+  } finally {
+    rest.signal?.removeEventListener('abort', onAbort);
   }
-  return (text ? JSON.parse(text) : {}) as T;
 }
 
 function describeHttpError(status: number, body: string): string {
@@ -123,21 +165,36 @@ export interface LoopbackResult {
  */
 export async function runLoopbackFlow(
   buildUrl: (redirectUri: string) => string,
-  options: { expectedState?: string; timeoutSecs?: number } = {}
+  options: { expectedState?: string; timeoutSecs?: number; signal?: AbortSignal } = {}
 ): Promise<LoopbackResult> {
+  throwIfSignInCancelled(options.signal);
   const { invoke } = await import('@tauri-apps/api/core');
+  throwIfSignInCancelled(options.signal);
 
   // Rust binds first and reports the port, so the redirect URI is known before
   // the browser opens and there is no race with the provider's redirect.
-  const { port, redirect_uri: redirectUri } = await invoke<{ port: number; redirect_uri: string }>(
-    'abs_oauth_start'
-  );
+  const start = invoke<{ port: number; redirect_uri: string }>('abs_oauth_start');
+  let cancellation: Promise<unknown> | undefined;
+  const cancel = (port: number) =>
+    cancellation ??= invoke('abs_oauth_cancel', { port }).catch(() => {});
+  // Cancellation may arrive before Rust reports which port it opened.
+  void start.then((result) => {
+    if (options.signal?.aborted) void cancel(result.port);
+  }, () => {});
+  const { port, redirect_uri: redirectUri } = await abortableSignIn(start, options.signal);
+  const onAbort = () => { void cancel(port); };
+  options.signal?.addEventListener('abort', onAbort, { once: true });
 
   try {
-    await openExternal(buildUrl(redirectUri));
-    const result = await invoke<{ code?: string; state?: string; error?: string }>(
-      'abs_oauth_await',
-      { port, timeoutSecs: options.timeoutSecs ?? 300 }
+    throwIfSignInCancelled(options.signal);
+    await abortableSignIn(openExternal(buildUrl(redirectUri)), options.signal);
+    throwIfSignInCancelled(options.signal);
+    const result = await abortableSignIn(
+      invoke<{ code?: string; state?: string; error?: string }>(
+        'abs_oauth_await',
+        { port, timeoutSecs: options.timeoutSecs ?? 300 }
+      ),
+      options.signal
     );
 
     if (result.error) {
@@ -150,12 +207,8 @@ export async function runLoopbackFlow(
     }
     return { code: result.code, state: result.state, redirectUri };
   } finally {
-    // Idempotent; releases the socket if the flow threw before it was consumed.
-    try {
-      await invoke('abs_oauth_cancel', { port });
-    } catch {
-      // Already gone.
-    }
+    options.signal?.removeEventListener('abort', onAbort);
+    await cancel(port);
   }
 }
 

@@ -42,7 +42,7 @@ import {
   type ProjectManifest,
   type SignInOptions,
 } from '../types';
-import { bridgeFetch, formEncode, randomState, requestJson } from '../transport';
+import { bridgeFetch, formEncode, randomState, requestJson, throwIfSignInCancelled } from '../transport';
 import {
   base64ToBlob,
   blobToBase64,
@@ -146,15 +146,16 @@ async function githubJson<T>(
   }
 }
 
-async function fetchAccount(accessToken: string): Promise<Account> {
+async function fetchAccount(accessToken: string, signal?: AbortSignal): Promise<Account> {
   const user = await requestJson<{ id: number; login: string; name?: string; email?: string; avatar_url?: string }>(
     `${API}/user`,
-    { headers: { ...API_VERSION_HEADERS, Authorization: `Bearer ${accessToken}` } }
+    { signal, headers: { ...API_VERSION_HEADERS, Authorization: `Bearer ${accessToken}` } }
   ).catch((error) => {
     const message = error instanceof Error ? error.message : String(error);
     if (/HTTP 401/.test(message)) throw new AccountAuthError('That GitHub token was rejected.');
     throw error;
   });
+  throwIfSignInCancelled(signal);
 
   return {
     id: String(user.id),
@@ -183,6 +184,7 @@ function encodeState(payload: { n: string; o: string }): string {
  */
 function signInWebPopup(options: SignInOptions = {}): Promise<AccountSession> {
   return new Promise((resolve, reject) => {
+    throwIfSignInCancelled(options.signal);
     const nonce = randomState();
     const state = encodeState({ n: nonce, o: window.location.origin });
     const proxyOrigin = new URL(OAUTH_PROXY).origin;
@@ -200,6 +202,8 @@ function signInWebPopup(options: SignInOptions = {}): Promise<AccountSession> {
     const popup = opened;
 
     let settled = false;
+    const accountController = new AbortController();
+    let accountInFlight = false;
     // Set the moment a usable message arrives. The popup closes itself right
     // after posting, so without this the "did the user close it?" watchdog
     // races the account lookup and reports a cancellation on every success.
@@ -211,10 +215,12 @@ function signInWebPopup(options: SignInOptions = {}): Promise<AccountSession> {
       clearInterval(closedTimer);
       clearTimeout(timeout);
       options.signal?.removeEventListener('abort', onAbort);
+      if (accountInFlight) accountController.abort();
       fn();
     };
 
     function onMessage(event: MessageEvent) {
+      if (settled || resultInFlight) return;
       // Only the Worker may deliver a token, and only for the sign-in we started.
       if (event.origin !== proxyOrigin) return;
       const data = event.data as { source?: string; nonce?: string; token?: string; error?: string };
@@ -234,9 +240,16 @@ function signInWebPopup(options: SignInOptions = {}): Promise<AccountSession> {
         return;
       }
       const token = data.token;
-      fetchAccount(token).then(
-        (account) => finish(() => resolve({ provider: 'github', account, accessToken: token })),
-        (error) => finish(() => reject(error))
+      accountInFlight = true;
+      fetchAccount(token, accountController.signal).then(
+        (account) => {
+          accountInFlight = false;
+          finish(() => resolve({ provider: 'github', account, accessToken: token }));
+        },
+        (error) => {
+          accountInFlight = false;
+          finish(() => reject(error));
+        }
       );
     }
 
@@ -262,12 +275,14 @@ function signInWebPopup(options: SignInOptions = {}): Promise<AccountSession> {
 
     window.addEventListener('message', onMessage);
     options.signal?.addEventListener('abort', onAbort, { once: true });
+    if (options.signal?.aborted) onAbort();
   });
 }
 
 // --- desktop device flow ----------------------------------------------------
 
 async function signInDesktop(options: SignInOptions = {}): Promise<AccountSession> {
+  throwIfSignInCancelled(options.signal);
   if (!CLIENT_ID) throw new Error('GitHub device sign-in needs NEXT_PUBLIC_GITHUB_CLIENT_ID.');
 
   const start = await requestJson<{
@@ -277,18 +292,20 @@ async function signInDesktop(options: SignInOptions = {}): Promise<AccountSessio
     expires_in: number;
     interval: number;
   }>('https://github.com/login/device/code', {
+    signal: options.signal,
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
     body: formEncode({ client_id: CLIENT_ID, scope: 'gist' }),
   });
 
+  throwIfSignInCancelled(options.signal);
   options.onUserCode?.({ userCode: start.user_code, verificationUri: start.verification_uri });
 
   const deadline = Date.now() + start.expires_in * 1000;
   let intervalMs = Math.max(start.interval, 5) * 1000;
 
   while (Date.now() < deadline) {
-    if (options.signal?.aborted) throw new AccountCancelledError();
+    throwIfSignInCancelled(options.signal);
     await sleep(intervalMs, options.signal);
 
     const poll = await requestJson<{
@@ -296,6 +313,7 @@ async function signInDesktop(options: SignInOptions = {}): Promise<AccountSessio
       error?: string;
       interval?: number;
     }>('https://github.com/login/oauth/access_token', {
+      signal: options.signal,
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
       body: formEncode({
@@ -305,8 +323,10 @@ async function signInDesktop(options: SignInOptions = {}): Promise<AccountSessio
       }),
     });
 
+    throwIfSignInCancelled(options.signal);
     if (poll.access_token) {
-      const account = await fetchAccount(poll.access_token);
+      const account = await fetchAccount(poll.access_token, options.signal);
+      throwIfSignInCancelled(options.signal);
       return { provider: 'github', account, accessToken: poll.access_token };
     }
     switch (poll.error) {
@@ -328,6 +348,7 @@ async function signInDesktop(options: SignInOptions = {}): Promise<AccountSessio
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
+    throwIfSignInCancelled(signal);
     const timer = setTimeout(() => {
       signal?.removeEventListener('abort', onAbort);
       resolve();
@@ -433,13 +454,15 @@ export const githubProvider: CloudProvider = {
   },
 
   async signIn(options: SignInOptions = {}): Promise<AccountSession> {
+    throwIfSignInCancelled(options.signal);
     if (isTauri() && CLIENT_ID) return signInDesktop(options);
 
     // A pasted token always wins when one is supplied, so the fallback stays
     // available even where the Worker is configured.
     const token = options.token?.trim();
     if (token) {
-      const account = await fetchAccount(token);
+      const account = await fetchAccount(token, options.signal);
+      throwIfSignInCancelled(options.signal);
       return { provider: 'github', account, accessToken: token };
     }
 
