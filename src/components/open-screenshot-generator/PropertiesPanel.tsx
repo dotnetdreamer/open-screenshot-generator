@@ -50,6 +50,10 @@ import {
   SelectLabel
 } from "@/components/ui/select";
 import { FontFamilySelect } from './FontFamilySelect';
+import { StudioDeviceProperties } from './StudioDeviceProperties';
+import { studioConversionPatch, studioModelFor } from '@/lib/device3dStudio';
+import { isDevice3dStyle } from '@/lib/devicePerspective';
+import type { StudioLiveHandler } from '@/lib/device3dStudioLive';
 import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 import { trackScreenshotUploaded } from '@/lib/analytics';
@@ -746,6 +750,7 @@ interface PropertiesPanelProps {
    * the input before blur is delivered).
    */
   onUpdateElementById?: (elementId: string, updates: Partial<ArtboardElement>) => void;
+  onStudioLive?: StudioLiveHandler;
   /**
    * Open the translate dialog scoped to a single text element. Omitted when
    * the host has no translation flow to offer.
@@ -1060,6 +1065,7 @@ export function PropertiesPanel({
   selectedElement, 
   onUpdateElement, 
   onUpdateElementById,
+  onStudioLive,
   selectedElementIds,
   onAlignElements,
   onDistributeElements,
@@ -1901,6 +1907,11 @@ export function PropertiesPanel({
   // Add device style type handler
   const handleDeviceStyleTypeChange = (styleType: string) => {
     if (selectedElement?.type === 'device') {
+      if (styleType === '3d-studio' && selectedElement.styleType !== '3d-studio') {
+        // Starts from the angle the device already shows, in a box fitted to it.
+        onUpdateElement(studioConversionPatch(selectedElement as DeviceFrameElementProps));
+        return;
+      }
       onUpdateElement({ styleType: styleType as DeviceStyleType });
     }
   };
@@ -2035,6 +2046,10 @@ export function PropertiesPanel({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="normal">Normal</SelectItem>
+            {/* Only devices with a studio model can be turned freely. */}
+            {(studioModelFor(element.deviceType) || element.styleType === '3d-studio') && (
+              <SelectItem value="3d-studio">3D Studio (any angle)</SelectItem>
+            )}
             <SelectItem value="3d-left">3D Left Side</SelectItem>
             <SelectItem value="3d-right">3D Right Side</SelectItem>
             <SelectItem value="perspective-left">Left Angle</SelectItem>
@@ -2100,8 +2115,19 @@ export function PropertiesPanel({
         </>
       )}
 
+      {/* 3D Studio: free angle, lens, finish and light */}
+      {element.styleType === '3d-studio' && studioModelFor(element.deviceType) && (
+        <StudioDeviceProperties
+          element={element}
+          onUpdateElement={onUpdateElement}
+          onUpdateElementById={onUpdateElementById}
+          onStudioLive={onStudioLive}
+          labelRow={(label, keys, what) => detachLabelRow(label, keys, what)}
+        />
+      )}
+
       {/* Colored-frame controls for the flat styles */}
-      {element.styleType !== '3d-left' && element.styleType !== '3d-right' && element.deviceType !== 'custom' && (
+      {!isDevice3dStyle(element.styleType) && element.deviceType !== 'custom' && (
         <>
           <div className="grid grid-cols-2 gap-2 min-w-[100%]">
             <div>

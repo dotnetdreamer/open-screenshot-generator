@@ -14,6 +14,15 @@ import { useImageSrc } from '@/lib/mediaStore';
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import { trackScreenshotUploaded } from '@/lib/analytics';
 import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './deviceChrome';
+import {
+  exposedSide,
+  studioFinishOf,
+  studioGlareOf,
+  studioLensOf,
+  studioLightOf,
+  studioModelFor,
+  studioOrientationOf,
+} from '@/lib/device3dStudio';
 
 // three.js (~145 KB gz) only ships when a 3D device is actually rendered. A
 // static import pulled the whole WebGL renderer onto the first-paint critical
@@ -22,6 +31,19 @@ import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './device
 // device mount; a spinner covers the brief chunk fetch.
 const Device3DRenderer = dynamic(
   () => import('./Device3DRenderer').then((m) => m.Device3DRenderer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+      </div>
+    ),
+  }
+);
+
+// The 3D Studio renderer, split the same way: only a turnable device loads it.
+const DeviceStudioRenderer = dynamic(
+  () => import('./DeviceStudioRenderer').then((m) => m.DeviceStudioRenderer),
   {
     ssr: false,
     loading: () => (
@@ -255,7 +277,13 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
   // True-3D mode: rendered with three.js (real geometry, lighting and a camera
   // whose distance is proportional to the device) so the depth reads identically
   // at any element size and the screenshot wraps the screen face exactly.
-  const is3DMode = element.styleType === '3d-left' || element.styleType === '3d-right';
+  // The 3D Studio style is drawn by its own renderer when the device has a
+  // studio model, and by the posed renderer, facing the same way, when it has
+  // none (a watch or a Mac someone switched to it), so it never draws blank.
+  const isStudio = element.styleType === '3d-studio';
+  const studioModel = isStudio ? studioModelFor(element.deviceType) : null;
+  const studioFinish = studioModel ? studioFinishOf(element, studioModel) : null;
+  const is3DMode = element.styleType === '3d-left' || element.styleType === '3d-right' || isStudio;
 
   // Check if we're using the SVG perspective mode
   const usingSvgPerspectiveMode = element.styleType && element.styleType !== 'normal' && !is3DMode;
@@ -319,18 +347,37 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
         // hand it is actually offering, instead of a plain arrow.
         style={{ cursor: 'inherit', position: 'relative' }}
       >
-        <Device3DRenderer
-          deviceType={element.deviceType}
-          side={element.styleType === '3d-left' ? 'left' : 'right'}
-          screenshotSrc={screenshot}
-          objectFit={element.screenshotObjectFit || 'cover'}
-          pose={element.pose3d}
-          frameColor={element.frameColor3d}
-        />
+        {studioFinish ? (
+          <DeviceStudioRenderer
+            deviceType={element.deviceType}
+            screenshotSrc={screenshot}
+            objectFit={element.screenshotObjectFit || 'cover'}
+            orientation={studioOrientationOf(element)}
+            lens={studioLensOf(element)}
+            frameColor={studioFinish.frame}
+            backColor={studioFinish.back}
+            light={studioLightOf(element)}
+            glare={studioGlareOf(element)}
+            liveKey={element.id}
+          />
+        ) : (
+          <Device3DRenderer
+            deviceType={element.deviceType}
+            side={isStudio ? (exposedSide(studioOrientationOf(element)) < 0 ? 'left' : 'right') : element.styleType === '3d-left' ? 'left' : 'right'}
+            screenshotSrc={screenshot}
+            objectFit={element.screenshotObjectFit || 'cover'}
+            pose={isStudio ? 'front' : element.pose3d}
+            frameColor={element.frameColor3d}
+          />
+        )}
         {!screenshot && (
           // Overlay text must scale with the element: the artboard is displayed
           // CSS-scaled down, so fixed 12px text becomes unreadable.
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground text-center pointer-events-none">
+          // A 3D Studio device keeps its middle clear for the rotate handle.
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground text-center pointer-events-none"
+            style={isStudio ? { paddingTop: '42%' } : undefined}
+          >
             <p
               className="bg-background/70 rounded"
               style={{

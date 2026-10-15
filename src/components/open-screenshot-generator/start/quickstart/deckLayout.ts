@@ -7,6 +7,7 @@
  */
 
 import type { ArtboardState, DeviceFrameElementProps, Size } from '@/types/artboard';
+import { isDevice3dStyle } from '@/lib/devicePerspective';
 
 /**
  * Every card's boards are this tall, so the deck reads as one row of cards.
@@ -83,7 +84,7 @@ export function flattenBoard3d(board: ArtboardState): ArtboardState {
   const elements = board.elements.map((element) => {
     if (element.type !== 'device') return element;
     const device = element as DeviceFrameElementProps;
-    if (device.styleType !== '3d-left' && device.styleType !== '3d-right') return element;
+    if (!isDevice3dStyle(device.styleType)) return element;
     changed = true;
     return { ...device, styleType: 'normal' as const };
   });

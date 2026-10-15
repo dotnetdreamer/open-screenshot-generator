@@ -55,6 +55,7 @@ import {
   coloredDeviceStyleProps,
   type ColoredDeviceTileDef,
 } from '@/lib/device3dPresets';
+import { STUDIO_MODELS, studioTileStyleProps } from '@/lib/device3dStudio';
 import { withBasePath } from '@/lib/basePath';
 import { useTouchDrag, type TouchDragBinding } from '@/hooks/use-touch-drag';
 import {
@@ -66,6 +67,7 @@ import {
   imageLibraryId,
   previewLibraryId,
   previewSceneLibraryId,
+  studio3dLibraryId,
 } from '@/lib/libraryIds';
 import {
   PREVIEW_SCENES,
@@ -183,9 +185,10 @@ const ColoredDeviceGlyph: React.FC<{ def: ColoredDeviceTileDef }> = ({ def }) =>
 
 // ---- Device library categories (overview grid -> drill-in, like the Element Library) ----
 
-type DeviceCategoryId = '3d-iphone' | '3d-android' | '3d-watch' | '3d-mac' | 'colored-iphone' | 'colored-android' | 'mockups';
+type DeviceCategoryId = '3d-studio' | '3d-iphone' | '3d-android' | '3d-watch' | '3d-mac' | 'colored-iphone' | 'colored-android' | 'mockups';
 
 const DEVICE_CATEGORY_LABELS: Record<DeviceCategoryId, string> = {
+  '3d-studio': '3D Studio',
   '3d-iphone': '3D iPhone 17 Pro Max',
   '3d-android': '3D Android',
   '3d-watch': '3D Apple Watch',
@@ -200,15 +203,22 @@ const IPHONE_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-le
 const ANDROID_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white', 'upright-right-white'];
 const WATCH_3D_PREVIEWS = ['front-right-black', 'front-left-white', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white'];
 const MAC_3D_PREVIEWS = ['macbook-front-right-black', 'imac-front-right-black', 'macbook-upright-right-white', 'imac-side-left-white', 'macbook-side-right-black', 'macbook-tilted-right-black'];
+// Studio previews are model thumbnails, one per model.
+const STUDIO_3D_PREVIEWS = ['iphone-18-pro-max', 'iphone-air', 'iphone-17', 'iphone-17-pro', 'iphone-16-pro', 'iphone-16'];
 
 /** Category card for the device library overview (mini previews + label). */
-const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void }> = ({ label, previews, onOpen }) => (
+const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void; badge?: string }> = ({ label, previews, onOpen, badge }) => (
   <button
     type="button"
     onClick={onOpen}
-    className="flex flex-col items-center gap-1.5 group"
+    className="relative flex flex-col items-center gap-1.5 group"
     title={`Browse ${label}`}
   >
+    {badge && (
+      <span className="absolute right-1 top-1 z-10 rounded-full bg-primary px-1.5 py-px text-[9px] font-semibold leading-tight text-primary-foreground">
+        {badge}
+      </span>
+    )}
     <div className="w-full aspect-square rounded-xl bg-accent/10 group-hover:bg-accent/25 transition-colors p-3 grid grid-cols-3 grid-rows-2 gap-2 place-items-center text-foreground/90">
       {previews.slice(0, 6).map((p, i) => (
         <div key={i} className="w-full h-full flex items-center justify-center overflow-hidden">{p}</div>
@@ -837,6 +847,25 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                   Back
                 </Button>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-3 pr-1">
+                  {openDeviceCategoryId === '3d-studio' && (
+                    <>
+                      <p className="col-span-2 text-xs leading-snug text-muted-foreground">
+                        Drag the round handle on a phone to turn it. Its color and angle are in Properties
+                      </p>
+                      {STUDIO_MODELS.map((model) => (
+                        <Device3DThumbTile
+                          key={`studio-${model.id}`}
+                          src={`/elements/device-3d/studio/${model.id}.png`}
+                          label={model.label}
+                          title={`Add ${model.label} in 3D`}
+                          libraryId={studio3dLibraryId(model.id)}
+                          deviceType={model.id}
+                          styleProps={studioTileStyleProps(model)}
+                          onDragStart={handleDragStart}
+                        />
+                      ))}
+                    </>
+                  )}
                   {openDeviceCategoryId === '3d-iphone' &&
                     COLORS_3D.map((color) =>
                       POSE_ORDER.map((pose) =>
@@ -988,6 +1017,14 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                   <CardTitle className="text-base">Device Library</CardTitle>
                 </CardHeader>
                 <CardContent className="p-2 grid grid-cols-2 gap-x-2 gap-y-3">
+                  <DeviceCategoryCard
+                    label={DEVICE_CATEGORY_LABELS['3d-studio']}
+                    badge="New"
+                    onOpen={() => setOpenDeviceCategoryId('3d-studio')}
+                    previews={STUDIO_3D_PREVIEWS.map((k) => (
+                      <img key={k} src={withBasePath(`/elements/device-3d/studio/${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                    ))}
+                  />
                   <DeviceCategoryCard
                     label={DEVICE_CATEGORY_LABELS['3d-iphone']}
                     onOpen={() => setOpenDeviceCategoryId('3d-iphone')}

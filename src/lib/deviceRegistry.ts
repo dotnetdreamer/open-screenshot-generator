@@ -1,4 +1,6 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
+import { isStudioStyle, studioModelFor, withStudioRehug } from './device3dStudio';
+import { bezelOf, cornerRadiusOf, measuredModelFor } from './device3dModels';
 
 export type DevicePlatform = 'ios' | 'android' | 'neutral';
 export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'custom';
@@ -36,6 +38,31 @@ export interface DeviceDescriptor {
   counterpart?: Partial<Record<SwapPlatform, DeviceType>>;
 }
 
+/**
+ * The registry entry of an iPhone measured from Apple's drawings
+ * (device3dModels.ts): its label, screen proportions, bezel and screen corner
+ * come from the drawing, and it swaps to the Android phone with the same kind
+ * of cutout.
+ */
+function measuredPhone(id: DeviceType): DeviceDescriptor {
+  const model = measuredModelFor(id);
+  if (!model) throw new Error(`No measured model for ${id}`);
+  const bezel = bezelOf(model);
+  const padding = (bezel / model.width) * 100;
+  return {
+    id,
+    label: model.label,
+    platform: 'ios',
+    category: 'phone',
+    nativeAspect: model.screenPoints[0] / model.screenPoints[1],
+    counterpart: { android: model.cutout.kind === 'notch' ? 'android-notch' : 'android-punch-hole' },
+    screen: {
+      paddingPercent: { top: padding, right: padding, bottom: padding, left: padding },
+      radiusFactor: Math.max(0, cornerRadiusOf(model) - bezel) / model.width,
+    },
+  };
+}
+
 export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone': { id: 'iphone', label: 'iPhone (Classic)', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-bar' }, screen: { paddingPercent: { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 }, radiusFactor: 0.08 } },
   'iphone-x': { id: 'iphone-x', label: 'iPhone X', platform: 'ios', category: 'phone', nativeAspect: 375 / 812, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.09 } },
@@ -44,6 +71,17 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone-15': { id: 'iphone-15', label: 'iPhone 15', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-15-pro': { id: 'iphone-15-pro', label: 'iPhone 15 Pro', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
+  'iphone-18-pro-max': measuredPhone('iphone-18-pro-max'),
+  'iphone-18-pro': measuredPhone('iphone-18-pro'),
+  'iphone-17-pro': measuredPhone('iphone-17-pro'),
+  'iphone-air': measuredPhone('iphone-air'),
+  'iphone-17': measuredPhone('iphone-17'),
+  'iphone-17e': measuredPhone('iphone-17e'),
+  'iphone-16-pro-max': measuredPhone('iphone-16-pro-max'),
+  'iphone-16-pro': measuredPhone('iphone-16-pro'),
+  'iphone-16-plus': measuredPhone('iphone-16-plus'),
+  'iphone-16': measuredPhone('iphone-16'),
+  'iphone-16e': measuredPhone('iphone-16e'),
   // App Store iPads. Like the Play Store tablets, they map to BOTH platforms'
   // phones so converting an iPad project to a phone format is never a dead end.
   'ipad-pro-13': { id: 'ipad-pro-13', label: 'iPad Pro 13-inch', platform: 'ios', category: 'tablet', nativeAspect: 2064 / 2752, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.2, right: 3.2, bottom: 3.2, left: 3.2 }, radiusFactor: 0.032 } },
@@ -178,6 +216,11 @@ export function buildSwapUpdates(
   const from = DEVICE_REGISTRY[el.deviceType] as DeviceDescriptor | undefined;
   const to = DEVICE_REGISTRY[target] as DeviceDescriptor | undefined;
   if (!to || to.category === 'custom' || el.deviceType === target) return {};
+  // A 3D Studio device keeps its angle and its height on screen, and its box
+  // closes round the new model's silhouette.
+  if (isStudioStyle(el.styleType) && studioModelFor(el.deviceType) && studioModelFor(target)) {
+    return withStudioRehug(el, { deviceType: target });
+  }
   const updates: Partial<DeviceFrameElementProps> = { deviceType: target };
   if (from && from.category !== 'custom' && from.category !== to.category) {
     const area = el.size.width * el.size.height;

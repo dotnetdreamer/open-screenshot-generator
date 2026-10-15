@@ -78,7 +78,21 @@ interface DraggableElementProps {
   artboardId?: string;
   /** Set while the element continues onto another artboard, see SpanBinding. */
   span?: SpanBinding;
+  /**
+   * Editing chrome of the element's own, drawn with the grips and sized like
+   * them: the 3D Studio rotate handle. Only while this is the one selected
+   * layer, and outside the artwork wrapper, so the element's shadow, blur and
+   * opacity never reach it.
+   */
+  overlay?: (chrome: SelectionChrome) => React.ReactNode;
   children: React.ReactNode;
+}
+
+/** How big the selection chrome is drawn, for an overlay that has to match it. */
+export interface SelectionChrome {
+  /** The grips' scale: a 10px grip is drawn at 10 * handleScale artboard px. */
+  handleScale: number;
+  outlineThickness: number;
 }
 
 const HANDLE_SIZE_BASE = 10;
@@ -205,6 +219,7 @@ export function DraggableElement({
   onDragCommit,
   showHandles = true,
   span,
+  overlay,
   children
 }: DraggableElementProps) {
   const coarsePointer = useCoarsePointer();
@@ -991,6 +1006,8 @@ export function DraggableElement({
           </HandleComponent>
         </>
       )}
+
+      {isSelected && showHandles && overlay?.({ handleScale: handleVisualScale, outlineThickness })}
     </div>
   );
 }

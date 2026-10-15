@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { captureNodeToPng } from '@/lib/exportRaster';
+import { updateStudioLive } from '@/lib/device3dStudioLive';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
@@ -6528,6 +6529,7 @@ export function OpenScreenshotGeneratorLayout() {
   const dockHandlers: DockHandlers = {
     onUpdateElement: handleUpdateSelectedElement,
     onUpdateElementById: handleUpdateElementById,
+    onStudioLive: updateStudioLive,
     onTranslateElement: handleTranslateTextElement,
     onUpdateArtboardDetails: handleUpdateArtboardDetails,
     onResetLocaleField: handleResetLocaleField,

@@ -1,0 +1,467 @@
+// The 3D Studio device: the measured models hold together, pose parity with
+// the posed devices, the orientation maths and the turntable drag, keeping the
+// box round a turned device, finishes, the conversion from other styles, and
+// the seams that count or list 3D devices.
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  STUDIO_LOOKS,
+  STUDIO_MODELS,
+  STUDIO_TILE_LOOK,
+  isMeasuredModel,
+  matchStudioLook,
+  mirrorOrientation,
+  orientationForPose,
+  orientationFromMatrix,
+  orientationMatrix,
+  rehugStudioBox,
+  studioConversionPatch,
+  studioDefaultSize,
+  studioFinishOf,
+  studioFrame,
+  studioLookById,
+  studioModelFor,
+  studioTileStyleProps,
+  turntableTurn,
+  withStudioRehug,
+  wrapDegrees,
+} from '@/lib/device3dStudio';
+import { backEdgeLift, insetAt, insetOutline, phoneOutline, plateauDeck, smoothCorner, surfaceHeightAt } from '@/lib/device3dGeometry';
+import type { PlateauPad } from '@/lib/device3dModels';
+import { DEVICE_3D_POSE_ANGLES } from '@/lib/device3dPoseAngles';
+import { IPHONE_3D_SIZES, POSE_ORDER } from '@/lib/device3dPresets';
+import { DEVICE_REGISTRY, buildSwapUpdates } from '@/lib/deviceRegistry';
+import { isDevice3dStyle } from '@/lib/devicePerspective';
+import { flattenBoard3d } from '@/components/open-screenshot-generator/start/quickstart/deckLayout';
+import { listLibraryItems, resolveLibraryItem } from '@/lib/mcp/assetLibrary';
+import { describeArtboardsChange } from '@/lib/historyLabels';
+import type { ArtboardState, Device3DOrientation, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
+
+const near = (a: number, b: number, tolerance = 1e-6) => Math.abs(a - b) <= tolerance;
+const PRO_MAX = studioModelFor('iphone-17-pro-max')!;
+
+function studioPhone(overrides: Partial<DeviceFrameElementProps> = {}): DeviceFrameElementProps {
+  const rotation3d = overrides.rotation3d ?? { yaw: 34, pitch: 0, roll: 0 };
+  const deviceType = overrides.deviceType ?? 'iphone-17-pro-max';
+  const size = studioDefaultSize(studioModelFor(deviceType)!, rotation3d);
+  return {
+    id: 'phone',
+    type: 'device',
+    deviceType,
+    styleType: '3d-studio',
+    position: { x: 300, y: 600 },
+    size,
+    scale: 1,
+    rotation: 0,
+    rotation3d,
+    ...overrides,
+  };
+}
+
+/** Where the device centre lands on the artboard, the point a turn must not move, and its scale. */
+function deviceCentre(el: DeviceFrameElementProps) {
+  const model = studioModelFor(el.deviceType)!;
+  const w = el.size.width * el.scale;
+  const h = el.size.height * el.scale;
+  const frame = studioFrame(model, el.rotation3d!, el.lens3d ?? 20, w, h);
+  const lx = -frame.centerU * frame.scale;
+  const ly = frame.centerV * frame.scale;
+  const a = (el.rotation * Math.PI) / 180;
+  return {
+    x: el.position.x + w / 2 + lx * Math.cos(a) - ly * Math.sin(a),
+    y: el.position.y + h / 2 + lx * Math.sin(a) + ly * Math.cos(a),
+    scale: frame.scale,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// The measured models
+// ---------------------------------------------------------------------------
+
+test('every measured model holds together', () => {
+  assert.ok(STUDIO_MODELS.length > 0);
+  for (const m of STUDIO_MODELS) {
+    const where = m.label;
+    assert.ok(m.drawing.match(/^\d{4}-\d{2}-\d{2}$/), `${where}: drawing date`);
+    assert.ok(m.width > 60 && m.width < 85 && m.height > 130 && m.height < 175, `${where}: size`);
+    assert.ok(m.thickness > 5 && m.thickness < 10, `${where}: thickness`);
+    // The display sits inside the glass, which sits inside the outline.
+    assert.ok(m.display.width < m.glass.width && m.glass.width < m.width, `${where}: widths nest`);
+    assert.ok(m.display.height < m.glass.height && m.glass.height < m.height, `${where}: heights nest`);
+    // Every sheet draws one bezel all round. A printed active area that
+    // disagrees with it (the 16 Pro's 144.79) is a label slip, not the panel.
+    const bezelX = (m.width - m.display.width) / 2;
+    const bezelY = (m.height - m.display.height) / 2;
+    assert.ok(near(bezelX, bezelY, 0.01), `${where}: an even bezel all round (${bezelX} vs ${bezelY})`);
+    // The corner runs from the top tangent to the side tangent.
+    const first = m.corner[0];
+    const last = m.corner[m.corner.length - 1];
+    assert.ok(first[1] === 0 && last[0] === 0 && first[0] > 10 && last[1] > 10, `${where}: corner ends`);
+    // The edge starts where the front is flat and ends where the back is.
+    assert.ok(near(m.edge[0][0], m.flatInset, 0.02), `${where}: edge starts at the flat front`);
+    assert.ok(near(m.edge[0][1] - m.edge[m.edge.length - 1][1], m.thickness, 0.03), `${where}: edge spans the thickness`);
+    assert.ok(m.edge.some(([inset]) => inset === 0), `${where}: the edge reaches the outline`);
+    // Everything on the back is on the back.
+    for (const lens of m.lenses) {
+      assert.ok(lens.x - lens.ring / 2 > 0 && lens.x + lens.ring / 2 < m.width, `${where}: lens x`);
+      assert.ok(lens.y - lens.ring / 2 > 0 && lens.y + lens.ring / 2 < m.height / 2, `${where}: lens y`);
+      assert.ok(lens.glass < lens.ring, `${where}: lens glass inside its ring`);
+      assert.ok(m.lensTop > surfaceHeightAt(m, lens.x, lens.y), `${where}: lens stands proud of what it sits on`);
+    }
+    for (const button of m.buttons) {
+      assert.ok(button.center - button.length / 2 > 10 && button.center + button.length / 2 < m.height - 10, `${where}: button on the side`);
+      assert.ok(button.width < m.thickness, `${where}: button fits the edge`);
+    }
+    assert.ok(m.finishes.some((f) => f.id === m.defaultFinish), `${where}: default finish exists`);
+    for (const f of m.finishes) assert.match(f.frame + f.back, /^#[0-9a-f]{6}#[0-9a-f]{6}$/, `${where}: ${f.id} colours`);
+    // Each measured model is a device type of its own, labelled the same.
+    assert.equal(DEVICE_REGISTRY[m.id]?.label, m.label, `${where}: registered`);
+    assert.equal(isMeasuredModel(m.id), true);
+  }
+});
+
+test('the outline passes through every measured corner point, and the display is the outline inset by the bezel', () => {
+  for (const m of STUDIO_MODELS) {
+    const outline = phoneOutline(m);
+    const xs = outline.map((p) => p.x);
+    const ys = outline.map((p) => p.y);
+    assert.ok(near(Math.max(...xs) - Math.min(...xs), m.width, 1e-6), `${m.label}: outline width`);
+    assert.ok(near(Math.max(...ys) - Math.min(...ys), m.height, 1e-6), `${m.label}: outline height`);
+    const curve = smoothCorner(m.corner);
+    for (const [x, y] of m.corner) {
+      const closest = Math.min(...curve.map(([cx, cy]) => Math.hypot(cx - x, cy - y)));
+      assert.ok(closest < 1e-6, `${m.label}: corner point ${x},${y}`);
+    }
+    const bezel = (m.width - m.display.width) / 2;
+    const display = insetOutline(m, bezel);
+    const dx = display.map((p) => p.x);
+    const dy = display.map((p) => p.y);
+    assert.ok(near(Math.max(...dx) - Math.min(...dx), m.display.width, 0.01), `${m.label}: display width`);
+    assert.ok(near(Math.max(...dy) - Math.min(...dy), m.display.height, 0.01), `${m.label}: display height`);
+  }
+});
+
+test('the 17 Pro Max matches its drawing', () => {
+  // Spot checks against Apple's sheet: product, display, island, lenses.
+  assert.deepEqual([PRO_MAX.width, PRO_MAX.height, PRO_MAX.thickness], [77.98, 163.43, 8.75]);
+  assert.deepEqual([PRO_MAX.display.width, PRO_MAX.display.height], [72.86, 158.31]);
+  assert.deepEqual(PRO_MAX.cutout, { kind: 'island', width: 20.76, height: 6.07, center: 7.91 });
+  assert.deepEqual(PRO_MAX.lenses.map((l) => [l.x, l.y, l.ring]), [[14.37, 14.37, 16.2], [14.37, 33.61, 16.2], [32.36, 23.99, 16.2]]);
+  assert.equal(PRO_MAX.lensTop, 2.55 + 1.88);
+});
+
+test('a Pro plateau is a flat top on a concave wall, inside the frame rim, meeting the back where the drawings do', () => {
+  const plateaus = STUDIO_MODELS.flatMap((m) => m.pads.filter((p): p is PlateauPad => p.shape === 'plateau').map((p) => ({ m, p })));
+  assert.deepEqual(plateaus.map(({ m }) => m.id), ['iphone-18-pro-max', 'iphone-18-pro', 'iphone-17-pro-max', 'iphone-17-pro']);
+  for (const { m, p } of plateaus) {
+    const where = m.label;
+    const { wall } = p;
+    assert.deepEqual(wall[0], [0, p.height], `${where}: the wall starts at the top's edge and height`);
+    assert.equal(wall[wall.length - 1][1], 0, `${where}: the wall ends on the back`);
+    // Every one of these back views draws the line where the wall lies down
+    // on the back 47.96 from the top.
+    assert.ok(near(p.deckBottom + wall[wall.length - 1][0], 47.96, 0.01), `${where}: the wall meets the back at 47.96`);
+    // Concave: past the crisp edge it only gets gentler.
+    const slopes = wall.slice(1).map(([d, r], i) => (wall[i][1] - r) / (d - wall[i][0]));
+    assert.ok(slopes.every((s) => s >= 0), `${where}: the wall only falls`);
+    for (let i = 2; i < slopes.length; i++) assert.ok(slopes[i] <= slopes[i - 1] + 0.01, `${where}: concave at wall point ${i + 1}`);
+    // The flat top sits inside the frame's rounded rim all round, its corners
+    // rounder than the outline's.
+    const outline = phoneOutline(m);
+    const deck = plateauDeck(m, p);
+    const backFlat = m.edge[m.edge.length - 1][0];
+    assert.ok(p.deckInset > backFlat, `${where}: the top starts inside the back's flat`);
+    for (const q of deck) assert.ok(insetAt(outline, q.x, q.y) >= p.deckInset - 0.01, `${where}: the top's edge at ${q.x.toFixed(2)}, ${q.y.toFixed(2)}`);
+  }
+});
+
+test('every camera bump has the cove its section draws, falling from its top to its footprint', () => {
+  const falls = (where: string, wall: Array<[number, number]>, height: number, width: number, tolerance = 1e-9) => {
+    assert.deepEqual(wall[0], [0, height], `${where}: starts at the top's edge and height`);
+    assert.ok(near(wall[wall.length - 1][0], width, tolerance) && wall[wall.length - 1][1] === 0, `${where}: lies down on the back ${width} out`);
+    for (let i = 1; i < wall.length; i++) assert.ok(wall[i][0] > wall[i - 1][0] && wall[i][1] <= wall[i - 1][1], `${where}: point ${i}`);
+  };
+  let bumps = 0;
+  for (const m of STUDIO_MODELS) {
+    for (const p of m.pads) {
+      if (p.shape === 'plateau') continue;
+      bumps++;
+      if (p.shape === 'loft') {
+        // Widest below the bar, narrowest above it: the drawing's base line
+        // there is 1.14 in from the edge.
+        falls(`${m.label} skirt`, p.wall, p.height, p.baseBottom - p.top.y1);
+        falls(`${m.label} narrow skirt`, p.wallNarrow, p.height, p.top.y0 - p.inset, 0.15);
+      } else {
+        assert.equal(p.edge, 'cove', `${m.label}: glass bumps are coves`);
+        assert.ok(p.wall, `${m.label}: measured cove`);
+        falls(m.label, p.wall!, p.height, p.round);
+      }
+    }
+  }
+  assert.equal(bumps, 6);
+});
+
+test('the frame edge a plateau wall rides on rounds from the side band to the back flat', () => {
+  const m = PRO_MAX;
+  const lift = backEdgeLift(m);
+  const back = m.edge[m.edge.length - 1][1];
+  assert.ok(near(lift(0), -1.44 - back, 1e-9), 'the band ends 1.44 behind the middle');
+  assert.equal(lift(m.edge[m.edge.length - 1][0]), 0);
+  assert.equal(lift(10), 0);
+  for (let s = 0.1; s < 3.8; s += 0.1) assert.ok(lift(s) <= lift(s - 0.1) + 1e-9, `lift at ${s.toFixed(1)}`);
+});
+
+test('other phones and tablets get a plain model; watches and Macs do not', () => {
+  for (const type of ['android-punch-hole', 'iphone-15-pro', 'ipad-pro-13'] as DeviceType[]) {
+    const model = studioModelFor(type);
+    assert.ok(model, type);
+    assert.equal(isMeasuredModel(type), false);
+  }
+  assert.equal(studioModelFor('apple-watch'), null);
+  assert.equal(studioModelFor('macbook'), null);
+  assert.equal(studioModelFor('custom'), null);
+});
+
+// ---------------------------------------------------------------------------
+// Angles
+// ---------------------------------------------------------------------------
+
+test('every pose preset converts to the same angles the posed renderer uses, mirrored for the right side', () => {
+  for (const pose of Object.keys(DEVICE_3D_POSE_ANGLES) as Array<keyof typeof DEVICE_3D_POSE_ANGLES>) {
+    const angles = DEVICE_3D_POSE_ANGLES[pose];
+    const left = orientationForPose(pose, 'left');
+    const right = orientationForPose(pose, 'right');
+    assert.ok(near(left.yaw, wrapDegrees(angles.yaw), 0.01), `${pose} left yaw`);
+    assert.ok(near(left.pitch, angles.pitch, 0.01), `${pose} left pitch`);
+    assert.ok(near(left.roll, angles.roll ?? 0, 0.01), `${pose} left roll`);
+    assert.ok(near(right.yaw, wrapDegrees(-angles.yaw), 0.01), `${pose} right yaw`);
+    assert.ok(near(right.roll, wrapDegrees(-(angles.roll ?? 0)), 0.01), `${pose} right roll`);
+  }
+});
+
+test('the studio looks include every phone pose preset by name', () => {
+  for (const pose of POSE_ORDER) {
+    const look = STUDIO_LOOKS.find((l) => l.id === pose);
+    assert.ok(look, `missing look ${pose}`);
+    assert.deepEqual(look!.orientation, orientationForPose(pose, 'left'));
+  }
+});
+
+test('orientation matrix and angles round trip', () => {
+  const cases: Device3DOrientation[] = [
+    { yaw: 34, pitch: 0, roll: 0 },
+    { yaw: -148, pitch: -10, roll: 0 },
+    { yaw: 49.11, pitch: -23.58, roll: 70.89 },
+    { yaw: 170, pitch: 80, roll: -120 },
+    { yaw: -5, pitch: -60, roll: 33 },
+  ];
+  for (const o of cases) {
+    const back = orientationFromMatrix(orientationMatrix(o));
+    const m1 = orientationMatrix(o);
+    const m2 = orientationMatrix(back);
+    for (let i = 0; i < 9; i++) assert.ok(near(m1[i], m2[i], 1e-3), `matrix entry ${i} for ${JSON.stringify(o)}`);
+  }
+});
+
+test('yaw shows the left side, pitch leans the top toward the camera', () => {
+  // The device's left edge, local (-1, 0, 0), is minus column 0; its z must
+  // come toward the camera (+z) for a positive yaw.
+  const yaw = orientationMatrix({ yaw: 34, pitch: 0, roll: 0 });
+  assert.ok(-yaw[6] > 0.5, 'left edge comes forward');
+  // The top, local (0, 1, 0), is column 1; its z must be positive.
+  const pitch = orientationMatrix({ yaw: 0, pitch: 30, roll: 0 });
+  assert.ok(pitch[7] > 0.4, 'top leans toward the camera');
+});
+
+test('the rotate handle turns like a turntable', () => {
+  const start = { yaw: 10, pitch: 5, roll: -8 };
+  const right = turntableTurn(start, 100, 0, 200);
+  assert.ok(right.yaw > start.yaw && right.pitch === start.pitch && right.roll === start.roll, 'across only turns');
+  // Front normal is column 2: dragging right turns the front toward the right.
+  assert.ok(orientationMatrix(turntableTurn({ yaw: 0, pitch: 0, roll: 0 }, 80, 0, 200))[2] > 0.3);
+  const down = turntableTurn(start, 0, 100, 200);
+  assert.ok(down.pitch > start.pitch && down.yaw === start.yaw, 'down only tips');
+  assert.equal(turntableTurn(start, 0, 100000, 200).pitch, 90, 'tipping stops straight up');
+  assert.equal(turntableTurn(start, 0, -100000, 200).pitch, -90, 'and straight down');
+  assert.deepEqual(turntableTurn(start, 0, 0, 200), start);
+  const snapped = turntableTurn(start, 37, 21, 200, 15);
+  assert.equal(snapped.yaw % 15, 0);
+  assert.equal(snapped.pitch % 15, 0);
+});
+
+test('mirroring flips yaw and roll and nothing else', () => {
+  assert.deepEqual(mirrorOrientation({ yaw: 30, pitch: 26, roll: -20 }), { yaw: -30, pitch: 26, roll: 20 });
+  const match = matchStudioLook(orientationForPose('tilted', 'right'));
+  assert.equal(match?.look.id, 'tilted');
+  assert.equal(match?.mirrored, true);
+});
+
+// ---------------------------------------------------------------------------
+// The box
+// ---------------------------------------------------------------------------
+
+test('turning keeps the device the same size on screen and its centre where it was', () => {
+  for (const rotation of [0, 17, -40]) {
+    const phone = studioPhone({ rotation, scale: 0.8 });
+    const before = deviceCentre(phone);
+    for (const next of [
+      { yaw: 148, pitch: -10, roll: 0 },
+      { yaw: 0, pitch: -58, roll: 0 },
+      { yaw: 34, pitch: 36, roll: -20 },
+      { yaw: 90, pitch: 0, roll: 0 },
+    ]) {
+      const box = rehugStudioBox(
+        { position: phone.position, size: phone.size, scale: phone.scale, rotation },
+        { model: PRO_MAX, orientation: phone.rotation3d!, lens: 20 },
+        { model: PRO_MAX, orientation: next, lens: 20 }
+      );
+      const after = deviceCentre({ ...phone, ...box, rotation3d: next });
+      assert.ok(near(after.scale, before.scale, before.scale * 0.003), `scale kept at ${JSON.stringify(next)}`);
+      assert.ok(near(after.x, before.x, 0.05) && near(after.y, before.y, 0.05), `centre kept at ${JSON.stringify(next)}`);
+    }
+  }
+});
+
+test('a box that already hugs its device is left as it is', () => {
+  const phone = studioPhone({ rotation3d: { yaw: -30, pitch: 26, roll: 0 } });
+  const patch = withStudioRehug(phone, { rotation3d: phone.rotation3d });
+  assert.ok(near(patch.size!.width, phone.size.width, 0.6) && near(patch.size!.height, phone.size.height, 0.6));
+  assert.ok(near(patch.position!.x, phone.position.x, 0.6) && near(patch.position!.y, phone.position.y, 0.6));
+});
+
+test('a lens change keeps the device centre and its size at the centre plane', () => {
+  const phone = studioPhone();
+  const before = deviceCentre(phone);
+  const patch = withStudioRehug(phone, { lens3d: 45 });
+  const after = deviceCentre({ ...phone, ...patch });
+  assert.ok(near(after.scale, before.scale, before.scale * 0.003));
+  assert.ok(near(after.x, before.x, 0.05) && near(after.y, before.y, 0.05));
+});
+
+test('changing the model keeps the device centre and its height on screen', () => {
+  const phone = studioPhone({ rotation3d: { yaw: 0, pitch: 0, roll: 0 } });
+  const before = deviceCentre(phone);
+  const target: DeviceType = 'android-punch-hole';
+  const patch = buildSwapUpdates(phone, target);
+  assert.equal(patch.deviceType, target);
+  const after = deviceCentre({ ...phone, ...patch });
+  assert.ok(near(after.x, before.x, 0.1) && near(after.y, before.y, 0.1), 'centre kept');
+  const heightOnScreen = (el: DeviceFrameElementProps, scale: number) => {
+    const m = studioModelFor(el.deviceType)!;
+    return (m.height / m.width) * scale;
+  };
+  assert.ok(near(heightOnScreen({ ...phone, ...patch }, after.scale), heightOnScreen(phone, before.scale), 0.5));
+});
+
+test('withStudioRehug leaves other styles alone', () => {
+  const flat = studioPhone({ styleType: 'normal' });
+  assert.deepEqual(withStudioRehug(flat, { rotation3d: { yaw: 10, pitch: 0, roll: 0 } }), {
+    rotation3d: { yaw: 10, pitch: 0, roll: 0 },
+  });
+});
+
+test('an upright studio phone drops in a box shaped like the upright posed tile', () => {
+  const size = studioDefaultSize(PRO_MAX, orientationForPose('upright', 'left'));
+  const posed = IPHONE_3D_SIZES.upright;
+  const ratio = size.width / size.height / (posed.width / posed.height);
+  assert.ok(ratio > 0.85 && ratio < 1.15, `aspect ratio off by ${ratio}`);
+});
+
+// ---------------------------------------------------------------------------
+// Finishes and conversions
+// ---------------------------------------------------------------------------
+
+test('a custom color wins, then the named finish, then the model default', () => {
+  assert.equal(studioFinishOf({}, PRO_MAX).id, PRO_MAX.defaultFinish);
+  assert.equal(studioFinishOf({ finish3d: 'deep-blue' }, PRO_MAX).label, 'Deep Blue');
+  assert.equal(studioFinishOf({ finish3d: 'no-such-finish' }, PRO_MAX).id, PRO_MAX.defaultFinish);
+  const custom = studioFinishOf({ finish3d: 'deep-blue', bodyColor3d: '#12AB34' }, PRO_MAX);
+  assert.equal(custom.id, 'custom');
+  assert.equal(custom.frame, '#12ab34');
+});
+
+test('switching a posed device to the studio keeps its pose, the nearest finish and its centre', () => {
+  const posed: DeviceFrameElementProps = {
+    id: 'posed',
+    type: 'device',
+    deviceType: 'iphone-17-pro-max',
+    styleType: '3d-right',
+    pose3d: 'tilted',
+    frameColor3d: 'white',
+    position: { x: 100, y: 200 },
+    size: { ...IPHONE_3D_SIZES.tilted },
+    scale: 1,
+    rotation: 0,
+  };
+  const patch = studioConversionPatch(posed);
+  assert.equal(patch.styleType, '3d-studio');
+  assert.deepEqual(patch.rotation3d, orientationForPose('tilted', 'right'));
+  assert.equal(patch.finish3d, 'silver');
+  assert.ok(patch.light3d && patch.light3d.azimuth > 0, 'a right-facing pose is lit from the right');
+  // The box closes round the device without moving its middle.
+  const cx = posed.position.x + posed.size.width / 2;
+  const cy = posed.position.y + posed.size.height / 2;
+  const converted = { ...posed, ...patch } as DeviceFrameElementProps;
+  const centre = deviceCentre(converted);
+  assert.ok(Math.abs(centre.x - cx) < posed.size.width * 0.05);
+  assert.ok(Math.abs(centre.y - cy) < posed.size.height * 0.05);
+  assert.ok(converted.size.width <= posed.size.width + 1 && converted.size.height <= posed.size.height + 1);
+});
+
+test('the studio style counts as a WebGL device and flattens in the deck', () => {
+  assert.equal(isDevice3dStyle('3d-studio'), true);
+  assert.equal(isDevice3dStyle('3d-left'), true);
+  assert.equal(isDevice3dStyle('normal'), false);
+  assert.equal(isDevice3dStyle('perspective-left'), false);
+  const board: ArtboardState = {
+    id: 'b',
+    name: 'b',
+    position: { x: 0, y: 0 },
+    size: { width: 1290, height: 2796 },
+    backgroundColor: '#fff',
+    zoom: 1,
+    elements: [studioPhone()],
+  };
+  const flat = flattenBoard3d(board);
+  assert.equal((flat.elements[0] as DeviceFrameElementProps).styleType, 'normal');
+});
+
+test('one palette tile per measured model, and each resolves over MCP to what the tile drops', () => {
+  const { items, total } = listLibraryItems('devices', { group: '3d-studio' });
+  assert.equal(total, STUDIO_MODELS.length);
+  for (const item of items) {
+    const resolved = resolveLibraryItem(item.libraryId);
+    assert.ok(resolved, item.libraryId);
+    assert.equal(resolved!.type, 'device');
+    assert.equal(resolved!.props.styleType, '3d-studio');
+    assert.deepEqual(resolved!.defaultSize, item.defaultSize);
+    const model = studioModelFor(resolved!.subType as DeviceType)!;
+    assert.equal(resolved!.props.finish3d, model.defaultFinish);
+  }
+  const tile = studioTileStyleProps(PRO_MAX);
+  const resolved = resolveLibraryItem('studio3d:iphone-17-pro-max')!;
+  assert.deepEqual(resolved.props.rotation3d, studioLookById(STUDIO_TILE_LOOK)!.orientation);
+  assert.notEqual(resolved.props.rotation3d, tile.rotation3d, 'a copy, not the cached tile');
+  assert.equal(resolveLibraryItem('studio3d:iphone-3'), null);
+});
+
+test('a turn reads as one history step named for the turn, not a resize', () => {
+  const phone = studioPhone();
+  const board = (el: DeviceFrameElementProps): ArtboardState => ({
+    id: 'b',
+    name: 'Hero',
+    position: { x: 0, y: 0 },
+    size: { width: 1290, height: 2796 },
+    backgroundColor: '#fff',
+    zoom: 1,
+    elements: [el],
+  });
+  const turned = { ...phone, ...withStudioRehug(phone, { rotation3d: { yaw: 148, pitch: -10, roll: 0 } }) };
+  assert.equal(describeArtboardsChange([board(phone)], [board(turned)])?.label, 'Rotate in 3D');
+  const recolored = { ...phone, finish3d: 'deep-blue' };
+  assert.equal(describeArtboardsChange([board(phone)], [board(recolored)])?.label, 'Device Color');
+  const posed = { ...phone, styleType: '3d-left' as const };
+  const converted = { ...posed, ...studioConversionPatch(posed) };
+  assert.equal(describeArtboardsChange([board(posed)], [board(converted)])?.label, 'Transform');
+});

@@ -209,6 +209,7 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
       onUpdateElement: (updates) => send({ name: 'updateSelectedElement', updates }),
       onUpdateElementById: (elementId, updates) =>
         send({ name: 'updateElementById', elementId, updates }),
+      onStudioLive: (elementId, state, reason) => send({ name: 'studioLive', elementId, state, reason }),
       onTranslateElement: (elementId) => send({ name: 'translateElement', elementId }),
       onUpdateArtboardDetails: (updates, scope) => send({ name: 'updateArtboardDetails', updates, scope }),
       onResetLocaleField: (field) => send({ name: 'resetLocaleField', field }),

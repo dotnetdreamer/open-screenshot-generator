@@ -2,6 +2,7 @@
 import type React from 'react';
 import type { DeviceType } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
+import { bezelOf, cornerRadiusOf, measuredModelFor } from '@/lib/device3dModels';
 
 // The flat (non-3D) device frame's own chrome: outer corner radius, body
 // colour, and the notch / Dynamic Island / punch-hole JSX. Shared by
@@ -226,6 +227,31 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
     label: descriptor.label,
   };
   const radius = (factor: number) => `${effectiveWidth * factor}px`;
+
+  // The iPhones measured from Apple's drawings take their corner and cutout
+  // from the drawing. The 17 Pro Max keeps its older hand-tuned chrome below,
+  // so frames already placed in projects do not shift.
+  const measured = deviceType === 'iphone-17-pro-max' ? undefined : measuredModelFor(deviceType);
+  if (measured) {
+    const bezel = bezelOf(measured);
+    const display = measured.display;
+    chrome.outerBorderRadius = radius(cornerRadiusOf(measured) / measured.width);
+    chrome.bodyColor = '#1e1e1e';
+    const cutout = measured.cutout;
+    if (cutout.kind === 'island') {
+      const top = ((cutout.center - cutout.height / 2 - bezel) / display.height) * 100;
+      chrome.notch = islandNotch(`${top.toFixed(2)}%`, `${((cutout.width / display.width) * 100).toFixed(2)}%`, `${cutout.width} / ${cutout.height}`);
+    } else if (cutout.kind === 'notch') {
+      chrome.notch = classicNotch(
+        `${((cutout.width / display.width) * 100).toFixed(2)}%`,
+        `${cutout.width} / ${cutout.depth}`,
+        `${((cutout.radius / cutout.width) * 100).toFixed(2)}%`,
+        `${((cutout.radius / cutout.depth) * 100).toFixed(2)}%`,
+        chrome.bodyColor
+      );
+    }
+    return chrome;
+  }
 
   switch (deviceType) {
     case 'iphone-15':

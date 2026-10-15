@@ -628,7 +628,9 @@ const SHAPE_TYPES = [
 ];
 const DEVICE_TYPES = [
   'iphone', 'iphone-x', 'iphone-13', 'iphone-14', 'iphone-15', 'iphone-15-pro',
-  'iphone-17-pro-max', 'ipad-pro-13', 'ipad-11', 'apple-watch', 'android-bar',
+  'iphone-17-pro-max',
+  'iphone-18-pro-max', 'iphone-18-pro', 'iphone-17-pro', 'iphone-air', 'iphone-17', 'iphone-17e', 'iphone-16-pro-max', 'iphone-16-pro', 'iphone-16-plus', 'iphone-16', 'iphone-16e',
+  'ipad-pro-13', 'ipad-11', 'apple-watch', 'android-bar',
   'android-notch', 'android-punch-hole', 'tablet', 'tablet-7', 'tablet-10', 'desktop',
   'macbook', 'imac',
 ];
@@ -878,9 +880,32 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   },
   screenshotSrc: { type: 'string', description: 'Screenshot URL, data: URL or "asset:<id>" to place inside a device frame (device elements).' },
   screenshotObjectFit: { type: 'string', description: "How the screenshot fills the screen: 'contain' | 'cover' | 'fill' (device elements)." },
-  styleType: { type: 'string', description: "Device style, e.g. 'normal', '3d-left', '3d-right' (device elements)." },
+  styleType: { type: 'string', description: "Device style, e.g. 'normal', '3d-left', '3d-right', or '3d-studio' for a 3D phone set to any angle with rotation3d (device elements)." },
   pose3d: { type: 'string', description: "3D pose preset, e.g. 'classic', 'front', 'reclined' (device elements)." },
   frameColor3d: { type: 'string', description: "3D body finish: 'titanium' | 'black' | 'white' (device elements)." },
+  rotation3d: {
+    type: 'object',
+    description:
+      "Angle of a '3d-studio' device, in degrees: yaw turns it about its long side (positive shows its left side, 180 shows the back with the cameras), pitch tips it (positive leans the top toward you), roll spins it in the picture. The phone is a model measured from Apple's dimensional drawings, keeps its real proportions and fits inside the element box, so give the box roughly the shape the device takes at that angle.",
+    properties: {
+      yaw: { type: 'number' },
+      pitch: { type: 'number' },
+      roll: { type: 'number' },
+    },
+  },
+  lens3d: { type: 'number', description: "Camera field of view of a '3d-studio' device in degrees, from 6 (flat) to 50 (dramatic). Default 20." },
+  finish3d: { type: 'string', description: "One of the '3d-studio' phone model's own finishes by id, e.g. 'cosmic-orange' or 'deep-blue' on iphone-17-pro-max. list_library group 3d-studio lists each model's finish ids. Unset is the model's default." },
+  bodyColor3d: { type: 'string', description: "A custom finish for a '3d-studio' device as #rrggbb; wins over finish3d. Leave unset to use the model's real finishes." },
+  light3d: {
+    type: 'object',
+    description: "Key light of a '3d-studio' device: azimuth in degrees from straight ahead (positive lights it from the right), elevation in degrees above it, intensity 0.2 to 2 (default 1).",
+    properties: {
+      azimuth: { type: 'number' },
+      elevation: { type: 'number' },
+      intensity: { type: 'number' },
+    },
+  },
+  glare3d: { type: 'number', description: "Reflection on the screen glass of a '3d-studio' device, 0 to 1. Default 0." },
   frameColor: { type: 'string', description: 'Body colour of a flat device frame, any CSS colour (device elements).' },
   frameOpacity: { type: 'number', description: 'Alpha 0..1 for the flat frame colour, for transparent devices (device elements).' },
   frameStyle: { type: 'string', description: "'solid' or 'outline' (a coloured ring around a hollow frame) (device elements)." },
@@ -2550,7 +2575,7 @@ const TOOLS: ToolDef[] = [
         return textResult({
           groups: listLibraryGroups(kind),
           ...(kind === 'devices' || !kind
-            ? { device3dOptions: device3dOptions(), note: '3D poses can also be set directly on any device element with styleType + pose3d + frameColor3d.' }
+            ? { device3dOptions: device3dOptions(), note: "3D poses can also be set directly on any device element with styleType + pose3d + frameColor3d, or set styleType '3d-studio' and turn a phone to any angle with rotation3d (plus finish3d, lens3d, light3d, glare3d). The 3d-studio group has one item per real iPhone model." }
             : {}),
         });
       }
