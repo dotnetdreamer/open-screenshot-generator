@@ -12,7 +12,7 @@ Static-export Next 15 app router (`output: 'export'` in [next.config.ts](../next
 
 `ArtboardState`: `id`, `name`, `position` (derived, see traps), `size: Size`, `elements`, `backgroundColor`, `backgroundType?: 'solid' | 'gradient'`, `backgroundGradient?: {color1, color2, angle}`, `zoom`, `exportScale?`, `language?`.
 
-`BaseElement` (every element has these): `id`, `type`, `name?`, `position: Point`, `size: Size`, `rotation` (deg), `scale` (multiplier), `opacity?`, `shadow?: ElementShadow`, `blur?`, `animation?: ElementAnimation`, `groupId?`, `groupName?`. `opacity`/`shadow`/`blur` are rendered generically by `elementVisualStyle()` in [src/lib/elementStyle.ts](../src/lib/elementStyle.ts) on a wrapper inside `DraggableElement` (and on the same wrapper in `PreviewDialog`), so a new element type gets them for free in both render sites.
+`BaseElement` (every element has these): `id`, `type`, `name?`, `position: Point`, `size: Size`, `rotation` (deg), `scale` (multiplier), `opacity?`, `shadow?: ElementShadow`, `blur?`, `animation?: ElementAnimation`, `groupId?`, `groupName?`, `spanArtboards?` and `spanBehind?` (the part past a side edge continues onto the artboard beside it, in front of or behind its elements; never per language; see AGENTS.md rule 2a). `opacity`/`shadow`/`blur` are rendered generically by `elementVisualStyle()` in [src/lib/elementStyle.ts](../src/lib/elementStyle.ts) on a wrapper inside `DraggableElement` (and on the same wrapper in `PreviewDialog`), so a new element type gets them for free in both render sites.
 
 `ElementType` is a 7-way discriminator; each variant's required extras:
 

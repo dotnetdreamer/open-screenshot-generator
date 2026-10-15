@@ -8,6 +8,7 @@
 // recording simply does not extend the timeline here.
 
 import type { ArtboardState } from '@/types/artboard';
+import { NO_SPILL, type BoardSpill } from '@/lib/spanArtboards';
 import { animationEndTime } from './animation';
 import { gestureEndTime } from './gestures';
 import { audioClipRange } from './audio';
@@ -26,7 +27,15 @@ export interface ArtboardTimeline {
 
 const EMPTY: ArtboardTimeline = { hasMotion: false, contentEndSeconds: 0, duration: 0 };
 
-export function artboardTimeline(ab: ArtboardState | null | undefined): ArtboardTimeline {
+/**
+ * `spill` is what neighbouring artboards continue onto this one (see
+ * src/lib/spanArtboards.ts). Their copies play on this board too, so a board
+ * whose only moving part arrives from a neighbour still has a timeline.
+ */
+export function artboardTimeline(
+  ab: ArtboardState | null | undefined,
+  spill: BoardSpill = NO_SPILL
+): ArtboardTimeline {
   if (!ab) return EMPTY;
   let hasMotion = false;
   let end = 0;
@@ -55,6 +64,25 @@ export function artboardTimeline(ab: ArtboardState | null | undefined): Artboard
       hasMotion = true;
       // A looping gesture plays for as long as the board does, so it never
       // decides the length on its own.
+      if (!el.gestureRepeat) end = Math.max(end, gestureEndTime(el));
+    }
+    if (el.animation) {
+      hasMotion = true;
+      end = Math.max(end, animationEndTime(el.animation));
+    }
+  }
+
+  // Copies count for what moves in them: an animation, a gesture or a playing
+  // recording. An empty recording mockup arriving from a neighbour does not
+  // turn this board into a preview the way one of its own would.
+  for (const copy of [...spill.behind, ...spill.front]) {
+    const el = copy.element;
+    if ((el.type === 'video' || el.type === 'video-device') && (el.mediaId || el.videoSrc)) {
+      hasMotion = true;
+      const stop = el.trimEnd ?? el.durationSeconds ?? 0;
+      end = Math.max(end, Math.max(0, stop - (el.trimStart ?? 0)));
+    } else if (el.type === 'gesture') {
+      hasMotion = true;
       if (!el.gestureRepeat) end = Math.max(end, gestureEndTime(el));
     }
     if (el.animation) {

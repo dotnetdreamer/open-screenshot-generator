@@ -186,6 +186,31 @@ export function usePlaybackActive(artboardId: string | null | undefined): boolea
 }
 
 /**
+ * Which board is loaded in the transport, and whether it is running. Changes
+ * only when a board is loaded, unloaded, played or paused, never per frame.
+ *
+ * For an element that shows on more than one board (one continuing across an
+ * artboard edge): it follows whichever of those boards is loaded, so all its
+ * halves animate together. `enabled` false keeps a board with no such element
+ * from listening at all.
+ */
+export function usePlaybackTransport(enabled = true): { artboardId: string | null; playing: boolean } {
+  const read = () => ({ artboardId: snapshot.artboardId, playing: snapshot.playing });
+  const [state, setState] = useState(read);
+  useEffect(() => {
+    if (!enabled) return;
+    const sync = () =>
+      setState((previous) =>
+        previous.artboardId === snapshot.artboardId && previous.playing === snapshot.playing ? previous : read()
+      );
+    sync();
+    return subscribe(sync);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
+  return state;
+}
+
+/**
  * The whole snapshot, for the transport bar. Re-renders every frame while
  * playing, so keep it to a leaf component.
  */

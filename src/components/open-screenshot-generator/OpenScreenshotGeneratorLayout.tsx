@@ -254,6 +254,7 @@ import {
   type AlignEdge,
   type DistributeAxis,
 } from '@/lib/elementGeometry';
+import { computeSpill, spillFor, type SpanChange } from '@/lib/spanArtboards';
 import { LoadStatusBar, type ProjectLoadStep } from './LoadStatusBar';
 import { LocalFontNotice } from './LocalFontNotice';
 import { ProjectLoadOverlay } from './ProjectLoadOverlay';
@@ -2926,6 +2927,62 @@ export function OpenScreenshotGeneratorLayout() {
   }, [activeArtboardId, selectedElementIds, handleArtboardsUpdate]);
 
   /**
+   * Whether the selected layers carry on across artboard edges, and whether
+   * the part on the next artboard sits in front of its layers or behind them
+   * (BaseElement.spanArtboards and spanBehind).
+   *
+   * Written to the base document, like grouping: neither key can differ
+   * between languages, so there is no language question to ask. Off is stored
+   * as false rather than dropped, so the element records that somebody turned
+   * it off.
+   */
+  const handleUpdateSpan = useCallback((change: SpanChange) => {
+    if (!activeArtboardId || selectedElementIds.length === 0) return;
+    const wanted = new Set(selectedElementIds);
+    const changed: ArtboardElement[] = [];
+    const next = artboardsRef.current.map((ab) => {
+      if (ab.id !== activeArtboardId) return ab;
+      const elements = ab.elements.map((el) => {
+        if (!wanted.has(el.id) || !hasCanvasBox(el)) return el;
+        const updated = { ...el } as ArtboardElement;
+        if (change.spanArtboards !== undefined) updated.spanArtboards = change.spanArtboards;
+        if (change.spanBehind !== undefined) {
+          if (change.spanBehind) updated.spanBehind = true;
+          else delete updated.spanBehind;
+        }
+        if (updated.spanArtboards === el.spanArtboards && updated.spanBehind === el.spanBehind) return el;
+        changed.push(el);
+        return updated;
+      });
+      return changed.length > 0 ? { ...ab, elements } : ab;
+    });
+    if (changed.length === 0) return;
+    const label =
+      change.spanArtboards === true
+        ? 'Continue Across Artboards'
+        : change.spanArtboards === false
+          ? 'Stop at Artboard Edge'
+          : change.spanBehind
+            ? 'Continue Behind'
+            : 'Continue in Front';
+    handleArtboardsUpdate(
+      next,
+      namedChange(label, 'edit', changed.length === 1 ? getElementDisplayName(changed[0]) : `${changed.length} layers`)
+    );
+  }, [activeArtboardId, selectedElementIds, handleArtboardsUpdate]);
+
+  /**
+   * Whether everything selected continues across artboard edges, for the
+   * right-click menu's check mark. Null when nothing selected has a box.
+   */
+  const selectionSpansArtboards = useMemo(() => {
+    const board = artboards.find((ab) => ab.id === activeArtboardId);
+    const chosen = board?.elements.filter((el) => selectedElementIds.includes(el.id) && hasCanvasBox(el)) ?? [];
+    if (chosen.length === 0) return null;
+    return chosen.every((el) => el.spanArtboards === true);
+  }, [artboards, activeArtboardId, selectedElementIds]);
+
+  /**
    * Free one group, named by the Layers panel rather than by the selection.
    *
    * The panel can point at a group nobody has selected, so this takes the id
@@ -3433,6 +3490,9 @@ export function OpenScreenshotGeneratorLayout() {
             objectFit: 'contain',
             opacity: 1,
             borderRadius: 0,
+            // Added by hand, so it carries on across an edge the way an
+            // element added from the palette does.
+            spanArtboards: true,
           } as ArtboardElement));
           next[boardIndex] = { ...board, elements: [...board.elements, ...added] };
           placedImages = added.length;
@@ -5286,11 +5346,14 @@ export function OpenScreenshotGeneratorLayout() {
     let cancelled = false;
     (async () => {
       const infos: Record<string, ArtboardVideoInfo> = {};
+      // What each board shows of its neighbours' elements, which the styled
+      // export draws and so has to count among what moves.
+      const spill = computeSpill(viewArtboards);
       // The language on screen: a recording can itself be localized, so which
       // boards carry video is answered for the language being exported.
       for (const ab of viewArtboards) {
         try {
-          infos[ab.id] = await analyzeArtboardForVideo(ab);
+          infos[ab.id] = await analyzeArtboardForVideo(ab, spillFor(spill, ab.id));
         } catch (error) {
           console.warn('Video analysis failed for artboard', ab.name, error);
         }
@@ -5313,7 +5376,7 @@ export function OpenScreenshotGeneratorLayout() {
 
   const videoBoards = artboards.filter((ab) => {
     const info = videoInfos[ab.id];
-    return !!info && (info.hasVideo || info.hasMotion);
+    return !!info && (info.hasVideo || info.hasMotion || info.hasSpanMotion);
   });
   // A board with an explicit preview length (set on the timeline bar) states
   // its own duration; the rest fall back to what their content adds up to.
@@ -5335,9 +5398,11 @@ export function OpenScreenshotGeneratorLayout() {
       if (request.currentArtboardOnly && ab.id !== activeArtboardId) return false;
       const info = videoInfos[ab.id];
       if (!info) return false;
-      // Safe mode exports raw footage, so it needs an actual recording, unless
-      // the dialog let the poster stand in for one (a rehearsal render).
-      if (!request.rawRecordingOnly) return info.hasVideo || info.hasMotion;
+      // The styled cut also draws what neighbouring artboards continue onto
+      // the board, so motion arriving that way is enough. Safe mode exports
+      // raw footage, so it needs an actual recording of the board's own,
+      // unless the dialog let the poster stand in for one (a rehearsal render).
+      if (!request.rawRecordingOnly) return info.hasVideo || info.hasMotion || info.hasSpanMotion;
       return info.hasVideo || (!!request.allowPosterFallback && info.hasMotion);
     });
     if (boards.length === 0) {
@@ -5370,6 +5435,8 @@ export function OpenScreenshotGeneratorLayout() {
     videoExportAbortRef.current = abort;
     setIsVideoExporting(true);
     const orderPadWidth = Math.max(2, String(artboards.length).length);
+    // What the canvas draws of each board's neighbours; it is showing viewArtboards.
+    const spill = computeSpill(viewArtboards);
     // Same manifest contract as handleConfirmExport: the headless bridge needs
     // the names, not a toast.
     const saved: { filename: string; path?: string }[] = [];
@@ -5397,6 +5464,7 @@ export function OpenScreenshotGeneratorLayout() {
           rawRecordingOnly: request.rawRecordingOnly,
           keepOverlays: request.keepOverlays,
           allowPosterFallback: request.allowPosterFallback,
+          spill: spillFor(spill, board.id),
           signal: abort.signal,
           onProgress: (frame, total) =>
             setVideoProgress({
@@ -6475,6 +6543,7 @@ export function OpenScreenshotGeneratorLayout() {
     onDistributeElements: handleDistributeSelection,
     onGroupElements: handleGroupSelection,
     onUngroupElements: handleUngroupSelection,
+    onUpdateSpan: handleUpdateSpan,
     onUngroupById: handleUngroupById,
     onRenameGroup: handleRenameGroup,
     onDropLayer: handleDropLayer,
@@ -6749,9 +6818,14 @@ export function OpenScreenshotGeneratorLayout() {
     }
 
     const elementNode = target.closest('[data-element-id]');
+    // A neighbour's element continuing onto this artboard is that element, on
+    // the artboard it belongs to, which is where the menu has to act.
+    const spanCopyNode = target.closest('[data-span-of]');
     const artboardNode = target.closest('[data-artboard-dom-id]');
-    const elementId = elementNode?.getAttribute('data-element-id') ?? null;
-    const artboardId = artboardNode?.getAttribute('data-artboard-dom-id') ?? null;
+    const elementId =
+      spanCopyNode?.getAttribute('data-span-of') ?? elementNode?.getAttribute('data-element-id') ?? null;
+    const artboardId =
+      spanCopyNode?.getAttribute('data-span-source') ?? artboardNode?.getAttribute('data-artboard-dom-id') ?? null;
 
     // Convert the click to artboard coordinates via the rendered size, which
     // already includes the display scale and every ancestor zoom transform.
@@ -6761,8 +6835,11 @@ export function OpenScreenshotGeneratorLayout() {
       const originalWidth = Number(artboardNode.getAttribute('data-original-width'));
       if (rect.width > 0 && originalWidth > 0) {
         const renderedScale = rect.width / originalWidth;
+        // Measured on the artboard drawing the copy, so moved back into the
+        // pixels of the artboard a paste will land on.
+        const shift = Number(spanCopyNode?.getAttribute('data-span-shift')) || 0;
         pastePoint = {
-          x: (clientX - rect.left) / renderedScale,
+          x: (clientX - rect.left) / renderedScale - shift,
           y: (clientY - rect.top) / renderedScale,
         };
       }
@@ -9245,6 +9322,8 @@ const generateRandomProjectName = (): string => {
                   canUngroup={selectionGroupState.canUngroup}
                   onGroup={handleGroupSelection}
                   onUngroup={handleUngroupSelection}
+                  spansArtboards={contextMenu.elementId ? selectionSpansArtboards : null}
+                  onToggleSpanArtboards={() => handleUpdateSpan({ spanArtboards: !selectionSpansArtboards })}
                   onClose={() => setContextMenu(null)}
                 />
               )}

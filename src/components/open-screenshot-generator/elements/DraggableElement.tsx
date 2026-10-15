@@ -5,9 +5,31 @@ import { RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { elementVisualStyle } from '@/lib/elementStyle';
 import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
-import { animationStateAt } from '@/lib/video/animation';
+import { animationStateAt, slideDistanceFor } from '@/lib/video/animation';
 import { usePlaybackRunning, usePlaybackTime } from '@/lib/video/playback';
+import { endSpanLive, publishSpanLive, spanLiveGesture, subscribeSpanLive } from '@/lib/spanLive';
+import type { SpanLiveBox } from '@/lib/spanArtboards';
 import type { ArtboardElement, Point, Size } from '@/types/artboard';
+
+/**
+ * Ties together the DraggableElements that draw one element continuing across
+ * artboards (BaseElement.spanArtboards): one on its own artboard and one on
+ * each neighbour it reaches. A gesture on any of them moves all of them.
+ */
+export interface SpanBinding {
+  /** Added to the element's own x to get this copy's x. 0 on its own artboard. */
+  shiftX: number;
+  /** The artboard drawing this copy. */
+  boardId: string;
+  /** Set only on a copy drawn by another artboard: the artboard the element belongs to. */
+  sourceBoardId?: string;
+  /**
+   * The pointer in this artboard's pixels with the canvas gaps between
+   * artboards taken out, so dragging across an edge keeps the artwork under
+   * the pointer. Null when it cannot tell, which falls back to plain measuring.
+   */
+  pointerToBoard: (clientX: number, clientY: number) => Point | null;
+}
 
 interface DraggableElementProps {
   element: ArtboardElement;
@@ -54,6 +76,8 @@ interface DraggableElementProps {
    * animation is evaluated per frame and folded into the transform below.
    */
   artboardId?: string;
+  /** Set while the element continues onto another artboard, see SpanBinding. */
+  span?: SpanBinding;
   children: React.ReactNode;
 }
 
@@ -180,6 +204,7 @@ export function DraggableElement({
   onDragDelta,
   onDragCommit,
   showHandles = true,
+  span,
   children
 }: DraggableElementProps) {
   const coarsePointer = useCoarsePointer();
@@ -244,7 +269,51 @@ export function DraggableElement({
     };
   }, [element.id, element.position, element.size, element.rotation, element.scale]);
 
+  // Read by the document listeners below, which outlive the render that made
+  // them for the length of a gesture.
+  const spanRef = useRef(span);
+  spanRef.current = span;
+  // Who this copy is to the live channel, so it never follows its own gesture.
+  const spanTokenRef = useRef<object>({});
+
+  // Another copy of this element is being dragged: follow it. Only the state
+  // moves. The commit that ends the gesture arrives through the props like any
+  // other edit, and the effect above takes it from there.
+  const spanShiftX = span ? span.shiftX : null;
+  useEffect(() => {
+    if (spanShiftX === null) return;
+    const follow = (box: SpanLiveBox) => {
+      const followed = {
+        position: { x: box.position.x + spanShiftX, y: box.position.y },
+        size: box.size,
+        rotation: box.rotation,
+        scale: box.scale,
+      };
+      latestRef.current = followed;
+      setPosition(followed.position);
+      setCurrentSize(followed.size);
+      setCurrentRotation(followed.rotation);
+      setCurrentScale(followed.scale);
+    };
+    // A copy that mounts halfway through a drag, because the element has just
+    // reached this artboard, starts where the pointer has it.
+    const current = spanLiveGesture(element.id);
+    if (current && current.from !== spanTokenRef.current) follow(current.box);
+    return subscribeSpanLive(element.id, (box, from) => {
+      if (from !== spanTokenRef.current) follow(box);
+    });
+  }, [element.id, spanShiftX]);
+
+  // A copy taken off the canvas mid-gesture must not leave the others
+  // following a drag that will never finish. A no-op unless this copy was the
+  // one being dragged.
+  const elementIdRef = useRef(element.id);
+  elementIdRef.current = element.id;
+  useEffect(() => () => endSpanLive(elementIdRef.current, spanTokenRef.current), []);
+
   const getMousePositionInArtboardSpace = (e: { clientX: number; clientY: number }): Point => {
+    const mapped = spanRef.current?.pointerToBoard(e.clientX, e.clientY);
+    if (mapped) return mapped;
     const artboardDiv = elementRef.current?.offsetParent as HTMLElement | null;
     if (artboardDiv) {
       const artboardRect = artboardDiv.getBoundingClientRect();
@@ -543,6 +612,23 @@ export function DraggableElement({
       setCurrentSize(newSize);
       setCurrentScale(newScale);
       setCurrentRotation(newRotation);
+
+      // The other copies of an element that continues across artboards move
+      // with this one, in its own artboard's coordinates.
+      const binding = spanRef.current;
+      if (binding) {
+        publishSpanLive(
+          element.id,
+          {
+            position: { x: newPos.x - binding.shiftX, y: newPos.y },
+            size: newSize,
+            rotation: newRotation,
+            scale: newScale,
+            originBoardId: binding.boardId,
+          },
+          spanTokenRef.current
+        );
+      }
     };
 
     const handlePointerUp = (e: PointerEvent) => {
@@ -573,6 +659,9 @@ export function DraggableElement({
           scale: live.scale,
         });
       }
+      // After the commit, so the canvas swaps the live geometry for the
+      // committed one in a single render.
+      endSpanLive(element.id, spanTokenRef.current);
 
       setInteractionMode(null);
       setInteractionStart(null);
@@ -670,7 +759,7 @@ export function DraggableElement({
   const anim =
     playbackTime === null
       ? null
-      : animationStateAt(element.animation, playbackTime, boundary.height * 0.05);
+      : animationStateAt(element.animation, playbackTime, slideDistanceFor(boundary.height));
   // Same composition the export compositor applies (see withElementTransform in
   // lib/video/videoExport.ts): offset the box, rotate it, scale about its
   // centre. Uniform scale, so the CSS order matches the canvas order.
@@ -732,8 +821,14 @@ export function DraggableElement({
         dragArmedRef.current = false;
         pressOnSelectedRef.current = false;
       }}
-      data-element-id={element.id}
-      className="group" 
+      // A copy drawn by another artboard is not one of that artboard's
+      // elements, so it is marked differently: everything that counts or finds
+      // an artboard's elements by data-element-id keeps meaning exactly that.
+      data-element-id={span?.sourceBoardId ? undefined : element.id}
+      data-span-of={span?.sourceBoardId ? element.id : undefined}
+      data-span-source={span?.sourceBoardId}
+      data-span-shift={span?.sourceBoardId ? span.shiftX : undefined}
+      className="group"
     >
       {isSelected && (
         <>

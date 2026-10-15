@@ -1,7 +1,7 @@
 "use client";
 import type React from 'react';
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Artboard } from './Artboard';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Artboard, type SpanHost } from './Artboard';
 import type { ArtboardState, Point, ElementType, ShapeType, DeviceType, ArtboardElement, ElementSelectModifiers } from '@/types/artboard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,15 @@ import { useEditorPreference } from '@/lib/editorPreferences';
 import type { CollabPeer } from '@/lib/collab/types';
 import { CollabBoardOverlay } from './collab/CollabBoardOverlay';
 import { DeleteArtboardDialog } from './DeleteArtboardDialog'; // Import the new dialog component
+import {
+  computeSpill,
+  reachedArtboardIds,
+  spanArtboardsByElement,
+  spillFor,
+  stripPointFromClient,
+  type ScreenRect,
+} from '@/lib/spanArtboards';
+import { spanLiveBoxes, spanLiveGesture, subscribeSpanLiveAll } from '@/lib/spanLive';
 
 /**
  * An element added to or removed from a board on the canvas.
@@ -278,6 +287,66 @@ export function CanvasArea({
   }, [artboards]);
 
 
+  // --- elements continuing across artboards (see src/lib/spanArtboards.ts) ---
+
+  const artboardsRef = useRef(artboards);
+  artboardsRef.current = artboards;
+
+  /**
+   * Bumped when a gesture changes which artboards an element reaches, so the
+   * spill below is worked out again from the live geometry and a mockup
+   * dragged over an edge shows on the next artboard before it is let go. Not
+   * on every pointer move: the copies follow those by themselves.
+   */
+  const [spanLiveVersion, setSpanLiveVersion] = useState(0);
+  // Which artboards each element in a gesture reached at the last pointer move.
+  const spanReachRef = useRef(new Map<string, string>());
+  useEffect(
+    () =>
+      subscribeSpanLiveAll((elementId) => {
+        const boards = artboardsRef.current;
+        const box = spanLiveGesture(elementId)?.box;
+        if (!box) {
+          // The gesture ended: back to the stored geometry, in the same render
+          // as the commit.
+          if (spanReachRef.current.delete(elementId)) setSpanLiveVersion((version) => version + 1);
+          return;
+        }
+        const reach = reachedArtboardIds(boards, elementId, box).join('|');
+        const known = spanReachRef.current.get(elementId) ?? reachedArtboardIds(boards, elementId).join('|');
+        spanReachRef.current.set(elementId, reach);
+        if (reach !== known) setSpanLiveVersion((version) => version + 1);
+      }),
+    []
+  );
+
+  const spill = useMemo(
+    () => computeSpill(artboards, spanLiveBoxes()),
+    // spanLiveVersion is the signal that the live geometry is worth reading again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [artboards, spanLiveVersion]
+  );
+  const spanBoards = useMemo(() => spanArtboardsByElement(spill), [spill]);
+
+  /**
+   * The pointer in one artboard's pixels, with the gaps the canvas puts
+   * between artboards taken out. Measured off the live DOM on every call, so
+   * it holds at any zoom and scroll.
+   */
+  const pointerToBoard = useCallback((boardId: string, clientX: number, clientY: number) => {
+    const boards = artboardsRef.current;
+    const index = boards.findIndex((board) => board.id === boardId);
+    if (index < 0) return null;
+    const rects: ScreenRect[] = [];
+    for (const board of boards) {
+      const node = document.querySelector(`[data-artboard-dom-id="${CSS.escape(board.id)}"]`);
+      if (!node) return null;
+      const rect = node.getBoundingClientRect();
+      rects.push({ left: rect.left, top: rect.top, width: rect.width });
+    }
+    return stripPointFromClient({ x: clientX, y: clientY }, rects, boards.map((board) => board.size.width), index);
+  }, []);
+
   // Safety net: if real artboards exist but none is selected (e.g. after a
   // drag-add that didn't set selection), select the first. The template/project
   // load paths in the parent already select on load, and with no fake fallback
@@ -318,6 +387,65 @@ export function CanvasArea({
     );
     onUpdateArtboards(newArtboards);
   }
+
+  /**
+   * How a copy drawn on one artboard reaches the element it continues, which
+   * lives on another. Selecting, moving and editing all happen on that other
+   * artboard, in its coordinates, so the copy is never more than a view of it.
+   * Absent with a single artboard, where nothing can continue anywhere.
+   */
+  const spanHost: SpanHost | undefined =
+    artboards.length > 1
+      ? {
+          activeArtboardId,
+          selectedElementIds,
+          spanBoards,
+          pointerToBoard,
+          select: (copy, modifiers) => {
+            if (activeArtboardId !== copy.sourceBoardId) setActiveArtboardId(copy.sourceBoardId);
+            setSelectedElementIdOnActiveArtboard(copy.source.id, modifiers);
+          },
+          update: (copy, element) => {
+            const board = artboards.find((ab) => ab.id === copy.sourceBoardId);
+            if (!board) return;
+            const placed = {
+              ...element,
+              position: { x: element.position.x - copy.shiftX, y: element.position.y },
+            } as ArtboardElement;
+            handleUpdateArtboardElements(
+              board.id,
+              board.elements.map((el) => (el.id === copy.source.id ? placed : el))
+            );
+          },
+          patch: (copy, updates) => {
+            const board = artboards.find((ab) => ab.id === copy.sourceBoardId);
+            if (!board) return;
+            // An inline text edit refits its box about the centre, which moves
+            // it, so a position here is in the copy's coordinates too.
+            const placed = updates.position
+              ? { ...updates, position: { x: updates.position.x - copy.shiftX, y: updates.position.y } }
+              : updates;
+            handleUpdateArtboardElements(
+              board.id,
+              board.elements.map((el) => (el.id === copy.source.id ? ({ ...el, ...placed } as ArtboardElement) : el))
+            );
+          },
+          remove: (copy) => {
+            const board = artboards.find((ab) => ab.id === copy.sourceBoardId);
+            if (!board) return;
+            handleUpdateArtboardElements(
+              board.id,
+              board.elements.filter((el) => el.id !== copy.source.id)
+            );
+          },
+          dragDelta: (copy, dx, dy) => {
+            artboardRefs.current[copy.sourceBoardId]?.followSelectionDrag?.(dx, dy, copy.source.id);
+          },
+          dragCommit: (copy, dx, dy) => {
+            artboardRefs.current[copy.sourceBoardId]?.commitSelectionDrag?.(dx, dy, copy.source.id);
+          },
+        }
+      : undefined;
   
   const handleSelectArtboard = (artboardId: string) => {
     setActiveArtboardId(artboardId);
@@ -837,6 +965,8 @@ export function CanvasArea({
                 canDeleteArtboard={artboards.length > 1}
                 canMoveArtboardLeft={index > 0}
                 canMoveArtboardRight={index < artboards.length - 1}
+                spill={spillFor(spill, artboard.id)}
+                spanHost={spanHost}
                 renderCollabOverlay={
                   collabPeers?.length
                     ? ({ screenScale }) => (

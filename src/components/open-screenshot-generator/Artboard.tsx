@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useState, useEffect, useMemo, useRef, useImperativeHandle, forwardRef } from 'react';
-import { DraggableElement } from './elements/DraggableElement';
+import { DraggableElement, type SpanBinding } from './elements/DraggableElement';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
@@ -19,7 +19,7 @@ import { measureTextHeight } from '@/lib/textFit';
 import { cn } from '@/lib/utils';
 import { artboardTimeline } from '@/lib/video/timeline';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
-import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning } from '@/lib/video/playback';
+import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning, usePlaybackTransport } from '@/lib/video/playback';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { Input } from '@/components/ui/input';
 import { EditIcon } from 'lucide-react';
@@ -30,6 +30,35 @@ import {
   hasCanvasBox,
   moveElements,
 } from '@/lib/elementGeometry';
+import { NO_SPILL, paintLayers, spansArtboards, type BoardSpill, type SpanCopy } from '@/lib/spanArtboards';
+
+/**
+ * What a span copy needs from the canvas. The copy is drawn here, but its
+ * element lives on another artboard, so selecting, moving and editing it all
+ * go to that artboard instead (see src/lib/spanArtboards.ts).
+ */
+export interface SpanHost {
+  /** The selection, which a copy shows whenever its element is part of it. */
+  activeArtboardId: string | null;
+  selectedElementIds: string[];
+  /**
+   * Every artboard each continuing element shows on, its own first. Such an
+   * element plays to whichever of them is previewing, so its halves move
+   * together.
+   */
+  spanBoards: ReadonlyMap<string, string[]>;
+  /** The pointer in one artboard's pixels, with the gaps between artboards taken out. */
+  pointerToBoard: (boardId: string, clientX: number, clientY: number) => Point | null;
+  select: (copy: SpanCopy, modifiers: ElementSelectModifiers) => void;
+  /** A finished drag, resize or rotate of the copy, in the drawing artboard's coordinates. */
+  update: (copy: SpanCopy, element: ArtboardElement) => void;
+  /** An edit made inside the copy (inline text, an upload), in the drawing artboard's coordinates. */
+  patch: (copy: SpanCopy, updates: Partial<ArtboardElement>) => void;
+  remove: (copy: SpanCopy) => void;
+  /** The copy is leading a drag of several layers selected on its own artboard. */
+  dragDelta: (copy: SpanCopy, dx: number, dy: number) => void;
+  dragCommit: (copy: SpanCopy, dx: number, dy: number) => void;
+}
 
 /**
  * How far a press has to travel before it is a marquee rather than a click on
@@ -70,11 +99,27 @@ interface ArtboardProps {
    * (`screenScale` below). Absent outside a session, which is the usual case.
    */
   renderCollabOverlay?: (context: { screenScale: number }) => React.ReactNode;
+  /**
+   * Elements of other artboards that continue onto this one. Drawn here and
+   * clipped here, in front of or behind this artboard's own elements.
+   */
+  spill?: BoardSpill;
+  /**
+   * Present when there is more than one artboard, which is when an element can
+   * continue onto another. Absent, every element stays on its own artboard.
+   */
+  spanHost?: SpanHost;
 }
 
 export interface ArtboardRef {
   addElement: (type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => string | undefined;
   deleteElementByIdG: (elementId: string) => void;
+  /**
+   * Move the rest of this artboard's selection while a copy drawn on another
+   * artboard leads the drag. The same calls a leader on this artboard makes.
+   */
+  followSelectionDrag: (dx: number, dy: number, leaderId: string) => void;
+  commitSelectionDrag: (dx: number, dy: number, leaderId: string) => void;
 }
 
 export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({ 
@@ -98,6 +143,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   canMoveArtboardLeft,
   canMoveArtboardRight,
   renderCollabOverlay,
+  spill = NO_SPILL,
+  spanHost,
 }, ref) => {
   const [elements, setElements] = useState<ArtboardElement[]>(artboard.elements);
   const artboardDivRef = useRef<HTMLDivElement>(null);
@@ -218,6 +265,12 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         rotation: 0,
         scale: 1,
         ...(libraryId ? { libraryId } : {}),
+        // Whatever the user pushes past a side edge carries on onto the
+        // artboard beside it. Stamped on the element rather than read as a
+        // default, because an element without the flag (a template's, an
+        // agent's, one from an older project) stays cut off at its edge. A
+        // sound has no box to carry anywhere.
+        ...(type !== 'audio' ? { spanArtboards: true } : {}),
       };
 
       let newElementToAdd: ArtboardElement | null = null;
@@ -485,7 +538,13 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         return true;
       }
       return false;
-    }
+    },
+    followSelectionDrag: (dx: number, dy: number, leaderId: string) => {
+      applyFollowerOffset.current(dx, dy, leaderId);
+    },
+    commitSelectionDrag: (dx: number, dy: number, leaderId: string) => {
+      commitSelectionMove.current(dx, dy, leaderId);
+    },
     };
     selfRef.current = api;
     return api;
@@ -514,10 +573,16 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   applyFollowerOffset.current = (dx, dy, leaderId) => {
     const root = artboardDivRef.current;
     if (!root) return;
+    const translate = dx === 0 && dy === 0 ? '' : `${dx}px ${dy}px`;
     for (const id of selectedIdsRef.current) {
       if (id === leaderId) continue;
       const node = root.querySelector<HTMLElement>(`[data-element-id="${CSS.escape(id)}"]`);
-      if (node) node.style.translate = dx === 0 && dy === 0 ? '' : `${dx}px ${dy}px`;
+      if (node) node.style.translate = translate;
+      // The copies neighbouring artboards draw of it go with it. Every
+      // artboard shares one scale, so the offset is the same number there.
+      for (const copy of document.querySelectorAll<HTMLElement>(`[data-span-of="${CSS.escape(id)}"]`)) {
+        copy.style.translate = translate;
+      }
     }
   };
 
@@ -537,7 +602,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     for (const node of root.querySelectorAll<HTMLElement>('[data-element-id]')) {
       if (node.style.translate) node.style.translate = '';
     }
-  }, [selectedElementIds]);
+    // And the copies of this artboard's elements drawn by its neighbours.
+    for (const node of document.querySelectorAll<HTMLElement>(`[data-span-source="${CSS.escape(artboard.id)}"]`)) {
+      if (node.style.translate) node.style.translate = '';
+    }
+  }, [selectedElementIds, artboard.id]);
 
   /** Move every selected layer by the same offset, in one commit. */
   const commitSelectionMove = useRef((dx: number, dy: number, leaderId: string) => {});
@@ -703,9 +772,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
     }
     // Only deselect element if the click is directly on the artboard background,
     // not on the toolbar or other child elements within the artboard wrapper.
-    // Also check if the target is a DraggableElement or its children
+    // Also check if the target is a DraggableElement or its children, a span
+    // copy included: clicking one selected its element on another artboard,
+    // and making this artboard active would drop that selection again.
     const target = e.target as HTMLElement;
-    const isDraggableElement = target.closest('[data-element-id]');
+    const isDraggableElement = target.closest('[data-element-id], [data-span-of]');
     const isHandle = target.closest('[data-interaction-handle]');
 
     if (e.target === artboardDivRef.current && !isDraggableElement && !isHandle) {
@@ -748,8 +819,16 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   // App Preview playback. The timeline is read off the elements as they stand,
   // so adding an animation or dropping in a recording changes the preview
   // length straight away.
-  const timeline = useMemo(() => artboardTimeline({ ...artboard, elements }), [artboard, elements]);
+  // Copies of neighbours' elements play here too, so a board whose only moving
+  // part continues in from next door still gets a timeline.
+  const shownSpill = spanHost ? spill : NO_SPILL;
+  const timeline = useMemo(
+    () => artboardTimeline({ ...artboard, elements }, shownSpill),
+    [artboard, elements, shownSpill]
+  );
   const isPlaying = usePlaybackRunning(artboard.id);
+  // Which board is previewing, for the elements that show on more than this one.
+  const transport = usePlaybackTransport(!!spanHost);
 
   // A board that goes away (deleted, project swapped, language switched) must
   // not leave the clock running against an id nothing renders any more.
@@ -759,6 +838,231 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       if (getPlayback().artboardId === id) stopPlayback();
     };
   }, [artboard.id]);
+
+  // --- elements continuing across artboards ---------------------------------
+  //
+  // Read through refs by callbacks that keep one identity for the life of the
+  // board. A span copy is a new object after every commit, and DraggableElement
+  // registers its document listeners against its callbacks, so fresh closures
+  // would tear those listeners down whenever the canvas re-rendered mid-drag,
+  // which is exactly when an element reaching a new artboard makes it render.
+  const spanHostRef = useRef(spanHost);
+  spanHostRef.current = spanHost;
+  const artboardIdRef = useRef(artboard.id);
+  artboardIdRef.current = artboard.id;
+  const spanCopiesRef = useRef(new Map<string, SpanCopy>());
+  spanCopiesRef.current = new Map([...spill.behind, ...spill.front].map((copy) => [copy.key, copy]));
+
+  const pointerToThisBoard = useRef((clientX: number, clientY: number) =>
+    spanHostRef.current?.pointerToBoard(artboardIdRef.current, clientX, clientY) ?? null
+  ).current;
+
+  type SpanCopyCallbacks = {
+    select: (elementId: string, e: React.PointerEvent) => void;
+    update: (element: ArtboardElement) => void;
+    patch: (updates: Partial<ArtboardElement>) => void;
+    remove: () => void;
+    delta: (dx: number, dy: number) => void;
+    commit: (dx: number, dy: number) => void;
+  };
+  const spanCallbacks = useRef(new Map<string, SpanCopyCallbacks>());
+  const spanCallbacksFor = (key: string): SpanCopyCallbacks => {
+    let entry = spanCallbacks.current.get(key);
+    if (!entry) {
+      const withCopy = (run: (host: SpanHost, copy: SpanCopy) => void) => {
+        const host = spanHostRef.current;
+        const copy = spanCopiesRef.current.get(key);
+        if (host && copy) run(host, copy);
+      };
+      entry = {
+        select: (_elementId, e) => withCopy((host, copy) => host.select(copy, { toggle: e.shiftKey, single: e.altKey })),
+        update: (element) => withCopy((host, copy) => host.update(copy, element)),
+        patch: (updates) => withCopy((host, copy) => host.patch(copy, updates)),
+        remove: () => withCopy((host, copy) => host.remove(copy)),
+        delta: (dx, dy) => withCopy((host, copy) => host.dragDelta(copy, dx, dy)),
+        commit: (dx, dy) => withCopy((host, copy) => host.dragCommit(copy, dx, dy)),
+      };
+      spanCallbacks.current.set(key, entry);
+    }
+    return entry;
+  };
+
+  /**
+   * The artwork inside a DraggableElement, by type. Shared by this artboard's
+   * own elements and the copies it draws of its neighbours', so a copy can
+   * never render differently from the element it continues.
+   */
+  const renderArtwork = (
+    element: ArtboardElement,
+    onUpdate: (updates: Partial<ArtboardElement>) => void,
+    selected: boolean,
+    clock: string
+  ) => (
+    <>
+      {element.type === 'text' && (
+        <TextElement
+          element={element}
+          onUpdate={onUpdate}
+          isSelected={selected}
+          artboardZoom={artboard.zoom * element.scale}
+        />
+      )}
+      {element.type === 'image' && (
+        <ImageElement
+          element={element as ImageElementProps}
+          onUpdate={onUpdate}
+          isSelected={selected}
+        />
+      )}
+      {element.type === 'shape' && <ShapeElement element={element} />}
+      {element.type === 'device' && (
+        <DeviceFrameElement
+          element={element}
+          onUpdate={onUpdate}
+          isSelected={selected}
+        />
+      )}
+      {element.type === 'video' && (
+        <VideoElement
+          element={element as VideoElementProps}
+          onUpdate={onUpdate}
+          isSelected={selected}
+          artboardId={clock}
+        />
+      )}
+      {element.type === 'video-device' && (
+        <VideoDeviceElement
+          element={element as VideoDeviceElementProps}
+          onUpdate={onUpdate}
+          isSelected={selected}
+          artboardId={clock}
+        />
+      )}
+      {element.type === 'gesture' && (
+        <GestureElement
+          element={element as GestureElementProps}
+          isSelected={selected}
+          artboardId={clock}
+        />
+      )}
+    </>
+  );
+
+  /**
+   * The board whose timeline an element plays to. An element that shows on
+   * several artboards follows whichever of them is previewing, on every one of
+   * them, so its halves never split mid-animation; each artboard's own export
+   * plays it to that artboard's timeline, which is what previewing that board
+   * shows. Everything else plays to this board.
+   */
+  const clockFor = (elementId: string): string => {
+    const loaded = transport.artboardId;
+    if (!loaded || loaded === artboard.id) return artboard.id;
+    return spanHost?.spanBoards.get(elementId)?.includes(loaded) ? loaded : artboard.id;
+  };
+  /** Whether that timeline is running, which takes the selection chrome away. */
+  const clockRunning = (clock: string): boolean =>
+    clock === artboard.id ? isPlaying : transport.playing && transport.artboardId === clock;
+  /**
+   * A recording's sound belongs to the export of the artboard it lives on, so
+   * it is heard only while that artboard previews. Playing to any other
+   * board's timeline, and on every copy, the picture plays without it.
+   * Rendering only: the element handed back on an edit is never this one.
+   */
+  const silencedFor = (element: ArtboardElement, ownAndOnOwnClock: boolean): ArtboardElement =>
+    !ownAndOnOwnClock && (element.type === 'video' || element.type === 'video-device') && element.keepAudio
+      ? ({ ...element, keepAudio: false } as ArtboardElement)
+      : element;
+
+  const renderOwnElement = (element: ArtboardElement) => {
+    // A sound layer has nothing to draw or drag: just its <audio>,
+    // following the board's timeline.
+    if (element.type === 'audio') {
+      return <AudioElement key={element.id} element={element} artboardId={artboard.id} />;
+    }
+    const clock = clockFor(element.id);
+    // Selection chrome (outlines, handles, upload overlays) is editing
+    // furniture; while the timeline runs the board shows only what will
+    // be in the exported video.
+    const isElementSelected = selectedElementIds.includes(element.id) && !clockRunning(clock);
+    // Only a real multi-selection takes the group-drag path, so a
+    // single layer keeps committing exactly as it always has.
+    const dragsTogether = isElementSelected && selectedElementIds.length > 1;
+    // Bound to its copies on the neighbouring artboards. Only when there is a
+    // neighbour: a lone artboard has nothing to bind it to.
+    const span: SpanBinding | undefined =
+      spanHost && spansArtboards(element)
+        ? { shiftX: 0, boardId: artboard.id, pointerToBoard: pointerToThisBoard }
+        : undefined;
+    return (
+      <DraggableElement
+        key={element.id}
+        element={element}
+        isSelected={isElementSelected}
+        onSelect={handleSelectElement}
+        onUpdateElement={handleUpdateElement}
+        onDeleteElement={handleDeleteElement}
+        artboardZoom={artboard.zoom}
+        screenScale={screenScale}
+        boundary={{width: artboard.size.width, height: artboard.size.height}}
+        artboardId={clock}
+        onDragDelta={dragsTogether ? makeDragDelta(element.id) : undefined}
+        onDragCommit={dragsTogether ? makeDragCommit(element.id) : undefined}
+        showHandles={!dragsTogether}
+        span={span}
+      >
+        {renderArtwork(
+          silencedFor(element, clock === artboard.id),
+          (updates) => partialUpdateElement(element.id, updates),
+          isElementSelected,
+          clock
+        )}
+      </DraggableElement>
+    );
+  };
+
+  /**
+   * Another artboard's element, where it continues onto this one. It looks and
+   * handles like one of this artboard's own, but every click, drag and edit
+   * goes to the artboard it belongs to, which is also where it gets selected.
+   */
+  const renderSpanCopy = (copy: SpanCopy) => {
+    if (!spanHost || copy.element.type === 'audio') return null;
+    const callbacks = spanCallbacksFor(copy.key);
+    const clock = clockFor(copy.source.id);
+    const sourceSelected =
+      !clockRunning(clock) &&
+      spanHost.activeArtboardId === copy.sourceBoardId &&
+      spanHost.selectedElementIds.includes(copy.source.id);
+    const dragsTogether = sourceSelected && spanHost.selectedElementIds.length > 1;
+    return (
+      <DraggableElement
+        key={`span:${copy.key}`}
+        element={copy.element}
+        isSelected={sourceSelected}
+        onSelect={callbacks.select}
+        onUpdateElement={callbacks.update}
+        onDeleteElement={callbacks.remove}
+        artboardZoom={artboard.zoom}
+        screenScale={screenScale}
+        // Its own artboard's size: that height sets how far its slides travel,
+        // and both halves have to travel the same distance.
+        boundary={copy.sourceSize}
+        artboardId={clock}
+        onDragDelta={dragsTogether ? callbacks.delta : undefined}
+        onDragCommit={dragsTogether ? callbacks.commit : undefined}
+        showHandles={!dragsTogether}
+        span={{
+          shiftX: copy.shiftX,
+          boardId: artboard.id,
+          sourceBoardId: copy.sourceBoardId,
+          pointerToBoard: pointerToThisBoard,
+        }}
+      >
+        {renderArtwork(silencedFor(copy.element, false), callbacks.patch, sourceSelected, clock)}
+      </DraggableElement>
+    );
+  };
 
   return (
     <div className="relative mt-4" suppressHydrationWarning>
@@ -856,84 +1160,11 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           suppressHydrationWarning
         >
           <ArtboardBackgroundImage artboard={artboard} />
-          {elements.map(element => {
-            // A sound layer has nothing to draw or drag: just its <audio>,
-            // following the board's timeline.
-            if (element.type === 'audio') {
-              return <AudioElement key={element.id} element={element} artboardId={artboard.id} />;
-            }
-            // Selection chrome (outlines, handles, upload overlays) is editing
-            // furniture; while the timeline runs the board shows only what will
-            // be in the exported video.
-            const isElementSelected = selectedElementIds.includes(element.id) && !isPlaying;
-            // Only a real multi-selection takes the group-drag path, so a
-            // single layer keeps committing exactly as it always has.
-            const dragsTogether = isElementSelected && selectedElementIds.length > 1;
-            return (
-            <DraggableElement
-              key={element.id}
-              element={element}
-              isSelected={isElementSelected}
-              onSelect={handleSelectElement}
-              onUpdateElement={handleUpdateElement}
-              onDeleteElement={handleDeleteElement}
-              artboardZoom={artboard.zoom}
-              screenScale={screenScale}
-              boundary={{width: artboard.size.width, height: artboard.size.height}}
-              artboardId={artboard.id}
-              onDragDelta={dragsTogether ? makeDragDelta(element.id) : undefined}
-              onDragCommit={dragsTogether ? makeDragCommit(element.id) : undefined}
-              showHandles={!dragsTogether}
-            >
-              {element.type === 'text' && (
-                <TextElement
-                  element={element}
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={isElementSelected}
-                  artboardZoom={artboard.zoom * element.scale}
-                />
-              )}
-              {element.type === 'image' && (
-                <ImageElement
-                  element={element as ImageElementProps}
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={isElementSelected}
-                />
-              )}
-              {element.type === 'shape' && <ShapeElement element={element} />}
-              {element.type === 'device' && (
-                <DeviceFrameElement
-                  element={element}
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={isElementSelected}
-                />
-              )}
-              {element.type === 'video' && (
-                <VideoElement
-                  element={element as VideoElementProps}
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={isElementSelected}
-                  artboardId={artboard.id}
-                />
-              )}
-              {element.type === 'video-device' && (
-                <VideoDeviceElement
-                  element={element as VideoDeviceElementProps}
-                  onUpdate={(updates) => partialUpdateElement(element.id, updates)}
-                  isSelected={isElementSelected}
-                  artboardId={artboard.id}
-                />
-              )}
-              {element.type === 'gesture' && (
-                <GestureElement
-                  element={element as GestureElementProps}
-                  isSelected={isElementSelected}
-                  artboardId={artboard.id}
-                />
-              )}
-            </DraggableElement>
-            );
-          })}
+          {/* Back to front: copies of neighbouring artboards' elements set
+              behind, this artboard's own elements, then copies set in front. */}
+          {paintLayers(elements, spanHost ? spill : NO_SPILL).map((layer) =>
+            layer.kind === 'span' ? renderSpanCopy(layer.copy) : renderOwnElement(layer.element)
+          )}
         </div>
 
         {/* Live session marks: peers' selections and pointers.

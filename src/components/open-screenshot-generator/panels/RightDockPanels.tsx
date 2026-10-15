@@ -26,6 +26,7 @@ import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
 import { CodexLogo } from '../agent/CodexLogo';
 import type { ArtboardElement, ArtboardState, ElementSelectModifiers } from '@/types/artboard';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
+import type { SpanChange } from '@/lib/spanArtboards';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { DetachableKey } from '@/lib/i18n/project';
 import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/protocol';
@@ -68,6 +69,8 @@ export interface DockHandlers {
   onDistributeElements: (axis: DistributeAxis) => void;
   onGroupElements: () => void;
   onUngroupElements: () => void;
+  /** Whether the selection carries on across artboard edges, and in front or behind. */
+  onUpdateSpan: (change: SpanChange) => void;
   /** Free one group the Layers panel points at, selected or not. */
   onUngroupById: (groupId: string) => void;
   onRenameGroup: (groupId: string, name: string) => void;
@@ -223,6 +226,7 @@ export function RightDockPanels({
               onDistributeElements={handlers.onDistributeElements}
               onGroupElements={handlers.onGroupElements}
               onUngroupElements={handlers.onUngroupElements}
+              onUpdateSpan={handlers.onUpdateSpan}
               onRenameGroup={handlers.onRenameGroup}
               onMoveSelectionTo={handlers.onMoveSelectionTo}
               onUpdateElement={handlers.onUpdateElement}

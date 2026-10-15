@@ -90,6 +90,32 @@ export interface BaseElement {
   // shown at the top of the Properties panel so a layer traces back to the
   // library item that made it. Absent on template and hand-built elements.
   libraryId?: string;
+  /**
+   * What happens to the part of the element that crosses the left or right
+   * edge of its artboard.
+   *
+   *   absent or false  cut off at the edge
+   *   true             it carries on across the artboard beside it, as if the
+   *                    artboards sat edge to edge with their tops level, so
+   *                    one mockup can straddle two screenshots
+   *
+   * Absent means cut off, so projects and templates saved without the flag
+   * keep the look they were designed with, and the AI agent's layouts and the
+   * MCP tools can still hang an element off an edge on purpose. Elements added
+   * from the palette, and images dropped onto the canvas, start with it on.
+   *
+   * Position stays relative to the element's own artboard. Where it lands on a
+   * neighbour is worked out at render time (src/lib/spanArtboards.ts) from the
+   * artboard order and widths, so nothing needs updating when artboards are
+   * added, deleted, reordered or resized.
+   */
+  spanArtboards?: boolean;
+  /**
+   * Where the continuation sits on the other artboard: true draws it behind
+   * every element of that artboard, absent or false in front of them all.
+   * Ignored unless spanArtboards is on.
+   */
+  spanBehind?: boolean;
 }
 
 export interface TextElementProps extends BaseElement {

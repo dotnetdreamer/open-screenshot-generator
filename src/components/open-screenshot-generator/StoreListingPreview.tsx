@@ -1,10 +1,18 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { StaticArtboard, getArtboardBackgroundStyle, count3dDevices } from './StaticArtboard';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { detectArtboardsFormat } from '@/lib/deviceRegistry';
+import { computeSpill, spillFor, type BoardSpill } from '@/lib/spanArtboards';
 import type { ArtboardState } from '@/types/artboard';
+
+/**
+ * What each board shows of its neighbours' elements that cross an edge,
+ * worked out once over the whole set. A context because every surface below
+ * reaches the shots through a different component.
+ */
+const SpillContext = createContext<Map<string, BoardSpill> | null>(null);
 
 /**
  * The screenshots inside a mock store listing, at phone point size.
@@ -189,6 +197,7 @@ function Shot({
   observer: IntersectionObserver | null;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const spill = useContext(SpillContext);
 
   useEffect(() => {
     const node = ref.current;
@@ -212,7 +221,7 @@ function Shot({
       }}
     >
       {live ? (
-        <StaticArtboard artboard={board} scale={width / board.size.width} />
+        <StaticArtboard artboard={board} scale={width / board.size.width} spill={spillFor(spill, board.id)} />
       ) : (
         <div className="h-full w-full" style={getArtboardBackgroundStyle(board)} />
       )}
@@ -952,6 +961,8 @@ export function StoreListingPreview({
     setVisible(new Set());
   }, [store, surface]);
 
+  const spill = useMemo(() => computeSpill(artboards), [artboards]);
+
   const liveIndexes = useMemo(() => {
     const live = new Set<number>();
     let budget = LIVE_3D_BUDGET;
@@ -960,13 +971,13 @@ export function StoreListingPreview({
     for (let i = 0; i < artboards.length; i += 1) {
       if (!visible.has(i)) continue;
       if (live.size >= MAX_LIVE_SHOTS) break;
-      const cost = count3dDevices(artboards[i]);
+      const cost = count3dDevices(artboards[i], spillFor(spill, artboards[i].id));
       if (cost > budget) continue;
       budget -= cost;
       live.add(i);
     }
     return live;
-  }, [artboards, visible]);
+  }, [artboards, visible, spill]);
 
   const icon = useMemo(() => deriveIcon(artboards[0], appName), [artboards, appName]);
 
@@ -1057,10 +1068,12 @@ export function StoreListingPreview({
                 />
               )}
 
-              {store === 'appstore' && surface === 'product' && <AppStoreProduct {...surfaceProps} />}
-              {store === 'appstore' && surface === 'search' && <AppStoreSearch {...surfaceProps} />}
-              {store === 'play' && surface === 'product' && <PlayProduct {...surfaceProps} />}
-              {store === 'play' && surface === 'search' && <PlaySearch {...surfaceProps} />}
+              <SpillContext.Provider value={spill}>
+                {store === 'appstore' && surface === 'product' && <AppStoreProduct {...surfaceProps} />}
+                {store === 'appstore' && surface === 'search' && <AppStoreSearch {...surfaceProps} />}
+                {store === 'play' && surface === 'product' && <PlayProduct {...surfaceProps} />}
+                {store === 'play' && surface === 'search' && <PlaySearch {...surfaceProps} />}
+              </SpillContext.Provider>
             </div>
           </div>
         )}

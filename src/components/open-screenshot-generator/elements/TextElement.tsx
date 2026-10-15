@@ -82,11 +82,12 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
   // One click on an already selected box opens the editor. DraggableElement
   // owns the gesture (it is the only thing that knows a click from the end of a
   // drag) and announces it on the wrapper, this node's nearest
-  // [data-element-id] ancestor.
+  // [data-element-id] ancestor, or [data-span-of] on the copy a neighbouring
+  // artboard draws of text that continues across the edge.
   // Not bound at all while editing, so a stray one cannot re-seed the box and
   // pull the text out from under the caret.
   useEffect(() => {
-    const wrapper = bodyRef.current?.closest('[data-element-id]');
+    const wrapper = bodyRef.current?.closest('[data-element-id], [data-span-of]');
     if (!wrapper || isEditing) return;
     const open = () => beginEdit();
     wrapper.addEventListener(QUICK_EDIT_EVENT, open);

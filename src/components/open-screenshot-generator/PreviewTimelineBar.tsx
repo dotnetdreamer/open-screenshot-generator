@@ -7,6 +7,7 @@ import type { ArtboardElement, ArtboardState, ElementAnimationPreset } from '@/t
 import { ENTER_DURATION_DEFAULT, EXIT_DURATION_DEFAULT } from '@/lib/video/animation';
 import { GESTURE_DURATION_DEFAULT, GESTURE_TRIGGER_DEFAULT } from '@/lib/video/gestures';
 import { PREVIEW_DURATION_MAX, artboardTimeline } from '@/lib/video/timeline';
+import { computeSpill, spillFor } from '@/lib/spanArtboards';
 import { audioClipRange } from '@/lib/video/audio';
 import {
   getPlayback,
@@ -367,7 +368,13 @@ export function PreviewTimelineBar({
     if (loaded && loaded !== activeArtboardId) stopPlayback();
   }, [activeArtboardId]);
 
-  const timeline = useMemo(() => artboardTimeline(artboard), [artboard]);
+  // Elements of neighbouring artboards continuing onto this one play in its
+  // preview too, so they count toward whether it has a timeline and how long.
+  const spill = useMemo(() => computeSpill(artboards), [artboards]);
+  const timeline = useMemo(
+    () => artboardTimeline(artboard, artboard ? spillFor(spill, artboard.id) : undefined),
+    [artboard, spill]
+  );
   const tracks = useMemo(
     () => (artboard && timeline.hasMotion ? buildTracks(artboard, timeline.duration) : []),
     [artboard, timeline]

@@ -9,7 +9,9 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon, BringToFront, SendToBack } from 'lucide-react';
+import type { SpanChange } from '@/lib/spanArtboards';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -803,6 +805,12 @@ interface PropertiesPanelProps {
   onDistributeElements?: (axis: DistributeAxis) => void;
   onGroupElements?: () => void;
   onUngroupElements?: () => void;
+  /**
+   * Whether the selected layers carry on across the side edges of their
+   * artboard, and in front of or behind the other artboard's layers. Omitted
+   * when the host has no such setting, which hides the control.
+   */
+  onUpdateSpan?: (change: SpanChange) => void;
   /** Name the group the selection is, which writes the name to every member. */
   onRenameGroup?: (groupId: string, name: string) => void;
   /** Put the selection's bounding box at an exact spot on the board. */
@@ -1057,6 +1065,7 @@ export function PropertiesPanel({
   onDistributeElements,
   onGroupElements,
   onUngroupElements,
+  onUpdateSpan,
   onRenameGroup,
   onMoveSelectionTo,
   layerElements,
@@ -1237,6 +1246,72 @@ export function PropertiesPanel({
           </div>
         ) : null}
         <p className="text-[10px] text-muted-foreground">Measured from the top left of the artboard</p>
+      </div>
+    );
+  };
+
+  /**
+   * Whether the selection carries on across the left and right edges of its
+   * artboard onto the one beside it, and which side of that artboard's own
+   * elements it lands on (BaseElement.spanArtboards and spanBehind). Takes the
+   * whole selection, so one control serves a single layer and several.
+   */
+  const renderSpanControls = (elements: ArtboardElement[]) => {
+    const boxed = elements.filter((el) => el.type !== 'audio');
+    if (!onUpdateSpan || boxed.length === 0) return null;
+    const on = boxed.every((el) => el.spanArtboards === true);
+    const mixed = !on && boxed.some((el) => el.spanArtboards === true);
+    const behind = on && boxed.every((el) => el.spanBehind === true);
+    const front = on && boxed.every((el) => !el.spanBehind);
+    return (
+      <div className="space-y-2 border-t pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <Label htmlFor="spanArtboards" className="text-xs font-medium">
+            Continue across artboards
+          </Label>
+          <Switch
+            id="spanArtboards"
+            checked={on}
+            onCheckedChange={(checked) => onUpdateSpan({ spanArtboards: checked })}
+          />
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          {on
+            ? 'The part past a side edge shows on the artboard beside it'
+            : mixed
+              ? 'Some of these continue and some are cut off at the edge'
+              : 'Cut off at the edge of this artboard'}
+        </p>
+        {on ? (
+          <div className="space-y-1">
+            <Label className="text-[11px] text-muted-foreground">On the other artboard</Label>
+            <div className="flex gap-2">
+              <Button
+                variant={front ? 'default' : 'outline'}
+                size="sm"
+                className="flex-1"
+                aria-pressed={front}
+                title="Draw it over that artboard's own elements"
+                onClick={() => onUpdateSpan({ spanBehind: false })}
+              >
+                <BringToFront className="mr-1 h-3.5 w-3.5" />
+                In front
+              </Button>
+              <Button
+                variant={behind ? 'default' : 'outline'}
+                size="sm"
+                className="flex-1"
+                aria-pressed={behind}
+                title="Draw it under that artboard's own elements"
+                onClick={() => onUpdateSpan({ spanBehind: true })}
+              >
+                <SendToBack className="mr-1 h-3.5 w-3.5" />
+                Behind
+              </Button>
+            </div>
+          </div>
+        ) : null}
+        {sharedNote()}
       </div>
     );
   };
@@ -3941,6 +4016,8 @@ export function PropertiesPanel({
             </div>
           ) : null}
 
+          {renderSpanControls(selectedLayers)}
+
           <div className="space-y-2">
             <Label className="text-xs font-medium">Align</Label>
             <div className="grid grid-cols-6 gap-1">
@@ -4338,6 +4415,7 @@ export function PropertiesPanel({
           {/* A sound has a place on the timeline and none on the canvas, so it
               is the one type with no box to give numbers for. */}
           {selectedElement.type !== 'audio' && renderGeometryProperties(selectedElement)}
+          {renderSpanControls([selectedElement])}
           {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
           {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
           {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}

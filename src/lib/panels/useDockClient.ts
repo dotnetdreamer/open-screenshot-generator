@@ -224,6 +224,7 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
       onDistributeElements: (axis) => send({ name: 'distributeElements', axis }),
       onGroupElements: () => send({ name: 'groupElements' }),
       onUngroupElements: () => send({ name: 'ungroupElements' }),
+      onUpdateSpan: (change) => send({ name: 'updateSpan', change }),
       onUngroupById: (groupId) => send({ name: 'ungroupById', groupId }),
       onRenameGroup: (groupId, newName) => send({ name: 'renameGroup', groupId, newName }),
       onDropLayer: (elementId, anchorId, side, groupId) =>

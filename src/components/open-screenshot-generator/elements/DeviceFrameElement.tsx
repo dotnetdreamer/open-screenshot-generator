@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { UploadCloudIcon, ImagePlusIcon } from 'lucide-react';
 import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, DeviceStyleType } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
+import { devicePerspectiveTransform } from '@/lib/devicePerspective';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import { useImageSrc } from '@/lib/mediaStore';
@@ -228,27 +229,10 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
     );
   };
   
-  // Define device perspective transforms with mirror-matching values for left and right
-  const getDevicePerspectiveTransform = (styleType: DeviceStyleType = 'normal'): string => {
-    switch (styleType) {
-      case 'perspective-left':
-        // Mirror the right perspective for consistency
-        return 'matrix3d(1.04397, 0.095046, 0, -3.13e-05, -0.236454, 0.928959, 0, -3.99e-05, 0, 0, 1, 0, 26.0176, 24.4342, 0, 1)';
-      case 'perspective-right':
-        return 'matrix3d(1.04397, -0.095046, 0, 3.13e-05, 0.236454, 0.928959, 0, -3.99e-05, 0, 0, 1, 0, -26.0176, 24.4342, 0, 1)';
-      case 'perspective-slight-right':
-        return 'matrix3d(1.02397, -0.065046, 0, 2.13e-05, 0.136454, 0.968959, 0, -1.99e-05, 0, 0, 1, 0, -16.0176, 14.4342, 0, 1)';
-      case 'perspective-slight-left':
-        // Mirror the slight-right perspective for consistency
-        return 'matrix3d(1.02397, 0.065046, 0, -2.13e-05, -0.136454, 0.968959, 0, -1.99e-05, 0, 0, 1, 0, 16.0176, 14.4342, 0, 1)';
-      case 'perspective-front':
-        return 'matrix3d(1, 0, 0, 0, 0, 0.98, 0, 0.0001, 0, 0, 1, 0, 0, 8, 0, 1)';
-      case 'custom':
-        return element.matrix3d || 'none';
-      default:
-        return 'none';
-    }
-  };
+  // Device perspective transforms, mirror-matched for left and right. Shared
+  // with the reach of an element continuing across artboards (devicePerspective.ts).
+  const getDevicePerspectiveTransform = (styleType: DeviceStyleType = 'normal'): string =>
+    devicePerspectiveTransform(styleType, element.matrix3d);
   
   // For SVG-based rendering
   const createSVGDeviceFrame = (color: string = '#000', opacity: number = 0.2) => {

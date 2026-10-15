@@ -27,13 +27,13 @@ import { getDeviceDescriptor } from '@/lib/deviceRegistry';
 import { assetIdFromRef, getMediaAsset, getMediaUrl, isAssetRef } from '@/lib/mediaStore';
 import { artboardBackgroundImageBox, normalizeGradient } from '@/lib/artboardBackground';
 import { imageTint } from '@/lib/elementStyle';
-import { textOutlineReach } from '@/lib/textOutline';
 import { withBasePath } from '@/lib/basePath';
-import { animationStateAt, animationEndTime } from './animation';
+import { animationStateAt, animationEndTime, slideDistanceFor } from './animation';
 import { drawGesture, gesturePhaseAt, gestureEndTime } from './gestures';
 import { audioClipRange } from './audio';
 import { decodeRecordingAudio, loadRecordingBlob } from './recordingAudio';
 import { normalizeAacDescription } from './mp4Audio';
+import { NO_SPILL, paintLayers, paintOverspill, type BoardSpill } from '@/lib/spanArtboards';
 
 export interface VideoExportSettings {
   fps: number; // 30 or 60
@@ -63,39 +63,61 @@ export interface VideoExportSettings {
   // worse outcome than a slightly smaller file.
   // https://developer.apple.com/help/app-store-connect/reference/app-preview-specifications/
   forStoreUpload?: boolean;
+  // Elements of neighbouring artboards that continue onto this one (see
+  // src/lib/spanArtboards.ts), stacked where the canvas stacks them. Unset
+  // draws the board's own elements only. The store-safe cut never takes them:
+  // it is the recording and the board's own overlays.
+  spill?: BoardSpill;
   onProgress?: (done: number, total: number) => void;
   signal?: AbortSignal;
 }
 
 export interface ArtboardVideoInfo {
-  hasVideo: boolean; // any recording present (video element or device screen)
-  hasMotion: boolean; // gestures, enter/exit animations or sound layers
+  hasVideo: boolean; // any recording of the board's own present (video element or device screen)
+  hasMotion: boolean; // the board's own gestures, enter/exit animations or sound layers
+  // An element of a neighbouring artboard continuing onto this one moves or
+  // plays a recording. The styled export draws it, so the board has something
+  // to animate even when nothing of its own does. The store-safe cut leaves
+  // such copies out, which is why this stays apart from the two above.
+  hasSpanMotion: boolean;
   contentEndSeconds: number; // when the last recording/animation finishes
   suggestedDuration: number; // contentEnd rounded up, clamped to 1..30
 }
 
-/** What on this artboard needs a video export, and how long it runs. */
-export async function analyzeArtboardForVideo(ab: ArtboardState): Promise<ArtboardVideoInfo> {
+/**
+ * What on this artboard needs a video export, and how long it runs. `spill`
+ * is what neighbouring artboards continue onto it (see spanArtboards.ts).
+ */
+export async function analyzeArtboardForVideo(
+  ab: ArtboardState,
+  spill: BoardSpill = NO_SPILL
+): Promise<ArtboardVideoInfo> {
   let hasVideo = false;
   let hasMotion = false;
+  let hasSpanMotion = false;
   let end = 0;
-  for (const el of ab.elements) {
+  for (const layer of paintLayers(ab.elements, spill)) {
+    const el = layer.element;
+    const own = layer.kind === 'own';
     if (el.type === 'video' && (el.mediaId || el.videoSrc)) {
-      hasVideo = true;
+      if (own) hasVideo = true;
+      else hasSpanMotion = true;
       let duration = el.durationSeconds ?? 0;
       if (!duration && el.mediaId) duration = (await getMediaAsset(el.mediaId))?.duration ?? 0;
       const start = el.trimStart ?? 0;
       const stop = el.trimEnd ?? duration;
       end = Math.max(end, Math.max(0, stop - start));
     } else if (el.type === 'video-device' && (el.mediaId || el.videoSrc)) {
-      hasVideo = true;
+      if (own) hasVideo = true;
+      else hasSpanMotion = true;
       const duration =
         el.durationSeconds ?? (el.mediaId ? (await getMediaAsset(el.mediaId))?.duration ?? 0 : 0);
       const start = el.trimStart ?? 0;
       const stop = el.trimEnd ?? duration;
       end = Math.max(end, Math.max(0, stop - start));
     } else if (el.type === 'gesture') {
-      hasMotion = true;
+      if (own) hasMotion = true;
+      else hasSpanMotion = true;
       if (!el.gestureRepeat) end = Math.max(end, gestureEndTime(el));
     } else if (el.type === 'audio') {
       const range = audioClipRange(el);
@@ -105,13 +127,15 @@ export async function analyzeArtboardForVideo(ab: ArtboardState): Promise<Artboa
       }
     }
     if (el.animation) {
-      hasMotion = true;
+      if (own) hasMotion = true;
+      else hasSpanMotion = true;
       end = Math.max(end, animationEndTime(el.animation));
     }
   }
   return {
     hasVideo,
     hasMotion,
+    hasSpanMotion,
     contentEndSeconds: end,
     suggestedDuration: Math.min(30, Math.max(1, Math.ceil(end) || 15)),
   };
@@ -359,7 +383,9 @@ function drawSprite(ctx: CanvasRenderingContext2D, sprite: Sprite, w: number, h:
   ctx.drawImage(sprite.image, -sprite.pad, -sprite.pad, w + sprite.pad * 2, h + sprite.pad * 2);
 }
 
-type Layer =
+// `slide` overrides the board's slide distance for one layer: a copy of a
+// neighbour's element travels as far as its own artboard makes it.
+type Layer = { slide?: number } & (
   | { kind: 'sprite'; el: ArtboardElement; sprite: Sprite }
   | { kind: 'video'; el: VideoElementProps; source: VideoSource }
   | {
@@ -376,7 +402,8 @@ type Layer =
     }
   | { kind: 'gesture'; el: GestureElementProps }
   // Poster standing in for absent footage (see allowPosterFallback).
-  | { kind: 'still'; el: VideoElementProps; image: HTMLImageElement };
+  | { kind: 'still'; el: VideoElementProps; image: HTMLImageElement }
+);
 
 const SPRITE_FILTER = (node: Node) => {
   const el = node as HTMLElement;
@@ -418,7 +445,11 @@ async function dataUrlToImage(dataUrl: string): Promise<HTMLImageElement> {
 }
 
 function elementNode(root: HTMLElement, id: string): HTMLElement | null {
-  return root.querySelector(`[data-element-id="${id}"]`) as HTMLElement | null;
+  // A copy of a neighbour's element continuing onto this board is marked with
+  // the id of the element it continues. Ids are unique across the project, so
+  // a board never holds both kinds of node for one id.
+  return (root.querySelector(`[data-element-id="${id}"]`) ??
+    root.querySelector(`[data-span-of="${id}"]`)) as HTMLElement | null;
 }
 
 /**
@@ -490,22 +521,13 @@ async function captureSprite(
 }
 
 /**
- * How far past its own box an element paints, in artboard px. Mirrors the CSS
- * filters src/lib/elementStyle.ts puts on the element wrapper: a drop-shadow
- * reaches offset + blur, and a `blur(n)` fades out to roughly 3n. A text
- * outline (src/lib/textOutline.ts) widens the silhouette both of those start
- * from, so its reach is added on top.
+ * How far past its own box an element paints, in artboard px: its shadow,
+ * blur and text outline, composed the way elementStyle.ts and textOutline.ts
+ * compose them. The same reach decides which artboards draw a copy of an
+ * element continuing across an edge, so a sprite and a seam never disagree
+ * about where a shadow's tail ends.
  */
-function spriteOverspill(el: ArtboardElement): number {
-  let pad = 0;
-  if (el.shadow) {
-    const { x = 0, y = 0, blur = 0 } = el.shadow;
-    pad = Math.max(pad, Math.max(Math.abs(x), Math.abs(y)) + Math.max(0, blur));
-  }
-  if (typeof el.blur === 'number' && el.blur > 0) pad = Math.max(pad, el.blur * 3);
-  if (el.type === 'text') pad += textOutlineReach(el);
-  return Math.ceil(pad);
-}
+const spriteOverspill = paintOverspill;
 
 /**
  * Notch / island / punch-hole alone on transparency. The recording must sit
@@ -944,13 +966,21 @@ export async function exportArtboardVideo(
         }
       }
     } else {
-      for (const el of artboard.elements) {
+      for (const painted of paintLayers(artboard.elements, settings.spill)) {
         throwIfAborted(signal);
+        const el = painted.element;
+        // A recording continuing onto this board from a neighbour is seen
+        // here, but its sound belongs to the board it lives on.
+        const keepLayerSound = painted.kind === 'own' ? keepSound : () => {};
+        // And it slides as far as its own artboard makes it, so both halves
+        // of it move together however tall each artboard is.
+        const slide = painted.kind === 'span' ? slideDistanceFor(painted.copy.sourceSize.height) : undefined;
+        const push = (layer: Layer) => layers.push(slide === undefined ? layer : { ...layer, slide });
         if (el.type === 'video' && (el.mediaId || el.videoSrc)) {
           const source = await loadVideoSource(el, el.trimStart, el.trimEnd);
           if (source) {
-            layers.push({ kind: 'video', el, source });
-            keepSound(el, source);
+            push({ kind: 'video', el, source });
+            keepLayerSound(el, source);
             continue;
           }
           // Missing media row: fall through to a static sprite (placeholder).
@@ -965,8 +995,8 @@ export async function exportArtboardVideo(
             const chrome = await captureSprite(root!, el);
             if (chrome) {
               const notch = await captureNotchOverlay(root!, el);
-              layers.push({ kind: 'device-video', el, source, chrome, notch, screen: deviceScreenRectLocal(el) });
-              keepSound(el, source);
+              push({ kind: 'device-video', el, source, chrome, notch, screen: deviceScreenRectLocal(el) });
+              keepLayerSound(el, source);
               continue;
             }
           }
@@ -974,13 +1004,13 @@ export async function exportArtboardVideo(
           // a static sprite so the phone (and its poster) still renders.
         }
         if (el.type === 'gesture') {
-          layers.push({ kind: 'gesture', el });
+          push({ kind: 'gesture', el });
           continue;
         }
         // Heard, not seen: mixed into the audio track below.
         if (el.type === 'audio') continue;
         const sprite = await captureSprite(root!, el);
-        if (sprite) layers.push({ kind: 'sprite', el, sprite });
+        if (sprite) push({ kind: 'sprite', el, sprite });
       }
     }
   } finally {
@@ -1037,7 +1067,7 @@ export async function exportArtboardVideo(
   const coverScale = Math.max(outW / artboard.size.width, outH / artboard.size.height);
   const offsetX = (outW - artboard.size.width * coverScale) / 2;
   const offsetY = (outH - artboard.size.height * coverScale) / 2;
-  const slideDistance = artboard.size.height * 0.05;
+  const slideDistance = slideDistanceFor(artboard.size.height);
 
   try {
     for (let i = 0; i < totalFrames; i++) {
@@ -1061,19 +1091,20 @@ export async function exportArtboardVideo(
       if (!settings.rawRecordingOnly) drawArtboardBackground(ctx, artboard, backgroundImage);
 
       for (const layer of layers) {
+        const slide = layer.slide ?? slideDistance;
         switch (layer.kind) {
           case 'sprite':
-            withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
+            withElementTransform(ctx, layer.el, t, slide, (boxW, boxH) => {
               drawSprite(ctx, layer.sprite, boxW, boxH);
             });
             break;
           case 'still':
-            withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
+            withElementTransform(ctx, layer.el, t, slide, (boxW, boxH) => {
               drawFitted(ctx, layer.image, 0, 0, boxW, boxH, 'cover', 0);
             });
             break;
           case 'video':
-            withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
+            withElementTransform(ctx, layer.el, t, slide, (boxW, boxH) => {
               ctx.globalAlpha *= layer.el.opacity ?? 1;
               drawFitted(
                 ctx,
@@ -1088,7 +1119,7 @@ export async function exportArtboardVideo(
             });
             break;
           case 'device-video':
-            withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
+            withElementTransform(ctx, layer.el, t, slide, (boxW, boxH) => {
               const s = layer.screen;
               // Frame (black screen) first, recording clipped into the screen
               // rect over it, cutout back on top — same stack as the DOM.
@@ -1109,7 +1140,7 @@ export async function exportArtboardVideo(
           case 'gesture': {
             const phase = gesturePhaseAt(layer.el, t);
             if (phase !== null) {
-              withElementTransform(ctx, layer.el, t, slideDistance, (boxW, boxH) => {
+              withElementTransform(ctx, layer.el, t, slide, (boxW, boxH) => {
                 drawGesture(ctx, layer.el, { x: 0, y: 0, width: boxW, height: boxH }, phase);
               });
             }

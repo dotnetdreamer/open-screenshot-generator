@@ -207,6 +207,9 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'ungroupElements':
         h.onUngroupElements();
         break;
+      case 'updateSpan':
+        h.onUpdateSpan(intent.change);
+        break;
       case 'ungroupById':
         h.onUngroupById(intent.groupId);
         break;

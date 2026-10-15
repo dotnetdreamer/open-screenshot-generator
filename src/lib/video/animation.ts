@@ -15,6 +15,26 @@ export interface AnimationState {
 export const ENTER_DURATION_DEFAULT = 0.6;
 export const EXIT_DURATION_DEFAULT = 0.6;
 
+/**
+ * How far a slide travels, as a share of the height of the artboard the
+ * element belongs to. The canvas and the export compositor both read it, and
+ * so does the reach of an element continuing across artboard edges.
+ */
+export const SLIDE_DISTANCE_RATIO = 0.05;
+
+/** A slide's travel on an artboard this tall, in artboard px. */
+export function slideDistanceFor(artboardHeight: number): number {
+  return artboardHeight * SLIDE_DISTANCE_RATIO;
+}
+
+/**
+ * At least the largest scale 'pop' passes through: easeOutBack peaks at
+ * 1.100004 before settling, rounded up here. Everything an element can grow to
+ * has to fit in its reach, or the part past an artboard edge goes missing
+ * mid-animation.
+ */
+export const POP_PEAK_SCALE = 1.11;
+
 const IDLE: AnimationState = { visible: true, opacity: 1, dx: 0, dy: 0, scale: 1 };
 
 function easeOutCubic(p: number): number {

@@ -11,6 +11,7 @@ import { VideoElement } from './elements/VideoElement';
 import { VideoDeviceElement } from './elements/VideoDeviceElement';
 import { GestureElement } from './elements/GestureElement';
 import type {
+  ArtboardElement,
   ArtboardState,
   ImageElementProps,
   DeviceFrameElementProps,
@@ -20,6 +21,7 @@ import type {
   VideoDeviceElementProps,
   GestureElementProps,
 } from '@/types/artboard';
+import { NO_SPILL, paintLayers, type BoardSpill } from '@/lib/spanArtboards';
 
 // The read-only render site, shared by every "show me what this looks like"
 // surface (the preview dialog, the language proof sheet, the store listing
@@ -40,9 +42,10 @@ export const getArtboardBackgroundStyle = (artboard: ArtboardState): React.CSSPr
  * that mounts many boards at once budgets with this rather than mounting all
  * of them.
  */
-export function count3dDevices(board: ArtboardState): number {
+export function count3dDevices(board: ArtboardState, spill: BoardSpill = NO_SPILL): number {
   let total = 0;
-  for (const element of board.elements) {
+  // A copy of a neighbour's 3D device builds a renderer of its own as well.
+  for (const element of paintLayers(board.elements, spill).map((layer) => layer.element)) {
     if (element.type !== 'device') continue;
     const style = (element as DeviceFrameElementProps).styleType;
     if (style === '3d-left' || style === '3d-right') total += 1;
@@ -50,9 +53,82 @@ export function count3dDevices(board: ArtboardState): number {
   return total;
 }
 
+/** One element, read-only, wrapped the way the canvas wraps it. */
+function StaticElement({ element, zoom }: { element: ArtboardElement; zoom: number }) {
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: `${element.position.x}px`,
+        top: `${element.position.y}px`,
+        width: `${element.size.width * element.scale}px`,
+        height: `${element.size.height * element.scale}px`,
+        transform: `rotate(${element.rotation}deg)`,
+        transformOrigin: 'center center',
+        // The same shadow, blur and opacity the canvas applies through
+        // DraggableElement. This is the other render site, and it is meant to
+        // show exactly what exports.
+        ...elementVisualStyle(element),
+      }}
+    >
+      {element.type === 'text' && (
+        <TextElement
+          element={element as TextElementProps}
+          onUpdate={noop}
+          isSelected={false}
+          artboardZoom={zoom * element.scale}
+        />
+      )}
+      {element.type === 'image' && (
+        <ImageElement
+          element={element as ImageElementProps}
+          onUpdate={noop}
+          isSelected={false}
+        />
+      )}
+      {element.type === 'shape' && <ShapeElement element={element as ShapeElementProps} />}
+      {element.type === 'device' && (
+        <DeviceFrameElement
+          element={element as DeviceFrameElementProps}
+          onUpdate={noop}
+          isSelected={false}
+        />
+      )}
+      {element.type === 'video' && (
+        <VideoElement
+          element={element as VideoElementProps}
+          onUpdate={noop}
+          isSelected={false}
+        />
+      )}
+      {element.type === 'video-device' && (
+        <VideoDeviceElement
+          element={element as VideoDeviceElementProps}
+          onUpdate={noop}
+          isSelected={false}
+        />
+      )}
+      {element.type === 'gesture' && (
+        <GestureElement element={element as GestureElementProps} isSelected={false} />
+      )}
+    </div>
+  );
+}
+
 // Renders an artboard exactly as it exports: same element components as the
-// editor canvas, but read-only and clipped to the artboard bounds.
-export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: number }) {
+// editor canvas, but read-only and clipped to the artboard bounds. `spill` is
+// what neighbouring artboards continue onto this one (computeSpill over the
+// same list the artboard came from); without it the artboard shows only its
+// own elements.
+export function StaticArtboard({
+  artboard,
+  scale,
+  spill = NO_SPILL,
+}: {
+  artboard: ArtboardState;
+  scale: number;
+  spill?: BoardSpill;
+}) {
   return (
     <div
       style={{
@@ -79,66 +155,18 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
         }}
       >
         <ArtboardBackgroundImage artboard={artboard} />
-        {/* Sound layers have nothing to show. */}
-        {artboard.elements.filter((element) => element.type !== 'audio').map(element => (
-          <div
-            key={element.id}
-            style={{
-              position: 'absolute',
-              left: `${element.position.x}px`,
-              top: `${element.position.y}px`,
-              width: `${element.size.width * element.scale}px`,
-              height: `${element.size.height * element.scale}px`,
-              transform: `rotate(${element.rotation}deg)`,
-              transformOrigin: 'center center',
-              // Same shared shadow/blur/opacity the canvas applies through
-              // DraggableElement — this dialog is the other render site, and it
-              // is meant to show exactly what exports.
-              ...elementVisualStyle(element),
-            }}
-          >
-            {element.type === 'text' && (
-              <TextElement
-                element={element as TextElementProps}
-                onUpdate={noop}
-                isSelected={false}
-                artboardZoom={artboard.zoom * element.scale}
-              />
-            )}
-            {element.type === 'image' && (
-              <ImageElement
-                element={element as ImageElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'shape' && <ShapeElement element={element as ShapeElementProps} />}
-            {element.type === 'device' && (
-              <DeviceFrameElement
-                element={element as DeviceFrameElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'video' && (
-              <VideoElement
-                element={element as VideoElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'video-device' && (
-              <VideoDeviceElement
-                element={element as VideoDeviceElementProps}
-                onUpdate={noop}
-                isSelected={false}
-              />
-            )}
-            {element.type === 'gesture' && (
-              <GestureElement element={element as GestureElementProps} isSelected={false} />
-            )}
-          </div>
-        ))}
+        {/* Sound layers have nothing to show. Back to front, as the canvas
+            stacks them: neighbours' copies set behind, this artboard's own
+            elements, neighbours' copies set in front. */}
+        {paintLayers(artboard.elements, spill)
+          .filter((layer) => layer.element.type !== 'audio')
+          .map((layer) => (
+            <StaticElement
+              key={layer.kind === 'span' ? `span:${layer.copy.key}` : layer.element.id}
+              element={layer.element}
+              zoom={artboard.zoom}
+            />
+          ))}
       </div>
     </div>
   );

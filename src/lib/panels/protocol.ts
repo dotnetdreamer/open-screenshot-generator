@@ -27,6 +27,7 @@ import type {
   ElementSelectModifiers,
 } from '@/types/artboard';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
+import type { SpanChange } from '@/lib/spanArtboards';
 import type { HistoryEntry } from '@/lib/historyLabels';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { LocaleOverrideState } from '@/components/open-screenshot-generator/LayersPanel';
@@ -157,6 +158,7 @@ export type DockIntent =
   | { name: 'distributeElements'; axis: DistributeAxis }
   | { name: 'groupElements' }
   | { name: 'ungroupElements' }
+  | { name: 'updateSpan'; change: SpanChange }
   | { name: 'ungroupById'; groupId: string }
   | { name: 'renameGroup'; groupId: string; newName: string }
   | {

@@ -224,6 +224,11 @@ on a proof board.
   message or speech-bubble. They take fillColor, fillGradient, fillOpacity, borderRadius,
   strokeColor, strokeWidth and innerRadius (a ring).
 - Any element takes opacity, blur (for soft glows) and shadow {x, y, blur, color}.
+- One element across two boards: spanArtboards true lets the part of an element that crosses the
+  left or right edge of its board show on the board beside it, as if the boards sat edge to edge.
+  Place the device so it straddles the edge (x near the board width) instead of putting a copy on
+  each board. spanBehind true draws that part behind the other board's own elements. Without
+  spanArtboards an element is cut off at its own board's edge.
 - list_library: kind "elements" has the groups shapes, arrows, icons, decor, blobs, stars, waves,
   laurels, lines and patterns; kind "images" has photos of hands and people holding phones, and
   store badges such as image:app-store and image:google-play. Call it with kind alone to see the

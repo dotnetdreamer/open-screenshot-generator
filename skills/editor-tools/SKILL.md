@@ -149,6 +149,13 @@ usually names the tool to call instead.
 `update_artboard`, `translate_locales`, `add_locales`, `upload_asset` and `upload_recording` are
 allowed minutes. Everything else answers in seconds, and a hang means a dialog is open in the page.
 
+**17. An element stops at its artboard's edge unless `spanArtboards` is `true`.** With it, the part
+that crosses the left or right edge shows on the artboard beside it, as if the artboards sat edge to
+edge, so one device can straddle two screenshots instead of being placed twice. `x` stays relative
+to the element's own artboard. `spanBehind: true` puts that part behind the other artboard's own
+elements. Elements added through the tools start without it; one added by hand in the editor starts
+with it on.
+
 ## The tools, by job
 
 ### Find out what is there (start every session here)

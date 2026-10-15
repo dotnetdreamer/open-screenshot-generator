@@ -866,6 +866,16 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
     required: ['x', 'y', 'blur', 'color'],
   },
   blur: { type: 'number', description: 'Gaussian blur radius in artboard px. Use it for soft background glows. Works on every element type.' },
+  spanArtboards: {
+    type: 'boolean',
+    description:
+      "true lets the part of the element that crosses the left or right edge of its artboard show on the artboard beside it, as if the artboards sat edge to edge, so one device can straddle two screenshots instead of being placed twice. x stays relative to the element's own artboard: on a 1290 wide artboard, x 990 with width 600 puts 300px onto the next one. Unset or false cuts it off at the edge, which is how elements added through these tools start. The same in every language.",
+  },
+  spanBehind: {
+    type: 'boolean',
+    description:
+      "With spanArtboards, true draws the part on the other artboard behind that artboard's own elements; unset or false draws it in front of them.",
+  },
   screenshotSrc: { type: 'string', description: 'Screenshot URL, data: URL or "asset:<id>" to place inside a device frame (device elements).' },
   screenshotObjectFit: { type: 'string', description: "How the screenshot fills the screen: 'contain' | 'cover' | 'fill' (device elements)." },
   styleType: { type: 'string', description: "Device style, e.g. 'normal', '3d-left', '3d-right' (device elements)." },

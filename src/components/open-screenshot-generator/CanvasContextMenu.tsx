@@ -1,7 +1,15 @@
 "use client";
 import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CopyIcon, ClipboardPasteIcon, Trash2Icon, Group as GroupIcon, Ungroup as UngroupIcon } from 'lucide-react';
+import {
+  CheckIcon,
+  CopyIcon,
+  ClipboardPasteIcon,
+  Trash2Icon,
+  Group as GroupIcon,
+  Ungroup as UngroupIcon,
+  UnfoldHorizontal,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CanvasContextMenuProps {
@@ -19,6 +27,12 @@ interface CanvasContextMenuProps {
   onDelete: () => void;
   onGroup: () => void;
   onUngroup: () => void;
+  /**
+   * Whether everything selected continues across artboard edges. Null hides
+   * the item, which is the case for a click on bare canvas.
+   */
+  spansArtboards?: boolean | null;
+  onToggleSpanArtboards?: () => void;
   onClose: () => void;
 }
 
@@ -42,6 +56,8 @@ export function CanvasContextMenu({
   onDelete,
   onGroup,
   onUngroup,
+  spansArtboards = null,
+  onToggleSpanArtboards,
   onClose,
 }: CanvasContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -146,6 +162,26 @@ export function CanvasContextMenu({
             <UngroupIcon />
             Ungroup
             <span className="ml-auto pl-4 text-xs text-muted-foreground">Ctrl+Shift+G</span>
+          </button>
+        </>
+      )}
+      {spansArtboards !== null && onToggleSpanArtboards && (
+        <>
+          <div className="-mx-1 my-1 h-px bg-border" />
+          {/* A toggle: the check means every selected layer has it on. A
+              click turns it on for all of them, or off when all had it. */}
+          <button
+            type="button"
+            className={itemClass}
+            aria-pressed={spansArtboards}
+            onClick={() => {
+              onToggleSpanArtboards();
+              onClose();
+            }}
+          >
+            <UnfoldHorizontal />
+            Continue across artboards
+            <CheckIcon aria-hidden className={cn("ml-auto", !spansArtboards && "opacity-0")} />
           </button>
         </>
       )}

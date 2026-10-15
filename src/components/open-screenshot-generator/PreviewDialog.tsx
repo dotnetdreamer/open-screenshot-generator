@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { projectArtboards } from '@/lib/i18n/project';
 import { StaticArtboard, getArtboardBackgroundStyle, count3dDevices } from './StaticArtboard';
 import { StoreListingPreview } from './StoreListingPreview';
+import { computeSpill, spillFor, type BoardSpill } from '@/lib/spanArtboards';
 import type { ArtboardState } from '@/types/artboard';
 
 /** One entry in the language pill row. `null` is the base language. */
@@ -58,6 +59,8 @@ const MAX_LIVE_THUMBS = 24;
 interface CompareCell {
   key: string;
   board: ArtboardState;
+  /** What the neighbouring artboards in the same language continue onto it. */
+  spill: BoardSpill;
   cost3d: number;
 }
 
@@ -96,7 +99,7 @@ function CompareThumb({
       }}
     >
       {live ? (
-        <StaticArtboard artboard={cell.board} scale={scale} />
+        <StaticArtboard artboard={cell.board} scale={scale} spill={cell.spill} />
       ) : (
         <div
           className="flex h-full w-full items-center justify-center"
@@ -133,12 +136,16 @@ function CompareLanguagesSheet({
     () =>
       options.map((option, rowIndex) => {
         const boards = projectArtboards(baseArtboards, option.code);
+        // Per language: a position one language keeps for itself can move what
+        // crosses an edge in that language only.
+        const spill = computeSpill(boards);
         return {
           option,
           cells: boards.map<CompareCell>((board) => ({
             key: `${rowIndex}:${board.id}`,
             board,
-            cost3d: count3dDevices(board),
+            spill: spillFor(spill, board.id),
+            cost3d: count3dDevices(board, spillFor(spill, board.id)),
           })),
         };
       }),
@@ -274,6 +281,8 @@ export function PreviewDialog({
 
   const options = useMemo(() => localeOptions ?? [], [localeOptions]);
   const showLocaleRow = options.length > 1;
+  // What each artboard shows of its neighbours' elements that cross an edge.
+  const spill = useMemo(() => computeSpill(artboards), [artboards]);
   const canCompare = showLocaleRow && !!baseArtboards;
 
   // A single-language project can still be sent here with 'compare' by a stale
@@ -446,7 +455,7 @@ export function PreviewDialog({
 
         {viewport.width > 0 && (
           <div className="shadow-2xl">
-            <StaticArtboard artboard={artboard} scale={fitScale} />
+            <StaticArtboard artboard={artboard} scale={fitScale} spill={spillFor(spill, artboard.id)} />
           </div>
         )}
 
@@ -489,7 +498,7 @@ export function PreviewDialog({
             )}
             title={ab.name}
           >
-            <StaticArtboard artboard={ab} scale={THUMB_HEIGHT / ab.size.height} />
+            <StaticArtboard artboard={ab} scale={THUMB_HEIGHT / ab.size.height} spill={spillFor(spill, ab.id)} />
           </button>
         ))}
       </div>

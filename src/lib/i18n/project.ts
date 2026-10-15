@@ -47,7 +47,10 @@ export const ALWAYS_LOCAL_KEYS = [
  *
  * `name`, `groupId`, `groupName` and `libraryId` stay out because they identify
  * the layer rather than draw it, and `animation` because a video timeline that
- * differed per language would desynchronise the export.
+ * differed per language would desynchronise the export. `spanArtboards` and
+ * `spanBehind` decide which artboards an element is drawn on at all, so one
+ * language continuing a mockup onto the next screenshot while another cuts it
+ * off would be two different compositions rather than one design translated.
  */
 const NEVER_DETACHABLE = new Set<string>([
   'id',
@@ -57,6 +60,8 @@ const NEVER_DETACHABLE = new Set<string>([
   'groupName',
   'libraryId',
   'animation',
+  'spanArtboards',
+  'spanBehind',
   ...ALWAYS_LOCAL_KEYS,
 ]);
 
