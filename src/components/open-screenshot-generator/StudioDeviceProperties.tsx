@@ -278,9 +278,11 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
           3D Studio
         </div>
         <p className="text-[11px] leading-snug text-muted-foreground">
-          {isMeasuredModel(element.deviceType)
-            ? `${model.label}, built to Apple's dimensional drawings`
-            : 'A generic shape. Pick an iPhone 16 or newer in Device Model for an exact one'}
+          {!isMeasuredModel(element.deviceType)
+            ? 'A generic shape. Pick an iPhone 16 or newer, or a Pixel, in Device Model for an exact one'
+            : model.maker === 'google'
+              ? `${model.label}, built to Google's device frame and hardware diagram`
+              : `${model.label}, built to Apple's dimensional drawings`}
         </p>
       </div>
 

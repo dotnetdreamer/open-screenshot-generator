@@ -1,13 +1,32 @@
 /**
- * The iPhones the 3D Studio draws, in millimetres, as Apple's dimensional
- * drawings for accessory makers give them
- * (https://developer.apple.com/accessories/dimensional-drawings/).
+ * The phones the 3D Studio draws, in millimetres.
  *
- * Measurements come from the drawings' labels and vector geometry, with
- * estimates marked where the drawings omit a detail. Finish colours are
- * matched to product photos. `drawing` is the date printed on the source
- * sheet. The renderer (elements/DeviceStudioRenderer.tsx) and the box fit
- * (device3dStudio.ts) build from these entries.
+ * The iPhones are measured from Apple's dimensional drawings for accessory
+ * makers (https://developer.apple.com/accessories/dimensional-drawings/),
+ * from the drawings' labels and vector geometry, with estimates marked where
+ * the drawings omit a detail. `drawing` is the date printed on the source
+ * sheet.
+ *
+ * Google publishes no such drawings, so the Pixels come from Google's own
+ * material instead, scaled to the size on Google's tech specs page:
+ *
+ *   front    the Android Studio device frame (AOSP
+ *            platform/tools/adt/idea, artwork/resources/device-art-resources),
+ *            drawn at the display's own pixel pitch; the
+ *            outline, display, corners, camera hole and buttons are measured
+ *            off it, and the Pixel 3 XL notch is the cutout path in its AOSP
+ *            device config
+ *   back     Google's hardware diagrams (support.google.com/pixelphone,
+ *            answer 7157629), the dimension drawing on the Pixel 3 spec page
+ *            of the Google Store (archived), and the Google Store's
+ *            straight-on renders
+ *   side     the Google Store side renders where there is one; the edge
+ *            section and the camera heights are estimates
+ *
+ * For a Pixel, `drawing` is the day those sources were read. Finish colours
+ * are matched to product photos for both makers. The renderer
+ * (elements/DeviceStudioRenderer.tsx) and the box fit (device3dStudio.ts)
+ * build from these entries.
  *
  * Coordinates follow the drawings:
  *
@@ -33,10 +52,12 @@ export interface PhoneFinish {
   frame: string;
   /** The back glass, or the glass window on a metal back, #rrggbb. */
   back: string;
+  /** A power button in a colour of its own, #rrggbb. Unset is the frame's. */
+  accent?: string;
 }
 
 export interface PhoneButton {
-  /** Seen from the front. The Action and volume buttons are on the left. */
+  /** Seen from the front. An iPhone's Action and volume buttons are on the left, a Pixel's all on the right. */
   side: 'left' | 'right';
   /** From the top edge to the button's centre. */
   center: number;
@@ -49,6 +70,8 @@ export interface PhoneButton {
   kind: 'button' | 'control';
   /** From the front face to the button's centre, when it is not centred. */
   z?: number;
+  /** Takes the finish's accent colour (the power button of a Pixel 4 or 3 XL). */
+  accent?: boolean;
 }
 
 export interface PhoneLens {
@@ -61,6 +84,8 @@ export interface PhoneLens {
   ringInner?: number;
   /** Diameter of the cover glass. */
   glass: number;
+  /** A rectangular camera window, when its surround is not circular. */
+  window?: { width: number; height: number; radius: number };
   /**
    * How far the ring's top face sits below the top of the cover glass, which
    * is at lensTop; negative when the ring stands proud of the glass. Unset is
@@ -128,8 +153,8 @@ export interface IslandPad {
    * cove is a circular arc.
    */
   wall?: Point2[];
-  /** 'back' is the back glass raised, 'frame' metal in the frame colour, 'glass' dark camera glass. */
-  material: 'back' | 'frame' | 'glass';
+  /** 'back' is the back glass raised, 'frame' metal in the frame colour, 'satin' the same metal not polished, 'glass' dark camera glass. */
+  material: 'back' | 'frame' | 'satin' | 'glass';
 }
 
 /**
@@ -156,7 +181,7 @@ export interface LoftPad {
    */
   wall: Point2[];
   wallNarrow: Point2[];
-  material: 'back' | 'frame' | 'glass';
+  material: IslandPad['material'];
 }
 
 export type PhonePad = PlateauPad | IslandPad | LoftPad;
@@ -175,20 +200,44 @@ export type PhoneCutout =
       radius: number;
       /** Where it meets the top edge. */
       shoulder: number;
+      /**
+       * The outline exactly, where the phone's own display config gives it
+       * (Android's config_mainBuiltInDisplayCutout): an SVG path in display
+       * pixels from the top centre of the display, y down, and the size of a
+       * pixel in mm. The renderer and the flat frame draw the path when there
+       * is one; the rounds above are its nearest circles.
+       */
+      path?: { d: string; pixel: number };
     };
+
+/** A camera, sensor or speaker grille on the front, outside the display. */
+export interface FrontPart {
+  kind: 'camera' | 'sensor' | 'grille';
+  /** Centre, front view: x from the left edge, y down from the top. */
+  x: number;
+  y: number;
+  /** A circle when the two are equal, a pill otherwise. */
+  width: number;
+  height: number;
+}
 
 export interface PhoneModel {
   id: DeviceType;
   label: string;
-  /** Date of the drawing the numbers come from. */
+  /** Apple's iPhones are measured from Apple's drawings, Google's Pixels from Google's device art. */
+  maker: 'apple' | 'google';
+  /** Date of the drawing the numbers come from (for a Pixel, the day its sources were read). */
   drawing: string;
   width: number;
   height: number;
   thickness: number;
-  /** The display in points, as iOS reports it (the screenshot proportions). */
+  /** The display in points as iOS reports it, or in pixels on Android (the screenshot proportions). */
   screenPoints: [number, number];
-  /** What the frame is made of, which sets how it shines. */
-  metal: 'aluminium' | 'titanium';
+  /**
+   * The frame, which sets how it shines: satin anodised aluminium, polished
+   * aluminium, titanium, or aluminium under a matte coating.
+   */
+  metal: 'aluminium' | 'polished' | 'titanium' | 'coated';
   /**
    * The outline's corner (all four are the same), from where the top edge
    * stops being straight to where the side edge starts: [x from the side
@@ -198,26 +247,54 @@ export interface PhoneModel {
   /** The edge cross-section from where the front is flat, round the outside, to where the back is flat. */
   edge: EdgePoint[];
   glass: { width: number; height: number };
-  /** The display's active area, centred. Its corners follow the outline at the same inset. */
-  display: { width: number; height: number };
+  /**
+   * The display's active area, centred across. Unless `top` is set it is
+   * centred down too, and unless `radius` is set its corners follow the
+   * outline at the same inset.
+   */
+  display: {
+    width: number;
+    height: number;
+    /** From the top edge down to the display, when the bezel above it is not the one below. */
+    top?: number;
+    /** Round corners of their own (Android draws its display corners as circles). */
+    radius?: number;
+    /** The bottom corners, when they are rounder or squarer than the top ones. */
+    radiusBottom?: number;
+  };
   /** From the outside edge to where the front glass is flat. */
   flatInset: number;
   cutout: PhoneCutout;
   /** The earpiece slot at the top edge, y from the top. */
   receiver: { width: number; top: number; bottom: number };
+  /** Cameras, sensors and grilles in the bezel or the notch. */
+  front?: FrontPart[];
   /**
    * A glass back in a frame, or an aluminium back with a glass window (the
-   * window's inset from the sides and the y of its top and bottom).
+   * window's inset from the sides and the y of its top and bottom). A glass
+   * back can carry a matte panel on otherwise glossy glass (the Pixel 3 XL):
+   * its inset from the sides, the y of its top and bottom, and its corners.
    */
-  back: { kind: 'glass' } | { kind: 'metal'; window: { side: number; top: number; bottom: number } };
+  back:
+    | { kind: 'glass'; panel?: { side: number; top: number; bottom: number; radius: number } }
+    | { kind: 'metal'; window: { side: number; top: number; bottom: number } };
   /** Raised camera areas, the one under the others first. */
   pads: PhonePad[];
   lenses: PhoneLens[];
+  /**
+   * How the lenses sit: 'ring' each in a metal ring standing off the back
+   * (iPhone), 'window' behind the camera glass, flush with it (Pixel), where
+   * `ring` is the dark surround each one shows through the glass. Unset is
+   * 'ring'.
+   */
+  lensStyle?: 'ring' | 'window';
   /** The lens cover glass above the back. */
   lensTop: number;
   flash?: PhoneDisc;
   mic?: PhoneDisc;
   sensor?: PhoneDisc;
+  /** A fingerprint sensor set into the back. */
+  fingerprint?: PhoneDisc;
   buttons: PhoneButton[];
   /** The USB-C opening in the bottom edge, centred. */
   port: { width: number; height: number };
@@ -338,6 +415,7 @@ const AIR_WALL_NARROW: Point2[] = [
 export const IPHONE_18_PRO_MAX: PhoneModel = {
   id: 'iphone-18-pro-max',
   label: 'iPhone 18 Pro Max',
+  maker: 'apple',
   drawing: '2026-09-09',
   width: 77.98,
   height: 163.43,
@@ -383,6 +461,7 @@ export const IPHONE_18_PRO_MAX: PhoneModel = {
 export const IPHONE_18_PRO: PhoneModel = {
   id: 'iphone-18-pro',
   label: 'iPhone 18 Pro',
+  maker: 'apple',
   drawing: '2026-09-09',
   width: 71.85,
   height: 150.01,
@@ -427,6 +506,7 @@ export const IPHONE_18_PRO: PhoneModel = {
 export const IPHONE_17_PRO_MAX: PhoneModel = {
   id: 'iphone-17-pro-max',
   label: 'iPhone 17 Pro Max',
+  maker: 'apple',
   drawing: '2025-09-09',
   width: 77.98,
   height: 163.43,
@@ -472,6 +552,7 @@ export const IPHONE_17_PRO_MAX: PhoneModel = {
 export const IPHONE_17_PRO: PhoneModel = {
   id: 'iphone-17-pro',
   label: 'iPhone 17 Pro',
+  maker: 'apple',
   drawing: '2025-09-09',
   width: 71.85,
   height: 150.01,
@@ -516,6 +597,7 @@ export const IPHONE_17_PRO: PhoneModel = {
 export const IPHONE_AIR: PhoneModel = {
   id: 'iphone-air',
   label: 'iPhone Air',
+  maker: 'apple',
   drawing: '2025-09-09',
   width: 74.7,
   height: 156.18,
@@ -557,6 +639,7 @@ export const IPHONE_AIR: PhoneModel = {
 export const IPHONE_17: PhoneModel = {
   id: 'iphone-17',
   label: 'iPhone 17',
+  maker: 'apple',
   drawing: '2025-09-09',
   width: 71.45,
   height: 149.61,
@@ -598,6 +681,7 @@ export const IPHONE_17: PhoneModel = {
 export const IPHONE_17E: PhoneModel = {
   id: 'iphone-17e',
   label: 'iPhone 17e',
+  maker: 'apple',
   drawing: '2026-03-09',
   width: 71.52,
   height: 146.71,
@@ -637,6 +721,7 @@ export const IPHONE_17E: PhoneModel = {
 export const IPHONE_16_PRO_MAX: PhoneModel = {
   id: 'iphone-16-pro-max',
   label: 'iPhone 16 Pro Max',
+  maker: 'apple',
   drawing: '2024-09-19',
   width: 77.58,
   height: 163.03,
@@ -681,6 +766,7 @@ export const IPHONE_16_PRO_MAX: PhoneModel = {
 export const IPHONE_16_PRO: PhoneModel = {
   id: 'iphone-16-pro',
   label: 'iPhone 16 Pro',
+  maker: 'apple',
   drawing: '2024-09-19',
   width: 71.45,
   height: 149.61,
@@ -726,6 +812,7 @@ export const IPHONE_16_PRO: PhoneModel = {
 export const IPHONE_16_PLUS: PhoneModel = {
   id: 'iphone-16-plus',
   label: 'iPhone 16 Plus',
+  maker: 'apple',
   drawing: '2024-09-19',
   width: 77.76,
   height: 160.89,
@@ -767,6 +854,7 @@ export const IPHONE_16_PLUS: PhoneModel = {
 export const IPHONE_16: PhoneModel = {
   id: 'iphone-16',
   label: 'iPhone 16',
+  maker: 'apple',
   drawing: '2024-09-19',
   width: 71.63,
   height: 147.64,
@@ -808,6 +896,7 @@ export const IPHONE_16: PhoneModel = {
 export const IPHONE_16E: PhoneModel = {
   id: 'iphone-16e',
   label: 'iPhone 16e',
+  maker: 'apple',
   drawing: '2025-03-17',
   width: 71.52,
   height: 146.71,
@@ -844,7 +933,253 @@ export const IPHONE_16E: PhoneModel = {
   defaultFinish: 'white',
 };
 
-/** Every model the 3D Studio draws from a drawing, newest first: the palette order. */
+// ---------------------------------------------------------------------------
+// Pixels, covering the kinds of display Android phones have: a camera hole in
+// the screen (10 Pro, 10a), a notch (3 XL), and none, with the front camera in
+// a bezel above the screen (Pixel 4). Names and finishes are Google's.
+// ---------------------------------------------------------------------------
+
+const FINISHES_PIXEL_10_PRO: PhoneFinish[] = [
+  { id: 'moonstone', label: 'Moonstone', frame: '#a2a8b7', back: '#787e8e' },
+  { id: 'jade', label: 'Jade', frame: '#dacebc', back: '#c8d8b8' },
+  { id: 'porcelain', label: 'Porcelain', frame: '#e6dbcb', back: '#f0eae3' },
+  { id: 'obsidian', label: 'Obsidian', frame: '#606464', back: '#3c4040' },
+];
+
+const FINISHES_PIXEL_10A: PhoneFinish[] = [
+  { id: 'lavender', label: 'Lavender', frame: '#7f9be6', back: '#81a2f3' },
+  { id: 'berry', label: 'Berry', frame: '#e64852', back: '#f44c57' },
+  { id: 'fog', label: 'Fog', frame: '#c4cec4', back: '#d2dad1' },
+  { id: 'obsidian', label: 'Obsidian', frame: '#3a3e3d', back: '#3b3f3e' },
+];
+
+// Every Pixel 4 has a matte black frame. Google's device frame draws a coral
+// power button, which reports agree is the Clearly White one's; they disagree
+// about the other two, so theirs stays the frame's black.
+const FINISHES_PIXEL_4: PhoneFinish[] = [
+  { id: 'clearly-white', label: 'Clearly White', frame: '#1f1f21', back: '#eceeec', accent: '#ec8b70' },
+  { id: 'just-black', label: 'Just Black', frame: '#1f1f21', back: '#151517' },
+  { id: 'oh-so-orange', label: 'Oh So Orange', frame: '#1f1f21', back: '#f4895f' },
+];
+
+const FINISHES_PIXEL_3_XL: PhoneFinish[] = [
+  { id: 'just-black', label: 'Just Black', frame: '#2a2a2c', back: '#1c1c1e' },
+  { id: 'clearly-white', label: 'Clearly White', frame: '#ececea', back: '#f4f4f4', accent: '#79d1b3' },
+  { id: 'not-pink', label: 'Not Pink', frame: '#ecd5cc', back: '#f2ddd5', accent: '#f37b52' },
+];
+
+export const PIXEL_10_PRO: PhoneModel = {
+  id: 'pixel-10-pro',
+  label: 'Pixel 10 Pro',
+  maker: 'google',
+  drawing: '2026-10-16',
+  width: 72.0,
+  height: 152.8,
+  thickness: 8.6,
+  screenPoints: [1280, 2856],
+  metal: 'polished',
+  // The four corners of the device frame agree to 0.03 mm. The corner is no
+  // circle: it leaves each straight edge about 15 mm from the corner.
+  corner: [[15, 0], [12, 0.07], [10, 0.29], [8, 0.81], [6, 1.74], [4, 3.2], [3.59, 3.59], [3.2, 4], [1.74, 6], [0.81, 8], [0.29, 10], [0.07, 12], [0, 15]],
+  // Estimated from Google's side render: flat sides, the glass and the back each meeting the frame on a round of about a millimetre.
+  edge: [[1.6, 4.3], [1.34, 4.24], [1.2, 4.14], [0.75, 3.98], [0.35, 3.7], [0.1, 3.3], [0.02, 2.9], [0, 2.5], [0, -2.5], [0.02, -2.9], [0.1, -3.3], [0.35, -3.7], [0.75, -3.98], [1.2, -4.14], [1.34, -4.24], [1.6, -4.3]],
+  glass: { width: 69.32, height: 150.12 },
+  // The device frame's screen opening: its bezel is 0.4 mm deeper above the screen than below, and its corners are circles (9.22, rms 0.005).
+  display: { width: 65.85, height: 147.06, top: 3.06, radius: 9.22 },
+  flatInset: 1.6,
+  cutout: { kind: 'punch', d: 4.7, center: 8.37 },
+  receiver: { width: 12, top: 1.05, bottom: 1.3 },
+  back: { kind: 'glass' },
+  // The camera bar from the Google Store render, which Google's side render
+  // agrees with to 0.1 mm at its top: a metal stadium standing 3.4 mm off the
+  // back, the camera glass set into it 0.8 mm in from its edge.
+  pads: [
+    { shape: 'stadium', x0: 3.57, y0: 13.85, x1: 68.29, y1: 35.81, radius: 10.98, height: 3.4, round: 0.45, material: 'satin' },
+    { shape: 'stadium', x0: 4.46, y0: 14.66, x1: 52.06, y1: 35.0, radius: 10.17, height: 3.42, round: 0.05, material: 'glass' },
+  ],
+  lensStyle: 'window',
+  lenses: [
+    { x: 13.78, y: 25.0, ring: 6.85, glass: 5.4 },
+    { x: 29.98, y: 25.0, ring: 11.39, glass: 9.6 },
+    // The 5x periscope sits in a vertical rounded window, 7.45 by 10.05 mm
+    // with 1.9 mm corners, measured on Google's Store close-up of the camera
+    // bar and scaled by the phone's 72.0 mm width.
+    { x: 41.9, y: 25.0, ring: 7.0, glass: 5.6, window: { width: 7.45, height: 10.05, radius: 1.9 } },
+  ],
+  lensTop: 3.44,
+  flash: { x: 58.61, y: 20.81, d: 6.03 },
+  // The temperature sensor.
+  sensor: { x: 58.61, y: 29.81, d: 6.2 },
+  buttons: [
+    { side: 'right', center: 48.71, length: 12.1, width: 3.4, proud: 0.53, kind: 'button' },
+    { side: 'right', center: 72.19, length: 21.06, width: 3.4, proud: 0.53, kind: 'button' },
+  ],
+  // The bottom edge is estimated from the hardware diagram's labels: the speaker on the right, a microphone on the left.
+  port: { width: 8.7, height: 3.0 },
+  holes: { x: [18.3, 50, 52, 54, 56, 58], d: 1.1 },
+  screws: { x: [], d: 0 },
+  finishes: FINISHES_PIXEL_10_PRO,
+  defaultFinish: 'moonstone',
+};
+
+export const PIXEL_10A: PhoneModel = {
+  id: 'pixel-10a',
+  label: 'Pixel 10a',
+  maker: 'google',
+  drawing: '2026-10-16',
+  width: 73.0,
+  height: 153.9,
+  thickness: 9.0,
+  screenPoints: [1080, 2424],
+  metal: 'aluminium',
+  corner: [[15, 0], [12, 0.08], [10, 0.355], [8, 0.94], [6, 1.92], [4, 3.43], [3.71, 3.71], [3.43, 4], [1.92, 6], [0.94, 8], [0.355, 10], [0.08, 12], [0, 15]],
+  // Estimated, as on the 10 Pro.
+  edge: [[1.45, 4.5], [1.18, 4.44], [1.05, 4.34], [0.65, 4.18], [0.3, 3.9], [0.08, 3.5], [0.02, 3.1], [0, 2.7], [0, -2.7], [0.02, -3.1], [0.08, -3.5], [0.3, -3.9], [0.65, -4.18], [1.05, -4.34], [1.18, -4.44], [1.45, -4.5]],
+  glass: { width: 70.64, height: 151.54 },
+  display: { width: 65.26, height: 146.26, radius: 8.83 },
+  flatInset: 1.45,
+  cutout: { kind: 'punch', d: 4.71, center: 9.08 },
+  receiver: { width: 12, top: 0.95, bottom: 1.2 },
+  back: { kind: 'glass' },
+  // From the hardware diagram. The camera glass is level with the back:
+  // Google's side render shows nothing standing off it.
+  pads: [
+    { shape: 'stadium', x0: 7.08, y0: 11.96, x1: 37.47, y1: 31.29, radius: 9.67, height: 0.12, round: 0.08, material: 'glass' },
+  ],
+  lensStyle: 'window',
+  lenses: [
+    { x: 15.62, y: 21.63, ring: 4.2, glass: 2.6 },
+    { x: 28.9, y: 21.63, ring: 5.4, glass: 3.4 },
+  ],
+  lensTop: 0.14,
+  flash: { x: 46.1, y: 21.63, d: 5.94 },
+  buttons: [
+    { side: 'right', center: 49.22, length: 12.01, width: 3.4, proud: 0.475, kind: 'button' },
+    { side: 'right', center: 72.72, length: 21.0, width: 3.4, proud: 0.475, kind: 'button' },
+  ],
+  // Estimated from the hardware diagram's labels, as on the 10 Pro.
+  port: { width: 8.7, height: 3.0 },
+  holes: { x: [18.3, 50.5, 52.5, 54.5, 56.5, 58.5], d: 1.1 },
+  screws: { x: [], d: 0 },
+  finishes: FINISHES_PIXEL_10A,
+  defaultFinish: 'lavender',
+};
+
+export const PIXEL_4: PhoneModel = {
+  id: 'pixel-4',
+  label: 'Pixel 4',
+  maker: 'google',
+  drawing: '2026-10-16',
+  width: 68.8,
+  height: 147.1,
+  thickness: 8.2,
+  screenPoints: [1080, 2280],
+  metal: 'coated',
+  // Close to a circle of 8.9; the device frame's corners agree to 0.15 mm.
+  corner: [[10.5, 0], [8, 0.1], [7.23, 0.25], [6.11, 0.5], [4.84, 1], [3.3, 2], [2.61, 2.61], [2, 3.3], [1, 4.84], [0.5, 6.11], [0.25, 7.23], [0.1, 8], [0, 10.5]],
+  // Estimated: rounded glass on a narrow matte frame.
+  edge: [[1.0, 4.1], [0.7, 4.05], [0.5, 3.95], [0.35, 3.8], [0.15, 3.4], [0.04, 2.9], [0, 2.3], [0, -2.3], [0.04, -2.9], [0.15, -3.4], [0.35, -3.8], [0.5, -3.95], [0.7, -4.05], [1.0, -4.1]],
+  glass: { width: 67.8, height: 146.1 },
+  // No cutout: the front camera and the face unlock sensors sit in the bezel above the screen, twice as deep as the one below it.
+  display: { width: 63.59, height: 134.37, top: 8.55, radius: 6.1 },
+  flatInset: 1.0,
+  cutout: { kind: 'none' },
+  receiver: { width: 0, top: 0, bottom: 0 },
+  front: [
+    { kind: 'camera', x: 19.03, y: 5.57, width: 3.5, height: 3.5 },
+    { kind: 'sensor', x: 23.27, y: 5.57, width: 1.5, height: 3.4 },
+    { kind: 'grille', x: 34.46, y: 5.43, width: 7.07, height: 0.94 },
+  ],
+  back: { kind: 'glass' },
+  // The camera square from the hardware diagram; its height off the back is estimated.
+  pads: [
+    { shape: 'rounded', x0: 5.49, y0: 5.49, x1: 28.59, y1: 28.6, radius: 4.6, height: 1.1, round: 0.5, material: 'glass' },
+  ],
+  lensStyle: 'window',
+  lenses: [
+    { x: 11.02, y: 16.94, ring: 5.6, glass: 2.4 },
+    { x: 23.0, y: 16.94, ring: 5.6, glass: 2.4 },
+  ],
+  lensTop: 1.12,
+  flash: { x: 17.04, y: 23.9, d: 4.25 },
+  mic: { x: 23.0, y: 23.9, d: 1.2 },
+  // The spectral and flicker sensor.
+  sensor: { x: 17.04, y: 9.85, d: 1.6 },
+  buttons: [
+    { side: 'right', center: 40.32, length: 9.19, width: 2.6, proud: 0.37, kind: 'button', accent: true },
+    { side: 'right', center: 63.27, length: 18.21, width: 2.6, proud: 0.46, kind: 'button' },
+  ],
+  // Estimated from the hardware diagram's labels: speaker and microphone either side of the port.
+  port: { width: 8.7, height: 3.0 },
+  holes: { x: [19.4, 21.4, 23.4, 45.4, 47.4, 49.4], d: 1.0 },
+  screws: { x: [], d: 0 },
+  finishes: FINISHES_PIXEL_4,
+  defaultFinish: 'clearly-white',
+};
+
+export const PIXEL_3_XL: PhoneModel = {
+  id: 'pixel-3-xl',
+  label: 'Pixel 3 XL',
+  maker: 'google',
+  drawing: '2026-10-16',
+  width: 76.7,
+  height: 158.0,
+  thickness: 7.9,
+  screenPoints: [1440, 2960],
+  metal: 'coated',
+  corner: [[10, 0], [8.05, 0.05], [6.68, 0.25], [5.76, 0.5], [4.56, 1], [3.05, 2], [2.5, 2.5], [2, 3.05], [1, 4.56], [0.5, 5.76], [0.25, 6.68], [0.05, 8.05], [0, 10]],
+  // Estimated: rounded glass front and back on an aluminium band.
+  edge: [[2.0, 3.95], [1.4, 3.88], [0.95, 3.75], [0.7, 3.6], [0.35, 3.3], [0.12, 2.9], [0.02, 2.3], [0, 1.6], [0, -1.6], [0.02, -2.3], [0.12, -2.9], [0.35, -3.3], [0.7, -3.6], [0.95, -3.75], [1.4, -3.88], [2.0, -3.95]],
+  glass: { width: 75.3, height: 156.6 },
+  // The chin holds the front speaker; the top corners are twice as round as the bottom ones.
+  display: { width: 70.23, height: 144.2, top: 3.465, radius: 5.41, radiusBottom: 2.8 },
+  flatInset: 2.0,
+  // The cutout path in the phone's AOSP device config (device/google/crosshatch,
+  // config_mainBuiltInDisplayCutout), at the display's 0.04877 mm a pixel. The
+  // rounds are its nearest circles, within 0.4 mm of it.
+  cutout: {
+    kind: 'notch',
+    width: 25.17,
+    depth: 8.34,
+    radius: 4.5,
+    shoulder: 3.7,
+    path: {
+      d: 'M -338,0 q 86,-4 80,71.5 v 8 q 4,90 95,91.5 h 163 v -171 z M 338,0 q -86,-4 -80,71.5 v 8 q -4,90 -95,91.5 h -163 v -171 z',
+      pixel: 0.04877,
+    },
+  },
+  receiver: { width: 0, top: 0, bottom: 0 },
+  front: [
+    { kind: 'camera', x: 30.25, y: 7.34, width: 4.02, height: 4.02 },
+    { kind: 'camera', x: 46.45, y: 7.34, width: 4.02, height: 4.02 },
+    { kind: 'grille', x: 38.35, y: 8.76, width: 8.03, height: 1.51 },
+    { kind: 'grille', x: 38.34, y: 153.17, width: 22.39, height: 1.36 },
+  ],
+  // From the dimension drawing on Google's Pixel 3 spec page: glossy glass round the camera, etched matte below.
+  // The drawing takes the panel to 1.9 mm from the bottom edge; it stops where the back starts to curve.
+  back: { kind: 'glass', panel: { side: 2.77, top: 29.47, bottom: 155.7, radius: 5.4 } },
+  pads: [],
+  lensStyle: 'window',
+  lenses: [
+    { x: 14.76, y: 14.78, ring: 10.2, glass: 7.0 },
+  ],
+  lensTop: 0.3,
+  flash: { x: 28.18, y: 14.78, d: 4.6 },
+  sensor: { x: 22.73, y: 14.78, d: 2.1 },
+  fingerprint: { x: 38.35, y: 41.6, d: 12.2 },
+  buttons: [
+    { side: 'right', center: 41.61, length: 10.04, width: 2.6, proud: 0.51, kind: 'button', accent: true },
+    { side: 'right', center: 66.63, length: 20.02, width: 2.6, proud: 0.51, kind: 'button' },
+  ],
+  // Both speakers face the front.
+  port: { width: 8.7, height: 3.0 },
+  holes: { x: [], d: 0 },
+  screws: { x: [], d: 0 },
+  finishes: FINISHES_PIXEL_3_XL,
+  defaultFinish: 'clearly-white',
+};
+
+/** Every model the 3D Studio draws from a drawing or from device art, the newest generation first: the palette order. */
 export const PHONE_MODELS: PhoneModel[] = [
   IPHONE_18_PRO_MAX,
   IPHONE_18_PRO,
@@ -858,6 +1193,10 @@ export const PHONE_MODELS: PhoneModel[] = [
   IPHONE_16_PLUS,
   IPHONE_16,
   IPHONE_16E,
+  PIXEL_10_PRO,
+  PIXEL_10A,
+  PIXEL_4,
+  PIXEL_3_XL,
 ];
 
 const BY_ID = new Map<DeviceType, PhoneModel>(PHONE_MODELS.map((model) => [model.id, model]));
@@ -878,9 +1217,28 @@ export function cornerRadiusOf(model: PhoneModel): number {
   return (best[0] + best[1]) / 2 / (1 - Math.SQRT1_2);
 }
 
-/** From the outside edge to the display's active area, all round. */
+/** From the outside edge to the display's active area at the sides (and all round, unless the display sets `top`). */
 export function bezelOf(model: PhoneModel): number {
   return (model.width - model.display.width) / 2;
+}
+
+/** From the outline to the display's active area at the sides, top and bottom. */
+export function displayInsetsOf(model: PhoneModel): { side: number; top: number; bottom: number } {
+  const side = bezelOf(model);
+  const top = model.display.top ?? (model.height - model.display.height) / 2;
+  return { side, top, bottom: model.height - model.display.height - top };
+}
+
+/**
+ * The display's corner radius at the top and the bottom: its own, or, where
+ * it follows the outline, the circle standing in for the outline's corner
+ * moved in by the bezel.
+ */
+export function displayRadiiOf(model: PhoneModel): { top: number; bottom: number } {
+  const own = model.display.radius;
+  if (own !== undefined) return { top: own, bottom: model.display.radiusBottom ?? own };
+  const r = Math.max(0, cornerRadiusOf(model) - bezelOf(model));
+  return { top: r, bottom: r };
 }
 
 export function finishOf(model: PhoneModel, id: string | undefined): PhoneFinish {
@@ -954,6 +1312,8 @@ export function genericPhoneModel(
   return {
     id: deviceType,
     label,
+    // Only which platform's conventions it follows; the stand-in is nobody's phone.
+    maker: platform === 'android' ? 'google' : 'apple',
     drawing: '',
     width,
     height,

@@ -398,7 +398,7 @@ type Layer = { slide?: number } & (
       // video (null for devices without a cutout).
       notch: Sprite | null;
       // screen rect relative to the element box (unrotated px)
-      screen: { x: number; y: number; width: number; height: number; radius: number };
+      screen: { x: number; y: number; width: number; height: number; radius: number; radiusBottom?: number };
     }
   | { kind: 'gesture'; el: GestureElementProps }
   // Poster standing in for absent footage (see allowPosterFallback).
@@ -625,22 +625,33 @@ function sourceTimeAt(source: VideoSource, t: number): number {
 // ---------------------------------------------------------------------------
 // Canvas drawing helpers (all in artboard space; ctx is pre-scaled).
 
-function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+export function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, rBottom = r) {
+  let radius = Math.max(0, Math.min(r, w / 2, h / 2));
+  let bottom = radius;
+  if (rBottom !== r) {
+    radius = Math.max(0, r);
+    bottom = Math.max(0, rBottom);
+    const widest = Math.max(radius, bottom);
+    const widthScale = widest > 0 ? w / (2 * widest) : 1;
+    const heightScale = radius + bottom > 0 ? h / (radius + bottom) : 1;
+    const factor = Math.max(0, Math.min(1, widthScale, heightScale));
+    radius *= factor;
+    bottom *= factor;
+  }
   ctx.beginPath();
   if (typeof ctx.roundRect === 'function') {
-    ctx.roundRect(x, y, w, h, radius);
+    ctx.roundRect(x, y, w, h, bottom === radius ? radius : [radius, radius, bottom, bottom]);
     return;
   }
   ctx.moveTo(x + radius, y);
   ctx.arcTo(x + w, y, x + w, y + h, radius);
-  ctx.arcTo(x + w, y + h, x, y + h, radius);
-  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, bottom);
+  ctx.arcTo(x, y + h, x, y, bottom);
   ctx.arcTo(x, y, x + w, y, radius);
   ctx.closePath();
 }
 
-function drawFitted(
+export function drawFitted(
   ctx: CanvasRenderingContext2D,
   video: HTMLVideoElement | HTMLImageElement,
   x: number,
@@ -648,10 +659,11 @@ function drawFitted(
   w: number,
   h: number,
   fit: 'contain' | 'cover' | 'fill',
-  radius: number
+  radius: number,
+  radiusBottom = radius
 ) {
   ctx.save();
-  roundRectPath(ctx, x, y, w, h, radius);
+  roundRectPath(ctx, x, y, w, h, radius, radiusBottom);
   ctx.clip();
   const isVideo = video instanceof HTMLVideoElement;
   const vw = isVideo ? video.videoWidth : video.naturalWidth;
@@ -761,7 +773,7 @@ function withElementTransform(
 
 // Screen rect relative to the element box — mirrors deviceChrome's
 // bezelPx()/screen style math exactly (all four insets derive from width).
-function deviceScreenRectLocal(el: VideoDeviceElementProps) {
+export function deviceScreenRectLocal(el: VideoDeviceElementProps) {
   const screen = getDeviceDescriptor(el.deviceType).screen;
   const boxW = el.size.width * (el.scale || 1);
   const boxH = el.size.height * (el.scale || 1);
@@ -773,6 +785,7 @@ function deviceScreenRectLocal(el: VideoDeviceElementProps) {
     width: boxW - px(padding.left) - px(padding.right),
     height: boxH - px(padding.top) - px(padding.bottom),
     radius: screen ? boxW * screen.radiusFactor : boxW * 0.05,
+    ...(screen?.radiusBottomFactor !== undefined ? { radiusBottom: boxW * screen.radiusBottomFactor } : {}),
   };
 }
 
@@ -1132,7 +1145,8 @@ export async function exportArtboardVideo(
                 s.width,
                 s.height,
                 layer.el.objectFit || 'cover',
-                s.radius
+                s.radius,
+                s.radiusBottom
               );
               if (layer.notch) drawSprite(ctx, layer.notch, boxW, boxH);
             });

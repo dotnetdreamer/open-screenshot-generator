@@ -6,7 +6,7 @@ import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.j
 import type { DeviceType, Device3DPose, Device3DFrameColor } from '@/types/artboard';
 import { withBasePath } from '@/lib/basePath';
 import { DEVICE_3D_POSE_ANGLES } from '@/lib/device3dPoseAngles';
-import { bezelOf, cornerRadiusOf, measuredModelFor } from '@/lib/device3dModels';
+import { bezelOf, cornerRadiusOf, displayRadiiOf, measuredModelFor } from '@/lib/device3dModels';
 
 interface Device3DRendererProps {
   deviceType: DeviceType;
@@ -57,22 +57,21 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
 };
 
 /**
- * Metrics for an iPhone measured from Apple's drawings that has no hand-tuned
+ * Metrics for a measured phone (device3dModels.ts) that has no hand-tuned
  * entry above, so the posed styles draw it with its own corner, bezel,
- * thickness and cutout.
+ * thickness and cutout. The posed body has one bezel all round, so a Pixel's
+ * deeper bezel above or below its screen is left out.
  */
 function measuredMetrics(deviceType: DeviceType): DeviceMetrics | null {
   const model = measuredModelFor(deviceType);
   if (!model) return null;
   const w = model.width;
-  const bezel = bezelOf(model);
-  const corner = cornerRadiusOf(model);
   return {
-    cornerRadius: corner / w,
-    screenRadius: Math.max(0, corner - bezel) / w,
-    bezel: bezel / w,
+    cornerRadius: cornerRadiusOf(model) / w,
+    screenRadius: displayRadiiOf(model).top / w,
+    bezel: bezelOf(model) / w,
     thickness: model.thickness / w,
-    notch: model.cutout.kind === 'island' ? 'island' : model.cutout.kind === 'notch' ? 'notch' : 'none',
+    notch: model.cutout.kind,
   };
 }
 

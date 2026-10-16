@@ -8,7 +8,8 @@
  * from the front, Y up, Z toward the screen.
  */
 
-import type { EdgePoint, IslandPad, LoftPad, PhoneModel, PlateauPad, Point2 } from './device3dModels';
+import { bezelOf, displayInsetsOf, displayRadiiOf } from './device3dModels';
+import type { EdgePoint, IslandPad, LoftPad, PhoneLens, PhoneModel, PlateauPad, Point2 } from './device3dModels';
 
 export interface OutlinePoint {
   x: number;
@@ -145,29 +146,38 @@ function withNormals(points: Point2[]): OutlinePoint[] {
 
 /**
  * A rectangle in model coordinates, [x0, x1] x [y0, y1] (y up), with `corner`
- * (as smoothCorner gives it) at all four corners, counter-clockwise from the
- * top of the right side. Straight edges are implied between the corners.
+ * (as smoothCorner gives it) at its top corners and `bottomCorner` at its
+ * bottom ones, counter-clockwise from the top of the right side. Straight
+ * edges are implied between the corners.
  */
-export function cornerRect(corner: Point2[], x0: number, y0: number, x1: number, y1: number): OutlinePoint[] {
+export function cornerRect(corner: Point2[], x0: number, y0: number, x1: number, y1: number, bottomCorner: Point2[] = corner): OutlinePoint[] {
   const points: Point2[] = [];
   const reversed = [...corner].reverse();
+  const bottomReversed = [...bottomCorner].reverse();
   for (const [dx, dy] of reversed) points.push([x1 - dx, y1 - dy]); // top right, side to top
   for (const [dx, dy] of corner) points.push([x0 + dx, y1 - dy]); // top left, top to side
-  for (const [dx, dy] of reversed) points.push([x0 + dx, y0 + dy]); // bottom left, side to bottom
-  for (const [dx, dy] of corner) points.push([x1 - dx, y0 + dy]); // bottom right, bottom to side
+  for (const [dx, dy] of bottomReversed) points.push([x0 + dx, y0 + dy]); // bottom left, side to bottom
+  for (const [dx, dy] of bottomCorner) points.push([x1 - dx, y0 + dy]); // bottom right, bottom to side
   return withNormals(dedupe(points));
 }
 
-/** A rectangle with circular corners of `radius`, counter-clockwise from the top of the right side. */
-export function roundRect(x0: number, y0: number, x1: number, y1: number, radius: number, perCorner = 10): OutlinePoint[] {
-  const r = Math.max(0, Math.min(radius, (x1 - x0) / 2, (y1 - y0) / 2));
-  // From the top tangent (r, 0) to the side tangent (0, r), measured in from the corner.
+/** A circular corner of radius r, from the top tangent (r, 0) to the side tangent (0, r), measured in from the corner. */
+function circularCorner(r: number, perCorner: number): Point2[] {
   const corner: Point2[] = [];
   for (let i = 0; i <= perCorner; i++) {
     const a = (i / perCorner) * (Math.PI / 2);
     corner.push([r * (1 - Math.sin(a)), r * (1 - Math.cos(a))]);
   }
-  return cornerRect(corner, x0, y0, x1, y1);
+  return corner;
+}
+
+/**
+ * A rectangle with circular corners of `radius` (and `bottomRadius` at the
+ * bottom), counter-clockwise from the top of the right side.
+ */
+export function roundRect(x0: number, y0: number, x1: number, y1: number, radius: number, perCorner = 10, bottomRadius = radius): OutlinePoint[] {
+  const limit = (r: number) => Math.max(0, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2));
+  return cornerRect(circularCorner(limit(radius), perCorner), x0, y0, x1, y1, circularCorner(limit(bottomRadius), perCorner));
 }
 
 function dedupe(points: Point2[]): Point2[] {
@@ -194,6 +204,138 @@ export function insetOutline(model: PhoneModel, inset: number): OutlinePoint[] {
   const w = model.width / 2 - inset;
   const h = model.height / 2 - inset;
   return cornerRect(insetCorner(smoothCorner(model.corner), inset), -w, -h, w, h);
+}
+
+/** The display's active area: its centre's height in model coordinates, and its outline. */
+export interface DisplayShape {
+  outline: OutlinePoint[];
+  /** The y of its centre; 0 when the bezels above and below it match. */
+  centerY: number;
+}
+
+/**
+ * The display's active area. An iPhone's is the outline moved in by the
+ * bezel; a Pixel's sits where its device frame puts it, with circular
+ * corners of its own.
+ */
+export function displayShape(model: PhoneModel): DisplayShape {
+  const { display } = model;
+  const insets = displayInsetsOf(model);
+  const top = model.height / 2 - insets.top;
+  const centerY = top - display.height / 2;
+  if (display.radius === undefined && display.top === undefined) {
+    return { outline: insetOutline(model, bezelOf(model)), centerY: 0 };
+  }
+  const w = display.width / 2;
+  if (display.radius === undefined) {
+    const corner = insetCorner(smoothCorner(model.corner), insets.side);
+    return { outline: cornerRect(corner, -w, top - display.height, w, top), centerY };
+  }
+  const radii = displayRadiiOf(model);
+  return { outline: roundRect(-w, top - display.height, w, top, radii.top, 16, radii.bottom), centerY };
+}
+
+/**
+ * An Android display cutout path (config_mainBuiltInDisplayCutout: display
+ * pixels from the top centre of the display, y down) as closed polygons,
+ * scaled by `pixel` and still y down. Reads the commands those paths use: M,
+ * L, H, V, Q, C and Z, absolute or relative.
+ */
+export function cutoutPolygons(d: string, pixel: number, perCurve = 16): Point2[][] {
+  const tokens = d.replace(/,/g, ' ').match(/[a-zA-Z]|-?\d*\.?\d+(?:e-?\d+)?/g) ?? [];
+  const polygons: Point2[][] = [];
+  let current: Point2[] = [];
+  let x = 0;
+  let y = 0;
+  let startX = 0;
+  let startY = 0;
+  let cmd = '';
+  let i = 0;
+  const num = () => Number(tokens[i++]);
+  const close = () => {
+    if (current.length > 2) polygons.push(current);
+    current = [];
+  };
+  while (i < tokens.length) {
+    if (/[a-zA-Z]/.test(tokens[i])) cmd = tokens[i++];
+    const rel = cmd === cmd.toLowerCase();
+    const ox = rel ? x : 0;
+    const oy = rel ? y : 0;
+    switch (cmd.toLowerCase()) {
+      case 'm':
+        close();
+        x = ox + num();
+        y = oy + num();
+        startX = x;
+        startY = y;
+        current.push([x, y]);
+        // Further pairs after a move are lines.
+        cmd = rel ? 'l' : 'L';
+        break;
+      case 'l':
+        x = ox + num();
+        y = oy + num();
+        current.push([x, y]);
+        break;
+      case 'h':
+        x = ox + num();
+        current.push([x, y]);
+        break;
+      case 'v':
+        y = oy + num();
+        current.push([x, y]);
+        break;
+      case 'q': {
+        const cx = ox + num();
+        const cy = oy + num();
+        const ex = ox + num();
+        const ey = oy + num();
+        for (let s = 1; s <= perCurve; s++) {
+          const u = s / perCurve;
+          current.push([(1 - u) ** 2 * x + 2 * (1 - u) * u * cx + u * u * ex, (1 - u) ** 2 * y + 2 * (1 - u) * u * cy + u * u * ey]);
+        }
+        x = ex;
+        y = ey;
+        break;
+      }
+      case 'c': {
+        const c1x = ox + num();
+        const c1y = oy + num();
+        const c2x = ox + num();
+        const c2y = oy + num();
+        const ex = ox + num();
+        const ey = oy + num();
+        for (let s = 1; s <= perCurve; s++) {
+          const u = s / perCurve;
+          const v = 1 - u;
+          current.push([
+            v ** 3 * x + 3 * v * v * u * c1x + 3 * v * u * u * c2x + u ** 3 * ex,
+            v ** 3 * y + 3 * v * v * u * c1y + 3 * v * u * u * c2y + u ** 3 * ey,
+          ]);
+        }
+        x = ex;
+        y = ey;
+        break;
+      }
+      case 'z':
+        x = startX;
+        y = startY;
+        close();
+        break;
+      default:
+        throw new Error(`Unsupported cutout path command "${cmd}"`);
+    }
+  }
+  close();
+  return polygons.map((polygon) => polygon.map(([px, py]): Point2 => [px * pixel, py * pixel]));
+}
+
+/** A rectangular camera window centred at the origin, optionally inset for its rim. */
+export function lensWindowOutline(lens: PhoneLens, inset = 0): OutlinePoint[] | null {
+  if (!lens.window) return null;
+  const width = Math.max(0, lens.window.width - 2 * inset);
+  const height = Math.max(0, lens.window.height - 2 * inset);
+  return roundRect(-width / 2, -height / 2, width / 2, height / 2, Math.max(0, lens.window.radius - inset), 12);
 }
 
 /** Back-view coordinates to model coordinates: the back view's left edge is the phone's right side. */
@@ -449,6 +591,11 @@ export function hullPoints(model: PhoneModel): Array<[number, number, number]> {
     const [cx, cy] = fromBackView(model, lens.x, lens.y);
     // The ring's top, which a proud ring lifts above the glass.
     const top = model.lensTop + Math.max(0, -(lens.ringDrop ?? 0));
+    const window = lensWindowOutline(lens);
+    if (window) {
+      for (const p of window) points.push([cx + p.x, cy + p.y, back - top]);
+      continue;
+    }
     for (let i = 0; i < 16; i++) {
       const a = (i / 16) * Math.PI * 2;
       points.push([cx + (lens.ring / 2) * Math.cos(a), cy + (lens.ring / 2) * Math.sin(a), back - top]);

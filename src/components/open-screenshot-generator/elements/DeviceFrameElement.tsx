@@ -356,6 +356,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             lens={studioLensOf(element)}
             frameColor={studioFinish.frame}
             backColor={studioFinish.back}
+            accentColor={studioFinish.accent}
             light={studioLightOf(element)}
             glare={studioGlareOf(element)}
             liveKey={element.id}

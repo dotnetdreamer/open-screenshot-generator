@@ -84,6 +84,7 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
         lens={opts.lens ?? studio.STUDIO_LENS_DEFAULT}
         frameColor={finish.frame}
         backColor={finish.back}
+        accentColor={finish.accent}
         light={studio.lightForOrientation(studio.STUDIO_LIGHT_DEFAULT, orientation)}
         glare={0}
       />
@@ -138,7 +139,7 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
     args: ['--no-sandbox', '--force-device-scale-factor=1'],
     defaultViewport: { width: THUMB_MAX + 160, height: THUMB_MAX + 160 },
   });
-  const page = await browser.newPage();
+  const page = (await browser.pages())[0] ?? await browser.newPage();
   page.on('pageerror', (e) => console.log('[pageerror]', String(e).slice(0, 300)));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('[console]', m.text().slice(0, 300)); });
   await page.goto('file:///' + htmlPath.replace(/\\/g, '/'), { waitUntil: 'load' });

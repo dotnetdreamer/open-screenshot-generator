@@ -40,7 +40,7 @@ export const VIDEO_DEVICE_TYPES = [
   'iphone-17-pro-max',
   'iphone-18-pro-max', 'iphone-18-pro', 'iphone-17-pro', 'iphone-air', 'iphone-17', 'iphone-17e', 'iphone-16-pro-max', 'iphone-16-pro', 'iphone-16-plus', 'iphone-16', 'iphone-16e',
   'ipad-pro-13', 'ipad-11', 'android-bar', 'android-notch',
-  'android-punch-hole', 'tablet', 'tablet-7', 'tablet-10',
+  'android-punch-hole', 'pixel-10-pro', 'pixel-10a', 'pixel-4', 'pixel-3-xl', 'tablet', 'tablet-7', 'tablet-10',
 ];
 
 // ---------------------------------------------------------------------------

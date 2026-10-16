@@ -4,7 +4,7 @@ import type { Editor } from '../helpers/editor';
 import { waitForProject, type StoredProject } from '../fixtures/db';
 
 /**
- * The 3D Studio device: a measured iPhone turned to any angle on the canvas.
+ * The 3D Studio device: a measured iPhone or Pixel turned to any angle on the canvas.
  *
  * Nothing here reads pixels. The desktop project runs WebKit, whose WebGL is
  * not the one users have, so the checks are on what the editor commits: the
@@ -80,6 +80,23 @@ test.describe('3D Studio device', () => {
     expect(phone.deviceType).toBe('iphone-17-pro-max');
     expect(phone.rotation3d).toEqual(TILE_ANGLE);
     expect(phone.finish3d).toBe('cosmic-orange');
+  });
+
+  test('an Android tile adds that Pixel at the palette angle in its own default finish', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Devices').click();
+    await app.openPaletteCategory('3D Studio');
+    await app.addElement('Pixel 3 XL in 3D', 'studio3d:pixel-3-xl');
+
+    await expect(app.activeDockPanel.getByText("Pixel 3 XL, built to Google's device frame and hardware diagram")).toBeVisible();
+    await expect(app.activeDockPanel.getByText('Finish: Clearly White')).toBeVisible();
+
+    const saved = await waitForProject(page, (project) => studioDevices(project).length === 1);
+    const [phone] = studioDevices(saved);
+    expect(phone.deviceType).toBe('pixel-3-xl');
+    expect(phone.rotation3d).toEqual(TILE_ANGLE);
+    expect(phone.finish3d).toBe('clearly-white');
   });
 
   test('dragging the round handle turns the device in one undo step and refits its box', async ({ app, page }) => {

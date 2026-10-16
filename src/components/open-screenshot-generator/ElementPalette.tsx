@@ -1,6 +1,6 @@
 "use client";
 import type React from 'react';
-import { createContext, memo, useCallback, useContext, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { Fragment, createContext, memo, useCallback, useContext, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,6 +56,7 @@ import {
   type ColoredDeviceTileDef,
 } from '@/lib/device3dPresets';
 import { STUDIO_MODELS, studioTileStyleProps } from '@/lib/device3dStudio';
+import type { PhoneCutout } from '@/lib/device3dModels';
 import { withBasePath } from '@/lib/basePath';
 import { useTouchDrag, type TouchDragBinding } from '@/hooks/use-touch-drag';
 import {
@@ -136,12 +137,14 @@ const TileTooltip: React.FC<{ label: string; libraryId: string; children: React.
 const Device3DThumbTile: React.FC<{
   src: string;
   label: string;
+  /** A second, quieter line under the label. */
+  note?: string;
   title: string;
   libraryId: string;
   deviceType: DeviceType;
   styleProps: Record<string, any>;
   onDragStart: PaletteDragStart;
-}> = ({ src, label, title, libraryId, deviceType, styleProps, onDragStart }) => (
+}> = ({ src, label, note, title, libraryId, deviceType, styleProps, onDragStart }) => (
   <TileTooltip label={title} libraryId={libraryId}>
     <button
       type="button"
@@ -156,6 +159,7 @@ const Device3DThumbTile: React.FC<{
         <img src={withBasePath(src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
       </span>
       <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors">{label}</span>
+      {note && <span className="-mt-1 text-[9px] text-muted-foreground/80">{note}</span>}
     </button>
   </TileTooltip>
 );
@@ -203,8 +207,21 @@ const IPHONE_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-le
 const ANDROID_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white', 'upright-right-white'];
 const WATCH_3D_PREVIEWS = ['front-right-black', 'front-left-white', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white'];
 const MAC_3D_PREVIEWS = ['macbook-front-right-black', 'imac-front-right-black', 'macbook-upright-right-white', 'imac-side-left-white', 'macbook-side-right-black', 'macbook-tilted-right-black'];
-// Studio previews are model thumbnails, one per model.
-const STUDIO_3D_PREVIEWS = ['iphone-18-pro-max', 'iphone-air', 'iphone-17', 'iphone-17-pro', 'iphone-16-pro', 'iphone-16'];
+// Studio previews are model thumbnails, one per model, iPhones and Pixels both.
+const STUDIO_3D_PREVIEWS = ['iphone-18-pro-max', 'pixel-10-pro', 'iphone-17', 'pixel-10a', 'iphone-air', 'pixel-3-xl'];
+
+/** The 3D Studio group lists the iPhones, then the Pixels, each under its platform. */
+const STUDIO_SECTIONS = [
+  { label: 'iPhone', models: STUDIO_MODELS.filter((model) => model.maker === 'apple') },
+  { label: 'Android', models: STUDIO_MODELS.filter((model) => model.maker === 'google') },
+];
+
+/** What an Android tile says about its screen, since that is what picks one Pixel over another here. */
+const SCREEN_NOTES: Partial<Record<PhoneCutout['kind'], string>> = {
+  punch: 'Camera hole',
+  notch: 'Notch',
+  none: 'No notch',
+};
 
 /** Category card for the device library overview (mini previews + label). */
 const DeviceCategoryCard: React.FC<{ label: string; previews: React.ReactNode[]; onOpen: () => void; badge?: string }> = ({ label, previews, onOpen, badge }) => (
@@ -852,17 +869,23 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                       <p className="col-span-2 text-xs leading-snug text-muted-foreground">
                         Drag the round handle on a phone to turn it. Its color and angle are in Properties
                       </p>
-                      {STUDIO_MODELS.map((model) => (
-                        <Device3DThumbTile
-                          key={`studio-${model.id}`}
-                          src={`/elements/device-3d/studio/${model.id}.png`}
-                          label={model.label}
-                          title={`Add ${model.label} in 3D`}
-                          libraryId={studio3dLibraryId(model.id)}
-                          deviceType={model.id}
-                          styleProps={studioTileStyleProps(model)}
-                          onDragStart={handleDragStart}
-                        />
+                      {STUDIO_SECTIONS.map((section) => (
+                        <Fragment key={section.label}>
+                          <p className="col-span-2 pt-1 text-[11px] font-medium text-foreground/80">{section.label}</p>
+                          {section.models.map((model) => (
+                            <Device3DThumbTile
+                              key={`studio-${model.id}`}
+                              src={`/elements/device-3d/studio/${model.id}.png`}
+                              label={model.label}
+                              note={model.maker === 'google' ? SCREEN_NOTES[model.cutout.kind] : undefined}
+                              title={`Add ${model.label} in 3D`}
+                              libraryId={studio3dLibraryId(model.id)}
+                              deviceType={model.id}
+                              styleProps={studioTileStyleProps(model)}
+                              onDragStart={handleDragStart}
+                            />
+                          ))}
+                        </Fragment>
                       ))}
                     </>
                   )}

@@ -14,12 +14,16 @@ import {
 } from '@/lib/device3dStudio';
 import {
   backEdgeLift,
+  cutoutPolygons,
+  displayShape,
   edgeCurve,
   edgeSplit,
   fromBackView,
+  fromFrontView,
   insetAt,
   insetOutline,
   islandFootprint,
+  lensWindowOutline,
   loftBase,
   loftTop,
   phoneOutline,
@@ -34,7 +38,7 @@ import {
   type EdgeSample,
   type OutlinePoint,
 } from '@/lib/device3dGeometry';
-import type { IslandPad, LoftPad, PhoneModel, PlateauPad, Point2 } from '@/lib/device3dModels';
+import { displayInsetsOf, type IslandPad, type LoftPad, type PhoneModel, type PlateauPad, type Point2 } from '@/lib/device3dModels';
 import { subscribeStudioLive, studioLiveState, type StudioLiveState } from '@/lib/device3dStudioLive';
 
 interface DeviceStudioRendererProps {
@@ -46,6 +50,8 @@ interface DeviceStudioRendererProps {
   /** The finish: frame metal and back glass, #rrggbb. */
   frameColor: string;
   backColor: string;
+  /** A power button in its own colour; unset is the frame's. */
+  accentColor?: string;
   light: Device3DLight;
   glare: number;
   /** The element drawn, so live gestures on it (device3dStudioLive) reach this canvas. */
@@ -92,14 +98,14 @@ function faceGeometry(outline: { x: number; y: number }[], z: number, facing: 1 
   return geo;
 }
 
-/** Intersect the display outline with a contained screenshot's rectangle. */
-function containOutline(outline: OutlinePoint[], width: number, height: number): { x: number; y: number }[] {
+/** Intersect an outline with a rectangle centred at (0, cy): a contained screenshot's, or a band of the back. */
+function clipOutline(outline: { x: number; y: number }[], width: number, height: number, cy = 0): { x: number; y: number }[] {
   let points = outline.map(({ x, y }) => ({ x, y }));
   const edges = [
     ['x', -width / 2, false],
     ['x', width / 2, true],
-    ['y', -height / 2, false],
-    ['y', height / 2, true],
+    ['y', cy - height / 2, false],
+    ['y', cy + height / 2, true],
   ] as const;
   for (const [axis, limit, below] of edges) {
     const inside = (p: { x: number; y: number }) => below ? p[axis] <= limit : p[axis] >= limit;
@@ -370,10 +376,18 @@ function buildStudioEnvironment(light: Device3DLight): THREE.Scene {
 
 interface PhoneMaterials {
   frame: THREE.MeshPhysicalMaterial;
+  /** The frame's finish on a button of another colour (a Pixel's power button). */
+  accent: THREE.MeshPhysicalMaterial;
   backMetal: THREE.MeshPhysicalMaterial;
   backGlass: THREE.MeshPhysicalMaterial;
+  /** Polished glass round a matte panel (the Pixel 3 XL's back). */
+  backGloss: THREE.MeshPhysicalMaterial;
   windowGlass: THREE.MeshPhysicalMaterial;
   padGlass: THREE.MeshPhysicalMaterial;
+  /** The black glass over a Pixel's cameras: deeper than a lens cover, so it reads black from straight on. */
+  cameraGlass: THREE.MeshPhysicalMaterial;
+  /** The frame's colour in a satin finish, for metal that is not polished like the frame (the Pixel 10 Pro's camera bar). */
+  satin: THREE.MeshPhysicalMaterial;
   ring: THREE.MeshPhysicalMaterial;
   frontGlass: THREE.MeshPhysicalMaterial;
   screenOff: THREE.MeshPhysicalMaterial;
@@ -390,17 +404,32 @@ interface PhoneMaterials {
   glare: THREE.MeshPhysicalMaterial;
 }
 
+/**
+ * How each frame shines. Anodised aluminium is satin; titanium is brushed and
+ * a little brighter; polished aluminium is close to a mirror; a matte coating
+ * over aluminium (Pixel 4, Pixel 3 XL) reads more like paint than metal.
+ */
+const FRAME_SHINE: Record<PhoneModel['metal'], { metalness: number; roughness: number }> = {
+  aluminium: { metalness: 0.82, roughness: 0.38 },
+  titanium: { metalness: 0.9, roughness: 0.28 },
+  polished: { metalness: 0.92, roughness: 0.16 },
+  coated: { metalness: 0.25, roughness: 0.55 },
+};
+
 function createMaterials(model: PhoneModel): PhoneMaterials {
-  const titanium = model.metal === 'titanium';
+  const shine = FRAME_SHINE[model.metal];
   return {
-    // Anodised aluminium is satin; titanium is brushed and a little brighter.
-    frame: new THREE.MeshPhysicalMaterial({ metalness: titanium ? 0.9 : 0.82, roughness: titanium ? 0.28 : 0.38 }),
+    frame: new THREE.MeshPhysicalMaterial(shine),
+    accent: new THREE.MeshPhysicalMaterial(shine),
     backMetal: new THREE.MeshPhysicalMaterial({ metalness: 0.74, roughness: 0.5 }),
     backGlass: new THREE.MeshPhysicalMaterial({ metalness: 0.06, roughness: 0.5, clearcoat: 0.55, clearcoatRoughness: 0.32 }),
+    backGloss: new THREE.MeshPhysicalMaterial({ metalness: 0.06, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 }),
     // The window in a unibody back is colour-matched to the metal round it,
     // so it shares some of its sheen and reads as one surface with a seam.
     windowGlass: new THREE.MeshPhysicalMaterial({ metalness: 0.45, roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.3 }),
     padGlass: new THREE.MeshPhysicalMaterial({ metalness: 0.08, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.06 }),
+    cameraGlass: new THREE.MeshPhysicalMaterial({ color: 0x000000, metalness: 0, roughness: 0.2, clearcoat: 0.3, clearcoatRoughness: 0.12, envMapIntensity: 0.07 }),
+    satin: new THREE.MeshPhysicalMaterial({ metalness: 0.7, roughness: 0.42 }),
     ring: new THREE.MeshPhysicalMaterial({ metalness: 1, roughness: 0.2, side: THREE.DoubleSide }),
     frontGlass: new THREE.MeshPhysicalMaterial({ color: 0x030304, metalness: 0, roughness: 0.05, clearcoat: 1, clearcoatRoughness: 0.03 }),
     screenOff: new THREE.MeshPhysicalMaterial({ color: 0x000000, metalness: 0, roughness: 0.05, clearcoat: 1, clearcoatRoughness: 0.03 }),
@@ -440,8 +469,8 @@ function createMaterials(model: PhoneModel): PhoneMaterials {
 
 interface BuiltPhone {
   group: THREE.Group;
-  /** The display's active area, for laying the screenshot on. */
-  display: { outline: OutlinePoint[]; width: number; height: number; z: number };
+  /** The display's active area, for laying the screenshot on; centerY is 0 unless the bezels above and below it differ. */
+  display: { outline: OutlinePoint[]; width: number; height: number; z: number; centerY: number };
   glareMesh: THREE.Mesh;
   geometries: THREE.BufferGeometry[];
 }
@@ -507,8 +536,9 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
 
   // ---- the front -------------------------------------------------------------
   add(faceGeometry(insetOutline(model, model.edge[0][0]), front, 1), mats.frontGlass);
-  const bezel = (W - model.display.width) / 2;
-  const displayOutline = insetOutline(model, bezel);
+  const insets = displayInsetsOf(model);
+  const screen = displayShape(model);
+  const displayOutline = screen.outline;
   const screenZ = front + 0.02;
   add(faceGeometry(displayOutline, screenZ, 1), mats.screenOff);
   const cutoutZ = front + 0.06;
@@ -520,13 +550,33 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
     const cam = new THREE.CircleGeometry(cutout.height * 0.27, 24);
     cam.translate(cutout.width / 2 - cutout.height / 2, y, cutoutZ + 0.01);
     add(cam, mats.frontCam, 3);
+  } else if (cutout.kind === 'notch' && cutout.path) {
+    // The phone's own cutout path, y down from the display's top edge. Its
+    // top is lifted a hair above that edge so no line of screen shows along it.
+    const top = H / 2 - insets.top;
+    const shapes = cutoutPolygons(cutout.path.d, cutout.path.pixel).map((polygon) => {
+      const shape = new THREE.Shape();
+      polygon.forEach(([px, py], i) => {
+        const y = py <= 1e-6 ? top + 0.05 : top - py;
+        if (i === 0) shape.moveTo(px, y);
+        else shape.lineTo(px, y);
+      });
+      shape.closePath();
+      return shape;
+    });
+    const geo = new THREE.ShapeGeometry(shapes);
+    geo.translate(0, 0, cutoutZ);
+    add(geo, mats.cutout, 2);
   } else if (cutout.kind === 'notch') {
-    const top = H / 2 - bezel;
+    const top = H / 2 - insets.top;
+    // Black up to where the front glass stops being flat, not over its
+    // curved edge or the frame.
+    const glassTop = H / 2 - Math.min(model.flatInset, insets.top);
     const { width, depth, radius, shoulder } = cutout;
     const s = new THREE.Shape();
     const left = -width / 2;
     const right = width / 2;
-    s.moveTo(left - shoulder, top + bezel);
+    s.moveTo(left - shoulder, glassTop);
     s.lineTo(left - shoulder, top);
     s.absarc(left - shoulder, top - shoulder, shoulder, Math.PI / 2, 0, true);
     s.lineTo(left, top - depth + radius);
@@ -535,7 +585,7 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
     s.absarc(right - radius, top - depth + radius, radius, Math.PI * 1.5, Math.PI * 2, false);
     s.lineTo(right, top - shoulder);
     s.absarc(right + shoulder, top - shoulder, shoulder, Math.PI, Math.PI / 2, true);
-    s.lineTo(right + shoulder, top + bezel);
+    s.lineTo(right + shoulder, glassTop);
     s.closePath();
     const geo = new THREE.ShapeGeometry(s, 24);
     geo.translate(0, 0, cutoutZ);
@@ -544,6 +594,31 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
     const hole = new THREE.CircleGeometry(cutout.d / 2, 32);
     hole.translate(0, H / 2 - cutout.center, cutoutZ);
     add(hole, mats.cutout, 2);
+    // The camera shows as a slightly lifted lens in the middle of the hole.
+    const cam = new THREE.CircleGeometry(cutout.d * 0.3, 24);
+    cam.translate(0, H / 2 - cutout.center, cutoutZ + 0.01);
+    add(cam, mats.frontCam, 3);
+  }
+  // Cameras, sensors and grilles in a bezel or a notch sit over the glass like the cutout.
+  for (const part of model.front ?? []) {
+    const [cx, cy] = fromFrontView(model, part.x, part.y);
+    const z = cutoutZ + 0.01;
+    if (part.kind === 'camera') {
+      const r = part.width / 2;
+      const surround = new THREE.CircleGeometry(r, 32);
+      surround.translate(cx, cy, z);
+      add(surround, mats.barrel, 3);
+      const lens = new THREE.CircleGeometry(r * 0.6, 32);
+      lens.translate(cx, cy, z + 0.01);
+      add(lens, mats.lensCore, 3);
+    } else {
+      const geo = faceGeometry(
+        roundRect(cx - part.width / 2, cy - part.height / 2, cx + part.width / 2, cy + part.height / 2, Math.min(part.width, part.height) / 2, 8),
+        z,
+        1
+      );
+      add(geo, part.kind === 'grille' ? mats.hole : mats.gasket, 3);
+    }
   }
   // Reflection on the screen glass, added over the shot (additive), so the
   // screenshot underneath keeps its own colours.
@@ -568,11 +643,19 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
       add(faceGeometry(win.map((p) => ({ ...p, x: p.x + p.nx * 0.08, y: p.y + p.ny * 0.08 })), back - 0.01, -1), mats.gasket);
       add(faceGeometry(win, back - 0.02, -1), mats.windowGlass);
     }
+  } else if (model.back.panel) {
+    // Polished glass with an etched panel in it.
+    const panel = model.back.panel;
+    add(faceGeometry(insetOutline(model, backFlat), back, -1), mats.backGloss);
+    const w = W / 2 - panel.side;
+    add(faceGeometry(roundRect(-w, H / 2 - panel.bottom, w, H / 2 - panel.top, panel.radius, 12), back - 0.01, -1), mats.backGlass);
   } else {
     add(faceGeometry(insetOutline(model, backFlat), back, -1), mats.backGlass);
   }
 
   // ---- camera plateau and islands ----------------------------------------------
+  const padMaterial = (material: IslandPad['material']) =>
+    material === 'frame' ? mats.frame : material === 'satin' ? mats.satin : material === 'glass' ? mats.cameraGlass : mats.padGlass;
   for (const pad of model.pads) {
     if (pad.shape === 'plateau') {
       const plateau = pad as PlateauPad;
@@ -581,13 +664,13 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
       add(faceGeometry(deck, back - plateau.height, -1), mats.backMetal);
     } else if (pad.shape === 'loft') {
       const bar = pad as LoftPad;
-      const mat = bar.material === 'frame' ? mats.frame : bar.material === 'glass' ? mats.lensGlass : mats.padGlass;
+      const mat = padMaterial(bar.material);
       add(loftGeometry(model, bar, back), mat);
       add(faceGeometry(loftTop(model, bar), back - bar.height, -1), mat);
     } else {
       const island = pad as IslandPad;
       const top = islandFootprint(model, island, island.round);
-      const mat = island.material === 'frame' ? mats.frame : island.material === 'glass' ? mats.lensGlass : mats.padGlass;
+      const mat = padMaterial(island.material);
       if (island.wall) add(wallGeometry(model, top, island.wall, back), mat);
       else add(sweepGeometry(islandFootprint(model, island), islandProfile(back, island)), mat);
       add(faceGeometry(top, back - island.height, -1), mat);
@@ -605,6 +688,51 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
   for (const lens of model.lenses) {
     const [cx, cy] = fromBackView(model, lens.x, lens.y);
     const base = surfaceHeightAt(model, lens.x, lens.y);
+    if (model.lensStyle === 'window') {
+      // Behind the camera glass: the dark surround each lens shows through it,
+      // the rim of the optic, its barrel and its coated centre. Where the glass
+      // stands off what it sits on, its side is a short dark wall.
+      const top = Math.max(base, model.lensTop);
+      const rOut = lens.ring / 2;
+      const rGlass = Math.min(lens.glass / 2, rOut * 0.95);
+      const window = lensWindowOutline(lens);
+      if (window) {
+        const surround = faceGeometry(window, back - top - 0.004, -1);
+        surround.translate(cx, cy, 0);
+        add(surround, mats.cameraGlass);
+        // In Google's photos it is the window's own edge that shows, so the rim
+        // runs round the window rather than round the optic inside it.
+        const rim = shapeOf(window);
+        rim.holes.push(shapeOf(lensWindowOutline(lens, rGlass * 0.1)!));
+        const rimGeo = new THREE.ShapeGeometry(rim);
+        rimGeo.rotateY(Math.PI);
+        rimGeo.translate(cx, cy, back - top - 0.008);
+        add(rimGeo, mats.gasket);
+        const barrel = new THREE.RingGeometry(rGlass * 0.56, rGlass * 0.74, 48);
+        barrel.rotateY(Math.PI);
+        barrel.translate(cx, cy, back - top - 0.012);
+        add(barrel, mats.gasket);
+        backDisc(cx, cy, top + 0.016, rGlass * 0.56, mats.lensCore);
+        continue;
+      }
+      if (top - base > 0.05) {
+        const wall = new THREE.CylinderGeometry(rOut, rOut, top - base, 48, 1, true);
+        wall.rotateX(Math.PI / 2);
+        wall.translate(cx, cy, back - (base + top) / 2);
+        add(wall, mats.barrel);
+      }
+      backDisc(cx, cy, top + 0.004, rOut, mats.cameraGlass);
+      const rim = new THREE.RingGeometry(rGlass * 0.9, rGlass, 48);
+      rim.rotateY(Math.PI);
+      rim.translate(cx, cy, back - top - 0.008);
+      add(rim, mats.gasket);
+      const barrel = new THREE.RingGeometry(rGlass * 0.56, rGlass * 0.74, 48);
+      barrel.rotateY(Math.PI);
+      barrel.translate(cx, cy, back - top - 0.012);
+      add(barrel, mats.gasket);
+      backDisc(cx, cy, top + 0.016, rGlass * 0.56, mats.lensCore);
+      continue;
+    }
     // The cover glass tops out at lensTop; the ring's top face is ringDrop
     // below it (above it when negative).
     const glassRise = Math.max(0.3, model.lensTop - base);
@@ -653,6 +781,22 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
   disc(model.flash, mats.flash);
   disc(model.sensor, mats.lensGlass);
   disc(model.mic, mats.hole);
+  if (model.fingerprint) {
+    // A shallow round dish in the back: a polished chamfer round an etched
+    // face, with a dark line where the chamfer turns down into it.
+    const fp = model.fingerprint;
+    const [cx, cy] = fromBackView(model, fp.x, fp.y);
+    const r = fp.d / 2;
+    const chamfer = new THREE.RingGeometry(r - 1, r, 64);
+    chamfer.rotateY(Math.PI);
+    chamfer.translate(cx, cy, back - 0.02);
+    add(chamfer, mats.backGloss);
+    backDisc(cx, cy, 0.018, r - 1, mats.backGlass);
+    const line = new THREE.RingGeometry(r - 1.08, r - 1, 64);
+    line.rotateY(Math.PI);
+    line.translate(cx, cy, back - 0.024);
+    add(line, mats.gasket);
+  }
 
   // ---- buttons -----------------------------------------------------------------
   for (const button of model.buttons) {
@@ -687,7 +831,7 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
       // Extrude out of the side: the shape's +z becomes the outward x.
       geo.rotateY(sign * (Math.PI / 2));
       geo.translate(sign * (W / 2 - embed), y, z);
-      add(geo, mats.frame);
+      add(geo, button.accent ? mats.accent : mats.frame);
     } else {
       // A flush control: the measured outline is its metal surround, with the
       // sapphire face set inside it.
@@ -724,7 +868,7 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
   group.scale.setScalar(1 / W);
   return {
     group,
-    display: { outline: displayOutline, width: model.display.width, height: model.display.height, z: screenZ },
+    display: { outline: displayOutline, width: model.display.width, height: model.display.height, z: screenZ, centerY: screen.centerY },
     glareMesh,
     geometries,
   };
@@ -749,6 +893,7 @@ export function DeviceStudioRenderer({
   lens,
   frameColor,
   backColor,
+  accentColor,
   light,
   glare,
   liveKey,
@@ -756,8 +901,8 @@ export function DeviceStudioRenderer({
   const mountRef = useRef<HTMLDivElement>(null);
   const [rebuildTick, setRebuildTick] = useState(0);
   // The committed values, read by the scene without rebuilding it.
-  const propsRef = useRef({ orientation, lens, frameColor, backColor, light, glare });
-  propsRef.current = { orientation, lens, frameColor, backColor, light, glare };
+  const propsRef = useRef({ orientation, lens, frameColor, backColor, accentColor, light, glare });
+  propsRef.current = { orientation, lens, frameColor, backColor, accentColor, light, glare };
   const refreshRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -824,8 +969,8 @@ export function DeviceStudioRenderer({
       if (objectFit === 'contain') {
         if (imgAspect > screenAspect) h = w / imgAspect;
         else w = h * imgAspect;
-        geo = faceGeometry(containOutline(display.outline, w, h), display.z + 0.01, 1);
-        fitUVs(geo, w, h);
+        geo = faceGeometry(clipOutline(display.outline, w, h, display.centerY), display.z + 0.01, 1);
+        fitUVs(geo, w, h, 0, display.centerY);
       } else {
         if (objectFit === 'cover') {
           if (imgAspect > screenAspect) {
@@ -839,7 +984,7 @@ export function DeviceStudioRenderer({
           }
         }
         geo = faceGeometry(display.outline, display.z + 0.01, 1);
-        fitUVs(geo, w, h);
+        fitUVs(geo, w, h, 0, display.centerY);
       }
       // Screens emit light: unlit and not tone mapped, so the screenshot shows
       // exactly the colours it has.
@@ -867,6 +1012,8 @@ export function DeviceStudioRenderer({
         lens: clampLens(over?.lens ?? base.lens),
         frameColor: over?.finish?.frame ?? base.frameColor,
         backColor: over?.finish?.back ?? base.backColor,
+        // A finish being previewed is a custom colour, which has no accent.
+        accentColor: over?.finish ? over.finish.frame : base.accentColor ?? base.frameColor,
         light: over?.light ?? base.light,
         glare: over?.glare ?? base.glare,
       };
@@ -874,14 +1021,17 @@ export function DeviceStudioRenderer({
 
     let appliedFinish = '';
     const applyMaterials = (state: ReturnType<typeof effective>) => {
-      const finishKey = `${state.frameColor}/${state.backColor}`;
+      const finishKey = `${state.frameColor}/${state.backColor}/${state.accentColor}`;
       if (finishKey !== appliedFinish) {
         appliedFinish = finishKey;
         const frame = new THREE.Color(state.frameColor);
         const backTint = new THREE.Color(state.backColor);
         mats.frame.color.copy(frame);
+        mats.satin.color.copy(frame);
+        mats.accent.color.set(state.accentColor);
         mats.backMetal.color.copy(frame);
         mats.backGlass.color.copy(backTint);
+        mats.backGloss.color.copy(backTint);
         mats.windowGlass.color.copy(backTint);
         mats.padGlass.color.copy(backTint);
         mats.ring.color.copy(ringShade(frame));
@@ -1171,6 +1321,7 @@ export function DeviceStudioRenderer({
     lens,
     frameColor,
     backColor,
+    accentColor,
     light.azimuth,
     light.elevation,
     light.intensity,

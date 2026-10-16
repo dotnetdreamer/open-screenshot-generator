@@ -205,7 +205,7 @@ const GROUP_LABELS: Record<string, string> = {
   ...Object.fromEntries(DEVICE_3D_GROUPS.map((g) => [g.id, g.label])),
   ...Object.fromEntries(COLORED_TILE_GROUPS.map((g) => [g.id, g.label])),
   mockups: 'Device Mockups (flat frames)',
-  '3d-studio': '3D Studio (real iPhone models measured from Apple drawings, turned to any angle with rotation3d)',
+  '3d-studio': '3D Studio (real iPhones measured from Apple drawings and Pixels from Google device art, turned to any angle with rotation3d)',
 };
 
 /** Groups within one library kind (or all three when kind is omitted). */

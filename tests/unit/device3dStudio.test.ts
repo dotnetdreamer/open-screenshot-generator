@@ -27,11 +27,23 @@ import {
   withStudioRehug,
   wrapDegrees,
 } from '@/lib/device3dStudio';
-import { backEdgeLift, insetAt, insetOutline, phoneOutline, plateauDeck, smoothCorner, surfaceHeightAt } from '@/lib/device3dGeometry';
-import type { PlateauPad } from '@/lib/device3dModels';
+import {
+  backEdgeLift,
+  cutoutPolygons,
+  displayShape,
+  hullPoints,
+  insetAt,
+  insetOutline,
+  lensWindowOutline,
+  phoneOutline,
+  plateauDeck,
+  smoothCorner,
+  surfaceHeightAt,
+} from '@/lib/device3dGeometry';
+import { displayInsetsOf, displayRadiiOf, type PlateauPad } from '@/lib/device3dModels';
 import { DEVICE_3D_POSE_ANGLES } from '@/lib/device3dPoseAngles';
 import { IPHONE_3D_SIZES, POSE_ORDER } from '@/lib/device3dPresets';
-import { DEVICE_REGISTRY, buildSwapUpdates } from '@/lib/deviceRegistry';
+import { DEVICE_FORMAT_PRESETS, DEVICE_REGISTRY, buildSwapUpdates, convertArtboardsToFormat, swapTargetFor } from '@/lib/deviceRegistry';
 import { isDevice3dStyle } from '@/lib/devicePerspective';
 import { flattenBoard3d } from '@/components/open-screenshot-generator/start/quickstart/deckLayout';
 import { listLibraryItems, resolveLibraryItem } from '@/lib/mcp/assetLibrary';
@@ -89,15 +101,23 @@ test('every measured model holds together', () => {
     // The display sits inside the glass, which sits inside the outline.
     assert.ok(m.display.width < m.glass.width && m.glass.width < m.width, `${where}: widths nest`);
     assert.ok(m.display.height < m.glass.height && m.glass.height < m.height, `${where}: heights nest`);
-    // Every sheet draws one bezel all round. A printed active area that
-    // disagrees with it (the 16 Pro's 144.79) is a label slip, not the panel.
-    const bezelX = (m.width - m.display.width) / 2;
-    const bezelY = (m.height - m.display.height) / 2;
-    assert.ok(near(bezelX, bezelY, 0.01), `${where}: an even bezel all round (${bezelX} vs ${bezelY})`);
+    if (m.maker === 'apple') {
+      // Every Apple sheet draws one bezel all round. A printed active area that
+      // disagrees with it (the 16 Pro's 144.79) is a label slip, not the panel.
+      const bezelX = (m.width - m.display.width) / 2;
+      const bezelY = (m.height - m.display.height) / 2;
+      assert.ok(near(bezelX, bezelY, 0.01), `${where}: an even bezel all round (${bezelX} vs ${bezelY})`);
+    } else {
+      // A Pixel's screen sits where Google's device frame puts it, its corners
+      // inside the outline's.
+      const insets = displayInsetsOf(m);
+      assert.ok(insets.side > 1 && insets.top > 1 && insets.bottom > 1, `${where}: bezels (${JSON.stringify(insets)})`);
+      assert.ok(m.display.radius !== undefined && m.display.radius > 1, `${where}: display corners`);
+    }
     // The corner runs from the top tangent to the side tangent.
     const first = m.corner[0];
     const last = m.corner[m.corner.length - 1];
-    assert.ok(first[1] === 0 && last[0] === 0 && first[0] > 10 && last[1] > 10, `${where}: corner ends`);
+    assert.ok(first[1] === 0 && last[0] === 0 && first[0] > 8 && last[1] > 8, `${where}: corner ends`);
     // The edge starts where the front is flat and ends where the back is.
     assert.ok(near(m.edge[0][0], m.flatInset, 0.02), `${where}: edge starts at the flat front`);
     assert.ok(near(m.edge[0][1] - m.edge[m.edge.length - 1][1], m.thickness, 0.03), `${where}: edge spans the thickness`);
@@ -114,14 +134,15 @@ test('every measured model holds together', () => {
       assert.ok(button.width < m.thickness, `${where}: button fits the edge`);
     }
     assert.ok(m.finishes.some((f) => f.id === m.defaultFinish), `${where}: default finish exists`);
-    for (const f of m.finishes) assert.match(f.frame + f.back, /^#[0-9a-f]{6}#[0-9a-f]{6}$/, `${where}: ${f.id} colours`);
-    // Each measured model is a device type of its own, labelled the same.
+    for (const f of m.finishes) assert.match(f.frame + f.back + (f.accent ?? ''), /^#[0-9a-f]{6}#[0-9a-f]{6}(#[0-9a-f]{6})?$/, `${where}: ${f.id} colours`);
+    // Each measured model is a device type of its own, labelled the same, on its maker's platform.
     assert.equal(DEVICE_REGISTRY[m.id]?.label, m.label, `${where}: registered`);
+    assert.equal(DEVICE_REGISTRY[m.id]?.platform, m.maker === 'google' ? 'android' : 'ios', `${where}: platform`);
     assert.equal(isMeasuredModel(m.id), true);
   }
 });
 
-test('the outline passes through every measured corner point, and the display is the outline inset by the bezel', () => {
+test('the outline passes through every measured corner point, and the display sits inside it where the model puts it', () => {
   for (const m of STUDIO_MODELS) {
     const outline = phoneOutline(m);
     const xs = outline.map((p) => p.x);
@@ -133,12 +154,17 @@ test('the outline passes through every measured corner point, and the display is
       const closest = Math.min(...curve.map(([cx, cy]) => Math.hypot(cx - x, cy - y)));
       assert.ok(closest < 1e-6, `${m.label}: corner point ${x},${y}`);
     }
-    const bezel = (m.width - m.display.width) / 2;
-    const display = insetOutline(m, bezel);
-    const dx = display.map((p) => p.x);
-    const dy = display.map((p) => p.y);
+    const screen = displayShape(m);
+    const dx = screen.outline.map((p) => p.x);
+    const dy = screen.outline.map((p) => p.y);
     assert.ok(near(Math.max(...dx) - Math.min(...dx), m.display.width, 0.01), `${m.label}: display width`);
     assert.ok(near(Math.max(...dy) - Math.min(...dy), m.display.height, 0.01), `${m.label}: display height`);
+    assert.ok(near(Math.max(...dy), m.height / 2 - displayInsetsOf(m).top, 0.01), `${m.label}: display top`);
+    assert.ok(near((Math.max(...dy) + Math.min(...dy)) / 2, screen.centerY, 0.01), `${m.label}: display centre`);
+    // An iPhone's display is the outline moved in by its bezel.
+    if (m.maker === 'apple') assert.deepEqual(screen.outline, insetOutline(m, (m.width - m.display.width) / 2));
+    // The display never reaches past the outline.
+    for (const p of screen.outline) assert.ok(insetAt(outline, p.x, p.y) > 0.5, `${m.label}: display inside the outline at ${p.x.toFixed(2)}, ${p.y.toFixed(2)}`);
   }
 });
 
@@ -149,6 +175,145 @@ test('the 17 Pro Max matches its drawing', () => {
   assert.deepEqual(PRO_MAX.cutout, { kind: 'island', width: 20.76, height: 6.07, center: 7.91 });
   assert.deepEqual(PRO_MAX.lenses.map((l) => [l.x, l.y, l.ring]), [[14.37, 14.37, 16.2], [14.37, 33.61, 16.2], [32.36, 23.99, 16.2]]);
   assert.equal(PRO_MAX.lensTop, 2.55 + 1.88);
+});
+
+test("the Pixels match Google's spec page and device frames", () => {
+  // Size from Google's tech specs, front from the Android Studio device frame.
+  const pro = studioModelFor('pixel-10-pro')!;
+  assert.deepEqual([pro.width, pro.height, pro.thickness], [72.0, 152.8, 8.6]);
+  assert.deepEqual(pro.display, { width: 65.85, height: 147.06, top: 3.06, radius: 9.22 });
+  assert.deepEqual(pro.cutout, { kind: 'punch', d: 4.7, center: 8.37 });
+  // The frame draws the display at the panel's own pitch: 1280 by 2856 pixels.
+  assert.ok(near(pro.display.width / pro.display.height, 1280 / 2856, 0.001));
+  const tenA = studioModelFor('pixel-10a')!;
+  assert.deepEqual([tenA.width, tenA.height, tenA.thickness], [73.0, 153.9, 9.0]);
+  const four = studioModelFor('pixel-4')!;
+  assert.deepEqual([four.width, four.height, four.thickness], [68.8, 147.1, 8.2]);
+  const xl = studioModelFor('pixel-3-xl')!;
+  assert.deepEqual([xl.width, xl.height, xl.thickness], [76.7, 158.0, 7.9]);
+  // One of each kind of Android screen: a camera hole, a notch, and none.
+  assert.deepEqual(
+    STUDIO_MODELS.filter((m) => m.maker === 'google').map((m) => [m.id, m.cutout.kind]),
+    [['pixel-10-pro', 'punch'], ['pixel-10a', 'punch'], ['pixel-4', 'none'], ['pixel-3-xl', 'notch']]
+  );
+});
+
+test('the Pixel 4 has no cutout: its front camera sits in the bezel above the screen', () => {
+  const four = studioModelFor('pixel-4')!;
+  const insets = displayInsetsOf(four);
+  assert.ok(insets.top > 1.9 * insets.bottom, `forehead ${insets.top} over chin ${insets.bottom}`);
+  const camera = four.front?.find((part) => part.kind === 'camera');
+  assert.ok(camera && camera.y + camera.height / 2 < insets.top, 'the camera is above the screen');
+});
+
+test('the Pixel 10 Pro periscope window and fitted hull keep its rectangular proportions', () => {
+  const model = studioModelFor('pixel-10-pro')!;
+  const lens = model.lenses[2];
+  const outline = lensWindowOutline(lens)!;
+  const xs = outline.map((p) => p.x);
+  const ys = outline.map((p) => p.y);
+  assert.ok(near(Math.max(...xs) - Math.min(...xs), 7.45));
+  assert.ok(near(Math.max(...ys) - Math.min(...ys), 10.05));
+  assert.ok(Math.max(...ys) > lens.ring / 2, 'the window reaches beyond the circular stand-in');
+  const inset = lensWindowOutline(lens, (lens.window!.width - lens.glass) / 2)!;
+  assert.ok(near(Math.max(...inset.map((p) => p.x)) - Math.min(...inset.map((p) => p.x)), lens.glass));
+  const points = hullPoints(model);
+  const cx = model.width / 2 - lens.x;
+  const cy = model.height / 2 - lens.y;
+  const z = model.edge[model.edge.length - 1][1] - model.lensTop;
+  for (const p of outline) assert.ok(points.some(([x, y, depth]) => near(x, cx + p.x) && near(y, cy + p.y) && near(depth, z)));
+  for (const other of STUDIO_MODELS.flatMap((phone) => phone.lenses).filter((candidate) => candidate !== lens)) {
+    assert.equal(lensWindowOutline(other), null, 'other lens geometry keeps its circular path');
+  }
+});
+
+test('the Pixel 3 XL draws its notch from the cutout path in its AOSP device config', () => {
+  const xl = studioModelFor('pixel-3-xl')!;
+  if (xl.cutout.kind !== 'notch' || !xl.cutout.path) throw new Error('the 3 XL has a notch with a path');
+  const { path } = xl.cutout;
+  const polygons = cutoutPolygons(path.d, 1);
+  assert.equal(polygons.length, 2, 'two halves');
+  const xs = polygons.flat().map(([x]) => x);
+  const ys = polygons.flat().map(([, y]) => y);
+  assert.deepEqual([Math.min(...xs), Math.max(...xs), Math.max(...ys)], [-338, 338, 171]);
+  // The quadratic leaves the top edge a hair above it, never more.
+  assert.ok(Math.min(...ys) > -0.5);
+  // The rounds kept for the flat frames agree with the path's size.
+  assert.ok(near(xl.cutout.depth, 171 * path.pixel, 0.01));
+  assert.ok(near(xl.cutout.width, 516 * path.pixel, 0.01));
+  // Its display corners are rounder at the top than at the bottom.
+  const radii = displayRadiiOf(xl);
+  assert.ok(radii.top > 1.5 * radii.bottom);
+});
+
+test('cutoutPolygons reads the absolute and relative path commands', () => {
+  assert.deepEqual(cutoutPolygons('M 0,0 L 10,0 L 10,10 Z', 2), [[[0, 0], [20, 0], [20, 20]]]);
+  assert.deepEqual(cutoutPolygons('m 1 1 h 4 v 4 h -4 z', 1), [[[1, 1], [5, 1], [5, 5], [1, 5]]]);
+  const curve = cutoutPolygons('M 0 0 Q 5 10 10 0 Z', 1, 2)[0];
+  assert.deepEqual(curve, [[0, 0], [5, 5], [10, 0]]);
+});
+
+test("swapping platforms takes a measured phone to the other maker's phone with the same kind of screen", () => {
+  assert.equal(DEVICE_REGISTRY['iphone-17-pro'].counterpart?.android, 'pixel-10-pro');
+  assert.equal(DEVICE_REGISTRY['iphone-16e'].counterpart?.android, 'pixel-3-xl');
+  assert.equal(DEVICE_REGISTRY['pixel-10-pro'].counterpart?.ios, 'iphone-17-pro');
+  assert.equal(DEVICE_REGISTRY['pixel-10a'].counterpart?.ios, 'iphone-17');
+  assert.equal(DEVICE_REGISTRY['pixel-3-xl'].counterpart?.ios, 'iphone-17e');
+  assert.equal(DEVICE_REGISTRY['pixel-4'].counterpart?.ios, 'iphone');
+  // A turned studio iPhone becomes a turned Pixel, its centre where it was.
+  const phone = studioPhone({ deviceType: 'iphone-17-pro', rotation3d: { yaw: 30, pitch: -10, roll: 0 } });
+  const before = deviceCentre(phone);
+  const target = swapTargetFor('iphone-17-pro', 'android')!;
+  const patch = buildSwapUpdates(phone, target);
+  assert.equal(patch.deviceType, 'pixel-10-pro');
+  const after = deviceCentre({ ...phone, ...patch });
+  assert.ok(near(after.x, before.x, 0.1) && near(after.y, before.y, 0.1), 'centre kept');
+});
+
+test('a Pixel registers its own bezels and screen corners for the flat frame', () => {
+  const four = DEVICE_REGISTRY['pixel-4'];
+  const pad = four.screen!.paddingPercent;
+  assert.ok(near(pad.top, (8.55 / 68.8) * 100, 1e-9));
+  assert.ok(pad.top > 1.9 * pad.bottom, 'the forehead is twice the chin');
+  assert.ok(near(pad.left, pad.right, 1e-9));
+  assert.ok(near(four.screen!.radiusFactor, 6.1 / 68.8, 1e-9));
+  assert.ok(near(four.nativeAspect, 1080 / 2280, 1e-9));
+  assert.equal(four.category, 'phone');
+});
+
+test('Android format conversion takes all twelve measured iPhones to Pixels with matching cutouts', () => {
+  const iphones = STUDIO_MODELS.filter((model) => model.maker === 'apple');
+  assert.equal(iphones.length, 12);
+  const preset = DEVICE_FORMAT_PRESETS.find((entry) => entry.id === 'android')!;
+  for (const model of iphones) {
+    const phone = studioPhone({ deviceType: model.id, rotation: 17, screenshotSrc: 'asset:existing-screenshot' });
+    const source: ArtboardState[] = [{
+      id: model.id,
+      name: model.label,
+      position: { x: 0, y: 0 },
+      size: { ...preset.artboard },
+      backgroundColor: '#ffffff',
+      zoom: 1,
+      elements: [phone],
+    }];
+    const original = structuredClone(source);
+    const before = deviceCentre(phone);
+    const result = convertArtboardsToFormat(source, preset);
+    const converted = result.artboards[0].elements[0] as DeviceFrameElementProps;
+    const target = studioModelFor(converted.deviceType)!;
+    assert.ok(converted.deviceType.startsWith('pixel-'), `${model.label}: a real Pixel`);
+    assert.equal(target.cutout.kind, model.cutout.kind === 'notch' ? 'notch' : 'punch', `${model.label}: matching cutout`);
+    assert.equal(converted.styleType, '3d-studio');
+    assert.deepEqual(converted.rotation3d, phone.rotation3d);
+    assert.equal(converted.rotation, phone.rotation);
+    assert.equal(converted.screenshotSrc, phone.screenshotSrc);
+    const after = deviceCentre(converted);
+    assert.ok(near(after.x, before.x, 0.1) && near(after.y, before.y, 0.1), `${model.label}: centre kept`);
+    assert.equal(result.swapped, 1);
+    assert.equal(result.resized, 0);
+    assert.equal(result.skipped, 0);
+    assert.deepEqual(source, original, `${model.label}: source unchanged`);
+  }
 });
 
 test('a Pro plateau is a flat top on a concave wall, inside the frame rim, meeting the back where the drawings do', () => {
@@ -183,7 +348,8 @@ test('every camera bump has the cove its section draws, falling from its top to 
     for (let i = 1; i < wall.length; i++) assert.ok(wall[i][0] > wall[i - 1][0] && wall[i][1] <= wall[i - 1][1], `${where}: point ${i}`);
   };
   let bumps = 0;
-  for (const m of STUDIO_MODELS) {
+  // Apple's sheets draw a section through every bump; Google's diagrams have none.
+  for (const m of STUDIO_MODELS.filter((model) => model.maker === 'apple')) {
     for (const p of m.pads) {
       if (p.shape === 'plateau') continue;
       bumps++;

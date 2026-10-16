@@ -631,7 +631,8 @@ const DEVICE_TYPES = [
   'iphone-17-pro-max',
   'iphone-18-pro-max', 'iphone-18-pro', 'iphone-17-pro', 'iphone-air', 'iphone-17', 'iphone-17e', 'iphone-16-pro-max', 'iphone-16-pro', 'iphone-16-plus', 'iphone-16', 'iphone-16e',
   'ipad-pro-13', 'ipad-11', 'apple-watch', 'android-bar',
-  'android-notch', 'android-punch-hole', 'tablet', 'tablet-7', 'tablet-10', 'desktop',
+  'android-notch', 'android-punch-hole', 'pixel-10-pro', 'pixel-10a', 'pixel-4', 'pixel-3-xl',
+  'tablet', 'tablet-7', 'tablet-10', 'desktop',
   'macbook', 'imac',
 ];
 
@@ -886,7 +887,7 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   rotation3d: {
     type: 'object',
     description:
-      "Angle of a '3d-studio' device, in degrees: yaw turns it about its long side (positive shows its left side, 180 shows the back with the cameras), pitch tips it (positive leans the top toward you), roll spins it in the picture. The phone is a model measured from Apple's dimensional drawings, keeps its real proportions and fits inside the element box, so give the box roughly the shape the device takes at that angle.",
+      "Angle of a '3d-studio' device, in degrees: yaw turns it about its long side (positive shows its left side, 180 shows the back with the cameras), pitch tips it (positive leans the top toward you), roll spins it in the picture. The phone is a real model (an iPhone measured from Apple's dimensional drawings, or a Pixel from Google's device art), keeps its real proportions and fits inside the element box, so give the box roughly the shape the device takes at that angle.",
     properties: {
       yaw: { type: 'number' },
       pitch: { type: 'number' },
@@ -2575,7 +2576,7 @@ const TOOLS: ToolDef[] = [
         return textResult({
           groups: listLibraryGroups(kind),
           ...(kind === 'devices' || !kind
-            ? { device3dOptions: device3dOptions(), note: "3D poses can also be set directly on any device element with styleType + pose3d + frameColor3d, or set styleType '3d-studio' and turn a phone to any angle with rotation3d (plus finish3d, lens3d, light3d, glare3d). The 3d-studio group has one item per real iPhone model." }
+            ? { device3dOptions: device3dOptions(), note: "3D poses can also be set directly on any device element with styleType + pose3d + frameColor3d, or set styleType '3d-studio' and turn a phone to any angle with rotation3d (plus finish3d, lens3d, light3d, glare3d). The 3d-studio group has one item per real phone: iPhones, and Pixels with a camera hole (pixel-10-pro, pixel-10a), a notch (pixel-3-xl) or no notch (pixel-4)." }
             : {}),
         });
       }
