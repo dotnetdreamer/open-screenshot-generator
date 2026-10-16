@@ -10,11 +10,13 @@ import {
   studioLensOf,
   studioModelFor,
   studioOrientationOf,
+  studioPostureOf,
   studioSphereRadius,
   turntableTurn,
   withStudioRehug,
 } from '@/lib/device3dStudio';
 import { endStudioLive, publishStudioLive } from '@/lib/device3dStudioLive';
+import { screenScaleOf, toElementSpace } from './studioHandleSpace';
 
 interface StudioRotateHandleProps {
   element: DeviceFrameElementProps;
@@ -100,29 +102,18 @@ export function StudioRotateHandle({ element, chrome, onCommit }: StudioRotateHa
   const scale = element.scale || 1;
   const boxW = element.size.width * scale;
   const boxH = element.size.height * scale;
-  const frame = studioFrame(model, committed, lens, boxW, boxH);
+  // A foldable's shape, and so its centre, depends on how far open it is.
+  const posture = model.fold ? studioPostureOf(element, model) : undefined;
+  const frame = studioFrame(model, committed, lens, boxW, boxH, posture);
   // The device centre in the box, and how far a drag must go to turn it.
   const ox = boxW / 2 - frame.centerU * frame.scale;
   const oy = boxH / 2 + frame.centerV * frame.scale;
-  const radius = studioSphereRadius(model, lens) * frame.scale;
+  const radius = studioSphereRadius(model, lens, posture) * frame.scale;
   const hs = chrome.handleScale;
   const size = 30 * hs;
 
-  /** Screen pixels per artboard pixel, measured, so every zoom is right. */
-  const screenScale = () => {
-    const wrapper = rootRef.current?.parentElement;
-    const board = wrapper?.offsetParent as HTMLElement | null;
-    if (board && board.offsetWidth > 0) return board.getBoundingClientRect().width / board.offsetWidth;
-    return 0.3;
-  };
   /** A screen-space vector in the element's own (unrotated) frame, artboard px. */
-  const toLocal = (dx: number, dy: number) => {
-    const k = screenScale() || 1;
-    const a = (-(element.rotation || 0) * Math.PI) / 180;
-    const x = dx / k;
-    const y = dy / k;
-    return { x: x * Math.cos(a) - y * Math.sin(a), y: x * Math.sin(a) + y * Math.cos(a) };
-  };
+  const toLocal = (dx: number, dy: number) => toElementSpace(dx, dy, screenScaleOf(rootRef.current), element.rotation || 0);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 || dragRef.current) return;

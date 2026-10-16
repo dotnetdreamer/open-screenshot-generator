@@ -2,7 +2,7 @@
 import type React from 'react';
 import type { DeviceType } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
-import { cornerRadiusOf, displayInsetsOf, displayRadiiOf, measuredModelFor } from '@/lib/device3dModels';
+import { cornerRadiusOf, displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from '@/lib/device3dModels';
 import { cutoutPolygons } from '@/lib/device3dGeometry';
 
 // The flat (non-3D) device frame's own chrome: outer corner radius, body
@@ -258,10 +258,11 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
   const radius = (factor: number) => `${effectiveWidth * factor}px`;
 
   // The measured phones (iPhones from Apple's drawings, Pixels from Google's
-  // device art) take their corners and cutout from the model. The 17 Pro Max
-  // keeps its older hand-tuned chrome below, so frames already placed in
-  // projects do not shift.
-  const measured = deviceType === 'iphone-17-pro-max' ? undefined : measuredModelFor(deviceType);
+  // device art) take their corners and cutout from the model; a foldable's
+  // flat frame is its inner display held tall. The 17 Pro Max keeps its older
+  // hand-tuned chrome below, so frames already placed in projects do not shift.
+  const model = deviceType === 'iphone-17-pro-max' ? undefined : measuredModelFor(deviceType);
+  const measured = model && flatFaceOf(model);
   if (measured) {
     const insets = displayInsetsOf(measured);
     const display = measured.display;

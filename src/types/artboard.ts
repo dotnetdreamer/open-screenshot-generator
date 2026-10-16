@@ -194,6 +194,7 @@ export type DeviceType =
   | 'iphone-15'
   | 'iphone-15-pro'
   | 'iphone-17-pro-max'
+  | 'iphone-duo'
   | 'iphone-18-pro-max'
   | 'iphone-18-pro'
   | 'iphone-17-pro'
@@ -302,6 +303,15 @@ export interface DeviceFrameElementProps extends BaseElement {
   bodyColor3d?: string; // a custom finish, any #rrggbb; wins over finish3d
   light3d?: Device3DLight;
   glare3d?: number; // 0..1 reflection on the screen glass; unset or 0 is none
+  // A foldable (the iPhone Duo) only. fold3d is how far open it is, in degrees
+  // between its halves: 0 closed, 180 flat; unset is the model's default.
+  // hinge3d 'across' turns it a quarter so the hinge runs side to side (held
+  // tall when open, lying on its side when closed); unset is the hinge upright,
+  // as Apple's specs measure it. The screenshot shows on the display the
+  // camera sees: the inner one while it is open, the outer one closed, stood
+  // as a tent or seen from behind.
+  fold3d?: number;
+  hinge3d?: 'upright' | 'across';
   // Colored-device presets for the flat (non-3D) frames:
   frameColor?: string; // any CSS color; overrides the per-device default body color
   frameOpacity?: number; // 0..1 alpha applied to the flat frame color (transparent devices)

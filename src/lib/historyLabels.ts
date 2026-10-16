@@ -149,6 +149,8 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
   // every turn after that, refits the box around the device, so both change
   // and the edit is still a style change or a turn.
   { keys: ['styleType'], label: 'Transform', icon: 'rotate' },
+  // A foldable's poses set the angle too, and are still a fold.
+  { keys: ['fold3d', 'hinge3d'], label: 'Fold', icon: 'rotate' },
   { keys: ['rotation3d', 'lens3d'], label: 'Rotate in 3D', icon: 'rotate' },
   { keys: ['size', 'scale'], label: 'Resize', icon: 'resize' },
   { keys: ['rotation'], label: 'Rotate', icon: 'rotate' },

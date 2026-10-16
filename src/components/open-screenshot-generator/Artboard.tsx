@@ -6,6 +6,7 @@ import { DraggableElement, type SpanBinding } from './elements/DraggableElement'
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
+import { StudioFoldHandle } from './elements/StudioFoldHandle';
 import { StudioRotateHandle } from './elements/StudioRotateHandle';
 import { ImageElement } from './elements/ImageElement';
 import { VideoElement } from './elements/VideoElement';
@@ -498,6 +499,13 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         }
         if (typeof styleProps?.glare3d === 'number') {
           deviceElement.glare3d = styleProps.glare3d;
+        }
+        // A foldable's tile also says how far open it is and which way its hinge runs.
+        if (typeof styleProps?.fold3d === 'number') {
+          deviceElement.fold3d = styleProps.fold3d;
+        }
+        if (styleProps?.hinge3d === 'upright' || styleProps?.hinge3d === 'across') {
+          deviceElement.hinge3d = styleProps.hinge3d;
         }
         // Colored-device presets (flat frames)
         if (typeof styleProps?.frameColor === 'string') {
@@ -1037,11 +1045,20 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         overlay={
           studio
             ? (chrome) => (
-                <StudioRotateHandle
-                  element={element as DeviceFrameElementProps}
-                  chrome={chrome}
-                  onCommit={(updates) => partialUpdateElement(element.id, updates)}
-                />
+                <>
+                  <StudioRotateHandle
+                    element={element as DeviceFrameElementProps}
+                    chrome={chrome}
+                    onCommit={(updates) => partialUpdateElement(element.id, updates)}
+                  />
+                  {studioModelFor((element as DeviceFrameElementProps).deviceType)?.fold && (
+                    <StudioFoldHandle
+                      element={element as DeviceFrameElementProps}
+                      chrome={chrome}
+                      onCommit={(updates) => partialUpdateElement(element.id, updates)}
+                    />
+                  )}
+                </>
               )
             : undefined
         }

@@ -1,11 +1,12 @@
 // Live state for 3D Studio devices, outside React.
 //
-// What travels here is the angle (and lens, light, finish or glare) a gesture
-// is showing before it commits: the rotate handle on the canvas and the
-// Properties panel sliders publish on every move, every renderer drawing that
-// element follows, and the commit on release arrives through the props like
-// any other edit. Committing per move would be one undo entry and one
-// whole-project write per frame (see the slider note in PropertiesPanel).
+// What travels here is the angle (and lens, light, finish, glare or a
+// foldable's opening) a gesture is showing before it commits: the rotate
+// handle on the canvas and the Properties panel sliders publish on every
+// move, every renderer drawing that element follows, and the commit on
+// release arrives through the props like any other edit. Committing per move
+// would be one undo entry and one whole-project write per frame (see the
+// slider note in PropertiesPanel).
 
 import type { Device3DLight, Device3DOrientation } from '@/types/artboard';
 
@@ -16,6 +17,8 @@ export interface StudioLiveState {
   light?: Device3DLight;
   finish?: { frame: string; back: string };
   glare?: number;
+  /** A foldable's opening, degrees between its halves. */
+  fold?: number;
 }
 
 export type StudioLiveEnd = 'commit' | 'cancel';

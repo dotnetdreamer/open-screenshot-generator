@@ -6,7 +6,7 @@ import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.j
 import type { DeviceType, Device3DPose, Device3DFrameColor } from '@/types/artboard';
 import { withBasePath } from '@/lib/basePath';
 import { DEVICE_3D_POSE_ANGLES } from '@/lib/device3dPoseAngles';
-import { bezelOf, cornerRadiusOf, displayRadiiOf, measuredModelFor } from '@/lib/device3dModels';
+import { bezelOf, cornerRadiusOf, displayRadiiOf, flatFaceOf, measuredModelFor } from '@/lib/device3dModels';
 
 interface Device3DRendererProps {
   deviceType: DeviceType;
@@ -63,8 +63,10 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
  * deeper bezel above or below its screen is left out.
  */
 function measuredMetrics(deviceType: DeviceType): DeviceMetrics | null {
-  const model = measuredModelFor(deviceType);
-  if (!model) return null;
+  const measured = measuredModelFor(deviceType);
+  if (!measured) return null;
+  // A foldable poses the way its flat frame shows it: the inner display held tall.
+  const model = flatFaceOf(measured);
   const w = model.width;
   return {
     cornerRadius: cornerRadiusOf(model) / w,

@@ -12,6 +12,8 @@
  *   APPLE_DISPLAY_TARGETS   the exact pixel sizes each ScreenshotDisplayType
  *                           takes, and whether it also takes them rotated
  *   appleTargetForSize      the same table's own matcher
+ *   appleDisplayAwaitingUpload  sizes Apple lists that App Store Connect
+ *                           cannot take uploads for yet (the iPhone Duo's)
  *   nearestAppleSizes       the same table's own "did you mean" hint
  *   validatePlayImage       Play's 320 to 3840 px and 2:1 bounds
  *   suggestPlayImageType    which Play slot a size belongs to
@@ -32,6 +34,7 @@
 import {
   APPLE_DISPLAY_TARGETS,
   PLAY_IMAGE_TARGETS,
+  appleDisplayAwaitingUpload,
   appleTargetForSize,
   missesRequiredIphoneSlot,
   nearestAppleSizes,
@@ -324,13 +327,24 @@ export function checkPng(info: PngInfo, ruleset: StoreRuleset): Finding[] {
   if (rules.sizing === 'apple-table') {
     if (!appleTargetForSize(info.width, info.height)) {
       const preset = APPSTORE_PRESET_ONLY_SIZES.has(key(info.width, info.height));
-      findings.push({
-        level: preset ? 'warn' : 'fail',
-        code: preset ? 'png-size-unlisted' : 'png-size',
-        message: preset
-          ? `${size(info.width, info.height)} is a required canvas tier that the upload table does not list yet, closest listed: ${nearestAppleSizes(info.width, info.height)}`
-          : `${size(info.width, info.height)} is not a size the App Store accepts, closest accepted: ${nearestAppleSizes(info.width, info.height)}`,
-      });
+      // A size Apple lists for a display App Store Connect cannot take yet is
+      // right, just early: warn, so a Duo set passes but the upload gap shows.
+      const waiting = appleDisplayAwaitingUpload(info.width, info.height);
+      findings.push(
+        waiting
+          ? {
+              level: 'warn',
+              code: 'png-size-awaiting-upload',
+              message: `${size(info.width, info.height)} is an ${waiting.label} size, which App Store Connect does not take uploads for yet`,
+            }
+          : {
+              level: preset ? 'warn' : 'fail',
+              code: preset ? 'png-size-unlisted' : 'png-size',
+              message: preset
+                ? `${size(info.width, info.height)} is a required canvas tier that the upload table does not list yet, closest listed: ${nearestAppleSizes(info.width, info.height)}`
+                : `${size(info.width, info.height)} is not a size the App Store accepts, closest accepted: ${nearestAppleSizes(info.width, info.height)}`,
+            }
+      );
     }
   } else {
     // validatePlayImage owns Play's numbers and its wording. Give it the slot

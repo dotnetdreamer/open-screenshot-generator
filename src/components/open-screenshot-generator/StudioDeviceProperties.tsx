@@ -11,6 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { withBasePath } from '@/lib/basePath';
 import {
+  STUDIO_FOLD_POSES,
   STUDIO_LENS_MAX,
   STUDIO_LENS_MIN,
   STUDIO_LIGHT_ELEVATION_MAX,
@@ -30,11 +31,19 @@ import {
   studioLightOf,
   studioModelFor,
   studioOrientationOf,
+  studioPostureOf,
   withStudioRehug,
   wrapDegrees,
+  type StudioFoldPose,
   type StudioLook,
 } from '@/lib/device3dStudio';
-import { updateStudioLive, type StudioLiveHandler, type StudioLiveState } from '@/lib/device3dStudioLive';
+import {
+  studioLiveState,
+  subscribeStudioLive,
+  updateStudioLive,
+  type StudioLiveHandler,
+  type StudioLiveState,
+} from '@/lib/device3dStudioLive';
 
 interface StudioDevicePropertiesProps {
   element: DeviceFrameElementProps;
@@ -202,9 +211,18 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
   const glare = studioGlareOf(element);
   const finish = model ? studioFinishOf(element, model) : null;
   const custom = studioCustomColorOf(element);
-  const matched = matchStudioLook(orientation);
   const [customColor, setCustomColor] = useState(finish?.frame ?? '#888888');
   useEffect(() => setCustomColor(finish?.frame ?? '#888888'), [id, finish?.frame]);
+  // What a gesture in flight is showing on the canvas, from a slider here or
+  // a handle on the canvas, so every value in this panel follows it. A drag
+  // here is kept locally too: a detached panel never hears the canvas's.
+  const [preview, setPreview] = useState<StudioLiveState | null>(null);
+  const [onCanvas, setOnCanvas] = useState<StudioLiveState | null>(() => studioLiveState(id) ?? null);
+  useEffect(() => {
+    setPreview(null);
+    setOnCanvas(studioLiveState(id) ?? null);
+    return subscribeStudioLive(id, (state) => setOnCanvas(state));
+  }, [id]);
   // The color picker reports every step of a drag. The canvas follows each
   // one live and the color lands once the picking pauses.
   const colorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -217,6 +235,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
     const pending = pendingColor.current;
     pendingColor.current = null;
     if (!pending) return false;
+    setPreview(null);
     if (save) {
       const updates = { bodyColor3d: pending.color };
       if (callbacksRef.current.onUpdateElementById) callbacksRef.current.onUpdateElementById(pending.elementId, updates);
@@ -233,9 +252,16 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
 
   if (!model || !finish) return null;
 
-  const live = (state: StudioLiveState) => onStudioLive(id, state);
-  const cancelLive = () => onStudioLive(id, null, 'cancel');
+  const live = (state: StudioLiveState) => {
+    setPreview(state);
+    onStudioLive(id, state);
+  };
+  const cancelLive = () => {
+    setPreview(null);
+    onStudioLive(id, null, 'cancel');
+  };
   const commit = (updates: Partial<DeviceFrameElementProps>) => {
+    setPreview(null);
     onUpdateElement(updates);
     onStudioLive(id, null, 'commit');
   };
@@ -252,14 +278,35 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
     });
   };
 
+  // A foldable's pose sets how far open it is, its hinge and the angle that
+  // shows it, kept facing the way it faces now, like a look.
+  const posture = studioPostureOf(element, model);
+  const applyFoldPose = (pose: StudioFoldPose) => {
+    const facingRight = exposedSide(orientation) > 0 && orientation.yaw !== 0;
+    const next = facingRight ? mirrorOrientation(pose.orientation) : pose.orientation;
+    onUpdateElement({
+      ...withStudioRehug(element, { rotation3d: next, fold3d: pose.opening, hinge3d: pose.across ? 'across' : 'upright' }),
+      light3d: lightForOrientation(light, next),
+    });
+  };
+
+  // What to show: a gesture's values, from a slider here or a handle on the
+  // canvas, and the element's own otherwise.
+  const shownOrientation = preview?.orientation ?? onCanvas?.orientation ?? orientation;
+  const shownOpening = preview?.fold ?? onCanvas?.fold ?? posture.opening;
+  const shownLens = preview?.lens ?? onCanvas?.lens ?? lens;
+  const shownLight = preview?.light ?? onCanvas?.light ?? light;
+  const shownGlare = preview?.glare ?? onCanvas?.glare ?? glare;
+  const matched = matchStudioLook(shownOrientation);
+
   const angleRow = (key: 'yaw' | 'pitch' | 'roll', label: string) => (
     <div className="flex flex-col space-y-1 min-w-[150px]">
       <Label htmlFor={`studio-${key}`} className="text-xs">
-        {label}: {Math.round(orientation[key])}°
+        {label}: {Math.round(shownOrientation[key])}°
       </Label>
       <LiveSlider
         id={`studio-${key}`}
-        value={orientation[key]}
+        value={shownOrientation[key]}
         min={key === 'pitch' ? -90 : -180}
         max={key === 'pitch' ? 90 : 180}
         step={1}
@@ -282,8 +329,150 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
             ? 'A generic shape. Pick an iPhone 16 or newer, or a Pixel, in Device Model for an exact one'
             : model.maker === 'google'
               ? `${model.label}, built to Google's device frame and hardware diagram`
-              : `${model.label}, built to Apple's dimensional drawings`}
+              : model.fold
+                ? `${model.label}, built to Apple's tech specs and product bezels`
+                : `${model.label}, built to Apple's dimensional drawings`}
         </p>
+      </div>
+
+      {model.fold && (
+        <div className="flex flex-col gap-1.5">
+          {labelRow(<Label className="text-xs">Fold</Label>, ['fold3d', 'hinge3d'], 'Fold')}
+          <div className="flex flex-col space-y-1 min-w-[150px]">
+            <Label htmlFor="studio-fold" className="text-xs">
+              Opening: {Math.round(shownOpening)}°
+            </Label>
+            <LiveSlider
+              id="studio-fold"
+              value={shownOpening}
+              min={0}
+              max={180}
+              step={1}
+              onLive={(v) => live({ fold: v })}
+              onCommit={(v) => commit(withStudioRehug(element, { fold3d: v }))}
+              onCancel={cancelLive}
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>Closed</span>
+              <span>Flat</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-5 gap-1">
+            {STUDIO_FOLD_POSES.map((pose) => {
+              const active = shownOpening === pose.opening && posture.across === pose.across;
+              return (
+                <Button
+                  key={pose.id}
+                  type="button"
+                  variant={active ? 'secondary' : 'outline'}
+                  size="sm"
+                  className={cn('h-7 px-0 text-[11px]', active && 'ring-1 ring-primary')}
+                  aria-label={`${pose.label} pose`}
+                  aria-pressed={active}
+                  title={pose.label}
+                  onClick={() => applyFoldPose(pose)}
+                >
+                  {pose.label}
+                </Button>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs">Hinge</span>
+            {([
+              ['upright', 'Vertical', 'Hinge vertical', 'Hinge runs up and down'],
+              ['across', 'Horizontal', 'Hinge horizontal', 'Hinge runs side to side, for a tall inner display'],
+            ] as const).map(([value, label, aria, hint]) => {
+              const active = (value === 'across') === posture.across;
+              return (
+                <Button
+                  key={value}
+                  type="button"
+                  variant={active ? 'secondary' : 'outline'}
+                  size="sm"
+                  className={cn('h-7 flex-1 text-xs', active && 'ring-1 ring-primary')}
+                  aria-label={aria}
+                  aria-pressed={active}
+                  title={hint}
+                  onClick={() => {
+                    if (!active) commit(withStudioRehug(element, { hinge3d: value }));
+                  }}
+                >
+                  {label}
+                </Button>
+              );
+            })}
+          </div>
+          <p className="text-[11px] leading-snug text-muted-foreground">
+            Drag the fold handle on the phone to fold it to any angle
+          </p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1.5">
+        {labelRow(<Label className="text-xs">Angle</Label>, 'rotation3d', 'Angle')}
+        {angleRow('yaw', 'Turn')}
+        {angleRow('pitch', 'Tilt')}
+        {angleRow('roll', 'Spin')}
+        <div className="flex gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 flex-1 text-xs"
+            title="Face the other way"
+            onClick={() => {
+              const next = mirrorOrientation(orientation);
+              onUpdateElement({
+                ...withStudioRehug(element, { rotation3d: next }),
+                light3d: { ...light, azimuth: wrapDegrees(-light.azimuth) },
+              });
+            }}
+          >
+            <FlipHorizontal2 className="mr-1 h-3 w-3" />
+            Mirror
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 flex-1 text-xs"
+            title="Straight on, facing you"
+            onClick={() => commitOrientation({ yaw: 0, pitch: 0, roll: 0 })}
+          >
+            <RotateCcw className="mr-1 h-3 w-3" />
+            Reset angle
+          </Button>
+        </div>
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          Or drag the round handle in the middle of the device
+        </p>
+        <div className="grid grid-cols-4 gap-1.5">
+          {STUDIO_LOOKS.map((look) => {
+            const active = matched?.look.id === look.id;
+            return (
+              <button
+                key={look.id}
+                type="button"
+                title={look.label}
+                aria-label={`${look.label} look`}
+                aria-pressed={active}
+                onClick={() => applyLook(look)}
+                className={cn(
+                  'flex aspect-square items-center justify-center rounded-md border p-1 transition-colors',
+                  active ? 'border-primary bg-primary/10' : 'border-transparent bg-background hover:border-border'
+                )}
+              >
+                <img
+                  src={withBasePath(`/elements/device-3d/studio/look-${look.id}.png`)}
+                  alt=""
+                  className={cn('max-h-full max-w-full object-contain', active && matched?.mirrored && '-scale-x-100')}
+                  draggable={false}
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -325,8 +514,8 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
             onChange={(e) => {
               const next = e.target.value;
               setCustomColor(next);
-              const preview = studioFinishOf({ bodyColor3d: next }, model);
-              live({ finish: { frame: preview.frame, back: preview.back } });
+              const tint = studioFinishOf({ bodyColor3d: next }, model);
+              live({ finish: { frame: tint.frame, back: tint.back } });
               if (colorTimer.current) clearTimeout(colorTimer.current);
               pendingColor.current = { elementId: id, color: next, commit: onUpdateElement };
               colorTimer.current = setTimeout(() => {
@@ -338,84 +527,17 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        {labelRow(<Label className="text-xs">Angle</Label>, 'rotation3d', 'Angle')}
-        <div className="grid grid-cols-4 gap-1.5">
-          {STUDIO_LOOKS.map((look) => {
-            const active = matched?.look.id === look.id;
-            return (
-              <button
-                key={look.id}
-                type="button"
-                title={look.label}
-                aria-label={`${look.label} look`}
-                aria-pressed={active}
-                onClick={() => applyLook(look)}
-                className={cn(
-                  'flex aspect-square items-center justify-center rounded-md border p-1 transition-colors',
-                  active ? 'border-primary bg-primary/10' : 'border-transparent bg-background hover:border-border'
-                )}
-              >
-                <img
-                  src={withBasePath(`/elements/device-3d/studio/look-${look.id}.png`)}
-                  alt=""
-                  className={cn('max-h-full max-w-full object-contain', active && matched?.mirrored && '-scale-x-100')}
-                  draggable={false}
-                />
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex gap-1.5">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 flex-1 text-xs"
-            title="Face the other way"
-            onClick={() => {
-              const next = mirrorOrientation(orientation);
-              onUpdateElement({
-                ...withStudioRehug(element, { rotation3d: next }),
-                light3d: { ...light, azimuth: wrapDegrees(-light.azimuth) },
-              });
-            }}
-          >
-            <FlipHorizontal2 className="mr-1 h-3 w-3" />
-            Mirror
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-7 flex-1 text-xs"
-            title="Straight on, facing you"
-            onClick={() => commitOrientation({ yaw: 0, pitch: 0, roll: 0 })}
-          >
-            <RotateCcw className="mr-1 h-3 w-3" />
-            Reset angle
-          </Button>
-        </div>
-      </div>
-
-      {angleRow('yaw', 'Turn')}
-      {angleRow('pitch', 'Tilt')}
-      {angleRow('roll', 'Spin')}
-      <p className="text-[11px] leading-snug text-muted-foreground">
-        Or drag the round handle in the middle of the device
-      </p>
-
       <div className="flex flex-col space-y-1 min-w-[150px]">
         {labelRow(
           <Label htmlFor="studio-lens" className="text-xs">
-            Perspective: {Math.round(lens)}°
+            Perspective: {Math.round(shownLens)}°
           </Label>,
           'lens3d',
           'Perspective'
         )}
         <LiveSlider
           id="studio-lens"
-          value={lens}
+          value={shownLens}
           min={STUDIO_LENS_MIN}
           max={STUDIO_LENS_MAX}
           step={1}
@@ -432,14 +554,14 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
       <div className="flex flex-col gap-1.5">
         {labelRow(<Label className="text-xs">Light</Label>, 'light3d', 'Light')}
         <div className="flex items-center gap-3">
-          <LightPad light={light} onLive={(next) => live({ light: next })} onCommit={(next) => commit({ light3d: next })} />
+          <LightPad light={shownLight} onLive={(next) => live({ light: next })} onCommit={(next) => commit({ light3d: next })} />
           <div className="flex min-w-0 flex-1 flex-col">
             <Label htmlFor="studio-light-strength" className="text-xs">
-              Strength: {Math.round(light.intensity * 100)}%
+              Strength: {Math.round(shownLight.intensity * 100)}%
             </Label>
             <LiveSlider
               id="studio-light-strength"
-              value={Math.round(light.intensity * 100)}
+              value={Math.round(shownLight.intensity * 100)}
               min={Math.round(STUDIO_LIGHT_INTENSITY_MIN * 100)}
               max={Math.round(STUDIO_LIGHT_INTENSITY_MAX * 100)}
               step={5}
@@ -454,14 +576,14 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
       <div className="flex flex-col space-y-1 min-w-[150px]">
         {labelRow(
           <Label htmlFor="studio-glare" className="text-xs">
-            Screen glare: {Math.round(glare * 100)}%
+            Screen glare: {Math.round(shownGlare * 100)}%
           </Label>,
           'glare3d',
           'Screen glare'
         )}
         <LiveSlider
           id="studio-glare"
-          value={Math.round(glare * 100)}
+          value={Math.round(shownGlare * 100)}
           min={0}
           max={100}
           step={1}

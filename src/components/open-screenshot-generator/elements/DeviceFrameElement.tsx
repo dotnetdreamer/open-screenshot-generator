@@ -359,6 +359,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
             accentColor={studioFinish.accent}
             light={studioLightOf(element)}
             glare={studioGlareOf(element)}
+            opening={element.fold3d}
+            across={element.hinge3d === 'across'}
             liveKey={element.id}
           />
         ) : (

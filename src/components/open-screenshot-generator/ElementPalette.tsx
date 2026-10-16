@@ -208,7 +208,7 @@ const ANDROID_3D_PREVIEWS = ['upright-left-black', 'side-right-black', 'tilted-l
 const WATCH_3D_PREVIEWS = ['front-right-black', 'front-left-white', 'side-right-black', 'tilted-left-black', 'reclined-right-white', 'laying-left-white'];
 const MAC_3D_PREVIEWS = ['macbook-front-right-black', 'imac-front-right-black', 'macbook-upright-right-white', 'imac-side-left-white', 'macbook-side-right-black', 'macbook-tilted-right-black'];
 // Studio previews are model thumbnails, one per model, iPhones and Pixels both.
-const STUDIO_3D_PREVIEWS = ['iphone-18-pro-max', 'pixel-10-pro', 'iphone-17', 'pixel-10a', 'iphone-air', 'pixel-3-xl'];
+const STUDIO_3D_PREVIEWS = ['iphone-18-pro-max', 'pixel-10-pro', 'iphone-duo', 'pixel-10a', 'iphone-air', 'pixel-3-xl'];
 
 /** The 3D Studio group lists the iPhones, then the Pixels, each under its platform. */
 const STUDIO_SECTIONS = [
@@ -877,7 +877,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                               key={`studio-${model.id}`}
                               src={`/elements/device-3d/studio/${model.id}.png`}
                               label={model.label}
-                              note={model.maker === 'google' ? SCREEN_NOTES[model.cutout.kind] : undefined}
+                              note={model.maker === 'google' ? SCREEN_NOTES[model.cutout.kind] : model.fold ? 'Foldable' : undefined}
                               title={`Add ${model.label} in 3D`}
                               libraryId={studio3dLibraryId(model.id)}
                               deviceType={model.id}

@@ -17,11 +17,20 @@
  *   SIZE=<px>       longest side of each thumbnail (default 640)
  *   LENS=<deg>      camera field of view (default the studio default; 6 is near flat,
  *                   for comparing a side or back view with its drawing)
- *   args            only these, as model[:look-or-angles[:finish]], where angles
- *                   are yaw,pitch,roll and the look defaults to the palette look:
+ *   SHOT=<image>    a screenshot for the screen in place of the dark wallpaper,
+ *                   to check how one sits (PNG or JPEG)
+ *   FIT=contain     fit that screenshot inside the screen (default cover)
+ *   args            only these, as model[:look-or-angles[:finish[:opening[:hinge]]]],
+ *                   where angles are yaw,pitch,roll and the look defaults to the
+ *                   palette look; a foldable is drawn as its tile is (held tall
+ *                   and nearly open) unless a fold pose such as laptop stands
+ *                   in for the look, or an opening and hinge (upright or across)
+ *                   are given:
  *                     iphone-air
  *                     iphone-17-pro:back:deep-blue
  *                     iphone-16:30,-10,0:ultramarine
+ *                     iphone-duo:laptop:night-sky
+ *                     iphone-duo:back::120:upright
  *                   or "looks" for the look grid alone
  *
  * Re-run whenever a model, the materials or the looks change. Thumbnail
@@ -55,8 +64,10 @@ let root: Root | null = null;
 window.onerror = (msg) => { (window as any).__lastError = String(msg); };
 (window as any).studio = {
   looks: studio.STUDIO_LOOKS.map((l) => l.id),
-  models: studio.STUDIO_MODELS.map((m) => ({ id: m.id, finishes: m.finishes.map((f) => f.id), defaultFinish: m.defaultFinish })),
+  foldPoses: studio.STUDIO_FOLD_POSES.map((p) => p.id),
+  models: studio.STUDIO_MODELS.map((m) => ({ id: m.id, finishes: m.finishes.map((f) => f.id), defaultFinish: m.defaultFinish, foldable: !!m.fold })),
   tileLook: studio.STUDIO_TILE_LOOK,
+  tileFold: studio.STUDIO_TILE_FOLD,
 };
 
 (window as any).renderStudio = (opts: any) => {
@@ -64,10 +75,18 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
     if (root) { root.unmount(); root = null; }
     mountEl.innerHTML = '';
     const model = studio.studioModelFor(opts.deviceType)!;
-    const look = opts.look ? studio.studioLookById(opts.look) : null;
-    const orientation = look ? look.orientation : opts.orientation;
+    const foldPose = model.fold && opts.look ? studio.studioFoldPoseById(opts.look) : undefined;
+    const look = opts.look && !foldPose ? studio.studioLookById(opts.look) : null;
+    const orientation = foldPose ? foldPose.orientation : look ? look.orientation : opts.orientation;
+    // A foldable takes the fold pose's posture, then any opening or hinge given.
+    const posture = model.fold
+      ? {
+          opening: opts.opening ?? foldPose?.opening ?? model.fold.opening,
+          across: opts.hinge ? opts.hinge === 'across' : foldPose?.across ?? false,
+        }
+      : undefined;
     const finish = studio.studioFinishOf({ finish3d: opts.finish }, model);
-    const size = studio.studioDefaultSize(model, orientation);
+    const size = studio.studioDefaultSize(model, orientation, opts.lens ?? studio.STUDIO_LENS_DEFAULT, posture);
     const scale = ${THUMB_MAX} / Math.max(size.width, size.height);
     const holder = document.createElement('div');
     holder.style.width = Math.round(size.width * scale) + 'px';
@@ -79,7 +98,7 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
       <DeviceStudioRenderer
         deviceType={opts.deviceType}
         screenshotSrc={(window as any).__WALLPAPER__}
-        objectFit="cover"
+        objectFit={(window as any).__FIT__}
         orientation={orientation}
         lens={opts.lens ?? studio.STUDIO_LENS_DEFAULT}
         frameColor={finish.frame}
@@ -87,6 +106,8 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
         accentColor={finish.accent}
         light={studio.lightForOrientation(studio.STUDIO_LIGHT_DEFAULT, orientation)}
         glare={0}
+        opening={posture?.opening}
+        across={posture?.across}
       />
     );
     setTimeout(resolve, 900);
@@ -120,13 +141,16 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
     fs.rmSync(harnessPath, { force: true });
   }
 
-  const wallpaper = fs.readFileSync(wallpaperPng).toString('base64');
+  const shotFile = process.env.SHOT ? path.resolve(process.env.SHOT) : wallpaperPng;
+  const shotType = /\.jpe?g$/i.test(shotFile) ? 'image/jpeg' : 'image/png';
+  const wallpaper = fs.readFileSync(shotFile).toString('base64');
+  const fit = process.env.FIT === 'contain' ? 'contain' : 'cover';
   const html = [
     '<!doctype html><html><head><meta charset="utf-8"><style>',
     'html,body{margin:0;background:transparent;}',
     `#mount{display:flex;align-items:center;justify-content:center;width:${THUMB_MAX + 80}px;height:${THUMB_MAX + 80}px;flex-shrink:0;}`,
     '</style></head><body><div id="mount"></div>',
-    `<script>window.__WALLPAPER__='data:image/png;base64,${wallpaper}';</scr` + 'ipt>',
+    `<script>window.__WALLPAPER__='data:${shotType};base64,${wallpaper}';window.__FIT__='${fit}';</scr` + 'ipt>',
     '<script>', fs.readFileSync(bundlePath, 'utf8'), '</scr' + 'ipt>',
     '</body></html>',
   ].join('\n');
@@ -159,19 +183,32 @@ window.onerror = (msg) => { (window as any).__lastError = String(msg); };
         combos.push(...lookCombos());
         continue;
       }
-      const [deviceType, what = lists.tileLook, finish] = arg.split(':');
+      const parts = arg.split(':').map((part) => part || undefined);
+      const deviceType = parts[0];
+      const foldable = lists.models.find((m) => m.id === deviceType)?.foldable;
+      const [, what = lists.tileLook, finish, openingArg, hinge] = parts;
+      // A foldable with no fold pose, opening or hinge given is drawn the way its tile is: held tall and nearly open.
+      const asTile = foldable && openingArg === undefined && hinge === undefined && !lists.foldPoses.includes(what);
+      const fold = asTile
+        ? { opening: lists.tileFold.opening, hinge: lists.tileFold.across ? 'across' : 'upright' }
+        : { opening: openingArg === undefined ? undefined : Number(openingArg), hinge };
+      const extra = `${finish ? '-' + finish : ''}${openingArg !== undefined ? '-' + openingArg : ''}${hinge ? '-' + hinge : ''}`;
+      const tile = lists.tileLook;
       if (/^-?[\d.]+,-?[\d.]+,-?[\d.]+$/.test(what)) {
         const [yaw, pitch, roll] = what.split(',').map(Number);
-        combos.push({ file: `${deviceType}_${what.replace(/,/g, '_')}${finish ? '-' + finish : ''}.png`, deviceType, orientation: { yaw, pitch, roll }, finish });
-      } else if (lists.looks.includes(what)) {
-        const file = what === lists.tileLook && !finish ? `${deviceType}.png` : `${deviceType}-${what}${finish ? '-' + finish : ''}.png`;
-        combos.push({ file, deviceType, look: what, finish });
+        combos.push({ file: `${deviceType}_${what.replace(/,/g, '_')}${extra}.png`, deviceType, orientation: { yaw, pitch, roll }, finish, ...fold });
+      } else if (lists.looks.includes(what) || (foldable && lists.foldPoses.includes(what))) {
+        const file = what === tile && !extra ? `${deviceType}.png` : `${deviceType}-${what}${extra}.png`;
+        combos.push({ file, deviceType, look: what, finish, ...fold });
       } else {
         throw new Error(`unknown look "${what}"`);
       }
     }
   } else {
-    for (const id of modelIds) combos.push({ file: `${id}.png`, deviceType: id, look: lists.tileLook });
+    for (const m of lists.models) {
+      const fold = m.foldable ? { opening: lists.tileFold.opening, hinge: lists.tileFold.across ? 'across' : 'upright' } : {};
+      combos.push({ file: `${m.id}.png`, deviceType: m.id, look: lists.tileLook, ...fold });
+    }
     combos.push(...lookCombos());
   }
 

@@ -178,7 +178,7 @@ function studio3dItems(): LibraryItem[] {
     kind: 'devices' as const,
     libraryId: studio3dLibraryId(model.id),
     group: '3d-studio',
-    label: `${model.label} in 3D (finishes: ${model.finishes.map((finish) => finish.id).join(', ')})`,
+    label: `${model.label} in 3D (finishes: ${model.finishes.map((finish) => finish.id).join(', ')}${model.fold ? '; folds with fold3d' : ''})`,
     type: 'device' as ElementType,
     subType: model.id,
     defaultSize: studioTileStyleProps(model).defaultSize as { width: number; height: number },
@@ -205,7 +205,7 @@ const GROUP_LABELS: Record<string, string> = {
   ...Object.fromEntries(DEVICE_3D_GROUPS.map((g) => [g.id, g.label])),
   ...Object.fromEntries(COLORED_TILE_GROUPS.map((g) => [g.id, g.label])),
   mockups: 'Device Mockups (flat frames)',
-  '3d-studio': '3D Studio (real iPhones measured from Apple drawings and Pixels from Google device art, turned to any angle with rotation3d)',
+  '3d-studio': '3D Studio (real iPhones measured from Apple drawings, the iPhone Duo foldable from Apple bezels, and Pixels from Google device art, turned to any angle with rotation3d)',
 };
 
 /** Groups within one library kind (or all three when kind is omitted). */

@@ -1,6 +1,6 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
 import { isStudioStyle, studioModelFor, withStudioRehug } from './device3dStudio';
-import { displayInsetsOf, displayRadiiOf, measuredModelFor } from './device3dModels';
+import { displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from './device3dModels';
 
 export type DevicePlatform = 'ios' | 'android' | 'neutral';
 export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'custom';
@@ -59,8 +59,10 @@ const PIXEL_TO_IPHONE: Partial<Record<DeviceType, DeviceType>> = {
  * camera hole).
  */
 function measuredPhone(id: DeviceType): DeviceDescriptor {
-  const model = measuredModelFor(id);
-  if (!model) throw new Error(`No measured model for ${id}`);
+  const measured = measuredModelFor(id);
+  if (!measured) throw new Error(`No measured model for ${id}`);
+  // A foldable's flat frame is its inner display held tall.
+  const model = flatFaceOf(measured);
   const insets = displayInsetsOf(model);
   const corners = displayRadiiOf(model);
   const percent = (mm: number) => (mm / model.width) * 100;
@@ -95,6 +97,7 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone-15': { id: 'iphone-15', label: 'iPhone 15', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-15-pro': { id: 'iphone-15-pro', label: 'iPhone 15 Pro', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, counterpart: { android: 'pixel-10-pro' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
+  'iphone-duo': measuredPhone('iphone-duo'),
   'iphone-18-pro-max': measuredPhone('iphone-18-pro-max'),
   'iphone-18-pro': measuredPhone('iphone-18-pro'),
   'iphone-17-pro': measuredPhone('iphone-17-pro'),

@@ -20,6 +20,8 @@ interface SavedDevice {
   rotation3d?: { yaw: number; pitch: number; roll: number };
   finish3d?: string;
   bodyColor3d?: string;
+  fold3d?: number;
+  hinge3d?: string;
   position: { x: number; y: number };
   size: { width: number; height: number };
 }
@@ -97,6 +99,103 @@ test.describe('3D Studio device', () => {
     expect(phone.deviceType).toBe('pixel-3-xl');
     expect(phone.rotation3d).toEqual(TILE_ANGLE);
     expect(phone.finish3d).toBe('clearly-white');
+  });
+
+  test('the iPhone Duo arrives held tall and nearly open, and a fold pose closes it in one undo step', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Devices').click();
+    await app.openPaletteCategory('3D Studio');
+    await app.addElement('iPhone Duo in 3D', 'studio3d:iphone-duo');
+
+    await expect(app.activeDockPanel.getByText("iPhone Duo, built to Apple's tech specs and product bezels")).toBeVisible();
+    await expect(app.activeDockPanel.getByText('Opening: 160°')).toBeVisible();
+    const [arrived] = studioDevices(await waitForProject(page, (project) => studioDevices(project).length === 1));
+    expect(arrived.deviceType).toBe('iphone-duo');
+    expect(arrived.fold3d).toBe(160);
+    expect(arrived.hinge3d).toBe('across');
+    expect(arrived.size.height).toBeGreaterThan(arrived.size.width);
+
+    await app.activeDockPanel.getByRole('button', { name: 'Closed pose', exact: true }).click();
+    const saved = await waitForProject(page, (project) => studioDevices(project)[0]?.fold3d === 0);
+    const [closed] = studioDevices(saved);
+    expect(closed.hinge3d).toBe('upright');
+    // Closed and upright it is narrower than open and held tall, and the box closes round it.
+    expect(closed.size.width).toBeLessThan(arrived.size.width);
+    await expect(app.activeDockPanel.getByText('Opening: 0°')).toBeVisible();
+
+    await app.dockTab('History').click();
+    await expect(app.activeDockPanel.getByText('Fold').first()).toBeVisible();
+  });
+
+  test("dragging the Duo's fold grip folds it in one undo step, and a double-click opens it flat", async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Devices').click();
+    await app.openPaletteCategory('3D Studio');
+    await app.addElement('iPhone Duo in 3D', 'studio3d:iphone-duo');
+    const [before] = studioDevices(await waitForProject(page, (project) => studioDevices(project).length === 1));
+    expect(before.fold3d).toBe(160);
+
+    // Held tall, the half that swings is the lower one, so its grip is below the middle.
+    const grip = page.getByRole('button', { name: 'Fold or unfold' });
+    await expect(grip).toBeVisible();
+    const gripBox = (await grip.boundingBox())!;
+    const box = (await page.locator(`[data-element-id="${before.id}"]`).first().boundingBox())!;
+    expect(gripBox.y + gripBox.height / 2).toBeGreaterThan(box.y + box.height / 2);
+
+    // Pushing the grip up toward the hinge folds the phone partway.
+    await dragBy(page, grip, 0, -box.height * 0.25);
+    const saved = await waitForProject(page, (project) => (studioDevices(project)[0]?.fold3d ?? 160) < 145);
+    const [folded] = studioDevices(saved);
+    expect(folded.fold3d!).toBeGreaterThan(40);
+    expect(folded.hinge3d).toBe('across');
+    await expect(app.activeDockPanel.getByText(`Opening: ${folded.fold3d}°`)).toBeVisible();
+
+    await grip.dblclick();
+    await waitForProject(page, (project) => studioDevices(project)[0]?.fold3d === 180);
+
+    // Each fold is one step back.
+    await app.undoButton.click();
+    await waitForProject(page, (project) => studioDevices(project)[0]?.fold3d === folded.fold3d);
+    await app.undoButton.click();
+    await waitForProject(page, (project) => studioDevices(project)[0]?.fold3d === 160);
+  });
+
+  test('the panel sliders follow a drag as it happens, on the canvas or on the slider', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Devices').click();
+    await app.openPaletteCategory('3D Studio');
+    await app.addElement('iPhone Duo in 3D', 'studio3d:iphone-duo');
+    await waitForProject(page, (project) => studioDevices(project).length === 1);
+    const panel = app.activeDockPanel;
+    await expect(panel.getByText('Opening: 160°')).toBeVisible();
+
+    // Mid-drag on the fold grip, before anything is saved, the panel already reads the new opening.
+    const grip = page.getByRole('button', { name: 'Fold or unfold' });
+    const g = (await grip.boundingBox())!;
+    await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
+    await page.mouse.down();
+    for (let i = 1; i <= 8; i++) await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2 - i * 10);
+    await expect(panel.getByText('Opening: 160°')).toBeHidden();
+    await expect(panel.getByText(/^Opening: \d+°$/)).toBeVisible();
+    const shown = await panel.getByText(/^Opening: \d+°$/).textContent();
+    await page.mouse.up();
+    const saved = await waitForProject(page, (project) => (studioDevices(project)[0]?.fold3d ?? 160) !== 160);
+    expect(`Opening: ${studioDevices(saved)[0].fold3d}°`).toBe(shown);
+
+    // And a slider's own label moves with its thumb.
+    const turn = panel.getByText(/^Turn: -?\d+°$/);
+    const before = await turn.textContent();
+    const thumb = panel.locator('#studio-yaw [role="slider"]');
+    await thumb.scrollIntoViewIfNeeded();
+    const t = (await thumb.boundingBox())!;
+    await page.mouse.move(t.x + t.width / 2, t.y + t.height / 2);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(t.x + t.width / 2 + i * 8, t.y + t.height / 2);
+    await expect(turn).not.toHaveText(before!);
+    await page.mouse.up();
   });
 
   test('dragging the round handle turns the device in one undo step and refits its box', async ({ app, page }) => {

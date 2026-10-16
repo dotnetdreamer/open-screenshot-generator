@@ -75,6 +75,7 @@ import {
   PREVIEW_MAX_SECONDS,
   PREVIEW_MIN_SECONDS,
   StoreAuthError,
+  appleDisplayAwaitingUpload,
   appleTargetForSize,
   isStorePublishingAvailable,
   listAppStoreApps,
@@ -597,11 +598,14 @@ export function PublishDialog({
         };
 
         const appleTarget = appleTargetForSize(size.width, size.height);
+        const waiting = appleTarget ? null : appleDisplayAwaitingUpload(size.width, size.height);
         const imageProblem =
           store === 'appstore'
             ? appleTarget
               ? null
-              : `Not an App Store size. Closest: ${nearestAppleSizes(size.width, size.height)}`
+              : waiting
+                ? `App Store Connect takes no ${waiting.label} screenshots yet`
+                : `Not an App Store size. Closest: ${nearestAppleSizes(size.width, size.height)}`
             : validatePlayImage(size.width, size.height, imageType);
 
         return {

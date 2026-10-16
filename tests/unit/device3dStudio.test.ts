@@ -6,9 +6,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  STUDIO_FOLD_POSES,
   STUDIO_LOOKS,
   STUDIO_MODELS,
+  STUDIO_TILE_FOLD,
   STUDIO_TILE_LOOK,
+  FOLD_INNER_PREFERENCE,
+  foldDisplaysInView,
+  foldScreenInView,
+  foldScreenOf,
+  isFoldable,
   isMeasuredModel,
   matchStudioLook,
   mirrorOrientation,
@@ -16,12 +23,18 @@ import {
   orientationFromMatrix,
   orientationMatrix,
   rehugStudioBox,
+  studioBounds,
   studioConversionPatch,
   studioDefaultSize,
   studioFinishOf,
+  studioCameraDistance,
+  studioFoldGrip,
+  studioFoldPoseById,
+  studioFoldTo,
   studioFrame,
   studioLookById,
   studioModelFor,
+  studioPostureOf,
   studioTileStyleProps,
   turntableTurn,
   withStudioRehug,
@@ -31,16 +44,20 @@ import {
   backEdgeLift,
   cutoutPolygons,
   displayShape,
+  foldLeftPoint,
   hullPoints,
   insetAt,
   insetOutline,
+  leafBack,
+  leafOutline,
   lensWindowOutline,
   phoneOutline,
   plateauDeck,
   smoothCorner,
+  spineSection,
   surfaceHeightAt,
 } from '@/lib/device3dGeometry';
-import { displayInsetsOf, displayRadiiOf, type PlateauPad } from '@/lib/device3dModels';
+import { displayInsetsOf, displayRadiiOf, flatFaceOf, type PlateauPad } from '@/lib/device3dModels';
 import { DEVICE_3D_POSE_ANGLES } from '@/lib/device3dPoseAngles';
 import { IPHONE_3D_SIZES, POSE_ORDER } from '@/lib/device3dPresets';
 import { DEVICE_FORMAT_PRESETS, DEVICE_REGISTRY, buildSwapUpdates, convertArtboardsToFormat, swapTargetFor } from '@/lib/deviceRegistry';
@@ -76,7 +93,7 @@ function deviceCentre(el: DeviceFrameElementProps) {
   const model = studioModelFor(el.deviceType)!;
   const w = el.size.width * el.scale;
   const h = el.size.height * el.scale;
-  const frame = studioFrame(model, el.rotation3d!, el.lens3d ?? 20, w, h);
+  const frame = studioFrame(model, el.rotation3d!, el.lens3d ?? 20, w, h, studioPostureOf(el, model));
   const lx = -frame.centerU * frame.scale;
   const ly = frame.centerV * frame.scale;
   const a = (el.rotation * Math.PI) / 180;
@@ -96,7 +113,12 @@ test('every measured model holds together', () => {
   for (const m of STUDIO_MODELS) {
     const where = m.label;
     assert.ok(m.drawing.match(/^\d{4}-\d{2}-\d{2}$/), `${where}: drawing date`);
-    assert.ok(m.width > 60 && m.width < 85 && m.height > 130 && m.height < 175, `${where}: size`);
+    if (m.fold) {
+      // A foldable's model is the phone open flat: each half is about a phone wide.
+      assert.ok(m.width / 2 > 60 && m.width / 2 < 100 && m.height > 100 && m.height < 175, `${where}: size`);
+    } else {
+      assert.ok(m.width > 60 && m.width < 85 && m.height > 130 && m.height < 175, `${where}: size`);
+    }
     assert.ok(m.thickness > 5 && m.thickness < 10, `${where}: thickness`);
     // The display sits inside the glass, which sits inside the outline.
     assert.ok(m.display.width < m.glass.width && m.glass.width < m.width, `${where}: widths nest`);
@@ -130,7 +152,9 @@ test('every measured model holds together', () => {
       assert.ok(m.lensTop > surfaceHeightAt(m, lens.x, lens.y), `${where}: lens stands proud of what it sits on`);
     }
     for (const button of m.buttons) {
-      assert.ok(button.center - button.length / 2 > 10 && button.center + button.length / 2 < m.height - 10, `${where}: button on the side`);
+      // A button on the top edge is placed along the width.
+      const along = button.side === 'top' ? m.width : m.height;
+      assert.ok(button.center - button.length / 2 > 10 && button.center + button.length / 2 < along - 10, `${where}: button on its edge`);
       assert.ok(button.width < m.thickness, `${where}: button fits the edge`);
     }
     assert.ok(m.finishes.some((f) => f.id === m.defaultFinish), `${where}: default finish exists`);
@@ -196,6 +220,256 @@ test("the Pixels match Google's spec page and device frames", () => {
     STUDIO_MODELS.filter((m) => m.maker === 'google').map((m) => [m.id, m.cutout.kind]),
     [['pixel-10-pro', 'punch'], ['pixel-10a', 'punch'], ['pixel-4', 'none'], ['pixel-3-xl', 'notch']]
   );
+});
+
+// ---------------------------------------------------------------------------
+// The iPhone Duo
+// ---------------------------------------------------------------------------
+
+const DUO = studioModelFor('iphone-duo')!;
+
+/** The folded body's extent, both halves and the spine (not the cameras or buttons), in mm. */
+function foldedBody(opening: number) {
+  const xs: number[] = [];
+  const ys: number[] = [];
+  const zs: number[] = [];
+  const add = ([x, y, z]: [number, number, number]) => {
+    xs.push(x);
+    ys.push(y);
+    zs.push(z);
+  };
+  for (const side of ['right', 'left'] as const) {
+    for (const p of leafOutline(DUO, side)) {
+      for (const [inset, z] of DUO.edge) {
+        const point: [number, number, number] = [p.x - p.nx * inset, p.y - p.ny * inset, z];
+        add(side === 'left' ? foldLeftPoint(DUO, opening, point) : point);
+      }
+    }
+  }
+  for (const p of spineSection(DUO, opening) ?? []) add([p.x, 0, p.z]);
+  const span = (v: number[]) => Math.max(...v) - Math.min(...v);
+  return { width: span(xs), height: span(ys), thickness: span(zs) };
+}
+
+test("the iPhone Duo folds to the sizes on Apple's tech specs page", () => {
+  assert.equal(isFoldable(DUO), true);
+  assert.equal(isFoldable(PRO_MAX), false);
+  const open = foldedBody(180);
+  assert.ok(near(open.width, 164.6) && near(open.height, 117.8) && near(open.thickness, 5.2), JSON.stringify(open));
+  const closed = foldedBody(0);
+  assert.ok(near(closed.width, 84.1) && near(closed.height, 117.8) && near(closed.thickness, 11.3), JSON.stringify(closed));
+  // Closed, the left half lies on the right one with their hinge sides level
+  // and the spec's gap between the displays.
+  const free = foldLeftPoint(DUO, 0, [-DUO.width / 2, 0, DUO.thickness / 2]);
+  assert.ok(near(free[0], DUO.width / 2) && near(free[2] - DUO.thickness / 2, 11.3 - 2 * 5.2));
+  // The spine is inside while it lies flat. In between, the left half's back
+  // corner swings out by up to 0.1 mm as it starts to turn about an axis in
+  // front of the display.
+  assert.equal(spineSection(DUO, 180), null);
+  for (const opening of [1, 30, 60, 90, 120, 150, 179]) {
+    const body = foldedBody(opening);
+    assert.ok(body.width <= 164.6 + 0.2 && near(body.height, 117.8), `opening ${opening}: ${JSON.stringify(body)}`);
+  }
+});
+
+test("the iPhone Duo's displays are the size of Apple's bezel openings and its screenshots", () => {
+  // The bezels draw both displays at 3x; the 117.8 mm height is 2130.5 of their pixels.
+  const pitch = 117.8 / 2130.5;
+  assert.ok(near(DUO.display.width, 2853 * pitch, 0.05) && near(DUO.display.height, 2007 * pitch, 0.05));
+  const outer = DUO.fold!.outer;
+  assert.ok(near(outer.width, 1398 * pitch, 0.05) && near(outer.height, 2034 * pitch, 0.05));
+  assert.ok(near(DUO.display.width / DUO.display.height, 2853 / 2007, 0.002));
+  assert.ok(near(outer.width / outer.height, 1398 / 2034, 0.002));
+  assert.deepEqual(DUO.screenPoints, [951, 669]);
+  assert.deepEqual(outer.screenPoints, [466, 678]);
+  assert.ok(outer.hinge + outer.width < DUO.width / 2 - 2, 'the outer display fits its half');
+  assert.ok(outer.camera.x > outer.camera.d && outer.camera.y > outer.camera.d, 'the camera hole is inside the display corner');
+  // The earpiece slot lies on the outer glass's straight top edge and stops above the display.
+  const back = DUO.fold!.back;
+  const slot = outer.receiver;
+  assert.ok(slot.from > back.hinge.inset + back.hinge.corner[0][0] && slot.to < DUO.width / 2 - DUO.corner[0][0], 'the slot is on the straight top edge');
+  assert.ok(back.inset + slot.depth < (DUO.height - outer.height) / 2, 'the slot stops above the outer display');
+});
+
+test("the Duo's back glass meets the frame where Apple's back bezel draws it, closer to the hinge", () => {
+  const back = DUO.fold!.back;
+  const H = DUO.height / 2;
+  const turn = back.hinge.corner;
+  // Where the glass's hinge corner leaves the end edge and meets the hinge edge.
+  const turnStart = back.hinge.inset + turn[0][0];
+  const turnEnd = back.inset + turn[turn.length - 1][1];
+  for (const side of ['right', 'left'] as const) {
+    const leaf = leafBack(DUO, side);
+    const shape = leafOutline(DUO, side);
+    assert.equal(leaf.glass.length, leaf.outline.length, `${side}: every outline point has its glass point`);
+    // The outline is leafOutline's own shape, only with more points beside the hinge corners.
+    const offShape = (p: { x: number; y: number }) =>
+      Math.min(
+        ...shape.map((a, i) => {
+          const b = shape[(i + 1) % shape.length];
+          const ex = b.x - a.x;
+          const ey = b.y - a.y;
+          const t = Math.max(0, Math.min(1, ((p.x - a.x) * ex + (p.y - a.y) * ey) / (ex * ex + ey * ey || 1)));
+          return Math.hypot(p.x - a.x - ex * t, p.y - a.y - ey * t);
+        })
+      );
+    assert.ok(leaf.outline.every((p) => offShape(p) < 1e-9), `${side}: outline keeps its shape`);
+    leaf.outline.forEach((p, i) => {
+      const band = leaf.bands[i];
+      const onHinge = Math.abs(p.x) < 1e-9 && Math.abs(p.y) <= H - turnEnd + 1e-6;
+      const onEnd = Math.abs(Math.abs(p.y) - H) < 1e-9 && Math.abs(p.x) >= turnStart - 1e-6 && Math.abs(p.x) <= DUO.width / 2 - DUO.corner[0][0];
+      if (onHinge) {
+        assert.ok(near(band.glass, back.hinge.inset, 1e-6) && near(Math.abs(band.dx), 1, 1e-9), `${side}: straight across the hinge at ${p.y}`);
+        assert.ok(near(band.round, back.hinge.round, 1e-6) && near(band.glass - band.seal, back.hinge.seal, 1e-6));
+      }
+      if (onEnd) assert.ok(near(band.glass, back.inset, 1e-4) && near(band.round, back.round, 1e-6), `${side}: the end edge at ${p.x}`);
+    });
+    // Round each hinge corner the glass is rounder than the outline, so the
+    // frame there is wider than either straight band, and no two pairs cross.
+    const widest = Math.max(...leaf.bands.map((b) => b.glass));
+    assert.ok(widest > back.inset + 0.5 && widest < turnEnd, `${side}: frame round the hinge corner ${widest}`);
+    for (let i = 0; i < leaf.outline.length; i++) {
+      const j = (i + 1) % leaf.outline.length;
+      const [a, b, c, d] = [leaf.outline[i], leaf.outline[j], leaf.glass[j], leaf.glass[i]];
+      const area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y) + ((c.x - a.x) * (d.y - a.y) - (d.x - a.x) * (c.y - a.y));
+      assert.ok(area > 0, `${side}: the frame folds over itself at ${i}`);
+    }
+  }
+});
+
+test('the iPhone Duo flat frame is its inner display held tall', () => {
+  const entry = DEVICE_REGISTRY['iphone-duo'];
+  assert.equal(entry.category, 'phone');
+  assert.equal(entry.platform, 'ios');
+  assert.ok(near(entry.nativeAspect, 669 / 951, 1e-9));
+  const face = flatFaceOf(DUO);
+  assert.deepEqual([face.width, face.height, face.display.width, face.display.height], [117.8, 164.6, 110.97, 157.77]);
+  assert.equal(face.fold, undefined);
+  const pad = entry.screen!.paddingPercent;
+  assert.ok(near(pad.left, ((117.8 - 110.97) / 2 / 117.8) * 100, 1e-9) && near(pad.top, ((164.6 - 157.77) / 2 / 117.8) * 100, 1e-9));
+  assert.equal(entry.counterpart?.android, 'pixel-10-pro');
+});
+
+test('folding the Duo keeps the device centre where it was and its size on screen', () => {
+  const duo = studioPhone({ deviceType: 'iphone-duo', rotation3d: { yaw: 20, pitch: -10, roll: 0 }, fold3d: 180 });
+  const before = deviceCentre(duo);
+  for (const fold3d of [0, 45, 90, 135]) {
+    for (const hinge3d of ['upright', 'across'] as const) {
+      const after = deviceCentre({ ...duo, ...withStudioRehug(duo, { fold3d, hinge3d }), fold3d, hinge3d });
+      assert.ok(near(after.scale, before.scale, before.scale * 0.003), `scale at ${fold3d} ${hinge3d}`);
+      assert.ok(near(after.x, before.x, 0.05) && near(after.y, before.y, 0.05), `centre at ${fold3d} ${hinge3d}`);
+    }
+  }
+  // A hinge across is a quarter turn: open, the phone stands tall.
+  const straight = { yaw: 0, pitch: 0, roll: 0 };
+  const wide = studioBounds(DUO, straight, 6, { opening: 180, across: false });
+  const tall = studioBounds(DUO, straight, 6, { opening: 180, across: true });
+  assert.ok(wide.maxU - wide.minU > 1.3 * (wide.maxV - wide.minV));
+  assert.ok(tall.maxV - tall.minV > 1.3 * (tall.maxU - tall.minU));
+  // Unset, the posture is the model's own, and it stays in range.
+  assert.deepEqual(studioPostureOf({}, DUO), { opening: 180, across: false });
+  assert.deepEqual(studioPostureOf({ fold3d: 400, hinge3d: 'across' }, DUO), { opening: 180, across: true });
+  assert.equal(studioPostureOf({ fold3d: -5 }, DUO).opening, 0);
+});
+
+test('a Duo from the palette arrives held tall and nearly open', () => {
+  const tile = studioTileStyleProps(DUO);
+  assert.equal(tile.fold3d, STUDIO_TILE_FOLD.opening);
+  assert.equal(tile.hinge3d, 'across');
+  assert.deepEqual(tile.rotation3d, studioLookById(STUDIO_TILE_LOOK)!.orientation);
+  const size = tile.defaultSize as { width: number; height: number };
+  assert.ok(size.height > size.width, 'a portrait box');
+  const resolved = resolveLibraryItem('studio3d:iphone-duo')!;
+  assert.equal(resolved.props.fold3d, STUDIO_TILE_FOLD.opening);
+  assert.equal(resolved.props.hinge3d, 'across');
+  assert.equal(studioTileStyleProps(PRO_MAX).fold3d, undefined, 'other phones say nothing about folding');
+  assert.equal(studioFoldPoseById('laptop')?.across, true);
+  // When the camera sees neither display, the opening says which one is in use.
+  assert.equal(foldScreenOf(180), 'inner');
+  assert.equal(foldScreenOf(90), 'inner');
+  assert.equal(foldScreenOf(89.9), 'outer');
+  assert.equal(foldScreenOf(0), 'outer');
+  // The poses run from closed to flat.
+  assert.deepEqual(STUDIO_FOLD_POSES.map((p) => p.opening), [0, 70, 105, 150, 180]);
+});
+
+test('the screenshot goes on whichever Duo display the camera sees', () => {
+  const front = { yaw: 0, pitch: 0, roll: 0 };
+  const lens = 20;
+  const at = (opening: number, o = front, across = true, current?: 'inner' | 'outer') =>
+    foldScreenInView(DUO, { opening, across }, o, lens, current);
+  // Seen from the front, the inner display shows until the swinging half covers most of it,
+  // and from the palette angle too, all the way through a fold to half open.
+  for (const opening of [180, 150, 120, 89, 75, 60]) assert.equal(at(opening), 'inner', `${opening} from the front`);
+  for (const opening of [160, 120, 90, 59]) assert.equal(at(opening, { yaw: 24, pitch: -12, roll: -8 }, true, 'inner'), 'inner', `${opening} at the palette angle`);
+  for (const opening of [30, 10, 0]) assert.equal(at(opening), 'outer', `${opening} from the front`);
+  // From behind or below the open phone, only the outer display is in view.
+  assert.equal(at(180, { yaw: 180, pitch: 0, roll: 0 }), 'outer');
+  assert.equal(at(120, { yaw: 0, pitch: -60, roll: 0 }), 'outer');
+  // Each fold pose shows its screenshot where the pose shows a display.
+  const expected: Record<string, 'inner' | 'outer'> = { closed: 'outer', tent: 'outer', laptop: 'inner', book: 'inner', open: 'inner' };
+  for (const pose of STUDIO_FOLD_POSES) assert.equal(at(pose.opening, pose.orientation, pose.across), expected[pose.id], pose.id);
+  // Where both are about as much in view, the display it is on keeps it.
+  let tie = 0;
+  let closest = Infinity;
+  for (let opening = 30; opening <= 90; opening += 0.5) {
+    const s = foldDisplaysInView(DUO, { opening, across: true }, front, lens);
+    const gap = Math.abs(Math.log((s.inner * FOLD_INNER_PREFERENCE) / s.outer));
+    if (gap < closest) {
+      closest = gap;
+      tie = opening;
+    }
+  }
+  assert.ok(closest < Math.log(1.15), `the two are never close: ${closest}`);
+  assert.equal(at(tie, front, true, 'inner'), 'inner', `at ${tie}`);
+  assert.equal(at(tie, front, true, 'outer'), 'outer', `at ${tie}`);
+  // Edge on, the camera sees neither, and the opening decides.
+  assert.equal(at(180, { yaw: 90, pitch: 0, roll: 0 }), 'inner');
+  const seen = foldDisplaysInView(DUO, { opening: 89, across: true }, front, lens);
+  assert.ok(seen.inner > 20 * seen.outer, JSON.stringify(seen));
+});
+
+test('dragging the Duo fold grip finds the opening that puts the grip under the pointer', () => {
+  const lens = 20;
+  for (const o of [{ yaw: 0, pitch: 0, roll: 0 }, { yaw: 24, pitch: -12, roll: -8 }, { yaw: -50, pitch: 25, roll: 30 }]) {
+    for (const across of [true, false]) {
+      const box = studioDefaultSize(DUO, o, lens, { opening: 160, across });
+      const frame = studioFrame(DUO, o, lens, box.width, box.height, { opening: 160, across });
+      for (const opening of [170, 140, 100, 60, 25]) {
+        const grip = studioFoldGrip(DUO, o, lens, { opening, across }, frame, box.width, box.height);
+        const found = studioFoldTo(DUO, o, lens, across, frame, box.width, box.height, grip, opening + 12);
+        assert.ok(Math.abs(found - opening) < 0.3, `${JSON.stringify(o)} ${across ? 'across' : 'upright'}: ${opening} came back as ${found}`);
+      }
+    }
+  }
+  // Past either end of the swing the grip stops at that end.
+  const o = { yaw: 0, pitch: 0, roll: 0 };
+  const box = studioDefaultSize(DUO, o, lens, { opening: 160, across: true });
+  const frame = studioFrame(DUO, o, lens, box.width, box.height, { opening: 160, across: true });
+  const far = { x: box.width / 2, y: box.height * 3 };
+  assert.equal(studioFoldTo(DUO, o, lens, true, frame, box.width, box.height, far, 170), 180);
+});
+
+test("the camera stays put as the Duo folds, the way it does for a real phone", () => {
+  const open = studioCameraDistance(DUO, 20, { opening: 180, across: false });
+  for (const opening of [0, 45, 90, 135]) {
+    for (const across of [false, true]) assert.equal(studioCameraDistance(DUO, 20, { opening, across }), open);
+  }
+});
+
+test('a fold reads as one history step named for the fold', () => {
+  const duo = studioPhone({ deviceType: 'iphone-duo', fold3d: 180 });
+  const board = (el: DeviceFrameElementProps): ArtboardState => ({
+    id: 'b',
+    name: 'Hero',
+    position: { x: 0, y: 0 },
+    size: { width: 1290, height: 2796 },
+    backgroundColor: '#fff',
+    zoom: 1,
+    elements: [el],
+  });
+  const folded = { ...duo, ...withStudioRehug(duo, { fold3d: 90 }) };
+  assert.equal(describeArtboardsChange([board(duo)], [board(folded)])?.label, 'Fold');
 });
 
 test('the Pixel 4 has no cutout: its front camera sits in the bezel above the screen', () => {
@@ -281,9 +555,9 @@ test('a Pixel registers its own bezels and screen corners for the flat frame', (
   assert.equal(four.category, 'phone');
 });
 
-test('Android format conversion takes all twelve measured iPhones to Pixels with matching cutouts', () => {
+test('Android format conversion takes all thirteen measured iPhones to Pixels with matching cutouts', () => {
   const iphones = STUDIO_MODELS.filter((model) => model.maker === 'apple');
-  assert.equal(iphones.length, 12);
+  assert.equal(iphones.length, 13);
   const preset = DEVICE_FORMAT_PRESETS.find((entry) => entry.id === 'android')!;
   for (const model of iphones) {
     const phone = studioPhone({ deviceType: model.id, rotation: 17, screenshotSrc: 'asset:existing-screenshot' });
@@ -348,7 +622,9 @@ test('every camera bump has the cove its section draws, falling from its top to 
     for (let i = 1; i < wall.length; i++) assert.ok(wall[i][0] > wall[i - 1][0] && wall[i][1] <= wall[i - 1][1], `${where}: point ${i}`);
   };
   let bumps = 0;
-  // Apple's sheets draw a section through every bump; Google's diagrams have none.
+  // Apple's sheets draw a section through every bump; Google's diagrams have
+  // none. The iPhone Duo has no sheet yet: its cove is the iPhone 17's
+  // stretched to the band its bezel shows, so it still has to fall the same way.
   for (const m of STUDIO_MODELS.filter((model) => model.maker === 'apple')) {
     for (const p of m.pads) {
       if (p.shape === 'plateau') continue;
@@ -365,7 +641,7 @@ test('every camera bump has the cove its section draws, falling from its top to 
       }
     }
   }
-  assert.equal(bumps, 6);
+  assert.equal(bumps, 7);
 });
 
 test('the frame edge a plateau wall rides on rounds from the side band to the back flat', () => {

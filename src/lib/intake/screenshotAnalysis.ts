@@ -89,6 +89,11 @@ const EXACT_SIZES: Array<{ w: number; h: number; device: DeviceType }> = [
   { w: 750, h: 1334, device: 'iphone' },
   { w: 640, h: 1136, device: 'iphone' },
   { w: 1242, h: 2208, device: 'iphone' },
+  // iPhone Duo, Apple's sizes for its inner and outer displays. Its flat frame
+  // is the inner display, so a shot of the outer one, a shade narrower in
+  // proportion, loses a sliver at the top and bottom.
+  { w: 2007, h: 2853, device: 'iphone-duo' },
+  { w: 1398, h: 2034, device: 'iphone-duo' },
   // Android, Play Store and common flagships
   { w: 1080, h: 1920, device: 'android-bar' },
   { w: 1080, h: 2160, device: 'android-notch' },

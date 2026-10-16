@@ -151,13 +151,24 @@ function withNormals(points: Point2[]): OutlinePoint[] {
  * edges are implied between the corners.
  */
 export function cornerRect(corner: Point2[], x0: number, y0: number, x1: number, y1: number, bottomCorner: Point2[] = corner): OutlinePoint[] {
+  return cornerRectEach(x0, y0, x1, y1, { topLeft: corner, topRight: corner, bottomLeft: bottomCorner, bottomRight: bottomCorner });
+}
+
+/** Four corners, each as smoothCorner gives one: [in from the side, in from the top or bottom]. */
+export interface RectCorners {
+  topLeft: Point2[];
+  topRight: Point2[];
+  bottomLeft: Point2[];
+  bottomRight: Point2[];
+}
+
+/** cornerRect with a corner of its own at each of the four, the way a foldable's half has. */
+export function cornerRectEach(x0: number, y0: number, x1: number, y1: number, corners: RectCorners): OutlinePoint[] {
   const points: Point2[] = [];
-  const reversed = [...corner].reverse();
-  const bottomReversed = [...bottomCorner].reverse();
-  for (const [dx, dy] of reversed) points.push([x1 - dx, y1 - dy]); // top right, side to top
-  for (const [dx, dy] of corner) points.push([x0 + dx, y1 - dy]); // top left, top to side
-  for (const [dx, dy] of bottomReversed) points.push([x0 + dx, y0 + dy]); // bottom left, side to bottom
-  for (const [dx, dy] of bottomCorner) points.push([x1 - dx, y0 + dy]); // bottom right, bottom to side
+  for (const [dx, dy] of [...corners.topRight].reverse()) points.push([x1 - dx, y1 - dy]); // top right, side to top
+  for (const [dx, dy] of corners.topLeft) points.push([x0 + dx, y1 - dy]); // top left, top to side
+  for (const [dx, dy] of [...corners.bottomLeft].reverse()) points.push([x0 + dx, y0 + dy]); // bottom left, side to bottom
+  for (const [dx, dy] of corners.bottomRight) points.push([x1 - dx, y0 + dy]); // bottom right, bottom to side
   return withNormals(dedupe(points));
 }
 
@@ -519,6 +530,9 @@ export function edgeCurve(edge: EdgePoint[], perSegment = 6): EdgeSample[] {
   });
 }
 
+/** How wide the seal round a glass back is, between the frame and the glass. */
+export const BACK_SEAL = 0.3;
+
 /** Where along the edge curve the inset first falls to `inset` (front side) or last rises past it (back side). */
 export function edgeSplit(curve: EdgeSample[], inset: number, side: 'front' | 'back'): number {
   if (side === 'front') {
@@ -561,8 +575,14 @@ export function surfaceHeightAt(model: PhoneModel, x: number, y: number): number
 // Hull, for fitting the box
 // ---------------------------------------------------------------------------
 
-/** Points on the outside of the phone, in mm, dense enough that its silhouette through them is right to a fraction of a pixel. */
-export function hullPoints(model: PhoneModel): Array<[number, number, number]> {
+/**
+ * Points on the outside of the phone, in mm, dense enough that its silhouette
+ * through them is right to a fraction of a pixel. A foldable's are posed as
+ * `posture` says (open flat and upright when unset), with the middle of its
+ * folded body at the origin.
+ */
+export function hullPoints(model: PhoneModel, posture?: FoldPosture): Array<[number, number, number]> {
+  if (model.fold) return foldedHullPoints(model, posture ?? { opening: model.fold.opening, across: false });
   const points: Array<[number, number, number]> = [];
   const outline = phoneOutline(model);
   const step = Math.max(1, Math.floor(outline.length / 64));
@@ -573,6 +593,13 @@ export function hullPoints(model: PhoneModel): Array<[number, number, number]> {
     }
   };
   for (const [inset, z] of model.edge) ring(inset, z);
+  pushBackHardware(model, points);
+  pushButtons(model, points);
+  return points;
+}
+
+/** The tops of the camera islands and lens rings, which stand off the back. */
+function pushBackHardware(model: PhoneModel, points: Array<[number, number, number]>): void {
   const { back } = faceDepths(model);
   for (const pad of model.pads) {
     const top = back - pad.height;
@@ -601,13 +628,309 @@ export function hullPoints(model: PhoneModel): Array<[number, number, number]> {
       points.push([cx + (lens.ring / 2) * Math.cos(a), cy + (lens.ring / 2) * Math.sin(a), back - top]);
     }
   }
+}
+
+/** The buttons' outer faces. */
+function pushButtons(model: PhoneModel, points: Array<[number, number, number]>): void {
   for (const button of model.buttons) {
+    const z = button.z === undefined ? 0 : model.thickness / 2 - button.z;
+    if (button.side === 'top') {
+      const x = button.center - model.width / 2;
+      const y = model.height / 2 + button.proud;
+      for (const dx of [-button.length / 2, button.length / 2]) {
+        for (const dz of [-button.width / 2, button.width / 2]) points.push([x + dx, y, z + dz]);
+      }
+      continue;
+    }
     const x = (button.side === 'left' ? -1 : 1) * (model.width / 2 + button.proud);
     const y = model.height / 2 - button.center;
-    const z = button.z === undefined ? 0 : model.thickness / 2 - button.z;
     for (const dy of [-button.length / 2, button.length / 2]) {
       for (const dz of [-button.width / 2, button.width / 2]) points.push([x, y + dy, z + dz]);
     }
   }
-  return points;
+}
+
+// ---------------------------------------------------------------------------
+// Foldables
+// ---------------------------------------------------------------------------
+//
+// A foldable's model describes it open flat (see PhoneFold). Folding it keeps
+// the right half where it is and turns the left half about the hinge axis:
+// parallel to y through x = 0, half the closed gap in front of the inner
+// display, so closed the halves stack with exactly that gap between them and
+// their hinge sides level, as the closed size on Apple's spec page has it.
+
+/** How a foldable is posed: open this many degrees between its halves, and turned a quarter so its hinge runs across. */
+export interface FoldPosture {
+  opening: number;
+  across: boolean;
+}
+
+/** z of the hinge axis: half the closed gap in front of the inner display. */
+export function foldPivot(model: PhoneModel): number {
+  return model.fold!.closedThickness / 2 - model.thickness / 2;
+}
+
+/** Degrees the left half has turned from flat at this opening. */
+export function foldTurn(opening: number): number {
+  return 180 - Math.max(0, Math.min(180, opening));
+}
+
+/** Where a point of the left half (model coordinates, open flat) is at this opening. */
+export function foldLeftPoint(model: PhoneModel, opening: number, [x, y, z]: [number, number, number]): [number, number, number] {
+  const a = (foldTurn(opening) * Math.PI) / 180;
+  const pivot = foldPivot(model);
+  const w = z - pivot;
+  return [x * Math.cos(a) + w * Math.sin(a), y, pivot - x * Math.sin(a) + w * Math.cos(a)];
+}
+
+/**
+ * One half of a foldable, open flat, in model coordinates: the right half
+ * spans x from 0 to half the width, the left half the mirror of it. Its free
+ * side has the outline's corners and its hinge side the small ones; `inset`
+ * moves the whole outline in, corners included.
+ */
+export function leafOutline(model: PhoneModel, side: 'left' | 'right', inset = 0): OutlinePoint[] {
+  const free = insetCorner(smoothCorner(model.corner), inset);
+  const hinge = insetCorner(smoothCorner(model.fold!.hingeCorner), inset);
+  const w = model.width / 2;
+  const h = model.height / 2 - inset;
+  return side === 'right'
+    ? cornerRectEach(inset, -h, w - inset, h, { topLeft: hinge, bottomLeft: hinge, topRight: free, bottomRight: free })
+    : cornerRectEach(-w + inset, -h, -inset, h, { topLeft: free, bottomLeft: free, topRight: hinge, bottomRight: hinge });
+}
+
+/**
+ * How the frame crosses one half's back at a point of its outline: toward the
+ * matching point of the glass (`dx`, `dy`, a unit vector), its round-over done
+ * `round` in, the seal starting `seal` in and the glass `glass` in.
+ */
+export interface BackBand {
+  dx: number;
+  dy: number;
+  round: number;
+  seal: number;
+  glass: number;
+}
+
+/**
+ * A half's back, open flat, in model coordinates: its outline (leafOutline's
+ * shape, with more points beside the hinge corners), its glass (the back glass
+ * on the right half, the outer display's glass on the left) with a point for
+ * each of the outline's, the band of frame between each pair, and the band
+ * the edge profile itself has, on the free side.
+ */
+export interface LeafBack {
+  outline: OutlinePoint[];
+  glass: OutlinePoint[];
+  bands: BackBand[];
+  free: { round: number; seal: number; glass: number };
+}
+
+/** Degrees between the rays that pair a hinge corner's straight stretches with the glass. */
+const HINGE_RAY_STEP = 1.5;
+
+/**
+ * The frame on one half's back. The glass starts `back.inset` in on the free
+ * side, top and bottom and `back.hinge.inset` in from the hinge line, and
+ * turns each hinge corner over more than 2 mm where the outline turns over
+ * less than 1. Away from those corners the outline and the glass run parallel
+ * and pair straight across. Round each hinge corner both are read along rays
+ * from the point inside the glass level with where its turn starts and ends,
+ * so the pairs meet the straight edges square and fan round the corner
+ * without crossing. Along the free side, top and bottom the frame is the edge
+ * profile as it is; along the hinge it is pressed into the narrower band.
+ */
+export function leafBack(model: PhoneModel, side: 'left' | 'right'): LeafBack {
+  const { back, hingeCorner } = model.fold!;
+  const w = model.width / 2;
+  const top = model.height / 2;
+
+  // One hinge corner as [d, h]: d in from the hinge line, h in from the end edge.
+  const outerTurn = smoothCorner(hingeCorner);
+  const glassTurn = smoothCorner(back.hinge.corner).map(([d, h]): Point2 => [back.hinge.inset + d, back.inset + h]);
+  const cd = glassTurn[0][0];
+  const ch = glassTurn[glassTurn.length - 1][1];
+  // A ray's angle from straight along the end edge's normal (0) to straight across the hinge (pi/2).
+  const angleOf = ([d, h]: Point2) => Math.atan2(cd - d, ch - h);
+  const glassAt = (a: number): Point2 => {
+    const dir: Point2 = [-Math.sin(a), -Math.cos(a)];
+    let best: Point2 = glassTurn[0];
+    let bestT = Infinity;
+    for (let i = 0; i < glassTurn.length - 1; i++) {
+      const [ax, ay] = glassTurn[i];
+      const ex = glassTurn[i + 1][0] - ax;
+      const ey = glassTurn[i + 1][1] - ay;
+      const den = dir[0] * ey - dir[1] * ex;
+      if (Math.abs(den) < 1e-12) continue;
+      const t = ((ax - cd) * ey - (ay - ch) * ex) / den;
+      const s = ((ax - cd) * dir[1] - (ay - ch) * dir[0]) / den;
+      if (t > 1e-9 && s >= -1e-9 && s <= 1 + 1e-9 && t < bestT) {
+        bestT = t;
+        best = [cd + dir[0] * t, ch + dir[1] * t];
+      }
+    }
+    return best;
+  };
+  const between = (a: number, b: number) => {
+    const n = Math.max(1, Math.ceil((Math.abs(b - a) * 180) / Math.PI / HINGE_RAY_STEP));
+    return Array.from({ length: n }, (_, i) => a + ((b - a) * i) / n);
+  };
+  // From the end edge to the hinge edge: rays to the end edge, through the
+  // outline's own corner points, then to the hinge edge.
+  const outerRun: Point2[] = [];
+  const glassRun: Point2[] = [];
+  const pair = (a: number, p: Point2) => {
+    outerRun.push(p);
+    glassRun.push(glassAt(a));
+  };
+  for (const a of between(0, angleOf(outerTurn[0]))) pair(a, [cd - ch * Math.tan(a), 0]);
+  for (const p of outerTurn) pair(angleOf(p), p);
+  for (const a of between(Math.PI / 2, angleOf(outerTurn[outerTurn.length - 1])).reverse()) {
+    pair(a, [0, Math.abs(Math.cos(a)) < 1e-12 ? ch : ch - cd / Math.tan(a)]);
+  }
+
+  const free = smoothCorner(model.corner);
+  const freeGlass = insetCorner(free, back.inset);
+  const outer: Point2[] = [];
+  const glass: Point2[] = [];
+  const run = (into: Point2[], points: Point2[], place: (p: Point2) => Point2) => {
+    for (const p of points) into.push(place(p));
+  };
+  // Counter-clockwise from the top of the right side, as cornerRectEach goes.
+  const g = back.inset;
+  if (side === 'right') {
+    run(outer, [...free].reverse(), ([dx, dy]) => [w - dx, top - dy]);
+    run(glass, [...freeGlass].reverse(), ([dx, dy]) => [w - g - dx, top - g - dy]);
+    run(outer, outerRun, ([d, h]) => [d, top - h]);
+    run(glass, glassRun, ([d, h]) => [d, top - h]);
+    run(outer, [...outerRun].reverse(), ([d, h]) => [d, -top + h]);
+    run(glass, [...glassRun].reverse(), ([d, h]) => [d, -top + h]);
+    run(outer, free, ([dx, dy]) => [w - dx, -top + dy]);
+    run(glass, freeGlass, ([dx, dy]) => [w - g - dx, -top + g + dy]);
+  } else {
+    run(outer, [...outerRun].reverse(), ([d, h]) => [-d, top - h]);
+    run(glass, [...glassRun].reverse(), ([d, h]) => [-d, top - h]);
+    run(outer, free, ([dx, dy]) => [-w + dx, top - dy]);
+    run(glass, freeGlass, ([dx, dy]) => [-w + g + dx, top - g - dy]);
+    run(outer, [...free].reverse(), ([dx, dy]) => [-w + dx, -top + dy]);
+    run(glass, [...freeGlass].reverse(), ([dx, dy]) => [-w + g + dx, -top + g + dy]);
+    run(outer, outerRun, ([d, h]) => [-d, -top + h]);
+    run(glass, glassRun, ([d, h]) => [-d, -top + h]);
+  }
+  const outline = withNormals(outer);
+  const glassOutline = withNormals(glass);
+  const bands = outline.map((p, i) => {
+    const q = glassOutline[i];
+    const reach = Math.hypot(q.x - p.x, q.y - p.y);
+    // 1 along the hinge, 0 on the other three sides, turning with the hinge corners.
+    const hinge = Math.max(0, side === 'right' ? -p.nx : p.nx);
+    const round = back.round + (back.hinge.round - back.round) * hinge;
+    const seal = BACK_SEAL + (back.hinge.seal - BACK_SEAL) * hinge;
+    return { dx: (q.x - p.x) / reach, dy: (q.y - p.y) / reach, round, seal: Math.max(round, reach - seal), glass: reach };
+  });
+  return { outline, glass: glassOutline, bands, free: { round: back.round, seal: back.inset - BACK_SEAL, glass: back.inset } };
+}
+
+/** A point of the spine's cross-section (x, z), with its outward normal. */
+export interface SpinePoint {
+  x: number;
+  z: number;
+  nx: number;
+  nz: number;
+}
+
+/**
+ * The spine's outer face across the hinge, in the xz plane with the right half
+ * fixed: from where it meets the right half's hinge side, round the outside,
+ * to where it meets the left half's, or null while the phone is flat (it is
+ * inside then). It bridges the two hinge sides `seam` behind their middles and
+ * stands out past the straight line between them by an amount that grows to
+ * closedWidth less the half width as the phone closes, with rounded edges.
+ * Apple publishes the open and the closed size only, so how it moves in
+ * between is an estimate.
+ */
+export function spineSection(model: PhoneModel, opening: number, perRound = 6): SpinePoint[] | null {
+  const fold = model.fold!;
+  const half = ((foldTurn(opening) * Math.PI) / 180) / 2;
+  if (half < 1e-4) return null;
+  const s = Math.sin(half);
+  const c = Math.cos(half);
+  const pivot = foldPivot(model);
+  const reach = pivot + fold.spine.seam;
+  // Along the line between the two seams (t), and out from the hinge (n).
+  const t: Point2 = [-c, s];
+  const n: Point2 = [-s, -c];
+  const span = 2 * reach * s;
+  const proud = (fold.closedWidth - model.width / 2) * s * s;
+  const mx = reach * c * n[0];
+  const mz = pivot + reach * c * n[1];
+  const r = Math.min(fold.spine.round, proud, span / 2);
+  const local: Array<[number, number, number, number]> = [[-span / 2, 0, -1, 0]];
+  for (let i = 0; i <= perRound; i++) {
+    const a = Math.PI - (i / perRound) * (Math.PI / 2);
+    local.push([-span / 2 + r + r * Math.cos(a), proud - r + r * Math.sin(a), Math.cos(a), Math.sin(a)]);
+  }
+  for (let i = 0; i <= perRound; i++) {
+    const a = Math.PI / 2 - (i / perRound) * (Math.PI / 2);
+    local.push([span / 2 - r + r * Math.cos(a), proud - r + r * Math.sin(a), Math.cos(a), Math.sin(a)]);
+  }
+  local.push([span / 2, 0, 1, 0]);
+  return local.map(([lt, ln, nt, nn]) => ({
+    x: mx + lt * t[0] + ln * n[0],
+    z: mz + lt * t[1] + ln * n[1],
+    nx: nt * t[0] + nn * n[0],
+    nz: nt * t[1] + nn * n[1],
+  }));
+}
+
+/** The middle of the folded body, both halves and the spine (not the cameras), in model coordinates. */
+export function foldCenter(model: PhoneModel, opening: number): [number, number, number] {
+  const w = model.width / 2;
+  const t = model.thickness / 2;
+  const xs: number[] = [];
+  const zs: number[] = [];
+  for (const x of [0, w]) for (const z of [-t, t]) { xs.push(x); zs.push(z); }
+  for (const x of [-w, 0]) {
+    for (const z of [-t, t]) {
+      const [px, , pz] = foldLeftPoint(model, opening, [x, 0, z]);
+      xs.push(px);
+      zs.push(pz);
+    }
+  }
+  for (const p of spineSection(model, opening) ?? []) { xs.push(p.x); zs.push(p.z); }
+  return [(Math.min(...xs) + Math.max(...xs)) / 2, 0, (Math.min(...zs) + Math.max(...zs)) / 2];
+}
+
+/** A point posed for the hull: moved so the folded body's middle is at the origin, and turned for a hinge across. */
+export function foldFrame(center: [number, number, number], across: boolean, [x, y, z]: [number, number, number]): [number, number, number] {
+  const px = x - center[0];
+  const py = y - center[1];
+  const pz = z - center[2];
+  // A quarter turn counter-clockwise seen from the front: the right half goes to the top.
+  return across ? [-py, px, pz] : [px, py, pz];
+}
+
+function foldedHullPoints(model: PhoneModel, posture: FoldPosture): Array<[number, number, number]> {
+  const right: Array<[number, number, number]> = [];
+  const left: Array<[number, number, number]> = [];
+  const ring = (side: 'left' | 'right', into: Array<[number, number, number]>) => {
+    const outline = leafOutline(model, side);
+    const step = Math.max(1, Math.floor(outline.length / 48));
+    for (const [inset, z] of model.edge) {
+      for (let i = 0; i < outline.length; i += step) {
+        const p = outline[i];
+        into.push([p.x - p.nx * inset, p.y - p.ny * inset, z]);
+      }
+    }
+  };
+  ring('right', right);
+  ring('left', left);
+  pushBackHardware(model, right);
+  pushButtons(model, right);
+  const posed = [...right, ...left.map((p) => foldLeftPoint(model, posture.opening, p))];
+  const y = model.height / 2 - model.fold!.spine.endInset;
+  for (const p of spineSection(model, posture.opening) ?? []) posed.push([p.x, -y, p.z], [p.x, y, p.z]);
+  const center = foldCenter(model, posture.opening);
+  return posed.map((p) => foldFrame(center, posture.across, p));
 }

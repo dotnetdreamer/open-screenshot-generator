@@ -57,9 +57,13 @@ export interface PhoneFinish {
 }
 
 export interface PhoneButton {
-  /** Seen from the front. An iPhone's Action and volume buttons are on the left, a Pixel's all on the right. */
-  side: 'left' | 'right';
-  /** From the top edge to the button's centre. */
+  /**
+   * Seen from the front. An iPhone's Action and volume buttons are on the
+   * left, a Pixel's all on the right; the iPhone Duo's volume buttons are on
+   * its top edge.
+   */
+  side: 'left' | 'right' | 'top';
+  /** From the top edge to the button's centre; for a button on the top edge, from the left edge. */
   center: number;
   length: number;
   /** Across the edge, front to back. */
@@ -98,6 +102,8 @@ export interface PhoneDisc {
   x: number;
   y: number;
   d: number;
+  /** A pill this long across the back instead of a circle (the iPhone Duo's mic grille). */
+  length?: number;
 }
 
 /**
@@ -210,6 +216,59 @@ export type PhoneCutout =
       path?: { d: string; pixel: number };
     };
 
+/**
+ * A phone that opens like a book (the iPhone Duo). Its model describes it
+ * open flat, the way Apple's tech specs measure it: the hinge runs top to
+ * bottom down the middle, the half on the right (seen from the front) carries
+ * the cameras and the buttons, and the half on the left folds over onto it,
+ * so closed, the left half's back, which holds the outer display, faces you
+ * with the hinge on the left. Each half is the model's `thickness` thick.
+ */
+export interface PhoneFold {
+  /** Closed, from the tech specs: the halves leave the rest of this thickness as a gap between their displays. */
+  closedThickness: number;
+  /** Closed, from the tech specs: half the open width, plus the spine standing out past the halves. */
+  closedWidth: number;
+  /** Each half's corners at the hinge, in the form of `corner`. */
+  hingeCorner: Point2[];
+  /**
+   * Where the glass on each half's back meets its frame. On the free side,
+   * top and bottom the edge profile ends `inset` in from the outline, its
+   * round-over done `round` in. Along the hinge the frame is narrower
+   * (`hinge`): its round-over `round` wide, the glass `inset` in from the
+   * hinge line behind a seal `seal` wide, and the glass's corners there, in
+   * the form of `corner`, rounder than the outline's.
+   */
+  back: { inset: number; round: number; hinge: { inset: number; round: number; seal: number; corner: Point2[] } };
+  /**
+   * The spine that covers the hinge once the phone starts to fold: how far
+   * its ends stop short of the top and bottom edges, how far behind each
+   * half's middle it meets that half's hinge side, and the round on its edges.
+   */
+  spine: { endInset: number; seam: number; round: number };
+  /** The outer display, on the back of the left half, as it faces you on the closed phone. */
+  outer: {
+    width: number;
+    height: number;
+    /** From the hinge line to the display. It is centred top to bottom. */
+    hinge: number;
+    /** Its corners on the hinge side. On the free side they follow the outline, like an iPhone's display. */
+    hingeCorner: Point2[];
+    /** The camera hole: its diameter, and its centre in from the free edge and down from the top. */
+    camera: { d: number; x: number; y: number };
+    /**
+     * The earpiece slot at its top, where the glass meets the frame: from
+     * and to, measured out from the hinge line, and how far it cuts down
+     * into the glass.
+     */
+    receiver: { from: number; to: number; depth: number };
+    /** The display in points, as iOS reports it (its screenshot proportions). */
+    screenPoints: [number, number];
+  };
+  /** How far open a new device starts, in degrees between the halves: 0 is closed, 180 flat. */
+  opening: number;
+}
+
 /** A camera, sensor or speaker grille on the front, outside the display. */
 export interface FrontPart {
   kind: 'camera' | 'sensor' | 'grille';
@@ -224,9 +283,9 @@ export interface FrontPart {
 export interface PhoneModel {
   id: DeviceType;
   label: string;
-  /** Apple's iPhones are measured from Apple's drawings, Google's Pixels from Google's device art. */
+  /** Apple's iPhones are measured from Apple's drawings (the Duo from Apple's product bezels), Google's Pixels from Google's device art. */
   maker: 'apple' | 'google';
-  /** Date of the drawing the numbers come from (for a Pixel, the day its sources were read). */
+  /** Date of the drawing the numbers come from (for a Pixel or the iPhone Duo, the day its sources were read). */
   drawing: string;
   width: number;
   height: number;
@@ -296,14 +355,18 @@ export interface PhoneModel {
   /** A fingerprint sensor set into the back. */
   fingerprint?: PhoneDisc;
   buttons: PhoneButton[];
-  /** The USB-C opening in the bottom edge, centred. */
-  port: { width: number; height: number };
+  /** The USB-C opening in the bottom edge: centred, unless `x` (front view) says where. */
+  port: { width: number; height: number; x?: number };
   /** Speaker and microphone holes in the bottom edge, front view x. */
   holes: { x: number[]; d: number };
+  /** Speaker holes in the top edge, front view x (the iPhone Duo's). */
+  topHoles?: { x: number[]; d: number };
   screws: { x: number[]; d: number };
   finishes: PhoneFinish[];
   /** The finish a new device starts in. */
   defaultFinish: string;
+  /** Set on a phone that folds: the model then describes it open flat. */
+  fold?: PhoneFold;
 }
 
 // ---------------------------------------------------------------------------
@@ -364,6 +427,11 @@ const FINISHES_16E: PhoneFinish[] = [
   { id: 'white', label: 'White', frame: '#efefec', back: '#f4f4f1' },
 ];
 
+const FINISHES_DUO: PhoneFinish[] = [
+  { id: 'star-white', label: 'Star White', frame: '#d9d6cf', back: '#eeede9' },
+  { id: 'night-sky', label: 'Night Sky', frame: '#3b4558', back: '#333c4b' },
+];
+
 // ---------------------------------------------------------------------------
 // Plateau walls
 // ---------------------------------------------------------------------------
@@ -396,6 +464,18 @@ const BUMP_WALL_16_PRO: Point2[] = [
   [0, 2.05], [0.25, 1.538], [0.58, 1.098], [1, 0.716], [1.48, 0.414], [2, 0.2], [2.55, 0.068], [3.1, 0.013], [3.66, 0],
 ];
 
+/** A measured wall stretched to another width and height. */
+function scaledWall(wall: Point2[], width: number, height: number): Point2[] {
+  const [, h] = wall[0];
+  const w = wall[wall.length - 1][0];
+  return wall.map(([d, rise]) => [Math.round((d / w) * width * 1e4) / 1e4, Math.round((rise / h) * height * 1e4) / 1e4]);
+}
+
+// The iPhone Duo's camera island has no published section. Apple's bezel
+// shows its glossy cove as a band about 1 mm wide round a flat top; the height
+// is an estimate. Its shape is the iPhone 17's measured cove, stretched to fit.
+const BUMP_WALL_DUO: Point2[] = scaledWall(BUMP_WALL_17, 1, 1.5);
+
 // The iPhone Air bar's skirt: sections S-S and T-T draw the same 6.1 mm
 // skirt below the bar, and the top of S-S a 3.5 mm one above it.
 const AIR_WALL: Point2[] = [
@@ -411,6 +491,126 @@ const AIR_WALL_NARROW: Point2[] = [
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
+
+// The iPhone Duo, Apple's foldable. Apple has published no dimensional drawing
+// for it yet (the accessory index lists none on 16 Oct 2026), so it comes from
+// Apple's own material instead:
+//
+//   size      the tech specs page: 164.6 x 117.8 x 5.2 open, 84.1 x 117.8 x 11.3
+//             closed, the two displays' resolutions and diagonals
+//   faces     Apple's product bezels (developer.apple.com/design/resources,
+//             Bezel-iPhone-Duo), drawn at the outer display's pixel pitch and
+//             scaled here by the 117.8 mm height (the open body then measures
+//             164.57 wide): the outline and its corners, the hinge notch, both
+//             displays and their corners, the outer camera hole and earpiece
+//             slot, where each back's glass meets the frame, the camera
+//             island, lenses, flash, mic and the side and volume buttons. The
+//             bezels are only measured, never shipped.
+//   edges     the tech specs page's external buttons diagram: which half each
+//             hole, port and button is on, and where along the edge
+//
+// Estimated, because nothing Apple publishes shows them: the edge section,
+// the camera heights, the Camera Control's size, the hole sizes, and how the
+// halves and the spine move between open and closed.
+export const IPHONE_DUO: PhoneModel = {
+  id: 'iphone-duo',
+  label: 'iPhone Duo',
+  maker: 'apple',
+  drawing: '2026-10-16',
+  width: 164.6,
+  height: 117.8,
+  thickness: 5.2,
+  // The inner display's screenshot, 2853 x 2007 at 3x.
+  screenPoints: [951, 669],
+  metal: 'titanium',
+  // The open body's four corners agree to 0.02 mm; the corner leaves each edge 16 mm out.
+  corner: [[16, 0], [13, 0.042], [11, 0.207], [9, 0.593], [7, 1.319], [5, 2.484], [3.648, 3.648], [2.484, 5], [1.319, 7], [0.593, 9], [0.207, 11], [0.042, 13], [0, 16]],
+  // Estimated: a frame lip round the inner display that the bezel shows 0.65 mm
+  // wide, flat sides, and a rounder back edge that it shows 1.31 mm wide.
+  edge: [[0.65, 2.6], [0.45, 2.585], [0.3, 2.52], [0.17, 2.42], [0.08, 2.29], [0.02, 2.13], [0, 2], [0, -1.3], [0.04, -1.62], [0.17, -1.95], [0.38, -2.24], [0.65, -2.43], [0.95, -2.55], [1.31, -2.6]],
+  glass: { width: 163.3, height: 116.5 },
+  // The inner display: the bezel's 2853 x 2007 opening is 157.75 x 110.97 at
+  // this scale, inside a bezel of 3.41 to 3.42 all round. One bezel of 3.415
+  // all round, as on every iPhone sheet, gives these.
+  display: { width: 157.77, height: 110.97 },
+  flatInset: 0.65,
+  // The inner camera sits under the display.
+  cutout: { kind: 'none' },
+  receiver: { width: 0, top: 0, bottom: 0 },
+  back: { kind: 'glass' },
+  pads: [
+    // The glossy island, where the matte back's grain stops: a stadium whose
+    // ends are nearly concentric with the first lens and the flash.
+    { shape: 'stadium', x0: 4.9, y0: 4.69, x1: 60.39, y1: 25.64, radius: 10.47, height: 1.5, round: 1, material: 'back', edge: 'cove', wall: BUMP_WALL_DUO },
+  ],
+  lenses: [
+    { x: 15.15, y: 15.19, ring: 16.14, ringInner: 14.32, glass: 14.1, ringDrop: 0.18 },
+    { x: 32.92, y: 15.19, ring: 16.14, ringInner: 14.32, glass: 14.1, ringDrop: 0.18 },
+  ],
+  // Estimated: the rings stand about as far off the island as an iPhone 17's off its bump.
+  lensTop: 3.3,
+  flash: { x: 49.59, y: 19.67, d: 3.81 },
+  mic: { x: 49.57, y: 10.9, d: 1.45, length: 3.12 },
+  // The side button holds Touch ID. The Camera Control is flush, so the bezel
+  // cannot show it: its centre is where Apple's diagram labels it, its size an estimate.
+  buttons: [
+    { side: 'top', center: 124.86, length: 10.87, width: 2.2, proud: 0.465, kind: 'button' },
+    { side: 'top', center: 138.25, length: 10.87, width: 2.2, proud: 0.465, kind: 'button' },
+    { side: 'right', center: 42.9, length: 18.66, width: 2.5, proud: 0.458, kind: 'button' },
+    { side: 'right', center: 69.33, length: 17.1, width: 2.2, proud: 0, kind: 'control' },
+  ],
+  // From Apple's diagram of the closed edges: the USB-C port and two mics on
+  // the left half, the speaker and mics on the right half's bottom edge, the
+  // other speaker on the left half's top edge. Hole sizes are estimates.
+  port: { width: 8.6, height: 2.6, x: 41.4 },
+  holes: { x: [34, 48.8, 98.22, 100.45, 102.75, 105.06, 115.8, 130.6, 141.43, 143.73, 145.96, 148.19], d: 1.1 },
+  topHoles: { x: [33.51, 36.16, 38.81, 41.47, 44.12, 46.77], d: 1.2 },
+  screws: { x: [], d: 0 },
+  finishes: FINISHES_DUO,
+  defaultFinish: 'star-white',
+  fold: {
+    closedThickness: 11.3,
+    closedWidth: 84.1,
+    hingeCorner: [[0.94, 0], [0.72, 0.029], [0.5, 0.087], [0.33, 0.17], [0.245, 0.245], [0.17, 0.33], [0.087, 0.5], [0.029, 0.72], [0, 0.94]],
+    // Both backs' glass, read off the open back bezel where it meets the
+    // frame: 1.31 in on the free side, top and bottom (the round-over's end,
+    // 0.65 in, is the edge profile's estimate). Along the hinge the glass
+    // starts 0.97 from the hinge line (the back glass reads 0.976, the outer
+    // display's 0.957) behind a seal the bezel draws as a hairline, and the
+    // frame's round-over there is 0.28 wide. The glass turns each hinge
+    // corner over 2.5 mm each way, 0.657 in on the diagonal: the mean of
+    // both corners of both backs, which agree within 0.02 mm.
+    back: {
+      inset: 1.31,
+      round: 0.65,
+      hinge: {
+        inset: 0.97,
+        round: 0.28,
+        seal: 0.06,
+        corner: [[2.5, 0], [2.25, 0.017], [2, 0.036], [1.75, 0.08], [1.5, 0.147], [1.25, 0.246], [1, 0.373], [0.8, 0.521], [0.657, 0.657], [0.521, 0.8], [0.373, 1], [0.246, 1.25], [0.147, 1.5], [0.08, 1.75], [0.036, 2], [0.017, 2.25], [0, 2.5]],
+      },
+    },
+    // The spine's ends are 1.43 mm in from the top and bottom on the closed
+    // bezel; Apple's diagram draws it over the middle 70% of the closed
+    // thickness with rounded edges, which puts its seams 0.9 mm behind each
+    // half's middle.
+    spine: { endInset: 1.43, seam: 0.9, round: 0.8 },
+    outer: {
+      // The bezel's 1398 x 2034 opening.
+      width: 77.3,
+      height: 112.47,
+      hinge: 2.34,
+      hingeCorner: [[1.5, 0], [1, 0.056], [0.75, 0.147], [0.5, 0.272], [0.394, 0.394], [0.272, 0.5], [0.147, 0.75], [0.056, 1], [0, 1.5]],
+      camera: { d: 6.01, x: 10.57, y: 10.59 },
+      // A pill the closed bezel draws over the top edge's speaker holes,
+      // where the glass edge steps 0.18 mm lower for 12.6 mm.
+      receiver: { from: 34.6, to: 47.25, depth: 0.18 },
+      // The outer display's screenshot, 1398 x 2034 at 3x.
+      screenPoints: [466, 678],
+    },
+    opening: 180,
+  },
+};
 
 export const IPHONE_18_PRO_MAX: PhoneModel = {
   id: 'iphone-18-pro-max',
@@ -1181,6 +1381,7 @@ export const PIXEL_3_XL: PhoneModel = {
 
 /** Every model the 3D Studio draws from a drawing or from device art, the newest generation first: the palette order. */
 export const PHONE_MODELS: PhoneModel[] = [
+  IPHONE_DUO,
   IPHONE_18_PRO_MAX,
   IPHONE_18_PRO,
   IPHONE_17_PRO_MAX,
@@ -1243,6 +1444,32 @@ export function displayRadiiOf(model: PhoneModel): { top: number; bottom: number
 
 export function finishOf(model: PhoneModel, id: string | undefined): PhoneFinish {
   return model.finishes.find((finish) => finish.id === id) ?? model.finishes.find((finish) => finish.id === model.defaultFinish) ?? model.finishes[0];
+}
+
+const FLAT_FACES = new WeakMap<PhoneModel, PhoneModel>();
+
+/**
+ * The face a flat frame draws. A phone's front, or for a foldable the inner
+ * display held tall with the hinge across, the way Apple's portrait bezel
+ * shows it: a phone-shaped frame for portrait screenshots of the big screen.
+ * Its corners are the same all round, so only the sides swap.
+ */
+export function flatFaceOf(model: PhoneModel): PhoneModel {
+  if (!model.fold) return model;
+  let face = FLAT_FACES.get(model);
+  if (!face) {
+    face = {
+      ...model,
+      fold: undefined,
+      width: model.height,
+      height: model.width,
+      glass: { width: model.glass.height, height: model.glass.width },
+      display: { width: model.display.height, height: model.display.width },
+      screenPoints: [model.screenPoints[1], model.screenPoints[0]],
+    };
+    FLAT_FACES.set(model, face);
+  }
+  return face;
 }
 
 
