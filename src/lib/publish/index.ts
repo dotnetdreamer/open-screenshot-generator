@@ -10,6 +10,7 @@ import { isTauri } from '@/lib/desktop';
 
 export * from './types';
 export {
+  APPLE_DISPLAYS_AWAITING_UPLOAD,
   APPLE_DISPLAY_TARGETS,
   APPLE_PREVIEW_TARGETS,
   PLAY_IMAGE_TARGETS,
@@ -18,6 +19,7 @@ export {
   PREVIEW_MAX_FPS,
   PREVIEW_MAX_SECONDS,
   PREVIEW_MIN_SECONDS,
+  appleDisplayAwaitingUpload,
   appleTargetForSize,
   applePreviewTargetForSize,
   nearestAppleSizes,

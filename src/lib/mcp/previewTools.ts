@@ -37,8 +37,10 @@ export const GESTURE_TYPES: GestureType[] = [
 /** Device frames a recording actually composites into. See videoExport. */
 export const VIDEO_DEVICE_TYPES = [
   'iphone', 'iphone-x', 'iphone-13', 'iphone-14', 'iphone-15', 'iphone-15-pro',
-  'iphone-17-pro-max', 'ipad-pro-13', 'ipad-11', 'android-bar', 'android-notch',
-  'android-punch-hole', 'tablet', 'tablet-7', 'tablet-10',
+  'iphone-17-pro-max',
+  'iphone-duo', 'iphone-18-pro-max', 'iphone-18-pro', 'iphone-17-pro', 'iphone-air', 'iphone-17', 'iphone-17e', 'iphone-16-pro-max', 'iphone-16-pro', 'iphone-16-plus', 'iphone-16', 'iphone-16e',
+  'ipad-pro-13', 'ipad-11', 'android-bar', 'android-notch',
+  'android-punch-hole', 'pixel-10-pro', 'pixel-10a', 'pixel-4', 'pixel-3-xl', 'tablet', 'tablet-7', 'tablet-10',
 ];
 
 // ---------------------------------------------------------------------------

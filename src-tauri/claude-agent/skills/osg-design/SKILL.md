@@ -68,6 +68,10 @@ Store sizes, with the preset id that create_artboard and update_artboard accept:
 - iPhone large display: 1290x2796, ios-6-9. Optional, its own slot. 1320x2868
   (ios-6-9-promax) fills the same slot.
 - iPad 13 inch: 2064x2752, ipad-13.
+- iPhone Duo: 2007x2853 for its inner display (ios-duo-inner) and 1398x2034 for its outer one
+  (ios-duo-outer), each also landscape (ios-duo-inner-landscape, ios-duo-outer-landscape).
+  Apple requires Duo screenshots from April 2027 for apps on the iOS 27.1 SDK, but App Store
+  Connect takes no uploads for them yet, so make them only when the user asks.
 - Google Play phone: 1080x1920, play-phone. 1080x2160 is play-phone-tall. Play needs at least 2
   screenshots.
 - Google Play tablets: 1200x1920 play-7, 1600x2560 play-10.
@@ -208,6 +212,21 @@ on a proof board.
   reclined; an iMac front, upright and side. The easy way is a ready made one: list_library with
   kind "devices" and a group such as 3d-iphone or 3d-android, then pass its libraryId, for
   example device3d:iphone-tilted-left-black. It arrives at the right box size for its pose.
+- 3D Studio, a real phone at any angle: styleType "3d-studio" on an iPhone 16 or newer
+  deviceType (each is built to Apple's dimensional drawings) or a Pixel (built to Google's device
+  art): pixel-10-pro and pixel-10a have a camera hole in the screen, pixel-3-xl a notch and
+  pixel-4 no notch, so pick the Pixel whose screen matches the app's screenshots. Set rotation3d
+  {yaw, pitch, roll} in degrees (yaw 180 shows the back and its cameras). finish3d picks one of
+  that model's own finishes by id (list_library group 3d-studio lists them, for example
+  "deep-blue" on iphone-17-pro-max or "moonstone" on pixel-10-pro), lens3d sets the perspective
+  (6 flat to 50 dramatic, default 20) and light3d {azimuth, elevation, intensity} the key light.
+  The device keeps its real proportions inside the box. Ready made ones: list_library group
+  3d-studio, one per model, for example studio3d:iphone-air or studio3d:pixel-10-pro.
+  iphone-duo is Apple's foldable. fold3d opens it in degrees (0 closed, about 100 a laptop, 180
+  flat). The screenshot shows on the display the camera sees: the inner one (2007 x 2853 held
+  tall) while it is open, the outer one (1398 x 2034) when it is closed, stood as a tent or seen
+  from behind. hinge3d "across" holds it tall with the hinge side to side, which suits a portrait
+  screenshot of the inner display; "upright" keeps the hinge up and down.
 - Coloured and outline frames: a devicecolor: libraryId from the same list, or frameColor,
   frameOpacity, frameStyle "outline" and notchColor on a flat frame.
 - To change a frame's model, add the new device in the same box with the same screenshotSrc,

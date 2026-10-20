@@ -111,6 +111,14 @@ export function useDockHost(options: DockHostOptions): DockHost {
   const [clients, setClients] = useState<Record<string, DetachablePanel[]>>({});
   const clientsRef = useRef(clients);
   clientsRef.current = clients;
+  const studioPreviewOwnersRef = useRef(new Map<string, string>());
+  const cancelStudioPreviews = useCallback((owner?: string) => {
+    for (const [elementId, clientId] of studioPreviewOwnersRef.current) {
+      if (owner && clientId !== owner) continue;
+      handlersRef.current.onStudioLive?.(elementId, null, 'cancel');
+      studioPreviewOwnersRef.current.delete(elementId);
+    }
+  }, []);
 
   /** Groups we opened. Tracked separately: a window exists before it says hello. */
   const [detachedGroups, setDetachedGroups] = useState<PanelGroup[]>([]);
@@ -141,6 +149,9 @@ export function useDockHost(options: DockHostOptions): DockHost {
         break;
       case 'updateElementById':
         h.onUpdateElementById(intent.elementId, intent.updates);
+        break;
+      case 'studioLive':
+        h.onStudioLive?.(intent.elementId, intent.state, intent.reason);
         break;
       case 'translateElement':
         h.onTranslateElement(intent.elementId);
@@ -319,6 +330,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
           break;
         }
         case 'bye': {
+          cancelStudioPreviews(message.from);
           // Closing the window IS putting the panels back. Somebody who reaches
           // for the X is asking for the same thing as somebody who reaches for
           // "Put back", and a dock left showing an empty rail for a window that
@@ -345,10 +357,16 @@ export function useDockHost(options: DockHostOptions): DockHost {
         }
         case 'intent':
           if (message.to !== PANEL_WINDOW_ID) return;
+          if (message.intent.name === 'studioLive') {
+            const { elementId, state } = message.intent;
+            if (state) studioPreviewOwnersRef.current.set(elementId, message.from);
+            else studioPreviewOwnersRef.current.delete(elementId);
+          }
           dispatch(message.intent);
           break;
         case 'reattach': {
           if (message.hostId && message.hostId !== PANEL_WINDOW_ID) return;
+          cancelStudioPreviews(message.from);
           // No close call here: the window is already closing itself, which is
           // the only way that works for a popup opened before an editor reload.
           // Its `bye` clears it from `clients`.
@@ -375,12 +393,13 @@ export function useDockHost(options: DockHostOptions): DockHost {
     const timers = reclaimTimersRef.current;
     return () => {
       disposed = true;
+      cancelStudioPreviews();
       timers.forEach((timer) => clearTimeout(timer));
       timers.clear();
       busRef.current?.close();
       busRef.current = null;
     };
-  }, [dispatch, publishTo]);
+  }, [dispatch, publishTo, cancelStudioPreviews]);
 
   // --- publishing ---------------------------------------------------------
   const hasClients = Object.keys(clients).length > 0;
@@ -482,6 +501,9 @@ export function useDockHost(options: DockHostOptions): DockHost {
    * own reload); the close reaches a window that has stopped answering.
    */
   const reattach = useCallback(async (group: PanelGroup) => {
+    for (const [clientId, panels] of Object.entries(clientsRef.current)) {
+      if (groupOf(panels) === group) cancelStudioPreviews(clientId);
+    }
     busRef.current?.post({
       kind: 'go-home',
       from: PANEL_WINDOW_ID,
@@ -496,16 +518,21 @@ export function useDockHost(options: DockHostOptions): DockHost {
       return next;
     });
     await closePanelWindow(group);
-  }, []);
+  }, [cancelStudioPreviews]);
 
   const focus = useCallback(
     async (group: PanelGroup) => {
       const found = await focusPanelWindow(group);
       // The window went away without saying goodbye (a crash, or a close the
       // panel could not report). Stop pretending it is out there.
-      if (!found) setDetachedGroups((current) => current.filter((candidate) => candidate !== group));
+      if (!found) {
+        for (const [clientId, panels] of Object.entries(clientsRef.current)) {
+          if (groupOf(panels) === group) cancelStudioPreviews(clientId);
+        }
+        setDetachedGroups((current) => current.filter((candidate) => candidate !== group));
+      }
     },
-    []
+    [cancelStudioPreviews]
   );
 
   // The union of what this editor opened and what has introduced itself. The

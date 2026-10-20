@@ -5,6 +5,8 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { DeviceType, Device3DPose, Device3DFrameColor } from '@/types/artboard';
 import { withBasePath } from '@/lib/basePath';
+import { DEVICE_3D_POSE_ANGLES } from '@/lib/device3dPoseAngles';
+import { bezelOf, cornerRadiusOf, displayRadiiOf, flatFaceOf, measuredModelFor } from '@/lib/device3dModels';
 
 interface Device3DRendererProps {
   deviceType: DeviceType;
@@ -53,6 +55,27 @@ const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
   'macbook': { cornerRadius: 0.04, screenRadius: 0.012, bezel: 0.02, thickness: 0.05, notch: 'none' },
   'imac': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.012, thickness: 0.02, notch: 'none' },
 };
+
+/**
+ * Metrics for a measured phone (device3dModels.ts) that has no hand-tuned
+ * entry above, so the posed styles draw it with its own corner, bezel,
+ * thickness and cutout. The posed body has one bezel all round, so a Pixel's
+ * deeper bezel above or below its screen is left out.
+ */
+function measuredMetrics(deviceType: DeviceType): DeviceMetrics | null {
+  const measured = measuredModelFor(deviceType);
+  if (!measured) return null;
+  // A foldable poses the way its flat frame shows it: the inner display held tall.
+  const model = flatFaceOf(measured);
+  const w = model.width;
+  return {
+    cornerRadius: cornerRadiusOf(model) / w,
+    screenRadius: displayRadiiOf(model).top / w,
+    bezel: bezelOf(model) / w,
+    thickness: model.thickness / w,
+    notch: model.cutout.kind,
+  };
+}
 
 // ---- Apple Watch extras (all fractions of the case width, world width = 1) ----
 
@@ -128,40 +151,8 @@ function pixelRatioCap(): number {
   return count <= 4 ? 3 : count <= 8 ? 2 : 1.5;
 }
 
-// Pose presets: yaw spins the device toward its exposed rail (mirrored for
-// side 'right'), pitch reclines it back toward the camera so it reads as
-// viewed from above, roll leans the projected long axis diagonally in the
-// image plane (also mirrored). Values eyeballed against common 3D-mockup panels.
-// Without bodyAspect the device body's proportions follow the element box (the
-// device fills the box); bodyAspect pins true phone proportions instead — used
-// by the rolled poses where a box-derived body reads visibly squat.
-const POSES: Record<Device3DPose, { yaw: number; pitch: number; roll?: number; bodyAspect?: number }> = {
-  classic: { yaw: 24, pitch: 0 },
-  // Dead-on product shot — no rotation at all; only the perspective of the
-  // camera itself (band tips foreshorten, rails stay hidden).
-  front: { yaw: 0, pitch: 0 },
-  upright: { yaw: 34, pitch: 0 },
-  side: { yaw: 54, pitch: 0 },
-  tilted: { yaw: 30, pitch: 26 },
-  reclined: { yaw: 33, pitch: 48 },
-  laying: { yaw: 28, pitch: 66 },
-  floating: { yaw: 34, pitch: 36, roll: -20, bodyAspect: 2.05 },
-  drifting: { yaw: 32, pitch: 46, roll: -35, bodyAspect: 2.05 },
-  // Gentle diagonal rest: mild yaw toward the exposed rail, slight backward
-  // pitch, strong in-image lean (clockwise on side 'left'). Long axis runs
-  // diagonally but the screen stays ~90% visible.
-  leaning: { yaw: 21, pitch: 10, roll: -31, bodyAspect: 2.05 },
-  // Dramatic float: deeper yaw, NEGATIVE pitch (camera above the face, top
-  // edge toward the viewer) and a heavy opposite lean (counter-clockwise on
-  // side 'right'). Reads as a phone sailing diagonally across the canvas.
-  soaring: { yaw: 35, pitch: -15, roll: -36, bodyAspect: 2.05 },
-  // Exact yaw/pitch/roll decomposition of the classic 2D isometric mockup
-  // projection: spin the phone 60° on the table, then view the table from
-  // arccos(0.6) ≈ 53° above (SVG equivalent: rotate(∓60) scale(1, 0.6)).
-  // The NEGATIVE pitch is what puts the camera above the face — the laying
-  // poses use positive pitch and read as shot from below the plane.
-  isometric: { yaw: 49.107, pitch: -23.578, roll: 70.893, bodyAspect: 2.05 },
-};
+// Pose angles are shared with the 3D Studio device, see lib/device3dPoseAngles.ts.
+const POSES = DEVICE_3D_POSE_ANGLES;
 
 // Body finishes. 'titanium' is the original look and stays the default.
 const FRAME_COLORS: Record<Device3DFrameColor, { rail: number; railRoughness: number; railEnv: number; button: number }> = {
@@ -390,7 +381,7 @@ export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 
     group.quaternion.copy(poseQuat);
     scene.add(group);
 
-    const metrics = DEVICE_METRICS[deviceType] ?? DEFAULT_METRICS;
+    const metrics = DEVICE_METRICS[deviceType] ?? measuredMetrics(deviceType) ?? DEFAULT_METRICS;
     const isWatch = deviceType === 'apple-watch';
     const isMacbook = deviceType === 'macbook';
     const isImac = deviceType === 'imac';

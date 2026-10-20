@@ -145,6 +145,13 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
   { keys: ['mediaId', 'videoSrc', 'posterSrc'], label: 'Replace Recording', icon: 'image' },
   { keys: ['customFrameSrc'], label: 'Replace Mockup', icon: 'image' },
   { keys: ['name'], label: 'Rename Layer', icon: 'edit' },
+  // Ahead of size and position: switching a device to the 3D Studio style, and
+  // every turn after that, refits the box around the device, so both change
+  // and the edit is still a style change or a turn.
+  { keys: ['styleType'], label: 'Transform', icon: 'rotate' },
+  // A foldable's poses set the angle too, and are still a fold.
+  { keys: ['fold3d', 'hinge3d'], label: 'Fold', icon: 'rotate' },
+  { keys: ['rotation3d', 'lens3d'], label: 'Rotate in 3D', icon: 'rotate' },
   { keys: ['size', 'scale'], label: 'Resize', icon: 'resize' },
   { keys: ['rotation'], label: 'Rotate', icon: 'rotate' },
   { keys: ['position'], label: 'Move', icon: 'move' },
@@ -155,7 +162,8 @@ const ELEMENT_RULES: Array<{ keys: string[]; label: string; icon: HistoryIcon }>
   },
   { keys: ['color', 'fillColor', 'strokeColor', 'fillGradient'], label: 'Color', icon: 'color' },
   { keys: ['outlineColor', 'outlineWidth'], label: 'Outline', icon: 'color' },
-  { keys: ['frameColor', 'frameColor3d', 'notchColor', 'frameOpacity', 'frameStyle'], label: 'Device Color', icon: 'color' },
+  { keys: ['frameColor', 'frameColor3d', 'finish3d', 'bodyColor3d', 'notchColor', 'frameOpacity', 'frameStyle'], label: 'Device Color', icon: 'color' },
+  { keys: ['light3d', 'glare3d'], label: 'Lighting', icon: 'color' },
   { keys: ['styleType', 'pose3d', 'matrix3d', 'skewX', 'skewY', 'perspectiveX', 'perspectiveY'], label: 'Transform', icon: 'rotate' },
   { keys: ['opacity', 'fillOpacity'], label: 'Opacity', icon: 'color' },
   { keys: ['shadow'], label: 'Shadow', icon: 'color' },

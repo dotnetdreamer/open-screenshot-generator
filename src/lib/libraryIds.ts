@@ -19,6 +19,7 @@ export const ELEMENT_PREFIX = 'element:';
 export const IMAGE_PREFIX = 'image:';
 export const DEVICE_PREFIX = 'device:';
 export const DEVICE_3D_PREFIX = 'device3d:';
+export const STUDIO_3D_PREFIX = 'studio3d:';
 export const DEVICE_COLOR_PREFIX = 'devicecolor:';
 export const BASIC_PREFIX = 'basic:';
 export const PREVIEW_PREFIX = 'preview:';
@@ -40,6 +41,9 @@ export const device3dLibraryId = (
   side: string,
   color: string
 ): string => `${DEVICE_3D_PREFIX}${thumbPrefix}-${pose}-${side}-${color}`;
+
+/** A 3D Studio tile: one per phone model (see lib/device3dStudio.ts). */
+export const studio3dLibraryId = (model: string): string => `${STUDIO_3D_PREFIX}${model}`;
 
 /** A colored flat device preset from COLORED_*_TILES. */
 export const coloredDeviceLibraryId = (tileId: string): string => `${DEVICE_COLOR_PREFIX}${tileId}`;

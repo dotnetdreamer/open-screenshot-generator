@@ -33,6 +33,7 @@ import type { DockData, LocalizableField, RightDockTab } from '@/lib/panels/prot
 import { DETACHABLE_PANELS, type DetachablePanel } from '@/lib/panels/url';
 import type { AgentKind, ClaudeEffortChoice, ClaudeModelChoice, FolderPickerNear } from '@/lib/claudeCode/types';
 import type { CodexEffortChoice } from '@/lib/codex/types';
+import type { StudioLiveHandler } from '@/lib/device3dStudioLive';
 import type { AgentAttachment } from '@/lib/claudeCode/view';
 
 /**
@@ -54,6 +55,7 @@ export const PROPERTIES_SECTION_MIN = 160;
 export interface DockHandlers {
   onUpdateElement: (updates: Partial<ArtboardElement>) => void;
   onUpdateElementById: (elementId: string, updates: Partial<ArtboardElement>) => void;
+  onStudioLive?: StudioLiveHandler;
   onTranslateElement: (elementId: string) => void;
   onUpdateArtboardDetails: (updates: Partial<ArtboardState>, scope?: 'board' | 'all') => void;
   onResetLocaleField: (field: LocalizableField) => void;
@@ -231,6 +233,7 @@ export function RightDockPanels({
               onMoveSelectionTo={handlers.onMoveSelectionTo}
               onUpdateElement={handlers.onUpdateElement}
               onUpdateElementById={handlers.onUpdateElementById}
+              onStudioLive={handlers.onStudioLive}
               onTranslateElement={handlers.onTranslateElement}
               activeArtboardDetails={data.activeArtboardDetails}
               onUpdateArtboardDetails={handlers.onUpdateArtboardDetails}

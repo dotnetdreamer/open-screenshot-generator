@@ -9,7 +9,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useToast } from '@/hooks/use-toast';
 import { trackScreenshotUploaded } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
-import type { Project } from '@/types/artboard';
+import type { DeviceFrameElementProps, Project } from '@/types/artboard';
+import { isDevice3dStyle } from '@/lib/devicePerspective';
 import { fillTemplate } from '@/lib/intake/autoFill';
 import { deviceLabel } from '@/lib/intake/autoFill';
 import { persistIntakeShots, toPlaceable, type PersistedShot } from '@/lib/intake/intakeAssets';
@@ -253,7 +254,7 @@ export function GraphicsStartScreen({
     let spent = 0;
     for (const card of cards) {
       const cost = card.board.elements.filter(
-        (el) => el.type === 'device' && (el.styleType === '3d-left' || el.styleType === '3d-right')
+        (el) => el.type === 'device' && isDevice3dStyle((el as DeviceFrameElementProps).styleType)
       ).length;
       if (cost === 0) continue;
       if (spent + cost > LIVE_3D_BUDGET) out.add(card.style.id);

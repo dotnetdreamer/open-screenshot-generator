@@ -25,6 +25,7 @@ import {
   type Color3D,
   type Side3D,
 } from '@/lib/device3dPresets';
+import { STUDIO_MODELS, studioTileStyleProps } from '@/lib/device3dStudio';
 import type { Device3DPose, ElementType } from '@/types/artboard';
 // One id scheme shared with the palette, so a libraryId the Properties panel
 // shows is exactly one add_element accepts (see lib/libraryIds.ts).
@@ -34,11 +35,13 @@ import {
   DEVICE_PREFIX,
   DEVICE_3D_PREFIX,
   DEVICE_COLOR_PREFIX,
+  STUDIO_3D_PREFIX,
   elementLibraryId,
   imageLibraryId,
   deviceLibraryId,
   device3dLibraryId,
   coloredDeviceLibraryId,
+  studio3dLibraryId,
 } from '@/lib/libraryIds';
 
 export type LibraryKind = 'elements' | 'devices' | 'images';
@@ -169,8 +172,21 @@ function coloredDeviceItems(): LibraryItem[] {
   );
 }
 
+/** The 3D Studio tiles: one per phone model, each turnable to any angle and in any of its finishes. */
+function studio3dItems(): LibraryItem[] {
+  return STUDIO_MODELS.map((model) => ({
+    kind: 'devices' as const,
+    libraryId: studio3dLibraryId(model.id),
+    group: '3d-studio',
+    label: `${model.label} in 3D (finishes: ${model.finishes.map((finish) => finish.id).join(', ')}${model.fold ? '; folds with fold3d' : ''})`,
+    type: 'device' as ElementType,
+    subType: model.id,
+    defaultSize: studioTileStyleProps(model).defaultSize as { width: number; height: number },
+  }));
+}
+
 function deviceItems(): LibraryItem[] {
-  return [...deviceMockupItems(), ...device3dItems(), ...coloredDeviceItems()];
+  return [...deviceMockupItems(), ...studio3dItems(), ...device3dItems(), ...coloredDeviceItems()];
 }
 
 function itemsForKind(kind: LibraryKind): LibraryItem[] {
@@ -189,6 +205,7 @@ const GROUP_LABELS: Record<string, string> = {
   ...Object.fromEntries(DEVICE_3D_GROUPS.map((g) => [g.id, g.label])),
   ...Object.fromEntries(COLORED_TILE_GROUPS.map((g) => [g.id, g.label])),
   mockups: 'Device Mockups (flat frames)',
+  '3d-studio': '3D Studio (real iPhones measured from Apple drawings, the iPhone Duo foldable from Apple bezels, and Pixels from Google device art, turned to any angle with rotation3d)',
 };
 
 /** Groups within one library kind (or all three when kind is omitted). */
@@ -302,6 +319,20 @@ export function resolveLibraryItem(libraryId: string): ResolvedLibraryItem | nul
       };
     }
     return null;
+  }
+
+  if (id.startsWith(STUDIO_3D_PREFIX)) {
+    const model = STUDIO_MODELS.find((m) => studio3dLibraryId(m.id) === id);
+    if (!model) return null;
+    const { defaultSize, ...props } = studioTileStyleProps(model);
+    return {
+      type: 'device',
+      subType: model.id,
+      // Copies, so an edit to the element can never reach the cached tile.
+      props: structuredClone(props),
+      label: `${model.label} in 3D`,
+      defaultSize: defaultSize as { width: number; height: number },
+    };
   }
 
   if (id.startsWith(DEVICE_COLOR_PREFIX)) {

@@ -22,6 +22,7 @@ import type {
   GestureElementProps,
 } from '@/types/artboard';
 import { NO_SPILL, paintLayers, type BoardSpill } from '@/lib/spanArtboards';
+import { isDevice3dStyle } from '@/lib/devicePerspective';
 
 // The read-only render site, shared by every "show me what this looks like"
 // surface (the preview dialog, the language proof sheet, the store listing
@@ -47,8 +48,7 @@ export function count3dDevices(board: ArtboardState, spill: BoardSpill = NO_SPIL
   // A copy of a neighbour's 3D device builds a renderer of its own as well.
   for (const element of paintLayers(board.elements, spill).map((layer) => layer.element)) {
     if (element.type !== 'device') continue;
-    const style = (element as DeviceFrameElementProps).styleType;
-    if (style === '3d-left' || style === '3d-right') total += 1;
+    if (isDevice3dStyle((element as DeviceFrameElementProps).styleType)) total += 1;
   }
   return total;
 }

@@ -6,6 +6,8 @@ import { DraggableElement, type SpanBinding } from './elements/DraggableElement'
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
+import { StudioFoldHandle } from './elements/StudioFoldHandle';
+import { StudioRotateHandle } from './elements/StudioRotateHandle';
 import { ImageElement } from './elements/ImageElement';
 import { VideoElement } from './elements/VideoElement';
 import { VideoDeviceElement } from './elements/VideoDeviceElement';
@@ -31,6 +33,7 @@ import {
   moveElements,
 } from '@/lib/elementGeometry';
 import { NO_SPILL, paintLayers, spansArtboards, type BoardSpill, type SpanCopy } from '@/lib/spanArtboards';
+import { isStudioStyle, studioModelFor } from '@/lib/device3dStudio';
 
 /**
  * What a span copy needs from the canvas. The copy is drawn here, but its
@@ -477,6 +480,32 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         }
         if (styleProps?.frameColor3d) {
           deviceElement.frameColor3d = styleProps.frameColor3d as DeviceFrameElementProps['frameColor3d'];
+        }
+        // 3D Studio tiles: the angle, finish and light the tile shows.
+        if (styleProps?.rotation3d && typeof styleProps.rotation3d === 'object') {
+          deviceElement.rotation3d = { ...(styleProps.rotation3d as DeviceFrameElementProps['rotation3d'])! };
+        }
+        if (typeof styleProps?.lens3d === 'number') {
+          deviceElement.lens3d = styleProps.lens3d;
+        }
+        if (typeof styleProps?.finish3d === 'string') {
+          deviceElement.finish3d = styleProps.finish3d;
+        }
+        if (typeof styleProps?.bodyColor3d === 'string') {
+          deviceElement.bodyColor3d = styleProps.bodyColor3d;
+        }
+        if (styleProps?.light3d && typeof styleProps.light3d === 'object') {
+          deviceElement.light3d = { ...(styleProps.light3d as DeviceFrameElementProps['light3d'])! };
+        }
+        if (typeof styleProps?.glare3d === 'number') {
+          deviceElement.glare3d = styleProps.glare3d;
+        }
+        // A foldable's tile also says how far open it is and which way its hinge runs.
+        if (typeof styleProps?.fold3d === 'number') {
+          deviceElement.fold3d = styleProps.fold3d;
+        }
+        if (styleProps?.hinge3d === 'upright' || styleProps?.hinge3d === 'across') {
+          deviceElement.hinge3d = styleProps.hinge3d;
         }
         // Colored-device presets (flat frames)
         if (typeof styleProps?.frameColor === 'string') {
@@ -994,6 +1023,9 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
       spanHost && spansArtboards(element)
         ? { shiftX: 0, boardId: artboard.id, pointerToBoard: pointerToThisBoard }
         : undefined;
+    // A 3D Studio device carries its rotate handle with the grips.
+    const studio =
+      element.type === 'device' && isStudioStyle(element.styleType) && !!studioModelFor(element.deviceType);
     return (
       <DraggableElement
         key={element.id}
@@ -1010,6 +1042,26 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         onDragCommit={dragsTogether ? makeDragCommit(element.id) : undefined}
         showHandles={!dragsTogether}
         span={span}
+        overlay={
+          studio
+            ? (chrome) => (
+                <>
+                  <StudioRotateHandle
+                    element={element as DeviceFrameElementProps}
+                    chrome={chrome}
+                    onCommit={(updates) => partialUpdateElement(element.id, updates)}
+                  />
+                  {studioModelFor((element as DeviceFrameElementProps).deviceType)?.fold && (
+                    <StudioFoldHandle
+                      element={element as DeviceFrameElementProps}
+                      chrome={chrome}
+                      onCommit={(updates) => partialUpdateElement(element.id, updates)}
+                    />
+                  )}
+                </>
+              )
+            : undefined
+        }
       >
         {renderArtwork(
           silencedFor(element, clock === artboard.id),

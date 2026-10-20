@@ -194,12 +194,28 @@ export type DeviceType =
   | 'iphone-15'
   | 'iphone-15-pro'
   | 'iphone-17-pro-max'
+  | 'iphone-duo'
+  | 'iphone-18-pro-max'
+  | 'iphone-18-pro'
+  | 'iphone-17-pro'
+  | 'iphone-air'
+  | 'iphone-17'
+  | 'iphone-17e'
+  | 'iphone-16-pro-max'
+  | 'iphone-16-pro'
+  | 'iphone-16-plus'
+  | 'iphone-16'
+  | 'iphone-16e'
   | 'ipad-pro-13'
   | 'ipad-11'
   | 'apple-watch'
   | 'android-bar'
   | 'android-notch'
   | 'android-punch-hole'
+  | 'pixel-10-pro'
+  | 'pixel-10a'
+  | 'pixel-4'
+  | 'pixel-3-xl'
   | 'tablet'
   | 'tablet-7'
   | 'tablet-10'
@@ -212,6 +228,10 @@ export type DeviceStyleType =
   | 'normal'
   | '3d-left'
   | '3d-right'
+  // The 3D Studio device: drawn in three.js like the two above, but turned to
+  // any angle with rotation3d instead of picked from the pose presets. See
+  // src/lib/device3dStudio.ts.
+  | '3d-studio'
   | 'perspective-left'
   | 'perspective-right'
   | 'perspective-slight-right'
@@ -232,6 +252,33 @@ export type Device3DPose = 'classic' | 'front' | 'upright' | 'side' | 'tilted' |
 // and remains the default for existing projects.
 export type Device3DFrameColor = 'titanium' | 'black' | 'white';
 
+/**
+ * How a 3D Studio device is turned, in degrees. Applied as roll(Z) after
+ * pitch(X) after yaw(Y), the order the pose presets use, so a preset converts
+ * to one of these exactly:
+ *
+ *   yaw    spin about the device's own long axis (positive shows its left side)
+ *   pitch  tip about the horizontal axis (positive leans the top toward you)
+ *   roll   turn in the picture plane
+ */
+export interface Device3DOrientation {
+  yaw: number;
+  pitch: number;
+  roll: number;
+}
+
+/**
+ * Where the key light of a 3D Studio device comes from. Azimuth is degrees
+ * around the device from straight ahead (positive is from the right),
+ * elevation is degrees above it, and intensity multiplies the default
+ * brightness (1).
+ */
+export interface Device3DLight {
+  azimuth: number;
+  elevation: number;
+  intensity: number;
+}
+
 export interface DeviceFrameElementProps extends BaseElement {
   type: 'device';
   deviceType: DeviceType;
@@ -247,6 +294,24 @@ export interface DeviceFrameElementProps extends BaseElement {
   matrix3d?: string; // Custom CSS matrix3d transform
   pose3d?: Device3DPose; // Pose preset when styleType is '3d-left' / '3d-right'
   frameColor3d?: Device3DFrameColor; // Body finish for the 3D styles
+  // The 3D Studio device (styleType '3d-studio'). Every field is optional and
+  // read only by that style, so the other styles ignore them; the defaults live
+  // in src/lib/device3dStudio.ts.
+  rotation3d?: Device3DOrientation; // unset is straight on
+  lens3d?: number; // camera field of view in degrees: small is flat, large is dramatic
+  finish3d?: string; // one of the model's own finishes by id, e.g. 'deep-blue'; unset is the model's default
+  bodyColor3d?: string; // a custom finish, any #rrggbb; wins over finish3d
+  light3d?: Device3DLight;
+  glare3d?: number; // 0..1 reflection on the screen glass; unset or 0 is none
+  // A foldable (the iPhone Duo) only. fold3d is how far open it is, in degrees
+  // between its halves: 0 closed, 180 flat; unset is the model's default.
+  // hinge3d 'across' turns it a quarter so the hinge runs side to side (held
+  // tall when open, lying on its side when closed); unset is the hinge upright,
+  // as Apple's specs measure it. The screenshot shows on the display the
+  // camera sees: the inner one while it is open, the outer one closed, stood
+  // as a tent or seen from behind.
+  fold3d?: number;
+  hinge3d?: 'upright' | 'across';
   // Colored-device presets for the flat (non-3D) frames:
   frameColor?: string; // any CSS color; overrides the per-device default body color
   frameOpacity?: number; // 0..1 alpha applied to the flat frame color (transparent devices)

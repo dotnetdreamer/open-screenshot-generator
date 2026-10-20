@@ -20,6 +20,7 @@ import type {
   TextElementProps,
 } from '@/types/artboard';
 import { DEVICE_REGISTRY, type DeviceCategory, type DevicePlatform } from '@/lib/deviceRegistry';
+import { isDevice3dStyle } from '@/lib/devicePerspective';
 import { normalizeGradient } from '@/lib/artboardBackground';
 import { DEFAULT_CANVAS_SIZE } from '@/lib/sizePresets';
 
@@ -155,7 +156,7 @@ export function indexTemplate(project: Project): TemplateIndexEntry {
     for (const element of board.elements ?? []) {
       if (element.type === 'device') {
         const device = element as DeviceFrameElementProps;
-        const is3d = device.styleType === '3d-left' || device.styleType === '3d-right';
+        const is3d = isDevice3dStyle(device.styleType);
         slots.push({ artboardIndex, elementId: device.id, deviceType: device.deviceType, is3d });
         if (!deviceTypes.includes(device.deviceType)) deviceTypes.push(device.deviceType);
         if (is3d) {

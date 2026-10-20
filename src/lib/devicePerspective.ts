@@ -28,7 +28,11 @@ export function devicePerspectiveTransform(
   return PERSPECTIVE_PRESETS[styleType] ?? 'none';
 }
 
-/** True for the styles drawn in three.js, which stay inside their box. */
+/**
+ * True for the styles drawn in three.js, which stay inside their box. Each one
+ * costs a WebGL context wherever it renders, which is what the deck and
+ * preview budgets count with this.
+ */
 export function isDevice3dStyle(styleType: DeviceStyleType | undefined): boolean {
-  return styleType === '3d-left' || styleType === '3d-right';
+  return styleType === '3d-left' || styleType === '3d-right' || styleType === '3d-studio';
 }

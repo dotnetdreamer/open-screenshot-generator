@@ -29,6 +29,7 @@ import { bridgeFetch } from '@/lib/account/transport';
 import { createAppStoreConnectJwt } from './jwt';
 import { md5Hex } from './md5';
 import {
+  appleDisplayAwaitingUpload,
   appleTargetForSize,
   applePreviewTargetForSize,
   MAX_PREVIEWS_PER_SET,
@@ -657,8 +658,11 @@ function groupByDisplayType(
   for (const image of images) {
     const target = appleTargetForSize(image.width, image.height);
     if (!target) {
+      const waiting = appleDisplayAwaitingUpload(image.width, image.height);
       warnings.push(
-        `${image.fileName} is ${image.width}x${image.height}, which the App Store does not accept. Closest accepted: ${nearestAppleSizes(image.width, image.height)}.`
+        waiting
+          ? `${image.fileName} is ${image.width}x${image.height}, an ${waiting.label} size that App Store Connect cannot take uploads for yet.`
+          : `${image.fileName} is ${image.width}x${image.height}, which the App Store does not accept. Closest accepted: ${nearestAppleSizes(image.width, image.height)}.`
       );
       continue;
     }

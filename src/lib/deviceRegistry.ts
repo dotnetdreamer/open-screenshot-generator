@@ -1,4 +1,6 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
+import { isStudioStyle, studioModelFor, withStudioRehug } from './device3dStudio';
+import { displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from './device3dModels';
 
 export type DevicePlatform = 'ios' | 'android' | 'neutral';
 export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'custom';
@@ -11,6 +13,8 @@ export interface DeviceScreenGeometry {
   paddingPercent: { top: number; right: number; bottom: number; left: number };
   // Screen corner radius as a fraction of effective width.
   radiusFactor: number;
+  /** Bottom screen corners, when they differ from the top corners. */
+  radiusBottomFactor?: number;
 }
 
 export interface DeviceDescriptor {
@@ -36,6 +40,55 @@ export interface DeviceDescriptor {
   counterpart?: Partial<Record<SwapPlatform, DeviceType>>;
 }
 
+/**
+ * Where a measured Pixel lands on iOS: an iPhone with the same kind of
+ * display, Dynamic Island for a camera hole, and in the same tier.
+ */
+const PIXEL_TO_IPHONE: Partial<Record<DeviceType, DeviceType>> = {
+  'pixel-10-pro': 'iphone-17-pro',
+  'pixel-10a': 'iphone-17',
+  'pixel-3-xl': 'iphone-17e',
+  'pixel-4': 'iphone',
+};
+
+/**
+ * The registry entry of a phone measured from its maker's drawings or device
+ * art (device3dModels.ts): its label, screen proportions, bezels and screen
+ * corners come from the model, and it swaps to the other platform's measured
+ * phone with the same kind of display (notch to notch, Dynamic Island to
+ * camera hole).
+ */
+function measuredPhone(id: DeviceType): DeviceDescriptor {
+  const measured = measuredModelFor(id);
+  if (!measured) throw new Error(`No measured model for ${id}`);
+  // A foldable's flat frame is its inner display held tall.
+  const model = flatFaceOf(measured);
+  const insets = displayInsetsOf(model);
+  const corners = displayRadiiOf(model);
+  const percent = (mm: number) => (mm / model.width) * 100;
+  const android = model.maker === 'google';
+  return {
+    id,
+    label: model.label,
+    platform: android ? 'android' : 'ios',
+    category: 'phone',
+    nativeAspect: model.screenPoints[0] / model.screenPoints[1],
+    counterpart: android
+      ? { ios: PIXEL_TO_IPHONE[id] ?? 'iphone-17' }
+      : { android: model.cutout.kind === 'notch' ? 'pixel-3-xl' : 'pixel-10-pro' },
+    screen: {
+      paddingPercent: {
+        top: percent(insets.top),
+        right: percent(insets.side),
+        bottom: percent(insets.bottom),
+        left: percent(insets.side),
+      },
+      radiusFactor: corners.top / model.width,
+      ...(corners.bottom !== corners.top ? { radiusBottomFactor: corners.bottom / model.width } : {}),
+    },
+  };
+}
+
 export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone': { id: 'iphone', label: 'iPhone (Classic)', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-bar' }, screen: { paddingPercent: { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 }, radiusFactor: 0.08 } },
   'iphone-x': { id: 'iphone-x', label: 'iPhone X', platform: 'ios', category: 'phone', nativeAspect: 375 / 812, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.09 } },
@@ -43,7 +96,19 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone-14': { id: 'iphone-14', label: 'iPhone 14', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.1 } },
   'iphone-15': { id: 'iphone-15', label: 'iPhone 15', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
   'iphone-15-pro': { id: 'iphone-15-pro', label: 'iPhone 15 Pro', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
-  'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
+  'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, counterpart: { android: 'pixel-10-pro' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
+  'iphone-duo': measuredPhone('iphone-duo'),
+  'iphone-18-pro-max': measuredPhone('iphone-18-pro-max'),
+  'iphone-18-pro': measuredPhone('iphone-18-pro'),
+  'iphone-17-pro': measuredPhone('iphone-17-pro'),
+  'iphone-air': measuredPhone('iphone-air'),
+  'iphone-17': measuredPhone('iphone-17'),
+  'iphone-17e': measuredPhone('iphone-17e'),
+  'iphone-16-pro-max': measuredPhone('iphone-16-pro-max'),
+  'iphone-16-pro': measuredPhone('iphone-16-pro'),
+  'iphone-16-plus': measuredPhone('iphone-16-plus'),
+  'iphone-16': measuredPhone('iphone-16'),
+  'iphone-16e': measuredPhone('iphone-16e'),
   // App Store iPads. Like the Play Store tablets, they map to BOTH platforms'
   // phones so converting an iPad project to a phone format is never a dead end.
   'ipad-pro-13': { id: 'ipad-pro-13', label: 'iPad Pro 13-inch', platform: 'ios', category: 'tablet', nativeAspect: 2064 / 2752, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.2, right: 3.2, bottom: 3.2, left: 3.2 }, radiusFactor: 0.032 } },
@@ -54,6 +119,10 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'android-bar': { id: 'android-bar', label: 'Android (Bar)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone' }, screen: { paddingPercent: { top: 6, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'android-notch': { id: 'android-notch', label: 'Android (Notch)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone-14' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'android-punch-hole': { id: 'android-punch-hole', label: 'Android (Punch Hole)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2400, counterpart: { ios: 'iphone-15' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
+  'pixel-10-pro': measuredPhone('pixel-10-pro'),
+  'pixel-10a': measuredPhone('pixel-10a'),
+  'pixel-4': measuredPhone('pixel-4'),
+  'pixel-3-xl': measuredPhone('pixel-3-xl'),
   'tablet': { id: 'tablet', label: 'Tablet', platform: 'neutral', category: 'tablet', nativeAspect: 768 / 1024, screen: { paddingPercent: { top: 2.5, right: 2.5, bottom: 2.5, left: 2.5 }, radiusFactor: 0.016 } },
   'tablet-7': { id: 'tablet-7', label: '7-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 800 / 1280, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 4.5, right: 4.5, bottom: 4.5, left: 4.5 }, radiusFactor: 0.03 } },
   'tablet-10': { id: 'tablet-10', label: '10-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 1600 / 2560, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.025 } },
@@ -178,6 +247,11 @@ export function buildSwapUpdates(
   const from = DEVICE_REGISTRY[el.deviceType] as DeviceDescriptor | undefined;
   const to = DEVICE_REGISTRY[target] as DeviceDescriptor | undefined;
   if (!to || to.category === 'custom' || el.deviceType === target) return {};
+  // A 3D Studio device keeps its angle and its height on screen, and its box
+  // closes round the new model's silhouette.
+  if (isStudioStyle(el.styleType) && studioModelFor(el.deviceType) && studioModelFor(target)) {
+    return withStudioRehug(el, { deviceType: target });
+  }
   const updates: Partial<DeviceFrameElementProps> = { deviceType: target };
   if (from && from.category !== 'custom' && from.category !== to.category) {
     const area = el.size.width * el.size.height;

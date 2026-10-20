@@ -198,6 +198,40 @@ export function appleTargetForSize(width: number, height: number): AppleDisplayT
 }
 
 /**
+ * Displays on Apple's screenshot specifications page that App Store Connect
+ * cannot take an upload for yet. The iPhone Duo's sizes, for its outer and
+ * inner displays either way up, are listed there, but ScreenshotDisplayType
+ * has no case for them, and Apple answered on its developer forums in
+ * September 2026 that uploading them would come later in the year
+ * (https://developer.apple.com/forums/thread/845505). A board at one of these
+ * sizes is a real store screenshot that has to wait, which is a different
+ * thing to tell someone than "not an App Store size". Move an entry into
+ * APPLE_DISPLAY_TARGETS once its display type is published.
+ */
+export const APPLE_DISPLAYS_AWAITING_UPLOAD: Array<Omit<AppleDisplayTarget, 'displayType'>> = [
+  {
+    label: 'iPhone Duo',
+    sizes: [
+      { width: 1398, height: 2034 },
+      { width: 2007, height: 2853 },
+    ],
+    allowRotated: true,
+    note: 'Required from April 2027 for apps built with the iOS 27.1 SDK',
+  },
+];
+
+/** The display Apple lists a pixel size for but App Store Connect cannot take yet, or null. */
+export function appleDisplayAwaitingUpload(width: number, height: number): Omit<AppleDisplayTarget, 'displayType'> | null {
+  for (const target of APPLE_DISPLAYS_AWAITING_UPLOAD) {
+    for (const size of target.sizes) {
+      if (size.width === width && size.height === height) return target;
+      if (target.allowRotated && size.width === height && size.height === width) return target;
+    }
+  }
+  return null;
+}
+
+/**
  * The iPhone set App Store Connect will not submit a listing without:
  * "iPhone with Dynamic Island (medium display)".
  */

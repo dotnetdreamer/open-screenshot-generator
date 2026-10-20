@@ -141,6 +141,20 @@ test.describe('the export dialog', () => {
     await expect(app.exportDialog.getByText('Upload 1290×2796 images to "iPhone with Dynamic Island (large display)" in App Store Connect', { exact: true })).toBeVisible();
   });
 
+  test('an iPhone Duo canvas says App Store Connect cannot take its screenshots yet', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    await app.canvasSizeDialog.locator('#size-ios-duo-inner').click();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await app.openExportDialog();
+
+    // Apple lists the size, but no upload slot takes it yet: say that, and name no slot.
+    await expect(app.exportDialog.getByText('App Store Connect takes no iPhone Duo screenshots yet', { exact: true })).toBeVisible();
+    await expect(app.exportDialog.getByText(/^Upload \d+×\d+ images to /)).toHaveCount(0);
+  });
+
   test('the file count follows the tick boxes, and an empty selection cannot be exported', async ({ app, page }) => {
     await app.startBlankProject();
     await app.openExportDialog();

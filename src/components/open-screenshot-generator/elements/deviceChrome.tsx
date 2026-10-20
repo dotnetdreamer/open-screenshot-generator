@@ -2,6 +2,8 @@
 import type React from 'react';
 import type { DeviceType } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
+import { cornerRadiusOf, displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from '@/lib/device3dModels';
+import { cutoutPolygons } from '@/lib/device3dGeometry';
 
 // The flat (non-3D) device frame's own chrome: outer corner radius, body
 // colour, and the notch / Dynamic Island / punch-hole JSX. Shared by
@@ -85,17 +87,45 @@ function classicNotch(
   );
 }
 
-/** Circular camera cutout (Android punch hole). */
-function punchHoleNotch(): React.ReactNode {
+/**
+ * A notch drawn from the phone's own cutout path (display pixels from the
+ * screen's top centre, y down), glued to the screen's top edge and sized as
+ * a share of the screen's width, `displayPixels` across.
+ */
+function pathNotch(d: string, displayPixels: number, bodyColor: string): React.ReactNode {
+  const points = cutoutPolygons(d, 1).flat();
+  const halfWidth = Math.max(...points.map(([x]) => Math.abs(x)));
+  const depth = Math.max(...points.map(([, y]) => y));
+  return (
+    <svg
+      data-device-notch="true"
+      viewBox={`${-halfWidth} 0 ${2 * halfWidth} ${depth}`}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: `${((2 * halfWidth) / displayPixels) * 100}%`,
+        aspectRatio: `${2 * halfWidth} / ${depth}`,
+        zIndex: 3,
+      }}
+    >
+      <path d={d} fill={`var(--notch-bg, var(--frame-bg, ${bodyColor}))`} />
+    </svg>
+  );
+}
+
+/** Circular camera cutout (Android punch hole), as percentages of the screen. */
+function punchHoleNotch(topPercent = '1.2%', widthPercent = '5%'): React.ReactNode {
   return (
     <div
       data-device-notch="true"
       style={{
         position: 'absolute',
-        top: '1.2%',
+        top: topPercent,
         left: '50%',
         transform: 'translateX(-50%)',
-        width: '5%',
+        width: widthPercent,
         aspectRatio: '1 / 1',
         backgroundColor: 'var(--notch-bg, #000)',
         borderRadius: '50%',
@@ -226,6 +256,44 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
     label: descriptor.label,
   };
   const radius = (factor: number) => `${effectiveWidth * factor}px`;
+
+  // The measured phones (iPhones from Apple's drawings, Pixels from Google's
+  // device art) take their corners and cutout from the model; a foldable's
+  // flat frame is its inner display held tall. The 17 Pro Max keeps its older
+  // hand-tuned chrome below, so frames already placed in projects do not shift.
+  const model = deviceType === 'iphone-17-pro-max' ? undefined : measuredModelFor(deviceType);
+  const measured = model && flatFaceOf(model);
+  if (measured) {
+    const insets = displayInsetsOf(measured);
+    const display = measured.display;
+    chrome.outerBorderRadius = radius(cornerRadiusOf(measured) / measured.width);
+    chrome.bodyColor = '#1e1e1e';
+    const corners = displayRadiiOf(measured);
+    if (corners.bottom !== corners.top) {
+      const top = radius(corners.top / measured.width);
+      const bottom = radius(corners.bottom / measured.width);
+      chrome.screenBorderRadius = `${top} ${top} ${bottom} ${bottom}`;
+    }
+    const cutout = measured.cutout;
+    if (cutout.kind === 'island') {
+      const top = ((cutout.center - cutout.height / 2 - insets.top) / display.height) * 100;
+      chrome.notch = islandNotch(`${top.toFixed(2)}%`, `${((cutout.width / display.width) * 100).toFixed(2)}%`, `${cutout.width} / ${cutout.height}`);
+    } else if (cutout.kind === 'punch') {
+      const top = ((cutout.center - cutout.d / 2 - insets.top) / display.height) * 100;
+      chrome.notch = punchHoleNotch(`${top.toFixed(2)}%`, `${((cutout.d / display.width) * 100).toFixed(2)}%`);
+    } else if (cutout.kind === 'notch' && cutout.path) {
+      chrome.notch = pathNotch(cutout.path.d, display.width / cutout.path.pixel, chrome.bodyColor);
+    } else if (cutout.kind === 'notch') {
+      chrome.notch = classicNotch(
+        `${((cutout.width / display.width) * 100).toFixed(2)}%`,
+        `${cutout.width} / ${cutout.depth}`,
+        `${((cutout.radius / cutout.width) * 100).toFixed(2)}%`,
+        `${((cutout.radius / cutout.depth) * 100).toFixed(2)}%`,
+        chrome.bodyColor
+      );
+    }
+    return chrome;
+  }
 
   switch (deviceType) {
     case 'iphone-15':

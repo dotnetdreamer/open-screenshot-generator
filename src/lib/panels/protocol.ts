@@ -28,6 +28,7 @@ import type {
 } from '@/types/artboard';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
 import type { SpanChange } from '@/lib/spanArtboards';
+import type { StudioLiveEnd, StudioLiveState } from '@/lib/device3dStudioLive';
 import type { HistoryEntry } from '@/lib/historyLabels';
 import type { ProjectVersionMeta } from '@/lib/versions/store';
 import type { LocaleOverrideState } from '@/components/open-screenshot-generator/LayersPanel';
@@ -143,6 +144,7 @@ export interface DockSnapshot extends DockData {
 export type DockIntent =
   | { name: 'updateSelectedElement'; updates: Partial<ArtboardElement> }
   | { name: 'updateElementById'; elementId: string; updates: Partial<ArtboardElement> }
+  | { name: 'studioLive'; elementId: string; state: StudioLiveState | null; reason?: StudioLiveEnd }
   | { name: 'translateElement'; elementId: string }
   | { name: 'updateArtboardDetails'; updates: Partial<ArtboardState>; scope?: 'board' | 'all' }
   | { name: 'resetLocaleField'; field: LocalizableField }
