@@ -37,8 +37,10 @@ name: Publish CLI to npm
 # npm tries OIDC first and falls back to the token. Delete the secret once
 # trusted publishing is configured.
 #
-# Nothing here bumps a version. scripts/set-version.mjs owns every version in
-# this repo, and this workflow publishes whatever cli/package.json says.
+# scripts/set-version.mjs owns every version in this repo, and this workflow
+# publishes whatever cli/package.json says, unless npm already has that
+# version. Then it publishes the next free patch instead and does not commit
+# it (see "Pick the version to publish" below).
 
 on:
   workflow_dispatch:
@@ -170,6 +172,57 @@ jobs:
       - run: npm ci
         working-directory: cli
 
+      # npm never accepts the same version twice, so publishing code whose
+      # version is already on npm, such as a hand run from main between
+      # releases, would end in a 403. This step moves the package to one patch
+      # past the highest version npm has instead. A release from desktop.yml
+      # brings a version npm has not seen, and that goes out unchanged.
+      #
+      # The bump exists only in this run and is never committed: this job has
+      # no write access on purpose, and set-version.mjs still owns the repo's
+      # versions. The cost is that a hand run can take the number the next
+      # release would have used, and that release then reaches npm one patch
+      # ahead of the app. It runs before the CLI build because tools.json and
+      # assets.manifest.json both record the version.
+      - name: Pick the version to publish
+        working-directory: cli
+        run: |
+          current=$(node -p "require('./package.json').version")
+          next=$(node --input-type=module -e '
+            import fs from "node:fs";
+            const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            const res = await fetch("https://registry.npmjs.org/" + pkg.name, {
+              headers: { accept: "application/vnd.npm.install-v1+json" },
+            });
+            // 404 means the package was never published, so every version is free.
+            if (!res.ok && res.status !== 404) {
+              throw new Error("registry.npmjs.org answered " + res.status + " for " + pkg.name);
+            }
+            const published = res.ok ? Object.keys((await res.json()).versions) : [];
+
+            const parse = (v) => v.split(".").map(Number);
+            const newer = (a, b) => {
+              const [x, y] = [parse(a), parse(b)];
+              for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i];
+              return false;
+            };
+            // A prerelease does not use up a patch number, so only X.Y.Z counts.
+            const highest = published
+              .filter((v) => /^\d+\.\d+\.\d+$/.test(v))
+              .reduce((best, v) => (newer(v, best) ? v : best), "0.0.0");
+
+            if (newer(pkg.version, highest)) {
+              console.log(pkg.version);
+            } else {
+              const [major, minor, patch] = parse(highest);
+              console.log(major + "." + minor + "." + (patch + 1));
+            }
+          ')
+          if [ "$next" != "$current" ]; then
+            npm version "$next" --no-git-tag-version
+            echo "::notice::npm already has ${current} or later, so this run publishes ${next}"
+          fi
+
       - run: npm run build
         working-directory: cli
 
@@ -259,8 +312,10 @@ jobs:
       # The ./ matters: npm reads a bare `package/x.tgz` as a GitHub owner/repo
       # shorthand and tries to clone it.
       #
-      # A 403 here is almost always "this version is already on npm". Bump with
-      # scripts/set-version.mjs and cut a new release rather than retrying.
+      # A 403 here can still mean the version is taken. The build job only
+      # skips versions npm had when it ran, so a publish from outside this
+      # workflow in the meantime gets there first. Running the workflow again
+      # picks the next free patch.
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
