@@ -538,12 +538,28 @@ export interface ProjectLocalization {
   locales: LocaleEntry[];
 }
 
+/**
+ * App Store creative art, new in iOS 27: the product page header, the image a
+ * search result shows, or one universal image that App Store Connect can use
+ * for both. Specs and Apple's safe areas live in src/lib/creative/specs.ts.
+ */
+export type CreativeAssetKind = 'header' | 'search' | 'universal';
+
 export interface ArtboardState {
   id: string;
   name: string;
   position: Point;
   size: Size;
   elements: ArtboardElement[];
+  /**
+   * Set when this artboard is App Store creative art rather than a screenshot.
+   * Its size is Apple's and stays that way: the Canvas Size dialog, the device
+   * format conversion and the export's extra App Store sizes all leave it
+   * alone. It never takes part in a shared background picture or in an
+   * element continuing across artboard edges, and it exports under its
+   * placement's name instead of a screenshot number. Unset is a screenshot.
+   */
+  creativeAsset?: CreativeAssetKind;
   backgroundColor: string;
   backgroundType?: 'solid' | 'gradient';
   backgroundGradient?: {

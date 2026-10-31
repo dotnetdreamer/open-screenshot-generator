@@ -89,6 +89,16 @@ import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
 import { ALL_CANVAS_SIZE_PRESETS, DEFAULT_CANVAS_SIZE, canvasSizeSlug } from '@/lib/sizePresets';
+import {
+  creativeBoards,
+  creativeFileStem,
+  creativeFileStems,
+  creativeSpecForPreset,
+  creativeSummary,
+  isCreativeBoard,
+  screenshotBoards,
+} from '@/lib/creative/specs';
+import { CreativeAssetsDialog } from './creative/CreativeAssetsDialog';
 import { artboardBackground, normalizeBackgroundImage } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
@@ -1134,6 +1144,11 @@ export function OpenScreenshotGeneratorLayout() {
   // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
   // see src/lib/publish; the dialog explains itself on the web build.
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  // The App Store header and search dialog. Opened from the store preview, it
+  // closes the preview (a Radix dialog cannot sit above that overlay) and puts
+  // it back once the art is on the canvas.
+  const [isCreativeDialogOpen, setIsCreativeDialogOpen] = useState(false);
+  const creativeReturnsToStoreRef = useRef(false);
   // Seeds the export dialog's "Selected artboard only" box. The toolbar's
   // Download opens the dialog project-wide; an artboard's own Download opens
   // it already scoped to that board.
@@ -3178,7 +3193,7 @@ export function OpenScreenshotGeneratorLayout() {
       const largePreset = DEVICE_FORMAT_PRESETS.find((preset) => preset.id === 'ios-large');
       if (
         largePreset &&
-        artboards.every((artboard) =>
+        screenshotBoards(artboards).every((artboard) =>
           artboard.size.width === largePreset.artboard.width &&
           artboard.size.height === largePreset.artboard.height
         )
@@ -3548,14 +3563,18 @@ export function OpenScreenshotGeneratorLayout() {
   }, [activeArtboardId, handleAddElementToArtboard, toast]);
 
   // Get the current size from the first artboard or any active artboard
+  // The canvas size is the screenshots' size. Header and search art has a
+  // fixed size of its own, so with one of those selected the toolbar still
+  // names the screenshots' size, which is what the Canvas Size dialog changes.
   const getCurrentArtboardSize = () => {
     if (activeArtboardId) {
       const activeAb = artboards.find(ab => ab.id === activeArtboardId);
-      if (activeAb) {
+      if (activeAb && !isCreativeBoard(activeAb)) {
         return activeAb.size;
       }
     }
-    return artboards.length > 0 ? artboards[0].size : { ...DEFAULT_CANVAS_SIZE };
+    const shots = screenshotBoards(artboards);
+    return shots.length > 0 ? shots[0].size : artboards.length > 0 ? artboards[0].size : { ...DEFAULT_CANVAS_SIZE };
   };
 
   /** Anything about a new board that is not the default blank one. */
@@ -3615,6 +3634,44 @@ export function OpenScreenshotGeneratorLayout() {
       description: `New artboard added after "${artboards[currentIndex]?.name || 'selected'}".`,
     });
     return newArtboard;
+  };
+
+  /**
+   * App Store header and search art, as finished artboards from the dialog.
+   *
+   * They go to the front of the canvas, which is where the header sits on the
+   * store, in one history entry and one save. normalizeLocalization stamps the
+   * project's languages onto them, and the translations the dialog carried over
+   * are already in their `localized` maps.
+   */
+  const handleAddCreativeBoards = (boards: ArtboardState[]) => {
+    if (boards.length === 0) return;
+    const landed = handleArtboardsUpdate(
+      normalizeLocalization([...boards, ...artboards]),
+      namedChange('Add App Store header and search', 'artboard', boards.map((board) => board.name).join(', '))
+    );
+    if (!landed) return;
+    setIsCreativeDialogOpen(false);
+    setActiveArtboardId(boards[0].id);
+    setSelectedElementIdOnActiveArtboard(null);
+    const backToStore = creativeReturnsToStoreRef.current;
+    creativeReturnsToStoreRef.current = false;
+    if (backToStore) openPreview('store');
+    toast({
+      title: boards.length === 1 ? `${boards[0].name} added` : 'Header and search art added',
+      description: `${boards.length === 1 ? 'A new artboard' : `${boards.length} new artboards`} at the start of the canvas, at App Store Connect's exact size. The green outline is the part every device shows.`,
+      action: backToStore ? undefined : (
+        <ToastAction altText="See it in the store listing" onClick={() => openPreview('store')}>
+          Preview
+        </ToastAction>
+      ),
+    });
+  };
+
+  const openCreativeDialog = (fromStorePreview = false) => {
+    creativeReturnsToStoreRef.current = fromStorePreview;
+    if (fromStorePreview) setIsPreviewOpen(false);
+    setIsCreativeDialogOpen(true);
   };
 
   /**
@@ -4760,7 +4817,9 @@ export function OpenScreenshotGeneratorLayout() {
     // Canvas position (1-based) per artboard id, plus how many boards the
     // project has. A scoped export passes only a subset of the canvas, so
     // without this the fourth artboard would still be filed as "01_".
-    order?: { indexById: Record<string, number>; total: number },
+    // `stemById` names the header and search art, worked out over the whole
+    // canvas so two designs of one kind never share a file.
+    order?: { indexById: Record<string, number>; total: number; stemById?: Record<string, string> },
     // Progress plumbing. `report` is fed one update per phase change so the
     // dialog can name what it is on; `formatLabel` tags a generated App Store
     // pass. Returns the files actually written so the caller can summarise.
@@ -4822,7 +4881,13 @@ export function OpenScreenshotGeneratorLayout() {
         // Language first, so a sorted listing groups by language. Only on the
         // flat path: with a folder per language the token would repeat.
         const localePrefix = locale?.filenameToken ? `${locale.filenameToken}_` : '';
-        const filename = `${localePrefix}${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}${sizeSuffix}.png`;
+        // Header and search art is named for where it goes in App Store
+        // Connect, and takes no screenshot number, so the screenshots still
+        // run 01..N.
+        const creativeStem = order?.stemById?.[artboard.id] ?? creativeFileStem(artboard);
+        const filename = creativeStem
+          ? `${localePrefix}${creativeStem}.png`
+          : `${localePrefix}${orderPrefix}_${artboard.name.replace(/\s+/g, '_')}${deviceSuffix}${sizeSuffix}.png`;
         progress?.report({
           fileIndex: progress.startIndex + index,
           boardName: artboard.name,
@@ -4892,14 +4957,18 @@ export function OpenScreenshotGeneratorLayout() {
         : null;
     // The screenshot dialog leaves App Preview boards out: their output is a
     // video, and a PNG of one is a frozen timeline nobody asked for. The App
-    // Preview dialog's stills still capture them, so this is opt-in.
+    // Preview dialog's stills still capture them, so this is opt-in. Header
+    // and search art always exports as a still, animated or not.
     const skippedIds = new Set(
       skipAppPreviewBoards
-        ? original.filter((ab) => projectHasVideoContent([ab])).map((ab) => ab.id)
+        ? original.filter((ab) => projectHasVideoContent([ab]) && !isCreativeBoard(ab)).map((ab) => ab.id)
         : []
     );
     const scope = (list: ArtboardState[]) =>
       list.filter((ab) => !skippedIds.has(ab.id) && (!scopedId || ab.id === scopedId));
+    // The extra App Store sizes are screenshot sizes. Header and search art has
+    // one size and goes out with the as-is pass only.
+    const scopeForFormat = (list: ArtboardState[]) => scope(list).filter((ab) => !isCreativeBoard(ab));
 
     const targets = scope(original);
     if (targets.length === 0) {
@@ -4926,7 +4995,8 @@ export function OpenScreenshotGeneratorLayout() {
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const filesPerLocale = (asIs ? targets.length : 0) + generateFormats.length * targets.length;
+    const formatTargetCount = targets.filter((ab) => !isCreativeBoard(ab)).length;
+    const filesPerLocale = (asIs ? targets.length : 0) + generateFormats.length * formatTargetCount;
     const totalFiles = filesPerLocale * localesToExport.length;
     if (isTauri() && totalFiles > 1) {
       exportDir = await pickExportDirectory('Choose a folder for the exported artboards');
@@ -4975,7 +5045,7 @@ export function OpenScreenshotGeneratorLayout() {
     const captureWithExportEvents = async (
       list: ArtboardState[],
       startIndex: number,
-      order: { indexById: Record<string, number>; total: number },
+      order: { indexById: Record<string, number>; total: number; stemById?: Record<string, string> },
       locale: string | null,
       formatLabel?: string
     ) => {
@@ -5011,11 +5081,13 @@ export function OpenScreenshotGeneratorLayout() {
         // Rebuilt per language, or the German set would be numbered 13..18
         // instead of 01..06 and every fastlane-style convention expects 1..N.
         // Skipped App Preview boards are left out of the count too, so the
-        // exported screenshots still run 1..N without gaps.
-        const numbered = projected.filter((ab) => !skippedIds.has(ab.id));
+        // exported screenshots still run 1..N without gaps, and so is header
+        // and search art, which is named for its placement instead.
+        const numbered = projected.filter((ab) => !skippedIds.has(ab.id) && !isCreativeBoard(ab));
         const order = {
           indexById: Object.fromEntries(numbered.map((ab, i) => [ab.id, i + 1])),
           total: numbered.length,
+          stemById: creativeFileStems(projected),
         };
         report({
           fileIndex: nextFileIndex,
@@ -5038,9 +5110,9 @@ export function OpenScreenshotGeneratorLayout() {
         for (const formatId of generateFormats) {
           if (pngExportCancelRef.current) break;
           const preset = DEVICE_FORMAT_PRESETS.find((p) => p.id === formatId);
-          if (!preset) continue;
+          if (!preset || formatTargetCount === 0) continue;
           const startIndex = nextFileIndex;
-          nextFileIndex += targets.length;
+          nextFileIndex += formatTargetCount;
           report({
             fileIndex: startIndex,
             boardName: targets[0].name,
@@ -5053,7 +5125,7 @@ export function OpenScreenshotGeneratorLayout() {
           setExportCanvasArtboards(repositioned);
           await waitForCanvasToSettle(400);
           saved.push(
-            ...(await captureWithExportEvents(scope(repositioned), startIndex, order, locale, preset.label))
+            ...(await captureWithExportEvents(scopeForFormat(repositioned), startIndex, order, locale, preset.label))
           );
         }
       }
@@ -5369,8 +5441,10 @@ export function OpenScreenshotGeneratorLayout() {
   // An App Preview project is one that carries recording mockups, recordings,
   // gesture hints or animations — it gets the video export dialog.
   // The screenshot export skips these boards, so its dialog counts without them.
+  // What the store upload dialog may send to screenshot and preview slots.
+  const publishArtboards = useMemo(() => screenshotBoards(artboards), [artboards]);
   const appPreviewBoardCount = useMemo(
-    () => artboards.filter((ab) => projectHasVideoContent([ab])).length,
+    () => artboards.filter((ab) => projectHasVideoContent([ab]) && !isCreativeBoard(ab)).length,
     [artboards]
   );
   const isAppPreviewProject = appPreviewBoardCount > 0;
@@ -5995,8 +6069,19 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
     
+    // Header and search art keeps Apple's size: it is the same whatever size
+    // the screenshots are.
+    const keptCreative = artboards.filter(isCreativeBoard).length;
+    if (keptCreative === artboards.length) {
+      toast({
+        title: "Header and search art keeps Apple's size",
+        description: 'Select a screenshot artboard to change the canvas size.',
+      });
+      return;
+    }
+
     // Update all artboards with the new size
-    const updatedArtboards = artboards.map(artboard => ({
+    const updatedArtboards = artboards.map(artboard => isCreativeBoard(artboard) ? artboard : ({
       ...artboard,
       size: {
         width,
@@ -6006,16 +6091,17 @@ export function OpenScreenshotGeneratorLayout() {
         ? scaleElementsToCanvas(artboard.elements, artboard.size, { width, height })
         : artboard.elements,
     }));
-    
+
     // Through the one door: this used to push history and set state without
     // ever writing Dexie, so a canvas size change did not survive a reload.
     if (!handleArtboardsUpdate(updatedArtboards, namedChange(`Canvas Size ${width} x ${height}`, 'resize'))) return;
 
     toast({
       title: "Artboard Size Updated",
-      description: scaleContent
+      description: (scaleContent
         ? `All artboards resized to ${width} × ${height} pixels with content scaled to fit.`
-        : `All artboards resized to ${width} × ${height} pixels`
+        : `All artboards resized to ${width} × ${height} pixels`) +
+        (keptCreative > 0 ? ' Header and search art keeps its App Store size.' : '')
     });
   };
 
@@ -6309,7 +6395,11 @@ export function OpenScreenshotGeneratorLayout() {
   // the selected board picks the export dialog. With nothing selected, any
   // video content in the project makes it the video one.
   const exportsAppPreview = useMemo(
-    () => (activeArtboard ? projectHasVideoContent([activeArtboard]) : isAppPreviewProject),
+    // Header and search art exports as a still even when it is animated.
+    () =>
+      activeArtboard
+        ? projectHasVideoContent([activeArtboard]) && !isCreativeBoard(activeArtboard)
+        : isAppPreviewProject,
     [activeArtboard, isAppPreviewProject]
   );
 
@@ -6676,6 +6766,7 @@ export function OpenScreenshotGeneratorLayout() {
       name: activeArtboard.name,
       size: activeArtboard.size,
       format: format === 'mixed' ? null : format,
+      creative: isCreativeBoard(activeArtboard),
     };
   }, [activeArtboard]);
 
@@ -7950,6 +8041,7 @@ const generateRandomProjectName = (): string => {
         backgroundColor: ab.backgroundColor,
         elementCount: ab.elements.length,
         active: ab.id === activeArtboardId,
+        ...creativeSummary(ab),
       })),
     getArtboard: (id, locale) => {
       const boardId = resolveBoardId(id);
@@ -7958,25 +8050,40 @@ const generateRandomProjectName = (): string => {
     },
     createArtboard: ({ name, width, height, preset, backgroundColor }) => {
       let size: Size = { ...DEFAULT_CANVAS_SIZE };
-      if (preset) {
+      // An App Store creative preset makes header or search art, which is
+      // tagged so it keeps its size and exports under its placement's name.
+      const creative = creativeSpecForPreset(preset);
+      if (creative) {
+        size = { width: creative.width, height: creative.height };
+      } else if (preset) {
         const p = ALL_CANVAS_SIZE_PRESETS.find((x) => x.id === preset);
         if (p) size = { width: p.width, height: p.height };
       }
-      if (width && height) size = { width, height };
+      if (width && height && !creative) size = { width, height };
       const id = `artboard_${Date.now()}`;
       const board: ArtboardState = {
         id,
-        name: name || `Artboard ${artboards.length + 1}`,
+        name: name || (creative ? creative.boardName : `Artboard ${artboards.length + 1}`),
         position: { x: 0, y: 0 },
         size,
         elements: [],
         backgroundColor: backgroundColor || '#FFFFFF',
         backgroundType: 'solid',
         zoom: 1,
+        ...(creative ? { creativeAsset: creative.kind } : {}),
       };
       commitForTool([...artboards, board]);
       setActiveArtboardId(id);
-      return { id, name: board.name, width: size.width, height: size.height, backgroundColor: board.backgroundColor, elementCount: 0, active: true };
+      return {
+        id,
+        name: board.name,
+        width: size.width,
+        height: size.height,
+        backgroundColor: board.backgroundColor,
+        elementCount: 0,
+        active: true,
+        ...creativeSummary(board),
+      };
     },
     setActiveArtboard: (id) => {
       if (!artboards.some((ab) => ab.id === id)) return false;
@@ -8493,7 +8600,12 @@ const generateRandomProjectName = (): string => {
     exportAll: async ({ scale, save, directory, includeImage, locale }) => {
       if (artboards.length === 0) return [];
       const shouldSave = save !== false;
-      const padTo = Math.max(2, String(artboards.length).length);
+      // Named the way the export dialog names them: the screenshots run 01..N,
+      // and header and search art goes out under its placement name with no
+      // number, so an upload script never takes it for screenshot 01.
+      const shots = screenshotBoards(artboards);
+      const padTo = Math.max(2, String(shots.length).length);
+      const stems = creativeFileStems(artboards);
       // The language goes in the file name rather than a subfolder: the folder
       // may be the Downloads default, which the caller never named and so
       // cannot predict a subfolder inside. A caller that wants the fastlane
@@ -8501,13 +8613,13 @@ const generateRandomProjectName = (): string => {
       const token = locale ? `${locale}_` : '';
       return withLocaleOnCanvas(locale, async () => {
         const results: McpExportResult[] = [];
-        for (const [index, board] of artboards.entries()) {
+        for (const board of artboards) {
           results.push(
             await captureArtboardForMcp(board, {
               scale,
               save: shouldSave,
               directory,
-              fileName: `${token}${String(index + 1).padStart(padTo, '0')}_${board.name}`,
+              fileName: `${token}${stems[board.id] ?? `${String(shots.indexOf(board) + 1).padStart(padTo, '0')}_${board.name}`}`,
               includeImage: includeImage ?? false,
             })
           );
@@ -9003,6 +9115,7 @@ const generateRandomProjectName = (): string => {
             onSelectTemplate={() => openStartDialog()}
             onDropInScreenshots={() => openStartDialog('quickstart')}
             onMakeGraphics={() => openStartDialog('graphics')}
+            onMakeStoreArt={() => openCreativeDialog(false)}
             onPreview={() => openPreview('single')}
             onPreviewStore={() => openPreview('store')}
             onPreviewCompare={() => openPreview('compare')}
@@ -9673,8 +9786,24 @@ const generateRandomProjectName = (): string => {
               projectName={currentProjectName}
               initialMode={previewMode}
               onClose={() => setIsPreviewOpen(false)}
+              onAddStoreArt={() => openCreativeDialog(true)}
             />
           )}
+
+          <CreativeAssetsDialog
+            isOpen={isCreativeDialogOpen}
+            onOpenChange={(open) => {
+              setIsCreativeDialogOpen(open);
+              // Cancelled from the store preview: back to where the user was.
+              if (!open && creativeReturnsToStoreRef.current) {
+                creativeReturnsToStoreRef.current = false;
+                openPreview('store');
+              }
+            }}
+            artboards={artboards}
+            projectName={currentProjectName}
+            onAdd={handleAddCreativeBoards}
+          />
 
           {/* App Preview boards get their own dialog: video first, no App
               Store screenshot-size generation (meaningless for a video board),
@@ -9710,10 +9839,11 @@ const generateRandomProjectName = (): string => {
                 setIsPublishDialogOpen(true);
               }}
               currentFormat={activeDeviceFormat}
-              currentSize={artboards[0]?.size}
+              currentSize={screenshotBoards(artboards)[0]?.size ?? artboards[0]?.size}
               activeArtboard={activeArtboardSummary}
               artboardCount={artboards.length - appPreviewBoardCount}
               appPreviewBoardCount={appPreviewBoardCount}
+              creativeBoardCount={creativeBoards(artboards).length}
               defaultCurrentArtboardOnly={exportScopedToArtboard}
               artboards={artboards}
               activeLocale={activeLocale}
@@ -9735,7 +9865,9 @@ const generateRandomProjectName = (): string => {
           <PublishDialog
             isOpen={isPublishDialogOpen}
             onOpenChange={setIsPublishDialogOpen}
-            artboards={artboards}
+            // Header and search art goes to App Store Connect's Asset Library,
+            // not to a screenshot slot, so it is not offered here.
+            artboards={publishArtboards}
             activeLocale={activeLocale}
             onCapture={handlePublishCapture}
             onCaptureVideos={handlePublishCaptureVideos}

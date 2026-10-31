@@ -36,6 +36,7 @@ import {
   checkPreviewCount,
   checkRequiredIphoneSlot,
   checkScreenshotCount,
+  isCreativeArt,
   rulesetFor,
   worstLevel,
   type Finding,
@@ -156,6 +157,8 @@ function auditSets(rows: FileReport[], ruleset: StoreRuleset): SetReport[] {
   const groups = new Map<string, { label: string; kind: 'png' | 'video'; files: number }>();
   for (const row of rows) {
     if (!row.width || !row.height) continue;
+    // One header per language is the whole set, and it is not a screenshot.
+    if (row.kind === 'png' && isCreativeArt(row.width, row.height, ruleset)) continue;
     const folder = path.posix.dirname(row.file);
     const label = `${folder === '.' ? '' : `${folder} `}${row.width}x${row.height}`;
     const key = `${row.kind}:${label}`;

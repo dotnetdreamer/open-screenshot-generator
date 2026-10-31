@@ -78,6 +78,8 @@ export interface ActiveArtboardSummary {
   name: string;
   size: Size;
   format: DeviceFormat | null;
+  /** App Store header or search art, which has one size and no extra ones. */
+  creative?: boolean;
 }
 
 interface ExportDialogProps {
@@ -97,6 +99,9 @@ interface ExportDialogProps {
   // App Preview artboards in the project. They are skipped here (their export
   // is the video dialog), and artboardCount already leaves them out.
   appPreviewBoardCount?: number;
+  // App Store header and search artboards, counted in artboardCount. They go
+  // out once, at their own size, and never in the extra App Store sizes.
+  creativeBoardCount?: number;
   // Set when the dialog is opened from an artboard's own toolbar, where
   // "export this board" is the whole intent.
   defaultCurrentArtboardOnly?: boolean;
@@ -140,6 +145,7 @@ export function ExportDialog({
   activeArtboard,
   artboardCount = 0,
   appPreviewBoardCount = 0,
+  creativeBoardCount = 0,
   defaultCurrentArtboardOnly = false,
   artboards = NO_ARTBOARDS,
   activeLocale = null,
@@ -238,15 +244,22 @@ export function ExportDialog({
   };
 
   const noLocaleSelected = showLocales && selectedLocales.length === 0;
-  const nothingSelected = (!asIs && generateFormats.length === 0) || noLocaleSelected;
+  // Header and search art on its own has nothing to resize to.
+  const formatsAvailable = !(scopedToArtboard && activeArtboard?.creative);
+  const nothingSelected =
+    (!asIs && (generateFormats.length === 0 || !formatsAvailable)) || noLocaleSelected;
 
   // Every pass (the as-is capture plus each generated format) produces one file
   // per board in scope, and every language repeats the lot. Languages are the
   // multiplier people underestimate, so the count is spelled out below.
   const boardsInScope = scopedToArtboard ? 1 : Math.max(1, artboardCount);
+  // Header and search art takes the as-is pass only.
+  const creativeInScope = scopedToArtboard ? (activeArtboard?.creative ? 1 : 0) : creativeBoardCount;
+  const sizedBoardsInScope = Math.max(0, boardsInScope - creativeInScope);
   const passCount = (asIs ? 1 : 0) + generateFormats.length;
   const localeCount = showLocales ? selectedLocales.length : 1;
-  const fileCount = passCount * boardsInScope * localeCount;
+  const fileCount =
+    ((asIs ? boardsInScope : 0) + generateFormats.length * sizedBoardsInScope) * localeCount;
   const fileCountBreakdown = [
     `${boardsInScope} ${boardsInScope === 1 ? 'artboard' : 'artboards'}`,
     `${passCount} ${passCount === 1 ? 'size' : 'sizes'}`,
@@ -314,6 +327,13 @@ export function ExportDialog({
                   App Store Connect takes no {currentAppleWaiting.label} screenshots yet
                 </p>
               )}
+              {creativeInScope > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {creativeInScope === 1 && scopedToArtboard
+                    ? 'App Store header and search art, at its own App Store Connect size'
+                    : `Includes ${creativeInScope} App Store header and search ${creativeInScope === 1 ? 'artboard' : 'artboards'}, each at its own App Store Connect size`}
+                </p>
+              )}
             </div>
           </div>
 
@@ -341,29 +361,32 @@ export function ExportDialog({
           <div>
             <p className="text-sm font-medium mb-0.5">Additional App Store sizes</p>
             <p className="text-xs text-muted-foreground mb-3">
-              Apple accepts 1 to 10 JPG/PNG screenshots per display size.
+              {formatsAvailable
+                ? 'Apple accepts 1 to 10 JPG/PNG screenshots per display size.'
+                : 'Header and search art has one size, so there is nothing to add here.'}
             </p>
             <div className="grid gap-3">
               {appStorePresets.map((preset) => {
                 const covered = coveredByAsIs(preset.id);
+                const disabled = covered || !formatsAvailable;
                 const target = appleTargetForSize(preset.artboard.width, preset.artboard.height);
                 return (
                   <div key={preset.id} className="flex items-start space-x-2">
                     <Checkbox
                       id={`gen-${preset.id}`}
-                      disabled={covered}
-                      checked={!covered && generateFormats.includes(preset.id)}
+                      disabled={disabled}
+                      checked={!disabled && generateFormats.includes(preset.id)}
                       onCheckedChange={() => toggleFormat(preset.id)}
                     />
                     <div className="grid gap-0.5 leading-none">
                       <Label
                         htmlFor={`gen-${preset.id}`}
-                        className={covered ? 'text-muted-foreground' : undefined}
+                        className={disabled ? 'text-muted-foreground' : undefined}
                       >
                         {target?.label ?? preset.label}: {preset.artboard.width}×{preset.artboard.height}
                       </Label>
                       <p className="text-xs text-muted-foreground">
-                        {covered
+                        {covered && formatsAvailable
                           ? 'Matches the current size. Select "Export at current sizes" to include it'
                           : APP_STORE_TIER_NOTES[preset.id]}
                       </p>

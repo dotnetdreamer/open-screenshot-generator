@@ -27,7 +27,8 @@ import {
   Share2Icon,
   StoreIcon,
   UsersIcon,
-  LanguagesIcon
+  LanguagesIcon,
+  PanelTopIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -57,6 +58,8 @@ interface ToolbarProps {
   onDropInScreenshots?: () => void;
   /** Open the start dialog straight on the social graphics deck. Optional too. */
   onMakeGraphics?: () => void;
+  /** Open the App Store header and search dialog for the open project. */
+  onMakeStoreArt?: () => void;
   onPreview: () => void;
   /** Preview, opened straight into the store listing mockup. */
   onPreviewStore?: () => void;
@@ -143,6 +146,7 @@ export function Toolbar({
   onSelectTemplate,
   onDropInScreenshots,
   onMakeGraphics,
+  onMakeStoreArt,
   onPreview,
   onPreviewStore,
   onPreviewCompare,
@@ -250,6 +254,19 @@ export function Toolbar({
             title="Make social graphics"
           >
             <ShapesIcon className="h-[1.2rem] w-[1.2rem]" />
+          </Button>
+        )}
+        {/* iOS 27 gave every listing two new images. They are built from the
+            open project, so this sits with the other one-click makers rather
+            than on the start screen. */}
+        {onMakeStoreArt && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onMakeStoreArt}
+            title="App Store header and search art"
+          >
+            <PanelTopIcon className="h-[1.2rem] w-[1.2rem]" />
           </Button>
         )}
       </div>

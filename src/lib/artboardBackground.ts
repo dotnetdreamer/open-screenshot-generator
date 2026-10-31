@@ -8,6 +8,7 @@
 // the gaps instead of dropping the background on the floor.
 
 import type { ArtboardState, Size } from '@/types/artboard';
+import { isCreativeBoard } from '@/lib/creative/specs';
 
 export const DEFAULT_GRADIENT = { color1: '#00F260', color2: '#0575E6', angle: 45 };
 
@@ -109,6 +110,11 @@ function backgroundImageSrc(artboard: ArtboardState): string | undefined {
  *    once in a live session cannot disagree about a number neither of them
  *    wrote.
  *
+ * App Store header and search artboards are left out of both jobs. They are
+ * not screenshots, so they neither take the screenshots' picture nor give
+ * theirs away, and their widths stay out of a span's slice arithmetic, which
+ * would otherwise shift every screenshot's slice the moment a header is added.
+ *
  * Returns the input array by reference when nothing changed.
  */
 export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardState[] {
@@ -119,6 +125,7 @@ export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardSt
     'backgroundImage' | 'backgroundImageFit' | 'backgroundImageApply' | 'backgroundImageTintColor' | 'backgroundImageTintOpacity'
   > | null = null;
   for (const board of artboards) {
+    if (isCreativeBoard(board)) continue;
     const src = backgroundImageSrc(board);
     const apply = board.backgroundImageApply;
     if (!src || (apply !== 'all' && apply !== 'span')) continue;
@@ -137,7 +144,7 @@ export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardSt
   let changed = false;
   const filled = shared
     ? artboards.map((board) => {
-        if (backgroundImageSrc(board)) return board;
+        if (backgroundImageSrc(board) || isCreativeBoard(board)) return board;
         changed = true;
         return { ...board, ...shared! };
       })
@@ -145,6 +152,7 @@ export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardSt
 
   const spans = new Map<string, ArtboardState[]>();
   for (const board of filled) {
+    if (isCreativeBoard(board)) continue;
     const src = backgroundImageSrc(board);
     if (!src || board.backgroundImageApply !== 'span') continue;
     const group = spans.get(src);

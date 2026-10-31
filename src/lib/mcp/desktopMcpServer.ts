@@ -91,6 +91,10 @@ export interface McpArtboardSummary {
   backgroundColor: string;
   elementCount: number;
   active: boolean;
+  /** Set on App Store header and search art: 'header', 'search' or 'universal'. Absent on a screenshot. */
+  creativeAsset?: string;
+  /** Apple's art safe area on that art, in artboard pixels: the part every device shows. */
+  safeArea?: { x: number; y: number; width: number; height: number };
 }
 
 /** One template in the Start-a-New-Project gallery. */
@@ -1315,7 +1319,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'create_artboard',
-    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-3" for the required iPhone size, "ipad-13" for iPad). Returns the new artboard.',
+    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-3" for the required iPhone size, "ipad-13" for iPad). For the iOS 27 App Store creative art use "appstore-header" (3840x1646 product page header), "appstore-search" (3840x2560 search result) or "appstore-universal" (5244x2950, one image for both): those boards keep Apple\'s size, and the result carries safeArea, the rectangle every device shows. An iPhone shows little more than that rectangle, so put the copy and anything that must not be cropped inside it, and let only the background run past it. Returns the new artboard.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -2628,7 +2632,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'export_all',
     description:
-      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. Pass locale to render one language, which names the files "<locale>_01_<name>.png"; for the fastlane-style folder per language, call it once per language with a directory of its own. With no locale it renders whatever the canvas is showing.',
+      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. App Store header and search art takes no number: it is named for its placement, as in "AppStore_Header_3840x1646.png", with "_2" on a second design of the same kind. Pass locale to render one language, which names the files "<locale>_01_<name>.png"; for the fastlane-style folder per language, call it once per language with a directory of its own. With no locale it renders whatever the canvas is showing.',
     inputSchema: {
       type: 'object',
       properties: {

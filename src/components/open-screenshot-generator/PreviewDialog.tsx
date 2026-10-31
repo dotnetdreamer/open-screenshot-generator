@@ -7,6 +7,7 @@ import { projectArtboards } from '@/lib/i18n/project';
 import { StaticArtboard, getArtboardBackgroundStyle, count3dDevices } from './StaticArtboard';
 import { StoreListingPreview } from './StoreListingPreview';
 import { computeSpill, spillFor, type BoardSpill } from '@/lib/spanArtboards';
+import { screenshotBoards } from '@/lib/creative/specs';
 import type { ArtboardState } from '@/types/artboard';
 
 /** One entry in the language pill row. `null` is the base language. */
@@ -36,6 +37,8 @@ interface PreviewDialogProps {
    * so the store mockup and the language sheet are one click from the top bar.
    */
   initialMode?: PreviewMode;
+  /** Opens the App Store header and search dialog from the store mockup. */
+  onAddStoreArt?: () => void;
 }
 
 /** What the dialog body is showing. */
@@ -274,6 +277,7 @@ export function PreviewDialog({
   onSelectLocale,
   projectName,
   initialMode = 'single',
+  onAddStoreArt,
 }: PreviewDialogProps) {
   const initialIndex = Math.max(0, artboards.findIndex(ab => ab.id === initialArtboardId));
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -333,6 +337,7 @@ export function PreviewDialog({
   if (artboards.length === 0) return null;
 
   const artboard = artboards[Math.min(currentIndex, artboards.length - 1)];
+  const shotCount = screenshotBoards(artboards).length;
 
   const HEADER_HEIGHT = 56;
   const FILMSTRIP_HEIGHT = 132;
@@ -374,7 +379,7 @@ export function PreviewDialog({
           {compareOpen
             ? `${options.length} languages`
             : storeOpen
-              ? `${artboards.length} ${artboards.length === 1 ? 'screenshot' : 'screenshots'}`
+              ? `${shotCount} ${shotCount === 1 ? 'screenshot' : 'screenshots'}`
               : `${currentIndex + 1} / ${artboards.length}`}
         </div>
         <div className="flex items-center gap-1">
@@ -425,6 +430,8 @@ export function PreviewDialog({
           <StoreListingPreview
             artboards={artboards}
             appName={projectName?.trim() || 'Your App'}
+            activeLocale={activeLocale}
+            onAddStoreArt={onAddStoreArt}
           />
           {/* The language pills stay: checking each locale's listing is the
               other half of why this view exists. */}

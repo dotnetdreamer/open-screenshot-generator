@@ -42,6 +42,7 @@ import {
   validatePlayImage,
 } from '@/lib/publish/storeTargets';
 import { CANVAS_SIZE_PRESET_GROUPS } from '@/lib/sizePresets';
+import { creativeSpecForSize } from '@/lib/creative/specs';
 import type { PngInfo } from './png.js';
 import { PNG_COLOR_TYPES } from './png.js';
 import type { Mp4Info } from './mp4.js';
@@ -324,8 +325,12 @@ export function checkPng(info: PngInfo, ruleset: StoreRuleset): Finding[] {
     rules.fixedSlots.find((entry) => entry.width === info.width && entry.height === info.height) ??
     null;
 
+  // iOS 27 header and search art has sizes of its own, which are not
+  // screenshot sizes and must not be failed as unknown ones.
+  const creative = rules.sizing === 'apple-table' ? creativeSpecForSize(info.width, info.height) : undefined;
+
   if (rules.sizing === 'apple-table') {
-    if (!appleTargetForSize(info.width, info.height)) {
+    if (!creative && !appleTargetForSize(info.width, info.height)) {
       const preset = APPSTORE_PRESET_ONLY_SIZES.has(key(info.width, info.height));
       // A size Apple lists for a display App Store Connect cannot take yet is
       // right, just early: warn, so a Duo set passes but the upload gap shows.
@@ -398,11 +403,21 @@ export function checkPng(info: PngInfo, ruleset: StoreRuleset): Finding[] {
     // with an alpha channel, so "no transparency" would be a lie there.
     findings.push({
       level: 'ok',
-      code: 'png-ok',
-      message: `${size(info.width, info.height)}, ${PNG_COLOR_TYPES[info.colorType] ?? `colour type ${info.colorType}`}, ${ruleset.label} accepts it`,
+      code: creative ? 'png-creative-ok' : 'png-ok',
+      message: creative
+        ? `${size(info.width, info.height)}, ${PNG_COLOR_TYPES[info.colorType] ?? `colour type ${info.colorType}`}, ${ruleset.label} ${creative.label.toLowerCase()} art`
+        : `${size(info.width, info.height)}, ${PNG_COLOR_TYPES[info.colorType] ?? `colour type ${info.colorType}`}, ${ruleset.label} accepts it`,
     });
   }
   return findings;
+}
+
+/**
+ * True for a file `osg verify` should not count into a screenshot set: on the
+ * App Store, header and search art goes to its own placement.
+ */
+export function isCreativeArt(width: number, height: number, ruleset: StoreRuleset): boolean {
+  return ruleset.png.sizing === 'apple-table' && !!creativeSpecForSize(width, height);
 }
 
 /** Findings for one exported app preview MP4. */

@@ -1,10 +1,21 @@
 "use client";
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeftIcon, PanelTopIcon, SearchIcon, ShareIcon, XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StaticArtboard, getArtboardBackgroundStyle, count3dDevices } from './StaticArtboard';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { detectArtboardsFormat } from '@/lib/deviceRegistry';
 import { computeSpill, spillFor, type BoardSpill } from '@/lib/spanArtboards';
+import {
+  boardForPlacement,
+  creativeSpec,
+  iphoneCropFor,
+  isCreativeAssetKind,
+  screenshotBoards,
+  type CreativePlacement,
+} from '@/lib/creative/specs';
+import { checkCreativeView } from '@/lib/creative/check';
+import { CreativeIssueList, useFontsLoaded } from './creative/CreativeBoardBadge';
 import type { ArtboardState } from '@/types/artboard';
 
 /**
@@ -25,8 +36,9 @@ const SpillContext = createContext<Map<string, BoardSpill> | null>(null);
  * and the chrome around them is just enough context to make the size read
  * honestly.
  *
- * Everything except the screenshots is a placeholder: the ratings, counts and
- * chart position are fixed sample values, not data about anyone's app.
+ * Everything except the screenshots and the creative art (the iOS 27 header
+ * and search result) is a placeholder: the ratings, counts and chart position
+ * are fixed sample values, not data about anyone's app.
  */
 
 export type StoreKind = 'appstore' | 'play';
@@ -592,6 +604,367 @@ function AppStoreSearch({
   );
 }
 
+// --- App Store with creative art (iOS 27) ---------------------------------------
+//
+// From iOS 27 a listing can open with a header above the icon and name, and a
+// search result can show art of its own in place of three screenshots. These
+// two surfaces follow the device renders on Apple's asset best practices page,
+// and the part of the art they show comes from iphoneCropFor
+// (lib/creative/specs.ts), measured off the same renders.
+
+/** Creative art the way a phone shows it in one placement. */
+function CreativeCrop({
+  board,
+  placement,
+  width,
+  radius = 0,
+}: {
+  board: ArtboardState;
+  placement: CreativePlacement;
+  width: number;
+  radius?: number;
+}) {
+  const crop = iphoneCropFor(board, placement) ?? { x: 0, y: 0, width: board.size.width, height: board.size.height };
+  const scale = width / crop.width;
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: `${width}px`,
+        height: `${Math.round(crop.height * scale)}px`,
+        overflow: 'hidden',
+        borderRadius: `${radius}px`,
+        flexShrink: 0,
+      }}
+    >
+      <div style={{ position: 'absolute', left: `${-crop.x * scale}px`, top: `${-crop.y * scale}px` }}>
+        <StaticArtboard artboard={board} scale={scale} />
+      </div>
+    </div>
+  );
+}
+
+/** The round see-through buttons iOS 27 floats over the header. */
+function GlassButton({ dark, children }: { dark: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className="flex items-center justify-center"
+      style={{
+        width: '44px',
+        height: '44px',
+        borderRadius: '22px',
+        background: dark ? 'rgba(28,28,30,0.45)' : 'rgba(255,255,255,0.45)',
+        backdropFilter: 'blur(14px) saturate(1.6)',
+        WebkitBackdropFilter: 'blur(14px) saturate(1.6)',
+        boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.6), 0 2px 10px rgba(0,0,0,0.14)',
+        color: dark ? '#ffffff' : '#1c1c1e',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function RatingsStrip({ theme }: { theme: StoreTheme }) {
+  return (
+    <div
+      className="mt-5 flex items-stretch"
+      style={{ borderTop: `1px solid ${theme.hairline}`, paddingTop: '12px' }}
+    >
+      {[
+        { label: '1.2K RATINGS', value: '4.8', sub: '★★★★★' },
+        { label: 'AGE RATING', value: '4+', sub: 'Years' },
+        { label: 'CHART', value: '#12', sub: 'Productivity' },
+      ].map((cell, i) => (
+        <div
+          key={cell.label}
+          className="flex flex-1 flex-col items-center justify-center gap-0.5"
+          style={i > 0 ? { borderLeft: `1px solid ${theme.hairline}` } : undefined}
+        >
+          <span style={{ fontSize: '11px', fontWeight: 600, color: theme.subtext, letterSpacing: '0.02em' }}>
+            {cell.label}
+          </span>
+          <span style={{ fontSize: '19px', fontWeight: 700, color: theme.subtext }}>{cell.value}</span>
+          <span style={{ fontSize: '10px', color: theme.subtext }}>{cell.sub}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AppStoreProduct27({
+  header,
+  dark,
+  artboards,
+  appName,
+  developerName,
+  theme,
+  icon,
+  liveIndexes,
+  observer,
+  width,
+}: SurfaceProps & { header: ArtboardState; dark: boolean }) {
+  return (
+    <>
+      <div className="relative">
+        <CreativeCrop board={header} placement="header" width={width} />
+        {/* The page starts under the status bar, so the header does too. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0">
+          <StatusBar store="appstore" theme={{ ...theme, statusIcon: '#ffffff' }} />
+        </div>
+        <div
+          className="pointer-events-none absolute flex justify-between"
+          style={{ top: '60px', left: '16px', right: '16px' }}
+        >
+          <GlassButton dark={dark}>
+            <ChevronLeftIcon className="h-6 w-6" strokeWidth={2.2} />
+          </GlassButton>
+          <GlassButton dark={dark}>
+            <ShareIcon className="h-5 w-5" strokeWidth={2} />
+          </GlassButton>
+        </div>
+      </div>
+
+      <div style={{ padding: `20px ${APPSTORE_PAD}px 0` }}>
+        <div className="flex gap-4">
+          <AppIcon
+            size={108}
+            radius={24}
+            initials={icon.initials}
+            background={icon.background}
+            foreground={icon.foreground}
+          />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span
+              style={{ fontSize: '22px', lineHeight: '26px', fontWeight: 700, letterSpacing: '-0.02em', color: theme.text }}
+            >
+              {appName}
+            </span>
+            <span style={{ fontSize: '15px', lineHeight: '20px', color: theme.subtext }}>{developerName}</span>
+            <div className="mt-auto">
+              <div
+                className="flex items-center justify-center"
+                style={{ width: '74px', height: '32px', borderRadius: '16px', background: theme.link }}
+              >
+                <span style={{ fontSize: '16px', fontWeight: 600, color: '#ffffff' }}>Get</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <RatingsStrip theme={theme} />
+      </div>
+
+      <ShotRow
+        artboards={artboards}
+        store="appstore"
+        surface="product"
+        theme={theme}
+        radius={16}
+        padding={APPSTORE_PAD}
+        marginTop={18}
+        liveIndexes={liveIndexes}
+        observer={observer}
+        width={width}
+      />
+
+      <div style={{ padding: `20px ${APPSTORE_PAD}px 32px` }}>
+        <span style={{ fontSize: '20px', fontWeight: 700, color: theme.text, letterSpacing: '-0.02em' }}>
+          Description
+        </span>
+        <div className="mt-3">
+          <SkeletonLines theme={theme} widths={['100%', '96%', '88%', '64%']} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+/** Short English words a search suggestion would never be. */
+const FILLER_WORDS = new Set([
+  'your', 'with', 'that', 'this', 'from', 'have', 'more', 'what', 'when', 'plus', 'into', 'just',
+  'them', 'they', 'every', 'their', 'about', 'which', 'today', 'know', 'make', 'left', 'than',
+]);
+
+/** Words from the art's own copy, for the suggestion chips under the field. */
+function chipWords(board: ArtboardState, appName: string): string[] {
+  const name = appName.toLowerCase();
+  const words = board.elements
+    .filter((el): el is Extract<ArtboardState['elements'][number], { type: 'text' }> => el.type === 'text')
+    .flatMap((el) => el.content.toLowerCase().split(/[^\p{L}]+/u))
+    .filter((word) => word.length >= 4 && !FILLER_WORDS.has(word) && !name.includes(word));
+  return Array.from(new Set(words)).slice(0, 4);
+}
+
+function AppStoreSearch27({
+  search,
+  appName,
+  developerName,
+  theme,
+  icon,
+  width,
+}: SurfaceProps & { search: ArtboardState }) {
+  const chips = chipWords(search, appName);
+  return (
+    <>
+      <div style={{ padding: `6px ${APPSTORE_PAD - 4}px 0` }}>
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex min-w-0 flex-1 items-center gap-2"
+            style={{ height: '44px', borderRadius: '22px', background: theme.chip, padding: '0 14px' }}
+          >
+            <SearchIcon className="h-[18px] w-[18px] shrink-0" style={{ color: theme.subtext }} strokeWidth={2.2} />
+            <span className="flex-1 truncate" style={{ fontSize: '17px', color: theme.text }}>
+              {appName}
+            </span>
+            <span
+              className="flex shrink-0 items-center justify-center"
+              style={{ width: '18px', height: '18px', borderRadius: '9px', background: theme.subtext }}
+            >
+              <XIcon className="h-3 w-3" style={{ color: theme.page }} strokeWidth={3} />
+            </span>
+          </div>
+          <div
+            className="flex shrink-0 items-center justify-center"
+            style={{ width: '44px', height: '44px', borderRadius: '22px', background: theme.chip }}
+          >
+            <XIcon className="h-5 w-5" style={{ color: theme.text }} strokeWidth={2} />
+          </div>
+        </div>
+
+        <div className="mt-3 flex gap-2 overflow-hidden">
+          {(chips.length > 0 ? chips : ['', '', '', '']).map((chip, i) => (
+            <span
+              key={`${chip}-${i}`}
+              className="flex shrink-0 items-center"
+              style={{
+                height: '34px',
+                padding: '0 14px',
+                minWidth: chip ? undefined : `${56 + (i % 2) * 18}px`,
+                borderRadius: '17px',
+                border: `1px solid ${theme.hairline}`,
+                fontSize: '15px',
+                color: theme.text,
+              }}
+            >
+              {chip}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center gap-3" style={{ padding: '0 4px' }}>
+          <AppIcon
+            size={60}
+            radius={14}
+            initials={icon.initials}
+            background={icon.background}
+            foreground={icon.foreground}
+          />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate" style={{ fontSize: '17px', fontWeight: 600, color: theme.text }}>
+              {appName}
+            </span>
+            <span className="truncate" style={{ fontSize: '14px', color: theme.subtext }}>
+              {developerName}
+            </span>
+            <span style={{ fontSize: '11px', color: theme.subtext }}>★★★★★ 1.2K</span>
+          </div>
+          <div className="flex shrink-0 flex-col items-center gap-0.5">
+            <div
+              className="flex items-center justify-center"
+              style={{ width: '72px', height: '30px', borderRadius: '15px', background: theme.accent }}
+            >
+              <span style={{ fontSize: '16px', fontWeight: 700, color: theme.accentText }}>Get</span>
+            </div>
+            <span style={{ fontSize: '9px', color: theme.subtext }}>In-App Purchases</span>
+          </div>
+        </div>
+        <div className="mt-2 truncate" style={{ padding: '0 4px', fontSize: '13px', color: theme.subtext }}>
+          #12 in Productivity
+        </div>
+      </div>
+
+      <div style={{ padding: `10px ${APPSTORE_PAD}px 0` }}>
+        <CreativeCrop board={search} placement="search" width={width - APPSTORE_PAD * 2} radius={16} />
+      </div>
+
+      <div style={{ borderTop: `1px solid ${theme.hairline}`, marginTop: '22px' }}>
+        <SkeletonResults theme={theme} count={2} iconSize={60} radius={14} padding={APPSTORE_PAD} />
+      </div>
+    </>
+  );
+}
+
+/**
+ * Beside the phone: what the store check finds in the creative art in this
+ * language, or, when the project has none, what it is missing.
+ */
+function StoreArtPanel({
+  header,
+  search,
+  locale,
+  onAddStoreArt,
+}: {
+  header: ArtboardState | undefined;
+  search: ArtboardState | undefined;
+  locale: string | null;
+  onAddStoreArt?: () => void;
+}) {
+  // Re-renders, and so re-checks, once the project's fonts have loaded.
+  useFontsLoaded();
+  const boards = Array.from(new Set([header, search].filter((board): board is ArtboardState => !!board)));
+
+  if (boards.length === 0) {
+    return (
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+        <PanelTopIcon className="h-5 w-5 text-white/70" />
+        <p className="mt-3 text-sm font-semibold text-white">New in iOS 27</p>
+        <p className="mt-1 text-xs leading-relaxed text-white/60">
+          A product page can open with a header, and a search result can show art of its own instead of three
+          screenshots. This listing has neither, so it falls back to the screenshots.
+        </p>
+        {onAddStoreArt && (
+          <button
+            type="button"
+            onClick={onAddStoreArt}
+            className="mt-4 w-full rounded-full bg-white px-3 py-2 text-xs font-semibold text-black transition-colors hover:bg-white/85"
+          >
+            Add header and search art
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {boards.map((board) => {
+        const spec = isCreativeAssetKind(board.creativeAsset) ? creativeSpec(board.creativeAsset) : null;
+        const issues = checkCreativeView(board, locale);
+        return (
+          <div key={board.id} className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            <p className="text-sm font-semibold text-white">{board.name}</p>
+            {spec && <p className="text-[11px] text-white/45">{spec.sizeLabel}</p>}
+            <CreativeIssueList issues={issues} tone="inverse" className="mt-3 text-white" />
+          </div>
+        );
+      })}
+      {!search && onAddStoreArt && (
+        <button
+          type="button"
+          onClick={onAddStoreArt}
+          className="w-full rounded-full bg-white/10 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-white/20"
+        >
+          Add search result art
+        </button>
+      )}
+      <p className="px-1 text-[11px] leading-relaxed text-white/40">
+        The crop follows Apple&apos;s iPhone renders. App Store Connect&apos;s own preview also shows iPad and
+        landscape
+      </p>
+    </div>
+  );
+}
+
 // --- Google Play -------------------------------------------------------------
 
 function PlayProduct({
@@ -879,12 +1252,23 @@ export function StoreListingPreview({
   artboards,
   appName,
   developerName = 'Your Company',
+  activeLocale = null,
+  onAddStoreArt,
 }: {
+  /** Every artboard, already in the language on screen. */
   artboards: ArtboardState[];
   appName: string;
   developerName?: string;
+  /** The language on screen, null for the base one. */
+  activeLocale?: string | null;
+  /** Opens the header and search dialog. Absent hides the invitation. */
+  onAddStoreArt?: () => void;
 }) {
   const detected = useMemo(() => detectArtboardsFormat(artboards), [artboards]);
+  // The carousel is screenshots; the creative art has places of its own.
+  const shots = useMemo(() => screenshotBoards(artboards), [artboards]);
+  const headerBoard = useMemo(() => boardForPlacement(artboards, 'header'), [artboards]);
+  const searchBoard = useMemo(() => boardForPlacement(artboards, 'search'), [artboards]);
   const [store, setStore] = useState<StoreKind>(() =>
     detected === 'android' || detected === 'tablet-7' || detected === 'tablet-10'
       ? 'play'
@@ -963,26 +1347,33 @@ export function StoreListingPreview({
 
   const spill = useMemo(() => computeSpill(artboards), [artboards]);
 
+  const showsHeader = store === 'appstore' && surface === 'product' && !!headerBoard;
+  const showsSearchArt = store === 'appstore' && surface === 'search' && !!searchBoard;
+
   const liveIndexes = useMemo(() => {
     const live = new Set<number>();
-    let budget = LIVE_3D_BUDGET;
+    // The art on screen is always drawn, so it pays first.
+    let budget =
+      LIVE_3D_BUDGET -
+      (showsHeader && headerBoard ? count3dDevices(headerBoard) : 0) -
+      (showsSearchArt && searchBoard ? count3dDevices(searchBoard) : 0);
     // Reading order, so what goes without is always the far end of the row
     // rather than a different shot on every scroll.
-    for (let i = 0; i < artboards.length; i += 1) {
+    for (let i = 0; i < shots.length; i += 1) {
       if (!visible.has(i)) continue;
       if (live.size >= MAX_LIVE_SHOTS) break;
-      const cost = count3dDevices(artboards[i], spillFor(spill, artboards[i].id));
+      const cost = count3dDevices(shots[i], spillFor(spill, shots[i].id));
       if (cost > budget) continue;
       budget -= cost;
       live.add(i);
     }
     return live;
-  }, [artboards, visible, spill]);
+  }, [shots, visible, spill, showsHeader, showsSearchArt, headerBoard, searchBoard]);
 
-  const icon = useMemo(() => deriveIcon(artboards[0], appName), [artboards, appName]);
+  const icon = useMemo(() => deriveIcon(shots[0], appName), [shots, appName]);
 
   const surfaceProps: SurfaceProps = {
-    artboards,
+    artboards: shots,
     appName,
     developerName,
     theme,
@@ -1022,6 +1413,7 @@ export function StoreListingPreview({
         />
       </div>
 
+      <div className="flex min-h-0 flex-1 overflow-hidden">
       <div ref={boxRef} className="flex flex-1 items-center justify-center overflow-hidden px-4">
         {scale > 0 && (
           <div
@@ -1050,7 +1442,8 @@ export function StoreListingPreview({
                 scrollbarWidth: 'none',
               }}
             >
-              <StatusBar store={store} theme={theme} />
+              {/* Over a header the status bar is part of the header instead. */}
+              {!showsHeader && <StatusBar store={store} theme={theme} />}
 
               {store === 'appstore' && (
                 // The Dynamic Island sits over the page, so it has to float
@@ -1069,8 +1462,16 @@ export function StoreListingPreview({
               )}
 
               <SpillContext.Provider value={spill}>
-                {store === 'appstore' && surface === 'product' && <AppStoreProduct {...surfaceProps} />}
-                {store === 'appstore' && surface === 'search' && <AppStoreSearch {...surfaceProps} />}
+                {store === 'appstore' && surface === 'product' && (showsHeader && headerBoard ? (
+                  <AppStoreProduct27 {...surfaceProps} header={headerBoard} dark={themeKind === 'dark'} />
+                ) : (
+                  <AppStoreProduct {...surfaceProps} />
+                ))}
+                {store === 'appstore' && surface === 'search' && (showsSearchArt && searchBoard ? (
+                  <AppStoreSearch27 {...surfaceProps} search={searchBoard} />
+                ) : (
+                  <AppStoreSearch {...surfaceProps} />
+                ))}
                 {store === 'play' && surface === 'product' && <PlayProduct {...surfaceProps} />}
                 {store === 'play' && surface === 'search' && <PlaySearch {...surfaceProps} />}
               </SpillContext.Provider>
@@ -1078,16 +1479,36 @@ export function StoreListingPreview({
           </div>
         )}
       </div>
+      {store === 'appstore' && (
+        <aside className="hidden w-72 shrink-0 overflow-y-auto py-2 pr-6 lg:block" aria-label="App Store header and search">
+          <StoreArtPanel header={headerBoard} search={searchBoard} locale={activeLocale} onAddStoreArt={onAddStoreArt} />
+        </aside>
+      )}
+      </div>
 
       <div className="flex flex-col items-center gap-0.5 px-4 pb-4 pt-3 text-center">
         <span className="text-xs text-white/60">
           {phone.label}, {phone.width} × {phone.height}pt
           {scale > 0 && scale < 0.999 ? `, shown at ${Math.round(scale * 100)}%` : ''}
           {'. '}
-          {surface === 'search'
-            ? 'Search results are where small text disappears first.'
-            : 'Scroll the phone. The row swipes sideways.'}
+          {showsHeader
+            ? 'The header crop is an estimate. Keep text in the safe area.'
+            : showsSearchArt
+              ? 'Your search art takes the place of three screenshots here.'
+              : surface === 'search'
+                ? 'Search results are where small text disappears first.'
+                : 'Scroll the phone. The row swipes sideways.'}
         </span>
+        {store === 'appstore' && !headerBoard && !searchBoard && onAddStoreArt && (
+          // The side panel is hidden on narrow windows, and this is its way in.
+          <button
+            type="button"
+            onClick={onAddStoreArt}
+            className="mt-1 text-xs font-medium text-white underline underline-offset-2 lg:hidden"
+          >
+            Add App Store header and search art
+          </button>
+        )}
         <span className="text-[11px] text-white/35">
           Ratings, downloads and chart position are placeholders.
         </span>

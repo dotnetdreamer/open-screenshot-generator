@@ -1,4 +1,5 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
+import { isCreativeBoard } from './creative/specs';
 import { isStudioStyle, studioModelFor, withStudioRehug } from './device3dStudio';
 import { displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from './device3dModels';
 
@@ -182,13 +183,15 @@ export type DeviceFormat = SwapPlatform | 'ios-large' | 'ipad-pro-13' | 'ipad-11
  * The format the project's device mockups are currently on: a phone platform
  * or a Play Store tablet when every format-specific device agrees, 'mixed'
  * when they disagree, and null when there are none (only generic
- * tablet/desktop/custom, or no devices at all).
+ * tablet/desktop/custom, or no devices at all). App Store header and search
+ * artboards are not screenshots and do not count.
  */
 export function detectArtboardsFormat(
   artboards: ArtboardState[]
 ): DeviceFormat | 'mixed' | null {
   let found: DeviceFormat | null = null;
   for (const ab of artboards) {
+    if (isCreativeBoard(ab)) continue;
     for (const el of ab.elements) {
       if (el.type !== 'device') continue;
       const desc = getDeviceDescriptor(el.deviceType);
@@ -439,6 +442,9 @@ export interface FormatConversionResult {
  * hole); tablet formats swap everything swappable to that tablet. Pure; a
  * single handleArtboardsUpdate call gives one history entry, so undo restores
  * the previous format exactly.
+ *
+ * App Store header and search artboards come back untouched: their size is
+ * Apple's, and it is the same for every device format.
  */
 export function convertArtboardsToFormat(
   artboards: ArtboardState[],
@@ -455,6 +461,7 @@ export function convertArtboardsToFormat(
     'tablet';
   const phonePlatform = preset.id === 'ios-large' ? 'ios' : preset.id as SwapPlatform;
   const next = artboards.map((ab) => {
+    if (isCreativeBoard(ab)) return ab;
     const { width: newW, height: newH } = preset.artboard;
     const sameSize = ab.size.width === newW && ab.size.height === newH;
     let elements = scaleElementsToCanvas(ab.elements, ab.size, preset.artboard);

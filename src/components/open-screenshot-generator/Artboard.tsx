@@ -23,6 +23,8 @@ import { artboardTimeline } from '@/lib/video/timeline';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
 import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning, usePlaybackTransport } from '@/lib/video/playback';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
+import { CreativeSafeAreaOverlay } from './creative/CreativeSafeAreaOverlay';
+import { CreativeBoardBadge } from './creative/CreativeBoardBadge';
 import { Input } from '@/components/ui/input';
 import { EditIcon } from 'lucide-react';
 import {
@@ -112,6 +114,11 @@ interface ArtboardProps {
    * continue onto another. Absent, every element stays on its own artboard.
    */
   spanHost?: SpanHost;
+  /**
+   * The language the canvas is showing, null for the base one. An App Store
+   * header or search artboard checks itself in it.
+   */
+  activeLocale?: string | null;
 }
 
 export interface ArtboardRef {
@@ -148,6 +155,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   renderCollabOverlay,
   spill = NO_SPILL,
   spanHost,
+  activeLocale = null,
 }, ref) => {
   const [elements, setElements] = useState<ArtboardElement[]>(artboard.elements);
   const artboardDivRef = useRef<HTMLDivElement>(null);
@@ -1243,6 +1251,14 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           </div>
         )}
 
+        {artboard.creativeAsset && (
+          <CreativeSafeAreaOverlay
+            board={artboard}
+            screenScale={screenScale}
+            displayScale={displayScaleFactor}
+          />
+        )}
+
         {/* The rubber band. A sibling of the board for the same reason the
             collab marks are, so it can never reach an exported PNG, and drawn
             in artboard pixels with a stroke divided by the screen scale so it
@@ -1313,6 +1329,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             >
               {artboard.name}
             </span>
+            {artboard.creativeAsset && <CreativeBoardBadge board={artboard} locale={activeLocale} />}
           </>
         )}
       </div>

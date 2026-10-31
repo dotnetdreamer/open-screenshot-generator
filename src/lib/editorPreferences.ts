@@ -28,12 +28,15 @@ export type EditorPreference =
    */
   | 'accountAutoSync'
   /** Turn a mouse wheel over the canvas into zoom rather than scroll. */
-  | 'wheelZoom';
+  | 'wheelZoom'
+  /** Draw Apple's art safe area over App Store header and search artboards. */
+  | 'creativeSafeArea';
 
 const KEYS: Record<EditorPreference, string> = {
   cloudAutoSave: 'open-screenshot-generator.cloud-auto-save',
   accountAutoSync: 'open-screenshot-generator.account-auto-sync',
   wheelZoom: 'open-screenshot-generator.wheel-zoom',
+  creativeSafeArea: 'open-screenshot-generator.creative-safe-area',
 };
 
 /**
@@ -48,11 +51,15 @@ const KEYS: Record<EditorPreference, string> = {
  * rather than cautious. Our cloud is ours to fill; a person's Drive quota,
  * their bandwidth and their permanent gist commit history are theirs, and
  * writing to them unattended is a thing to be asked for rather than assumed.
+ *
+ * The safe area guide is on: an iPhone shows only the middle of a header, and
+ * the guide is the only place that says so while you design.
  */
 const DEFAULTS: Record<EditorPreference, boolean> = {
   cloudAutoSave: true,
   accountAutoSync: false,
   wheelZoom: true,
+  creativeSafeArea: true,
 };
 
 const cache = new Map<EditorPreference, boolean>();

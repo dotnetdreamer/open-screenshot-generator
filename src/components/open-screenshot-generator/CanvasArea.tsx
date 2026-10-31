@@ -19,6 +19,7 @@ import {
   reachedArtboardIds,
   spanArtboardsByElement,
   spillFor,
+  stripBoards,
   stripPointFromClient,
   type ScreenRect,
 } from '@/lib/spanArtboards';
@@ -334,7 +335,7 @@ export function CanvasArea({
    * it holds at any zoom and scroll.
    */
   const pointerToBoard = useCallback((boardId: string, clientX: number, clientY: number) => {
-    const boards = artboardsRef.current;
+    const boards = stripBoards(artboardsRef.current, boardId);
     const index = boards.findIndex((board) => board.id === boardId);
     if (index < 0) return null;
     const rects: ScreenRect[] = [];
@@ -967,6 +968,7 @@ export function CanvasArea({
                 canMoveArtboardRight={index < artboards.length - 1}
                 spill={spillFor(spill, artboard.id)}
                 spanHost={spanHost}
+                activeLocale={activeLocale}
                 renderCollabOverlay={
                   collabPeers?.length
                     ? ({ screenScale }) => (

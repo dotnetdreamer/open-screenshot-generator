@@ -12,8 +12,14 @@
 // neighbour's coordinates, drawn by the neighbour and clipped by it. Every
 // render site draws them (the canvas, StaticArtboard, the video compositor),
 // and the PNG export gets them for free because it rasterizes the canvas DOM.
+//
+// The strip holds the screenshots only. An App Store header or search
+// artboard is a different image in a different place on the store, so nothing
+// continues onto it or off it, and its width never moves a screenshot's place
+// in the strip (stripBoards).
 
 import type { ArtboardElement, ArtboardState, ElementAnimation, Point, Size } from '@/types/artboard';
+import { isCreativeBoard, screenshotBoards } from '@/lib/creative/specs';
 import { textOutlineReach } from '@/lib/textOutline';
 import { POP_PEAK_SCALE, slideDistanceFor } from '@/lib/video/animation';
 import { devicePerspectiveTransform, isDevice3dStyle } from '@/lib/devicePerspective';
@@ -409,17 +415,29 @@ function reachedTargets(
  * artboard, which is the only time it has to re-render for one.
  */
 export function reachedArtboardIds(boards: ArtboardState[], elementId: string, box?: SpanLiveBox): string[] {
-  if (boards.length < 2) return [];
-  const offsets = artboardStripOffsets(boards);
-  for (let index = 0; index < boards.length; index++) {
-    const stored = boards[index].elements.find((element) => element.id === elementId);
+  const strip = screenshotBoards(boards);
+  if (strip.length < 2) return [];
+  const offsets = artboardStripOffsets(strip);
+  for (let index = 0; index < strip.length; index++) {
+    const stored = strip[index].elements.find((element) => element.id === elementId);
     if (!stored) continue;
     if (!spansArtboards(stored)) return [];
-    return reachedTargets(boards, offsets, index, withLiveBox(stored, box), box?.originBoardId).map(
-      (target) => boards[target].id
+    return reachedTargets(strip, offsets, index, withLiveBox(stored, box), box?.originBoardId).map(
+      (target) => strip[target].id
     );
   }
   return [];
+}
+
+/**
+ * The artboards laid edge to edge with this one: every screenshot, or just
+ * itself for an App Store header or search artboard. The canvas maps a
+ * pointer through this, so a drag measures the same strip the copies do.
+ */
+export function stripBoards<T extends Pick<ArtboardState, 'id' | 'creativeAsset'>>(boards: T[], boardId: string): T[] {
+  const own = boards.find((board) => board.id === boardId);
+  if (!own) return [];
+  return isCreativeBoard(own) ? [own] : screenshotBoards(boards);
 }
 
 /**
@@ -434,10 +452,11 @@ export function computeSpill(
   live?: ReadonlyMap<string, SpanLiveBox>
 ): Map<string, BoardSpill> {
   const result = new Map<string, BoardSpill>();
-  if (boards.length < 2) return result;
-  const offsets = artboardStripOffsets(boards);
+  const strip = screenshotBoards(boards);
+  if (strip.length < 2) return result;
+  const offsets = artboardStripOffsets(strip);
 
-  boards.forEach((board, sourceIndex) => {
+  strip.forEach((board, sourceIndex) => {
     for (const stored of board.elements) {
       if (!spansArtboards(stored)) continue;
       const box = live?.get(stored.id);
@@ -449,8 +468,8 @@ export function computeSpill(
         if (paint.left >= 0 && paint.right <= board.size.width) continue;
       }
 
-      for (const targetIndex of reachedTargets(boards, offsets, sourceIndex, element, box?.originBoardId)) {
-        const target = boards[targetIndex];
+      for (const targetIndex of reachedTargets(strip, offsets, sourceIndex, element, box?.originBoardId)) {
+        const target = strip[targetIndex];
         const shiftX = offsets[sourceIndex] - offsets[targetIndex];
         let spill = result.get(target.id);
         if (!spill) {

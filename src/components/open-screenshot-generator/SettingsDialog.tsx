@@ -160,6 +160,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
   // on the open project immediately.
   const [autoSaveToCloud, setAutoSaveToCloud] = useEditorPreference('cloudAutoSave');
   const [wheelZoom, setWheelZoom] = useEditorPreference('wheelZoom');
+  const [creativeSafeArea, setCreativeSafeArea] = useEditorPreference('creativeSafeArea');
   const contentRef = useRef<HTMLDivElement>(null);
 
   // localStorage is only readable after mount, and the wizard's own checkbox
@@ -218,6 +219,18 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
               htmlFor="settings-wheel-zoom"
               control={
                 <Switch id="settings-wheel-zoom" checked={wheelZoom} onCheckedChange={setWheelZoom} />
+              }
+            />
+            <SettingsRow
+              label="Show the safe area on header and search art"
+              description="Outlines the part of an App Store header or search artboard that every device shows. Never exported"
+              htmlFor="settings-creative-safe-area"
+              control={
+                <Switch
+                  id="settings-creative-safe-area"
+                  checked={creativeSafeArea}
+                  onCheckedChange={setCreativeSafeArea}
+                />
               }
             />
           </SettingsSection>
