@@ -48,5 +48,9 @@ if ! command -v appimagetool >/dev/null 2>&1; then
     exit 1
 fi
 
+# --appimage-extract creates every directory 0700, whatever mode the image
+# stored, and appimagetool will not pack an AppDir other users cannot read.
+chmod -R a+rX "$appdir"
+
 ARCH="${ARCH:-x86_64}" appimagetool "$appdir" "$appimage" >/dev/null
 echo "patched: $appimage"
