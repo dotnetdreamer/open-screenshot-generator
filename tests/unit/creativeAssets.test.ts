@@ -23,6 +23,7 @@ import { hash32 } from '@/lib/i18n/hash';
 import { checkPng, isCreativeArt, rulesetFor } from '../../cli/src/verify/rules';
 import { buildCreativeBoard, CREATIVE_LOOKS, readProjectLook, suggestedAppName } from '@/lib/creative/layouts';
 import { checkCreativeBoard, checkCreativeView, countIssues } from '@/lib/creative/check';
+import { decodeCreativeLookChoice, encodeCreativeLookChoice } from '@/lib/creative/paletteDrag';
 import { computeSpill, reachedArtboardIds, stripBoards } from '@/lib/spanArtboards';
 import { normalizeBackgroundImage } from '@/lib/artboardBackground';
 import { convertArtboardsToFormat, detectArtboardsFormat, DEVICE_FORMAT_PRESETS } from '@/lib/deviceRegistry';
@@ -593,4 +594,35 @@ test('converting the device format and detecting it both skip header and search 
   const converted = convertArtboardsToFormat([header, shot], ipad).artboards;
   assert.equal(converted[0], header);
   assert.deepEqual(converted[1].size, ipad.artboard);
+});
+
+test('a design dragged from the Header tab arrives as the choice it left as, and anything else is refused', () => {
+  for (const kind of Object.keys(CREATIVE_LOOKS) as CreativeAssetKind[]) {
+    for (const look of CREATIVE_LOOKS[kind]) {
+      const choice = { kind, lookId: look.id, appName: 'Somnia, "sleep" & more' };
+      assert.deepEqual(decodeCreativeLookChoice(encodeCreativeLookChoice(choice)), choice);
+    }
+  }
+  // An older or foreign drag without a name still lands, with the name empty.
+  assert.deepEqual(decodeCreativeLookChoice('{"kind":"search","lookId":"two-phones"}'), {
+    kind: 'search',
+    lookId: 'two-phones',
+    appName: '',
+  });
+  for (const raw of ['', 'not json', 'null', '[]', '{"kind":"poster","lookId":"wordmark"}', '{"kind":"header"}', '{"kind":"header","lookId":""}']) {
+    assert.equal(decodeCreativeLookChoice(raw), null, raw);
+  }
+});
+
+test('every design the Header tab offers builds an artboard of its kind at Apple size', () => {
+  const look = readProjectLook([], 'Somnia');
+  for (const kind of Object.keys(CREATIVE_LOOKS) as CreativeAssetKind[]) {
+    const spec = creativeSpec(kind);
+    for (const entry of CREATIVE_LOOKS[kind]) {
+      const board = buildCreativeBoard(kind, entry.id, look, `palette-${kind}-${entry.id}`);
+      assert.equal(board.creativeAsset, kind, entry.id);
+      assert.deepEqual(board.size, { width: spec.width, height: spec.height }, entry.id);
+      assert.ok(board.elements.length > 0, `${kind}/${entry.id} has something on it`);
+    }
+  }
 });

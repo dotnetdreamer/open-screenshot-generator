@@ -32,6 +32,7 @@ import {
   XIcon,
   FilmIcon,
   MusicIcon,
+  PanelTopIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
@@ -77,6 +78,8 @@ import {
   PREVIEW_SCENE_SIZE,
   type PreviewSceneDef,
 } from '@/lib/previewScenes';
+import type { CreativeLookChoice } from '@/lib/creative/paletteDrag';
+import { StoreArtPaletteTab } from './creative/StoreArtPaletteTab';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -88,8 +91,8 @@ type PaletteDragStart = (
 
 /**
  * What a tile carries onto a board, whether by mouse drag, tap or finger drag.
- * A Previews tile carries `sceneId` instead of `type`: it does not add a layer
- * to a board, it adds a board.
+ * A Previews tile carries `sceneId` and a Header tile `creativeLook` instead of
+ * `type`: they do not add a layer to a board, they add a board.
  */
 export interface PaletteTilePayload {
   label: string;
@@ -99,6 +102,8 @@ export interface PaletteTilePayload {
   libraryId?: string;
   /** Set only by a Previews tile. See lib/previewScenes.ts. */
   sceneId?: string;
+  /** Set only by a Header tile. See lib/creative/paletteDrag.ts. */
+  creativeLook?: CreativeLookChoice;
 }
 
 /**
@@ -373,6 +378,12 @@ interface ElementPaletteProps {
    */
   onAddPreviewScene?: (sceneId: string, point?: { x: number; y: number }) => void;
   /**
+   * A Header tile was clicked, or dropped with a finger, with `point` as for
+   * onAddPreviewScene. Absent on a host that has no canvas, and the Header tab
+   * is left out there.
+   */
+  onAddCreativeLook?: (choice: CreativeLookChoice, point?: { x: number; y: number }) => void;
+  /**
    * A tile dragged with a finger and let go over the canvas. The point is in
    * client coordinates; the layout works out which board is under it. Absent on
    * a mouse-only host, where the HTML5 drop path covers this.
@@ -563,7 +574,7 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
  * nothing in it depends on canvas state, so it must not rebuild every time the
  * layout re-renders. Pass a stable `onAddElement` or the memo does nothing.
  */
-export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement, onAddPreviewScene }: ElementPaletteProps) {
+export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement, onAddPreviewScene, onAddCreativeLook }: ElementPaletteProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
 
@@ -596,6 +607,8 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
     // 'layers' was a palette tab before the layers panel moved to the floating
     // bottom-right card; a stale saved value would select a tab that no longer
     // exists and blank the palette.
+    // The Header tab only exists on a host with a canvas to add to.
+    if (saved === 'store-art' && !onAddCreativeLook) return;
     if (saved && saved !== 'layers' && saved !== activeTab) setActiveTab(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -635,6 +648,13 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
     [onAddPreviewScene]
   );
 
+  const handleCreativeLookClick = useCallback(
+    (choice: CreativeLookChoice) => {
+      onAddCreativeLook?.(choice);
+    },
+    [onAddCreativeLook]
+  );
+
   // Finger drags. A tile held for a moment lifts out of the palette and follows
   // the finger; letting go over a board drops the element there, exactly where
   // a mouse drag would have put it.
@@ -642,6 +662,10 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
     (payload: PaletteTilePayload, point: { x: number; y: number }) => {
       if (payload.sceneId) {
         onAddPreviewScene?.(payload.sceneId, point);
+        return;
+      }
+      if (payload.creativeLook) {
+        onAddCreativeLook?.(payload.creativeLook, point);
         return;
       }
       if (!payload.type) return;
@@ -652,7 +676,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
         onAddElement(payload.type, payload.subType, props);
       }
     },
-    [onAddElement, onDropElement, onAddPreviewScene]
+    [onAddElement, onDropElement, onAddPreviewScene, onAddCreativeLook]
   );
   const { bind: bindTileTouchDrag, ghostNode } = useTouchDrag<PaletteTilePayload>({ onDrop: handleTouchDrop });
 
@@ -660,9 +684,12 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
     <TileTouchDragContext.Provider value={bindTileTouchDrag}>
     <TooltipProvider delayDuration={200}>
     {ghostNode}
-    <div className="h-full flex flex-col">
+    {/* flex-1, not h-full: the sidebar puts Discover above the palette, so a
+        full-height palette is taller than its room, and the end of any tab
+        long enough to scroll would sit behind the sidebar's footer. */}
+    <div className="flex min-h-0 flex-1 flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-        <TabsList className="grid w-[95%] grid-cols-4 mx-auto mt-2 h-auto p-0.5">
+        <TabsList className={`grid w-[95%] ${onAddCreativeLook ? 'grid-cols-5' : 'grid-cols-4'} mx-auto mt-2 h-auto p-0.5`}>
           <TabsTrigger value="elements" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <TypeIcon className="w-4 h-4" />
             Elements
@@ -679,6 +706,12 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
             <FilmIcon className="w-4 h-4" />
             Previews
           </TabsTrigger>
+          {onAddCreativeLook && (
+            <TabsTrigger value="store-art" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
+              <PanelTopIcon className="w-4 h-4" />
+              Header
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Rule: no bare `flex` on TabsContent (it defeats [hidden]), and no
@@ -1184,6 +1217,15 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
             </Card>
           </ScrollArea>
         </TabsContent>
+
+        {/* Header: App Store header and search art, also whole artboards. The
+            designs are built from the open project, so the tab reads it from
+            StoreArtSourceContext rather than through this memoized palette. */}
+        {onAddCreativeLook && (
+          <TabsContent value="store-art" className="flex-grow p-3 pt-2 mt-0 min-h-0">
+            <StoreArtPaletteTab onAdd={handleCreativeLookClick} bindTouch={bindTileTouchDrag} />
+          </TabsContent>
+        )}
 
       </Tabs>
     </div>

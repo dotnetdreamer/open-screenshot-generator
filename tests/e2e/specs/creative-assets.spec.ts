@@ -3,7 +3,7 @@ import type { Download, Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import type { TauriHarness } from '../fixtures/tauri';
 import { waitForProject } from '../fixtures/db';
-import { expectBoardSize } from '../helpers/canvas';
+import { centreOf, expectBoardSize, fingerDragTile } from '../helpers/canvas';
 import type { Editor } from '../helpers/editor';
 
 /**
@@ -19,9 +19,9 @@ function creativeDialog(page: Page) {
   return page.getByRole('dialog').filter({ hasText: 'App Store header and search' });
 }
 
-/** Toolbar button, default looks, Add. Leaves the header selected. */
+/** The toolbar's + menu, default looks, Add. Leaves the header selected. */
 async function addHeaderAndSearch(app: Editor, page: Page, boardsAfter = 3): Promise<void> {
-  await page.getByTitle('App Store header and search art').click();
+  await app.create('App Store header and search art');
   const dialog = creativeDialog(page);
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole('heading', { name: 'Product page header' })).toBeVisible();
@@ -156,6 +156,79 @@ test.describe('App Store header and search art', () => {
         colorType: 2,
       });
     }
+  });
+
+  test("the sidebar's Header tab adds one design with a click, at the start of the canvas and with the name typed there", async ({
+    app,
+    page,
+  }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Header').click();
+    const tab = page.getByRole('tabpanel', { name: 'Header' });
+    await expect(tab.getByRole('heading', { name: 'Product page header' })).toBeVisible();
+    await expect(tab.getByRole('heading', { name: 'Search results' })).toBeVisible();
+    await expect(tab.getByRole('heading', { name: 'Universal' })).toBeVisible();
+
+    await tab.getByLabel('App name').fill('Somnia');
+    await tab.getByRole('button', { name: 'Add the Wordmark header', exact: true }).click();
+
+    await expect(app.artboards).toHaveCount(2);
+    await expectBoardSize(app.board(0), 3840, 1646);
+    await expectBoardSize(app.board(1), 1206, 2622);
+    await expect(app.board(0).getByText('Somnia', { exact: true })).toBeVisible();
+    await expect(page.getByTitle('App Store check for the product page header')).toContainText('Ready');
+    await waitForProject(page, (project) => {
+      const boards = project.projectData as { creativeAsset?: string }[];
+      return boards?.length === 2 && boards[0]?.creativeAsset === 'header' && !boards[1]?.creativeAsset;
+    });
+  });
+
+  test('a design dragged from the Header tab onto an artboard lands right after it', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Header').click();
+    const tile = page.getByRole('button', { name: 'Add the Two screens search result', exact: true });
+    await expect(tile).toBeVisible();
+
+    // The HTML5 drag a mouse makes, event by event, so both browsers run it the
+    // same way: the tile writes the payload, the drop on the artboard reads it.
+    const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+    await tile.dispatchEvent('dragstart', { dataTransfer });
+    await app.board(0).dispatchEvent('drop', { dataTransfer });
+
+    await expect(app.artboards).toHaveCount(2);
+    await expectBoardSize(app.board(0), 1206, 2622);
+    await expectBoardSize(app.board(1), 3840, 2560);
+    await expect(page.getByTitle('App Store check for the search results')).toBeVisible();
+  });
+
+  test('a design held and dragged with a finger lands after the artboard it is let go over', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Header').click();
+    const tile = page.getByRole('button', { name: 'Add the Headline and screen search result', exact: true });
+    await expect(tile).toBeVisible();
+    await fingerDragTile(page, tile, await centreOf(app.board(0)));
+
+    await expect(app.artboards).toHaveCount(2);
+    await expectBoardSize(app.board(0), 1206, 2622);
+    await expectBoardSize(app.board(1), 3840, 2560);
+  });
+
+  test('a design lifted with a finger anywhere but the canvas adds nothing', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.paletteTab('Header').click();
+    const tile = page.getByRole('button', { name: 'Add the Wordmark header', exact: true });
+    await expect(tile).toBeVisible();
+
+    // Lifted over the toolbar: the user changed their mind.
+    await fingerDragTile(page, tile, await centreOf(app.createButton));
+    // The drop is answered on the lift itself, so an artboard added by it would
+    // be on the canvas well within this.
+    await page.waitForTimeout(750);
+    await expect(app.artboards).toHaveCount(1);
   });
 
   test('two designs of each kind export as separate files, so the desktop folder keeps both', async ({

@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import { StaticArtboard } from '../StaticArtboard';
+import { CreativeLookThumb } from './CreativeLookThumb';
 import {
   buildCreativeBoard,
   CREATIVE_LOOKS,
@@ -25,7 +25,7 @@ import {
   suggestedAppName,
   type CreativeLook,
 } from '@/lib/creative/layouts';
-import { creativeBoards, creativeSpec, iphoneCropFor, type CreativePlacement } from '@/lib/creative/specs';
+import { creativeBoards, creativeSpec, type CreativePlacement } from '@/lib/creative/specs';
 
 type Mode = 'pair' | 'universal';
 
@@ -221,8 +221,6 @@ function LookCard({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const scale = width / board.size.width;
-  const crop = showCrop ? iphoneCropFor(board, placement) : null;
   return (
     <button
       type="button"
@@ -234,36 +232,7 @@ function LookCard({
       )}
       style={{ width: width + 12 }}
     >
-      <div
-        className="relative overflow-hidden rounded-md ring-1 ring-border"
-        style={{ width, height: Math.round(board.size.height * scale) }}
-      >
-        <StaticArtboard artboard={board} scale={scale} />
-        {crop && (
-          <div
-            className="pointer-events-none absolute rounded-[3px]"
-            style={{
-              left: crop.x * scale,
-              top: crop.y * scale,
-              width: crop.width * scale,
-              height: crop.height * scale,
-              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.3)',
-              outline: '1.5px solid rgba(255, 255, 255, 0.95)',
-            }}
-          >
-            {/* Above the window when there is room, so it never sits on the
-                art it is pointing at. */}
-            <span
-              className={cn(
-                'absolute left-0 rounded bg-black/60 px-1 text-[9px] font-medium leading-4 text-white',
-                crop.y * scale >= 18 ? '-top-[18px]' : 'left-1 top-1'
-              )}
-            >
-              iPhone
-            </span>
-          </div>
-        )}
-      </div>
+      <CreativeLookThumb board={board} width={width} placement={placement} showCrop={showCrop} />
       <div className="px-0.5">
         <p className="text-xs font-medium">{entry.label}</p>
         <p className="text-[11px] leading-snug text-muted-foreground">{entry.blurb}</p>

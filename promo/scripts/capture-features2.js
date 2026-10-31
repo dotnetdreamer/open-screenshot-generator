@@ -125,7 +125,12 @@ const clickEl = async (page, pick, args = []) => {
     });
     await lib.sleep(2500);
     if (!(await page.evaluate(() => /Start blank/i.test(document.body.innerText)))) {
-      await page.evaluate(() => document.querySelector('button[title="Select Template"]')?.click());
+      await page.evaluate(async () => {
+        // The start dialog is behind the toolbar +, a Popover, so a DOM click opens it.
+        document.querySelector('button[aria-label="Create"]')?.click();
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        document.querySelector('button[aria-label="Start from a template"]')?.click();
+      });
       await lib.sleep(2500);
     }
     await page.waitForFunction("!!document.body.innerText.match(/Start blank/i)", { polling: 500, timeout: 60000 });

@@ -48,6 +48,7 @@ import { CanvasSizeDialog } from './CanvasSizeDialog';
 import { GithubLinkButton } from './GithubLink';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { CreateMenu } from './CreateMenu';
 
 interface ToolbarProps {
   onSelectTemplate: () => void;
@@ -221,55 +222,65 @@ export function Toolbar({
           After" in its hover toolbar), which is also where the new board ends
           up. A project can never reach zero artboards, since deleting the last
           one is refused, so that affordance is always reachable. */}
-      <div className="flex shrink-0 items-center space-x-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onSelectTemplate}
-          title="Select Template"
-        >
-          <LayoutTemplateIcon className="h-[1.2rem] w-[1.2rem]" />
-        </Button>
-        {/* The fast path, reachable with a project already open. Without this
-            it exists only on the start screen, which somebody mid-project has
-            no reason to go back to. */}
-        {onDropInScreenshots && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onDropInScreenshots}
-            title="Start from screenshots"
-          >
-            <ImagePlusIcon className="h-[1.2rem] w-[1.2rem]" />
-          </Button>
-        )}
-        {/* Same argument as the button above it: a link preview or a story is
-            something you want the day you ship, which is well after the start
-            screen is out of reach. */}
-        {onMakeGraphics && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onMakeGraphics}
-            title="Make social graphics"
-          >
-            <ShapesIcon className="h-[1.2rem] w-[1.2rem]" />
-          </Button>
-        )}
-        {/* iOS 27 gave every listing two new images. They are built from the
-            open project, so this sits with the other one-click makers rather
-            than on the start screen. */}
-        {onMakeStoreArt && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={onMakeStoreArt}
-            title="App Store header and search art"
-          >
-            <PanelTopIcon className="h-[1.2rem] w-[1.2rem]" />
-          </Button>
-        )}
-      </div>
+      {/* Every way to start a design, behind one +. The three the start screen
+          also offers are here because somebody mid-project has no reason to go
+          back to the start screen, and a link preview or a story is wanted the
+          day you ship. Header and search art is built from the open project,
+          so it has a heading of its own. */}
+      <CreateMenu
+        sections={[
+          {
+            label: 'New project',
+            items: [
+              {
+                id: 'template',
+                label: 'Start from a template',
+                description: 'A finished design to fill with your screenshots',
+                icon: LayoutTemplateIcon,
+                onSelect: onSelectTemplate,
+              },
+              ...(onDropInScreenshots
+                ? [
+                    {
+                      id: 'screenshots',
+                      label: 'Start from screenshots',
+                      description: 'Drop in screenshots and get finished designs',
+                      icon: ImagePlusIcon,
+                      onSelect: onDropInScreenshots,
+                    },
+                  ]
+                : []),
+              ...(onMakeGraphics
+                ? [
+                    {
+                      id: 'graphics',
+                      label: 'Make social graphics',
+                      description: 'Link previews, posts, stories and banners',
+                      icon: ShapesIcon,
+                      onSelect: onMakeGraphics,
+                    },
+                  ]
+                : []),
+            ],
+          },
+          ...(onMakeStoreArt
+            ? [
+                {
+                  label: 'Add to this project',
+                  items: [
+                    {
+                      id: 'store-art',
+                      label: 'App Store header and search art',
+                      description: 'New in iOS 27, built from this project',
+                      icon: PanelTopIcon,
+                      onSelect: onMakeStoreArt,
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ]}
+      />
 
       <div className="h-8 w-px shrink-0 bg-muted mx-2" />
 

@@ -18,7 +18,7 @@ test.describe('editor boot', () => {
     await app.dismissStartDialog();
     await app.ensurePaletteOpen();
     await expect(app.exportButton).toBeVisible();
-    await expect(app.selectTemplateButton).toBeVisible();
+    await expect(app.createButton).toBeVisible();
     await expect(app.paletteTab('Elements')).toBeVisible();
     await expect(app.paletteTab('Devices')).toBeVisible();
     await expect(app.dockTab('Properties')).toBeVisible();
@@ -26,6 +26,39 @@ test.describe('editor boot', () => {
     await expect(app.dockTab('Versions')).toBeVisible();
     await expect(app.selectionTool).toBeVisible();
     await expect(app.undoButton).toBeVisible();
+  });
+
+  test('the + lists every way to start a design, each with what it makes', async ({ app, page }) => {
+    await app.startBlankProject();
+    const items = [
+      ['Start from a template', 'A finished design to fill with your screenshots'],
+      ['Start from screenshots', 'Drop in screenshots and get finished designs'],
+      ['Make social graphics', 'Link previews, posts, stories and banners'],
+      ['App Store header and search art', 'New in iOS 27, built from this project'],
+    ] as const;
+    const first = page.getByRole('button', { name: items[0][0], exact: true });
+
+    // Resting the mouse on the + is enough to open it, and moving off closes it.
+    await app.createButton.hover();
+    for (const [name, description] of items) {
+      const item = page.getByRole('button', { name, exact: true });
+      await expect(item).toBeVisible();
+      await expect(item).toHaveAccessibleDescription(description);
+    }
+    await expect(page.getByRole('group', { name: 'New project' })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Add to this project' })).toBeVisible();
+    // Far from the menu, wherever the viewport puts it.
+    const viewport = page.viewportSize()!;
+    await page.mouse.move(viewport.width - 30, viewport.height - 30);
+    await expect(first).toBeHidden();
+
+    // A click opens it too, the way a tap does, and the keyboard can walk it.
+    await app.createButton.click();
+    await expect(first).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('button', { name: items[1][0], exact: true })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(first).toBeHidden();
   });
 
   test('a blank project lands one artboard at the required iPhone size', async ({ app }) => {

@@ -47,13 +47,20 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
   build). A folder alone can start a Claude Code run. On the web that button toggles an alert titled
   `Code folders need the desktop app`; scope any locator to that alert, because the Claude Code tab has
   its own `Get the desktop app` button.
-- Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Images` / `Previews`. **Previews** holds whole App
+- Tabs: `[role="tab"]` containing `Elements` / `Devices` / `Images` / `Previews` / `Header`. **Previews** holds whole App
   Preview boards (see `src/lib/previewScenes.ts`); its tiles read `Add the <Scene Name> preview board
   (scene:<id>)` and each one adds an ARTBOARD, not an element, so count `[data-artboard-dom-id]` rather than
   `[data-element-id]` to detect the add. To review the scenes themselves, do NOT drive the canvas: headless
   Edge returns torn frames after scrolling the board row. Bundle `StaticArtboard` + `previewScenes.ts` with
   esbuild (same recipe as `regen-3d-thumbs.js`), serve the harness from `public/` so the posters resolve, and
-  screenshot the mount node per scene. There is NO Layers tab anymore:
+  screenshot the mount node per scene. **Header** holds the eight App Store header and search designs, drawn
+  live from the open project (`creative/StoreArtPaletteTab.tsx`). Its tiles carry no library id: they read
+  `Add the <Look> header`, `Add the <Look> search result` or `Add the <Look> universal image` (for example
+  `Add the Wordmark header`), with an `App name` box and a `Show what an iPhone shows` switch above them. A
+  click adds that design as an ARTBOARD at the start of the canvas and scrolls the canvas to it; a drop puts
+  it after the artboard under the pointer. Any palette tile dragged with a finger and lifted off the canvas
+  (over the toolbar, the sidebar or a panel) adds nothing. Wait for all eight tiles (`[role="tabpanel"][data-state="active"]
+  button[aria-label^="Add the "]`) before a screenshot: the designs only build once the tab is open. There is NO Layers tab anymore:
   Properties (top) and Layers (bottom) live in one right dock with a draggable divider
   (`[role="separator"]`) between them. Collapse the dock via `button[aria-label="Collapse right panel"]`;
   collapsed it becomes a slim vertical rail — expand via `button[aria-label="Expand right panel"]` or the
@@ -80,6 +87,13 @@ Drives the real app in headless Edge to verify changes end-to-end: screenshots, 
 - Tiles: `button[aria-label="Add <label> (<libraryId>)"]` — they carry **no `title`** (a Radix hover card shows the label + library id instead), so match on the accessible name. `lib.js clickByTitle` handles both: pass `Add Transparent device` and it matches the `(devicecolor:iphone-transparent)` suffix for you. `button[aria-label^="Add "]` selects every tile in the open group.
 - Elements tab search: `input[aria-label="Search elements by name or id"]` filters the whole Elements tab (Basic, App Preview and the vector library) by name, library id, group or keyword; `button[aria-label="Clear search"]` restores the category overview. Results replace the category grid, so type into it *instead of* opening a category.
 - Toolbar by `title` attr: `New Artboard` (new artboard becomes active), `Zoom In`, `Zoom Out`.
+- The four ways to start sit behind the toolbar's **+** at the far left, `button[aria-label="Create"]`
+  (`CreateMenu.tsx`): `Start from a template` (the start dialog, what `Select Template` used to open),
+  `Start from screenshots`, `Make social graphics` and, under "Add to this project", `App Store header and
+  search art`. Each is a `button` with that `aria-label`, its one-line description wired through
+  `aria-describedby`. The + is a Popover, not a DropdownMenu, so a DOM `.click()` opens it (unlike the Export
+  and Import menus); resting the mouse on it opens it too, after about 120ms. Open it, wait two animation
+  frames, then click the item.
 - **Import and Export are dropdown menus**, `button[title="Open a project"]` and `button[title="Export"]`. Their items are `[role="menuitem"]`: `From a project file` / `From your account`, and `Project file` plus the render item, whose label depends on the project: `Artboards as images` for screenshot projects, `App preview video` for App Preview ones (match on either, or on the `.mp4` suffix). Radix opens them on pointerdown, so a DOM `.click()` does nothing: use `lib.js clickMenuItem(page, 'Export', 'Artboards as images')`, which mouse-clicks the trigger and then the item in the portal.
 - Canvas elements: `[data-element-id]` (count them to detect adds).
 - **Export dialog:** the Export menu's `Artboards as images` opens the "Export Screenshots" dialog (it no longer downloads directly). Checkboxes by id: `#export-as-is` (checked by default), `#gen-ios`, `#gen-ipad-pro-13`, `#gen-ipad-11` (App Store sizes to generate; disabled when the current canvas already covers that format). Confirm with the dialog button whose text is `Export`. `lib.js exportArtboards` handles all of this and takes an optional `extraFormats` array of those ids.

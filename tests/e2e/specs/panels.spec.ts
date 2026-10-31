@@ -226,7 +226,7 @@ test.describe('detached panel window', () => {
 
     // No editor: no toolbar, no canvas, no palette.
     await expect(page.getByTitle('Export')).toHaveCount(0);
-    await expect(page.getByTitle('Select Template')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Create', exact: true })).toHaveCount(0);
     await expect(page.locator('[data-artboard-dom-id]')).toHaveCount(0);
     await expect(page.getByRole('tab', { name: 'Elements', exact: true })).toHaveCount(0);
 

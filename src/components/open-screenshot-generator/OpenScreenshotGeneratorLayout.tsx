@@ -98,7 +98,10 @@ import {
   isCreativeBoard,
   screenshotBoards,
 } from '@/lib/creative/specs';
+import { buildCreativeBoard, CREATIVE_LOOKS, readProjectLook } from '@/lib/creative/layouts';
+import type { CreativeLookChoice } from '@/lib/creative/paletteDrag';
 import { CreativeAssetsDialog } from './creative/CreativeAssetsDialog';
+import { StoreArtSourceContext, type StoreArtSource } from './creative/StoreArtPaletteTab';
 import { artboardBackground, normalizeBackgroundImage } from '@/lib/artboardBackground';
 import {
   startDesktopMcpBridge,
@@ -606,6 +609,52 @@ function hasAgentPanelSelection(): boolean {
   const anchor = selection.anchorNode;
   const element = anchor instanceof Element ? anchor : anchor?.parentElement;
   return !!element?.closest('[data-agent-panel]');
+}
+
+/**
+ * The artboard under a point in client coordinates, for a palette tile let go
+ * there with a finger. elementsFromPoint, not elementFromPoint: on a phone the
+ * palette sheet is still mounted over the canvas (faded and click-through, but
+ * there), so the board can be the second or third thing under the finger.
+ */
+function artboardIdAtPoint(point: Point): string | null {
+  const node = document
+    .elementsFromPoint(point.x, point.y)
+    .map((el) => el.closest('[data-artboard-dom-id]'))
+    .find((el): el is Element => !!el) ?? null;
+  return node?.getAttribute('data-artboard-dom-id') ?? null;
+}
+
+/**
+ * Whether a palette tile let go there with a finger lands on the canvas. A
+ * finger lifted over the toolbar, the sidebar or a panel means never mind, so
+ * nothing is added. Anything floating over the canvas still counts, because
+ * elementsFromPoint also returns what is underneath it, and a phone's palette
+ * sheet goes click-through while a drag is in flight.
+ */
+function isOverCanvas(point: Point): boolean {
+  return document.elementsFromPoint(point.x, point.y).some((el) => el.closest('[data-canvas-area]') !== null);
+}
+
+/**
+ * Scroll the canvas until a board that just landed has its start on screen.
+ * It moves the canvas viewport only, never the page around it.
+ */
+function revealArtboard(id: string): void {
+  // Two frames: the first commits the new board, the second lays it out.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      const node = document.querySelector(`[data-artboard-dom-id="${CSS.escape(id)}"]`);
+      const viewport = node?.closest('[data-radix-scroll-area-viewport]');
+      if (!node || !(viewport instanceof HTMLElement)) return;
+      const box = node.getBoundingClientRect();
+      const view = viewport.getBoundingClientRect();
+      const margin = 24;
+      const left = box.left < view.left || box.left > view.right - margin ? box.left - view.left - margin : 0;
+      const top = box.top < view.top || box.top > view.bottom - margin ? box.top - view.top - margin : 0;
+      if (left !== 0 || top !== 0) viewport.scrollBy({ left, top, behavior: 'smooth' });
+    })
+  );
 }
 
 // A one-artboard "Blank Canvas" project at the given size. `size` follows the
@@ -3546,6 +3595,7 @@ export function OpenScreenshotGeneratorLayout() {
     styleProps: Record<string, any> | undefined,
     point: Point
   ) => {
+    if (!isOverCanvas(point)) return;
     // elementsFromPoint, not elementFromPoint: on a phone the palette sheet is
     // still mounted over the canvas (faded and click-through, but present), so
     // the board can be the second or third thing under the finger.
@@ -3637,29 +3687,38 @@ export function OpenScreenshotGeneratorLayout() {
   };
 
   /**
-   * App Store header and search art, as finished artboards from the dialog.
+   * App Store header and search art, as finished artboards from the dialog or
+   * the palette's Header tab.
    *
    * They go to the front of the canvas, which is where the header sits on the
-   * store, in one history entry and one save. normalizeLocalization stamps the
-   * project's languages onto them, and the translations the dialog carried over
-   * are already in their `localized` maps.
+   * store, unless `afterArtboardId` names the artboard a design was dropped on.
+   * One history entry and one save either way. normalizeLocalization stamps the
+   * project's languages onto them, and the translations the designs carried
+   * over are already in their `localized` maps.
    */
-  const handleAddCreativeBoards = (boards: ArtboardState[]) => {
+  const handleAddCreativeBoards = (boards: ArtboardState[], afterArtboardId?: string | null) => {
     if (boards.length === 0) return;
+    const anchorIndex = afterArtboardId ? artboards.findIndex((ab) => ab.id === afterArtboardId) : -1;
+    const next =
+      anchorIndex >= 0
+        ? [...artboards.slice(0, anchorIndex + 1), ...boards, ...artboards.slice(anchorIndex + 1)]
+        : [...boards, ...artboards];
     const landed = handleArtboardsUpdate(
-      normalizeLocalization([...boards, ...artboards]),
+      normalizeLocalization(next),
       namedChange('Add App Store header and search', 'artboard', boards.map((board) => board.name).join(', '))
     );
     if (!landed) return;
     setIsCreativeDialogOpen(false);
     setActiveArtboardId(boards[0].id);
     setSelectedElementIdOnActiveArtboard(null);
+    revealArtboard(boards[0].id);
     const backToStore = creativeReturnsToStoreRef.current;
     creativeReturnsToStoreRef.current = false;
     if (backToStore) openPreview('store');
+    const where = anchorIndex >= 0 ? `after "${artboards[anchorIndex].name}"` : 'at the start of the canvas';
     toast({
       title: boards.length === 1 ? `${boards[0].name} added` : 'Header and search art added',
-      description: `${boards.length === 1 ? 'A new artboard' : `${boards.length} new artboards`} at the start of the canvas, at App Store Connect's exact size. The green outline is the part every device shows.`,
+      description: `${boards.length === 1 ? 'A new artboard' : `${boards.length} new artboards`} ${where}, at App Store Connect's exact size. The green outline is the part every device shows.`,
       action: backToStore ? undefined : (
         <ToastAction altText="See it in the store listing" onClick={() => openPreview('store')}>
           Preview
@@ -3718,19 +3777,37 @@ export function OpenScreenshotGeneratorLayout() {
    * real drop event to read the target board off.
    */
   const handlePaletteAddPreviewScene = useCallback((sceneId: string, point?: Point) => {
-    let droppedOn: string | null = null;
-    if (point) {
-      // elementsFromPoint, not elementFromPoint: on a phone the palette sheet
-      // is still mounted over the canvas (faded and click-through, but there),
-      // so the board can be the second or third thing under the finger.
-      const node = document
-        .elementsFromPoint(point.x, point.y)
-        .map((el) => el.closest('[data-artboard-dom-id]'))
-        .find((el): el is Element => !!el) ?? null;
-      droppedOn = node?.getAttribute('data-artboard-dom-id') ?? null;
-    }
-    addPreviewSceneRef.current(sceneId, droppedOn);
+    if (point && !isOverCanvas(point)) return;
+    addPreviewSceneRef.current(sceneId, point ? artboardIdAtPoint(point) : null);
   }, []);
+
+  /**
+   * One design from the palette's Header tab, built from the project the way
+   * the add dialog builds it. With no anchor it goes to the start of the
+   * canvas, where the header sits on the store; a drop names the artboard it
+   * should follow.
+   */
+  const handleAddCreativeLook = (choice: CreativeLookChoice, afterArtboardId?: string | null) => {
+    if (!CREATIVE_LOOKS[choice.kind].some((entry) => entry.id === choice.lookId)) return;
+    const seed = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}${choice.kind[0]}`;
+    const board = buildCreativeBoard(choice.kind, choice.lookId, readProjectLook(artboards, choice.appName), seed);
+    handleAddCreativeBoards([board], afterArtboardId);
+  };
+
+  // Through a ref for the same reason as addPreviewSceneRef.
+  const addCreativeLookRef = useRef(handleAddCreativeLook);
+  addCreativeLookRef.current = handleAddCreativeLook;
+
+  const handlePaletteAddCreativeLook = useCallback((choice: CreativeLookChoice, point?: Point) => {
+    if (point && !isOverCanvas(point)) return;
+    addCreativeLookRef.current(choice, point ? artboardIdAtPoint(point) : null);
+  }, []);
+
+  // What the Header tab draws its designs from, given to that tab alone.
+  const storeArtSource = useMemo<StoreArtSource>(
+    () => ({ artboards, projectId: activeProjectId, projectName: currentProjectName }),
+    [artboards, activeProjectId, currentProjectName]
+  );
   
   const handleDuplicateArtboard = (artboardId: string) => {
     const artboardToDuplicate = artboards.find(ab => ab.id === artboardId);
@@ -9054,11 +9131,14 @@ const generateRandomProjectName = (): string => {
               </SidebarMenu>
             </SidebarGroup>
             )}
-            <ElementPalette
-              onAddElement={handlePaletteAddElement}
-              onDropElement={handlePaletteDropElement}
-              onAddPreviewScene={handlePaletteAddPreviewScene}
-            />
+            <StoreArtSourceContext.Provider value={storeArtSource}>
+              <ElementPalette
+                onAddElement={handlePaletteAddElement}
+                onDropElement={handlePaletteDropElement}
+                onAddPreviewScene={handlePaletteAddPreviewScene}
+                onAddCreativeLook={handlePaletteAddCreativeLook}
+              />
+            </StoreArtSourceContext.Provider>
           </SidebarContent>
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
              <SidebarGroup className="p-0">
@@ -9230,6 +9310,7 @@ const generateRandomProjectName = (): string => {
                 activeLocale={activeLocale}
                 onAddElementToArtboard={handleAddElementToArtboard}
                 onAddPreviewScene={handleAddPreviewScene}
+                onAddCreativeLook={handleAddCreativeLook}
                 onDropImageFiles={(files, point) => void handleCanvasImageDrop(files, point)}
                 activeArtboardId={activeArtboardId}
                 setActiveArtboardId={handleArtboardSelection}

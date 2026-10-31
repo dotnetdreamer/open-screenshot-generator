@@ -84,7 +84,8 @@ the AI agent, and nothing leaving your machine).
 - **Capture gotchas.** The start dialog opens behind the Tips dialog and on the
   community feed, so the flow is: close *only* the tips dialog (both share a
   Close label, and closing twice dismisses the start dialog too), reopen from
-  `button[title="Select Template"]` if needed, mouse-click the App Screenshots
+  the toolbar + if needed (`button[aria-label="Create"]`, then
+  `button[aria-label="Start from a template"]`), mouse-click the App Screenshots
   tab, then filter with the template search before clicking a card, because most
   cards sit below the fold. Zoom the canvas out before capturing the editor or
   the artboards come out cropped at 100%.

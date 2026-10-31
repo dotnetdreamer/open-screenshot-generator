@@ -8,7 +8,9 @@ import { expect, type Locator, type Page } from '@playwright/test';
  *  - Toolbar buttons are icon-only and carry `title`, not `aria-label`
  *    (Toolbar.tsx), so `getByTitle` is the exact locator. `getByRole` also
  *    resolves them, because `title` is the last fallback in the accessible
- *    name calculation, but only while the button stays text-free.
+ *    name calculation, but only while the button stays text-free. The one
+ *    exception is the + (CreateMenu.tsx): it opens on hover, where a title
+ *    tooltip would cover its menu, so it and its items carry `aria-label`.
  *  - Palette CATEGORY tiles carry `title={`Browse ${label}`}` AND a visible
  *    label, so their accessible name is the visible text and `getByTitle` is
  *    the only unambiguous handle.
@@ -132,8 +134,8 @@ export class Editor {
 
   // ---------------------------------------------------------------- toolbar
 
-  get selectTemplateButton(): Locator { return this.page.getByTitle('Select Template'); }
-  get screenshotsButton(): Locator { return this.page.getByTitle('Start from screenshots'); }
+  /** The + at the left of the toolbar: every way to start a design. */
+  get createButton(): Locator { return this.page.getByRole('button', { name: 'Create', exact: true }); }
   get canvasSizeButton(): Locator { return this.page.getByTitle(/^Canvas size:/); }
   get previewButton(): Locator { return this.page.getByTitle('Preview the project'); }
   get openProjectButton(): Locator { return this.page.getByTitle('Open a project'); }
@@ -143,6 +145,20 @@ export class Editor {
   get languageButton(): Locator { return this.page.getByTitle(/Add a language|language/i).first(); }
 
   /** Open one of the toolbar dropdowns and pick an item by its visible text. */
+  /**
+   * Open the + and pick one of its items. A click opens it, the way a tap or
+   * the keyboard does; hovering opens it too, but a test should not have to
+   * wait out a delay.
+   */
+  async create(
+    item: 'Start from a template' | 'Start from screenshots' | 'Make social graphics' | 'App Store header and search art'
+  ): Promise<void> {
+    await this.createButton.click();
+    const choice = this.page.getByRole('button', { name: item, exact: true });
+    await expect(choice).toBeVisible({ timeout: 10_000 });
+    await choice.click();
+  }
+
   async chooseFromMenu(trigger: Locator, item: string | RegExp): Promise<void> {
     await trigger.click();
     const menuItem = this.page.getByRole('menuitem', { name: item });
@@ -196,8 +212,8 @@ export class Editor {
 
   // ----------------------------------------------------------------- palette
 
-  /** Elements / Devices / Images / Previews. */
-  paletteTab(name: 'Elements' | 'Devices' | 'Images' | 'Previews'): Locator {
+  /** Elements / Devices / Images / Previews / Header. */
+  paletteTab(name: 'Elements' | 'Devices' | 'Images' | 'Previews' | 'Header'): Locator {
     return this.page.getByRole('tab', { name, exact: true });
   }
 

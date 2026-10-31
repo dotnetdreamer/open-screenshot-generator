@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '../fixtures/test';
-import { canvasBottomBarsOverlap } from '../helpers/canvas';
+import { canvasBottomBarsOverlap, centreOf, fingerDragTile } from '../helpers/canvas';
 import type { Locator } from '@playwright/test';
 import { Editor } from '../helpers/editor';
 import { waitForProject, type StoredProject } from '../fixtures/db';
@@ -127,6 +127,30 @@ test.describe('adding elements', () => {
     await expect(app.elementsOn(0)).toHaveCount(1);
     await expect(layerRow(page, 'Iphone Device')).toBeVisible();
     await expect(app.activeDockPanel.getByText('Device Properties')).toBeVisible();
+  });
+
+  test('a tile dragged with a finger lands only when it is let go over the canvas', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await app.openPaletteCategory('Basic');
+    const rectangle = page.getByRole('button', { name: 'Add Rectangle (basic:rectangle)', exact: true });
+
+    // Lifted over the toolbar: the user changed their mind. The drop is
+    // answered on the lift itself, so anything it added would be on the
+    // canvas well within the wait.
+    await fingerDragTile(page, rectangle, await centreOf(app.previewButton));
+    await page.waitForTimeout(750);
+    await expect(app.elementsOn(0)).toHaveCount(0);
+
+    await fingerDragTile(page, rectangle, await centreOf(app.board(0)));
+    await expect(app.elementsOn(0)).toHaveCount(1);
+
+    // A Previews tile adds a whole artboard, and follows the same rule.
+    await app.paletteTab('Previews').click();
+    const scene = page.getByRole('button', { name: /preview board \(scene:/ }).first();
+    await fingerDragTile(page, scene, await centreOf(app.previewButton));
+    await page.waitForTimeout(750);
+    await expect(app.artboards).toHaveCount(1);
   });
 });
 

@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { dropElementOverrides } from '@/lib/i18n/localization';
 import { collectDroppedFiles } from '@/lib/intake/intakeFiles';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
+import { CREATIVE_LOOK_DRAG_TYPE, decodeCreativeLookChoice, type CreativeLookChoice } from '@/lib/creative/paletteDrag';
 import { useEditorPreference } from '@/lib/editorPreferences';
 import type { CollabPeer } from '@/lib/collab/types';
 import { CollabBoardOverlay } from './collab/CollabBoardOverlay';
@@ -139,6 +140,12 @@ interface CanvasAreaProps {
    */
   onAddPreviewScene?: (sceneId: string, afterArtboardId?: string | null) => void;
   /**
+   * A Header tile (App Store header and search art) dropped on the canvas. It
+   * adds an artboard too: after the one it landed on, or at the start of the
+   * canvas when it landed between boards.
+   */
+  onAddCreativeLook?: (choice: CreativeLookChoice, afterArtboardId?: string | null) => void;
+  /**
    * Image files dragged onto the canvas from the desktop. Answered before any
    * palette drag type is read, because an OS file drag carries none of them.
    * Mouse only by nature: an OS file drag has no touch equivalent, which is why
@@ -198,6 +205,7 @@ export function CanvasArea({
     onUpdateBaseArtboards,
     onAddElementToArtboard,
     onAddPreviewScene,
+    onAddCreativeLook,
     onDropImageFiles,
     activeArtboardId,
     setActiveArtboardId,
@@ -748,6 +756,16 @@ export function CanvasArea({
       return;
     }
 
+    // Header art the same way, with one difference: a drop between boards puts
+    // it at the start of the canvas, where the header sits on the store.
+    const rawLook = e.dataTransfer.getData(CREATIVE_LOOK_DRAG_TYPE);
+    if (rawLook) {
+      const choice = decodeCreativeLookChoice(rawLook);
+      const node = (e.target as HTMLElement | null)?.closest?.('[data-artboard-dom-id]') ?? null;
+      if (choice) onAddCreativeLook?.(choice, node?.getAttribute('data-artboard-dom-id') ?? null);
+      return;
+    }
+
     const type = e.dataTransfer.getData('application/artboard-element-type') as ElementType;
     const subType = e.dataTransfer.getData('application/artboard-element-subtype') as ShapeType | DeviceType | undefined;
     const rawStyleProps = e.dataTransfer.getData('application/artboard-element-styleprops');
@@ -843,6 +861,9 @@ export function CanvasArea({
   return (
     <ScrollArea
       className="h-full w-full bg-background flex-grow"
+      // What a palette tile dragged with a finger has to be let go over to
+      // land at all (see isOverCanvas in the layout).
+      data-canvas-area=""
       viewportRef={scrollViewportRef}
       // The grab cursor lives on the viewport so it covers the whole canvas,
       // and the descendant rule overrides the per-element inline cursors

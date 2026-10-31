@@ -249,7 +249,7 @@ async function openLeftAndRight(page: Page): Promise<{ left: typeof BOARD; right
  * ends, and until then readProjects waits too, since it reads the same store.
  */
 async function pickRightWhileHeld(editor: Editor, page: Page): Promise<ProjectsHold> {
-  await editor.selectTemplateButton.click();
+  await editor.create('Start from a template');
   await editor.waitForStartDialogReady();
   const row = editor.startDialog.getByText('Right project', { exact: true });
   await expect(row).toBeVisible();
@@ -554,7 +554,7 @@ test.describe('the headless bridge', () => {
     await expect(editor.selectedElement).toHaveCount(1);
 
     // Pick the other project under Recent projects, with its read held.
-    await editor.selectTemplateButton.click();
+    await editor.create('Start from a template');
     await editor.waitForStartDialogReady();
     const row = editor.startDialog.getByText('Right project', { exact: true });
     await expect(row).toBeVisible();
@@ -665,7 +665,7 @@ test.describe('the headless bridge', () => {
 
     // The canvas still holds the left project, so a copy of the right one
     // has to come from its stored row.
-    await editor.selectTemplateButton.click();
+    await editor.create('Start from a template');
     await editor.waitForStartDialogReady();
     await editor.startDialog.getByTitle('Duplicate "Right project"').click();
     await hold.release();

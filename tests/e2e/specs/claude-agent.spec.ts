@@ -433,7 +433,7 @@ test.describe('a Claude Code run', () => {
     await expect(panel.getByRole('button', { name: 'Send' })).toBeVisible();
 
     // Another project gets an empty chat of its own...
-    await app.selectTemplateButton.click();
+    await app.create('Start from a template');
     await app.startBlankProject();
     await expect.poll(() => new URL(page.url()).searchParams.get('projectId')).not.toBe(droplyProject);
     await expect(panel.getByText('Talk to the agent')).toBeVisible();
@@ -490,7 +490,7 @@ test.describe('a Claude Code run', () => {
     await addText(await firstBoard(), 'Droply headline', 40);
 
     // Another project, which gets a chat of its own, with two texts to undo.
-    await app.selectTemplateButton.click();
+    await app.create('Start from a template');
     await app.startBlankProject();
     await expect.poll(projectInUrl).not.toBe(droply);
     const blank = projectInUrl()!;
@@ -724,7 +724,7 @@ test.describe('a Claude Code run', () => {
     await play(tauri, second.spawnId, [init('i2'), turnEnd('r2')]);
 
     // The start screen shows the same pick, and says when the model ignores it.
-    await app.selectTemplateButton.click();
+    await app.create('Start from a template');
     const dialog = await openAgentScreen(page, app.startDialog);
     await expect(dialog.locator('#claude-code-effort')).toHaveText('High');
     await expect(dialog.getByText(EFFORT_HINT)).toBeVisible();

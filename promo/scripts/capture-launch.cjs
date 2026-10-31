@@ -177,7 +177,9 @@ async function main() {
     await page.keyboard.press('Escape');
     await sleep(300);
 
-    await clickControl(page, 'button[title="Select Template"]');
+    // The start dialog is behind the toolbar +.
+    await clickControl(page, 'button[aria-label="Create"]');
+    await clickControl(page, 'button[aria-label="Start from a template"]');
     await waitForText(page, 'button', 'Open the agent');
     await clickText(page, 'button', 'Open the agent');
     await page.waitForSelector('#agent-instruction', { timeout: 30000 });

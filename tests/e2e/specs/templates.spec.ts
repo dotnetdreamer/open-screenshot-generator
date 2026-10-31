@@ -4,7 +4,7 @@ import { readProjects, waitForProject } from '../fixtures/db';
 /**
  * Templates are the app's main on-ramp: 101 JSON files under
  * public/data/projects/, registered in src/lib/templateCategories.ts, offered
- * from the start dialog and from the toolbar's Select Template button.
+ * from the start dialog and from the toolbar's + menu (Start from a template).
  *
  * Nothing else discovers a template. A file that is not in
  * TEMPLATE_CATEGORIES[].files simply is not there, and a template whose JSON no
@@ -82,7 +82,7 @@ test.describe('templates', () => {
     await app.startBlankProject();
     await expect(app.artboards).toHaveCount(1);
 
-    await app.selectTemplateButton.click();
+    await app.create('Start from a template');
     const dialog = app.startDialog;
     await expect(dialog).toBeVisible({ timeout: 20_000 });
     await dialog.getByRole('tab', { name: /App Screenshots/ }).click();

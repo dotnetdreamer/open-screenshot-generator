@@ -88,9 +88,13 @@ async function openTemplate(page, name) {
     await lib.sleep(2000);
     const hasStart = await page.evaluate(() => /Start blank/i.test(document.body.innerText));
     if (!hasStart) {
-      await page.evaluate(() => {
-        const b = document.querySelector('button[title="Select Template"]');
-        if (b) b.click();
+      await page.evaluate(async () => {
+        // The start dialog is behind the toolbar +, a Popover, so a DOM click opens it.
+        const plus = document.querySelector('button[aria-label="Create"]');
+        if (!plus) return;
+        plus.click();
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        document.querySelector('button[aria-label="Start from a template"]')?.click();
       });
       await lib.sleep(2000);
     }

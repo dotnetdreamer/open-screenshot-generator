@@ -189,3 +189,44 @@ export async function canvasBottomBarsOverlap(page: Page): Promise<boolean> {
     zoom.y + zoom.height <= tools.y
   );
 }
+
+/**
+ * A palette tile dragged with a finger and lifted at `to`, in page coordinates.
+ *
+ * A finger fires no HTML5 drag, so this drives the palette's own long-press
+ * drag (src/hooks/use-touch-drag.tsx): a touch press held until the drag arms,
+ * which shows the floating label, then a lift where the finger lets go. The
+ * events are dispatched rather than performed, which proves the app's side of
+ * the gesture, not the browser's touch handling.
+ */
+export async function fingerDragTile(page: Page, tile: Locator, to: { x: number; y: number }): Promise<void> {
+  const from = await tile.boundingBox();
+  if (!from) throw new Error('fingerDragTile: the tile is not on screen');
+  await tile.dispatchEvent('pointerdown', {
+    pointerType: 'touch',
+    pointerId: 31,
+    isPrimary: true,
+    clientX: from.x + from.width / 2,
+    clientY: from.y + from.height / 2,
+  });
+  // The label that follows the finger, portalled into <body>. Not to be
+  // confused with textFit's measuring probe, also a hidden div on <body>.
+  const ghost = page.locator('body > div.fixed.rounded-full[aria-hidden="true"]');
+  await expect(ghost).toBeVisible();
+  await page.evaluate(({ x, y }) => {
+    const target = document.elementFromPoint(x, y) ?? document.body;
+    for (const type of ['pointermove', 'pointerup']) {
+      target.dispatchEvent(
+        new PointerEvent(type, { pointerType: 'touch', pointerId: 31, isPrimary: true, clientX: x, clientY: y, bubbles: true })
+      );
+    }
+  }, to);
+  await expect(ghost).toBeHidden();
+}
+
+/** The middle of a locator's box, for a point to aim a gesture at. */
+export async function centreOf(target: Locator): Promise<{ x: number; y: number }> {
+  const box = await target.boundingBox();
+  if (!box) throw new Error('centreOf: the target is not on screen');
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}

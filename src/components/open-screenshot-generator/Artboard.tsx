@@ -21,6 +21,7 @@ import { measureTextHeight } from '@/lib/textFit';
 import { cn } from '@/lib/utils';
 import { artboardTimeline } from '@/lib/video/timeline';
 import { PREVIEW_SCENE_DRAG_TYPE } from '@/lib/previewScenes';
+import { CREATIVE_LOOK_DRAG_TYPE } from '@/lib/creative/paletteDrag';
 import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning, usePlaybackTransport } from '@/lib/video/playback';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { CreativeSafeAreaOverlay } from './creative/CreativeSafeAreaOverlay';
@@ -1186,11 +1187,12 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           onPointerDown={handleArtboardPointerDown}
           onDrop={(e) => {
             e.preventDefault();
-            // A preview scene becomes its own artboard, not a layer on this
-            // one, so it is deliberately left to bubble up to the canvas
-            // handler (which is why stopPropagation runs after this check and
-            // not before it).
+            // A preview scene or a Header tile becomes its own artboard, not a
+            // layer on this one, so it is deliberately left to bubble up to the
+            // canvas handler (which is why stopPropagation runs after this
+            // check and not before it).
             if (e.dataTransfer.types.includes(PREVIEW_SCENE_DRAG_TYPE)) return;
+            if (e.dataTransfer.types.includes(CREATIVE_LOOK_DRAG_TYPE)) return;
             // Files from the desktop bubble for the same reason: the canvas
             // handler places them across EVERY board's empty device frames, not
             // just this one, so answering here would strand the rest of a

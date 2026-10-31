@@ -408,7 +408,12 @@ async function folderRun({ page, check, shot, clickText, panelText, waitForTurn 
 
     // Into the agent screen, from wherever the editor is.
     if (!(await page.evaluate(() => !!document.querySelector('[role="dialog"]')))) {
-      await page.evaluate(() => document.querySelector('button[title="Select Template"]')?.click());
+      await page.evaluate(async () => {
+        // The start dialog is behind the toolbar +, a Popover, so a DOM click opens it.
+        document.querySelector('button[aria-label="Create"]')?.click();
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        document.querySelector('button[aria-label="Start from a template"]')?.click();
+      });
       await sleep(1000);
     }
     check('the start dialog has the agent entry', await clickText('button', 'Start with the AI agent'));
