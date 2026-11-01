@@ -36,14 +36,14 @@ const WEB_CHANNEL = 'abs-panels-bus';
  */
 export const PANEL_WINDOW_ID: string = `w_${Math.random().toString(36).slice(2, 10)}`;
 
-export interface PanelBus {
+export interface WindowBus<T> {
   /** Fan a message out to every other window. Never throws. */
-  post(message: PanelMessage): void;
+  post(message: T): void;
   /** Stop listening and release the channel. Safe to call twice. */
   close(): void;
 }
 
-const NO_BUS: PanelBus = { post: () => {}, close: () => {} };
+export type PanelBus = WindowBus<PanelMessage>;
 
 /**
  * Join the bus.
@@ -52,24 +52,37 @@ const NO_BUS: PanelBus = { post: () => {}, close: () => {} };
  * message (a hello, a snapshot) is guaranteed to be heard by whoever is already
  * on the wire.
  */
-export async function joinPanelBus(
-  onMessage: (message: PanelMessage) => void
-): Promise<PanelBus> {
-  let closed = false;
+export function joinPanelBus(onMessage: (message: PanelMessage) => void): Promise<PanelBus> {
+  return joinWindowBus<PanelMessage>(TAURI_EVENT, WEB_CHANNEL, PANEL_WINDOW_ID, onMessage);
+}
 
-  const receive = (message: PanelMessage | undefined) => {
+/**
+ * Any channel between this app's windows, on the same two drivers. The project
+ * tabs use one of their own (src/lib/tabs/windowBus.ts). Every message carries
+ * the sender's id in `from`, and a window never hears its own.
+ */
+export async function joinWindowBus<T extends { from: string }>(
+  tauriEvent: string,
+  webChannel: string,
+  ownId: string,
+  onMessage: (message: T) => void
+): Promise<WindowBus<T>> {
+  let closed = false;
+  const noBus: WindowBus<T> = { post: () => {}, close: () => {} };
+
+  const receive = (message: T | undefined) => {
     if (closed || !message || typeof message !== 'object') return;
     // Our own emit, echoed back by Tauri. Not an error, just not for us.
-    if (message.from === PANEL_WINDOW_ID) return;
+    if (message.from === ownId) return;
     onMessage(message);
   };
 
   if (isTauri()) {
     const { emit, listen } = await import('@tauri-apps/api/event');
-    const unlisten = await listen<PanelMessage>(TAURI_EVENT, (event) => receive(event.payload));
+    const unlisten = await listen<T>(tauriEvent, (event) => receive(event.payload));
     return {
       post: (message) => {
-        void emit(TAURI_EVENT, message).catch((error) => {
+        void emit(tauriEvent, message).catch((error) => {
           console.error('Could not reach the other window', error);
         });
       },
@@ -84,10 +97,10 @@ export async function joinPanelBus(
   // The web driver. BroadcastChannel is missing in no browser this editor
   // supports, but a hardened profile can still take it away, and a panel window
   // is better off saying it lost the editor than throwing on mount.
-  if (typeof BroadcastChannel === 'undefined') return NO_BUS;
+  if (typeof BroadcastChannel === 'undefined') return noBus;
 
-  const channel = new BroadcastChannel(WEB_CHANNEL);
-  channel.onmessage = (event: MessageEvent<PanelMessage>) => receive(event.data);
+  const channel = new BroadcastChannel(webChannel);
+  channel.onmessage = (event: MessageEvent<T>) => receive(event.data);
   return {
     post: (message) => {
       try {

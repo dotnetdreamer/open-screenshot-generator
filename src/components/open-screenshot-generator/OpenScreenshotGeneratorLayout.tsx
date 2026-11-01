@@ -3,7 +3,7 @@ import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useR
 import { captureNodeToPng } from '@/lib/exportRaster';
 import { updateStudioLive } from '@/lib/device3dStudioLive';
 import { preloadGoogleFonts } from '@/services/fontService';
-import { loadCustomFonts, useCustomFonts } from '@/services/customFonts';
+import { loadCustomFontFamilies, loadCustomFonts, useCustomFonts } from '@/services/customFonts';
 import { isTauri, sanitizeFileName, saveBlobToDisk, saveBlobToPath, saveDataUrlToDisk, saveDataUrlToPath, pickExportDirectory, openExternal, fetchWebviewCrashInfo } from '@/lib/desktop';
 import { analyzeArtboardForVideo, exportArtboardVideo, projectHasVideoContent, type ArtboardVideoInfo } from '@/lib/video/videoExport';
 import { getPlayback, stopPlayback } from '@/lib/video/playback';
@@ -58,6 +58,7 @@ import {
 } from '@/lib/i18n/localization';
 import {
   attachProperty,
+  clearLocaleFontSizeCache,
   detachProperty,
   projectArtboards,
   resolveElementForLocale,
@@ -83,8 +84,69 @@ import {
 import type { LocaleOverrideState } from './LayersPanel';
 import { ExportDialog, type ExportSelection, type VideoExportRequest, type VideoExportProgress } from './ExportDialog';
 import { installHeadlessBridge, type HeadlessHost } from '@/lib/headless/bridge';
-import { canOpenAsProject, canvasStillHolds, type RenderedCanvas } from '@/lib/projectCanvas';
+import { canOpenAsProject, canvasStillHolds, sameDocument, type RenderedCanvas } from '@/lib/projectCanvas';
 import { createProjectSaveQueue } from '@/lib/projectSaveQueue';
+import { useProjectTabs } from '@/lib/tabs/useProjectTabs';
+import { summarizeProject } from '@/lib/tabs/summary';
+import { nextActiveAfterClose, otherTabIds, tabIdsRightOf, type TabView } from '@/lib/tabs/tabModel';
+import type { ParkedProject } from '@/lib/tabs/parking';
+import {
+  createUndoStore,
+  indexedDbUndoStorage,
+  resumeUndo,
+  type SaveOptions,
+  type StoredUndo,
+  type UndoSnapshot,
+} from '@/lib/tabs/historyStore';
+import {
+  baseLocaleOf,
+  pickElements,
+  pickWithFacesIn,
+  placeArtboard,
+  placeElements,
+  removeElements,
+  stillHolds,
+  textFacesOf,
+  type ElementTransfer,
+} from '@/lib/tabs/transfer';
+import { whenFacesLoaded } from '@/lib/tabs/transferFonts';
+import type { ElementCarry } from '@/lib/tabs/elementCarry';
+import { startCarrySession } from '@/lib/tabs/carrySession';
+import {
+  heldProjectIds,
+  holdProjectLock,
+  isProjectLockHeld,
+  mayWriteProject,
+  OpenStoppedError,
+  projectOpenElsewhere,
+  ProjectOpenElsewhereError,
+  releaseProjectLock,
+  startHandOver,
+} from '@/lib/tabs/projectLocks';
+import {
+  closeThisWindow,
+  focusThisWindow,
+  joinTabWindowBus,
+  openTabWindow,
+  tabWindowKey,
+  type TabWindowMessage,
+  type TabWindowPlacement,
+} from '@/lib/tabs/tabWindows';
+import { EDITOR_WINDOW_ID, liveEditorWindowIds } from '@/lib/tabs/presence';
+import {
+  pickDropWindow,
+  pointerScreenPoint,
+  thisWindowScreenRect,
+  trackWindowFocus,
+  windowFocusedAt,
+  type DropCandidate,
+  type ScreenPoint,
+  type ScreenRect,
+} from '@/lib/tabs/tabDrag';
+import type { WindowBus } from '@/lib/panels/bus';
+import type { OtherTabWindow } from './tabs/ProjectTabBar';
+import { ProjectTabBar } from './tabs/ProjectTabBar';
+import type { TabArtboardsSource } from './tabs/TabHoverCard';
 import { AppPreviewExportDialog } from './AppPreviewExportDialog';
 import { ExportProgressDialog, type PngExportProgress } from './ExportProgressDialog';
 import { TranslateProgressDialog, type TranslateProgress } from './TranslateProgressDialog';
@@ -233,7 +295,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDockHost } from '@/lib/panels/useDockHost';
-import { canPlaceWindows, monitorOfWindow, moveWindowToMonitor } from '@/lib/panels/monitors';
+import {
+  canPlaceWindows,
+  listMonitors,
+  monitorOfWindow,
+  moveWindowToMonitor,
+  requestWebScreenAccess,
+  type MonitorInfo,
+} from '@/lib/panels/monitors';
 import { DETACHABLE_PANELS, PANEL_GROUP_ALL } from '@/lib/panels/url';
 import type { DockData, RightDockTab } from '@/lib/panels/protocol';
 import {
@@ -304,7 +373,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2Icon } from 'lucide-react';
-import { useClipboard, ClipboardProvider } from '@/contexts/ClipboardContext';
+import { readElementClipboard, useElementClipboard, writeElementClipboard } from '@/lib/elementClipboard';
+import { readPreference, writePreference } from '@/lib/editorPreferences';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -400,12 +472,94 @@ const UNSAVED_RESULT_REASONS: Record<CommitRefusal, string> = {
 /** Why a rename or a named version asked for while a project opens was turned down. */
 const PROJECT_STILL_OPENING = 'A project is still opening. Try again once it is open.';
 
+/** The desktop menu's tab commands, emitted to one window (settings.rs). */
+const TAB_COMMAND_EVENT = 'abs-tab-command';
+
 let historyEntrySeq = 0;
 
 // One history state: the change's name plus the snapshot it restores. The
 // snapshot is deep-copied here so later edits to the live artboards can never
 // reach back into a recorded state. One stringify serves both the copy and the
 // entry's byte size, which is what the HISTORY_MAX_BYTES cap trims against.
+/** A parked tab's undo stack, as historyStore.ts keeps it. */
+function undoSnapshotOf(project: ParkedProject): UndoSnapshot {
+  return {
+    history: project.history,
+    historyIndex: project.historyIndex,
+    selectedElementIds: project.selectedElementIds,
+    unedited: project.openedSnapshot !== null,
+  };
+}
+
+/**
+ * How long an undo stack written for another window to take is kept after the
+ * window that wrote it has gone. The window it was for opens in seconds.
+ */
+const HAND_OVER_KEEP_MS = 10 * 60 * 1000;
+
+/**
+ * How long opening a project waits for another window that is handing it over
+ * to let go. That window writes the project and its undo stack first.
+ */
+const HAND_OVER_WAIT_MS = 6000;
+
+/**
+ * The undo stack a project opens with: the one it was left with, when there is
+ * one (historyStore.ts), carried on to the document actually read; otherwise a
+ * fresh one that starts at the state it opened in.
+ */
+function openStoredUndo(
+  projectId: string,
+  name: string,
+  boards: ArtboardState[],
+  stored: StoredUndo | null
+): {
+  history: HistoryEntry[];
+  historyIndex: number;
+  openedSnapshot: ParkedProject['openedSnapshot'];
+  selectedElementIds: string[];
+} {
+  const openedSnapshot = { projectId, boards, name };
+  const openEntry = (artboards: ArtboardState[]) => makeHistoryEntry(artboards, namedChange('Open', 'open', name));
+  if (!stored) return { history: [openEntry(boards)], historyIndex: 0, openedSnapshot, selectedElementIds: [] };
+  const resumed = resumeUndo(stored, boards, openEntry);
+  return {
+    history: resumed.history,
+    historyIndex: resumed.historyIndex,
+    // A sitting's first edit writes its "Before this session" version. This
+    // one has, when it already edited the project; a new sitting has not.
+    openedSnapshot: resumed.matched && stored.sameSitting && !stored.unedited ? null : openedSnapshot,
+    selectedElementIds: resumed.matched ? stored.selectedElementIds : [],
+  };
+}
+
+/** A tab of this window's being dragged out of the strip, toward another window maybe. */
+interface TearDrag {
+  projectId: string;
+  name: string;
+  /** Where this window is on the screen. */
+  own: ScreenRect | null;
+  /** Where the pointer was at the last frame. */
+  point: ScreenPoint | null;
+  /** The other windows, as they answered: where they are, and what to call them. */
+  windows: Map<string, DropCandidate & { name: string }>;
+  /** The window it would land in at `point`. */
+  target: string | null;
+  /** The newest pointer position, read on the next frame. */
+  latest: { screenX: number; screenY: number } | null;
+  frame: number | null;
+}
+
+/** Runs `work` once the browser is idle, or within a second if it never is. */
+function afterIdle(work: () => void): void {
+  if (typeof window === 'undefined') return;
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(work, { timeout: 1000 });
+  else window.setTimeout(work, 50);
+}
+
+/** Resolves at the browser's next idle moment. */
+const nextIdle = () => new Promise<void>((resolve) => afterIdle(resolve));
+
 function makeHistoryEntry(artboards: ArtboardState[], change: HistoryChange): HistoryEntry {
   const json = JSON.stringify(artboards);
   return {
@@ -423,9 +577,32 @@ function makeHistoryEntry(artboards: ArtboardState[], change: HistoryChange): Hi
 // timestamp; the one consumer that needs a project's artboards (duplicate)
 // does a point read by id. projectData is stubbed empty rather than retyped
 // so every existing Project-typed consumer keeps compiling.
+//
+// Read from two indexes alone, never from the rows: a key read hands back the
+// indexed value and the primary key without deserializing the project. This
+// runs whenever the open project changes, which with tabs is every tab switch,
+// and reading rows would decode every saved project each time only to throw
+// the artboards away. The two reads of one index walk it in the same order, and
+// one transaction keeps a save from landing between them, so their results line
+// up by position. A row with no timestamp is not in that index and so not in
+// the list.
 async function fetchRecentProjectMetas(): Promise<Project[]> {
-  const rows = await db.projects.orderBy('timestamp').reverse().toArray();
-  return rows.map((row) => ({ ...row, projectData: [] }));
+  const [ids, timestamps, nameIds, names] = await db.transaction('r', db.projects, () =>
+    Promise.all([
+      db.projects.orderBy('timestamp').reverse().primaryKeys(),
+      db.projects.orderBy('timestamp').reverse().keys(),
+      db.projects.orderBy('name').primaryKeys(),
+      db.projects.orderBy('name').keys(),
+    ])
+  );
+  const nameOf = new Map<string, string>();
+  nameIds.forEach((id, index) => nameOf.set(String(id), String(names[index] ?? '')));
+  return ids.map((id, index) => ({
+    id: String(id),
+    name: nameOf.get(String(id)) ?? '',
+    timestamp: timestamps[index] as unknown as Date,
+    projectData: [],
+  }));
 }
 
 // Update the function with reduced margin.
@@ -799,9 +976,19 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
 }
 
 export function OpenScreenshotGeneratorLayout() {
+  // Set when this window was opened for a tab moved out of another one
+  // (src/lib/tabs/tabWindows.ts). Such a window keeps out of everything only
+  // one window may run: the MCP bridge, the coding agents, detached panels.
+  const [tabWindowKeyValue] = useState(() => tabWindowKey());
+  const isSecondaryWindow = tabWindowKeyValue !== null;
   const [artboards, setArtboards] = useState<ArtboardState[]>([]);
   const [activeArtboardId, setActiveArtboardId] = useState<string | null>(null);
   const [canvasZoom, setCanvasZoom] = useState(1);
+  // Read when a tab is left, to keep where its canvas was (see parkOutgoingRef).
+  const activeArtboardIdRef = useRef<string | null>(null);
+  activeArtboardIdRef.current = activeArtboardId;
+  const canvasZoomRef = useRef(1);
+  canvasZoomRef.current = canvasZoom;
 
   // --- locale overlay -------------------------------------------------------
   // `artboards` above ALWAYS means the whole base document, every language.
@@ -882,6 +1069,9 @@ export function OpenScreenshotGeneratorLayout() {
   // render and so cannot close over state.
   const historyIndexRef = useRef(0);
   historyIndexRef.current = historyIndex;
+  // The stack itself, for the tab being left (see parkOutgoingRef).
+  const historyRef = useRef(history);
+  historyRef.current = history;
   // Seed from the URL: closed when refreshing straight into an open project
   // (?projectId present), open on a fresh visit. Prevents the selector flashing
   // open-then-closed on refresh. See getInitialProjectIdFromUrl.
@@ -1083,7 +1273,9 @@ export function OpenScreenshotGeneratorLayout() {
   // transport forwards, and surface the connection URL when the user toggles
   // the server on from the Settings menu.
   useEffect(() => {
-    if (!isTauri()) return;
+    // One window answers MCP requests: Rust gives the bridge's nonce to `main`
+    // only, so a window a tab was moved into would only log a refusal.
+    if (!isTauri() || isSecondaryWindow) return;
     let disposeBridge: () => void = () => {};
     let disposeStatus: () => void = () => {};
     let cancelled = false;
@@ -1155,14 +1347,176 @@ export function OpenScreenshotGeneratorLayout() {
         })
     )
   );
+  // Where a tab's undo stack waits while the tab is out of memory
+  // (src/lib/tabs/historyStore.ts): written once as it sleeps, moves to another
+  // window or closes, and read back when it opens. It counts for as long as this
+  // window lives, so a reload still starts undo over (rule 28).
+  const [undoStore] = useState(() =>
+    createUndoStore(indexedDbUndoStorage(), {
+      build: packageJson.version,
+      sitting: EDITOR_WINDOW_ID,
+      liveSittings: liveEditorWindowIds,
+    })
+  );
+  const saveUndo = useCallback(
+    (projectId: string, snapshot: UndoSnapshot, options?: SaveOptions): Promise<void> => {
+      // Only while this window has the project. A save that comes due after
+      // the project went to another window would write over that window's.
+      if (!mayWriteProject(projectId)) return Promise.resolve();
+      return undoStore.save(projectId, snapshot, options).catch((error) => {
+        console.error('Could not keep the undo history of', projectId, error);
+      });
+    },
+    [undoStore]
+  );
+  // Assigned in the tab block below, where the canvas state it reads exists.
+  const readActiveTabViewRef = useRef<() => { projectId: string; view: TabView } | null>(() => null);
+  // Tabs that fell asleep changed, for the question closing one asks
+  // (tabHasChanges): what said so is on disk with the undo stack by then.
+  const sleptWithChangesRef = useRef(new Set<string>());
+  // The tab strip (src/lib/tabs). Every path that opens a project goes through
+  // putProjectOnCanvas below, which is what parks the project being left in its
+  // tab, and through activeProjectId, which is what gives a project its tab.
+  const projectTabs = useProjectTabs({
+    windowKey: tabWindowKeyValue,
+    // Its project is saved already. What sleep would lose is its undo stack,
+    // written at the next idle moment: a tab can fall asleep in the middle of a
+    // switch, when the budget needs the room. A read of it waits for the write.
+    onSleep: (project) => {
+      if (!project.openedSnapshot) sleptWithChangesRef.current.add(project.projectId);
+      void saveUndo(project.projectId, undoSnapshotOf(project), { after: nextIdle() });
+    },
+    readView: () => readActiveTabViewRef.current(),
+  });
+  const projectTabsParking = projectTabs.parking;
+  const noteTabEdit = projectTabs.noteEdit;
+  // Assigned further down, once every piece of state they read exists.
+  const parkOutgoingRef = useRef<(projectId: string) => void>(() => {});
+  const restoreParkedRef = useRef<(parked: ParkedProject) => void>(() => {});
+  const applyTabViewRef = useRef<(projectId: string, boards: ArtboardState[]) => void>(() => {});
+  // The id of a project opened from the template gallery, until its tab exists.
+  const previewProjectIdRef = useRef<string | null>(null);
+  // Locks the tab lock effect must leave alone, counted: taken by an open that
+  // has not reached the canvas yet, or kept by a tab on its way to another
+  // window until its undo stack is written (letTabGo).
+  const pinnedLocksRef = useRef(new Map<string, number>());
+  const pinLock = (projectId: string) =>
+    pinnedLocksRef.current.set(projectId, (pinnedLocksRef.current.get(projectId) ?? 0) + 1);
+  const hasTab = projectTabs.has;
+  /** Let go of a project's lock once nothing here has it: no tab, not on the canvas, not pinned. */
+  const letGoIfUnused = useCallback(
+    (projectId: string) => {
+      if (pinnedLocksRef.current.has(projectId) || loadedProjectIdRef.current === projectId || hasTab(projectId)) return;
+      releaseProjectLock(projectId);
+    },
+    [hasTab]
+  );
+  /** Done with a pinned lock. Let go of it too when nothing here has the project. */
+  const settleLock = (projectId: string) => {
+    const left = (pinnedLocksRef.current.get(projectId) ?? 1) - 1;
+    if (left > 0) {
+      pinnedLocksRef.current.set(projectId, left);
+      return;
+    }
+    pinnedLocksRef.current.delete(projectId);
+    letGoIfUnused(projectId);
+  };
+  /**
+   * Take a project's lock for an open, before anything of it is written or
+   * shown, or refuse with ProjectOpenElsewhereError. Pinned until `settleLock`.
+   */
+  const claimProject = async (projectId: string, name: string, waitMs = 0) => {
+    pinLock(projectId);
+    if (await holdProjectLock(projectId, { waitMs })) return;
+    settleLock(projectId);
+    throw new ProjectOpenElsewhereError(projectId, name);
+  };
+  // Projects another window is handing to this one. Opening one of them waits
+  // a moment for that window to let go, instead of calling it taken. A window
+  // a tab was moved into starts out waiting for that tab.
+  const awaitedHandOversRef = useRef(new Set<string>(isSecondaryWindow && activeProjectId ? [activeProjectId] : []));
+  // The opens of a project still under way, by project: a tab's read of its
+  // project, an open from a file, the account or the cloud. A tab leaving for
+  // another window stops them and waits for them (letTabGo): left to finish,
+  // one would write the project or put it back on this canvas after the other
+  // window took it, and both would save it.
+  const pendingOpensRef = useRef(
+    new Map<string, Set<{ stop: () => void; settled: Promise<void>; tabRead: boolean }>>()
+  );
+  /**
+   * Stop the opens of the project under way here. Resolves once they have
+   * stopped. A tab that closes stops only its own read: an open somebody asked
+   * for (from a file, the account, the cloud) goes on and opens a tab again.
+   */
+  const stopOpening = (projectId: string, why: 'moved' | 'closed' = 'moved'): Promise<unknown> => {
+    const opens = [...(pendingOpensRef.current.get(projectId) ?? [])].filter(
+      (open) => why === 'moved' || open.tabRead
+    );
+    for (const open of opens) open.stop();
+    return Promise.all(opens.map((open) => open.settled));
+  };
+  /**
+   * Note an open of `projectId` that awaits something before the project is on
+   * the canvas, so stopOpening can stop it. It checks `stopped` after each
+   * await, and calls `end` once it is done either way. A stop waits for the
+   * end, except while `importing`: an import from the account or the cloud
+   * writes nothing of the project until its row, which goes through `write`,
+   * so a stop before that lets the tab go at once rather than after the
+   * pictures and fonts are in, and `write` refuses the row from then on.
+   */
+  const beginOpen = (projectId: string, { tabRead = false, importing = false } = {}) => {
+    let stopped = false;
+    let writing = 0;
+    let settle!: () => void;
+    const open = {
+      tabRead,
+      stop: () => {
+        stopped = true;
+        if (importing && writing === 0) settle();
+      },
+      settled: new Promise<void>((resolve) => {
+        settle = resolve;
+      }),
+    };
+    const opens = pendingOpensRef.current.get(projectId) ?? new Set<typeof open>();
+    opens.add(open);
+    pendingOpensRef.current.set(projectId, opens);
+    return {
+      stopped: () => stopped,
+      write: async (run: () => Promise<unknown>): Promise<unknown> => {
+        if (stopped || !mayWriteProject(projectId)) throw new OpenStoppedError(projectId);
+        writing += 1;
+        try {
+          return await run();
+        } finally {
+          writing -= 1;
+          if (stopped && writing === 0) settle();
+        }
+      },
+      end: () => {
+        opens.delete(open);
+        if (opens.size === 0 && pendingOpensRef.current.get(projectId) === opens) pendingOpensRef.current.delete(projectId);
+        settle();
+      },
+    };
+  };
   const putProjectOnCanvas = useCallback((projectId: string) => {
+    // The project leaving the canvas waits in its tab, undo stack and all,
+    // before anything of the incoming one is set. Whatever was parked for the
+    // incoming id is being replaced by the document about to go on the canvas.
+    const outgoing = loadedProjectIdRef.current;
+    if (outgoing && outgoing !== projectId) parkOutgoingRef.current(outgoing);
+    projectTabsParking.drop(projectId);
     // The project leaving the canvas took edits up to this moment, and a save
     // of them may still be waiting. It is written now, before the next
     // project's first edit schedules a save of its own.
-    void projectSaves.flushOtherThan(projectId);
+    const written = projectSaves.flushOtherThan(projectId);
     loadedProjectIdRef.current = projectId;
     canvasSerialRef.current += 1;
-  }, [projectSaves]);
+    // One whose tab closed while this one was read kept its lock only for being
+    // on the canvas. It lets go once those last edits are written.
+    if (outgoing && outgoing !== projectId) void written.then(() => letGoIfUnused(outgoing));
+  }, [projectSaves, projectTabsParking, letGoIfUnused]);
   // The document this render's artboards are, read once per render. Every
   // commit path and the design-tool api check it with canvasStillHolds before
   // they write: while a project opens, the canvas still holds the project
@@ -1180,7 +1534,6 @@ export function OpenScreenshotGeneratorLayout() {
   // Set while a recent-projects row is being copied, so its button can show a
   // spinner: bundling a project reads every media blob out of Dexie.
   const [duplicatingProjectId, setDuplicatingProjectId] = useState<string | null>(null);
-  const [clipboardElement, setClipboardElement] = useState<ArtboardElement | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   // Which view the preview opens on. The toolbar's Preview menu points at one
   // directly, so the store mockup is reachable without a detour.
@@ -1256,9 +1609,10 @@ export function OpenScreenshotGeneratorLayout() {
   const isCloudAvailable = HAS_DISCOVER && discoverCaps?.cloudProjects !== false;
   const isCloudSignedIn = !!discoverSession;
   // Desktop only: Help > About in the native menu bar opens the same dialog
-  // as the sidebar's About option (settings.rs emits abs-open-about).
+  // as the sidebar's About option (settings.rs emits abs-open-about). In the
+  // main window only, or every editor window would open one.
   useEffect(() => {
-    if (!isTauri()) return;
+    if (!isTauri() || isSecondaryWindow) return;
     let disposed = false;
     let unlisten: () => void = () => {};
     (async () => {
@@ -1391,7 +1745,9 @@ export function OpenScreenshotGeneratorLayout() {
   // layout reads it to feed the Agent tab, and to show that tab at all: only
   // in the desktop app, and only once the user has picked Claude Code.
   const claudeAgentState = useClaudeAgent();
-  const agentEnabled = claudeAgentState.available && claudeAgentState.panelEnabled;
+  // Not in a window a tab was moved into: the agent's events are signed for
+  // the main window only (rule 37), so its chat could never hear back there.
+  const agentEnabled = claudeAgentState.available && claudeAgentState.panelEnabled && !isSecondaryWindow;
   // True while handleStartClaudeCode is storing screenshots and making the
   // project. Dismissing the dialog then would start a second, blank project
   // on a fresh visit (see the dialog's onOpenChange), or switch the user away
@@ -1406,7 +1762,8 @@ export function OpenScreenshotGeneratorLayout() {
     void claudeAgent.detect();
     if (agentKind === 'codex') void claudeAgent.detectCodex();
   }, [agentEnabled, agentKind]);
-  const { clipboardItem, clipboardItems, copyManyToClipboard } = useClipboard();
+  // The layers on the clipboard, copied in this window or another (elementClipboard.ts).
+  const elementClipboard = useElementClipboard();
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -1542,10 +1899,22 @@ export function OpenScreenshotGeneratorLayout() {
     // see loadedProjectIdRef.
     if (!activeProjectId || activeProjectId === loadedProjectIdRef.current) return;
     const projectId = activeProjectId;
+    // A tab parked in this window holds the project as it was left, undo
+    // history included, so there is nothing to read.
+    const parked = projectTabsParking.take(projectId);
+    if (parked) {
+      restoreParkedRef.current(parked);
+      return;
+    }
     // A read that lands after another project was chosen, or after another
-    // path put this one on the canvas, is out of date and is dropped.
+    // path put this one on the canvas, is out of date and is dropped. So is
+    // one whose tab left for another window meanwhile (stopOpening): checked
+    // here, not left to this effect's cleanup, which can run after the read.
     let superseded = false;
-    const isStale = () => superseded || loadedProjectIdRef.current === projectId;
+    const open = beginOpen(projectId, { tabRead: true });
+    const isStale = () => superseded || open.stopped() || loadedProjectIdRef.current === projectId;
+    // Until this open settles, the lock it takes is its own.
+    pinLock(projectId);
 
     const loadProject = async () => {
       setLoadPhase('project');
@@ -1553,7 +1922,26 @@ export function OpenScreenshotGeneratorLayout() {
         // Commit any debounced edits of the outgoing project before the
         // switch, so nothing of it is lost or written after we move on.
         flushProjectSave();
-        const project = await db.projects.get(projectId);
+        // One window writes a project (projectLocks.ts), so the lock comes
+        // before the read. Held by another window: a second writer would save
+        // over that one's edits, so it is asked about instead.
+        const awaited = awaitedHandOversRef.current.delete(projectId);
+        if (!(await holdProjectLock(projectId, { waitMs: awaited ? HAND_OVER_WAIT_MS : 0 }))) {
+          if (isStale()) return;
+          projectTabs.forget(projectId);
+          setActiveProjectId(loadedProjectIdRef.current);
+          setProjectElsewhere({ projectId, name: recentNamesRef.current.get(projectId) ?? '' });
+          return;
+        }
+        if (isStale()) return;
+        // The undo stack it was left with, read alongside the project.
+        const [project, storedUndo] = await Promise.all([
+          db.projects.get(projectId),
+          undoStore.load(projectId).catch((error) => {
+            console.error('Could not read the undo history of', projectId, error);
+            return null;
+          }),
+        ]);
         if (isStale()) return;
         if (project && canOpenAsProject(project.projectData)) {
           // Projects saved before recordings became their own element type
@@ -1583,30 +1971,46 @@ export function OpenScreenshotGeneratorLayout() {
             });
           }
           if (isStale()) return;
+          // Layers sent to this tab while it was being read parked it with
+          // the change (editTabInBackground). That copy is newer than the row
+          // read here, so it is the one that opens.
+          const parkedMeanwhile = projectTabsParking.take(projectId);
+          if (parkedMeanwhile) {
+            restoreParkedRef.current(parkedMeanwhile);
+            return;
+          }
           putProjectOnCanvas(projectId);
           setArtboards(projectData);
           setCurrentProjectName(project.name || 'Untitled Project');
+          const opened = openStoredUndo(projectId, project.name || 'Untitled Project', projectData, storedUndo);
           // Held, not written: a project somebody opens and closes again
           // should leave nothing behind. The first edit is what turns this
           // into a version (see noteVersionCheckpoint).
-          openedSnapshotRef.current = {
-            projectId,
-            boards: projectData,
-            name: project.name || 'Untitled Project',
-          };
-          setHistory([makeHistoryEntry(projectData, namedChange('Open', 'open', project.name || undefined))]);
-          setHistoryIndex(0);
+          openedSnapshotRef.current = opened.openedSnapshot;
+          setHistory(opened.history);
+          setHistoryIndex(opened.historyIndex);
           // Auto-select the first artboard so a refreshed project opens ready to
           // edit (matches loadProjectFromData, the click-a-template path). Without
           // this, refreshing into ?projectId left nothing selected.
           setActiveArtboardId(projectData.length > 0 ? projectData[0].id : null);
           setSelectedElementIdOnActiveArtboard(null);
+          // A sleeping tab comes back where it was left: its artboard, zoom,
+          // scroll and language. A project with no tab has nothing to restore.
+          applyTabViewRef.current(projectId, projectData);
+          // And with what was selected, where those layers are still there.
+          if (opened.selectedElementIds.length > 0) {
+            const boardId = projectTabs.get(projectId)?.view?.activeArtboardId ?? projectData[0]?.id;
+            const alive = new Set(projectData.find((board) => board.id === boardId)?.elements.map((element) => element.id));
+            setSelectedElementIds(opened.selectedElementIds.filter((id) => alive.has(id)));
+          }
           setIsTemplateSelectorOpen(false); // Close template selector if a project is loaded
         } else {
           // A row with no artboards has nothing to open, the same as a row
           // that is gone (see canOpenAsProject).
           const empty = !!project;
           console.warn(`Project with ID ${projectId} ${empty ? 'has no artboards' : 'not found'}.`);
+          // Nor does its tab, which was given one the moment it was asked for.
+          projectTabs.forget(projectId);
           // Back to the project the canvas still shows, or to none after a
           // reload, so the open project and the canvas agree again.
           setActiveProjectId(loadedProjectIdRef.current);
@@ -1638,6 +2042,10 @@ export function OpenScreenshotGeneratorLayout() {
         openStartDialog(); // Re-open template selector on error
       } finally {
         setLoadPhase('idle');
+        // Not opened after all (gone, superseded, refused): a lock it took is
+        // let go, unless a tab here still wants the project.
+        settleLock(projectId);
+        open.end();
       }
     };
     loadProject();
@@ -1703,8 +2111,12 @@ export function OpenScreenshotGeneratorLayout() {
   const handleDeleteProject = async (projectId: string) => {
     try {
       await db.projects.delete(projectId);
-      // The versions are copies of a project that no longer exists.
+      // The versions are copies of a project that no longer exists, and so is
+      // the undo stack its tab kept.
       await deleteVersionsForProject(projectId);
+      void undoStore.remove(projectId).catch(() => {});
+      // And a tab would open nothing.
+      projectTabs.forget(projectId);
       toast({ 
         title: "Project Deleted", 
         description: "The project has been removed from your recent projects."
@@ -1888,13 +2300,21 @@ export function OpenScreenshotGeneratorLayout() {
     // stack without any of them knowing either saver exists.
     noteCloudChange(id);
     noteAccountChange(id);
-  }, [projectSaves, noteCloudChange, noteAccountChange]);
+    // An edited template is somebody's project now, not a preview to replace.
+    noteTabEdit(id);
+  }, [projectSaves, noteCloudChange, noteAccountChange, noteTabEdit]);
   // Unload must not lose the last half-second of edits. `pagehide` covers the
   // web; a Tauri window close destroys the webview WITHOUT any unload events,
   // so the desktop shell needs the window's close-requested hook, where the
   // put can actually be awaited before the close proceeds.
+  // Assigned in the tab block: the tab session, with the active tab's view,
+  // and the agent chat.
+  const beforeWindowCloseRef = useRef<() => Promise<unknown>>(() => Promise.resolve());
   useEffect(() => {
-    const flush = () => flushProjectSave();
+    const flush = () => {
+      void beforeWindowCloseRef.current();
+      return flushProjectSave();
+    };
     window.addEventListener('pagehide', flush);
     let disposed = false;
     let unlistenClose: (() => void) | undefined;
@@ -1903,8 +2323,8 @@ export function OpenScreenshotGeneratorLayout() {
         try {
           const { getCurrentWindow } = await import('@tauri-apps/api/window');
           const unlisten = await getCurrentWindow().onCloseRequested(async () => {
-            // Not prevented: the close proceeds after the write settles.
-            await flushProjectSave();
+            // Not prevented: the close proceeds after the writes settle.
+            await Promise.all([flushProjectSave(), beforeWindowCloseRef.current()]);
           });
           if (disposed) unlisten();
           else unlistenClose = unlisten;
@@ -1930,7 +2350,8 @@ export function OpenScreenshotGeneratorLayout() {
    * and a thinning pass keeps the list readable (src/lib/versions/store.ts).
    *
    *   1. the state a project was in when it was OPENED, written lazily on the
-   *      first edit, so browsing a project never writes anything
+   *      first edit (somebody else's in a live session too), so browsing a
+   *      project never writes anything
    *   2. a checkpoint every VERSION_INTERVAL_MS of editing
    *   3. before anything whole-project: a device conversion, a translation run,
    *      restoring another version
@@ -2136,7 +2557,8 @@ export function OpenScreenshotGeneratorLayout() {
    * which would bounce every remote edit straight back at the person who made
    * it, and it pushes an undo entry, which would fill this person's history
    * with other people's keystrokes. So this writes the three things that must
-   * move (canvas, the row in Dexie, the top of the undo stack) and nothing else.
+   * move (canvas, the row in Dexie, the top of the undo stack), and the version
+   * checkpoint every change makes, and nothing else.
    *
    * Replacing the top history entry rather than adding one is what keeps undo
    * meaning "undo MY last action" while still leaving the stack describing a
@@ -2156,6 +2578,14 @@ export function OpenScreenshotGeneratorLayout() {
       const next = calculateArtboardPositions(
         normalizeLocalization(ensureUniqueElementIds(incoming))
       );
+      const projectId = activeProjectIdRef.current;
+      // A change from the room is a change to the project like any edit made
+      // here: the first keeps the state the project opened in as a version,
+      // and makes its tab one with changes (tabHasChanges). Joining a room
+      // this device was in before hands back the document the canvas already
+      // shows, which changes nothing. Compared only until that first change.
+      const unedited = !!projectId && openedSnapshotRef.current?.projectId === projectId;
+      if (projectId && !(unedited && sameDocument(next, artboardsRef.current))) noteVersionCheckpoint(next);
       setArtboards(next);
       artboardsRef.current = next;
       setHistory((prev) => {
@@ -2164,11 +2594,10 @@ export function OpenScreenshotGeneratorLayout() {
         if (at >= 0) copy[at] = makeHistoryEntry(next, namedChange('Live edit', 'open'));
         return copy;
       });
-      const projectId = activeProjectIdRef.current;
       if (projectId) scheduleProjectSave(projectId, remoteName || projectNameRef.current, next);
       if (remoteName && remoteName !== projectNameRef.current) setCurrentProjectName(remoteName);
     },
-    [scheduleProjectSave]
+    [scheduleProjectSave, noteVersionCheckpoint]
   );
   remoteArtboardsRef.current = applyRemoteArtboards;
 
@@ -2312,6 +2741,36 @@ export function OpenScreenshotGeneratorLayout() {
     );
   }, [activeArtboardId, handleArtboardsUpdate]);
 
+  // A language's text is shrunk to fit its box by measuring it in its own face
+  // (resolveLocaleFontSize), and that measurement is kept by family. A face that
+  // finishes loading after it was taken, such as an imported font a paste from
+  // another window brought along, would leave the text sized for the fallback,
+  // so every finished load forgets the measurements and projects again.
+  const [fontLoads, setFontLoads] = useState(0);
+  useEffect(() => {
+    const fonts = typeof document === 'undefined' ? undefined : document.fonts;
+    if (!fonts?.addEventListener) return;
+    const refit = () => {
+      clearLocaleFontSizeCache();
+      setFontLoads((count) => count + 1);
+    };
+    fonts.addEventListener('loadingdone', refit);
+    return () => fonts.removeEventListener('loadingdone', refit);
+  }, []);
+
+  // A font imported in another window after this one started is not on this
+  // page, so a project with text in it that comes here (a tab moved in, a
+  // project that window had open) would draw, and export, in a fallback face
+  // until a reload. Each document that goes on the canvas is looked at once.
+  const fontsCheckedSerialRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (artboards.length === 0 || fontsCheckedSerialRef.current === canvasSerialRef.current) return;
+    fontsCheckedSerialRef.current = canvasSerialRef.current;
+    void loadCustomFontFamilies(collectFontFamilies(artboards)).catch((error) =>
+      console.error('Could not load the imported fonts of this project', error)
+    );
+  }, [artboards]);
+
   // What the active language shows. Board count, board order and board ids are
   // identical to the base document; only the handful of keys in
   // LOCALIZABLE_KEYS can differ, plus elements hidden in this language.
@@ -2320,7 +2779,9 @@ export function OpenScreenshotGeneratorLayout() {
     // Projecting it again would lay the language on screen over the language
     // being exported, which is how you get German text in the Japanese set.
     () => exportCanvasArtboards ?? projectArtboards(artboards, activeLocale),
-    [exportCanvasArtboards, artboards, activeLocale]
+    // fontLoads: a face that loaded since changes what a language's text fits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [exportCanvasArtboards, artboards, activeLocale, fontLoads]
   );
 
   /**
@@ -3956,6 +4417,8 @@ export function OpenScreenshotGeneratorLayout() {
       nameOverride?: string;
       texts?: Array<{ elementId: string; content: string }>;
       screenshots?: Array<{ elementId: string; src: string }>;
+      /** Opened from the gallery to look at: its tab is a preview until edited. */
+      preview?: boolean;
     }
   ): Promise<{ projectId: string; name: string; artboards: ArtboardState[]; warnings: string[] } | null> => {
     if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
@@ -3987,6 +4450,7 @@ export function OpenScreenshotGeneratorLayout() {
       projectData: JSON.parse(JSON.stringify(externalizedArtboards)),
     });
 
+    if (options?.preview) previewProjectIdRef.current = newProjectId;
     const success = await loadProjectFromData(externalizedArtboards, projectName, newProjectId);
     if (!success) return null;
     return { projectId: newProjectId, name: projectName, artboards: externalizedArtboards, warnings };
@@ -4011,7 +4475,13 @@ export function OpenScreenshotGeneratorLayout() {
         category: template.category ?? templateTab,
       });
 
-      const created = await createProjectFromTemplateData(template, { nameOverride: options?.nameOverride });
+      // A template picked out of the gallery is a preview until it is edited,
+      // so browsing them reuses one tab. A name handed in means somebody (the
+      // agent, a Discover post) made this project on purpose.
+      const created = await createProjectFromTemplateData(template, {
+        nameOverride: options?.nameOverride,
+        preview: !options?.nameOverride,
+      });
 
       if (created) {
         toast({ title: "Project Created", description: `Project "${created.name}" created.` });
@@ -4287,10 +4757,27 @@ export function OpenScreenshotGeneratorLayout() {
   const handleOpenFromAccount = async (remoteId: string, name: string) => {
     setLoadPhase('project');
     setProjectLoadStatus({ name, step: 'Reading your project', ratio: 0 });
+    const claimed: string[] = [];
+    const from = `your ${accountStorageLabel}`;
+    // An open from the claim on, so a tab of the project that leaves for
+    // another window while the media go in stops it before the row does.
+    const opening: { open?: ReturnType<typeof beginOpen> } = {};
     try {
-      const project = await loadProjectFromAccount(remoteId, (step, ratio) =>
-        setProjectLoadStatus({ name, step, ratio })
+      const project = await loadProjectFromAccount(
+        remoteId,
+        (step, ratio) => setProjectLoadStatus({ name, step, ratio }),
+        // Restoring over the local copy writes it, so it is claimed first.
+        async (projectId, projectName) => {
+          await claimProject(projectId, projectName);
+          claimed.push(projectId);
+          opening.open = beginOpen(projectId, { importing: true });
+        },
+        (write) => (opening.open ? opening.open.write(write) : write())
       );
+      if (opening.open?.stopped()) {
+        toastOpenedElsewhere(project.name, true, from);
+        return;
+      }
       // Building the boards is the tail of the same wait: positions are
       // recalculated and inline media is externalized before anything renders.
       setProjectLoadStatus({ name: project.name, step: 'Preparing artboards', ratio: 0.97 });
@@ -4302,7 +4789,11 @@ export function OpenScreenshotGeneratorLayout() {
         toast({ title: "Could not open", description: `"${name}" failed to load.`, variant: "destructive" });
       }
     } catch (error) {
-      if (error instanceof AccountAuthError) {
+      if (error instanceof OpenStoppedError) {
+        toastOpenedElsewhere(name, false, from);
+      } else if (error instanceof ProjectOpenElsewhereError) {
+        askAboutProjectElsewhere(error);
+      } else if (error instanceof AccountAuthError) {
         openAccountDialog(error.message);
       } else {
         toast({
@@ -4312,10 +4803,27 @@ export function OpenScreenshotGeneratorLayout() {
         });
       }
     } finally {
+      opening.open?.end();
+      claimed.forEach(settleLock);
       setLoadPhase('idle');
       setProjectLoadStatus(null);
     }
   };
+
+  /**
+   * An open from the account or the cloud whose project's tab left for another
+   * window before it was done. Either the copy went in first, and that window
+   * opens it, or nothing was written and the copy can be opened there.
+   */
+  const toastOpenedElsewhere = (name: string, written: boolean, from: string) =>
+    toast(
+      written
+        ? { title: `${name} opened in another window`, description: 'Its tab moved there while it opened.' }
+        : {
+            title: `${name} did not open here`,
+            description: `Its tab moved to another window first. Open it from ${from} there.`,
+          }
+    );
 
   // --- our own cloud ---------------------------------------------------------
 
@@ -4616,6 +5124,12 @@ export function OpenScreenshotGeneratorLayout() {
           'Everyone holding this link works on the same project. Their pointers and selections show up as they go.',
       });
     } catch (error) {
+      if (error instanceof ProjectOpenElsewhereError) {
+        // Joining from there is one click away, and a copy made here would be
+        // a second project for the same session.
+        askAboutProjectElsewhere(error);
+        return;
+      }
       toast({
         title: 'Could not join that session',
         description: error instanceof Error ? error.message : 'That link is not valid any more.',
@@ -4729,13 +5243,27 @@ export function OpenScreenshotGeneratorLayout() {
 
   /** Pull one of the account's own cloud projects into the editor. */
   const handleOpenCloudProject = async (project: CloudProject, asCopy: boolean) => {
+    const claimed: string[] = [];
+    // As with the account (handleOpenFromAccount): an open from the claim on.
+    const opening: { open?: ReturnType<typeof beginOpen> } = {};
     try {
       setLoadPhase('project');
       setProjectLoadStatus({ name: project.name, step: 'Reading your project', ratio: 0 });
       const opened = await loadProjectFromCloud(project.id, {
         asCopy,
         onProgress: (step, ratio) => setProjectLoadStatus({ name: project.name, step, ratio }),
+        // Restoring over the local copy writes it, so it is claimed first.
+        beforeWrite: async (projectId, projectName) => {
+          await claimProject(projectId, projectName);
+          claimed.push(projectId);
+          opening.open = beginOpen(projectId, { importing: true });
+        },
+        guardRowWrite: (write) => (opening.open ? opening.open.write(write) : write()),
       });
+      if (opening.open?.stopped()) {
+        toastOpenedElsewhere(opened.name, true, 'your cloud projects');
+        return;
+      }
       setProjectLoadStatus({ name: opened.name, step: 'Preparing artboards', ratio: 0.97 });
       const success = await loadProjectFromData(opened.projectData, opened.name, opened.id);
       if (success) {
@@ -4750,8 +5278,12 @@ export function OpenScreenshotGeneratorLayout() {
         });
       }
     } catch (error) {
-      handleCloudError(error, 'Could not open that project');
+      if (error instanceof OpenStoppedError) toastOpenedElsewhere(project.name, false, 'your cloud projects');
+      else if (error instanceof ProjectOpenElsewhereError) askAboutProjectElsewhere(error);
+      else handleCloudError(error, 'Could not open that project');
     } finally {
+      opening.open?.end();
+      claimed.forEach(settleLock);
       setLoadPhase('idle');
       setProjectLoadStatus(null);
     }
@@ -5699,6 +6231,1379 @@ export function OpenScreenshotGeneratorLayout() {
     }
   }, [history, historyIndex, activeArtboardId, activeProjectId, currentProjectName, scheduleProjectSave, renderedCanvas]);
 
+  // --- project tabs ----------------------------------------------------------
+  //
+  // Only the active tab's project is on the canvas. The others wait in the
+  // parking lot with their document and undo stack (src/lib/tabs/parking.ts)
+  // for an hour, or until its memory budget needs the room, and then sleep:
+  // the project is in IndexedDB like any saved one, and the undo stack next to
+  // it (historyStore.ts). Switching to a parked tab is a park and a restore of
+  // React state, with no read and no copy; to a sleeping one, the same read
+  // Recent projects does plus its undo stack.
+
+  /** Where the canvas is scrolled to right now. */
+  const readCanvasScroll = (): { left: number; top: number } | null => {
+    const viewport = canvasContainerRef.current?.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]');
+    return viewport ? { left: viewport.scrollLeft, top: viewport.scrollTop } : null;
+  };
+
+  /** How the canvas looks now: what a tab keeps of itself while it is not in front. */
+  const currentTabView = (): TabView => ({
+    activeArtboardId: activeArtboardIdRef.current,
+    zoom: canvasZoomRef.current,
+    scroll: readCanvasScroll(),
+    locale: activeLocaleRef.current,
+  });
+  readActiveTabViewRef.current = () => {
+    const projectId = loadedProjectIdRef.current;
+    if (!projectId || projectId !== activeProjectIdRef.current) return null;
+    return { projectId, view: currentTabView() };
+  };
+
+  /** The canvas's undo stack, as historyStore.ts keeps it. */
+  const canvasUndoSnapshot = (): UndoSnapshot => ({
+    history: historyRef.current,
+    historyIndex: historyIndexRef.current,
+    selectedElementIds: selectedElementIdsRef.current,
+    unedited: openedSnapshotRef.current !== null,
+  });
+
+  parkOutgoingRef.current = (projectId: string) => {
+    // A closed tab keeps nothing, and neither does a project without a tab.
+    if (!projectTabs.has(projectId)) return;
+    const opened = openedSnapshotRef.current;
+    const parked: ParkedProject = {
+      projectId,
+      name: projectNameRef.current,
+      artboards: artboardsRef.current,
+      history: historyRef.current,
+      historyIndex: historyIndexRef.current,
+      selectedElementIds: selectedElementIdsRef.current,
+      openedSnapshot: opened && opened.projectId === projectId ? opened : null,
+      parkedAt: Date.now(),
+    };
+    projectTabsParking.park(parked);
+    projectTabs.recordLeave(projectId, { view: currentTabView(), summary: summarizeProject(artboardsRef.current) });
+  };
+
+  /** The scroll a returning tab left at, set once its canvas has laid out. */
+  const pendingTabScrollRef = useRef<{ serial: number; left: number; top: number } | null>(null);
+  /** The canvas serial a tab switch put up, for the fade in below. */
+  const tabFadeSerialRef = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    const container = canvasContainerRef.current;
+    if (tabFadeSerialRef.current !== null && tabFadeSerialRef.current === canvasSerialRef.current) {
+      tabFadeSerialRef.current = null;
+      // A quick fade, so a switch reads as one project giving way to another
+      // rather than a jump. Opacity only, which the compositor does on its own.
+      if (container && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        container.animate([{ opacity: 0.55 }, { opacity: 1 }], { duration: 160, easing: 'ease-out' });
+      }
+    }
+    const pending = pendingTabScrollRef.current;
+    if (!pending || pending.serial !== canvasSerialRef.current) return;
+    const viewport = container?.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]');
+    if (!viewport) return;
+    pendingTabScrollRef.current = null;
+    viewport.scrollLeft = pending.left;
+    viewport.scrollTop = pending.top;
+  });
+
+  applyTabViewRef.current = (projectId: string, boards: ArtboardState[]) => {
+    const view: TabView | undefined = projectTabs.get(projectId)?.view;
+    if (!view) return;
+    tabFadeSerialRef.current = canvasSerialRef.current;
+    if (view.activeArtboardId && boards.some((board) => board.id === view.activeArtboardId)) {
+      setActiveArtboardId(view.activeArtboardId);
+    }
+    setCanvasZoom(view.zoom);
+    // A language the project no longer has falls back to the base one on its
+    // own, in the effect that watches for exactly that.
+    if (view.locale !== activeLocaleRef.current) handleSelectLocale(view.locale);
+    pendingTabScrollRef.current = view.scroll ? { serial: canvasSerialRef.current, ...view.scroll } : null;
+  };
+
+  restoreParkedRef.current = (parked: ParkedProject) => {
+    const { projectId } = parked;
+    putProjectOnCanvas(projectId);
+    setCurrentProjectName(parked.name);
+    setActiveProjectId(projectId);
+    openedSnapshotRef.current = parked.openedSnapshot;
+    setArtboards(parked.artboards);
+    setHistory(parked.history);
+    setHistoryIndex(parked.historyIndex);
+    const view = projectTabs.get(projectId)?.view;
+    const boardId =
+      view?.activeArtboardId && parked.artboards.some((board) => board.id === view.activeArtboardId)
+        ? view.activeArtboardId
+        : parked.artboards[0]?.id ?? null;
+    setActiveArtboardId(boardId);
+    tabFadeSerialRef.current = canvasSerialRef.current;
+    applyTabViewRef.current(projectId, parked.artboards);
+    // Only the layers still on the artboard that comes back active.
+    const alive = new Set(
+      parked.artboards.find((board) => board.id === boardId)?.elements.map((element) => element.id) ?? []
+    );
+    setSelectedElementIds(parked.selectedElementIds.filter((id) => alive.has(id)));
+    setIsTemplateSelectorOpen(false);
+  };
+
+  /** Bring a tab to the front. Parked: put back at once. Asleep: the loader reads it. */
+  const activateTab = (projectId: string) => {
+    if (isExportingRef.current) return;
+    if (projectId === activeProjectIdRef.current) return;
+    const parked = projectTabsParking.take(projectId);
+    if (parked) {
+      restoreParkedRef.current(parked);
+      return;
+    }
+    setActiveProjectId(projectId);
+  };
+
+  /** Nothing on the canvas: the last tab closed. The start dialog opens from activeProjectId going null. */
+  const clearCanvasForNoTabs = () => {
+    void flushProjectSave();
+    if (collab.room) collab.stop();
+    loadedProjectIdRef.current = null;
+    canvasSerialRef.current += 1;
+    openedSnapshotRef.current = null;
+    setArtboards([]);
+    setHistory([makeHistoryEntry([], namedChange('New Document', 'open'))]);
+    setHistoryIndex(0);
+    setActiveArtboardId(null);
+    setSelectedElementIds([]);
+    setCurrentProjectName('Untitled Project');
+    handleSelectLocale(null);
+    setActiveProjectId(null);
+  };
+
+  // Leaving the project of a live session ends this person's part in it (the
+  // effect next to the collab hook stops it), so that has to be asked first.
+  const [pendingSessionLeave, setPendingSessionLeave] = useState<{ action: string; run: () => void } | null>(null);
+  /** Going to `nextProjectId` would take this window out of its live session. */
+  const leavesLiveSession = (nextProjectId: string | null) => {
+    const roomProject = collabProjectRef.current;
+    return !!collab.room && !!roomProject && roomProject === activeProjectIdRef.current && nextProjectId !== roomProject;
+  };
+  const confirmLeavingSession = (nextProjectId: string | null, action: string, run: () => void) => {
+    if (leavesLiveSession(nextProjectId)) {
+      setPendingSessionLeave({ action, run });
+      return;
+    }
+    run();
+  };
+
+  const handleActivateTab = (projectId: string) => {
+    if (projectId === activeProjectIdRef.current) return;
+    confirmLeavingSession(projectId, 'Leave and switch', () => activateTab(projectId));
+  };
+
+  /**
+   * A closing tab's undo stack, written so Reopen closed tab brings it back:
+   * from the parking lot, or from the canvas. A sleeping tab's is on disk
+   * already. Every way a tab closes comes through here, before the canvas
+   * moves on, and the lock waits for the write.
+   */
+  const keepUndoOfClosingTab = (projectId: string): Promise<unknown> => {
+    sleptWithChangesRef.current.delete(projectId);
+    const parked = projectTabsParking.peek(projectId);
+    const snapshot = parked
+      ? undoSnapshotOf(parked)
+      : projectId === loadedProjectIdRef.current
+        ? canvasUndoSnapshot()
+        : null;
+    if (!snapshot) return Promise.resolve();
+    pinLock(projectId);
+    return saveUndo(projectId, snapshot).finally(() => settleLock(projectId));
+  };
+
+  const closeTabNow = (projectId: string) => {
+    const kept = keepUndoOfClosingTab(projectId);
+    // Still being read, it is not wanted on the canvas any more.
+    if (projectId !== loadedProjectIdRef.current) void stopOpening(projectId, 'closed');
+    if (projectId !== activeProjectIdRef.current) {
+      projectTabs.close(projectId);
+      return;
+    }
+    const next = nextActiveAfterClose(projectTabs.getTabs(), projectId, projectId);
+    if (next) activateTab(next);
+    else if (isSecondaryWindow) {
+      // The last tab of a window a tab was moved into: the window goes with it.
+      projectTabs.close(projectId);
+      void Promise.all([flushProjectSave(), kept]).then(() => closeThisWindow());
+      return;
+    } else clearCanvasForNoTabs();
+    projectTabs.close(projectId);
+  };
+
+  /**
+   * The tab's project was changed in this sitting, which closing it asks about.
+   * Whatever the change was called: a project keeps the state it opened in
+   * (openedSnapshotRef) until its first commit of any kind, an edit, a restored
+   * version, a template the agent applied, the move of a layer into it. Read
+   * from the canvas, the parking lot, or as it was when the tab fell asleep.
+   */
+  const tabHasChanges = (projectId: string): boolean => {
+    if (projectId === loadedProjectIdRef.current) return openedSnapshotRef.current?.projectId !== projectId;
+    const parked = projectTabsParking.peek(projectId);
+    if (parked) return !parked.openedSnapshot;
+    return sleptWithChangesRef.current.has(projectId);
+  };
+
+  // Closing tabs with changes asks first (confirmTabClose in
+  // editorPreferences.ts). Nothing is lost either way, since the project is
+  // saved and Reopen closed tab brings it back with its undo history: the
+  // question is there for a click on the wrong cross.
+  const [pendingTabClose, setPendingTabClose] = useState<{
+    projectIds: string[];
+    changed: string[];
+    run: () => void;
+  } | null>(null);
+  const [stopAskingOnClose, setStopAskingOnClose] = useState(false);
+  /**
+   * Run a close of `projectIds`, after asking when any of them has changes.
+   * When the close also takes this window out of a live session, that is the
+   * question asked instead (confirmLeavingSession): one is enough.
+   */
+  const confirmTabClose = (projectIds: string[], nextProjectId: string | null, run: () => void) => {
+    const active = activeProjectIdRef.current;
+    if (active && projectIds.includes(active) && leavesLiveSession(nextProjectId)) {
+      confirmLeavingSession(nextProjectId, 'Leave and close', run);
+      return;
+    }
+    const changed = readPreference('confirmTabClose') ? projectIds.filter(tabHasChanges) : [];
+    if (changed.length === 0) {
+      run();
+      return;
+    }
+    setStopAskingOnClose(false);
+    setPendingTabClose({ projectIds, changed, run });
+  };
+
+  const handleCloseTab = (projectId: string) => {
+    if (isExportingRef.current) return;
+    confirmTabClose([projectId], null, () => {
+      if (projectTabs.has(projectId)) closeTabNow(projectId);
+    });
+  };
+
+  /**
+   * Close `doomed`, the tabs the question was about, and no others: a tab that
+   * opened while it was being asked stays. `keepId` takes the canvas when the
+   * active tab closes, or always with `focusKept` (Close other tabs).
+   */
+  const closeTabsNow = (doomed: string[], keepId: string, focusKept: boolean) => {
+    const closing = doomed.filter((id) => id !== keepId && projectTabs.has(id));
+    if (closing.length === 0) return;
+    const kept = closing.map((id) => keepUndoOfClosingTab(id));
+    const active = activeProjectIdRef.current;
+    const activeCloses = !!active && closing.includes(active);
+    if (projectTabs.has(keepId)) {
+      if (focusKept || activeCloses) activateTab(keepId);
+    } else if (activeCloses) {
+      // The tab it was asked on left in the meantime, so the first tab that
+      // stays takes over, as a close of the active tab would pick one.
+      const stays = projectTabs.getTabs().find((tab) => !closing.includes(tab.projectId));
+      if (stays) activateTab(stays.projectId);
+      else if (!isSecondaryWindow) clearCanvasForNoTabs();
+    }
+    for (const id of closing) projectTabs.close(id);
+    // The last tabs of a window a tab was moved into: the window goes with them.
+    if (isSecondaryWindow && projectTabs.getTabs().length === 0) {
+      void Promise.all([flushProjectSave(), ...kept]).then(() => closeThisWindow());
+    }
+  };
+
+  const handleCloseOtherTabs = (keepId: string) => {
+    const doomed = otherTabIds(projectTabs.getTabs(), keepId);
+    confirmTabClose(doomed, keepId, () => closeTabsNow(doomed, keepId, true));
+  };
+
+  const handleCloseTabsToRight = (projectId: string) => {
+    const doomed = tabIdsRightOf(projectTabs.getTabs(), projectId);
+    confirmTabClose(doomed, projectId, () => closeTabsNow(doomed, projectId, false));
+  };
+
+  const handleNewTab = () => {
+    projectTabs.requestNewTab();
+    openStartDialog();
+  };
+
+  const handleReopenClosedTab = (projectId?: string) => {
+    const entry = projectTabs.reopenClosed(projectId);
+    if (!entry) return;
+    confirmLeavingSession(entry.projectId, 'Leave and switch', () => activateTab(entry.projectId));
+  };
+
+  const handleDuplicateTab = (projectId: string) => {
+    const tab = projectTabs.get(projectId);
+    void handleDuplicateProject({
+      id: projectId,
+      name: projectId === activeProjectIdRef.current ? currentProjectName : tab?.name || 'Untitled Project',
+      timestamp: new Date(),
+      projectData: [],
+    });
+  };
+
+  /** What a tab's hover card draws: the canvas, the parking lot, or the saved row. */
+  const tabArtboards = (projectId: string): TabArtboardsSource => {
+    if (projectId === loadedProjectIdRef.current) return artboardsRef.current;
+    const parked = projectTabsParking.peek(projectId);
+    if (parked) return parked.artboards;
+    return db.projects
+      .get(projectId)
+      .then((row) => row?.projectData ?? null)
+      .catch(() => null);
+  };
+
+  // Every way a project reaches the canvas ends with activeProjectId naming
+  // it, which makes this the one place a project gets its tab: a template, a
+  // recent project, an import, the cloud, an MCP tool and the agent alike.
+  const recentNamesRef = useRef(new Map<string, string>());
+  recentNamesRef.current = useMemo(
+    () => new Map(recentProjects.map((project) => [project.id, project.name] as const)),
+    [recentProjects]
+  );
+  beforeWindowCloseRef.current = () => {
+    projectTabs.flushSession();
+    // And the agent chat, whose own pagehide flush never runs when a desktop
+    // window closes.
+    return claudeAgent.flush();
+  };
+
+  // The session keeps the active tab's view, read as it is written
+  // (useProjectTabs), so a zoom, a scroll or another artboard or language asks
+  // for a write. Without it a reload would open on the view the tab had when it
+  // was last left.
+  const noteTabViewChange = projectTabs.noteViewChange;
+  useEffect(() => {
+    noteTabViewChange();
+  }, [canvasZoom, activeArtboardId, activeLocale, noteTabViewChange]);
+  const hasBoards = artboards.length > 0;
+  useEffect(() => {
+    const viewport = canvasContainerRef.current?.querySelector<HTMLElement>('[data-radix-scroll-area-viewport]');
+    if (!viewport) return;
+    viewport.addEventListener('scroll', noteTabViewChange, { passive: true });
+    return () => viewport.removeEventListener('scroll', noteTabViewChange);
+  }, [noteTabViewChange, renderedCanvasSerial, hasBoards]);
+
+  // Stored undo stacks nobody will ask for again: written by a window that
+  // has gone (a reload ends one, rule 28), unless written for another window
+  // to take a moment ago. Looked at once, a while after startup.
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () =>
+        afterIdle(() => {
+          void (async () => {
+            const live = await liveEditorWindowIds();
+            const recent = Date.now() - HAND_OVER_KEEP_MS;
+            await undoStore.prune(
+              (row) =>
+                row.sitting === EDITOR_WINDOW_ID ||
+                live?.has(row.sitting) === true ||
+                (row.handOver && row.savedAt > recent)
+            );
+          })().catch((error) => console.warn('Could not tidy the stored undo history', error));
+        }),
+      20_000
+    );
+    return () => window.clearTimeout(timer);
+    // Startup only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const noteActiveTab = projectTabs.noteActive;
+  const noteNoActiveTab = projectTabs.noteNoActive;
+  useEffect(() => {
+    if (!activeProjectId) {
+      noteNoActiveTab();
+      return;
+    }
+    const onCanvas = loadedProjectIdRef.current === activeProjectId;
+    noteActiveTab(activeProjectId, {
+      name: onCanvas ? projectNameRef.current : recentNamesRef.current.get(activeProjectId),
+      preview: previewProjectIdRef.current === activeProjectId,
+    });
+    if (previewProjectIdRef.current === activeProjectId) previewProjectIdRef.current = null;
+  }, [activeProjectId, noteActiveTab, noteNoActiveTab]);
+
+  // The name follows the project once its document is on the canvas, and not
+  // before: until then currentProjectName is still the previous project's.
+  const renameTab = projectTabs.rename;
+  useEffect(() => {
+    if (!activeProjectId || loadedProjectIdRef.current !== activeProjectId) return;
+    renameTab(activeProjectId, currentProjectName);
+  }, [activeProjectId, currentProjectName, renderedCanvasSerial, renameTab]);
+
+  const activeTabSummary = useMemo(
+    () => (artboards.length > 0 ? summarizeProject(artboards) : undefined),
+    [artboards]
+  );
+
+  // isTauri() is false on the first render (rule 14), and the tab shortcuts
+  // differ between the two shells.
+  const [isDesktopApp, setIsDesktopApp] = useState(false);
+  useEffect(() => setIsDesktopApp(isTauri()), []);
+
+  // The desktop menu's New Tab, Close Tab and Reopen Closed Tab. The menu owns
+  // those accelerators (settings.rs), so the key never reaches the page.
+  const tabCommandRef = useRef<(command: string) => void>(() => {});
+  tabCommandRef.current = (command: string) => {
+    if (command === 'new') handleNewTab();
+    else if (command === 'reopen') handleReopenClosedTab();
+    else if (command === 'close') {
+      const active = activeProjectIdRef.current;
+      if (active && projectTabs.has(active)) {
+        handleCloseTab(active);
+        return;
+      }
+      // No tab left to close: the shortcut closes the window, as it always did.
+      void import('@tauri-apps/api/window').then(({ getCurrentWindow }) => getCurrentWindow().close());
+    }
+  };
+  useEffect(() => {
+    if (!isTauri()) return;
+    let disposed = false;
+    let unlisten: (() => void) | undefined;
+    (async () => {
+      try {
+        const { getCurrentWebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+        const stop = await getCurrentWebviewWindow().listen<string>(TAB_COMMAND_EVENT, (event) =>
+          tabCommandRef.current(event.payload)
+        );
+        if (disposed) stop();
+        else unlisten = stop;
+      } catch (error) {
+        console.error('Could not listen for the tab menu', error);
+      }
+    })();
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, []);
+
+  // --- layers and artboards moving between tabs ------------------------------
+  //
+  // handleArtboardsUpdate only ever writes the project on the canvas. A project
+  // in another tab changes through editTabInBackground instead: in the parking
+  // lot when it is parked, after a read when it is asleep. Either way its row
+  // is written, the change goes on that project's own undo stack, and its tab
+  // is refreshed, so switching to it shows the change with an undo for it.
+
+  // Transfers under way, by project. A tab on its way to another window waits
+  // for them (letTabGo), so the window it goes to reads what they wrote.
+  const projectWorkRef = useRef(new Map<string, Set<Promise<void>>>());
+  /** Settles once every transfer to or from the project that is under way now has. */
+  const projectWorkDone = (projectId: string) => Promise.all([...(projectWorkRef.current.get(projectId) ?? [])]);
+
+  /**
+   * Run `work` holding this window's lock on each project, from its first read
+   * to its last write, taken first where this window does not hold it yet.
+   * Closing one of the tabs, or handing it to another window, lets go of the
+   * lock only after that, so no other window opens the project in the middle
+   * and later saves over what the work wrote. Returns the project another
+   * window has, without running anything, or null once `work` has run.
+   */
+  const withProjectsHeld = async (projectIds: string[], work: () => Promise<void>): Promise<string | null> => {
+    const ids = [...new Set(projectIds)];
+    let finish!: () => void;
+    const running = new Promise<void>((resolve) => {
+      finish = () => resolve();
+    });
+    for (const id of ids) {
+      pinLock(id);
+      const under = projectWorkRef.current.get(id) ?? new Set<Promise<void>>();
+      under.add(running);
+      projectWorkRef.current.set(id, under);
+    }
+    try {
+      for (const id of ids) if (!(await holdProjectLock(id))) return id;
+      await work();
+      return null;
+    } finally {
+      finish();
+      for (const id of ids) {
+        const under = projectWorkRef.current.get(id);
+        under?.delete(running);
+        if (under?.size === 0) projectWorkRef.current.delete(id);
+        settleLock(id);
+      }
+    }
+  };
+
+  /**
+   * Change a project that is not on the canvas. `change` gets its base document
+   * and returns the new one with a result, or null to leave it alone. Null
+   * overall when the project could not be read or has no artboards, or is not
+   * this window's to change: its tab is gone, or another window has it.
+   */
+  const editTabInBackground = async <T,>(
+    projectId: string,
+    label: HistoryChange,
+    change: (boards: ArtboardState[]) => { boards: ArtboardState[]; result: T } | null
+  ): Promise<T | null> => {
+    if (projectId === loadedProjectIdRef.current) return null;
+    if (!projectTabs.has(projectId) || !mayWriteProject(projectId)) return null;
+    let parked = projectTabsParking.peek(projectId);
+    if (!parked) {
+      // Asleep: read the way the loader reads, its undo stack included, then
+      // park it, so the change lands on the stack that comes back with the tab.
+      const [row, storedUndo] = await Promise.all([
+        db.projects.get(projectId).catch(() => undefined),
+        undoStore.load(projectId).catch(() => null),
+      ]);
+      if (!row || !canOpenAsProject(row.projectData)) return null;
+      const boards = calculateArtboardPositions(
+        normalizeLocalization(ensureUniqueElementIds(await externalizeInlineMedia(migrateVideoDevices(row.projectData))))
+      );
+      // Opened while the read was out: the canvas holds it now.
+      if (projectId === loadedProjectIdRef.current) return null;
+      // Closed, or gone to another window: nothing here to change any more.
+      if (!projectTabs.has(projectId) || !mayWriteProject(projectId)) return null;
+      const name = row.name || 'Untitled Project';
+      const woken = openStoredUndo(projectId, name, boards, storedUndo);
+      parked = projectTabsParking.peek(projectId) ?? {
+        projectId,
+        name,
+        artboards: boards,
+        history: woken.history,
+        historyIndex: woken.historyIndex,
+        selectedElementIds: woken.selectedElementIds,
+        openedSnapshot: woken.openedSnapshot,
+        parkedAt: Date.now(),
+      };
+      projectTabsParking.park(parked);
+    }
+    const outcome = change(parked.artboards);
+    if (!outcome) return null;
+    const boards = calculateArtboardPositions(outcome.boards);
+    // A project's first edit is what keeps the state it was opened in as a
+    // version, the promise noteVersionCheckpoint keeps for the canvas.
+    const opened = parked.openedSnapshot;
+    if (opened) void saveVersion(projectId, opened.boards, opened.name, { kind: 'auto', label: 'Before this session' });
+    const entry = makeHistoryEntry(boards, label);
+    projectTabsParking.update(projectId, (current) => {
+      let history = [...current.history.slice(0, current.historyIndex + 1), entry];
+      if (history.length > HISTORY_LIMIT) history = history.slice(history.length - HISTORY_LIMIT);
+      return {
+        ...current,
+        artboards: boards,
+        history,
+        historyIndex: history.length - 1,
+        openedSnapshot: null,
+        parkedAt: Date.now(),
+      };
+    });
+    try {
+      await db.projects.update(projectId, { projectData: JSON.parse(JSON.stringify(boards)), timestamp: new Date() });
+    } catch (error) {
+      console.error('Could not save the project in the other tab', error);
+      return null;
+    }
+    projectTabs.setSummary(projectId, summarizeProject(boards));
+    noteTabEdit(projectId);
+    return outcome.result;
+  };
+
+  /** Where a tab opens next time: its own view, with one thing changed. */
+  const pointTabAt = (projectId: string, activeArtboardId: string) => {
+    const view = projectTabs.get(projectId)?.view;
+    projectTabs.recordLeave(projectId, {
+      view: {
+        activeArtboardId,
+        zoom: view?.zoom ?? canvasZoomRef.current,
+        scroll: view?.scroll ?? null,
+        locale: view?.locale ?? null,
+      },
+    });
+  };
+
+  const openTabAction = (projectId: string, name: string) => (
+    <ToastAction altText={`Open ${name}`} onClick={() => handleActivateTab(projectId)}>
+      Open
+    </ToastAction>
+  );
+
+  /**
+   * Change a project wherever it is: the one on the canvas through its door,
+   * any other in the background. Null when the change did not land.
+   */
+  const editProjectAnywhere = async <T,>(
+    projectId: string,
+    label: HistoryChange,
+    change: (boards: ArtboardState[]) => { boards: ArtboardState[]; result: T } | null
+  ): Promise<T | null> => {
+    if (projectId !== loadedProjectIdRef.current) return editTabInBackground(projectId, label, change);
+    const outcome = change(artboardsRef.current);
+    if (!outcome) return null;
+    return handleArtboardsUpdateRef.current(outcome.boards, label) ? outcome.result : null;
+  };
+
+  const projectNameOf = (projectId: string) =>
+    (projectId === loadedProjectIdRef.current ? projectNameRef.current : projectTabs.get(projectId)?.name) ||
+    'Untitled project';
+
+  /**
+   * Move or copy layers from one project to another, either of them on the
+   * canvas or in another tab. They land on `to.artboardId` (or the artboard the
+   * target was left on) at `to.at` (or the same place relative to it). The
+   * target is written first, so a failure there leaves the source as it was;
+   * only then do the layers leave the source.
+   */
+  const sendLayers = async ({
+    mode,
+    from,
+    to,
+  }: {
+    mode: 'move' | 'copy';
+    from: { projectId: string; artboardId: string; elementIds: string[]; transfer?: ElementTransfer };
+    to: { projectId: string; artboardId?: string; at?: Point };
+  }) => {
+    if (from.projectId === to.projectId) return;
+    // The layers as their project has them now, on the canvas or parked in
+    // its tab. Undefined when that tab is asleep, where nothing changes them.
+    const pickNow = (): ElementTransfer | null | undefined => {
+      const doc =
+        from.projectId === loadedProjectIdRef.current
+          ? artboardsRef.current
+          : projectTabsParking.peek(from.projectId)?.artboards;
+      if (!doc) return undefined;
+      const board = doc.find((entry) => entry.id === from.artboardId);
+      return board ? pickElements(board, from.elementIds) : null;
+    };
+    const first = pickNow();
+    const start = first === undefined ? (from.transfer ?? null) : first;
+    if (!start) return;
+    const sourceName = projectNameOf(from.projectId);
+    const targetName = projectNameOf(to.projectId);
+    const verb = mode === 'move' ? 'Moved' : 'Copied';
+    // Their text is measured in the faces of the target's base language, as a
+    // paste's is (transferFonts.ts), and before the locks: nothing is held
+    // while a webfont loads. They can be edited meanwhile, and a language of
+    // their project set to draw in another face, so they are picked again
+    // after each wait, and waited for again when they need other faces.
+    const facesOfLayers = (layers: ElementTransfer) => textFacesOf(layers.elements, layers.localized, layers.locales);
+    const waited = new Set<string>();
+    const picked = await pickWithFacesIn(start, pickNow, facesOfLayers, whenFacesLoaded, waited);
+    // Deleted while the faces loaded: nothing is left to move.
+    if (!picked) return;
+    const refused = await withProjectsHeld([from.projectId, to.projectId], async () => {
+      // Once more with the locks held, the last moment before anything is
+      // written: a lock can take a moment to come. A face needed since then
+      // is waited for here, with the locks held, which is the rare case;
+      // one already given up on above is not.
+      const now = pickNow();
+      if (now === null) return;
+      const transfer = now ? await pickWithFacesIn(now, pickNow, facesOfLayers, whenFacesLoaded, waited) : picked;
+      if (!transfer) return;
+      const movedIds = transfer.elements.map((element) => element.id);
+      const count = transfer.elements.length;
+      const what = count === 1 ? getElementDisplayName(transfer.elements[0]) : `${count} layers`;
+      const landed = await editProjectAnywhere(
+        to.projectId,
+        namedChange(`${verb} from ${sourceName}`, 'add', what),
+        (boards) => {
+          const wanted =
+            to.artboardId ??
+            (to.projectId === loadedProjectIdRef.current
+              ? activeArtboardIdRef.current
+              : projectTabs.get(to.projectId)?.view?.activeArtboardId);
+          const index = Math.max(0, boards.findIndex((board) => board.id === wanted));
+          const locales = new Set(getProjectLocales(boards).map((entry) => entry.code));
+          const placed = placeElements(boards[index], transfer, {
+            locales,
+            baseLocale: baseLocaleOf(boards),
+            at: to.at,
+            // A drop point is where the layers should be drawn, in the
+            // language the canvas shows.
+            viewLocale: to.projectId === loadedProjectIdRef.current ? activeLocaleRef.current : null,
+          });
+          return {
+            boards: boards.map((board, i) => (i === index ? placed.board : board)),
+            result: { boardId: placed.board.id, placedIds: placed.placedIds },
+          };
+        }
+      );
+      if (!landed) {
+        toast({
+          title: `${targetName} could not take the layers`,
+          description: 'Nothing was moved. Open that tab, then try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      // Selected, on the artboard they landed on: now, or when that tab opens.
+      // Asked again, because the canvas can have moved to another tab while a
+      // write to a background one was out.
+      if (to.projectId === loadedProjectIdRef.current) {
+        setActiveArtboardId(landed.boardId);
+        setSelectedElementIds(landed.placedIds);
+      } else {
+        projectTabsParking.update(to.projectId, (project) => ({ ...project, selectedElementIds: landed.placedIds }));
+        pointTabAt(to.projectId, landed.boardId);
+      }
+      const action = to.projectId === loadedProjectIdRef.current ? undefined : openTabAction(to.projectId, targetName);
+      if (mode === 'move') {
+        // Only as they went. Edited while the target was written, they stay,
+        // edit and all, rather than leave with a copy that lacks the edit.
+        let edited = false;
+        const left = await editProjectAnywhere(
+          from.projectId,
+          namedChange(`Moved to ${targetName}`, 'delete', what),
+          (boards) => {
+            const board = boards.find((entry) => entry.id === from.artboardId);
+            if (board && !stillHolds(board, transfer)) {
+              edited = true;
+              return null;
+            }
+            return {
+              boards: boards.map((entry) => (entry.id === from.artboardId ? removeElements(entry, movedIds) : entry)),
+              result: true,
+            };
+          }
+        );
+        if (!left) {
+          toast({
+            title: `Copied to ${targetName}`,
+            description: edited
+              ? `The layers changed in ${sourceName} while they moved, so they are in both projects.`
+              : `${sourceName} did not take the change, so the layers are in both projects.`,
+            action,
+          });
+          return;
+        }
+        if (from.projectId === loadedProjectIdRef.current) {
+          setSelectedElementIds((ids) => ids.filter((id) => !movedIds.includes(id)));
+        }
+      }
+      toast({ title: `${verb} to ${targetName}`, description: what, action });
+    });
+    if (refused) {
+      toast({
+        title: `${projectNameOf(refused)} is open in another window`,
+        description: 'Nothing was moved. Close it there, then try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const sendLayersToTab = (targetId: string, mode: 'move' | 'copy', artboardId: string, elementIds: string[]) => {
+    const sourceId = loadedProjectIdRef.current;
+    if (!sourceId || !projectTabs.has(targetId)) return Promise.resolve();
+    return sendLayers({ mode, from: { projectId: sourceId, artboardId, elementIds }, to: { projectId: targetId } });
+  };
+
+  /**
+   * Layers held over another tab until it opened (ProjectTabBar). They are
+   * lifted off the canvas (carrySession.ts) and the tab opens under them; where
+   * they are let go decides the rest. On an artboard they land at that spot,
+   * on a tab they go to that tab, and back on their own tab, or anywhere else,
+   * nothing moves.
+   */
+  const carryEndRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => carryEndRef.current?.(), []);
+  const handleSpringLoad = (projectId: string, carry: ElementCarry) => {
+    if (isExportingRef.current) return;
+    // Already carrying: the next tab opens under the same layers.
+    if (carryEndRef.current) {
+      if (projectId !== activeProjectIdRef.current) activateTab(projectId);
+      return;
+    }
+    // Leaving a live session asks first, and a drag cannot wait for an answer.
+    if (collab.room) return;
+    const sourceId = loadedProjectIdRef.current;
+    const board = artboardsRef.current.find((entry) =>
+      entry.elements.some((element) => element.id === carry.elementId)
+    );
+    if (!sourceId || !board) return;
+    const selection = selectedElementIdsRef.current;
+    const elementIds = selection.includes(carry.elementId) ? selection : [carry.elementId];
+    const transfer = pickElements(board, elementIds);
+    if (!transfer) return;
+    const from = { projectId: sourceId, artboardId: board.id, elementIds, transfer };
+    carryEndRef.current = startCarrySession({
+      clientX: carry.clientX,
+      clientY: carry.clientY,
+      copy: carry.copy,
+      artboardId: board.id,
+      elementIds,
+      elementId: carry.elementId,
+      onEnd: (drop) => {
+        carryEndRef.current = null;
+        if (drop.kind === 'cancel') return;
+        if (drop.kind === 'tab') {
+          // Back on its own tab: home again, with nothing moved.
+          if (drop.projectId === sourceId) {
+            activateTab(sourceId);
+            return;
+          }
+          void sendLayers({ mode: drop.copy ? 'copy' : 'move', from, to: { projectId: drop.projectId } });
+          return;
+        }
+        const openId = loadedProjectIdRef.current;
+        // Let go over the project it came from (the next tab was still
+        // opening): nothing to do.
+        if (!openId || openId === sourceId) return;
+        void sendLayers({
+          mode: drop.copy ? 'copy' : 'move',
+          from,
+          to: { projectId: openId, artboardId: drop.artboardId, at: drop.at },
+        });
+      },
+    });
+    activateTab(projectId);
+  };
+
+  /** The same for a whole artboard, which lands after the last one there. */
+  const sendArtboardToTab = async (targetId: string, mode: 'move' | 'copy', artboardId: string) => {
+    const sourceId = loadedProjectIdRef.current;
+    if (!sourceId || targetId === sourceId || !projectTabs.has(targetId)) return;
+    // The artboard as its project has it now, as for layers (pickNow in
+    // sendLayers): the canvas may show another tab by the time a face is in.
+    const boardNow = (): ArtboardState | null | undefined => {
+      const doc =
+        sourceId === loadedProjectIdRef.current ? artboardsRef.current : projectTabsParking.peek(sourceId)?.artboards;
+      return doc ? (doc.find((board) => board.id === artboardId) ?? null) : undefined;
+    };
+    const start = boardNow();
+    if (!start) return;
+    if (mode === 'move' && artboardsRef.current.length < 2) {
+      toast({
+        title: 'A project keeps at least one artboard',
+        description: 'Copy it instead, or add another artboard here first.',
+      });
+      return;
+    }
+    const sourceName = projectNameRef.current;
+    const targetName = projectTabs.get(targetId)?.name || 'Untitled project';
+    const verb = mode === 'move' ? 'Moved' : 'Copied';
+    // As for layers (sendLayers): the faces its text is measured in come
+    // first, and the artboard is read again after each wait.
+    const facesOfBoard = (board: ArtboardState) =>
+      textFacesOf(board.elements, board.localized, getProjectLocales([board]));
+    const waited = new Set<string>();
+    const picked = await pickWithFacesIn(start, boardNow, facesOfBoard, whenFacesLoaded, waited);
+    if (!picked) return;
+    const refused = await withProjectsHeld([sourceId, targetId], async () => {
+      const now = boardNow();
+      if (now === null) return;
+      const source = now ? await pickWithFacesIn(now, boardNow, facesOfBoard, whenFacesLoaded, waited) : picked;
+      if (!source) return;
+      const landedId = await editTabInBackground(
+        targetId,
+        namedChange(`${verb} from ${sourceName}`, 'artboard', source.name),
+        (boards) => {
+          const placed = placeArtboard(boards, source, {});
+          return { boards: placed.boards, result: placed.boardId };
+        }
+      );
+      if (!landedId) {
+        toast({
+          title: `${targetName} could not be opened`,
+          description: 'Nothing was moved. Open that tab, then try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      pointTabAt(targetId, landedId);
+      if (mode === 'move') {
+        // From the project it came from, captured before the write: the canvas
+        // may show another tab by now, and that tab can have a board with the
+        // same id (a duplicated project does). And only as it went, as for
+        // layers: edited while the target was written, it stays.
+        let edited = false;
+        const left = await editProjectAnywhere(
+          sourceId,
+          namedChange(`Moved to ${targetName}`, 'artboard', source.name),
+          (boards) => {
+            const kept = boards.filter((board) => board.id !== artboardId);
+            // Gone already, or the last board left: nothing to take away.
+            if (kept.length === boards.length || kept.length === 0) return null;
+            if (!sameDocument(boards.filter((board) => board.id === artboardId), [source])) {
+              edited = true;
+              return null;
+            }
+            return { boards: kept, result: true };
+          }
+        );
+        if (!left) {
+          toast({
+            title: `Copied to ${targetName}`,
+            description: edited
+              ? `The artboard changed in ${sourceName} while it moved, so it is in both projects.`
+              : `${sourceName} did not take the change, so the artboard is in both projects.`,
+            action: openTabAction(targetId, targetName),
+          });
+          return;
+        }
+      }
+      toast({ title: `${verb} to ${targetName}`, description: source.name, action: openTabAction(targetId, targetName) });
+    });
+    if (refused) {
+      toast({
+        title: `${projectNameOf(refused)} is open in another window`,
+        description: 'Nothing was moved. Close it there, then try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  /** The other tabs, for the canvas menu's Move to and Copy to. */
+  const sendTargets = useMemo(
+    () =>
+      projectTabs.tabs
+        .filter((tab) => tab.projectId !== activeProjectId)
+        .map((tab) => ({ projectId: tab.projectId, name: tab.name, accent: tab.summary?.accent })),
+    [projectTabs.tabs, activeProjectId]
+  );
+
+  // --- tabs across windows ---------------------------------------------------
+  //
+  // Each project in this window's tabs is locked to this window
+  // (projectLocks.ts), so no other window opens it to write it as well. The tab
+  // bus (tabWindows.ts) is how windows ask each other to show a project, hand
+  // one over, or take one in.
+
+  // A lock for every tab, let go of when the tab goes. The project being
+  // opened takes its own before it is read (the loader, loadProjectFromData),
+  // and a pinned lock belongs to an open or a hand-over still under way. One
+  // that started on the canvas (the first edit of an empty one) takes it here.
+  const forgetTab = projectTabs.forget;
+  useEffect(() => {
+    const wanted = new Set(projectTabs.tabs.map((tab) => tab.projectId));
+    for (const id of heldProjectIds()) {
+      if (wanted.has(id) || pinnedLocksRef.current.has(id) || id === loadedProjectIdRef.current) continue;
+      releaseProjectLock(id);
+    }
+    for (const id of wanted) {
+      const opening = id === activeProjectIdRef.current && id !== loadedProjectIdRef.current;
+      if (isProjectLockHeld(id) || pinnedLocksRef.current.has(id) || opening) continue;
+      void holdProjectLock(id).then((held) => {
+        // Another window has it (a restored session that window had open too),
+        // so a tab for it here would make a second writer.
+        if (held || id === loadedProjectIdRef.current || id === activeProjectIdRef.current) return;
+        if (pinnedLocksRef.current.has(id)) return;
+        forgetTab(id);
+      });
+    }
+  }, [projectTabs.tabs, forgetTab]);
+
+  /** A project another window has open, asked about instead of opened. */
+  const [projectElsewhere, setProjectElsewhere] = useState<{ projectId: string; name: string } | null>(null);
+  /** An open another window's lock turned down. Asked about, never reported as a failure. */
+  const askAboutProjectElsewhere = (error: ProjectOpenElsewhereError) =>
+    setProjectElsewhere({ projectId: error.projectId, name: error.projectName });
+
+  /**
+   * A tab leaves this window. The canvas stops taking edits to it at once, and
+   * the lock is let go of only once its project and its undo stack are both
+   * written, so the window it goes to opens it as it was, undo included.
+   * Resolves when the lock is gone.
+   */
+  const letTabGo = async (projectId: string) => {
+    pinLock(projectId);
+    // Opened again here before the lock goes (from Recent projects, a file,
+    // the account), it would find the lock still held and open, and then two
+    // windows would save it. Anything that asks for it from now on is turned
+    // down, the way another window's lock turns it down.
+    const handedOver = startHandOver(projectId);
+    // Still being read, it never reaches this canvas now.
+    const opening = stopOpening(projectId);
+    let undo: UndoSnapshot | null = null;
+    const onCanvas = projectId === loadedProjectIdRef.current;
+    if (projectId === activeProjectIdRef.current || onCanvas) {
+      const next = nextActiveAfterClose(projectTabs.getTabs(), projectId, projectId);
+      if (onCanvas) {
+        undo = canvasUndoSnapshot();
+        // Nothing on the canvas is this project's any more: a commit landing
+        // before the next one opens is turned down rather than saved here.
+        loadedProjectIdRef.current = null;
+        canvasSerialRef.current += 1;
+      }
+      // Still opening, the canvas holds the project before it, which stays put
+      // when its tab is the next one, undo history and all.
+      if (next) activateTab(next);
+      else if (!isSecondaryWindow) clearCanvasForNoTabs();
+    } else {
+      const parked = projectTabsParking.peek(projectId);
+      if (parked) undo = undoSnapshotOf(parked);
+    }
+    forgetTab(projectId);
+    try {
+      // A transfer to or from it finishes first, while this window still has
+      // the project, so the window it goes to reads what the transfer wrote.
+      // So does the open it stopped, which holds the lock until it has.
+      await Promise.all([opening, projectWorkDone(projectId)]);
+      await Promise.all([
+        flushProjectSave(),
+        // Asleep, its stack is on disk already and only needs marking as one
+        // the other window may take.
+        undo ? saveUndo(projectId, undo, { handOver: true }) : undoStore.handOver(projectId).catch(() => {}),
+      ]);
+    } finally {
+      settleLock(projectId);
+      handedOver();
+    }
+    // A window a tab was moved into closes once its last tab has gone.
+    if (isSecondaryWindow && projectTabs.getTabs().length === 0) void closeThisWindow();
+  };
+
+  /**
+   * Open a project another window is letting go of, as a tab of its own. The
+   * open waits a moment for that window's lock to go (HAND_OVER_WAIT_MS).
+   */
+  const takeTabBack = (projectId: string) => {
+    awaitedHandOversRef.current.add(projectId);
+    projectTabs.requestNewTab();
+    setActiveProjectId(projectId);
+  };
+
+  const moveTabToNewWindow = (projectId: string, placement: TabWindowPlacement) => {
+    if (isExportingRef.current || projectTabs.getTabs().length < 2) return;
+    const name = projectNameOf(projectId);
+    const go = () => {
+      // The window opens straight away (a browser only allows a popup inside
+      // the gesture) and waits for this one to write the tab and let go.
+      const leaving = letTabGo(projectId);
+      void openTabWindow(projectId, name, placement).then(async (opened) => {
+        if (opened) return;
+        await leaving;
+        takeTabBack(projectId);
+        toast({
+          title: 'That window could not be opened',
+          description: isTauri()
+            ? 'Something stopped the new window from opening. The project is back in its tab.'
+            : 'Your browser blocked the pop-up. Allow pop-ups for this site, then try again.',
+          variant: 'destructive',
+        });
+      });
+    };
+    if (projectId === activeProjectIdRef.current) confirmLeavingSession(null, 'Leave and move', go);
+    else go();
+  };
+
+  const tabBusRef = useRef<WindowBus<TabWindowMessage> | null>(null);
+  const [otherWindows, setOtherWindows] = useState<OtherTabWindow[]>([]);
+  const handOverWaitersRef = useRef(new Map<string, () => void>());
+
+  const moveTabToWindow = (projectId: string, windowId: string) => {
+    const name = projectNameOf(projectId);
+    const go = () => {
+      void letTabGo(projectId).then(() =>
+        tabBusRef.current?.post({ type: 'adopt', from: EDITOR_WINDOW_ID, to: windowId, projectId, name })
+      );
+    };
+    if (projectId === activeProjectIdRef.current) confirmLeavingSession(null, 'Leave and move', go);
+    else go();
+  };
+
+  /** Ask the window that has the project to let go of it, then open it here. */
+  const takeProjectFromElsewhere = async (projectId: string) => {
+    const requestId = Math.random().toString(36).slice(2, 10);
+    // The other window answers once it has written the project and its undo
+    // stack, which for a long history takes a moment.
+    const handedOver = new Promise<boolean>((resolve) => {
+      const timer = window.setTimeout(() => {
+        handOverWaitersRef.current.delete(requestId);
+        resolve(false);
+      }, HAND_OVER_WAIT_MS);
+      handOverWaitersRef.current.set(requestId, () => {
+        window.clearTimeout(timer);
+        resolve(true);
+      });
+    });
+    tabBusRef.current?.post({ type: 'hand-over', from: EDITOR_WINDOW_ID, projectId, requestId });
+    // No answer and still held: the other window could not be reached.
+    if (!(await handedOver) && (await projectOpenElsewhere(projectId)) === true) {
+      toast({
+        title: 'The other window kept that project',
+        description: 'Close its tab there, then open the project here.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    takeTabBack(projectId);
+  };
+
+  const tabBusHandlerRef = useRef<(message: TabWindowMessage) => void>(() => {});
+  tabBusHandlerRef.current = (message: TabWindowMessage) => {
+    switch (message.type) {
+      case 'roll-call':
+        tabBusRef.current?.post({
+          type: 'here',
+          from: EDITOR_WINDOW_ID,
+          to: message.from,
+          title: projectNameRef.current,
+          tabs: projectTabs.getTabs().length,
+          main: !isSecondaryWindow,
+        });
+        return;
+      case 'here':
+        if (message.to !== EDITOR_WINDOW_ID) return;
+        setOtherWindows((current) => [
+          ...current.filter((entry) => entry.id !== message.from),
+          { id: message.from, title: message.title, tabs: message.tabs, main: message.main },
+        ]);
+        return;
+      case 'show-project':
+        if (!projectTabs.has(message.projectId)) return;
+        handleActivateTab(message.projectId);
+        void focusThisWindow();
+        return;
+      case 'hand-over': {
+        const answer = () =>
+          tabBusRef.current?.post({
+            type: 'handed-over',
+            from: EDITOR_WINDOW_ID,
+            to: message.from,
+            projectId: message.projectId,
+            requestId: message.requestId,
+          });
+        if (projectTabs.has(message.projectId)) void letTabGo(message.projectId).then(answer);
+        // Its tab closed while a transfer still holds it: the lock goes once
+        // the transfer is done.
+        else if (projectWorkRef.current.has(message.projectId)) void projectWorkDone(message.projectId).then(answer);
+        return;
+      }
+      case 'handed-over':
+        if (message.to !== EDITOR_WINDOW_ID) return;
+        handOverWaitersRef.current.get(message.requestId)?.();
+        handOverWaitersRef.current.delete(message.requestId);
+        return;
+      case 'adopt':
+        if (message.to !== EDITOR_WINDOW_ID) return;
+        takeTabBack(message.projectId);
+        void focusThisWindow();
+        return;
+      case 'tab-drag': {
+        const { from } = message;
+        if (message.phase === 'start') {
+          // Another window is dragging one of its tabs out: say where this one
+          // is, for it to tell when the pointer is over it. Nothing moves this
+          // window while another one drags.
+          void thisWindowScreenRect().then((rect) =>
+            tabBusRef.current?.post({
+              type: 'tab-drag-window',
+              from: EDITOR_WINDOW_ID,
+              to: from,
+              projectId: message.projectId,
+              rect: document.visibilityState === 'visible' ? rect : null,
+              focusedAt: windowFocusedAt(),
+              title: projectNameRef.current,
+              main: !isSecondaryWindow,
+            })
+          );
+          return;
+        }
+        // Named as the window it would land in, or no longer.
+        const here = message.phase === 'over' && message.target === EDITOR_WINDOW_ID;
+        setIncomingTab((current) => (here ? { from, name: message.name } : current?.from === from ? null : current));
+        return;
+      }
+      case 'tab-drag-window': {
+        if (message.to !== EDITOR_WINDOW_ID) return;
+        const drag = tearDragRef.current;
+        if (!drag || drag.projectId !== message.projectId) return;
+        drag.windows.set(message.from, {
+          windowId: message.from,
+          rect: message.rect,
+          focusedAt: message.focusedAt,
+          name: message.main ? 'the main window' : `the window with ${message.title || 'Untitled project'}`,
+        });
+        if (drag.point) retarget(drag, drag.point);
+        return;
+      }
+    }
+  };
+  useEffect(() => {
+    let disposed = false;
+    let bus: WindowBus<TabWindowMessage> | null = null;
+    trackWindowFocus();
+    void joinTabWindowBus((message) => tabBusHandlerRef.current(message)).then((joined) => {
+      if (disposed) {
+        joined.close();
+        return;
+      }
+      bus = joined;
+      tabBusRef.current = joined;
+    });
+    return () => {
+      disposed = true;
+      bus?.close();
+      tabBusRef.current = null;
+    };
+  }, []);
+
+  /** Who else is open, for Move to window: answers arrive within a few ms. */
+  const askForOtherWindows = () => {
+    setOtherWindows([]);
+    tabBusRef.current?.post({ type: 'roll-call', from: EDITOR_WINDOW_ID });
+  };
+
+  // A tab dragged out of the strip and let go over another editor window moves
+  // there (tabDrag.ts). The other windows say where they are as the drag
+  // starts; this one works out which the pointer is over, tells them, and
+  // decides where the tab lands from where it is let go.
+
+  /** The window a tab being dragged out of this one would move to. */
+  const [tearTarget, setTearTarget] = useState<{ windowId: string; name: string } | null>(null);
+  const tearDragRef = useRef<TearDrag | null>(null);
+  /** A tab another window is dragging over this one, for the overlay that says it would land here. */
+  const [incomingTab, setIncomingTab] = useState<{ from: string; name: string } | null>(null);
+
+  /** The pointer is at `point`: name the window the tab would land in, when that changed. */
+  const retarget = (drag: TearDrag, point: ScreenPoint) => {
+    drag.point = point;
+    const target = pickDropWindow(point, drag.own, drag.windows.values());
+    if (target === drag.target) return;
+    drag.target = target;
+    tabBusRef.current?.post({
+      type: 'tab-drag',
+      from: EDITOR_WINDOW_ID,
+      projectId: drag.projectId,
+      name: drag.name,
+      phase: 'over',
+      target,
+    });
+    const answer = target ? drag.windows.get(target) : undefined;
+    setTearTarget(answer ? { windowId: answer.windowId, name: answer.name } : null);
+  };
+
+  const handleTabTearMove = (projectId: string, event: { screenX: number; screenY: number }) => {
+    let drag = tearDragRef.current;
+    if (!drag || drag.projectId !== projectId) {
+      const started: TearDrag = {
+        projectId,
+        name: projectNameOf(projectId),
+        own: null,
+        point: null,
+        windows: new Map(),
+        target: null,
+        latest: null,
+        frame: null,
+      };
+      drag = started;
+      tearDragRef.current = started;
+      tabBusRef.current?.post({
+        type: 'tab-drag',
+        from: EDITOR_WINDOW_ID,
+        projectId,
+        name: started.name,
+        phase: 'start',
+        target: null,
+      });
+      // Measured once: this window does not move while one of its tabs is dragged.
+      void thisWindowScreenRect().then((rect) => {
+        if (tearDragRef.current !== started) return;
+        started.own = rect;
+        if (started.point) retarget(started, started.point);
+      });
+    }
+    drag.latest = event;
+    // One position a frame is plenty, and on the desktop each one is a call into Tauri.
+    if (drag.frame !== null) return;
+    const live = drag;
+    live.frame = requestAnimationFrame(() => {
+      live.frame = null;
+      const latest = live.latest;
+      if (!latest || tearDragRef.current !== live) return;
+      void pointerScreenPoint(latest).then((point) => {
+        if (point && tearDragRef.current === live) retarget(live, point);
+      });
+    });
+  };
+
+  /**
+   * The drag outside the strip is over: let go at `release`, or put back or
+   * cancelled (null). Where the tab lands comes from the release itself, never
+   * from the last frame, which can be a window the pointer has since left: over
+   * another window it moves there, and anywhere else it opens the new window
+   * `release.placement` describes, when there is one.
+   */
+  const handleTabTearEnd = (
+    projectId: string,
+    release: { screenX: number; screenY: number; placement: TabWindowPlacement | null } | null
+  ) => {
+    const drag = tearDragRef.current?.projectId === projectId ? tearDragRef.current : null;
+    if (drag) {
+      if (drag.frame !== null) cancelAnimationFrame(drag.frame);
+      tearDragRef.current = null;
+      setTearTarget(null);
+      tabBusRef.current?.post({
+        type: 'tab-drag',
+        from: EDITOR_WINDOW_ID,
+        projectId,
+        name: drag.name,
+        phase: 'end',
+        target: null,
+      });
+    }
+    if (!release) return;
+    const land = (point: ScreenPoint | null) => {
+      const target = drag && point ? pickDropWindow(point, drag.own, drag.windows.values()) : null;
+      if (target) moveTabToWindow(projectId, target);
+      else if (release.placement) moveTabToNewWindow(projectId, release.placement);
+    };
+    // A browser opens the new window only inside the release, so the web
+    // decides now, from the release's own position. The desktop asks Tauri
+    // where the pointer is, in the physical pixels the windows answered in.
+    if (!isTauri()) land({ x: release.screenX, y: release.screenY });
+    else void pointerScreenPoint(release).then(land);
+  };
+
+  // Taken down once this window is used again, in case the window dragging the
+  // tab went away before it could say the drag was over.
+  useEffect(() => {
+    if (!incomingTab) return;
+    const clear = () => setIncomingTab(null);
+    window.addEventListener('focus', clear);
+    window.addEventListener('pointerdown', clear, true);
+    return () => {
+      window.removeEventListener('focus', clear);
+      window.removeEventListener('pointerdown', clear, true);
+    };
+  }, [incomingTab]);
+
+  // The displays a tab can open on. Read now, and again whenever the tab menu
+  // opens, because a display can be plugged in or out while the app runs.
+  const [tabDisplays, setTabDisplays] = useState<MonitorInfo[]>([]);
+  const refreshTabDisplays = useCallback(() => {
+    void listMonitors().then(setTabDisplays);
+  }, []);
+  useEffect(() => refreshTabDisplays(), [refreshTabDisplays]);
+  // A browser sees one display until it is asked to see them all, which takes
+  // a prompt, which takes a click: hence a menu item rather than asking here.
+  const [canAskForDisplays, setCanAskForDisplays] = useState(false);
+  useEffect(() => {
+    setCanAskForDisplays(!isTauri() && typeof (window as { getScreenDetails?: unknown }).getScreenDetails === 'function');
+  }, []);
+
+  // The taskbar names the project in front, in a window a tab was moved into.
+  useEffect(() => {
+    if (!isTauri() || !isSecondaryWindow || !currentProjectName) return;
+    void import('@tauri-apps/api/window')
+      .then(({ getCurrentWindow }) => getCurrentWindow().setTitle(`${currentProjectName} - Open Screenshot Generator`))
+      .catch(() => {});
+  }, [currentProjectName, isSecondaryWindow]);
+
+  // In a window a tab was moved into there is no menu bar on Windows and Linux
+  // (settings.rs gives it to `main`), so the menu's three shortcuts are read
+  // here. macOS has one menu bar for the whole app, and it sends them itself.
+  useEffect(() => {
+    if (!isTauri() || !isSecondaryWindow) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!event.ctrlKey || event.metaKey || event.altKey) return;
+      const key = event.key.toLowerCase();
+      const command = key === 'w' && !event.shiftKey ? 'close' : key === 't' ? (event.shiftKey ? 'reopen' : 'new') : null;
+      if (!command) return;
+      event.preventDefault();
+      tabCommandRef.current(command);
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [isSecondaryWindow]);
+
   const handleUndo = useCallback(() => {
     applyHistoryIndex(historyIndex - 1);
   }, [applyHistoryIndex, historyIndex]);
@@ -5791,12 +7696,12 @@ export function OpenScreenshotGeneratorLayout() {
         }
       }
 
-      // Paste: Ctrl+V or Cmd+V. preventDefault ONLY when there is actually an
-      // element on the internal clipboard. Calling it unconditionally also
-      // suppressed the browser's own `paste` event, so nothing in the app could
-      // ever receive an image off the system clipboard: that is what the quick
-      // start's paste-a-screenshot intake listens for.
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardItem) {
+      // Paste: Ctrl+V or Cmd+V. preventDefault ONLY when there are layers on
+      // the editor's clipboard. Calling it unconditionally also suppressed the
+      // browser's own `paste` event, so nothing in the app could ever receive
+      // an image off the system clipboard: that is what the quick start's
+      // paste-a-screenshot intake listens for.
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && readElementClipboard()) {
         e.preventDefault();
         handlePasteElement();
       }
@@ -5898,7 +7803,7 @@ export function OpenScreenshotGeneratorLayout() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIds, clipboardItem, setActiveTool, isPreviewOpen, queueNudge, handleGroupSelection, handleUngroupSelection, contextMenu]);
+  }, [handleDeleteSelected, handleUndo, handleRedo, historyIndex, history.length, activeArtboardId, selectedElementIds, setActiveTool, isPreviewOpen, queueNudge, handleGroupSelection, handleUngroupSelection, contextMenu]);
 
   // The live tool, readable from a listener that must not re-subscribe on every
   // tool change (the Space-to-pan effect below).
@@ -6767,6 +8672,9 @@ export function OpenScreenshotGeneratorLayout() {
     handlers: dockHandlers,
     projectName: currentProjectName,
     onSelectTab: selectRightDockTab,
+    // The panel windows belong to the main window. A window a tab was moved
+    // into joining their bus would take them over (rule 44).
+    enabled: !isSecondaryWindow,
   });
 
   /** Panels still in the dock. The rest are showing in a window of their own. */
@@ -6802,6 +8710,16 @@ export function OpenScreenshotGeneratorLayout() {
    * exactly like nothing happening unless somebody says otherwise.
    */
   const detachPanels = (group: Parameters<typeof dockHost.detach>[0]) => {
+    // Panel windows have one label each (panel-dock, panel-layers), so they
+    // belong to the main window, and a second editor window would take them
+    // over from it.
+    if (isSecondaryWindow) {
+      toast({
+        title: 'Panels open in a window of their own from the main window',
+        description: 'Move this tab to the main window to take its panels out.',
+      });
+      return;
+    }
     void dockHost.detach(group).then((opened) => {
       if (opened) return;
       toast({
@@ -6848,25 +8766,32 @@ export function OpenScreenshotGeneratorLayout() {
   }, [activeArtboard]);
 
 
-  // Define the copy element handler. Explicit ids come from the context menu
-  // (copy exactly what was right-clicked); the keyboard shortcut passes none
-  // and falls back to the current selection.
+  // Copy, for the keyboard and the context menu. The menu passes what was
+  // right-clicked: the whole selection when that layer is part of it (a group
+  // always is), the one layer otherwise, as Move to tab decides. The keyboard
+  // passes nothing and takes the selection. What is copied can be pasted into
+  // any project, in this window or another (elementClipboard.ts). Read through
+  // the refs, because the keyboard listener can be a few renders old.
   const handleCopyElement = (targetArtboardId?: string | null, targetElementId?: string | null) => {
-    const artboardId = targetArtboardId ?? activeArtboardId;
-    const board = artboards.find(ab => ab.id === artboardId);
+    const artboardId = targetArtboardId ?? activeArtboardIdRef.current;
+    const board = artboardsRef.current.find((ab) => ab.id === artboardId);
     if (!board) return;
-    // An explicit id is the right-clicked layer and means only that one. The
-    // keyboard shortcut passes none and takes the whole selection, so copying
-    // five layers and pasting them keeps the arrangement.
-    const wanted = targetElementId ? [targetElementId] : selectedElementIds;
-    const elementsToCopy = board.elements.filter(el => wanted.includes(el.id));
-    if (elementsToCopy.length === 0) return;
-    copyManyToClipboard(elementsToCopy);
+    const selection = selectedElementIdsRef.current;
+    const wanted = targetElementId && !selection.includes(targetElementId) ? [targetElementId] : selection;
+    const transfer = pickElements(board, wanted);
+    if (!transfer) return;
+    writeElementClipboard({
+      transfer,
+      source: { projectId: loadedProjectIdRef.current, projectName: projectNameRef.current, artboardId: board.id },
+      copiedAt: Date.now(),
+    });
+    const count = transfer.elements.length;
     toast({
-      title: "Copied",
-      description: elementsToCopy.length === 1
-        ? `${elementsToCopy[0].type} element copied to clipboard.`
-        : `${elementsToCopy.length} elements copied to clipboard.`,
+      title: 'Copied',
+      description:
+        count === 1
+          ? `${getElementDisplayName(transfer.elements[0])}. Paste it into any project`
+          : `${count} layers. Paste them into any project`,
     });
   };
 
@@ -6899,81 +8824,65 @@ export function OpenScreenshotGeneratorLayout() {
     toast({ title: "Element Deleted", description: `${name} was removed from the artboard.` });
   };
 
-  // Define the paste element handler. The context menu passes the right-clicked
-  // artboard and a paste point (artboard coordinates) so the element lands
-  // under the cursor; the keyboard shortcut offsets from the original instead.
+  // Paste, for the keyboard and the context menu. Layers copied in this
+  // project, in another one or in another window all land through the transfer
+  // Move to tab uses (tabs/transfer.ts): their translations come along into the
+  // languages this project has, rewritten in its base language, and a group
+  // stays a group. The context menu passes the right-clicked artboard and a
+  // point to centre them on. The keyboard puts them just below and to the right
+  // of the originals on the artboard they came from, and in the same place
+  // relative to the edges on any other. Both are about where the layers are
+  // drawn in the language on screen, which can give them boxes of their own.
   const handlePasteElement = (targetArtboardId?: string | null, pastePoint?: Point | null) => {
-    const artboardId = targetArtboardId ?? activeArtboardId;
-    if (artboardId && clipboardItems.length > 0) {
-      const targetArtboard = artboards.find(ab => ab.id === artboardId);
-      // One offset for the whole set, measured off the bounding box, so several
-      // layers pasted together keep the arrangement they were copied in.
-      const span = unionBounds(clipboardItems);
-      const spanX = span?.x ?? clipboardItems[0].position.x;
-      const spanY = span?.y ?? clipboardItems[0].position.y;
-      const spanWidth = span?.width ?? 0;
-      const spanHeight = span?.height ?? 0;
-      const origin = pastePoint && targetArtboard
-        ? {
-            x: Math.max(0, Math.min(pastePoint.x - spanWidth / 2, targetArtboard.size.width - spanWidth)),
-            y: Math.max(0, Math.min(pastePoint.y - spanHeight / 2, targetArtboard.size.height - spanHeight)),
-          }
-        : { x: spanX + 20, y: spanY + 20 }; // Offset position slightly
-      const shiftX = origin.x - spanX;
-      const shiftY = origin.y - spanY;
-
-      const stamp = Date.now();
-      const newElements = clipboardItems.map((item, index) => {
-        // The copies are their own layers, so the group tag is dropped rather
-        // than set to undefined: Dexie stores a structured clone, which keeps a
-        // key whose value is undefined, and that would put a groupId on every
-        // pasted element in the saved project.
-        const { groupId: _ungrouped, groupName: _unnamed, ...copy } = JSON.parse(
-          JSON.stringify(item)
-        );
-        return {
-          ...copy,
-          id: `el_${stamp}_${index}_${Math.random().toString(36).substr(2, 5)}`, // New unique ID
-          position: { x: item.position.x + shiftX, y: item.position.y + shiftY },
-        } as ArtboardElement;
+    const clip = readElementClipboard();
+    if (!clip) return;
+    const artboardId = targetArtboardId ?? activeArtboardIdRef.current;
+    if (!artboardsRef.current.some((ab) => ab.id === artboardId)) {
+      toast({ title: 'Select an artboard to paste into' });
+      return;
+    }
+    const { transfer, source } = clip;
+    const paste = () => {
+      const boards = artboardsRef.current;
+      const board = boards.find((ab) => ab.id === artboardId);
+      if (!board) return;
+      const fromHere = source.projectId !== null && source.projectId === loadedProjectIdRef.current;
+      const beside = !pastePoint && fromHere && source.artboardId === board.id;
+      const placed = placeElements(board, transfer, {
+        locales: new Set(getProjectLocales(boards).map((entry) => entry.code)),
+        baseLocale: baseLocaleOf(boards),
+        at: pastePoint ?? undefined,
+        offset: beside ? { x: 20, y: 20 } : undefined,
+        viewLocale: activeLocaleRef.current,
       });
-
-      const updatedArtboards = artboards.map(ab => {
-        if (ab.id === artboardId) {
-          return {
-            ...ab,
-            elements: [...ab.elements, ...newElements]
-          };
-        }
-        return ab;
-      });
-
-      const landed = handleArtboardsUpdate(
-        updatedArtboards,
-        namedChange(
-          'Paste',
-          'copy',
-          newElements.length === 1 ? getElementDisplayName(newElements[0]) : `${newElements.length} layers`
-        )
+      const count = placed.placedIds.length;
+      const what = count === 1 ? getElementDisplayName(transfer.elements[0]) : `${count} layers`;
+      const landed = handleArtboardsUpdateRef.current(
+        boards.map((ab) => (ab.id === board.id ? placed.board : ab)),
+        namedChange('Paste', 'copy', what)
       );
       if (!landed) return;
-      if (artboardId !== activeArtboardId) {
-        setActiveArtboardId(artboardId);
-      }
-      setSelectedElementIds(newElements.map((el) => el.id));
+      if (board.id !== activeArtboardIdRef.current) setActiveArtboardId(board.id);
+      setSelectedElementIds(placed.placedIds);
       toast({
-        title: "Pasted",
-        description: newElements.length === 1
-          ? `${newElements[0].type} element pasted to artboard.`
-          : `${newElements.length} elements pasted to artboard.`,
+        title: 'Pasted',
+        description: fromHere ? what : `${what} from ${source.projectName || 'Untitled project'}`,
       });
-    } else if (!artboardId) {
-      toast({
-        title: "Cannot Paste",
-        description: "Please select an artboard first.",
-        variant: "destructive"
-      });
+    };
+    // Layers from a project with another base language have their text
+    // measured in this one's, and the size it fits at is kept: a face that is
+    // not on the page yet first (transferFonts.ts), such as a font imported in
+    // another window after this one started.
+    const faces = whenFacesLoaded(textFacesOf(transfer.elements, transfer.localized, transfer.locales));
+    if (!faces) {
+      paste();
+      return;
     }
+    const serial = canvasSerialRef.current;
+    void faces.then(() => {
+      // Another document went on the canvas meanwhile. The paste was for the one before.
+      if (canvasSerialRef.current === serial) paste();
+    });
   };
 
   // Custom right-click: block the browser menu everywhere in the studio (text
@@ -7131,6 +9040,28 @@ export function OpenScreenshotGeneratorLayout() {
       console.warn(`Not opening "${projectName}": it has no artboards.`);
       return false;
     }
+    // One window writes a project, so its lock comes before the row is
+    // written or the canvas shows it. Another window holding it throws
+    // ProjectOpenElsewhereError to whoever asked, which is how the account,
+    // cloud and live session opens know to ask instead of reporting a failure.
+    await claimProject(projectId, projectName);
+    // A tab of this project that leaves for another window meanwhile stops
+    // the open before it writes the row or reaches the canvas (stopOpening).
+    const open = beginOpen(projectId);
+    try {
+      return await openProjectData(projectData, projectName, projectId, open.stopped);
+    } finally {
+      open.end();
+      settleLock(projectId);
+    }
+  };
+
+  const openProjectData = async (
+    projectData: ArtboardState[],
+    projectName: string,
+    projectId: string,
+    stopped: () => boolean
+  ) => {
     try {
       // The outgoing project may still have a debounced save pending.
       flushProjectSave();
@@ -7153,6 +9084,7 @@ export function OpenScreenshotGeneratorLayout() {
       // timestamp and its other fields, because opening a project is not an
       // edit.
       const stored = await db.projects.get(projectId);
+      if (stopped()) return false;
       await db.projects.put({
         ...stored,
         id: projectId,
@@ -7160,11 +9092,15 @@ export function OpenScreenshotGeneratorLayout() {
         timestamp: stored?.timestamp ?? new Date(),
         projectData: JSON.parse(JSON.stringify(finalArtboards)),
       });
+      // The document is replaced and the undo stack starts over, so a stack
+      // kept for the one it replaces has nothing left to undo into.
+      if (stored) void undoStore.remove(projectId).catch(() => {});
       // An edit made to this same project while the passes above ran is
       // replaced by the document being opened, and its waiting save would
       // write it back over the row stored just now. A waiting save of the
       // project being left is written by putProjectOnCanvas below.
       projectSaves.drop(projectId);
+      if (stopped()) return false;
 
       // Set project details first to avoid triggering effects
       setCurrentProjectName(projectName);
@@ -7188,15 +9124,17 @@ export function OpenScreenshotGeneratorLayout() {
       setSelectedElementIdOnActiveArtboard(null);
       setIsTemplateSelectorOpen(false);
 
-      // Update recent projects list
-      setRecentProjects(await fetchRecentProjectMetas());
-
-      // Update URL with new project ID
+      // Update URL with new project ID. Here, with the canvas, not after the
+      // read below: a tab that leaves for another window during that read
+      // takes the canvas to the next tab, and the address bar has to follow.
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
         params.set("projectId", projectId);
         window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
       }
+
+      // Update recent projects list
+      setRecentProjects(await fetchRecentProjectMetas());
 
       return true; // Success
     } catch (error) {
@@ -7444,13 +9382,25 @@ const generateRandomProjectName = (): string => {
             !isAccountOpen &&
             !isDiscoverOpen &&
             !isOpeningSharedLink &&
-            !isJoiningInvite
+            !isJoiningInvite &&
+            // A project asked for is open in another window: that question
+            // comes first, and the start dialog only if it is turned down.
+            !projectElsewhere
           }
           onOpenChange={(newOpenState) => {
             if (!newOpenState && claudeStartingRef.current) return;
-            if (!newOpenState && artboards.length === 0 && availableProjects.length > 0) {
-               // Create a blank project when no template is selected
-               handleSelectTemplate(createBlankProject(activeCategory.defaultSize));
+            // Dismissed, so the + button's new tab is not happening.
+            if (!newOpenState) projectTabs.dropNewTabRequest();
+            if (!newOpenState && artboards.length === 0) {
+              // Tabs from last time and nothing on the canvas: back to the
+              // tab used last, rather than a blank project nobody asked for.
+              const resume = [...projectTabs.getTabs()].sort((a, b) => b.lastActiveAt - a.lastActiveAt)[0];
+              if (resume) {
+                activateTab(resume.projectId);
+              } else if (availableProjects.length > 0) {
+                // Create a blank project when no template is selected
+                handleSelectTemplate(createBlankProject(activeCategory.defaultSize));
+              }
             }
             setIsTemplateSelectorOpen(newOpenState);
             if (newOpenState) setDialogView('templates');
@@ -7796,6 +9746,127 @@ const generateRandomProjectName = (): string => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Switching or closing the tab of a live session takes this person
+            out of it, so it is asked first (confirmLeavingSession). */}
+        <AlertDialog open={!!pendingSessionLeave} onOpenChange={(open) => !open && setPendingSessionLeave(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Leave the live session?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You are editing {currentProjectName} together with others. Leaving this tab takes you out of the
+                session. Everyone else stays in it.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Stay</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const run = pendingSessionLeave?.run;
+                  setPendingSessionLeave(null);
+                  run?.();
+                }}
+              >
+                {pendingSessionLeave?.action ?? 'Leave'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* A tab another window is dragging, over this one (handleTabTearMove). */}
+        {incomingTab && (
+          <div
+            data-incoming-tab
+            className="pointer-events-none fixed inset-0 z-[90] flex items-start justify-center bg-primary/10 ring-4 ring-inset ring-primary/60"
+          >
+            <div className="mt-16 rounded-full border bg-popover px-4 py-2 text-sm font-medium text-popover-foreground shadow-xl">
+              Let go to move {incomingTab.name || 'Untitled project'} here
+            </div>
+          </div>
+        )}
+
+        {/* Closing tabs that have changes (confirmTabClose). */}
+        <AlertDialog open={!!pendingTabClose} onOpenChange={(open) => !open && setPendingTabClose(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pendingTabClose && pendingTabClose.projectIds.length > 1
+                  ? `Close ${pendingTabClose.projectIds.length} tabs?`
+                  : `Close ${pendingTabClose ? projectNameOf(pendingTabClose.projectIds[0]) : 'this tab'}?`}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {!pendingTabClose || pendingTabClose.projectIds.length === 1
+                  ? 'Your changes are saved. You can reopen the tab from All open projects, with its undo history.'
+                  : pendingTabClose.changed.length === 1
+                    ? `${projectNameOf(pendingTabClose.changed[0])} has changes. They are saved, and you can reopen the tab from All open projects.`
+                    : `${pendingTabClose.changed.length} of them have changes. They are saved, and you can reopen the tabs from All open projects.`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="tab-close-stop-asking"
+                checked={stopAskingOnClose}
+                onCheckedChange={(value) => setStopAskingOnClose(value === true)}
+              />
+              <Label htmlFor="tab-close-stop-asking" className="text-sm font-normal text-muted-foreground">
+                Don&apos;t ask again
+              </Label>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const pending = pendingTabClose;
+                  setPendingTabClose(null);
+                  // Settings turns the question back on.
+                  if (stopAskingOnClose) writePreference('confirmTabClose', false);
+                  if (pending && !isExportingRef.current) pending.run();
+                }}
+              >
+                {pendingTabClose && pendingTabClose.projectIds.length > 1 ? 'Close tabs' : 'Close tab'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* One window writes a project at a time (projectLocks.ts). */}
+        <AlertDialog open={!!projectElsewhere} onOpenChange={(open) => !open && setProjectElsewhere(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>This project is open in another window</AlertDialogTitle>
+              <AlertDialogDescription>
+                {projectElsewhere?.name ? `${projectElsewhere.name} is` : 'It is'} being edited there. A
+                project can be open in one window at a time, so its edits never overwrite each other.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              {isDesktopApp && (
+                <AlertDialogAction
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  onClick={() => {
+                    const target = projectElsewhere;
+                    setProjectElsewhere(null);
+                    if (target) {
+                      tabBusRef.current?.post({ type: 'show-project', from: EDITOR_WINDOW_ID, projectId: target.projectId });
+                    }
+                  }}
+                >
+                  Show that window
+                </AlertDialogAction>
+              )}
+              <AlertDialogAction
+                onClick={() => {
+                  const target = projectElsewhere;
+                  setProjectElsewhere(null);
+                  if (target) void takeProjectFromElsewhere(target.projectId);
+                }}
+              >
+                Move it here
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </>
   );
 
@@ -7960,6 +10031,23 @@ const generateRandomProjectName = (): string => {
   // covered, and an agent keeps working then, so a timer ends the wait after a
   // second. React has committed the DOM by then either way, and the capture
   // reads the DOM, not the screen.
+  /**
+   * True once `projectId` is on the canvas, false once its open gave up (the
+   * loader puts activeProjectId back when it cannot open a project).
+   */
+  const waitForCanvas = (projectId: string, timeoutMs = 15_000) =>
+    new Promise<boolean>((resolve) => {
+      const started = Date.now();
+      let seen = false;
+      const check = () => {
+        if (loadedProjectIdRef.current === projectId) return resolve(true);
+        if (activeProjectIdRef.current === projectId) seen = true;
+        else if (seen) return resolve(false);
+        if (Date.now() - started > timeoutMs) return resolve(false);
+        window.setTimeout(check, 30);
+      };
+      check();
+    });
   const mcpNextPaint = () =>
     new Promise<void>((resolve) => {
       const timer = setTimeout(resolve, 1_000);
@@ -8846,6 +10934,19 @@ const generateRandomProjectName = (): string => {
       }));
     },
     openProject: async (projectId) => {
+      // Parked in a tab: bring that tab back as it was, undo history and all,
+      // the way clicking it would.
+      const parked = projectTabsParking.peek(projectId);
+      if (parked && projectId !== loadedProjectIdRef.current) {
+        activateTab(projectId);
+        await mcpNextPaint();
+        return {
+          projectId,
+          name: parked.name,
+          artboards: summarizeArtboards(parked.artboards),
+          warnings: [],
+        };
+      }
       // Reopening the already-open project must not resurrect a pre-edit row:
       // commit any pending debounced save before the read.
       flushProjectSave();
@@ -8857,6 +10958,21 @@ const generateRandomProjectName = (): string => {
         );
       }
       const name = project.name || 'Untitled Project';
+      if (projectId !== loadedProjectIdRef.current) {
+        if ((await projectOpenElsewhere(projectId)) === true) throw new ProjectOpenElsewhereError(projectId, name);
+        // The way clicking it in Recent projects or on its tab would: the
+        // loader takes its lock and reads it with the undo stack it was left
+        // with, which loadProjectFromData would start over.
+        activateTab(projectId);
+        if (!(await waitForCanvas(projectId))) throw new Error('Could not open that project.');
+        await mcpNextPaint();
+        return {
+          projectId: project.id,
+          name,
+          artboards: summarizeArtboards(project.projectData),
+          warnings: [],
+        };
+      }
       const success = await loadProjectFromData(project.projectData, name, project.id);
       if (!success) throw new Error('Could not open that project.');
       // Let React paint the reopened canvas before the next tool call, so an
@@ -9096,7 +11212,7 @@ const generateRandomProjectName = (): string => {
   };
 
   return (
-    <ClipboardProvider>
+    <>
       {templateSelectorDialog}
       <SidebarProvider defaultOpen>
         <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
@@ -9186,6 +11302,59 @@ const generateRandomProjectName = (): string => {
         </Sidebar>
 
         <SidebarInset className="relative flex flex-col overflow-hidden">
+          <ProjectTabBar
+            tabs={projectTabs.tabs}
+            activeProjectId={activeProjectId}
+            loadingProjectId={
+              activeProjectId && activeProjectId !== renderedCanvasProjectId ? activeProjectId : null
+            }
+            activeSummary={activeTabSummary}
+            closed={projectTabs.closed}
+            isSleeping={projectTabs.isSleeping}
+            keepsUndo={projectTabs.keepsUndo}
+            artboardsFor={tabArtboards}
+            onActivate={handleActivateTab}
+            onClose={handleCloseTab}
+            onNewTab={handleNewTab}
+            onMove={projectTabs.move}
+            onCloseOthers={handleCloseOtherTabs}
+            onCloseToRight={handleCloseTabsToRight}
+            onDuplicate={handleDuplicateTab}
+            onReopenClosed={handleReopenClosedTab}
+            onRename={(name) => void handleRenameProject(name)}
+            onDropLayers={(projectId, carry) => {
+              const board = artboardsRef.current.find((entry) =>
+                entry.elements.some((element) => element.id === carry.elementId)
+              );
+              if (!board) return;
+              const selection = selectedElementIdsRef.current;
+              const ids = selection.includes(carry.elementId) ? selection : [carry.elementId];
+              void sendLayersToTab(projectId, carry.copy ? 'copy' : 'move', board.id, ids);
+            }}
+            onSpringLoad={handleSpringLoad}
+            onMoveToNewWindow={moveTabToNewWindow}
+            onMoveToWindow={moveTabToWindow}
+            onTearMove={handleTabTearMove}
+            onTearEnd={handleTabTearEnd}
+            tearTarget={tearTarget}
+            displays={tabDisplays}
+            otherWindows={otherWindows}
+            onMenuOpen={() => {
+              askForOtherWindows();
+              refreshTabDisplays();
+            }}
+            onFindDisplays={
+              canAskForDisplays
+                ? () => {
+                    void requestWebScreenAccess().then((granted) => {
+                      if (granted) refreshTabDisplays();
+                    });
+                  }
+                : undefined
+            }
+            shortcutsBlocked={isTemplateSelectorOpen || isPreviewOpen}
+            desktopShortcuts={isDesktopApp}
+          />
           <LoadStatusBar
             phase={loadPhase}
             templateProgress={templateProgress}
@@ -9509,7 +11678,7 @@ const generateRandomProjectName = (): string => {
                   x={contextMenu.x}
                   y={contextMenu.y}
                   canCopy={!!contextMenu.elementId && !!contextMenu.artboardId}
-                  canPaste={!!clipboardItem && !!(contextMenu.artboardId || activeArtboardId)}
+                  canPaste={!!elementClipboard && !!(contextMenu.artboardId || activeArtboardId)}
                   canDelete={!!contextMenu.elementId && !!contextMenu.artboardId}
                   onCopy={() => handleCopyElement(contextMenu.artboardId, contextMenu.elementId)}
                   onPaste={() => handlePasteElement(contextMenu.artboardId, contextMenu.pastePoint)}
@@ -9520,6 +11689,20 @@ const generateRandomProjectName = (): string => {
                   onUngroup={handleUngroupSelection}
                   spansArtboards={contextMenu.elementId ? selectionSpansArtboards : null}
                   onToggleSpanArtboards={() => handleUpdateSpan({ spanArtboards: !selectionSpansArtboards })}
+                  sendTargets={sendTargets}
+                  onSendLayers={(projectId, mode) => {
+                    const { artboardId, elementId } = contextMenu;
+                    if (!artboardId || !elementId) return;
+                    // The whole selection when the menu was opened on part of
+                    // it, the one layer otherwise, the way Copy decides.
+                    const ids = selectedElementIds.includes(elementId) ? selectedElementIds : [elementId];
+                    void sendLayersToTab(projectId, mode, artboardId, ids);
+                  }}
+                  onSendArtboard={
+                    contextMenu.artboardId
+                      ? (projectId, mode) => void sendArtboardToTab(projectId, mode, contextMenu.artboardId!)
+                      : undefined
+                  }
                   onClose={() => setContextMenu(null)}
                 />
               )}
@@ -10165,7 +12348,7 @@ const generateRandomProjectName = (): string => {
           </Dialog>
         </SidebarInset>
       </SidebarProvider>
-    </ClipboardProvider>
+    </>
   );
 }
 

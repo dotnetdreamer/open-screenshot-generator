@@ -7,8 +7,8 @@ import { readAll, readProjects, waitForProject, type StoredProject } from '../fi
  *
  * They answer neighbouring questions and the difference between them is the
  * whole point of these tests: History is one sitting and dies with the reload,
- * a Version survives one. AGENTS.md rule 28 says the undo stack is never
- * persisted, which is what issue #19 was about, so "reload and the stack is
+ * a Version survives one. AGENTS.md rule 28 says the undo stack never outlives
+ * its sitting, which is what issue #19 was about, so "reload and the stack is
  * fresh while the work is still there" is asserted here rather than assumed.
  */
 
@@ -266,8 +266,9 @@ test.describe('history panel', () => {
     await page.reload();
     await app.waitForBoot();
 
-    // AGENTS.md rule 28 / issue #19: a hundred whole-project snapshots are never
-    // written to disk, so a reload is always a fresh stack.
+    // AGENTS.md rule 28 / issue #19: the open project's snapshots are never
+    // written as it is edited, and a stack a tab stored dies with its window,
+    // so a reload is always a fresh stack.
     await app.dockTab('History').click();
     await expect(historyCounter(page)).toHaveText('1 of 1');
     await expect(historyPanel(page).getByTitle('Current state')).toContainText('Open');

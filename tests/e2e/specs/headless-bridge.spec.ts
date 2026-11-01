@@ -249,6 +249,15 @@ async function openLeftAndRight(page: Page): Promise<{ left: typeof BOARD; right
  * ends, and until then readProjects waits too, since it reads the same store.
  */
 async function pickRightWhileHeld(editor: Editor, page: Page): Promise<ProjectsHold> {
+  // Opened above, the right project still has a tab, and a parked tab comes
+  // back from memory without any read (src/lib/tabs/parking.ts). Closing its
+  // tab puts the open back on the read these tests hold.
+  const rightTab = page.locator('[data-project-tabs] [data-tab-id="proj_right"]');
+  await rightTab.locator('[data-tab-close]').click();
+  // It has edits, so closing it asks first.
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Close tab', exact: true }).click();
+  await expect(page.getByRole('alertdialog')).toBeHidden();
+  await expect(rightTab).toHaveCount(0);
   await editor.create('Start from a template');
   await editor.waitForStartDialogReady();
   const row = editor.startDialog.getByText('Right project', { exact: true });
@@ -546,6 +555,15 @@ test.describe('the headless bridge', () => {
     await waitForProject(page, (project) => project.id === 'proj_left' && storedElementCount(project) === 3);
     await waitForProject(page, (project) => project.id === 'proj_right' && storedElementCount(project) === 1);
     const before = new Map((await readProjects(page)).map((project) => [project.id, storedShape(project)]));
+    // A parked tab would come back with no read at all, so the right project's
+    // tab is closed first, as in pickRightWhileHeld.
+    const rightTab = page.locator('[data-project-tabs] [data-tab-id="proj_right"]');
+    await rightTab.locator('[data-tab-close]').click();
+    // It has edits, so closing it asks first. Gone before the next click, which
+    // lands by coordinates.
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Close tab', exact: true }).click();
+    await expect(page.getByRole('alertdialog')).toBeHidden();
+    await expect(rightTab).toHaveCount(0);
 
     // A text on the left board, selected the way a person selects it.
     const box = await editor.elementsOn(0).first().boundingBox();

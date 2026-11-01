@@ -56,8 +56,17 @@ export function EditorChromeSkeleton() {
         </div>
       </aside>
 
-      {/* Center: toolbar + canvas */}
+      {/* Center: tab strip, toolbar, canvas */}
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* The project tab strip (tabs/ProjectTabBar.tsx), as tall as the real
+            one. It is hidden on a phone until a second tab exists, so it is
+            reserved from md up only. */}
+        <div className="hidden h-10 shrink-0 items-end gap-1 border-b bg-muted/60 pl-1.5 md:flex dark:bg-muted/30">
+          <div className="-mb-px flex h-[33px] w-52 items-center gap-2 rounded-t-[10px] border border-b-0 bg-card px-2.5">
+            <Skeleton className="h-3.5 w-3.5 rounded-[3px]" />
+            <Skeleton className="h-3 w-28" />
+          </div>
+        </div>
         <div className="flex h-12 shrink-0 items-center gap-2 border-b bg-card px-3">
           <Skeleton className="h-7 w-16 rounded-md" />
           <Skeleton className="h-7 w-16 rounded-md" />

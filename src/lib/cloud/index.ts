@@ -343,6 +343,10 @@ export interface OpenFromCloudOptions {
    * yesterday's backup.
    */
   asCopy?: boolean;
+  /** Passed to importBundle: runs before the local row is written. */
+  beforeWrite?: (projectId: string, name: string) => Promise<void>;
+  /** Passed to importBundle: runs the write of the local row, and can refuse it. */
+  guardRowWrite?: (write: () => Promise<unknown>) => Promise<unknown>;
 }
 
 /** Pull one of the account's own cloud projects into the local library. */
@@ -350,7 +354,7 @@ export async function loadProjectFromCloud(
   recordId: string,
   options: OpenFromCloudOptions = {}
 ): Promise<Project> {
-  const { onProgress, asCopy } = options;
+  const { onProgress, asCopy, beforeWrite, guardRowWrite } = options;
   const accountId = cloudApi.accountId();
   if (!accountId) throw new CloudSignInRequiredError();
 
@@ -376,6 +380,8 @@ export async function loadProjectFromCloud(
     projectId: localId,
     name: asCopy ? `${summary.name} copy` : summary.name,
     onProgress: progress.install,
+    beforeWrite,
+    guardRowWrite,
   });
 
   // A copy is a new project with no cloud row of its own. Only the in-place

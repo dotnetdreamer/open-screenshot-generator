@@ -253,9 +253,30 @@ export function splitProgress(
  */
 export async function importBundle(
   bundle: ProjectBundle,
-  options: { projectId?: string; name?: string; onProgress?: ProgressFn } = {}
+  options: {
+    projectId?: string;
+    name?: string;
+    onProgress?: ProgressFn;
+    /**
+     * Runs before anything is written, with the id the project is about to be
+     * stored under. The editor takes the project's lock here (projectLocks.ts),
+     * so a project open in another window is not written over; throw to stop.
+     */
+    beforeWrite?: (projectId: string, name: string) => Promise<void>;
+    /**
+     * Runs the write of the project row, which comes last. The editor passes
+     * one that refuses once a tab of the project has left for another window
+     * (while the fonts and media went in), so this window never writes a
+     * project another window has open. Throw to stop.
+     */
+    guardRowWrite?: (write: () => Promise<unknown>) => Promise<unknown>;
+  } = {}
 ): Promise<Project> {
   const { onProgress } = options;
+  await options.beforeWrite?.(
+    options.projectId ?? bundle.manifest.id,
+    options.name ?? bundle.manifest.name ?? 'Untitled project'
+  );
   // Writing the blobs is the slow half of opening a remote project: a screen
   // recording is tens of megabytes and every one of them is a separate IndexedDB
   // write. It reports the same way the download half does so the editor can show
@@ -316,7 +337,8 @@ export async function importBundle(
     // Deep copy so the caller's in-memory canvas state never aliases the row.
     projectData: JSON.parse(JSON.stringify(bundle.manifest.projectData)),
   };
-  await db.projects.put(project);
+  const write = () => db.projects.put(project);
+  await (options.guardRowWrite ? options.guardRowWrite(write) : write());
   return project;
 }
 

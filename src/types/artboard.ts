@@ -494,7 +494,9 @@ export interface ElementLocaleOverride {
    * Anything not listed follows the shared design, which is what keeps "change
    * it once and every language gets it" true for everything the user has not
    * deliberately taken manual control of. Re-attaching drops both the name and
-   * the stored value, so the element snaps back to the base design.
+   * the stored value, so the element snaps back to the base design. A detached
+   * key whose value is null is unset in this language: the element draws that
+   * property's default here, whatever the base sets.
    */
   detached?: string[];
   /**
