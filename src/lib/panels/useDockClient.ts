@@ -23,6 +23,7 @@ import {
   type PanelMessage,
 } from './protocol';
 import { hostIdFromUrl, type DetachablePanel } from './url';
+import type { DockEdits } from './edits';
 
 /** How long to wait for a first snapshot before saying the editor is not there. */
 const HELLO_TIMEOUT_MS = 5000;
@@ -49,6 +50,8 @@ export interface DockClient {
   connection: DockConnection;
   snapshot: DockSnapshot | null;
   handlers: DockHandlers;
+  /** Which of this window's edits the snapshot holds. Provide it as DockEditsContext. */
+  edits: DockEdits;
   /** Ask the editor to take these panels back and close this window. */
   reattach: () => void;
   /** Say hello again. What the "Try again" button does. */
@@ -61,6 +64,13 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
   const revRef = useRef(-1);
   const panelsRef = useRef(panels);
   panelsRef.current = panels;
+  /** The `seq` of the last edit sent. */
+  const sentRef = useRef(0);
+  /**
+   * The last edit sent to an editor that has since gone. Nothing will answer
+   * those now, and the snapshot from the editor that replaced it is the truth.
+   */
+  const settledRef = useRef(0);
 
   const [connection, setConnection] = useState<DockConnection>('connecting');
   const [snapshot, setSnapshot] = useState<DockSnapshot | null>(null);
@@ -108,6 +118,7 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
           // up and introduce ourselves, so it knows to feed us.
           hostIdRef.current = message.from;
           revRef.current = -1;
+          settledRef.current = sentRef.current;
           sayHello();
           armTimeout();
           break;
@@ -182,8 +193,19 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
   const send = useCallback((intent: DockIntent) => {
     const to = hostIdRef.current;
     if (!to) return;
-    busRef.current?.post({ kind: 'intent', from: PANEL_WINDOW_ID, to, intent });
+    const seq = intent.name === 'studioLive' ? undefined : ++sentRef.current;
+    busRef.current?.post({ kind: 'intent', from: PANEL_WINDOW_ID, to, intent, seq });
   }, []);
+
+  // Worked out from the snapshot on show, so it changes in the same render as
+  // the props it describes. With the editor gone quiet, everything counts as
+  // answered: the banner says this window shows the last thing the editor sent,
+  // and that has to be true. An editor that sends no count is treated the same.
+  const answered =
+    connection === 'lost' || !snapshot?.answered
+      ? Number.POSITIVE_INFINITY
+      : Math.max(snapshot.answered[PANEL_WINDOW_ID] ?? 0, settledRef.current);
+  const edits = useMemo<DockEdits>(() => ({ lastSent: () => sentRef.current, answered }), [answered]);
 
   /**
    * Go back into the dock.
@@ -254,5 +276,5 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
     [send]
   );
 
-  return { connection, snapshot, handlers, reattach, retry: sayHello };
+  return { connection, snapshot, handlers, edits, reattach, retry: sayHello };
 }

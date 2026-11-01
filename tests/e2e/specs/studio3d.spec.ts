@@ -1,7 +1,8 @@
 import { test, expect, type Page } from '../fixtures/test';
 import type { Locator } from '@playwright/test';
-import type { Editor } from '../helpers/editor';
+import { Editor } from '../helpers/editor';
 import { waitForProject, type StoredProject } from '../fixtures/db';
+import type { TauriHarness } from '../fixtures/tauri';
 
 /**
  * The 3D Studio device: a measured iPhone or Pixel turned to any angle on the canvas.
@@ -9,7 +10,9 @@ import { waitForProject, type StoredProject } from '../fixtures/db';
  * Nothing here reads pixels. The desktop project runs WebKit, whose WebGL is
  * not the one users have, so the checks are on what the editor commits: the
  * model, angle and finish in the saved project, the box fitted round the
- * device, and the history entry. The rendering itself is checked by
+ * device, and the history entry. Whether the canvas is drawing a preview or
+ * the saved props shows in how the renderer sizes its canvas (see
+ * expectDrawnFromProps). The rendering itself is checked by
  * regen-studio-thumbs.js and the unit tests of device3dStudio.ts.
  */
 
@@ -65,6 +68,82 @@ async function colorThenClick(input: Locator, color: string, selector: string): 
     if (!target) throw new Error(`No control matches ${next.selector}`);
     target.click();
   }, { color, selector });
+}
+
+/**
+ * Wait for the device's canvas to draw the saved props. While a preview is up
+ * the renderer boxes its canvas round the device, and it fills the element
+ * again once the preview has handed back (setCanvasBox in
+ * DeviceStudioRenderer). A preview nothing ends holds it boxed for good.
+ */
+async function expectDrawnFromProps(device: Locator): Promise<void> {
+  const canvas = device.locator('canvas').first();
+  await expect.poll(() => canvas.evaluate((node) => (node as HTMLCanvasElement).style.width)).toBe('100%');
+}
+
+/**
+ * Put the whole dock in a window of its own and return that window. On the web
+ * it is the popup the editor opens. The desktop build asks Tauri for a real
+ * window instead, which no browser can open, so the URL it asked for is loaded
+ * in a page of its own; the mocked shell carries events between pages
+ * (fixtures/tauri-runtime.ts), and that is all a panel window needs.
+ */
+async function detachPanels(app: Editor, page: Page, tauri: TauriHarness, isDesktop: boolean): Promise<Page> {
+  const popup = isDesktop ? null : page.waitForEvent('popup');
+  await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Open all panels in a window');
+  if (popup) return popup;
+  const created = await tauri.waitForCall('plugin:webview|create_webview_window', 30_000);
+  const url = (created.args as { options?: { url?: string } }).options?.url;
+  if (!url) throw new Error('The desktop build asked for a panel window with no URL');
+  const panel = await page.context().newPage();
+  await panel.goto(url);
+  return panel;
+}
+
+/** Every text a properties label shows from now on, however briefly. */
+async function watchLabel(page: Page, htmlFor: string) {
+  await page.evaluate((id) => {
+    const label = document.querySelector(`[role="tabpanel"][data-state="active"] label[for="${id}"]`);
+    if (!label) throw new Error(`No label for #${id}`);
+    const shown: string[] = [];
+    (window as unknown as { labelShown: string[] }).labelShown = shown;
+    new MutationObserver(() => shown.push(label.textContent ?? '')).observe(label, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
+  }, htmlFor);
+  return {
+    count: () => page.evaluate(() => (window as unknown as { labelShown: string[] }).labelShown.length),
+    since: (start: number) =>
+      page.evaluate((n) => (window as unknown as { labelShown: string[] }).labelShown.slice(n), start),
+  };
+}
+
+/**
+ * Keep what the editor publishes from reaching its panel windows, the way an
+ * editor that is busy or out of sight does, until the returned release lets
+ * the newest one through. A snapshot is the whole dock, so the newest is all a
+ * panel would have had anyway.
+ */
+async function holdSnapshots(editor: Page): Promise<() => Promise<void>> {
+  await editor.evaluate(() => {
+    // Both shells end in a BroadcastChannel here: the web build's own bus, and
+    // the desktop mock's stand-in for Tauri's emit, which wraps the message.
+    type Sent = { kind?: string; payload?: { kind?: string } } | null;
+    const isSnapshot = (message: Sent) => message?.kind === 'snapshot' || message?.payload?.kind === 'snapshot';
+    const post = BroadcastChannel.prototype.postMessage;
+    let held: { channel: BroadcastChannel; message: unknown } | null = null;
+    BroadcastChannel.prototype.postMessage = function (this: BroadcastChannel, message: unknown) {
+      if (isSnapshot(message as Sent)) held = { channel: this, message };
+      else post.call(this, message);
+    };
+    (window as unknown as { releaseSnapshots: () => void }).releaseSnapshots = () => {
+      BroadcastChannel.prototype.postMessage = post;
+      if (held) post.call(held.channel, held.message);
+    };
+  });
+  return () => editor.evaluate(() => (window as unknown as { releaseSnapshots: () => void }).releaseSnapshots());
 }
 
 test.describe('3D Studio device', () => {
@@ -152,6 +231,9 @@ test.describe('3D Studio device', () => {
     expect(folded.hinge3d).toBe('across');
     await expect(app.activeDockPanel.getByText(`Opening: ${folded.fold3d}°`)).toBeVisible();
 
+    // Clear of the history merge window first: two folds of one layer less
+    // than 900ms apart share an undo step, and this test wants one each.
+    await page.waitForTimeout(1200);
     await grip.dblclick();
     await waitForProject(page, (project) => studioDevices(project)[0]?.fold3d === 180);
 
@@ -196,6 +278,168 @@ test.describe('3D Studio device', () => {
     for (let i = 1; i <= 6; i++) await page.mouse.move(t.x + t.width / 2 + i * 8, t.y + t.height / 2);
     await expect(turn).not.toHaveText(before!);
     await page.mouse.up();
+  });
+
+  test('an arrow key on an angle slider turns the phone a degree without moving it or leaving a preview up', async ({
+    app,
+    page,
+  }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await addStudioPhone(app);
+    const [phone] = studioDevices(await waitForProject(page, (project) => studioDevices(project).length === 1));
+    const device = page.locator(`[data-element-id="${phone.id}"]`).first();
+    const turn = app.activeDockPanel.getByText(/^Turn: -?\d+°$/);
+    await expect(turn).toHaveText(`Turn: ${TILE_ANGLE.yaw}°`);
+
+    // Radix reports a key press as a commit followed by a change. A change
+    // that started a preview would hold the canvas, and this panel, on the
+    // step for good, whatever came after it.
+    await app.activeDockPanel.locator('#studio-yaw [role="slider"]').press('ArrowRight');
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === TILE_ANGLE.yaw + 1);
+    await expect(turn).toHaveText(`Turn: ${TILE_ANGLE.yaw + 1}°`);
+    await expectDrawnFromProps(device);
+
+    const mirrored = -(TILE_ANGLE.yaw + 1);
+    await app.activeDockPanel.getByTitle('Face the other way').click();
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === mirrored);
+    await expect(turn).toHaveText(`Turn: ${mirrored}°`);
+    await expectDrawnFromProps(device);
+
+    // Clear of the history merge window, so the look is an undo step of its own.
+    await page.waitForTimeout(1200);
+    await app.activeDockPanel.getByRole('button', { name: 'Front look' }).click();
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === 0);
+    await expect(turn).toHaveText('Turn: 0°');
+    await expectDrawnFromProps(device);
+
+    await app.undoButton.click();
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === mirrored);
+    await expectDrawnFromProps(device);
+
+    // The key went to the slider alone. The arrow key nudge would have moved
+    // the phone a pixel as well, as a history entry of its own. (The turn and
+    // Mirror can share an entry: same label, same layer, inside the merge window.)
+    await app.dockTab('History').click();
+    await expect(app.activeDockPanel.getByTitle('Step back to "Add Element"')).toBeVisible();
+    await expect(app.activeDockPanel.getByTitle('Step back to "Move"')).toHaveCount(0);
+  });
+
+  test('a slider in a detached panel keeps its value until the editor answers, and key presses step from it', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await addStudioPhone(app);
+    const [phone] = studioDevices(await waitForProject(page, (project) => studioDevices(project).length === 1));
+    const device = page.locator(`[data-element-id="${phone.id}"]`).first();
+
+    const popup = await detachPanels(app, page, tauri, isDesktop);
+    const panel = new Editor(popup).activeDockPanel;
+    const turn = panel.getByText(/^Turn: -?\d+°$/);
+    await expect(turn).toHaveText(`Turn: ${TILE_ANGLE.yaw}°`, { timeout: 30_000 });
+    const degrees = (label: string) => Number(label.match(/-?\d+/)![0]);
+    const shown = await watchLabel(popup, 'studio-yaw');
+
+    const thumb = panel.locator('#studio-yaw [role="slider"]');
+    await thumb.scrollIntoViewIfNeeded();
+    const t = (await thumb.boundingBox())!;
+    await popup.mouse.move(t.x + t.width / 2, t.y + t.height / 2);
+    await popup.mouse.down();
+    for (let i = 1; i <= 6; i++) await popup.mouse.move(t.x + t.width / 2 + i * 8, t.y + t.height / 2);
+    await expect(turn).not.toHaveText(`Turn: ${TILE_ANGLE.yaw}°`);
+    const dragged = degrees((await turn.textContent())!);
+    const width = panel.locator('#elementWidth');
+    const widthBefore = await width.inputValue();
+    const released = await shown.count();
+    await popup.mouse.up();
+
+    // The editor saves the angle and sends back the box refitted round it.
+    // The label stays on the dragged angle the whole time, and the editor's
+    // canvas hands the drag's preview back to the saved angle.
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === dragged);
+    await expect(width).not.toHaveValue(widthBefore);
+    await expect(turn).toHaveText(`Turn: ${dragged}°`);
+    expect(await shown.since(released)).not.toContain(`Turn: ${TILE_ANGLE.yaw}°`);
+    await expectDrawnFromProps(device);
+
+    // Three presses in one task, so no reply from the editor can arrive
+    // between them. Each one has to step from the one before.
+    const pressed = await shown.count();
+    await thumb.evaluate(async (node) => {
+      node.focus();
+      for (let i = 0; i < 3; i++) {
+        node.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+        // React renders a key press in a microtask. Waiting out a few lets
+        // the next press see this one.
+        for (let j = 0; j < 5; j++) await Promise.resolve();
+      }
+    });
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === dragged + 3);
+    await expect(turn).toHaveText(`Turn: ${dragged + 3}°`);
+    const stepped = (await shown.since(pressed)).map(degrees);
+    expect(stepped, 'the label only ever counts up').toEqual([...stepped].sort((a, b) => a - b));
+  });
+
+  test('in a detached panel an edit made before the editor answers the last one starts from it, and a change from elsewhere still shows', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    await app.startBlankProject();
+    await app.ensurePaletteOpen();
+    await addStudioPhone(app);
+    const [phone] = studioDevices(await waitForProject(page, (project) => studioDevices(project).length === 1));
+    const device = page.locator(`[data-element-id="${phone.id}"]`).first();
+
+    const popup = await detachPanels(app, page, tauri, isDesktop);
+    const panel = new Editor(popup).activeDockPanel;
+    const turn = panel.getByText(/^Turn: -?\d+°$/);
+    await expect(turn).toHaveText(`Turn: ${TILE_ANGLE.yaw}°`, { timeout: 30_000 });
+    const shown = await watchLabel(popup, 'studio-yaw');
+
+    // A turn, then Mirror, in one task, so the editor cannot answer the turn in
+    // between. Mirror flips the angle the panel shows, not the one in the last
+    // snapshot, and the panel goes straight to it.
+    const start = await shown.count();
+    await panel.locator('#studio-yaw [role="slider"]').evaluate(async (thumb) => {
+      thumb.focus();
+      thumb.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+      const mirror = document.querySelector<HTMLElement>('[role="tabpanel"][data-state="active"] [title="Face the other way"]');
+      if (!mirror) throw new Error('No Mirror button');
+      mirror.click();
+    });
+    const mirrored = -(TILE_ANGLE.yaw + 1);
+    // From its own edits, before the editor has answered either of them.
+    await expect(turn).toHaveText(`Turn: ${mirrored}°`, { timeout: 1000 });
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === mirrored);
+    await expect(turn).toHaveText(`Turn: ${mirrored}°`);
+    const seen = await shown.since(start);
+    expect(seen.at(-1)).toBe(`Turn: ${mirrored}°`);
+    expect(seen, 'never the stale angle, flipped or not').not.toContain(`Turn: ${TILE_ANGLE.yaw}°`);
+    expect(seen).not.toContain(`Turn: ${-TILE_ANGLE.yaw}°`);
+    await expectDrawnFromProps(device);
+
+    // A turn on the canvas lands while a step from here is still unanswered.
+    // The snapshot that answers the step holds the canvas turn too, and the
+    // panel shows that as soon as it arrives.
+    const release = await holdSnapshots(page);
+    await panel.locator('#studio-yaw [role="slider"]').press('ArrowRight');
+    await expect(turn).toHaveText(`Turn: ${mirrored + 1}°`);
+    await waitForProject(page, (project) => studioDevices(project)[0]?.rotation3d?.yaw === mirrored + 1);
+    await dragBy(page, page.getByRole('button', { name: 'Rotate in 3D' }), 120, 0);
+    const [turned] = studioDevices(
+      await waitForProject(page, (project) => (studioDevices(project)[0]?.rotation3d?.yaw ?? mirrored) > mirrored + 10)
+    );
+    await release();
+    // Long before the panel would give up on the step (ANSWER_TIMEOUT_MS).
+    await expect(turn).toHaveText(`Turn: ${Math.round(turned.rotation3d!.yaw)}°`, { timeout: 2000 });
+    await expectDrawnFromProps(device);
   });
 
   test('dragging the round handle turns the device in one undo step and refits its box', async ({ app, page }) => {

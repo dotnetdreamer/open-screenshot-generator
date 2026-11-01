@@ -5876,10 +5876,12 @@ export function OpenScreenshotGeneratorLayout() {
       if (nudge && selectedElementIdsRef.current.length > 0) {
         // A Radix select, menu or dialog has focus on a plain div, so the
         // input test above lets an arrow key through: without this, arrowing
-        // down the font list would walk the artwork across the board.
+        // down the font list would walk the artwork across the board. Sliders,
+        // tabs and select triggers are plain elements too, and they use the
+        // arrows themselves to step a value, switch tabs or open the list.
         if (
           e.target instanceof HTMLElement &&
-          e.target.closest('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="switch"], [role="checkbox"], [role="radio"]')
+          e.target.closest('[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [role="switch"], [role="checkbox"], [role="radio"], [role="slider"], [role="tab"], [role="combobox"]')
         ) {
           return;
         }

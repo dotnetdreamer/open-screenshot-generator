@@ -502,6 +502,30 @@ test.describe('arrow key nudge', () => {
     await page.waitForTimeout(400);
     expect((await elementPosition(element)).left).toBeCloseTo(400, 0);
   });
+
+  test('a focused tab or select keeps its arrow keys, and the layer stays put', async ({ app, page }) => {
+    await threeShapes(app);
+    await placeAt(page, app, SHAPES[0], 400, 400);
+    const element = app.elementsOn(0).nth(0);
+
+    // An arrow key moves a tab strip to its next tab.
+    await app.dockTab('Properties').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(app.dockTab('History')).toHaveAttribute('aria-selected', 'true');
+    await app.dockTab('Properties').click();
+
+    // And opens a closed select.
+    await app.activeDockPanel.locator('#animEnter').focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+
+    await page.waitForTimeout(250);
+    const box = await elementPosition(element);
+    expect(box.left).toBeCloseTo(400, 1);
+    expect(box.top).toBeCloseTo(400, 1);
+  });
 });
 
 test.describe('precise positioning', () => {

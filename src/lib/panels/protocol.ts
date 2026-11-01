@@ -138,6 +138,12 @@ export interface DockData {
 export interface DockSnapshot extends DockData {
   /** Bumped on every publish. A client ignores anything older than it has. */
   rev: number;
+  /**
+   * Per panel window, the `seq` of the last intent from it whose result this
+   * snapshot already holds. A window keeps its own edits on show until then
+   * (see DockEdits). Missing from an editor too old to count them.
+   */
+  answered?: Record<string, number>;
 }
 
 /** One edit, named. Replayed in the editor window against the docked handlers. */
@@ -219,7 +225,12 @@ export type PanelMessage =
   | { kind: 'host-down'; from: string }
   /** `to` null means every panel window; a bus id means just that one. */
   | { kind: 'snapshot'; from: string; to: string | null; snapshot: DockSnapshot }
-  | { kind: 'intent'; from: string; to: string; intent: DockIntent }
+  /**
+   * `seq` numbers an edit, counting up in each window, so a snapshot can say
+   * which ones it holds (DockSnapshot.answered). A live preview has none: it
+   * changes nothing a snapshot carries.
+   */
+  | { kind: 'intent'; from: string; to: string; intent: DockIntent; seq?: number }
   /** A panel window on its way back into the dock. It closes itself. */
   | { kind: 'reattach'; from: string; hostId: string | null; panels: DetachablePanel[] }
   /**
@@ -351,10 +362,15 @@ export function reviveVersions(versions: ProjectVersionMeta[]): ProjectVersionMe
 export const DOCK_MAX_MESSAGE_BYTES = 64 * 1024;
 
 /** Everything the editor knows about the dock, cut down to what will travel. */
-export function toWireSnapshot(data: DockData, rev: number): DockSnapshot {
+export function toWireSnapshot(
+  data: DockData,
+  rev: number,
+  answered: Record<string, number> = {}
+): DockSnapshot {
   const snapshot: DockSnapshot = {
     ...data,
     rev,
+    answered,
     selectedElement: slimSelectedElement(data.selectedElement),
     baseElement: slimSelectedElement(data.baseElement),
     activeArtboardDetails: slimArtboard(data.activeArtboardDetails),

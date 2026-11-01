@@ -44,6 +44,7 @@ import {
   type StudioLiveHandler,
   type StudioLiveState,
 } from '@/lib/device3dStudioLive';
+import { useDockEdits } from '@/lib/panels/edits';
 
 interface StudioDevicePropertiesProps {
   element: DeviceFrameElementProps;
@@ -83,6 +84,10 @@ function LiveSlider({
 }) {
   const [draft, setDraft] = useState<number | null>(null);
   useEffect(() => setDraft(null), [value]);
+  // Only a drag previews. Radix reports a key press as a commit followed by a
+  // change, so a change that previewed would leave a preview open after the
+  // commit, covering later edits on the canvas and in this panel.
+  const dragging = useRef(false);
   return (
     <Slider
       id={id}
@@ -90,15 +95,21 @@ function LiveSlider({
       max={max}
       step={step}
       value={[draft ?? value]}
+      onPointerDown={() => {
+        dragging.current = true;
+      }}
       onValueChange={(next) => {
+        if (!dragging.current) return;
         setDraft(next[0]);
         onLive(next[0]);
       }}
       onValueCommit={(next) => {
+        dragging.current = false;
         setDraft(null);
         onCommit(next[0]);
       }}
       onPointerCancel={() => {
+        dragging.current = false;
         setDraft(null);
         onCancel();
       }}
@@ -201,16 +212,45 @@ function LightPad({
   );
 }
 
+/** An edit sent from a detached panel, and its number (see DockEdits). */
+interface UnansweredEdit {
+  seq: number;
+  updates: Partial<DeviceFrameElementProps>;
+}
+
+/**
+ * How long an edit from a detached panel stays on show with no answer at all.
+ * The editor answers in its next snapshot, within PUBLISH_INTERVAL_MS
+ * (useDockHost) while its window is on screen, and later while it is busy,
+ * hidden (WebKit slows a hidden page's timers) or exporting (an export holds
+ * every snapshot until it ends). Going back to the last snapshot before the
+ * answer comes would flash the old value and then the new one, so this only
+ * covers an editor that has stopped answering.
+ */
+const ANSWER_TIMEOUT_MS = 10_000;
+
 /** The 3D Studio section of a device's properties. */
 export function StudioDeviceProperties({ element, onUpdateElement, onUpdateElementById, onStudioLive = updateStudioLive, labelRow }: StudioDevicePropertiesProps) {
   const id = element.id;
   const model = studioModelFor(element.deviceType);
-  const orientation = studioOrientationOf(element);
-  const lens = studioLensOf(element);
-  const light = studioLightOf(element);
-  const glare = studioGlareOf(element);
-  const finish = model ? studioFinishOf(element, model) : null;
-  const custom = studioCustomColorOf(element);
+  // Edits sent from here that the props do not hold yet, oldest first. Docked
+  // there are none: the editor applies an edit before the next render. A
+  // detached panel hears back in a later snapshot, and until then the props
+  // still hold the values from before the edit.
+  const edits = useDockEdits();
+  const [unanswered, setUnanswered] = useState<UnansweredEdit[]>([]);
+  const waiting = unanswered.filter((edit) => edit.seq > edits.answered);
+  // The element as this panel left it. Every value below is read from it, so a
+  // slider shows its own commit rather than jumping back, and a second edit made
+  // before the first is answered (Mirror straight after a turn) starts from the
+  // first one.
+  const latest = waiting.reduce<DeviceFrameElementProps>((el, edit) => ({ ...el, ...edit.updates }), element);
+  const orientation = studioOrientationOf(latest);
+  const lens = studioLensOf(latest);
+  const light = studioLightOf(latest);
+  const glare = studioGlareOf(latest);
+  const finish = model ? studioFinishOf(latest, model) : null;
+  const custom = studioCustomColorOf(latest);
   const [customColor, setCustomColor] = useState(finish?.frame ?? '#888888');
   useEffect(() => setCustomColor(finish?.frame ?? '#888888'), [id, finish?.frame]);
   // What a gesture in flight is showing on the canvas, from a slider here or
@@ -220,9 +260,21 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
   const [onCanvas, setOnCanvas] = useState<StudioLiveState | null>(() => studioLiveState(id) ?? null);
   useEffect(() => {
     setPreview(null);
+    setUnanswered([]);
     setOnCanvas(studioLiveState(id) ?? null);
     return subscribeStudioLive(id, (state) => setOnCanvas(state));
   }, [id]);
+  useEffect(() => {
+    setUnanswered((list) => {
+      const left = list.filter((edit) => edit.seq > edits.answered);
+      return left.length === list.length ? list : left;
+    });
+  }, [edits.answered]);
+  useEffect(() => {
+    if (unanswered.length === 0) return;
+    const timer = setTimeout(() => setUnanswered([]), ANSWER_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [unanswered]);
   // The color picker reports every step of a drag. The canvas follows each
   // one live and the color lands once the picking pauses.
   const colorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -260,38 +312,46 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
     setPreview(null);
     onStudioLive(id, null, 'cancel');
   };
+  /** Send `updates`, and keep them on show until the props hold them. */
+  const saveEdit = (updates: Partial<DeviceFrameElementProps>) => {
+    onUpdateElement(updates);
+    const seq = edits.lastSent();
+    if (seq > edits.answered) setUnanswered((list) => [...list, { seq, updates }]);
+  };
+  /** Save what a gesture or a key press ended on. */
   const commit = (updates: Partial<DeviceFrameElementProps>) => {
     setPreview(null);
-    onUpdateElement(updates);
+    saveEdit(updates);
     onStudioLive(id, null, 'commit');
   };
-  const commitOrientation = (next: Device3DOrientation) => commit(withStudioRehug(element, { rotation3d: next }));
+  const commitOrientation = (next: Device3DOrientation) => commit(withStudioRehug(latest, { rotation3d: next }));
+  const commitLight = (next: Device3DLight) => commit({ light3d: next });
 
   const applyLook = (look: StudioLook) => {
     // A look keeps the way the device faces now, and swings the key light to
     // the rail it shows, the way the posed tiles are lit.
     const facingRight = exposedSide(orientation) > 0 && orientation.yaw !== 0;
     const next = facingRight ? mirrorOrientation(look.orientation) : look.orientation;
-    onUpdateElement({
-      ...withStudioRehug(element, { rotation3d: next }),
+    saveEdit({
+      ...withStudioRehug(latest, { rotation3d: next }),
       light3d: lightForOrientation(light, next),
     });
   };
 
   // A foldable's pose sets how far open it is, its hinge and the angle that
   // shows it, kept facing the way it faces now, like a look.
-  const posture = studioPostureOf(element, model);
+  const posture = studioPostureOf(latest, model);
   const applyFoldPose = (pose: StudioFoldPose) => {
     const facingRight = exposedSide(orientation) > 0 && orientation.yaw !== 0;
     const next = facingRight ? mirrorOrientation(pose.orientation) : pose.orientation;
-    onUpdateElement({
-      ...withStudioRehug(element, { rotation3d: next, fold3d: pose.opening, hinge3d: pose.across ? 'across' : 'upright' }),
+    saveEdit({
+      ...withStudioRehug(latest, { rotation3d: next, fold3d: pose.opening, hinge3d: pose.across ? 'across' : 'upright' }),
       light3d: lightForOrientation(light, next),
     });
   };
 
   // What to show: a gesture's values, from a slider here or a handle on the
-  // canvas, and the element's own otherwise.
+  // canvas, and the element as this panel left it otherwise.
   const shownOrientation = preview?.orientation ?? onCanvas?.orientation ?? orientation;
   const shownOpening = preview?.fold ?? onCanvas?.fold ?? posture.opening;
   const shownLens = preview?.lens ?? onCanvas?.lens ?? lens;
@@ -349,7 +409,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
               max={180}
               step={1}
               onLive={(v) => live({ fold: v })}
-              onCommit={(v) => commit(withStudioRehug(element, { fold3d: v }))}
+              onCommit={(v) => commit(withStudioRehug(latest, { fold3d: v }))}
               onCancel={cancelLive}
             />
             <div className="flex justify-between text-[10px] text-muted-foreground">
@@ -395,7 +455,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
                   aria-pressed={active}
                   title={hint}
                   onClick={() => {
-                    if (!active) commit(withStudioRehug(element, { hinge3d: value }));
+                    if (!active) commit(withStudioRehug(latest, { hinge3d: value }));
                   }}
                 >
                   {label}
@@ -423,8 +483,8 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
             title="Face the other way"
             onClick={() => {
               const next = mirrorOrientation(orientation);
-              onUpdateElement({
-                ...withStudioRehug(element, { rotation3d: next }),
+              saveEdit({
+                ...withStudioRehug(latest, { rotation3d: next }),
                 light3d: { ...light, azimuth: wrapDegrees(-light.azimuth) },
               });
             }}
@@ -495,7 +555,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
                 aria-pressed={active}
                 onClick={() => {
                   finishColor(false);
-                  onUpdateElement({ finish3d: option.id, bodyColor3d: '' });
+                  saveEdit({ finish3d: option.id, bodyColor3d: '' });
                 }}
                 className={cn(
                   'h-6 w-6 rounded-full border shadow-sm transition-transform hover:scale-110',
@@ -542,7 +602,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
           max={STUDIO_LENS_MAX}
           step={1}
           onLive={(v) => live({ lens: v })}
-          onCommit={(v) => commit(withStudioRehug(element, { lens3d: v }))}
+          onCommit={(v) => commit(withStudioRehug(latest, { lens3d: v }))}
           onCancel={cancelLive}
         />
         <div className="flex justify-between text-[10px] text-muted-foreground">
@@ -554,7 +614,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
       <div className="flex flex-col gap-1.5">
         {labelRow(<Label className="text-xs">Light</Label>, 'light3d', 'Light')}
         <div className="flex items-center gap-3">
-          <LightPad light={shownLight} onLive={(next) => live({ light: next })} onCommit={(next) => commit({ light3d: next })} />
+          <LightPad light={shownLight} onLive={(next) => live({ light: next })} onCommit={commitLight} />
           <div className="flex min-w-0 flex-1 flex-col">
             <Label htmlFor="studio-light-strength" className="text-xs">
               Strength: {Math.round(shownLight.intensity * 100)}%
@@ -566,7 +626,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
               max={Math.round(STUDIO_LIGHT_INTENSITY_MAX * 100)}
               step={5}
               onLive={(v) => live({ light: { ...light, intensity: v / 100 } })}
-              onCommit={(v) => commit({ light3d: { ...light, intensity: v / 100 } })}
+              onCommit={(v) => commitLight({ ...light, intensity: v / 100 })}
               onCancel={cancelLive}
             />
           </div>

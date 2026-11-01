@@ -25,6 +25,7 @@ import {
 import { LAYERS_SECTION_MIN, RightDockPanels } from './RightDockPanels';
 import { MonitorMenuItems } from './MonitorMenuItems';
 import { useDockClient } from '@/lib/panels/useDockClient';
+import { DockEditsContext } from '@/lib/panels/edits';
 import { useDetachedGeometry } from '@/lib/panels/useDetachedGeometry';
 import { listMonitors, monitorOfWindow, moveWindowToMonitor, type MonitorInfo } from '@/lib/panels/monitors';
 import { panelsFromUrl } from '@/lib/panels/url';
@@ -47,7 +48,7 @@ export function DetachedPanelsWindow() {
     [panels]
   );
 
-  const { connection, snapshot, handlers, reattach, retry } = useDockClient(panels);
+  const { connection, snapshot, handlers, edits, reattach, retry } = useDockClient(panels);
   useDetachedGeometry(group);
 
   const [tab, setTab] = useState<RightDockTab>('properties');
@@ -186,22 +187,24 @@ export function DetachedPanelsWindow() {
               The editor window is not answering. What you see here is the last thing it sent.
             </div>
           )}
-          <RightDockPanels
-            data={snapshot}
-            handlers={handlers}
-            offline={connection === 'lost'}
-            detached
-            panels={panels}
-            tab={tab}
-            onTabChange={selectTab}
-            layersHeight={layersHeight}
-            onLayersHeightChange={setLayersHeight}
-            onLayersHeightCommit={(height) => {
-              try {
-                window.localStorage.setItem(SPLIT_KEY_PREFIX + group, String(height));
-              } catch {}
-            }}
-          />
+          <DockEditsContext.Provider value={edits}>
+            <RightDockPanels
+              data={snapshot}
+              handlers={handlers}
+              offline={connection === 'lost'}
+              detached
+              panels={panels}
+              tab={tab}
+              onTabChange={selectTab}
+              layersHeight={layersHeight}
+              onLayersHeightChange={setLayersHeight}
+              onLayersHeightCommit={(height) => {
+                try {
+                  window.localStorage.setItem(SPLIT_KEY_PREFIX + group, String(height));
+                } catch {}
+              }}
+            />
+          </DockEditsContext.Provider>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6 text-center">

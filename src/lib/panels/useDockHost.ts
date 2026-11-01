@@ -111,6 +111,13 @@ export function useDockHost(options: DockHostOptions): DockHost {
   const [clients, setClients] = useState<Record<string, DetachablePanel[]>>({});
   const clientsRef = useRef(clients);
   clientsRef.current = clients;
+  // Per panel window, the last numbered intent replayed here. State rather
+  // than a ref: it is set in the same task as the edit the intent made, so the
+  // two render together, and a snapshot never claims an edit before its data
+  // holds it.
+  const [answered, setAnswered] = useState<Record<string, number>>({});
+  const answeredRef = useRef(answered);
+  answeredRef.current = answered;
   const studioPreviewOwnersRef = useRef(new Map<string, string>());
   const cancelStudioPreviews = useCallback((owner?: string) => {
     for (const [elementId, clientId] of studioPreviewOwnersRef.current) {
@@ -135,7 +142,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
       kind: 'snapshot',
       from: PANEL_WINDOW_ID,
       to,
-      snapshot: toWireSnapshot(dataRef.current, revRef.current),
+      snapshot: toWireSnapshot(dataRef.current, revRef.current, answeredRef.current),
     });
   }, []);
 
@@ -342,6 +349,12 @@ export function useDockHost(options: DockHostOptions): DockHost {
             delete next[message.from];
             return next;
           });
+          setAnswered((current) => {
+            if (!(message.from in current)) return current;
+            const next = { ...current };
+            delete next[message.from];
+            return next;
+          });
           if (!panels) break;
           const group = groupOf(panels);
           const timers = reclaimTimersRef.current;
@@ -355,7 +368,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
           );
           break;
         }
-        case 'intent':
+        case 'intent': {
           if (message.to !== PANEL_WINDOW_ID) return;
           if (message.intent.name === 'studioLive') {
             const { elementId, state } = message.intent;
@@ -363,7 +376,14 @@ export function useDockHost(options: DockHostOptions): DockHost {
             else studioPreviewOwnersRef.current.delete(elementId);
           }
           dispatch(message.intent);
+          // Answered whether or not the handler took the edit: either way the
+          // next snapshot shows how it ended, and the window can stop waiting.
+          const { from, seq } = message;
+          if (typeof seq === 'number') {
+            setAnswered((current) => (current[from] === seq ? current : { ...current, [from]: seq }));
+          }
           break;
+        }
         case 'reattach': {
           if (message.hostId && message.hostId !== PANEL_WINDOW_ID) return;
           cancelStudioPreviews(message.from);
@@ -422,7 +442,9 @@ export function useDockHost(options: DockHostOptions): DockHost {
         publishTimerRef.current = null;
       }
     };
-  }, [data, hasClients, publishTo]);
+    // `answered` too: an edit the editor turned down changes no data, and the
+    // window that sent it is still owed the snapshot that says so.
+  }, [data, answered, hasClients, publishTo]);
 
   // --- teardown -----------------------------------------------------------
   // A detached window is a view of THIS editor, so it must not outlive it. On

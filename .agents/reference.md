@@ -1378,6 +1378,7 @@ writing the project.
 | [bus.ts](../src/lib/panels/bus.ts) | One interface, two drivers: Tauri events on the desktop, `BroadcastChannel` on the web |
 | [useDockHost.ts](../src/lib/panels/useDockHost.ts) | The editor's half: publish, replay, track which panels are out |
 | [useDockClient.ts](../src/lib/panels/useDockClient.ts) | The panel window's half: hello, render, send intents |
+| [edits.ts](../src/lib/panels/edits.ts) | `DockEdits`: which of a panel window's own edits the snapshot on show holds |
 | [windows.ts](../src/lib/panels/windows.ts) | Open, focus and close a panel window; remembered geometry |
 | [monitors.ts](../src/lib/panels/monitors.ts) | The display list and putting a window on one |
 | [useDetachedGeometry.ts](../src/lib/panels/useDetachedGeometry.ts) | A panel window writing down where it was dragged to |
@@ -1471,6 +1472,18 @@ window itself.
 11. **`setSize` is the CLIENT area, `outerSize` includes the frame.** Save and
     restore the same measure (outer position, inner size) or a window grows by
     the height of its own title bar every time it reopens.
+12. **A panel window's own edit reaches its props one snapshot later.** Docked,
+    an edit is in the props on the next render. Detached, the props keep the
+    old values until the editor answers, so a control that shows them jumps
+    back on release, and a second edit computed from them undoes the first.
+    Every intent but a live preview carries a `seq`, and every snapshot
+    carries `answered`, the last `seq` from each window whose result it holds;
+    [edits.ts](../src/lib/panels/edits.ts) hands that to the panels as
+    `DockEdits`. [StudioDeviceProperties](../src/components/open-screenshot-generator/StudioDeviceProperties.tsx)
+    keeps its unanswered edits on top of the props and starts the next edit
+    from them, so Mirror straight after a turn flips the turned angle. Do not
+    wait for the props to match the edit instead: a change from somewhere else
+    can land in the same snapshot, and then the matching value never arrives.
 
 ### Verifying it
 
