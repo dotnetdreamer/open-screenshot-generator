@@ -74,6 +74,33 @@ test('drop forgets the save of that project only', () => {
   assert.deepEqual(written, ['a:2']);
 });
 
+test('a flush waits for a write the timer already started', async () => {
+  const written: string[] = [];
+  let land = () => {};
+  const queue = createProjectSaveQueue(
+    (row) =>
+      new Promise<void>((resolve) => {
+        land = () => {
+          written.push(row.id);
+          resolve();
+        };
+      })
+  );
+  queue.schedule(save('a', 1));
+  mock.timers.tick(PROJECT_SAVE_DELAY_MS);
+  // Nothing waits any more, but the write is still under way. A window lets go
+  // of the project after a flush, so the flush has to wait for it.
+  let flushed = false;
+  const flushing = queue.flush().then(() => {
+    flushed = true;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(flushed, false);
+  land();
+  await flushing;
+  assert.deepEqual(written, ['a']);
+});
+
 test('flush writes the waiting save at once, and only once', async () => {
   const { written, queue } = recorder();
   await queue.flush();

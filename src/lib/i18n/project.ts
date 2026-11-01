@@ -152,7 +152,7 @@ function devError(message: string, detail?: unknown): void {
  * need no equivalent: the user detached one from a control that exists on that
  * element, so it is valid on it by construction.
  */
-function acceptsKey(el: ArtboardElement, key: LocalizableKey): boolean {
+export function acceptsKey(el: ArtboardElement, key: LocalizableKey): boolean {
   switch (key) {
     case 'content':
       return el.type === 'text';
@@ -298,18 +298,24 @@ export function resolveLocaleFontSize(el: TextElementProps, content: string): nu
  * language actually has something of its own to say about the element,
  * otherwise switching to Japanese would redraw every English headline in a CJK
  * face for no gain.
+ *
+ * `fit: false` leaves the size alone, for asking which face the text is drawn
+ * in before that face is on the page (tabs/transferFonts.ts).
  */
 export function resolveElementForLocale(
   el: ArtboardElement,
   ov: ElementLocaleOverride | undefined,
-  entry: LocaleEntry | undefined
+  entry: LocaleEntry | undefined,
+  { fit = true }: { fit?: boolean } = {}
 ): ArtboardElement {
   if (isEmptyOverride(ov)) return el;
 
   let next: ArtboardElement = el;
   const assign = (key: string, value: unknown) => {
     if (next === el) next = { ...el } as ArtboardElement;
-    (next as unknown as Record<string, unknown>)[key] = value;
+    const record = next as unknown as Record<string, unknown>;
+    if (value === undefined) delete record[key];
+    else record[key] = value;
   };
 
   const baseRecord = el as unknown as Record<string, unknown>;
@@ -329,6 +335,13 @@ export function resolveElementForLocale(
     if (!isDetachableKey(key)) continue;
     const value = overrideRecord[key];
     if (value === undefined) continue;
+    // Null says this language leaves the property unset, so the element draws
+    // its default here whatever the base sets. A layer that moved in from a
+    // project with another base language carries these (tabs/transfer.ts).
+    if (value === null) {
+      if (baseRecord[key] !== undefined) assign(key, undefined);
+      continue;
+    }
     if (baseRecord[key] === value) continue;
     assign(key, value);
   }
@@ -343,7 +356,7 @@ export function resolveElementForLocale(
     if (family && family !== (next as TextElementProps).fontFamily) assign('fontFamily', family);
   }
 
-  if (entry?.autoFit !== false && !isDetached(ov, 'fontSize')) {
+  if (fit && entry?.autoFit !== false && !isDetached(ov, 'fontSize')) {
     const text = next as TextElementProps;
     const size = resolveLocaleFontSize(text, text.content);
     if (size !== text.fontSize) assign('fontSize', size);

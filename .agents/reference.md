@@ -38,7 +38,7 @@ Undo/redo (`handleUndo`/`handleRedo`) is a plain snapshot stack: `history: Artbo
 
 Element creation goes through an imperative ref, not props: `artboardRefs.current[artboardId].addElement(type, subType, dropPosition, styleProps)`. The ref interface is `ArtboardRef` in [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx) (`addElement` + `deleteElementByIdG`); the refs map itself is typed `Record<string, any>`, so TypeScript will not catch a typo there. Palette drags carry `application/artboard-element-type` / `-subtype` / `-styleprops` (JSON) on the DataTransfer.
 
-Copy/paste lives in [src/contexts/ClipboardContext.tsx](../src/contexts/ClipboardContext.tsx) (one element, deep-cloned, in-memory only). Paste mints a new `el_...` id.
+Copy/paste lives in [src/lib/elementClipboard.ts](../src/lib/elementClipboard.ts): one clipboard for every project, tab and window, kept in localStorage, holding the same transfer Copy to tab carries. A paste lands through `placeElements` ([transfer.ts](../src/lib/tabs/transfer.ts)), with fresh `el_...` ids, groups kept together and translations carried into the target's languages. See "Copy and paste between projects" under Project tabs.
 
 ### Persistence
 
@@ -570,7 +570,7 @@ A chat can have up to 3 folders of the user's app code. The agent reads and sear
 - Stop writes the interrupt and kills the process only if that same turn is still running 4s later (the timer carries the turn's token), so the conversation stays warm. Stop pressed while the process is still starting is remembered: once the process is up, `send` holds the message back and ends the turn as Stopped. A change of model or effort, or a change to the chat's code folders, replaces the process, with `--resume`, on the next message.
 - After a reload, `abs_claude_list` says whether the chat's process is still running, whether it is mid-turn and which folders it reads, and the store adopts it with that status: the page may have missed the `result` that ended the turn. Any other listed process belonged to an editor that is gone and is stopped. The model the process was started on is persisted, so a model changed before the reload still takes effect on the next message. `followProject` and `removeFolder` wait for the adoption (`adopted`), since until it lands a running turn looks stopped.
 - Each turn is one operation with `mode: 'claude-code'` ([operationLog.ts](../src/lib/ai/operationLog.ts)), so Recent runs shows its replies, tool calls with their arguments, tool results, and what `init` said about the model, the design tools and billing.
-- localStorage: `osg-claude-agent-v1` holds the conversation id, the resolved model, the chat with its code folders, `readFolders` and `ranFolders`, the spawn id with the model, the effort and the folders it was started on, the last context reading (`context`), and the last 150 items (no pictures, no tool arguments, tool results cut to 300 characters). `osg-claude-agent-panel` (`1`) keeps the Agent tab, `osg-claude-agent-model` the model picker and `osg-claude-agent-effort` the effort picker (nothing until the user picks, which means Max). `osg-claude-agent-windows` keeps the context window each model reported, by model id (the newest 20): only a `result` says how big a window is, so without it every new chat's ring would wait for its first turn to end. The reducer gets it as `contextWindows`, and a call on another model never reads under the old model's window. The whole conversation stays in Claude Code's own file for `--resume`; a stale `--resume` that starts a fresh conversation clears the reading with it.
+- localStorage: `osg-claude-agent-v1` holds the conversation id, the resolved model, the chat with its code folders, `readFolders` and `ranFolders`, the spawn id with the model, the effort and the folders it was started on, the last context reading (`context`), and the last 150 items (no pictures, no tool arguments, tool results cut to 300 characters). It is written half a second after the chat changes (`PERSIST_DELAY_MS`), and a write still waiting goes out at once on `pagehide`, when the page is hidden, and when a desktop window closes (the layout's close hook calls `claudeAgent.flush`, because Tauri fires no unload events then): a reload inside that half second used to lose the reply that had just arrived. `osg-claude-agent-panel` (`1`) keeps the Agent tab, `osg-claude-agent-model` the model picker and `osg-claude-agent-effort` the effort picker (nothing until the user picks, which means Max). `osg-claude-agent-windows` keeps the context window each model reported, by model id (the newest 20): only a `result` says how big a window is, so without it every new chat's ring would wait for its first turn to end. The reducer gets it as `contextWindows`, and a call on another model never reads under the old model's window. The whole conversation stays in Claude Code's own file for `--resume`; a stale `--resume` that starts a fresh conversation clears the reading with it.
 - Past chats: from its first message, every chat is also a row in the Dexie `agentChats` table (schema version 9), written with the localStorage copy and holding the same slimmed items, its Claude Code `sessionId`, a title (the first message), its project, its code folders with `readFolders` and `ranFolders`, and its last context reading (`context`, not indexed, so no new schema version). The newest 50 are kept. A chat belongs to the project its latest message was about. When the editor opens another project and no turn is running, `followProject` puts that project's latest chat on screen, or an empty one tied to it, which is how any project or template gets a chat of its own; during a turn it leaves the chat alone, because then it was the agent that opened the project. `openChat` refuses while a turn runs, and the next message after it resumes the chat's conversation. Picking a chat of another project opens the chat first and then the project (`openAgentChat` in the layout), so `followProject` finds the chat already on that project. The open chat cannot be deleted; a new chat leaves it first.
 
 ### The Agent tab in the dock
@@ -1300,7 +1300,11 @@ it to a project nor derive the key that encrypts what passes through it.
 4. **Remote changes do not go through `handleArtboardsUpdate`.** That door
    republishes and pushes undo history. `applyRemoteArtboards` writes the canvas,
    the Dexie row and the TOP history entry (replacing it, never appending), which
-   is what keeps undo meaning "undo my last action".
+   is what keeps undo meaning "undo my last action". It does call
+   `noteVersionCheckpoint`, as every change does: the first one keeps "Before
+   this session" and makes the project's tab one with changes. A room that
+   hands back the canvas's own document (rejoining, `sameDocument`) changes
+   nothing.
 5. **Boards and elements are keyed by id, with order in its own `Y.Array<string>`.**
    Not `Y.Array<Y.Map>`. Two peers seeding the same project into an empty room
    would otherwise merge into two of every board, and reordering (which has no
@@ -1493,6 +1497,472 @@ What neither can answer, because this machine has one display:
 - A slider drag in a detached properties form. If the value snaps backwards mid
   drag, the 90ms publish is beating the control.
 
+## Project tabs
+
+Several projects open in one window, in a strip above the toolbar. Layers and
+whole artboards move between them, and a tab can leave for a window of its own,
+on this display or another. Three layers, each built on the one before:
+
+1. **Tabs in one window.** Switching keeps each project's undo history, zoom,
+   scroll, active artboard, selection and language.
+2. **Moving between tabs.** The canvas menu's Move to tab and Copy to tab, a
+   layer dragged up onto a tab, and a layer held over a tab until it opens.
+3. **Tabs across windows and displays.** Tear a tab off, open it on a display,
+   move it to another editor window, or drag it back onto one. One window writes
+   a project at a time.
+
+Copy and paste work across all three (issue #47): the clipboard is one for the
+whole app, and a paste lands the way Copy to tab does.
+
+### Where things live
+
+| Path | What |
+| --- | --- |
+| [tabModel.ts](../src/lib/tabs/tabModel.ts) | The list as pure functions: open (and replace a preview), close, move, cycle, the closed list |
+| [parking.ts](../src/lib/tabs/parking.ts) | Where the inactive tabs' projects wait, and when they go to sleep |
+| [historyStore.ts](../src/lib/tabs/historyStore.ts) | A tab's undo stack while the tab is out of memory: asleep, closed, or on its way to another window |
+| [session.ts](../src/lib/tabs/session.ts) | The list in sessionStorage (this window) and localStorage (the next visit) |
+| [summary.ts](../src/lib/tabs/summary.ts) | What a tab knows without its project: the colour chip, artboard count, size, languages |
+| [useProjectTabs.ts](../src/lib/tabs/useProjectTabs.ts) | The hook the layout uses: list, restore, persistence, the sleep timer |
+| [presence.ts](../src/lib/tabs/presence.ts) | Which editor windows are alive: before restoring last time's tabs, and to tell whether a stored undo stack still counts |
+| [transfer.ts](../src/lib/tabs/transfer.ts) | Layers and artboards arriving in another project, rewritten in its base language |
+| [elementCarry.ts](../src/lib/tabs/elementCarry.ts) | A canvas drag, as the tab strip sees it, and the strip's claim on its drop |
+| [carrySession.ts](../src/lib/tabs/carrySession.ts) | Layers carried into a tab that opened under them |
+| [projectLocks.ts](../src/lib/tabs/projectLocks.ts) | One writer per project across windows |
+| [tabWindows.ts](../src/lib/tabs/tabWindows.ts) | Opening a window for a tab, and the bus between editor windows |
+| [tabDrag.ts](../src/lib/tabs/tabDrag.ts) | A tab dragged onto another window: screen geometry, and which window it lands in |
+| [elementClipboard.ts](../src/lib/elementClipboard.ts) | The layer clipboard every project, tab and window shares |
+| [ProjectTabBar.tsx](../src/components/open-screenshot-generator/tabs/ProjectTabBar.tsx) | The strip: reorder, tear off, menus, shortcuts, the drop target |
+| [TabHoverCard.tsx](../src/components/open-screenshot-generator/tabs/TabHoverCard.tsx) | The card a tab shows on hover |
+| The tab block in the layout | Park, restore, close, background edits, the cross-window handlers |
+
+### A switch
+
+`putProjectOnCanvas` is the one place every open path passes, so it is where
+the project leaving the canvas is parked: `parkOutgoingRef` moves its document,
+undo stack, selection and "Before this session" snapshot into the parking lot
+by reference, and records the tab's view (artboard, zoom, scroll, language) and
+summary. Coming back, `restoreParkedRef` puts all of it back in one batch, with
+no read. A tab that went to sleep is read instead: activating it sets
+`activeProjectId`, the loader takes its lock, reads the row and its stored undo
+stack together, and `applyTabViewRef` restores its view after the read.
+
+The strip shows the picked tab as active on the next frame and defers the
+switch past that paint (`afterNextPaint`), so a project full of 3D frames never
+makes a click feel stuck. The canvas fades in over 160ms when the new project
+lands. Scroll is restored in a layout effect once the canvas has laid out at
+the restored zoom; earlier, the scroll extents are the previous project's.
+
+Only one canvas exists, so one set of WebGL contexts, videos and DOM. The cost
+of that is the rebuild when switching back to a project of 3D frames.
+
+### Sleep and memory
+
+A parked tab stays in memory, whole, for an hour after it was left
+(`DEFAULT_PARKING_BUDGET.sleepAfterMs`). The hook sweeps once a minute and when
+the window comes back into view. Sooner than that only when the lot passes its
+budget, 256MB of snapshot bytes or twenty tabs, and then the tabs left longest
+ago sleep first. A typical project's whole history is a few MB, so the tab count
+comes first; the bytes are for projects still heavy with inline media. The
+macOS webview killed the page at about 500MB of snapshots (issue #19), and the
+lot plus the active tab's own 128MB (`HISTORY_MAX_BYTES`) stays under that.
+Raise either one and lower the other, or test on a Mac first. Nothing is trimmed
+from a tab that stays in memory: a stack cut short there would be undo lost for
+good.
+
+Sleep loses nothing. The project is in IndexedDB like any saved one, and
+`onSleep` writes the tab's undo stack to `historyStore.ts` at the next idle
+moment. Opening the tab reads both back. The active tab is not counted; it has
+its own cap (`HISTORY_MAX_BYTES`). The hover card draws a tab's artboards live
+with `StaticArtboard` and flat 3D frames instead of storing thumbnails.
+`fetchRecentProjectMetas` reads two indexes in one transaction rather than the
+rows, because it runs on every switch.
+
+### Undo across sleep, close and windows
+
+Rule 28 still holds: the undo stack belongs to one sitting, and a reload starts
+it over. `historyStore.ts` only keeps a stack while its tab is out of memory
+within a sitting, and writes it once, at the moment the tab leaves:
+
+- **asleep**: `onSleep`, as above.
+- **closed**: every way a tab closes goes through `keepUndoOfClosingTab` (its
+  close button, the menu's Close Tab, Close other tabs, Close tabs to the
+  right), before the canvas moves on, so Reopen closed tab brings undo back.
+  The lock waits for the write. A tab with changes asks first (below).
+- **moved to another window**: `letTabGo` writes it marked as a hand-over
+  before it lets go of the lock (a sleeping tab's stored stack is just
+  marked), and the receiving window reads it as it opens the project.
+
+Nothing is written while a tab is in memory. A stack counts while the window
+that wrote it is alive (`liveEditorWindowIds`, the presence locks) or when it
+is a hand-over. A reload ends the window, so its stacks stop counting; the next
+read of one deletes it, and a startup sweep deletes the rest. The window that
+reads a stack takes it over (its own sitting, no longer a hand-over), so the
+stack ends with that window: a tab moved into a window that then reloads starts
+undo over there, whether or not the window it came from is still open.
+
+A stack is one row per entry plus one row naming them in order, so writing the
+same tab again (it woke, then slept again) writes only the new entries.
+`resumeUndo` checks the stored top state against the document read; if the
+project changed somewhere that kept no stack, the document goes on top as an
+Open entry and undo steps back into the stored history. Entries come back under
+new ids, because ids are a per-window counter. The hover card tells the two
+kinds of sleeping tab apart: one that slept in this sitting keeps its undo, one
+restored from last time (not opened since the app started) starts over.
+
+### The session
+
+sessionStorage keeps this window's list across a reload. localStorage keeps the
+last list for a fresh visit, restored only when no other editor window is open
+(`presence.ts`, a Web Lock per window). Only the active tab loads; the rest come
+back asleep. A restored tab whose project was deleted elsewhere is dropped after
+a key-only check. With tabs restored and nothing on the canvas, dismissing the
+start dialog resumes the tab used last instead of creating a blank project.
+
+A tab's view is taken as it is left, and a reload never leaves the active tab,
+so the hook reads the active tab's view live (`readView`) every time it writes.
+A zoom, a scroll or another artboard or language asks for a write
+(`noteViewChange`), and the session is also written when the page is hidden and
+on the desktop close request.
+
+### Preview tabs
+
+A template opened from the gallery (`handleSelectTemplate` without a name)
+opens as a preview, drawn in italics: the next project opened from that tab
+takes its place, so browsing templates leaves no trail of tabs. The first commit
+(`scheduleProjectSave` calls `noteTabEdit`) keeps it. The + button always adds a
+tab.
+
+### Closing a tab with changes
+
+Every close (the cross, middle click, Delete on a focused tab, the menu's Close
+Tab, Close other tabs, Close tabs to the right, Ctrl+W) goes through
+`confirmTabClose`, which asks first when one of the tabs has changes. Nothing is
+lost either way: the project is saved, and Reopen closed tab brings the tab back
+with its undo history. The question guards against a click on the wrong cross.
+
+Changes means the project took a commit of any kind in this sitting: an edit,
+a restored version, a template the agent applied, layers moved into it, a
+change somebody else made in a live session. A project keeps the state it
+opened in (`openedSnapshotRef`, the one its "Before this session" version is
+written from) until its first commit, so the test is whether that is gone: on
+the canvas, in `ParkedProject.openedSnapshot` for a parked tab, and for a tab
+asleep in `sleptWithChangesRef`, filled in by `onSleep` because the rest is on
+disk by then. It used to read the history rows' icons, which missed a restored
+version and an applied template: both use the Open icon. A change from the room
+goes through `noteVersionCheckpoint` like a local commit (`applyRemoteArtboards`
+otherwise left the snapshot alone, and a tab that only others had edited closed
+without asking), except when it is the document the canvas already shows
+(`sameDocument`): rejoining a room this device was in before hands that back
+the moment it opens. An undo back to the start still counts. The dialog's Don't ask again
+writes the `confirmTabClose` preference (editorPreferences.ts), which the Tabs
+section of Settings turns back on. A close that also takes the window out of a
+live session asks only that.
+
+Close other tabs and Close tabs to the right close the tabs the question was
+about and no others (`closeTabsNow`): a tab that opened while it was up, moved
+in from another window or opened by the agent, stays.
+
+### Moving layers and artboards
+
+`editTabInBackground` changes a project that is not on the canvas: a parked one
+in place, a sleeping one after a read (with its stored undo stack) that parks
+it. Either way the change goes on that project's undo stack, its row is
+written, and the first edit writes its "Before this session" version.
+`sendLayers` writes the target first and only then removes the layers from the
+source, each side through `editProjectAnywhere`, so either can be the canvas.
+The source is the project captured when the move began, never the canvas at the
+moment the target's write lands: the user may have switched tabs in between, and
+a duplicated project shares board and layer ids with its original
+(`sendArtboardToTab` once removed the board from the wrong project this way).
+The arrival is selected, on the artboard it landed on, when that tab opens.
+
+A move holds the lock of both projects from its first read to its last write
+(`withProjectsHeld`), and `editTabInBackground` gives up when its tab went away
+during the read (closed, or moved to another window). Without that, another
+window could open the target in the middle, read the row from before the move,
+and save over what the move wrote with its next edit. Whatever lets a project
+go waits for the moves under way (`projectWorkDone`): `letTabGo`, and a
+`hand-over` asked for a project whose tab already closed.
+
+An element holds its project's BASE language, and every other language is an
+override on top, so the same override map means different things in projects
+with different base languages. `rebaseLanguages` keeps every language looking as
+it did. Each arriving element becomes what the source drew in the target's base
+language, the face and size the canvas picked for that language included (a
+base language picks none for itself). Each target language that had something of
+its own for the element, the source's base among them, gets an override that
+says where it differs from that: its own words and pictures, and every other
+property it draws differently, pulled apart for it. A property a language never
+set is stored as null, which `resolveElementForLocale` reads as unset, so it
+draws the default rather than whatever the new base sets (German at 30%
+opacity, English at none). A face or size the canvas picked from a base value
+that did not change stays picked rather than frozen. A language with nothing of
+its own for the element, or one the source never had, follows the target's
+base, words and look, like any untranslated element. Projects with no languages
+set up are left alone.
+
+Three ways in:
+
+- **The canvas menu**: Move to tab and Copy to tab for layers; on an artboard's
+  empty space, Move artboard to tab and Copy artboard to tab. The list opens
+  after the pointer rests on its row for a moment, a transparent strip bridges
+  the gap between the menu and the list, and it stays open for 300ms after the
+  pointer leaves its row, so a diagonal move to a lower item survives crossing
+  the next row.
+- **A drop on a tab**: DraggableElement reports a move drag through
+  `moveElementCarry`; the strip highlights the tab under the pointer and claims
+  the drop (`endElementCarry`), and the drag then commits nothing on its own
+  board. Alt copies. A drop anywhere else on the strip puts the layers back.
+- **Spring loading**: held over a tab for 900ms, the tab opens under the layers.
+  `startCarrySession` copies them into a ghost, stops the original drag without
+  a commit (`abandonElementCarry`), and carries the gesture on window capture
+  listeners. Let go on an artboard places them at that point; on a tab, sends
+  them there; on the tab they came from, or with Escape, nothing moves.
+
+### Copy and paste between projects
+
+Issue #47: copy layers in one project and paste them into another, in another
+tab, a project opened later, or another window. `elementClipboard.ts` keeps one
+clipboard for the whole app in localStorage (`abs-element-clipboard`) with a
+copy in memory for the canvas menu's Paste. Another window's copy arrives by the
+`storage` event, and the clipboard is read again on focus and at paste time, so
+a webview that never raises the event still pastes the latest copy. A copy too
+big for storage stays in the window that made it, and the older stored copy is
+removed so no other window pastes that one instead.
+
+What it holds is a transfer (`pickElements`), and `handlePasteElement` lands it
+with `placeElements`, so a paste behaves like Copy to tab: fresh ids, groups
+kept together (a layer copied without the rest of its group arrives as a layer
+of its own), translations carried into the target's languages and rewritten in
+its base language. The keyboard pastes 20px down and right of the originals on
+the artboard they came from (`offset`) and in the same place relative to the
+edges of any other; the canvas menu centres the set on the point clicked (`at`).
+Both are about where the layers are drawn in the language on screen
+(`viewLocale`), which can give them a box of its own: centred on the base box,
+a German layer with its own position landed 200px off the point. Copy from the
+canvas menu takes the whole selection when the layer right-clicked is part of
+it, so a group copies whole. Both handlers read the canvas through refs,
+because the keyboard listener can be a few renders old. Media needs nothing (the
+media table belongs to the device). Fonts do, for one reason: a language's text
+is shrunk to fit its box by measuring it in its face (`resolveLocaleFontSize`),
+and a layer rewritten in another base language keeps that measured size as its
+own `fontSize`. Measured in a face the page does not have yet (a font imported
+in another window after this one started, a webfont still loading, a built-in
+family before its stylesheet arrives), it is the size the fallback fits at,
+stored for good. So a paste, Move and Copy to tab, and Move and Copy artboard to
+tab load every face the layers draw in first (`textFacesOf`, `whenFacesLoaded`
+in [transferFonts.ts](../src/lib/tabs/transferFonts.ts)), and a paste whose
+faces are all there already stays synchronous. The built-in families come in
+one stylesheet that `preloadGoogleFonts` fetches after the page starts, and
+until it is in, `document.fonts.check` calls their faces ready, since the page
+has no face of theirs to load; so `whenBuiltInFacesDeclared` is waited for
+first. A wait gives up after `FACE_WAIT_MS` (10 seconds): past that the network
+is the trouble, and a paste that has not landed reads as one that did nothing.
+A paste that waited is dropped if another document went onto the canvas
+meanwhile. A move or copy picks its layers (or its artboard) again after each
+wait, because they stay editable during it, and waits again while the faces
+they need now are not in (`pickWithFacesIn`). It compares the faces, not the
+layers: a language set to draw in a face of its own (`autoFont`, which an agent
+can switch with `add_locales`) changes the faces and no layer. A set of faces
+already waited for is not waited for twice, so a font that never comes costs
+one wait. The move takes the layers out of their project only as they went
+(`stillHolds`, `sameDocument` for an artboard). It once moved the layers as they
+were when it was asked for, then deleted the edited ones from their project by
+id. What is
+only drawn is refitted later: every finished font load clears the measurement
+cache and projects the view again (`fontLoads`), and every document that goes
+onto the canvas registers the imported fonts it uses (`loadCustomFontFamilies`),
+so a tab moved in from a window that imported one draws, and exports, in it.
+
+### Windows and displays
+
+A tab dragged well clear of the strip turns into a small window card; with more
+than one display a map of them appears, and letting go on one opens the tab
+there. Let go anywhere else opens a window at the pointer. The tab menu has
+Move to new window, Open on display, Move to window (every other editor window,
+found by a roll call on the bus, with the main window first and named Main
+window), and on the web Find my other displays, which asks for the Window
+Management permission.
+
+A tab let go over another editor window moves there, which is how a tab moved
+out comes back: a window's only tab can be dragged out for this, though it
+never opens a new window. Only the window the drag started in sees the pointer.
+As the drag starts it asks the others where they are (`tab-drag`, phase
+`start`), and each answers with its place on the screen, or none while its page
+is out of sight (`tab-drag-window`). From then on the dragging window works out
+the target itself (`pickDropWindow`: the window under the pointer that had
+focus last, none while the pointer is over the window it came from), once a
+frame, and names it on the bus (`over`) so that window, and only that one,
+shows a full-window overlay. Where the tab lands is decided again from the
+release position (`handleTabTearEnd`), never from the last frame: a pointer
+that left the highlighted window and let go at once landed there anyway. The
+web measures in CSS pixels (`screenX` against `window.screenX`, `outerWidth`,
+`outerHeight`) and decides inside the release, because that is the only moment
+a browser opens a new window; the desktop asks Tauri for `cursorPosition` and
+compares physical pixels with `outerPosition` and `outerSize`. Where the tab
+lands in the other strip is not chosen: it goes last, as Move to window does.
+
+A tab can leave while its project is still being read (it was just clicked and
+was asleep). `letTabGo` stops that open (`stopOpening`) and waits for it before
+it lets go of the lock. Every open that awaits anything before the project is on
+the canvas registers through `beginOpen`: the loader, `loadProjectFromData`
+(which writes the row first), and an open from the account or the cloud from
+the moment `beforeWrite` claims the project. Left to the effect cleanup, the
+read could finish first and put the project back on this canvas after the
+other window took it, and both windows would save it. In that case the canvas
+still holds the project before it, which stays, undo history and all, when its
+tab is the next one (`loadedProjectIdRef` is cleared only when the leaving
+project is the one on the canvas).
+
+An open from the account or the cloud claims the project once the download is
+in, then spends most of its time writing the project's pictures and fonts, and
+only then its row, so it registers as `importing`: stopped before the row, it
+lets the tab go at once instead of after the pictures and fonts, and its row
+write goes through `write` (`importBundle`'s
+`guardRowWrite`), which refuses from then on with `OpenStoppedError`. The toast
+says the project did not open here, or, when the row went in before the stop,
+that it opened in the other window. It once registered only when it reached
+`loadProjectFromData`, with the row already written: a move during the media
+wrote the account's copy over the project the other window had just opened.
+Closing a tab stops only that tab's own read (`stopOpening(id, 'closed')`): an
+open somebody asked for goes on and opens a tab again. The lock itself stays
+held until the project and its undo stack are written, so from the moment
+`letTabGo` starts, the project is marked as handed over (`startHandOver` in
+`projectLocks.ts`): `holdProjectLock` turns down anything here that asks for
+it, as another window's lock would, and `projectOpenElsewhere` says it is
+elsewhere. Without that, opening it again from Recent projects while the undo
+stack was still being written found the lock held here and opened it, and once
+the lock went, both windows had the project and each saved over the other. And `loadProjectFromData`
+writes the address bar in the same step that puts the project on the canvas,
+before its last read (Recent projects): written after it, a tab that left for
+another window during that read left this window showing the next tab under
+the moved project's address, which a reload then opened.
+
+The new window loads `/?projectId=<id>&tabwindow=<key>`: a desktop Tauri window
+labelled `editor-<key>` (covered by `capabilities/default.json`), or a browser
+popup. On the web the popup has to open inside the gesture, so it opens at once
+while `letTabGo` takes the project off the canvas, writes it and its undo stack,
+and only then lets go of the lock. The new window's first open waits up to
+`HAND_OVER_WAIT_MS` for that lock instead of calling the project taken, and so
+do Move to window and Move it here.
+
+`projectLocks.ts` holds a Web Lock per open project, and the lock is taken
+before a project is opened or written, on every path: the loader (tabs, Recent
+projects, a reload), `loadProjectFromData` (templates, imports, the account,
+the cloud, a live session, the MCP tools, the headless bridge), and
+`importBundle`'s `beforeWrite`, which the account and cloud opens use because
+they write the local row before they open it. A project held elsewhere gets the
+"This project is open in another window" dialog (from a click) or a
+`ProjectOpenElsewhereError` (from a tool): Move it here sends `hand-over` on the
+bus and opens it once the other window answers, Show that window (desktop)
+brings that window forward. A window only writes a tab's undo stack while it
+holds that project's lock (`mayWriteProject`).
+
+A lock is let go of once nothing in the window has the project
+(`letGoIfUnused`): no tab, not on the canvas, nothing pinning it. One of those
+moments is the canvas moving off a project whose tab closed while the next one
+was read (`putProjectOnCanvas`, after that project's last write). Without it the
+window kept the closed project's lock until the strip next changed, and another
+window was told the project was open here.
+
+### Traps
+
+1. **A popup starts with a copy of its opener's sessionStorage.** A window a tab
+   moved into keys its session with its `tabwindow` key, or it would reopen
+   every tab of the window it came from.
+2. **The popup blocker.** On the web `openTabWindow` must run inside the release
+   or the click, before any `await`. A drag held past the browser's activation
+   window (about five seconds in Chromium) can still be blocked; the tab comes
+   back and a toast says so.
+3. **Tauri's untargeted `listen()` hears everything.** An event emitted to
+   `main` reaches every window's global listener. The MCP bridge and the agents
+   are safe because Rust refuses their nonce outside `main`; anything new that
+   must run once needs the same kind of check, not just a label test in JS.
+4. **A press on an unselected layer only selects it.** A drag starts from a
+   selected layer, which matters for anything driving the canvas headlessly.
+5. **Puppeteer's clipped screenshots emulate a resize**, and the canvas menu
+   closes on resize. Pass `captureBeyondViewport: false` when shooting a menu.
+6. **Detached panels belong to `main`.** A panel window adopts any host that
+   says `host-up`, and on the web a host closing closes every panel window. A
+   window a tab moved into therefore runs `useDockHost` with `enabled: false`:
+   it never joins the panel bus, and detaching from it says so instead.
+7. **Ctrl+W is the menu's.** A native accelerator never reaches the page, so the
+   tab items live in `settings.rs` and are sent to the focused editor window. A
+   window a tab moved into has no menu bar on Windows and Linux and reads those
+   keys in the page.
+8. **Anything awaited during a move can outlive the canvas it started on.**
+   Capture the project ids before the first `await` and write through
+   `editProjectAnywhere`, never through `artboardsRef` and
+   `handleArtboardsUpdate` after it.
+9. **A write to another project that reads first spans awaits, and only the
+   lock keeps another window out in between.** Run it inside
+   `withProjectsHeld`. To stop one in the middle in a test, take
+   `holdProjects` (tests/e2e/fixtures/db.ts) before the click: IndexedDB queues
+   every later transaction on the store behind it, from every window.
+10. **An override cannot say "unset" with undefined.** A detached key whose value
+    is undefined shows the base value. Null is unset: the element draws that
+    property's default in that language.
+11. **Headless windows all sit in one corner.** Every Playwright page reports
+    `screenX` 0, so a test of a tab dragged onto another window moves the target
+    window by redefining its `screenX` first, and drives the drag from the
+    other page with coordinates past its own edge (pointer capture keeps
+    delivering them).
+12. **An open dialog hides the rest of the page from `getByRole`.** Radix marks
+    everything outside an alert dialog `aria-hidden`, so a test looking for a tab
+    while the close question is up finds none; use `[data-tab-id]`.
+13. **The parallel e2e workers starve on a loaded machine.** A page that sits
+    for half a minute between its first and second batch of scripts is the
+    browser waiting for CPU, not the app hanging. Rerun with `--workers=1`
+    before chasing it.
+
+### Verifying it
+
+[project-tabs.spec.ts](../tests/e2e/specs/project-tabs.spec.ts) covers the strip,
+undo across switches, a parked tab returning with the project store held, the
+session across a reload (the zoom included), a tab that sleeps after an hour
+(Playwright's fake clock) and wakes with undo, a closed tab reopening with undo,
+tabs closed together (from the canvas and from the parking lot) reopening with
+undo, preview tabs, all three ways of moving layers, an artboard moved while the
+canvas changes tabs, the Move to tab list under a diagonal pointer path, layers
+moving between base languages with their translations and their look, an
+artboard copy, a tab moved to a popup with its undo and starting over when the
+popup reloads, an open refused through the shared loader, detached panels
+staying with the main window, a move into a tab that closes on the way while
+another window asks for the project, a closed tab's project opening in another
+window, the one-writer dialog, the question before an edited tab closes (Cancel,
+Don't ask again, a restored version as the only change, a tab arriving while it
+is asked), a group with its German pasted into another tab, a paste centred on
+a point in German, a paste in a second window, a paste into another base
+language measured in a font another window imported and in a built-in font whose
+stylesheet came late, a layer and an artboard edited while their move waited for
+a font, a copy waiting for the face a language was set to draw in meanwhile (the
+headless bridge's `add_locales`), a moved tab going back by
+its menu and by a drag onto the main window, a release past that window landing
+nowhere, a tab moved while it was being read staying out of this window, an
+open from the account (GitHub gists answered by the test) that stops when its
+tab moves away during the media, and the address bar after a template's tab
+moved away as it opened, and a project opened again while its tab moved to
+another window (the undo stack store held). A change from a live session has no automated test:
+the room needs a signalling server and two signed-in browsers (see Live
+collaboration).
+[elementClipboard.test.ts](../tests/unit/elementClipboard.test.ts) covers the
+clipboard across windows (the storage event, a fresh read without it, a copy too
+big to store, an older copy, anything else in storage) and
+[tabDrag.test.ts](../tests/unit/tabDrag.test.ts) which window a dragged tab
+lands in.
+[projectTabs.test.ts](../tests/unit/projectTabs.test.ts) covers the list model,
+the sleep rules, the undo store (incremental writes, live and dead windows,
+hand-overs, a stack taken over by the window that reads it, pruning), the
+session parser, the summary, the transfers (every language drawing as it did
+across base languages, a null override as unset, a move taking out only layers
+that did not change, layers picked again until the faces they need are in), and
+a project on its way to another window turned down until it has gone.
+
+Not covered by either: a real Tauri window (the desktop project mocks the IPC
+and cannot create one), so the desktop half of a tab dragged onto another window
+(`cursorPosition` and physical window bounds) is untested; dragging a tab onto
+another display on a machine that has two; and the native menu's accelerators.
 ## Direct-to-store upload (desktop only)
 
 Hands rendered artboards to App Store Connect and Google Play with the user's own developer

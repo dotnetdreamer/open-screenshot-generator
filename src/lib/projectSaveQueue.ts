@@ -32,9 +32,12 @@ export interface ProjectSaveQueue {
    * of another project still waiting is written now.
    */
   schedule(save: ProjectSave): void;
-  /** Write the waiting save now. Resolves when that write settles. */
+  /**
+   * Write the waiting save now. Resolves when that write settles, and when a
+   * write already under way has: a window lets go of a project after this.
+   */
   flush(): Promise<unknown>;
-  /** Write the waiting save now if it belongs to a project other than `projectId`. */
+  /** The same, for a waiting save of a project other than `projectId`. */
   flushOtherThan(projectId: string): Promise<unknown>;
   /** Forget the waiting save of `projectId` without writing it. */
   drop(projectId: string): void;
@@ -45,13 +48,17 @@ export function createProjectSaveQueue(
   delayMs: number = PROJECT_SAVE_DELAY_MS
 ): ProjectSaveQueue {
   let waiting: { save: ProjectSave; timer: ReturnType<typeof setTimeout> } | null = null;
+  // Settles once every write started so far has.
+  let writing: Promise<unknown> = Promise.resolve();
 
   const flush = (): Promise<unknown> => {
     const current = waiting;
-    if (!current) return Promise.resolve();
+    if (!current) return writing;
     waiting = null;
     clearTimeout(current.timer);
-    return write(current.save);
+    const done = write(current.save);
+    writing = Promise.all([writing, done.catch(() => undefined)]);
+    return writing;
   };
 
   return {
@@ -62,7 +69,7 @@ export function createProjectSaveQueue(
     },
     flush,
     flushOtherThan(projectId) {
-      return waiting && waiting.save.id !== projectId ? flush() : Promise.resolve();
+      return waiting && waiting.save.id !== projectId ? flush() : writing;
     },
     drop(projectId) {
       if (!waiting || waiting.save.id !== projectId) return;

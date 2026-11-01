@@ -1,10 +1,12 @@
-// The two rules in src/lib/projectCanvas.ts: when work built in one render of
-// the editor may still write to the canvas, and which documents may open as a
-// project. The layout's commit paths and the MCP line both ask the first.
+// The rules in src/lib/projectCanvas.ts: when work built in one render of the
+// editor may still write to the canvas, which documents may open as a project,
+// and when two documents are the same one. The layout's commit paths and the
+// MCP line both ask the first; a change from a live session asks the last.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canOpenAsProject, canvasStillHolds } from '@/lib/projectCanvas';
+import { canOpenAsProject, canvasStillHolds, sameDocument } from '@/lib/projectCanvas';
+import type { ArtboardState } from '@/types/artboard';
 
 test('a render whose canvas holds the open project may write while nothing replaces it', () => {
   assert.equal(canvasStillHolds({ activeProjectId: 'proj_a', canvasProjectId: 'proj_a', serial: 3 }, 3), true);
@@ -34,4 +36,30 @@ test('only a document with an artboard opens as a project', () => {
   assert.equal(canOpenAsProject(undefined), false);
   assert.equal(canOpenAsProject({ projectData: [] }), false);
   assert.equal(canOpenAsProject([{ id: 'ab_1', elements: [] }]), true);
+});
+
+test('two documents are the same when they say the same thing, whatever order their keys arrived in', () => {
+  const board = {
+    id: 'ab_1',
+    name: 'One',
+    size: { width: 1290, height: 2796 },
+    position: { x: 0, y: 0 },
+    elements: [{ id: 'el_1', type: 'shape', position: { x: 1, y: 2 }, size: { width: 3, height: 4 } }],
+  } as unknown as ArtboardState;
+  // As a live session's room hands it back: keys in another order, nothing
+  // undefined, and placed again.
+  const fromRoom = {
+    elements: [{ size: { height: 4, width: 3 }, position: { y: 2, x: 1 }, type: 'shape', id: 'el_1' }],
+    position: { x: 400, y: 0 },
+    size: { height: 2796, width: 1290 },
+    name: 'One',
+    id: 'ab_1',
+  } as unknown as ArtboardState;
+  assert.equal(sameDocument([board], [{ ...fromRoom, backgroundColor: undefined } as unknown as ArtboardState]), true);
+
+  assert.equal(sameDocument([board], [{ ...fromRoom, name: 'Two' }]), false);
+  const moved = { ...fromRoom.elements[0], position: { x: 5, y: 2 } };
+  assert.equal(sameDocument([board], [{ ...fromRoom, elements: [moved] }]), false);
+  assert.equal(sameDocument([board], [{ ...fromRoom, elements: [...fromRoom.elements, moved] }]), false);
+  assert.equal(sameDocument([board], [fromRoom, fromRoom]), false);
 });

@@ -32,6 +32,18 @@ const MENU_ID_DEVTOOLS: &str = "abs-settings-devtools";
 const MENU_ID_RELOAD_WINDOW: &str = "abs-settings-reload-window";
 const MENU_ID_ABOUT: &str = "abs-help-about";
 
+// The editor's project tabs. The page has no say over these keys: a native
+// accelerator is handled before the webview sees the keystroke, so Close Tab
+// has to live in the menu to win Ctrl+W from Close Window at all.
+const MENU_ID_NEW_TAB: &str = "abs-tab-new";
+const MENU_ID_CLOSE_TAB: &str = "abs-tab-close";
+const MENU_ID_REOPEN_TAB: &str = "abs-tab-reopen";
+/// What the editor listens on for the three tab items (OpenScreenshotGeneratorLayout.tsx).
+const TAB_COMMAND_EVENT: &str = "abs-tab-command";
+/// An ordinary item on every platform, not the predefined one: that carries
+/// Cmd+W on macOS, which belongs to Close Tab.
+const MENU_ID_CLOSE_WINDOW: &str = "abs-window-close";
+
 // muda's GTK backend implements only Separator, Copy, Cut, Paste, SelectAll and
 // About, and silently drops every other predefined item. A File or Window menu
 // built from close_window/quit/minimize/maximize therefore comes up completely
@@ -39,8 +51,6 @@ const MENU_ID_ABOUT: &str = "abs-help-about";
 // blank box. These ids back ordinary menu items that stand in for them there.
 // macOS and Windows keep the predefined items, which carry the platform's own
 // labels, accelerators and semantics.
-#[cfg(target_os = "linux")]
-const MENU_ID_CLOSE_WINDOW: &str = "abs-window-close";
 #[cfg(target_os = "linux")]
 const MENU_ID_QUIT: &str = "abs-file-quit";
 #[cfg(target_os = "linux")]
@@ -135,6 +145,28 @@ fn action_window<R: Runtime>(app: &AppHandle<R>) -> Option<tauri::WebviewWindow<
         .or_else(|| app.get_webview_window("main"))
 }
 
+/// Whether a window is an editor, the only kind that has tabs: `main`, or one
+/// a tab was torn off into (`editor-*`).
+fn is_editor_window(label: &str) -> bool {
+    label == "main" || label.starts_with("editor-")
+}
+
+/// A tab item was picked. It goes to the editor window in front. In a detached
+/// panel window (on macOS, where this menu bar is the whole app's), Close Tab
+/// closes that panel window instead, which is what Cmd+W does there everywhere
+/// else, and the other two go to the main editor.
+fn send_tab_command<R: Runtime>(app: &AppHandle<R>, command: &'static str) {
+    let Some(window) = action_window(app) else { return };
+    let label = window.label().to_string();
+    if is_editor_window(&label) {
+        let _ = app.emit_to(label.as_str(), TAB_COMMAND_EVENT, command);
+    } else if command == "close" {
+        let _ = window.close();
+    } else {
+        let _ = app.emit_to("main", TAB_COMMAND_EVENT, command);
+    }
+}
+
 /// Build the menu bar (platform defaults plus our Settings submenu) and start
 /// handling its events. Call once from `setup`, before web_session runs.
 pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
@@ -206,28 +238,42 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         menu.append(&app_menu)?;
     }
 
+    // Tabs first, the way every tabbed app lays out File. Close Window is on
+    // Shift, as in a browser, so Ctrl+W closes one project rather than all of
+    // them.
     let file_menu = {
-        #[cfg(target_os = "linux")]
         let file = SubmenuBuilder::new(app, "File")
             .item(
-                &MenuItemBuilder::with_id(MENU_ID_CLOSE_WINDOW, "Close Window")
-                    .accelerator("CmdOrCtrl+W")
+                &MenuItemBuilder::with_id(MENU_ID_NEW_TAB, "New Tab")
+                    .accelerator("CmdOrCtrl+T")
+                    .build(app)?,
+            )
+            .item(
+                &MenuItemBuilder::with_id(MENU_ID_REOPEN_TAB, "Reopen Closed Tab")
+                    .accelerator("CmdOrCtrl+Shift+T")
                     .build(app)?,
             )
             .separator()
             .item(
-                &MenuItemBuilder::with_id(MENU_ID_QUIT, "Quit")
-                    .accelerator("CmdOrCtrl+Q")
+                &MenuItemBuilder::with_id(MENU_ID_CLOSE_TAB, "Close Tab")
+                    .accelerator("CmdOrCtrl+W")
+                    .build(app)?,
+            )
+            .item(
+                &MenuItemBuilder::with_id(MENU_ID_CLOSE_WINDOW, "Close Window")
+                    .accelerator("CmdOrCtrl+Shift+W")
                     .build(app)?,
             );
 
-        #[cfg(not(target_os = "linux"))]
-        let file = {
-            let file = SubmenuBuilder::new(app, "File").close_window();
-            #[cfg(not(target_os = "macos"))]
-            let file = file.quit();
-            file
-        };
+        #[cfg(target_os = "linux")]
+        let file = file.separator().item(
+            &MenuItemBuilder::with_id(MENU_ID_QUIT, "Quit")
+                .accelerator("CmdOrCtrl+Q")
+                .build(app)?,
+        );
+
+        #[cfg(target_os = "windows")]
+        let file = file.separator().quit();
 
         file.build()?
     };
@@ -255,12 +301,14 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                     .build(app)?,
             );
 
+        // The ordinary Close Window, not the predefined one, which would bring
+        // Cmd+W back on macOS and take it off Close Tab. File shows the shortcut.
         #[cfg(not(target_os = "linux"))]
         let window = {
             let window = SubmenuBuilder::new(app, "Window").minimize().maximize();
             #[cfg(target_os = "macos")]
             let window = window.separator();
-            window.close_window()
+            window.item(&MenuItemBuilder::with_id(MENU_ID_CLOSE_WINDOW, "Close Window").build(app)?)
         };
 
         window.build()?
@@ -314,14 +362,17 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                     let _ = window.reload();
                 }
             }
-            // Linux stand-ins for the predefined items muda's GTK backend drops
-            // on the floor. Same target rule as Reload window above.
-            #[cfg(target_os = "linux")]
+            MENU_ID_NEW_TAB => send_tab_command(app, "new"),
+            MENU_ID_CLOSE_TAB => send_tab_command(app, "close"),
+            MENU_ID_REOPEN_TAB => send_tab_command(app, "reopen"),
+            // Same target rule as Reload window above.
             MENU_ID_CLOSE_WINDOW => {
                 if let Some(window) = action_window(app) {
                     let _ = window.close();
                 }
             }
+            // Linux stand-ins for the predefined items muda's GTK backend drops
+            // on the floor. Same target rule as Reload window above.
             #[cfg(target_os = "linux")]
             MENU_ID_MINIMIZE => {
                 if let Some(window) = action_window(app) {

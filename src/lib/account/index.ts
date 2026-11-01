@@ -321,7 +321,11 @@ export function newCloudProjectId(): string {
 /** Pull a project down and write it into the local library. */
 export async function loadProjectFromAccount(
   remoteId: string,
-  onProgress?: ProgressFn
+  onProgress?: ProgressFn,
+  /** Passed to importBundle: runs before the local row is written. */
+  beforeWrite?: (projectId: string, name: string) => Promise<void>,
+  /** Passed to importBundle: runs the write of the local row, and can refuse it. */
+  guardRowWrite?: (write: () => Promise<unknown>) => Promise<unknown>
 ): Promise<Project> {
   const stored = getSession();
   if (!stored) throw new AccountAuthError('Connect an account first.');
@@ -342,7 +346,7 @@ export async function loadProjectFromAccount(
     bundle.manifest.projectData = normalizeLocalization(
       ensureUniqueElementIds(migrateVideoDevices(bundle.manifest.projectData))
     );
-    const project = await importBundle(bundle, { onProgress: progress.install });
+    const project = await importBundle(bundle, { onProgress: progress.install, beforeWrite, guardRowWrite });
 
     // Opening a copy links it, exactly as saving one does.
     //

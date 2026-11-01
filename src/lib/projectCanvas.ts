@@ -39,3 +39,41 @@ export function canvasStillHolds(rendered: RenderedCanvas, liveSerial: number): 
 export function canOpenAsProject(projectData: unknown): projectData is ArtboardState[] {
   return Array.isArray(projectData) && projectData.length > 0;
 }
+
+/**
+ * Whether two values say the same thing, the way sameDocument compares: the
+ * order of an object's keys does not count, and a key set to undefined is one
+ * left out.
+ */
+export function sameContent(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a === null || b === null || typeof a !== 'object' || typeof b !== 'object') return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((value, i) => sameContent(value, b[i]));
+  }
+  const left = a as Record<string, unknown>;
+  const right = b as Record<string, unknown>;
+  for (const key of new Set([...Object.keys(left), ...Object.keys(right)])) {
+    if (!sameContent(left[key], right[key])) return false;
+  }
+  return true;
+}
+
+/**
+ * Whether two documents say the same thing. The order of an object's keys is
+ * not part of it, and neither is a key set to undefined rather than left out:
+ * a document read out of a live session's room builds its objects in the
+ * order their keys arrived there, and the room cannot hold undefined at all.
+ * Where the boards sit on the canvas is not part of it either, since that is
+ * worked out again from the document every time.
+ */
+export function sameDocument(a: readonly ArtboardState[], b: readonly ArtboardState[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  return a.every((board, i) => {
+    const { position: _left, ...left } = board;
+    const { position: _right, ...right } = b[i];
+    return sameContent(left, right);
+  });
+}

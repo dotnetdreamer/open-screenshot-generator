@@ -215,6 +215,8 @@ const INTERRUPT_GRACE_MS = 4000;
 const DETECT_TTL_MS = 60_000;
 /** Stdout arrives in bursts; the layout re-renders once per burst, not per line. */
 const NOTIFY_DELAY_MS = 60;
+/** The chat is saved once a burst of changes goes quiet, and when the page goes (flushPersist). */
+const PERSIST_DELAY_MS = 500;
 
 const MODELS: ClaudeModelChoice[] = ['default', 'fable', 'opus', 'sonnet', 'haiku'];
 const EFFORTS: ClaudeEffortChoice[] = CLAUDE_EFFORT_CHOICES.map((choice) => choice.value);
@@ -509,35 +511,50 @@ interface Persisted {
   context?: AgentContextUsage | null;
 }
 
+/** Write the chat on screen now. Resolves once Past chats has it too. */
+function persistNow(): Promise<void> {
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  const { session, chat } = snapshot;
+  if (session.status === 'idle' && session.items.length === 0 && !session.sessionId) {
+    // An empty chat still remembers its project, so opening that project
+    // again after a relaunch does not count as a switch, and the folders the
+    // user added before writing anything.
+    const empty: Persisted = { v: 1, sessionId: null, resolvedModel: null, spawnId: null, items: [], chat };
+    writeStorage(STORAGE_KEY, chat.projectId || chat.folders.length ? JSON.stringify(empty) : null);
+    return Promise.resolve();
+  }
+  const persisted: Persisted = {
+    v: 1,
+    sessionId: session.sessionId,
+    resolvedModel: session.model,
+    spawnId,
+    processAgent,
+    processModel,
+    processEffort,
+    processFolders,
+    items: slimForStorage(session.items),
+    chat,
+    context: session.context,
+  };
+  writeStorage(STORAGE_KEY, JSON.stringify(persisted));
+  return saveChat();
+}
+
 function schedulePersist(): void {
   if (!hydrated || persistTimer) return;
-  persistTimer = setTimeout(() => {
-    persistTimer = null;
-    const { session, chat } = snapshot;
-    if (session.status === 'idle' && session.items.length === 0 && !session.sessionId) {
-      // An empty chat still remembers its project, so opening that project
-      // again after a relaunch does not count as a switch, and the folders the
-      // user added before writing anything.
-      const empty: Persisted = { v: 1, sessionId: null, resolvedModel: null, spawnId: null, items: [], chat };
-      writeStorage(STORAGE_KEY, chat.projectId || chat.folders.length ? JSON.stringify(empty) : null);
-      return;
-    }
-    const persisted: Persisted = {
-      v: 1,
-      sessionId: session.sessionId,
-      resolvedModel: session.model,
-      spawnId,
-      processAgent,
-      processModel,
-      processEffort,
-      processFolders,
-      items: slimForStorage(session.items),
-      chat,
-      context: session.context,
-    };
-    writeStorage(STORAGE_KEY, JSON.stringify(persisted));
-    void saveChat();
-  }, 500);
+  persistTimer = setTimeout(() => void persistNow(), PERSIST_DELAY_MS);
+}
+
+/**
+ * Write a save still waiting for its delay, now. A reload inside the delay
+ * would otherwise lose the last change: a reply that arrived a moment before
+ * it, gone from the chat when the page comes back.
+ */
+function flushPersist(): Promise<void> {
+  return persistTimer ? persistNow() : Promise.resolve();
 }
 
 function newChatId(): string {
@@ -607,6 +624,17 @@ function sanitizeAgent(value: unknown): AgentKind {
 function hydrate(): void {
   if (hydrated || typeof window === 'undefined') return;
   hydrated = true;
+  // localStorage writes at once, so a save still waiting goes out as the page
+  // goes (a reload) or is hidden (it may not come back). A desktop window
+  // closing fires neither, and the editor flushes through claudeAgent.flush.
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('pagehide', () => void flushPersist());
+  }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') void flushPersist();
+    });
+  }
   const available = !!getTransport();
   const storedModel = readStorage(MODEL_KEY) as ClaudeModelChoice | null;
   const model = storedModel && MODELS.includes(storedModel) ? storedModel : 'default';
@@ -1999,6 +2027,8 @@ export const claudeAgent = {
   removeFolder,
   agentReadsFolders,
   agentMayHoldFolderData,
+  /** Write the chat now if a save is waiting. For a desktop window closing, which fires no pagehide. */
+  flush: flushPersist,
   /** Called with every message to describe what is open and selected. */
   setContextProvider(provider: (() => AgentEditorContext | null) | null): void {
     contextProvider = provider;
