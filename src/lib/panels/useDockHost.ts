@@ -66,6 +66,13 @@ export interface DockHostOptions {
   projectName: string;
   /** A detached window asked for a different tab. Keeps the two in step. */
   onSelectTab: (tab: RightDockTab) => void;
+  /**
+   * False in an editor window a project tab was moved into. The panel windows
+   * belong to the main window, and a second host on the bus would announce
+   * itself, be adopted, and have them show its project instead (rule 44).
+   * Default true.
+   */
+  enabled?: boolean;
 }
 
 export interface DockHost {
@@ -94,6 +101,7 @@ export interface DockHost {
 
 export function useDockHost(options: DockHostOptions): DockHost {
   const { data, handlers, projectName, onSelectTab } = options;
+  const enabled = options.enabled ?? true;
 
   const busRef = useRef<PanelBus | null>(null);
   const dataRef = useRef(data);
@@ -310,6 +318,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
 
   // --- the bus ------------------------------------------------------------
   useEffect(() => {
+    if (!enabled) return;
     let disposed = false;
     const onMessage = (message: PanelMessage) => {
       switch (message.kind) {
@@ -419,7 +428,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
       busRef.current?.close();
       busRef.current = null;
     };
-  }, [dispatch, publishTo, cancelStudioPreviews]);
+  }, [enabled, dispatch, publishTo, cancelStudioPreviews]);
 
   // --- publishing ---------------------------------------------------------
   const hasClients = Object.keys(clients).length > 0;
@@ -452,13 +461,15 @@ export function useDockHost(options: DockHostOptions): DockHost {
   // close destroys the webview without firing any unload event), and this is
   // the web half plus the belt and braces for a same-session reload.
   useEffect(() => {
+    // Not this window's panels to close.
+    if (!enabled) return;
     const goodbye = () => {
       busRef.current?.post({ kind: 'host-down', from: PANEL_WINDOW_ID });
       if (!isTauri()) void closeAllPanelWindows();
     };
     window.addEventListener('pagehide', goodbye);
     return () => window.removeEventListener('pagehide', goodbye);
-  }, []);
+  }, [enabled]);
 
   const refreshMonitors = useCallback(async () => {
     const list = await listMonitors();
@@ -485,6 +496,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
    */
   const detach = useCallback(
     async (group: PanelGroup, monitor: MonitorInfo | null = null) => {
+      if (!enabled) return false;
       const opened = await openPanelWindow({
         group,
         hostId: PANEL_WINDOW_ID,
@@ -498,7 +510,7 @@ export function useDockHost(options: DockHostOptions): DockHost {
       );
       return true;
     },
-    [monitors, projectName]
+    [enabled, monitors, projectName]
   );
 
   /**

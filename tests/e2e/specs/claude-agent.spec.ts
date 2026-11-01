@@ -501,6 +501,15 @@ test.describe('a Claude Code run', () => {
     await waitForProject(page, (project) => project.id === blank && elementsIn(project) === 2);
     await waitForProject(page, (project) => project.id === droply && elementsIn(project) === 1);
     const before = new Map((await readProjects(page)).map((project) => [project.id, shape(project)]));
+    // The Droply project still has a tab, and a parked tab comes back from
+    // memory without any read (src/lib/tabs/parking.ts), so there would be no
+    // moment between the two projects to test. Closing its tab puts the open
+    // back on the read held below.
+    await page.locator(`[data-project-tabs] [data-tab-id="${droply}"] [data-tab-close]`).click();
+    // The agent edited it, so closing it asks first.
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Close tab', exact: true }).click();
+    await expect(page.getByRole('alertdialog')).toBeHidden();
+    await expect(page.locator(`[data-project-tabs] [data-tab-id="${droply}"]`)).toHaveCount(0);
 
     // Past chats takes the editor back to the Droply project. Hold the project
     // store, let the panel check that the project still exists, then hold the

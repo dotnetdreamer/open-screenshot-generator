@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { OpenScreenshotGeneratorLayout } from "@/components/open-screenshot-generator/OpenScreenshotGeneratorLayout";
 import { AppReadySignal } from "@/components/open-screenshot-generator/AppReadySignal";
 import { EditorChromeSkeleton } from "@/components/open-screenshot-generator/EditorChromeSkeleton";
-import { ClipboardProvider } from "@/contexts/ClipboardContext";
 import { PANEL_PARAM } from "@/lib/panels/url";
 
 // The panel window's own root. Split out of the main bundle because the editor
@@ -32,12 +31,12 @@ function EditorOrPanel() {
   const params = useSearchParams();
   if (params.get(PANEL_PARAM)) return <DetachedPanelsWindow />;
   return (
-    <ClipboardProvider>
+    <>
       <OpenScreenshotGeneratorLayout />
       {/* Closes the desktop splash. A panel window must never send it: the
           splash belongs to the editor's first paint, not to a tool window. */}
       <AppReadySignal />
-    </ClipboardProvider>
+    </>
   );
 }
 

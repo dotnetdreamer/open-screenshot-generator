@@ -136,27 +136,53 @@ export interface ProjectsHold {
 }
 
 /**
- * Hold the `projects` store, so that every read the app starts from now on
- * waits until the hold ends.
+ * Hold the `projects` store (or the one named), so that every read the app
+ * starts on it from now on waits until the hold ends.
  *
  * IndexedDB runs transactions on one store in the order they were made, so a
  * read-write transaction kept alive here (it keeps asking for a key that is
  * not there) parks the editor at the point where it has picked a project and
  * is still reading it. That is the moment the races over opening a project
- * happen in, and without the hold it lasts a few milliseconds.
+ * happen in, and without the hold it lasts a few milliseconds. Another store
+ * holds the same way: `media` parks an open from the account or the cloud
+ * while it writes the project's pictures, before the project itself.
  */
-export async function holdProjects(page: Page): Promise<ProjectsHold> {
+export function holdProjects(page: Page, storeName: StoreName = 'projects'): Promise<ProjectsHold> {
+  return holdStore(page, DB_NAME, storeName);
+}
+
+/** The database the undo stacks of tabs live in (src/lib/tabs/historyStore.ts), apart from the projects. */
+export const UNDO_DB_NAME = 'OpenScreenshotGeneratorUndo';
+
+/**
+ * Hold one of the undo stacks' stores, the way holdProjects holds a project
+ * store: `stacks` parks a tab on its way to another window while it writes its
+ * undo stack, with its lock still held.
+ */
+export function holdUndoStacks(page: Page, storeName: 'stacks' | 'entries' = 'stacks'): Promise<ProjectsHold> {
+  return holdStore(page, UNDO_DB_NAME, storeName);
+}
+
+async function holdStore(page: Page, dbName: string, storeName: string): Promise<ProjectsHold> {
   await page.evaluate(
-    (dbName) =>
+    ({ dbName, storeName }) =>
       new Promise<void>((resolve, reject) => {
         const open = indexedDB.open(dbName);
-        open.onerror = () => reject(open.error);
+        // A database made here would be an empty one, which the app could not
+        // upgrade while this connection is open. Only one the app made is held.
+        open.onupgradeneeded = () => open.transaction?.abort();
+        open.onerror = () => reject(new Error(`${dbName} is not there yet`));
         open.onsuccess = () => {
           const db = open.result;
+          if (!db.objectStoreNames.contains(storeName)) {
+            db.close();
+            reject(new Error(`${dbName} has no ${storeName} store yet`));
+            return;
+          }
           let stop = () => {};
           const start = () => {
             let stopped = false;
-            const store = db.transaction('projects', 'readwrite').objectStore('projects');
+            const store = db.transaction(storeName, 'readwrite').objectStore(storeName);
             const spin = () => {
               if (!stopped) store.get('__e2e_hold__').onsuccess = spin;
             };
@@ -179,7 +205,7 @@ export async function holdProjects(page: Page): Promise<ProjectsHold> {
           resolve();
         };
       }),
-    DB_NAME
+    { dbName, storeName }
   );
   return {
     release: () => page.evaluate(() => (window as unknown as HoldWindow).__E2E_HOLD__.release()),

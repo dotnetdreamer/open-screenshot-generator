@@ -66,10 +66,12 @@ export const HISTORY_LIMIT = 100;
  * in the Dexie media table as asset references, so a normal project's whole
  * stack is a few MB; this cap exists for the outliers that still carry inline
  * payloads (a migration that failed, an old template's embedded clip), where
- * 100 full copies walked the macOS webview into its memory kill limit
- * (issue #19). Oldest states drop first, same as the count cap.
+ * 100 full copies walked the macOS webview into its memory kill limit at
+ * about 500MB (issue #19). Together with what the parked tabs may hold
+ * (DEFAULT_PARKING_BUDGET, 256MB) it stays under that. Oldest states drop
+ * first, same as the count cap.
  */
-export const HISTORY_MAX_BYTES = 64 * 1024 * 1024;
+export const HISTORY_MAX_BYTES = 128 * 1024 * 1024;
 
 /**
  * Name for a layer, preferring the user's own. Shared with the layers list so

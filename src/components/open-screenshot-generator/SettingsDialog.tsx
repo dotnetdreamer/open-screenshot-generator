@@ -161,6 +161,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
   const [autoSaveToCloud, setAutoSaveToCloud] = useEditorPreference('cloudAutoSave');
   const [wheelZoom, setWheelZoom] = useEditorPreference('wheelZoom');
   const [creativeSafeArea, setCreativeSafeArea] = useEditorPreference('creativeSafeArea');
+  const [confirmTabClose, setConfirmTabClose] = useEditorPreference('confirmTabClose');
   const contentRef = useRef<HTMLDivElement>(null);
 
   // localStorage is only readable after mount, and the wizard's own checkbox
@@ -230,6 +231,21 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
                   id="settings-creative-safe-area"
                   checked={creativeSafeArea}
                   onCheckedChange={setCreativeSafeArea}
+                />
+              }
+            />
+          </SettingsSection>
+
+          <SettingsSection title="Tabs">
+            <SettingsRow
+              label="Ask before closing a tab with changes"
+              description="Asks first when you close a tab you changed since opening it. The changes are saved either way"
+              htmlFor="settings-confirm-tab-close"
+              control={
+                <Switch
+                  id="settings-confirm-tab-close"
+                  checked={confirmTabClose}
+                  onCheckedChange={setConfirmTabClose}
                 />
               }
             />

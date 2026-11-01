@@ -8,6 +8,12 @@ import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
 import { animationStateAt, slideDistanceFor } from '@/lib/video/animation';
 import { usePlaybackRunning, usePlaybackTime } from '@/lib/video/playback';
 import { endSpanLive, publishSpanLive, spanLiveGesture, subscribeSpanLive } from '@/lib/spanLive';
+import {
+  cancelElementCarry,
+  endElementCarry,
+  moveElementCarry,
+  onElementCarryAbandoned,
+} from '@/lib/tabs/elementCarry';
 import type { SpanLiveBox } from '@/lib/spanArtboards';
 import type { ArtboardElement, Point, Size } from '@/types/artboard';
 
@@ -526,6 +532,8 @@ export function DraggableElement({
         // getMousePositionInArtboardSpace divides by the measured composite
         // scale, so the other members of the selection can take them as they are.
         onDragDelta?.(dxScreen, dyScreen);
+        // The tab strip watches for a layer carried up onto one of its tabs.
+        moveElementCarry({ clientX: e.clientX, clientY: e.clientY, copy: e.altKey, elementId: element.id });
       } else if (interactionMode === 'rotate') {
         const angle = Math.atan2(mousePosArtboard.y - elementCenter.y, mousePosArtboard.x - elementCenter.x) * (180 / Math.PI);
         const startAngle = Math.atan2(interactionStart.mouseY - elementCenter.y, interactionStart.mouseX - elementCenter.x) * (180 / Math.PI);
@@ -646,9 +654,45 @@ export function DraggableElement({
       }
     };
 
+    /**
+     * End the drag with nothing committed and everything where it started. The
+     * zero commit only clears the other members' live offset.
+     */
+    const putBack = () => {
+      onDragCommit?.(0, 0);
+      const original = {
+        position: element.position,
+        size: element.size,
+        rotation: element.rotation,
+        scale: element.scale,
+      };
+      latestRef.current = original;
+      setPosition(original.position);
+      setCurrentSize(original.size);
+      setCurrentRotation(original.rotation);
+      setCurrentScale(original.scale);
+      endSpanLive(element.id, spanTokenRef.current);
+      setInteractionMode(null);
+      setInteractionStart(null);
+      dragArmedRef.current = false;
+      document.body.style.cursor = 'default';
+    };
+
     const handlePointerUp = (e: PointerEvent) => {
       if (!interactionMode || !interactionStart) return;
       if (e.pointerId !== interactionStart.pointerId) return;
+
+      // Let go over the tab strip: the strip sends the selection to the tab
+      // under the pointer (or nowhere, over the tab already open), so this
+      // board commits nothing.
+      if (
+        interactionMode === 'move' &&
+        dragArmedRef.current &&
+        endElementCarry({ clientX: e.clientX, clientY: e.clientY, copy: e.altKey, elementId: element.id })
+      ) {
+        putBack();
+        return;
+      }
 
       const live = latestRef.current;
       // Only update if there was actually a change
@@ -692,8 +736,14 @@ export function DraggableElement({
     // drag had reached rather than dropping the element mid-air.
     const handlePointerCancel = (e: PointerEvent) => {
       if (!interactionStart || e.pointerId !== interactionStart.pointerId) return;
+      // A cancelled gesture never drops anything on a tab.
+      cancelElementCarry();
       handlePointerUp(e);
     };
+
+    // Carried into another tab (carrySession.ts takes the gesture from here).
+    const stopListeningForHandOver =
+      interactionMode === 'move' ? onElementCarryAbandoned(putBack) : () => {};
 
     if (interactionMode) {
       document.addEventListener('pointermove', handlePointerMove);
@@ -715,6 +765,7 @@ export function DraggableElement({
     }
 
     return () => {
+      stopListeningForHandOver();
       document.removeEventListener('pointermove', handlePointerMove);
       document.removeEventListener('pointerup', handlePointerUp);
       document.removeEventListener('pointercancel', handlePointerCancel);

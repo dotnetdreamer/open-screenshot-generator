@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for the main window: save/open dialogs, writing exported files, opening external links in the system browser, calling the free AI providers (Pollinations cloud, plus Ollama / LM Studio on localhost) without CORS limits, reaching whatever OpenAI-compatible endpoint the user typed into the AI agent, reaching Google Drive / GitHub for the optional 'save to your own storage' account feature, reaching App Store Connect / Google Play for the direct-to-store screenshot upload, and opening and placing the detached panel windows (Properties, Layers, History, Versions) on whichever display the user picks. allow-destroy is what lets this window close AT ALL: Tauri prevents the native close whenever a window has a JS close-requested listener (this one has, for the final project save), and the API's own onCloseRequested calls destroy() to finish the job. The named hosts below are documentation, not the boundary: 'https://*' is there because the AI agent lets the user name any OpenAI-compatible endpoint, and the host of one is unknowable when this file is written. Plain http stays limited to this machine, so nothing new leaves it in cleartext.",
-  "windows": ["main"],
+  "description": "Capability for the main window: save/open dialogs, writing exported files, opening external links in the system browser, calling the free AI providers (Pollinations cloud, plus Ollama / LM Studio on localhost) without CORS limits, reaching whatever OpenAI-compatible endpoint the user typed into the AI agent, reaching Google Drive / GitHub for the optional 'save to your own storage' account feature, reaching App Store Connect / Google Play for the direct-to-store screenshot upload, and opening and placing the detached panel windows (Properties, Layers, History, Versions) on whichever display the user picks. The same capability covers the editor windows a project tab was moved into (label editor-*, opened from the tab strip): each is a whole editor, so it saves, exports and opens further windows exactly as main does. What only main may do is decided in Rust, not here (the MCP bridge nonce, the coding agents' events). allow-unminimize and allow-set-title let a window come forward when another one asks it to show a project, and name the project in front in the taskbar. allow-destroy is what lets this window close AT ALL: Tauri prevents the native close whenever a window has a JS close-requested listener (this one has, for the final project save), and the API's own onCloseRequested calls destroy() to finish the job. The named hosts below are documentation, not the boundary: 'https://*' is there because the AI agent lets the user name any OpenAI-compatible endpoint, and the host of one is unknowable when this file is written. Plain http stays limited to this machine, so nothing new leaves it in cleartext.",
+  "windows": ["main", "editor-*"],
   "permissions": [
     "core:default",
     "core:webview:allow-create-webview-window",
@@ -13,6 +13,8 @@
     "core:window:allow-close",
     "core:window:allow-destroy",
     "core:window:allow-unmaximize",
+    "core:window:allow-unminimize",
+    "core:window:allow-set-title",
     "dialog:allow-save",
     "dialog:allow-open",
     "fs:allow-write-file",

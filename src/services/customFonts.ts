@@ -248,6 +248,31 @@ export function loadCustomFonts(): Promise<void> {
 }
 
 /**
+ * Put the imported fonts among `families` on this page when they are on the
+ * device but not here yet. A font imported in another window after this one
+ * loaded is one of those, so a layer copied there and pasted here, or a tab
+ * moved here, would draw in a fallback face until the next reload. Built-in
+ * families are skipped.
+ */
+export async function loadCustomFontFamilies(families: Iterable<string>): Promise<void> {
+  if (typeof window === 'undefined') return;
+  await loadCustomFonts();
+  const builtIn = new Set(ALL_FONTS.map((font) => font.family.toLowerCase()));
+  const missing = [...families].filter(
+    (family) => family && !builtIn.has(family.trim().toLowerCase()) && !isCustomFontFamily(family)
+  );
+  if (missing.length === 0) return;
+  for (const row of await getCustomFontRows(missing)) {
+    if (isCustomFontFamily(row.family)) continue;
+    try {
+      await registerFont({ ...row, createdAt: asDate(row.createdAt) });
+    } catch (error) {
+      console.error(`Dropping unreadable font "${row.family}"`, error);
+    }
+  }
+}
+
+/**
  * Store a font file and make it usable straight away.
  * Returns the created record, whose `family` may differ from the file name
  * when that name was already taken.
@@ -303,7 +328,9 @@ export async function getCustomFontRows(families: Iterable<string>): Promise<Cus
     [...families].map((family) => family.trim().toLowerCase()).filter(Boolean)
   );
   if (wanted.size === 0) return [];
-  const rows = await db.fonts.toArray();
+  // Through the family index, so asking about a family that was never imported
+  // (a system font) reads no font files at all.
+  const rows = await db.fonts.where('family').anyOfIgnoreCase([...wanted]).toArray();
   return rows.filter((row) => wanted.has(row.family.toLowerCase()));
 }
 

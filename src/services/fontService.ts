@@ -156,6 +156,16 @@ export function createGoogleFontsUrl(fonts: AppFont[] = GOOGLE_FONTS): string {
 const GOOGLE_FONT_STYLE_ID = 'google-font-faces';
 
 /**
+ * Settles once the built-in families are declared on the page, their
+ * @font-face rules in, or once they cannot be because the stylesheet failed.
+ * Until then the page knows nothing of them, and `document.fonts.check` calls
+ * a face it knows nothing of ready, since there is nothing of it to load. A
+ * page that never asked for them has nothing to wait for.
+ */
+let googleFacesDeclared: Promise<void> = Promise.resolve();
+let googleFacesPending = false;
+
+/**
  * Put every built-in family on the page.
  *
  * The CSS is fetched and injected as a same-origin <style> rather than pointed
@@ -176,7 +186,8 @@ export function preloadGoogleFonts(fonts: AppFont[] = GOOGLE_FONTS): void {
   style.id = GOOGLE_FONT_STYLE_ID;
   document.head.appendChild(style);
 
-  fetch(href)
+  googleFacesPending = true;
+  googleFacesDeclared = fetch(href)
     .then((response) => {
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
       return response.text();
@@ -192,8 +203,24 @@ export function preloadGoogleFonts(fonts: AppFont[] = GOOGLE_FONTS): void {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
+      const loaded = new Promise<void>((resolve) => {
+        link.onload = () => resolve();
+        link.onerror = () => resolve();
+      });
       document.head.appendChild(link);
+      return loaded;
+    })
+    .finally(() => {
+      googleFacesPending = false;
     });
+}
+
+/**
+ * Null once the built-in families are declared on the page (see
+ * googleFacesDeclared), else the promise that settles when they are.
+ */
+export function whenBuiltInFacesDeclared(): Promise<void> | null {
+  return googleFacesPending ? googleFacesDeclared : null;
 }
 
 // Get font options for select components

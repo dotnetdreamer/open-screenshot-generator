@@ -30,13 +30,16 @@ export type EditorPreference =
   /** Turn a mouse wheel over the canvas into zoom rather than scroll. */
   | 'wheelZoom'
   /** Draw Apple's art safe area over App Store header and search artboards. */
-  | 'creativeSafeArea';
+  | 'creativeSafeArea'
+  /** Ask before closing a tab whose project was edited since it opened. */
+  | 'confirmTabClose';
 
 const KEYS: Record<EditorPreference, string> = {
   cloudAutoSave: 'open-screenshot-generator.cloud-auto-save',
   accountAutoSync: 'open-screenshot-generator.account-auto-sync',
   wheelZoom: 'open-screenshot-generator.wheel-zoom',
   creativeSafeArea: 'open-screenshot-generator.creative-safe-area',
+  confirmTabClose: 'open-screenshot-generator.confirm-tab-close',
 };
 
 /**
@@ -54,12 +57,16 @@ const KEYS: Record<EditorPreference, string> = {
  *
  * The safe area guide is on: an iPhone shows only the middle of a header, and
  * the guide is the only place that says so while you design.
+ *
+ * Asking before an edited tab closes is on. Nothing is lost when one closes,
+ * but a click on the wrong cross should not end a working session unasked.
  */
 const DEFAULTS: Record<EditorPreference, boolean> = {
   cloudAutoSave: true,
   accountAutoSync: false,
   wheelZoom: true,
   creativeSafeArea: true,
+  confirmTabClose: true,
 };
 
 const cache = new Map<EditorPreference, boolean>();
