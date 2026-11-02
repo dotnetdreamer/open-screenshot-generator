@@ -16,12 +16,14 @@ import type {
   TextElementProps,
 } from '@/types/artboard';
 import {
+  appendProjectLocales,
   getBaseLocale,
   getProjectLocales,
   isOverrideEmpty,
   localizableTextElements,
   overrideSourceValue,
 } from './localization';
+import { LOCALES, resolveCatalogLocale } from './locales';
 import { hash32 } from './hash';
 
 /** How much of the base string stands in for a layer with no name. */
@@ -96,8 +98,9 @@ function csvField(value: string): string {
  * elementId, label, the base language, then one column per other language.
  *
  * The ids come first and are what the import matches on, so a translator may
- * reorder or delete language columns, or send back a subset of the rows,
- * without the import losing track of which string is which.
+ * reorder or delete language columns, add one for a new language, or send back
+ * a subset of the rows, without the import losing track of which string is
+ * which.
  */
 export function toCsv(artboards: ArtboardState[], locales: string[]): string {
   const baseLocale = getBaseLocale(artboards);
@@ -210,6 +213,52 @@ export interface CsvImportChange {
   matchedBy: 'id' | 'text';
 }
 
+/** A header the import did not read, and why. */
+export interface CsvIgnoredColumn {
+  column: string;
+  reason: string;
+}
+
+export interface CsvImportPlan {
+  changes: CsvImportChange[];
+  unmatched: number;
+  /**
+   * Languages these changes write into that the project does not have yet.
+   * applyCsvImport adds them to the project's list along with the strings.
+   */
+  newLocales: string[];
+  ignoredColumns: CsvIgnoredColumn[];
+}
+
+/** Headers that are not languages: the ids, the hints and the base string. */
+const NON_LOCALE_COLUMNS = new Set(['artboardid', 'artboardname', 'elementid', 'label', 'base']);
+
+/**
+ * The language a column header names, or why it names none. The project's own
+ * codes come first, so a column keeps meaning what it meant when the sheet was
+ * exported. After that the catalog decides, reading a header the way
+ * add_locales reads a code: "de" and "German" both land on de-DE, and "fr"
+ * lands nowhere, because fr-CA and fr-FR are separate store listings. An
+ * underscore counts as a hyphen, for sheets that write pt_BR.
+ */
+function columnLocale(
+  name: string,
+  projectCodes: string[]
+): { locale: string } | { reason: string } {
+  const code = name.replace(/_/g, '-');
+  const own = projectCodes.find((known) => known.toLowerCase() === code.toLowerCase());
+  const locale = own ?? resolveCatalogLocale(code);
+  if (locale) return { locale };
+  const language = code.toLowerCase();
+  const candidates = LOCALES.filter((def) => def.code.toLowerCase().split('-')[0] === language).map(
+    (def) => def.code
+  );
+  if (candidates.length < 2) return { reason: 'not a language this app knows' };
+  return {
+    reason: `could be ${candidates.slice(0, -1).join(', ')} or ${candidates[candidates.length - 1]}`,
+  };
+}
+
 /**
  * What this CSV would change, and nothing else. Only cells whose value actually
  * differs from what is stored are returned, so a translator who touched two
@@ -224,13 +273,18 @@ export interface CsvImportChange {
  * An empty cell means "I did not translate this one", never "delete what you
  * have". Clearing a translation is done in the table, where it is one visible
  * cell, rather than by a blank in a spreadsheet nobody reads to the end.
+ *
+ * A column for a language the project does not have yet is read like the
+ * others when the catalog knows its code, and the plan lists that language in
+ * `newLocales`: the strings and the language arrive in the same commit, so
+ * normalizeLocalization never meets overrides for a language missing from the
+ * list. A header that names no language (a typo, "fr" with two French listings
+ * to pick from, a translator's notes) is left unread and listed in
+ * `ignoredColumns` rather than guessed at.
  */
-export function planCsvImport(
-  artboards: ArtboardState[],
-  csvText: string
-): { changes: CsvImportChange[]; unmatched: number } {
+export function planCsvImport(artboards: ArtboardState[], csvText: string): CsvImportPlan {
   const table = parseCsv(csvText);
-  if (table.length < 2) return { changes: [], unmatched: 0 };
+  if (table.length < 2) return { changes: [], unmatched: 0, newLocales: [], ignoredColumns: [] };
 
   const header = table[0].map((cell) => cell.trim());
   const columnOf = (name: string) =>
@@ -241,17 +295,41 @@ export function planCsvImport(
   const labelCol = columnOf('label');
 
   const baseLocale = getBaseLocale(artboards);
-  const baseCol = columnOf(baseLocale) >= 0 ? columnOf(baseLocale) : columnOf('base');
+  const projectCodes = getProjectLocales(artboards).map((entry) => entry.code);
+  // What each header names, read once: a language, the reason it is none, or
+  // null for the ids, the hints and a column headed "base".
+  const named = header.map((name) =>
+    !name || NON_LOCALE_COLUMNS.has(name.toLowerCase()) ? null : columnLocale(name, projectCodes)
+  );
+  // The base column anchors a row by its text when the ids do not line up, so
+  // it is found under any spelling a language column accepts (en_US as well as
+  // en-US), with a column headed "base" as the stand-in when there is none.
+  const spelled = named.findIndex((found) => !!found && 'locale' in found && found.locale === baseLocale);
+  const baseCol =
+    columnOf(baseLocale) >= 0 ? columnOf(baseLocale) : spelled >= 0 ? spelled : columnOf('base');
 
-  // Only languages the project actually has get written. A stray column is a
-  // language somebody removed, or a typo, and inventing a locale from a header
-  // would leave overrides normalizeLocalization sweeps away on the next load.
-  const known = new Set(getProjectLocales(artboards).map((entry) => entry.code));
   const localeColumns: Array<{ locale: string; col: number }> = [];
+  const ignoredColumns: CsvIgnoredColumn[] = [];
   header.forEach((name, col) => {
-    if (name !== baseLocale && known.has(name)) localeColumns.push({ locale: name, col });
+    const found = named[col];
+    if (!found || col === baseCol) return;
+    if ('reason' in found) {
+      ignoredColumns.push({ column: name, reason: found.reason });
+      return;
+    }
+    // A second column in the base language is not a translation either.
+    if (found.locale === baseLocale) return;
+    // Only the first column for a language is read. A second would offer two
+    // values for every string in it.
+    if (localeColumns.some((entry) => entry.locale === found.locale)) {
+      ignoredColumns.push({ column: name, reason: `a second column for ${found.locale}` });
+      return;
+    }
+    localeColumns.push({ locale: found.locale, col });
   });
-  if (localeColumns.length === 0) return { changes: [], unmatched: 0 };
+  if (localeColumns.length === 0) {
+    return { changes: [], unmatched: 0, newLocales: [], ignoredColumns };
+  }
 
   interface Target {
     board: ArtboardState;
@@ -309,7 +387,14 @@ export function planCsvImport(
     }
   }
 
-  return { changes, unmatched };
+  // An empty column adds no language, the same way an empty cell adds no
+  // translation.
+  const known = new Set(projectCodes);
+  const newLocales = localeColumns
+    .map((entry) => entry.locale)
+    .filter((locale) => !known.has(locale) && changes.some((change) => change.locale === locale));
+
+  return { changes, unmatched, newLocales, ignoredColumns };
 }
 
 // --- writing overrides -------------------------------------------------------
@@ -399,13 +484,18 @@ export function applyLocaleTextWrites(
   return changed ? next : artboards;
 }
 
-/** Applies the rows the user ticked in the import review. */
+/**
+ * Applies the rows the user ticked in the import review. A language they write
+ * into that the project does not have yet joins its list in the same pass,
+ * because normalizeLocalization sweeps away overrides for a language the list
+ * does not name.
+ */
 export function applyCsvImport(
   artboards: ArtboardState[],
   changes: CsvImportChange[]
 ): ArtboardState[] {
   return applyLocaleTextWrites(
-    artboards,
+    appendProjectLocales(artboards, changes.map((change) => change.locale)),
     changes.map((change) => ({
       artboardId: change.artboardId,
       elementId: change.elementId,

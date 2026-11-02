@@ -2902,11 +2902,16 @@ export function OpenScreenshotGeneratorLayout() {
    * One machine translation run, shared by the switcher's "Update translations"
    * and by the translation table's buttons. It never commits: the caller
    * decides, because the table holds its result until Save.
+   *
+   * `from` is the document to translate, the saved one when absent. The table
+   * passes its own, which holds what its earlier runs wrote and any language a
+   * CSV brought in, none of it saved yet.
    */
   const runLocaleTranslation = useCallback(async (
     locale: string,
     only: 'empty' | 'stale' | 'all',
-    scope?: { artboardIds?: string[]; elementIds?: string[]; includeManual?: boolean }
+    scope?: { artboardIds?: string[]; elementIds?: string[]; includeManual?: boolean },
+    from?: ArtboardState[]
   ): Promise<ArtboardState[] | null> => {
     const engines = availableEngines();
     if (engines.length === 0) {
@@ -2928,7 +2933,7 @@ export function OpenScreenshotGeneratorLayout() {
       phase: 'starting',
     });
     try {
-      const result = await translateIntoLocale(artboardsRef.current, locale, {
+      const result = await translateIntoLocale(from ?? artboardsRef.current, locale, {
         engine: engines[0],
         only,
         ...scope,
@@ -11130,6 +11135,10 @@ const generateRandomProjectName = (): string => {
         unmatched: plan.unmatched,
         dryRun: dryRun === true,
         changes,
+        // Narrowed with the changes, so a language left out of `locales` is
+        // not reported as added.
+        newLocales: plan.newLocales.filter((code) => changes.some((change) => change.locale === code)),
+        ignoredColumns: plan.ignoredColumns,
       };
     },
 
@@ -12155,7 +12164,9 @@ const generateRandomProjectName = (): string => {
             onSave={handleSaveTranslations}
             // Deliberately does NOT commit: the dialog adopts the result as its
             // new snapshot and it lands with everything else on Save.
-            onMachineTranslate={(locale, only) => runLocaleTranslation(locale, only)}
+            onMachineTranslate={(locale, only, from) =>
+              runLocaleTranslation(locale, only, undefined, from)
+            }
           />
 
           <SettingsDialog

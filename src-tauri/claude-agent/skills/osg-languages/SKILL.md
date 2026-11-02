@@ -89,9 +89,11 @@ included.
   When no engine is configured it says so; write the strings yourself.
 - export_translations_csv returns CSV text: ids, the base language, then a column per language.
   import_translations_csv reads CSV text back. Run it with dryRun true first and report what would
-  change. An empty cell never clears a translation. You can read a file only in the user's app
-  folder, when they attached one, so this helps when the user pastes a sheet into the chat or the
-  sheet is in that folder.
+  change. An empty cell never clears a translation. A column for a language the project does not
+  have yet adds that language (newLocales in the result); a header that is not one language, such
+  as fr where fr-CA and fr-FR both exist, is skipped and listed in ignoredColumns. You can read a
+  file only in the user's app folder, when they attached one, so this helps when the user pastes a
+  sheet into the chat or the sheet is in that folder.
 - When the user's app folder is attached, the app's own localized strings (lproj, values-<lang>,
   .arb or locales files, or a String Catalog, an .xcstrings file holding every language) are
   the best source of real translations: use the app's own words for its features and screens in

@@ -16,7 +16,7 @@ import type {
   ProjectLocalization,
   TextElementProps,
 } from '@/types/artboard';
-import { DEFAULT_BASE_LOCALE, LOCALES } from './locales';
+import { DEFAULT_BASE_LOCALE, LOCALES, getLocaleDef } from './locales';
 import { hash32 } from './hash';
 
 /**
@@ -200,6 +200,31 @@ export function hasLocales(artboards: ArtboardState[]): boolean {
 }
 
 /**
+ * Adds export languages to the end of the project's list, each as a bare
+ * `{ code }`, which is how the language manager stores a new one. Codes already
+ * on the list, the base language and codes the catalog does not know are
+ * skipped, and the input comes back BY REFERENCE when that leaves nothing to
+ * add.
+ *
+ * A project with no list yet keeps the base getBaseLocale reports for it. That
+ * is the base a translations CSV is exported and planned against, so a column
+ * the plan read as a translation cannot turn into the base here.
+ */
+export function appendProjectLocales(artboards: ArtboardState[], codes: string[]): ArtboardState[] {
+  const baseLocale = getBaseLocale(artboards);
+  const locales = [...getProjectLocales(artboards)];
+  const before = locales.length;
+  const present = new Set(locales.map((entry) => entry.code));
+  for (const code of codes) {
+    if (!code || code === baseLocale || present.has(code) || !getLocaleDef(code)) continue;
+    present.add(code);
+    locales.push({ code });
+  }
+  if (locales.length === before) return artboards;
+  return normalizeLocalization(setLocalization(artboards, { baseLocale, locales }));
+}
+
+/**
  * The text elements a language is expected to fill in. Empty strings are not
  * counted: a spacer layer nobody can see would otherwise make every language
  * permanently incomplete.
@@ -292,6 +317,37 @@ export function overrideStateFor(
   const stale = isStaleOverride(baseEl, ov);
   if (ov.origin === 'auto') return stale ? 'stale-auto' : 'auto';
   return stale ? 'stale-manual' : 'manual';
+}
+
+/**
+ * How many override rows in `after` store something the same row in `before`
+ * does not: the text, or the bookkeeping beside it. A stale machine
+ * translation refreshed into the same words changes only its sourceHash, and
+ * that hash is what clears the amber rule, so it counts. `skip` leaves out
+ * rows the caller accounts for itself.
+ *
+ * Writers spread the row they replace, so an untouched row keeps its reference
+ * and a rewritten one keeps its key order, which is what makes the cheap
+ * comparison sound.
+ */
+export function countChangedOverrides(
+  before: ArtboardState[],
+  after: ArtboardState[],
+  skip: (artboardId: string, elementId: string, locale: string) => boolean = () => false
+): number {
+  if (before === after) return 0;
+  const boards = new Map(before.map((board) => [board.id, board]));
+  let count = 0;
+  for (const board of after) {
+    for (const [locale, map] of Object.entries(board.localized ?? {})) {
+      for (const [elementId, override] of Object.entries(map)) {
+        if (skip(board.id, elementId, locale)) continue;
+        const was = boards.get(board.id)?.localized?.[locale]?.[elementId];
+        if (override !== was && JSON.stringify(override) !== JSON.stringify(was)) count++;
+      }
+    }
+  }
+  return count;
 }
 
 /**

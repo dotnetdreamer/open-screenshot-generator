@@ -19,6 +19,7 @@
 import { withBasePath } from '@/lib/basePath';
 import { isTauri } from '@/lib/desktop';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
+import { resolveCatalogLocale } from '@/lib/i18n/locales';
 import {
   LIBRARY_KINDS,
   device3dOptions,
@@ -37,7 +38,6 @@ import {
 } from '@/lib/mcp/assetStore';
 import {
   listSupportedLocales,
-  resolveCatalogLocale,
   type LocaleOverrideInput,
   type LocaleResetInput,
   type LocaleTextInput,
@@ -270,6 +270,10 @@ export interface McpCsvImport {
     /** 'text' means the ids did not line up and the base string was the anchor. */
     matchedBy: 'id' | 'text';
   }>;
+  /** Languages the project did not have that these changes add, or would add on a dry run. */
+  newLocales: string[];
+  /** Headers left unread because they name no language this app knows, with the reason. */
+  ignoredColumns: Array<{ column: string; reason: string }>;
 }
 
 /** A picture from the agent's code folder, stored as an asset. */
@@ -540,7 +544,10 @@ export interface McpDesignApi {
   }): Promise<McpTranslateRunResult>;
   /** The translator's spreadsheet, as text. */
   exportTranslationsCsv(input: { locales?: string[] }): McpCsvExport;
-  /** Read a filled-in spreadsheet back. `dryRun` reports without writing. */
+  /**
+   * Read a filled-in spreadsheet back, adding any language a column brings in.
+   * `dryRun` reports without writing.
+   */
   importTranslationsCsv(input: { csv: string; dryRun?: boolean; locales?: string[] }): McpCsvImport;
   /**
    * Give one element its own copy of a property in one language: its own
@@ -2301,7 +2308,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'import_translations_csv',
     description:
-      'Read a filled-in translation spreadsheet back into the project. Rows are matched on artboardId + elementId, falling back to the base string when the ids do not line up and exactly one element has that string. An EMPTY cell means "I did not translate this one" and never clears an existing translation. Only languages the project already has are written, so add them with add_locales first. Pass dryRun to see the changes without writing them.',
+      'Read a filled-in translation spreadsheet back into the project. Rows are matched on artboardId + elementId, falling back to the base string when the ids do not line up and exactly one element has that string. An EMPTY cell means "I did not translate this one" and never clears an existing translation. A column for a language the project does not have yet adds that language along with its strings (newLocales in the result), as long as list_supported_locales knows the header: "de-DE", "zh-Hans", or "de" where only one code has that language. A header that names no language, or could name several ("fr", "pt"), is skipped and listed in ignoredColumns with the reason. Pass dryRun to see the changes without writing them.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -2316,9 +2323,23 @@ const TOOLS: ToolDef[] = [
         return { ...textResult('Pass the CSV file contents as `csv`.'), isError: true };
       }
       const state = api.listLocales();
+      // The project's list first, then the catalog: a sheet can bring in a
+      // language the project does not have yet.
       const locales = Array.isArray(args.locales)
-        ? args.locales.map((code: unknown) => matchLocale(code, state)).filter((code: string | null): code is string => !!code)
+        ? args.locales
+            .map((code: unknown) => matchLocale(code, state) ?? (typeof code === 'string' ? resolveCatalogLocale(code) : null))
+            .filter((code: string | null): code is string => !!code)
         : undefined;
+      // With nothing left the import would read every column, new languages
+      // included, which is the opposite of narrowing it.
+      if (Array.isArray(args.locales) && args.locales.length > 0 && locales?.length === 0) {
+        return {
+          ...textResult(
+            `None of those are languages this app knows: ${args.locales.join(', ')}. Call list_supported_locales, and pass store locales like "de-DE" or "zh-Hans".`
+          ),
+          isError: true,
+        };
+      }
       return textResult(
         api.importTranslationsCsv({ csv: args.csv, dryRun: args.dryRun === true, locales })
       );

@@ -118,3 +118,23 @@ export function localeLabel(code: string): string {
   const def = BY_CODE.get(code);
   return def ? `${def.nativeName} (${def.code})` : code;
 }
+
+/**
+ * Resolve a requested language against the CATALOG, which is the vocabulary for
+ * adding one: exact code first, then the language part alone when only one code
+ * could be meant, then the English or native name. "German", "de" and "de-DE"
+ * all land on de-DE; "pt" does not, because Brazil and Portugal are both there
+ * and picking one would be a guess about which market is being shipped.
+ */
+export function resolveCatalogLocale(requested: string): string | null {
+  const wanted = requested.trim().toLowerCase();
+  if (!wanted) return null;
+  const exact = LOCALES.find((def) => def.code.toLowerCase() === wanted);
+  if (exact) return exact.code;
+  const byLanguage = LOCALES.filter((def) => def.code.toLowerCase().split('-')[0] === wanted);
+  if (byLanguage.length === 1) return byLanguage[0].code;
+  const byName = LOCALES.find(
+    (def) => def.name.toLowerCase() === wanted || def.nativeName.toLowerCase() === wanted
+  );
+  return byName ? byName.code : null;
+}

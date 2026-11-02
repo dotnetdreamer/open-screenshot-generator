@@ -185,7 +185,10 @@ programmatically rather than pasting a spreadsheet into a prompt:
   line up and exactly one element has that string. So do not let the agency reorder or renumber.
 - **An empty cell means "I did not translate this one" and never clears an existing translation.**
   That is deliberate: a sheet that came back with three columns filled will not wipe the fourth.
-- Only languages the project already has are written. Run `add_locales` first.
+- A column for a language the project does not have yet adds that language with its strings, when
+  the header is a code `list_supported_locales` knows (`de-DE`, `zh-Hans`, or `de` where only one
+  code has that language). The result lists those in `newLocales`. A header that names no language,
+  or could name several (`fr`, `pt`), is skipped and listed in `ignoredColumns` with the reason.
 - Always run `dryRun` first and report what it says it will change.
 
 ## Step 5: fix what one language needs, without touching the others

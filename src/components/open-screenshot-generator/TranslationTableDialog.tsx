@@ -45,6 +45,8 @@ import { useToast } from '@/hooks/use-toast';
 import { saveBlobToDisk } from '@/lib/desktop';
 import type { ArtboardState, TextElementProps } from '@/types/artboard';
 import {
+  appendProjectLocales,
+  countChangedOverrides,
   getBaseLocale,
   getProjectLocales,
   localizableTextElements,
@@ -55,7 +57,7 @@ import {
   applyLocaleTextWrites,
   planCsvImport,
   toCsv,
-  type CsvImportChange,
+  type CsvImportPlan,
   type LocaleTextWrite,
 } from '@/lib/i18n/translationCsv';
 
@@ -69,7 +71,16 @@ export interface TranslationTableDialogProps {
   initialFilter?: 'all' | 'untranslated';
   /** ONE commit for the whole session: the next base document, and how many strings moved. */
   onSave: (nextArtboards: ArtboardState[], editedCount: number) => void;
-  onMachineTranslate: (locale: string, only: 'empty' | 'stale') => Promise<ArtboardState[] | null>;
+  /**
+   * Runs the engine over `from`, this session's own document, and resolves
+   * with it translated. Earlier runs and languages a CSV brought in live there
+   * unsaved, so a run over the saved document would drop them.
+   */
+  onMachineTranslate: (
+    locale: string,
+    only: 'empty' | 'stale',
+    from: ArtboardState[]
+  ) => Promise<ArtboardState[] | null>;
 }
 
 type RowFilter = 'all' | 'untranslated' | 'stale';
@@ -160,15 +171,26 @@ export function TranslationTableDialog({
   // The document this session started from. Replaced only by a machine
   // translate run, never by the prop: re-reading `artboards` mid-session would
   // throw away everything typed so far.
-  const [source, setSource] = useState<ArtboardState[]>(artboards);
+  const [snapshot, setSnapshot] = useState<ArtboardState[]>(artboards);
+  // What the session opened on. The engine's output lives in the snapshot
+  // rather than in `edits`, which keeps its 'auto' origin, so comparing the two
+  // is how Save knows a run left something to keep.
+  const [opened, setOpened] = useState<ArtboardState[]>(artboards);
+  // Languages a CSV import brought in. Pending like the edits: they join the
+  // project on Save and are gone on Cancel.
+  const [addedLocales, setAddedLocales] = useState<string[]>([]);
+  // The snapshot with those languages on its list. The table, the counts and
+  // the draft all read this, so a new language has its column straight away.
+  const source = useMemo(
+    () => appendProjectLocales(snapshot, addedLocales),
+    [snapshot, addedLocales]
+  );
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<RowFilter>('all');
   const [localeFilter, setLocaleFilter] = useState<string>('all');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<'empty' | 'stale' | null>(null);
-  const [review, setReview] = useState<
-    { changes: CsvImportChange[]; unmatched: number; picked: boolean[] } | null
-  >(null);
+  const [review, setReview] = useState<(CsvImportPlan & { picked: boolean[] }) | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Re-seed on open only. `artboards`, `initialLocale` and `initialFilter` are
@@ -176,7 +198,9 @@ export function TranslationTableDialog({
   // parent keeps editing) and reacting to them would reset the session.
   useEffect(() => {
     if (!open) return;
-    setSource(artboards);
+    setSnapshot(artboards);
+    setOpened(artboards);
+    setAddedLocales([]);
     setEdits({});
     setCollapsed({});
     setReview(null);
@@ -253,6 +277,25 @@ export function TranslationTableDialog({
   );
 
   const editedCount = Object.keys(edits).length;
+  // Rows the engine wrote this session, less any typed over since.
+  const machineCount = useMemo(
+    () =>
+      countChangedOverrides(
+        opened,
+        snapshot,
+        (artboardId, elementId, locale) => edits[cellKey(artboardId, elementId, locale)] !== undefined
+      ),
+    [opened, snapshot, edits]
+  );
+  const hasChanges = editedCount > 0 || machineCount > 0 || addedLocales.length > 0;
+
+  // The new languages the ticked rows bring in. Unticking every row of one
+  // leaves that language out.
+  const reviewLanguages = review
+    ? review.newLocales.filter((code) =>
+        review.changes.some((change, index) => review.picked[index] && change.locale === code)
+      )
+    : [];
 
   const buildDraft = useCallback(() => {
     const writes: LocaleTextWrite[] = Object.entries(edits).map(([key, value]) => {
@@ -326,9 +369,9 @@ export function TranslationTableDialog({
     if (!machineLocale || busy) return;
     setBusy(only);
     try {
-      const next = await onMachineTranslate(machineLocale, only);
+      const next = await onMachineTranslate(machineLocale, only, source);
       if (!next) return;
-      setSource(next);
+      setSnapshot(next);
       // Anything typed by hand stays, and wins: it is re-applied over the
       // machine's output when this session saves. Writes that the machine
       // happened to land on exactly are dropped so the count stays honest.
@@ -381,6 +424,14 @@ export function TranslationTableDialog({
   const handleApplyReview = () => {
     if (!review) return;
     const picked = review.changes.filter((_, index) => review.picked[index]);
+    if (reviewLanguages.length > 0) {
+      setAddedLocales((prev) => [
+        ...prev,
+        ...reviewLanguages.filter((code) => !prev.includes(code)),
+      ]);
+      // A filter left on one language would keep the new columns out of view.
+      setLocaleFilter('all');
+    }
     mergeEdits(
       picked.map((change) => ({
         artboardId: change.artboardId,
@@ -390,15 +441,17 @@ export function TranslationTableDialog({
       }))
     );
     setReview(null);
+    const strings = `${picked.length} ${picked.length === 1 ? 'string' : 'strings'}`;
+    const languages = `${reviewLanguages.length} ${reviewLanguages.length === 1 ? 'language' : 'languages'}`;
     toast({
-      title: `${picked.length} ${picked.length === 1 ? 'string' : 'strings'} brought in`,
+      title: reviewLanguages.length > 0 ? `${strings} and ${languages} brought in` : `${strings} brought in`,
       description: 'Check them in the table, then save',
     });
   };
 
   const handleSave = () => {
     const { artboards: next, writes } = buildDraft();
-    onSave(next, writes.length);
+    onSave(next, writes.length + machineCount);
     onOpenChange(false);
   };
 
@@ -406,6 +459,19 @@ export function TranslationTableDialog({
 
   const columnCount = 2 + localeColumns.length;
   const pickedCount = review ? review.picked.filter(Boolean).length : 0;
+  const pending = [
+    editedCount > 0 ? `${editedCount} ${editedCount === 1 ? 'string' : 'strings'} edited` : '',
+    machineCount > 0
+      ? `${machineCount} ${machineCount === 1 ? 'string' : 'strings'} machine translated`
+      : '',
+    addedLocales.length > 0
+      ? `${addedLocales.length} ${addedLocales.length === 1 ? 'language' : 'languages'} added`
+      : '',
+  ].filter(Boolean);
+  const pendingSummary =
+    pending.length > 1
+      ? `${pending.slice(0, -1).join(', ')} and ${pending[pending.length - 1]}`
+      : pending[0] ?? '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -456,6 +522,27 @@ export function TranslationTableDialog({
                 >
                   {review.picked.every(Boolean) ? 'Clear all' : 'Select all'}
                 </Button>
+              )}
+              {(reviewLanguages.length > 0 || review.ignoredColumns.length > 0) && (
+                <div className="w-full space-y-1 text-xs text-muted-foreground">
+                  {reviewLanguages.length > 0 && (
+                    <p>
+                      {reviewLanguages.length === 1 ? 'New language' : 'New languages'} for this
+                      project:{' '}
+                      <span className="font-medium text-foreground">
+                        {reviewLanguages.map((code) => localeLabel(code)).join(', ')}
+                      </span>
+                    </p>
+                  )}
+                  {review.ignoredColumns.length > 0 && (
+                    <p>
+                      Skipped {review.ignoredColumns.length === 1 ? 'column' : 'columns'}:{' '}
+                      {review.ignoredColumns
+                        .map(({ column, reason }) => `${column} (${reason})`)
+                        .join(', ')}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 
@@ -725,8 +812,8 @@ export function TranslationTableDialog({
           <p className="text-xs text-muted-foreground">
             {review
               ? 'Nothing is written until you apply, and nothing is saved until you save'
-              : editedCount > 0
-                ? `${editedCount} ${editedCount === 1 ? 'string' : 'strings'} edited, saved as one step`
+              : hasChanges
+                ? `${pendingSummary}, saved as one step`
                 : 'Amber rule means the base string changed after that translation was written'}
           </p>
           <div className="flex items-center gap-2">
@@ -744,7 +831,7 @@ export function TranslationTableDialog({
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={editedCount === 0}>
+                <Button onClick={handleSave} disabled={!hasChanges}>
                   Save
                 </Button>
               </>

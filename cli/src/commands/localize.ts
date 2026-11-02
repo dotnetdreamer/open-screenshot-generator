@@ -85,6 +85,9 @@ interface CsvImport {
   unmatched: number;
   dryRun: boolean;
   changes: { artboardId: string; elementId: string; locale: string; label: string; from: string; to: string }[];
+  /** Languages the sheet brought into the project. Both are absent from an editor build that predates them. */
+  newLocales?: string[];
+  ignoredColumns?: { column: string; reason: string }[];
 }
 
 interface TranslationView {
@@ -383,14 +386,27 @@ export async function run(ctx: CommandContext): Promise<number> {
       ...(scope ? { locales: scope } : {}),
     })) as CsvImport;
     await waitForCommit(!imported.dryRun && imported.applied > 0);
-    result.csvIn = { file, applied: imported.applied, unmatched: imported.unmatched, dryRun: imported.dryRun };
+    const newLocales = imported.newLocales ?? [];
+    const ignoredColumns = imported.ignoredColumns ?? [];
+    result.csvIn = {
+      file,
+      applied: imported.applied,
+      unmatched: imported.unmatched,
+      dryRun: imported.dryRun,
+      newLocales,
+      ignoredColumns,
+    };
     if (imported.unmatched > 0) warn(`${imported.unmatched} rows matched nothing in this project`);
+    for (const column of ignoredColumns) warn(`column ${column.column} skipped: ${column.reason}`);
     for (const change of imported.changes.slice(0, 10)) {
       debug(`${change.locale} ${change.elementId}: ${clip(change.from)} -> ${clip(change.to)}`);
     }
+    // A dry run applies nothing, so what it would apply is the list of changes.
+    const strings = imported.dryRun ? imported.changes.length : imported.applied;
     ok(
-      `${imported.dryRun ? 'would apply' : 'applied'} ${plural(imported.applied, 'string')} from ${path.basename(file)}`
+      `${imported.dryRun ? 'would apply' : 'applied'} ${plural(strings, 'string')} from ${path.basename(file)}`
     );
+    if (newLocales.length > 0) ok(`${imported.dryRun ? 'would add' : 'added'} ${newLocales.join(', ')}`);
   }
 
   if (translate) {

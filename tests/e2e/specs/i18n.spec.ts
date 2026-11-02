@@ -1,5 +1,7 @@
-import { test, expect, type Page } from '../fixtures/test';
-import { waitForProject } from '../fixtures/db';
+import type { Locator } from '@playwright/test';
+import { test, expect, type BrowserContext, type Page } from '../fixtures/test';
+import { put, waitForProject } from '../fixtures/db';
+import { Editor } from '../helpers/editor';
 
 /**
  * Localization: adding languages, viewing one, and filling its strings in by
@@ -10,7 +12,9 @@ import { waitForProject } from '../fixtures/db';
  * with a /health probe in front of them), and a test that depends on somebody
  * else's server up is a test that fails for the wrong reason. So every flow
  * below turns "fill in machine translations to start from" OFF and types the
- * translation by hand, which is also the path a real localizer uses.
+ * translation by hand, which is also the path a real localizer uses. The one
+ * block that runs the engine, at the end, points it at an AI endpoint on
+ * 127.0.0.1 that the test answers itself, so it stays offline too.
  *
  * The invariant worth protecting, from AGENTS.md rule 1: ProjectLocalization is
  * mirrored onto EVERY artboard, because handleArtboardsUpdate only writes
@@ -230,6 +234,53 @@ test.describe('the translations table', () => {
       expect(file.suggestedFilename()).toMatch(/\.csv$/);
     }
   });
+
+  test('a CSV with a column for a language the project lacks adds that language', async ({ app, page }) => {
+    await openTemplateProject(app);
+    await addLocale(page, GERMAN, 'German');
+
+    // The ids an exported sheet carries, read from the saved project, and the
+    // column an agent editing that sheet would add for Japanese.
+    const project = await waitForProject(page, (row) =>
+      JSON.stringify(row.projectData ?? null).includes(`"${GERMAN}"`)
+    );
+    type SavedBoard = { id: string; elements: Array<{ id: string; type: string; content?: string }> };
+    const boards = project.projectData as SavedBoard[];
+    const hasCopy = (el: SavedBoard['elements'][number]) => el.type === 'text' && !!el.content?.trim();
+    const board = boards.find((candidate) => candidate.elements.some(hasCopy));
+    const layer = board?.elements.find(hasCopy);
+    if (!board || !layer) throw new Error('The template has no text layer to translate');
+    const sheet = `artboardId,elementId,ja\r\n${board.id},${layer.id},こんにちは E2E`;
+
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: 'Translations table' }).click();
+    const table = page.getByRole('dialog').filter({ hasText: 'Translations' });
+    await expect(table).toBeVisible({ timeout: 20_000 });
+
+    await table.locator('input[type="file"]').setInputFiles({
+      name: 'translations.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(sheet, 'utf8'),
+    });
+    // The review names the language before anything is written.
+    await expect(table.getByText(/New language for this project/)).toContainText('(ja)');
+    await table.getByRole('button', { name: /^Apply/ }).click();
+
+    await expect(table.getByRole('columnheader').filter({ hasText: '日本語' })).toBeVisible();
+    await table.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(table).toBeHidden({ timeout: 20_000 });
+
+    // On every board's copy of the language list, beside the string. A
+    // language only some boards carried would be dropped on the next load.
+    const saved = await waitForProject(page, (row) =>
+      JSON.stringify(row.projectData).includes('こんにちは E2E')
+    );
+    for (const savedBoard of saved.projectData as Array<{ localization?: { locales: Array<{ code: string }> } }>) {
+      expect(savedBoard.localization?.locales.map((entry) => entry.code)).toEqual([GERMAN, 'ja']);
+    }
+    await openLanguageMenu(page);
+    await expect(page.getByRole('menuitemcheckbox', { name: /日本語/ })).toBeVisible();
+  });
 });
 
 test.describe('removing a language', () => {
@@ -254,5 +305,187 @@ test.describe('removing a language', () => {
     await expect(page.getByRole('button', { name: 'Language', exact: true })).toBeVisible({
       timeout: 20_000,
     });
+  });
+});
+
+test.describe('machine translation in the table', () => {
+  /**
+   * An OpenAI compatible endpoint on this machine, the one AI provider that
+   * runs with no key. The route below answers for it, so nothing leaves the
+   * test. Every string comes back as "[<code>] <base string, trimmed>": the
+   * prefix says which run wrote it, and a base string that only gained a
+   * trailing space translates to the same words it did before.
+   */
+  const ENDPOINT = 'http://127.0.0.1:9555/v1';
+
+  /**
+   * Points the AI engine at that endpoint and answers for it. The settings go
+   * in before the page loads, because the editor reads them once as it mounts.
+   */
+  async function useFakeTranslator(page: Page, context: BrowserContext): Promise<void> {
+    await context.addInitScript((settings) => {
+      window.localStorage.setItem('open-screenshot-generator.ai-settings', settings);
+    }, JSON.stringify({
+      provider: 'compatible',
+      keys: {},
+      models: { compatible: 'e2e-translator' },
+      baseUrls: { compatible: ENDPOINT },
+      compatibleKeys: {},
+    }));
+    const cors = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-headers': '*',
+      'access-control-allow-methods': 'GET, POST, OPTIONS',
+    };
+    await page.route(`${ENDPOINT}/**`, async (route) => {
+      const request = route.request();
+      if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
+      const body = (request.postDataJSON() ?? {}) as { messages?: Array<{ content?: unknown }> };
+      const texts = (body.messages ?? []).map(({ content }) =>
+        typeof content === 'string'
+          ? content
+          : Array.isArray(content)
+            ? content.map((part) => (part as { text?: string }).text ?? '').join('')
+            : ''
+      );
+      // The system prompt names the target as "into Japanese (日本語, ja)."
+      const target = /into [^\n]*?, ([^,)]+)\)\./.exec(texts.join('\n'))?.[1] ?? '??';
+      const prompt = texts.find((text) => text.includes('Translate each of these strings')) ?? '{}';
+      const strings = JSON.parse(prompt.slice(prompt.indexOf('{'))) as Record<string, string>;
+      const reply = Object.fromEntries(
+        Object.entries(strings).map(([id, text]) => [id, `[${target}] ${text.trim()}`])
+      );
+      await route.fulfill({
+        status: 200,
+        headers: { ...cors, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          id: 'chatcmpl-e2e',
+          object: 'chat.completion',
+          created: 1_700_000_000,
+          model: 'e2e-translator',
+          choices: [
+            { index: 0, message: { role: 'assistant', content: JSON.stringify(reply) }, finish_reason: 'stop' },
+          ],
+          usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+        }),
+      });
+    });
+  }
+
+  /** How many cells in the table start with `tag`. */
+  const cellsTagged = (table: Locator, tag: string) =>
+    table
+      .locator('textarea')
+      .evaluateAll(
+        (cells, prefix) =>
+          cells.filter((cell) => (cell as HTMLTextAreaElement).value.startsWith(prefix)).length,
+        tag
+      );
+
+  async function openTable(page: Page): Promise<Locator> {
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: 'Translations table' }).click();
+    const table = page.getByRole('dialog').filter({ hasText: 'Translations' });
+    await expect(table).toBeVisible({ timeout: 20_000 });
+    return table;
+  }
+
+  const DESKTOP_SKIP =
+    'the desktop build sends provider requests through the Tauri HTTP plugin, which the mocked runtime does not answer';
+
+  test('two runs before Save both land, and Save keeps them with nothing typed', async ({
+    page,
+    context,
+    isDesktop,
+  }) => {
+    test.skip(isDesktop, DESKTOP_SKIP);
+    await useFakeTranslator(page, context);
+    const app = new Editor(page);
+    await app.goto();
+    await openTemplateProject(app);
+    await addLocale(page, GERMAN, 'German');
+    await addLocale(page, 'ja', 'Japanese');
+
+    const table = await openTable(page);
+
+    const showOnly = async (language: string | RegExp) => {
+      await table.getByRole('combobox', { name: 'Languages shown' }).click();
+      await page.getByRole('option', { name: language }).click();
+    };
+    await showOnly(/日本語/);
+    await table.getByRole('button', { name: 'Translate empty' }).click();
+    await expect.poll(() => cellsTagged(table, '[ja] '), { timeout: 30_000 }).toBeGreaterThan(0);
+    const japanese = await cellsTagged(table, '[ja] ');
+
+    await showOnly(/Deutsch/);
+    await table.getByRole('button', { name: 'Translate empty' }).click();
+    await expect.poll(() => cellsTagged(table, '[de-DE] '), { timeout: 30_000 }).toBeGreaterThan(0);
+
+    // The German run started from the table's own copy, so the Japanese strings
+    // are still in it, and Save has both to keep although nothing was typed.
+    await showOnly('All languages');
+    expect(await cellsTagged(table, '[ja] ')).toBe(japanese);
+    await expect(table.getByText(/strings? machine translated, saved as one step/)).toBeVisible();
+    await table.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(table).toBeHidden({ timeout: 20_000 });
+
+    await waitForProject(page, (row) => {
+      const json = JSON.stringify(row.projectData);
+      return json.includes('[ja] ') && json.includes('[de-DE] ');
+    });
+  });
+
+  test('a stale refresh that comes back in the same words is saved, and stays reviewed', async ({
+    page,
+    context,
+    isDesktop,
+  }) => {
+    test.skip(isDesktop, DESKTOP_SKIP);
+    await useFakeTranslator(page, context);
+    const app = new Editor(page);
+    await app.goto();
+    await openTemplateProject(app);
+    await addLocale(page, GERMAN, 'German');
+
+    // An engine draft of every string, saved.
+    const table = await openTable(page);
+    await table.getByRole('button', { name: 'Translate empty' }).click();
+    await expect.poll(() => cellsTagged(table, '[de-DE] '), { timeout: 30_000 }).toBeGreaterThan(0);
+    await table.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(table).toBeHidden({ timeout: 20_000 });
+
+    // One base string gains a trailing space. Its German reads the same, but
+    // the hash it was made from no longer matches, so it is stale.
+    const row = await waitForProject(page, (project) =>
+      JSON.stringify(project.projectData).includes('[de-DE] ')
+    );
+    type StoredBoard = {
+      elements: Array<{ id: string; type: string; content?: string }>;
+      localized?: Record<string, Record<string, { content?: string }>>;
+    };
+    const layer = (row.projectData as StoredBoard[]).flatMap((board) =>
+      board.elements.filter((el) => el.type === 'text' && !!board.localized?.[GERMAN]?.[el.id]?.content)
+    )[0];
+    if (!layer?.content) throw new Error('No machine translated layer to make stale');
+    layer.content = `${layer.content} `;
+    await put(page, 'projects', row);
+    await page.reload();
+    await expect(app.artboards.first()).toBeVisible({ timeout: 30_000 });
+
+    const stale = await openTable(page);
+    await stale.getByRole('button', { name: 'Needs review', exact: true }).click();
+    await expect(stale.locator('tbody textarea')).toHaveCount(1);
+    await stale.getByRole('button', { name: 'Translate stale' }).click();
+    // The same words with a fresh hash are still something Save has to keep.
+    await expect(stale.getByText('1 string machine translated, saved as one step')).toBeVisible({
+      timeout: 30_000,
+    });
+    await stale.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(stale).toBeHidden({ timeout: 20_000 });
+
+    // Saved, so it is not stale again once the table closes and opens.
+    const reopened = await openTable(page);
+    await reopened.getByRole('button', { name: 'Needs review', exact: true }).click();
+    await expect(reopened.getByText(/^Nothing is waiting on a /)).toBeVisible();
   });
 });
