@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   The Microsoft Store package manifest. scripts/msix-pack.mjs fills in the
-  {{...}} fields from tauri.conf.json (version, product name, description,
-  identifier) and
+  {{...}} fields from tauri.conf.json (version, product name, description) and
   packs it with the release exe and Assets/. See docs/DESKTOP.md.
+
+  AppData is left virtualized, the default for a packaged app. The exe notices
+  it runs inside a package and keeps its data under an identifier of its own
+  (src-tauri/src/store_package.rs), so nothing it writes overlaps the
+  installer build's folders. Do not add the restricted unvirtualizedResources
+  capability back: the Store turned it down for this app (policy 10.6.3).
 
   The three Identity values below come from Partner Center: the app, then
   Product management, then Product identity. Copy them exactly; the Store
@@ -14,9 +19,7 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
-  xmlns:virtualization="http://schemas.microsoft.com/appx/manifest/virtualization/windows10"
-  IgnorableNamespaces="uap rescap desktop6 virtualization">
+  IgnorableNamespaces="uap rescap">
 
   <!-- Package/Identity/Name and Package/Identity/Publisher. Version is x.y.z.0:
        the Store keeps the fourth part for itself and the first cannot be 0. -->
@@ -32,25 +35,6 @@
     <PublisherDisplayName>Idrees Khan</PublisherDisplayName>
     <Description>{{DESCRIPTION}}</Description>
     <Logo>Assets\StoreLogo.png</Logo>
-
-    <!-- Projects, settings and the WebView2 profile live in two folders named
-         after the bundle identifier. A packaged app edits files that already
-         exist there in place, but by default it writes new ones to a private
-         copy that Windows deletes on uninstall. Someone who also has the
-         installer build would get one WebView2 profile split across both
-         places, and uninstalling the Store build would take half of it. These
-         settings write both folders directly, so the two builds share one set
-         of projects and it survives an uninstall.
-         Windows 11 reads the folder list. Windows 10 ignores it and uses the
-         desktop6 switch, which turns the private copy off for all of AppData.
-         Both need unvirtualizedResources (Windows 10 1903 or later). -->
-    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
-    <virtualization:FileSystemWriteVirtualization>
-      <virtualization:ExcludedDirectories>
-        <virtualization:ExcludedDirectory>$(KnownFolder:LocalAppData)\{{IDENTIFIER}}</virtualization:ExcludedDirectory>
-        <virtualization:ExcludedDirectory>$(KnownFolder:RoamingAppData)\{{IDENTIFIER}}</virtualization:ExcludedDirectory>
-      </virtualization:ExcludedDirectories>
-    </virtualization:FileSystemWriteVirtualization>
   </Properties>
 
   <Resources>
@@ -65,9 +49,6 @@
     <Capability Name="internetClient" />
     <!-- The exe is a classic Win32 app, so it runs as full trust. -->
     <rescap:Capability Name="runFullTrust" />
-    <!-- Needed by the two FileSystemWriteVirtualization settings above. Partner
-         Center asks for a reason when a submission declares it. -->
-    <rescap:Capability Name="unvirtualizedResources" />
   </Capabilities>
 
   <Applications>

@@ -48,6 +48,8 @@ time = { version = "0.3", features = ["formatting"] }
 webview2-com = "0.38"
 windows = { version = "0.61", features = [
   "Win32_Foundation",
+  # store_package.rs: GetCurrentPackageFullName tells the Store build apart.
+  "Win32_Storage_Packaging_Appx",
   "Win32_System_Com",
   "Win32_UI_Shell",
   # devtools.rs: find the inspector window in our own process tree and WM_CLOSE

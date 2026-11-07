@@ -68,8 +68,7 @@ let manifest = readFileSync(join(msixDir, 'AppxManifest.xml'), 'utf8')
   .replaceAll('{{VERSION}}', version)
   .replaceAll('{{EXECUTABLE}}', xml(`${productName}.exe`))
   .replaceAll('{{DISPLAY_NAME}}', xml(productName))
-  .replaceAll('{{DESCRIPTION}}', xml(description))
-  .replaceAll('{{IDENTIFIER}}', xml(conf.identifier));
+  .replaceAll('{{DESCRIPTION}}', xml(description));
 
 // The stand-in replaces the real identity too, so a test install never holds
 // the Store app's package family and cannot get in the way of installing the

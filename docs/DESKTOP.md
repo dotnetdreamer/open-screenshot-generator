@@ -178,17 +178,25 @@ Runtime, and an MSIX cannot run the WebView2 installer the way the MSI and NSIS
 installers do. It relies on the runtime being there already, as it is on
 Windows 11 and on most Windows 10 systems.
 
-**The Store build writes AppData directly.** By default Windows gives a
-packaged app a private copy of AppData for new files and deletes it on
-uninstall, while files that already exist are edited in place. The app keeps
-projects, settings and its WebView2 profile in a
-`com.dotnetdreamer.openscreenshotgenerator` folder under both `%LOCALAPPDATA%`
-and `%APPDATA%`, so on a machine that also has the installer build, one profile would end up split
-across two places, and uninstalling the Store build would delete half of it.
-The manifest turns that off: Windows 11 excludes just those two folders, and
-Windows 10 (which does not know the folder list) turns the private copy off for
-all of AppData. Both need the `unvirtualizedResources` capability, and Partner
-Center asks for a reason when a submission declares it.
+**The Store build keeps its data apart from the installer build.** Windows
+gives a packaged app a private copy of AppData: files it creates there go to
+`%LOCALAPPDATA%\Packages\<package>\LocalCache`, which Windows deletes on
+uninstall, while files that already exist in the real AppData are edited in
+place. The app keeps projects, settings and its WebView2 profile in folders
+named after the bundle identifier, so if the Store build used the installer
+build's `com.dotnetdreamer.openscreenshotgenerator` folders, a machine with
+both would end up with one WebView2 profile split across the two places.
+
+Instead the exe checks for package identity at startup, and inside a package it
+runs under the identifier `com.dotnetdreamer.openscreenshotgenerator.store`
+(`src-tauri/src/store_package.rs`). Only the Store build writes those folders,
+so all of its data stays together in the private copy. The two builds do not
+share projects, and uninstalling the Store build removes its projects, as it
+would for any Store app.
+
+Do not add the restricted `unvirtualizedResources` capability to the manifest
+to write the real AppData instead. The Store turned it down for this app in
+October 2026 (policy 10.6.3).
 
 ### Publishing from GitHub Actions
 
@@ -242,9 +250,8 @@ fails at "Sign in to Partner Center", create a new secret and replace
 `MSSTORE_CLIENT_SECRET`.
 
 **The first submission is made by hand.** The Store API only updates an app
-that has been published once, and the first submission also needs the listing,
-the age rating questionnaire and the reason for `unvirtualizedResources`, none
-of which the release workflow fills in.
+that has been published once, and the first submission also needs the listing
+and the age rating questionnaire, which the release workflow does not fill in.
 
 1. Release 1.0.0 or later with `microsoft_store` left off.
 2. Run the workflow again with `dry_run` and `microsoft_store` ticked. A dry
@@ -252,11 +259,7 @@ of which the release workflow fills in.
    version's MSIX as the `microsoft-store-msix` artifact.
 3. Upload it on the submission's Packages page, complete the listing (with
    `src-tauri/msix/listing/app-tile-icon-300x300.png` as the 1:1 App tile
-   icon), and submit. For the `unvirtualizedResources` question, a reason that
-   fits: "The app keeps the user's projects in its AppData folder, shared with
-   the same app installed from our website. Without this, installing the Store
-   version beside it splits that data, and uninstalling it deletes the user's
-   work."
+   icon), and submit.
 
 From the next release on, tick `microsoft_store` and the workflow submits it.
 
@@ -297,9 +300,10 @@ Store package's identity, and it lets a 0.x version through. Partner Center
 rejects that package. Remove the test install
 with `Get-AppxPackage OpenScreenshotGenerator.LocalTest | Remove-AppxPackage`.
 
-A test install opens your real projects, because the Store build writes AppData
-directly (see above). Close every other copy of the app before launching it,
-since two instances on one WebView2 profile get in each other's way.
+A test install starts with no projects, because inside a package the app uses
+the `.store` identifier's folders (see above). They land under
+`%LOCALAPPDATA%\Packages\OpenScreenshotGenerator.LocalTest_<hash>\LocalCache`,
+and removing the test install deletes them.
 
 ### Installers instead of MSIX
 

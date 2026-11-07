@@ -8,15 +8,30 @@ mod oauth;
 mod panels;
 mod settings;
 mod splash;
+mod store_package;
 mod web_session;
 mod webview_crash;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let mut context = tauri::generate_context!();
+    // The Store build keeps its data under its own identifier (see
+    // store_package.rs). Tauri derives every per-user path and the WebView2
+    // profile from the identifier in this context, so changing it here,
+    // before the builder sees it, moves all of them at once.
+    let packaged = store_package::is_packaged();
+    if packaged {
+        context.config_mut().identifier = store_package::STORE_IDENTIFIER.to_string();
+    }
+
     // Before Tauri resolves any path or opens the webview profile: the bundle
     // identifier changed with the rename to Open Screenshot Generator, and
-    // every per-user directory hangs off it.
-    migrate::run();
+    // every per-user directory hangs off it. The Store build never had the old
+    // identifier, and a rename inside a package would move the installer
+    // build's folders, so it skips this.
+    if !packaged {
+        migrate::run();
+    }
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -117,7 +132,7 @@ pub fn run() {
             codex::register(app.handle());
             Ok(())
         })
-        .build(tauri::generate_context!())
+        .build(context)
         .expect("error while running tauri application")
         .run(|app, event| {
             // The editor window's own Destroyed hook usually gets there first;
