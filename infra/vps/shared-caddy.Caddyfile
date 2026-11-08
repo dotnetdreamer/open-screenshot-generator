@@ -1,4 +1,4 @@
-# NOT MOUNTED, NOT DEPLOYED. A reference copy of the two site blocks this stack
+# NOT MOUNTED, NOT DEPLOYED. A reference copy of the three site blocks this stack
 # needs when it shares a box with another project's Caddy.
 #
 # ## Where the real copy lives, and why it is not here
@@ -35,14 +35,16 @@
 #
 # ## Before it is deployed
 #
-#   1. An EXPLICIT A record for pb.openscrgen.app -> <BOX_IP>, and another for
-#      mcp.openscrgen.app if the relay block below is deployed. The zone carries
+#   1. An EXPLICIT A record for pb.openscrgen.app -> <BOX_IP>, another for
+#      mcp.openscrgen.app if the relay block below is deployed, and one for
+#      updates.openscrgen.app with the update server's. The zone carries
 #      a wildcard, so without one the challenge is answered by whatever the
 #      wildcard points at, this Caddy never sees it, and no certificate is ever
 #      issued. On a proxying provider it must also be unproxied; the zone this
 #      uses is on Vercel's nameservers, which do not proxy. See README.md.
-#   2. /opt/openscreengen up, so `openscreengen-pocketbase` and
-#      `openscreengen-mcp-relay` are resolvable on that network.
+#   2. /opt/openscreengen up, so `openscreengen-pocketbase`,
+#      `openscreengen-mcp-relay` and `openscreengen-updates` are resolvable on
+#      that network.
 #
 # Deploying ahead of either is not fatal — Caddy serves every other site
 # normally and retries in the background — but enough failed ACME attempts in an
@@ -121,6 +123,38 @@ mcp.openscrgen.app {
 
 	log {
 		output file /data/access-openscreengen-mcp.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+# Open Screenshot Generator's update server: the desktop app's update check and
+# its signed installers. Independent of the blocks above: deploy it together
+# with the openscreengen-updates container. See update-server/README.md.
+#
+# The container serves the installers itself, since this Caddy belongs to the
+# neighbour and only proxies by container name.
+#
+# Keep `log_credentials` off on this Caddy, as it is by default. Off, the
+# Authorization header, which carries the admin token on CI's requests, is
+# written to the access log as REDACTED.
+updates.openscrgen.app {
+	handle {
+		reverse_proxy openscreengen-updates:8730
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# No `encode`: the installers are compressed already, and a Range request
+	# counts the bytes of the file itself.
+
+	log {
+		output file /data/access-openscreengen-updates.log {
 			roll_size 10MiB
 			roll_keep 5
 		}

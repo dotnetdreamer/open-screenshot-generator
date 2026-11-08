@@ -49,3 +49,13 @@ services:
   openscreengen-mcp-relay:
     ports:
       - "127.0.0.1:8722:8722"
+
+  # Same bind address again. PUBLIC_URL is replaced as well, or the update
+  # check would hand out download URLs on the production hostname. The admin
+  # API stays off until UPDATES_ADMIN_TOKEN is set in infra/vps/.env. On Linux,
+  # create updates-data and chown it to 1000 first, as on the box.
+  openscreengen-updates:
+    ports:
+      - "127.0.0.1:8730:8730"
+    environment:
+      - PUBLIC_URL=http://127.0.0.1:8730

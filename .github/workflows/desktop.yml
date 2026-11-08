@@ -16,6 +16,11 @@ name: Release desktop app (Tauri)
 #         Microsoft Store. On a dry run the MSIX is built and attached to the
 #         run, but not submitted. Setup: docs/DESKTOP.md, "Publishing from
 #         GitHub Actions".
+#   update_channel, update_rollout, update_notes, update_critical: how the
+#         release reaches installed copies through our update server, once
+#         in-app updates are set up (docs/UPDATES.md). Each leg signs its
+#         update payloads, and the updates job publishes them only after all
+#         three legs built, so an installed app never sees half a release.
 #
 # A real run bumps the version across all four files that carry it, commits
 # that to the default branch, tags it, and publishes a release with the
@@ -45,6 +50,23 @@ on:
         description: 'Also submit the Windows build to the Microsoft Store (version 1.0.0 or later)'
         type: boolean
         default: false
+      update_channel:
+        description: 'In-app updates: the channel that gets this release'
+        type: choice
+        options: [stable, beta]
+        default: stable
+      update_rollout:
+        description: 'In-app updates: percent of installs offered it now (widen it later with "Desktop updates")'
+        type: number
+        default: 100
+      update_notes:
+        description: 'In-app updates: what is new, shown in the update prompt'
+        type: string
+        default: ''
+      update_critical:
+        description: 'In-app updates: it fixes something serious, so the app asks straight away'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -65,12 +87,25 @@ jobs:
       # commit, so the binaries carry the released version rather than the old
       # one. On a dry run nothing was committed and it is just the trigger sha.
       sha: ${{ steps.bump.outputs.sha }}
+      # Whether this release is signed for in-app updates and published to our
+      # update server. Decided once, like the version, so no leg can disagree.
+      updates: ${{ steps.updates.outputs.enabled }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # Before anything is tagged: a half-finished setup stops the release
+      # here rather than ship a build that can never be updated.
+      - name: Check the in-app update setup
+        id: updates
+        env:
+          UPDATES_URL: ${{ vars.UPDATES_URL }}
+          UPDATER_PUBKEY: ${{ vars.UPDATER_PUBKEY }}
+          HAS_SIGNING_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+        run: node scripts/updates/configure-build.mjs --check
 
       - name: Bump version, commit and tag
         id: bump
@@ -191,6 +226,17 @@ jobs:
 
       - run: npm ci
 
+      # Writes src-tauri/tauri.updater.conf.json: the update server's address,
+      # the public key every update is checked against, and the switch that
+      # makes the build sign its update payloads.
+      - name: Configure in-app updates
+        if: needs.version.outputs.updates == 'true'
+        env:
+          UPDATES_URL: ${{ vars.UPDATES_URL }}
+          UPDATER_PUBKEY: ${{ vars.UPDATER_PUBKEY }}
+          HAS_SIGNING_KEY: 'true'
+        run: node scripts/updates/configure-build.mjs
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -241,6 +287,10 @@ jobs:
           # WebView2 really is the only runtime requirement, as the release
           # notes and the portable README claim.
           RUSTFLAGS: ${{ matrix.platform == 'windows-latest' && '-C target-feature=+crt-static' || '' }}
+          # Signs the update payloads when the updater overlay is on. Without
+          # the overlay the build signs nothing and ignores these.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # Uncomment once you have macOS signing set up (see docs/DESKTOP.md):
           # APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           # APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -285,7 +335,11 @@ jobs:
             The Linux AppImage runs against your system WebKitGTK when you have one installed, which is what keeps it working on rolling releases such as Arch and Fedora. Without one it falls back to the copy inside the AppImage. Set `OSG_APPIMAGE_STACK=bundled` to force that copy, or `=host` to require the system one.
 
             Projects are stored locally in the app. Nothing is uploaded anywhere.
-          args: ${{ matrix.args }}
+          # The updater overlay comes last, so it wins where it overlaps.
+          args: ${{ matrix.args }} ${{ needs.version.outputs.updates == 'true' && '--config src-tauri/tauri.updater.conf.json' || '' }}
+          # Installed copies update from our server, never from GitHub, so no
+          # latest.json goes on the release.
+          includeUpdaterJson: false
 
       # The bare release exe already is the portable build: Tauri embeds the
       # whole frontend in the binary and this app bundles no resources or
@@ -389,13 +443,43 @@ jobs:
           PATH="$RUNNER_TEMP:$PATH" bash scripts/patch-appimage.sh "$appimage"
           echo "APPIMAGE_PATH=$appimage" >> "$GITHUB_ENV"
 
+      # The build signed the AppImage before the hook went in, so that
+      # signature no longer matches and every AppImage update would be
+      # refused. Sign the patched file again. The password is passed even when
+      # empty: without it the signer stops to ask for one.
+      - name: Sign the patched AppImage for in-app updates
+        if: matrix.platform == 'ubuntu-22.04' && needs.version.outputs.updates == 'true'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npx tauri signer sign --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "$APPIMAGE_PATH"
+
       # tauri-action uploaded the unpatched AppImage from this same job a step
-      # ago, so this replaces it rather than adding to it.
+      # ago, so this replaces it rather than adding to it, and its signature
+      # with it when this release is signed for updates.
       - name: Replace the released AppImage with the patched one
         if: matrix.platform == 'ubuntu-22.04' && !inputs.dry_run
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload 'v${{ needs.version.outputs.version }}' "$APPIMAGE_PATH" --clobber
+        run: |
+          assets=("$APPIMAGE_PATH")
+          if [ -f "$APPIMAGE_PATH.sig" ]; then assets+=("$APPIMAGE_PATH.sig"); fi
+          gh release upload 'v${{ needs.version.outputs.version }}' "${assets[@]}" --clobber
+
+      # Every signed update payload this leg built, under the names the update
+      # server publishes them as, and a fragment saying which platforms each
+      # serves. The updates job merges the three legs' fragments.
+      - name: Collect the in-app update files
+        if: needs.version.outputs.updates == 'true'
+        run: node scripts/updates/collect.mjs --out updater-files
+
+      - name: Upload the in-app update files
+        if: needs.version.outputs.updates == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: updates-${{ matrix.platform }}
+          if-no-files-found: error
+          path: updater-files/
 
       # tauri-action only uploads to a GitHub release, so a dry run would
       # otherwise leave nothing to inspect. The .app is skipped on purpose:
@@ -413,6 +497,57 @@ jobs:
             src-tauri/target/**/release/bundle/appimage/*.AppImage
             src-tauri/target/**/release/bundle/deb/*.deb
             Open.Screenshot.Generator_*_portable.zip
+
+  # Publishes the release to our update server once every leg has built, so
+  # installed copies on all three platforms see it at the same moment. Files
+  # go up first, then the manifest, and only then does the channel move to
+  # it. The admin token lives in the updates environment, so no other job can
+  # read it. A dry run stops at the build legs, whose collected files are on
+  # the run to inspect.
+  updates:
+    needs: [version, build]
+    if: ${{ needs.version.outputs.updates == 'true' && !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    environment: updates
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.version.outputs.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: updates-*
+          path: updater-files
+          merge-multiple: true
+
+      # Through the environment, so nothing typed into the form reaches the
+      # shell as code.
+      - name: Write the release notes
+        env:
+          NOTES: ${{ inputs.update_notes }}
+        run: printf '%s' "$NOTES" > release-notes.txt
+
+      - name: Build the release manifest
+        run: >-
+          node scripts/updates/release.mjs manifest
+          --in updater-files --out updater-files/manifest.json
+          --notes-file release-notes.txt
+          --download-page 'https://github.com/${{ github.repository }}/releases/tag/v${{ needs.version.outputs.version }}'
+          ${{ inputs.update_critical && '--critical' || '' }}
+
+      - name: Publish to the update server
+        env:
+          UPDATES_URL: ${{ vars.UPDATES_URL }}
+          UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}
+        run: >-
+          node scripts/updates/release.mjs publish
+          --dir updater-files --manifest updater-files/manifest.json
+          --channel '${{ inputs.update_channel }}'
+          --rollout '${{ inputs.update_rollout }}'
 
   # Submits the MSIX from the Windows leg to the Microsoft Store. msstore
   # replaces the package in a copy of the last published submission, keeps its

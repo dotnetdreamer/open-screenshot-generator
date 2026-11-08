@@ -29,12 +29,17 @@
 #                   with a key neither this box nor the database ever sees.
 #                   Stateless, in-memory, no disk and no secret. Also not
 #                   published to the host. See mcp-relay/README.md.
+#   openscreengen-updates  Desktop auto updates. The Tauri updater asks it for
+#                   a newer version and downloads the signed installer from
+#                   it, and CI publishes releases through its admin API. Keeps
+#                   the releases and channel pointers in ./updates-data. Not
+#                   published to the host either. See update-server/README.md.
 #
 # There is no sidecar. Both sign-in doors are verified by calling the provider
 # over plain HTTPS, which the PocketBase JS VM can do on its own — see
 # pb-hooks/040_auth.pb.js. Nothing here signs anything, so nothing here needs a
-# private key, which is why this stack has one container and one secret-free
-# .env.
+# private key. The one secret in .env is UPDATES_ADMIN_TOKEN, which opens the
+# update server's admin API.
 #
 # See README.md in this directory for DNS, the first run and the deploy loop.
 
@@ -169,6 +174,45 @@ services:
       - POCKETBASE_URL=http://openscreengen-pocketbase:8090
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8722/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Desktop auto updates. The Tauri updater asks it for a newer version and
+  # downloads the signed installer from it; CI uploads releases and moves the
+  # channel pointers through its admin API. Same `openscreengen-` prefix as the
+  # others, for the same reason.
+  #
+  # Unlike the relay it has state: every published release, the two channel
+  # pointers and their history, all in ./updates-data. If it is not running
+  # there are no updates, and nothing else is affected.
+  openscreengen-updates:
+    build:
+      context: ./update-server
+    image: openscreengen-updates:1.0.0
+    container_name: openscreengen-updates
+    restart: always
+    # Not published to the host: Caddy reaches it by name, like the others.
+    expose:
+      - "8730"
+    volumes:
+      # A bind mount like pb-data, so a backup is a plain tar of a directory
+      # you can see. The container runs as uid 1000, so the directory has to
+      # belong to it: `mkdir -p updates-data && chown 1000:1000 updates-data`
+      # once on the box, before the first up.
+      - ./updates-data:/data
+    environment:
+      - PORT=8730
+      - DATA_DIR=/data
+      # The base of every download URL handed to the updater.
+      - PUBLIC_URL=https://updates.openscrgen.app
+      # From /opt/openscreengen/.env, never from this repo. Unset, or shorter
+      # than 32 characters, and the admin API answers 404: the box keeps
+      # serving what is published and takes nothing new.
+      - UPDATES_ADMIN_TOKEN=${UPDATES_ADMIN_TOKEN:-}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8730/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3

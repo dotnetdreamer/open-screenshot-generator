@@ -31,6 +31,7 @@ const MENU_ID_MCP_SERVER: &str = "abs-settings-mcp-server";
 const MENU_ID_DEVTOOLS: &str = "abs-settings-devtools";
 const MENU_ID_RELOAD_WINDOW: &str = "abs-settings-reload-window";
 const MENU_ID_ABOUT: &str = "abs-help-about";
+const MENU_ID_CHECK_UPDATES: &str = "abs-help-check-updates";
 
 // The editor's project tabs. The page has no say over these keys: a native
 // accelerator is handled before the webview sees the keystroke, so Close Tab
@@ -147,7 +148,7 @@ fn action_window<R: Runtime>(app: &AppHandle<R>) -> Option<tauri::WebviewWindow<
 
 /// Whether a window is an editor, the only kind that has tabs: `main`, or one
 /// a tab was torn off into (`editor-*`).
-fn is_editor_window(label: &str) -> bool {
+pub(crate) fn is_editor_window(label: &str) -> bool {
     label == "main" || label.starts_with("editor-")
 }
 
@@ -315,7 +316,13 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     };
 
     let about_item = MenuItemBuilder::with_id(MENU_ID_ABOUT, "About Open Screenshot Generator").build(app)?;
-    let help_menu = SubmenuBuilder::new(app, "Help").item(&about_item).build()?;
+    let mut help_menu = SubmenuBuilder::new(app, "Help").item(&about_item);
+    // Not in the store builds, which their store updates, nor in a build with
+    // no update server (updater.rs).
+    if crate::updater::offers_check(app) {
+        help_menu = help_menu.item(&MenuItemBuilder::with_id(MENU_ID_CHECK_UPDATES, "Check for updates").build(app)?);
+    }
+    let help_menu = help_menu.build()?;
 
     menu.append(&file_menu)?;
     menu.append(&edit_menu)?;
@@ -391,6 +398,7 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
             MENU_ID_ABOUT => {
                 let _ = app.emit_to("main", ABOUT_EVENT_CHANNEL, ());
             }
+            MENU_ID_CHECK_UPDATES => crate::updater::request_check(app),
             _ => {}
         }
     });

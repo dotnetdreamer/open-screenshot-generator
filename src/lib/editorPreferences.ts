@@ -32,7 +32,11 @@ export type EditorPreference =
   /** Draw Apple's art safe area over App Store header and search artboards. */
   | 'creativeSafeArea'
   /** Ask before closing a tab whose project was edited since it opened. */
-  | 'confirmTabClose';
+  | 'confirmTabClose'
+  /** Desktop: look for a new version of the app in the background. */
+  | 'updatesAutoCheck'
+  /** Desktop: take beta versions of the app as well as stable ones. */
+  | 'updatesBeta';
 
 const KEYS: Record<EditorPreference, string> = {
   cloudAutoSave: 'open-screenshot-generator.cloud-auto-save',
@@ -40,6 +44,8 @@ const KEYS: Record<EditorPreference, string> = {
   wheelZoom: 'open-screenshot-generator.wheel-zoom',
   creativeSafeArea: 'open-screenshot-generator.creative-safe-area',
   confirmTabClose: 'open-screenshot-generator.confirm-tab-close',
+  updatesAutoCheck: 'open-screenshot-generator.updates-auto-check',
+  updatesBeta: 'open-screenshot-generator.updates-beta',
 };
 
 /**
@@ -60,6 +66,11 @@ const KEYS: Record<EditorPreference, string> = {
  *
  * Asking before an edited tab closes is on. Nothing is lost when one closes,
  * but a click on the wrong cross should not end a working session unasked.
+ *
+ * Checking for updates is on: an update that waits for somebody to remember
+ * to look for it is one most people never get. It only ever downloads; the
+ * restart is still the user's to choose. Beta versions are off, because they
+ * are the ones that have not been through everybody's hands yet.
  */
 const DEFAULTS: Record<EditorPreference, boolean> = {
   cloudAutoSave: true,
@@ -67,6 +78,8 @@ const DEFAULTS: Record<EditorPreference, boolean> = {
   wheelZoom: true,
   creativeSafeArea: true,
   confirmTabClose: true,
+  updatesAutoCheck: true,
+  updatesBeta: false,
 };
 
 const cache = new Map<EditorPreference, boolean>();

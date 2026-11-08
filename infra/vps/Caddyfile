@@ -125,3 +125,34 @@ mcp.openscrgen.app {
 		}
 	}
 }
+
+# The update server: the desktop app's update check and its signed installers.
+# See update-server/README.md.
+#
+# Its own hostname, with its own explicit, unproxied A record, for the same
+# reason as pb and mcp. The container serves the installers itself and sets
+# its own Cache-Control, so this block only proxies.
+#
+# The admin token never reaches the access log: Caddy writes the Authorization
+# header there as REDACTED unless `log_credentials` is on, and it is not.
+updates.openscrgen.app {
+	handle {
+		reverse_proxy openscreengen-updates:8730
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# No `encode`: the installers are compressed already, and a Range request
+	# counts the bytes of the file itself.
+
+	log {
+		output file /data/access-openscreengen-updates.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

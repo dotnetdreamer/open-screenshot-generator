@@ -8,6 +8,7 @@ mod oauth;
 mod panels;
 mod settings;
 mod splash;
+mod updater;
 mod store_package;
 mod web_session;
 mod webview_crash;
@@ -38,6 +39,9 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
+        // No capability grants the plugin's own commands, so the page cannot
+        // call it directly. updater.rs drives it.
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(web_session::WebSessionState::default())
         .manage(mcp_server::McpState::default())
         .manage(claude_code::ClaudeState::default())
@@ -100,11 +104,17 @@ pub fn run() {
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,
+            updater::abs_update_state,
+            updater::abs_update_check,
+            updater::abs_update_install,
+            updater::abs_update_flushed,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.
             settings::register(app.handle())?;
             splash::register(app.handle());
+            // Works out once whether this install updates itself (updater.rs).
+            updater::register(app.handle());
             // The window backgroundColor in tauri.conf.json is there so Windows
             // has something other than black to show before the webview paints.
             // On Linux it also sits behind the GTK menu bar, which draws no

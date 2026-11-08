@@ -28,7 +28,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import type { ThemePreference } from '@/lib/theme';
 import { useEditorPreference } from '@/lib/editorPreferences';
 import { isDiscoverConfigured } from '@/lib/discover/session';
+import { autoCheckHint, showsUpdateSettings, statusLine } from '@/lib/updates/describe';
+import { useUpdateSnapshot } from '@/lib/updates/store';
 import { shouldShowTipsOnStartup, setShowTipsOnStartup } from './TipsDialog';
+import { UpdateActionButton, UpdateDownloadBar } from './updates/UpdateControls';
 import { cn } from '@/lib/utils';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: LucideIcon }[] = [
@@ -141,6 +144,52 @@ function ThemeToggle() {
         );
       })}
     </div>
+  );
+}
+
+/**
+ * Desktop only, and only in the main editor window, the one that talks to the
+ * updater (lib/updates/store.ts); everywhere else the snapshot is null and
+ * this renders nothing. A store build gets one row saying its store keeps the
+ * app current.
+ */
+function UpdatesSection() {
+  const snapshot = useUpdateSnapshot();
+  const [autoCheck, setAutoCheck] = useEditorPreference('updatesAutoCheck');
+  const [beta, setBeta] = useEditorPreference('updatesBeta');
+
+  if (!snapshot || !showsUpdateSettings(snapshot)) return null;
+  const version = `Version ${snapshot.currentVersion}`;
+
+  if (snapshot.mode === 'off') {
+    return (
+      <SettingsSection title="Updates">
+        <SettingsRow label={version} description={statusLine(snapshot)} control={null} />
+      </SettingsSection>
+    );
+  }
+
+  return (
+    <SettingsSection title="Updates">
+      <SettingsRow
+        label={version}
+        description={statusLine(snapshot)}
+        control={<UpdateActionButton snapshot={snapshot} checkLabel="Check now" />}
+      />
+      <UpdateDownloadBar snapshot={snapshot} />
+      <SettingsRow
+        label="Check for updates automatically"
+        description={autoCheckHint(snapshot)}
+        htmlFor="settings-updates-auto-check"
+        control={<Switch id="settings-updates-auto-check" checked={autoCheck} onCheckedChange={setAutoCheck} />}
+      />
+      <SettingsRow
+        label="Get beta versions"
+        description="New versions reach you before everyone else. They have had less testing"
+        htmlFor="settings-updates-beta"
+        control={<Switch id="settings-updates-beta" checked={beta} onCheckedChange={setBeta} />}
+      />
+    </SettingsSection>
   );
 }
 
@@ -276,6 +325,8 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
               see AccountDialog.tsx. Two switches side by side both reading
               "save automatically", for two destinations with opposite defaults,
               is the likeliest way this gets misread. */}
+
+          <UpdatesSection />
 
           <SettingsSection title="Tips">
             <SettingsRow

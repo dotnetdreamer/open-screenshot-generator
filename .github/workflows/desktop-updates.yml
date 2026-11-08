@@ -1,0 +1,73 @@
+name: Desktop updates
+
+# Steers a release that is already on our update server (docs/UPDATES.md).
+# The desktop release workflow publishes; this one decides who gets it.
+#
+#   status    what each channel offers, and which versions have been checking
+#   rollout   offer the channel's release to more installs, or fewer
+#   pause     stop offering the channel's release, when it turns out bad
+#   resume    offer it again
+#   promote   point a channel at a published release, e.g. a beta to stable
+#
+# A channel never moves back to an older version from here: installed copies
+# only update forward, so the way out of a bad release is pause, then a fixed
+# release. Manual only; the admin token lives in the updates environment.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to do'
+        type: choice
+        options: [status, rollout, pause, resume, promote]
+        default: status
+      channel:
+        description: 'Which channel'
+        type: choice
+        options: [stable, beta]
+        default: stable
+      percent:
+        description: 'rollout and promote: percent of installs offered the release'
+        type: number
+        default: 100
+      version:
+        description: 'promote: the published version to point the channel at, e.g. 1.2.0'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-updates
+  cancel-in-progress: false
+
+jobs:
+  steer:
+    runs-on: ubuntu-latest
+    environment: updates
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The inputs reach the shell through the environment, never as code.
+      - name: ${{ inputs.action }} ${{ inputs.channel }}
+        env:
+          UPDATES_URL: ${{ vars.UPDATES_URL }}
+          UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}
+          ACTION: ${{ inputs.action }}
+          CHANNEL: ${{ inputs.channel }}
+          PERCENT: ${{ inputs.percent }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          case "$ACTION" in
+            status)  node scripts/updates/release.mjs status ;;
+            rollout) node scripts/updates/release.mjs rollout --channel "$CHANNEL" --percent "$PERCENT" ;;
+            pause)   node scripts/updates/release.mjs pause --channel "$CHANNEL" ;;
+            resume)  node scripts/updates/release.mjs resume --channel "$CHANNEL" ;;
+            promote) node scripts/updates/release.mjs promote --channel "$CHANNEL" --version "$VERSION" --percent "$PERCENT" ;;
+            *)       echo "::error::Unknown action $ACTION"; exit 1 ;;
+          esac

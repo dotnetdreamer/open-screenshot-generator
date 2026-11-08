@@ -451,6 +451,17 @@ export function tauriInitScript(config: TauriMockConfig): string {
         return Object.entries(state.codexProcesses).map(([spawnId, threadId]) => ({ spawnId, busy: false, threadId }));
       case 'abs_codex_page_epoch':
         return 1;
+      // In-app updates (updater.rs). By default this build has no update
+      // server, which is what a local build reports, so the app never checks.
+      // A spec that drives updates answers abs_update_state and
+      // abs_update_check through config.responses and plays the shell's
+      // state changes with emitFromBackend('abs-update-state', ...).
+      case 'abs_update_state':
+      case 'abs_update_check':
+        return { mode: 'off', reason: 'unconfigured', currentVersion: '1.0.0', phase: { phase: 'idle' }, checkedAt: null };
+      case 'abs_update_install':
+      case 'abs_update_flushed':
+        return null;
 
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {

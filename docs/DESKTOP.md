@@ -31,6 +31,9 @@ The rest of this page is for people building or changing the desktop app. It use
 | `src/lib/ai/webDriverCore.ts` | Transport-agnostic DOM driver shared by the desktop agent and the extension |
 | `.github/workflows/desktop.yml` | Manually triggered release build (Windows + macOS + Linux); owns the version bump and tag |
 | `scripts/set-version.mjs` | Sets the version across the four files that carry it |
+| `src-tauri/src/updater.rs` | In-app updates: which builds update themselves, the check, the download and the restart ([UPDATES.md](UPDATES.md)) |
+| `scripts/updates/` | The release side of in-app updates: build overlay, collecting signed payloads, publishing to the update server, steering a rollout |
+| `.github/workflows/desktop-updates.yml` | Manually triggered: widen, pause, resume or promote a release already on the update server |
 
 ## Prerequisites
 
@@ -107,6 +110,7 @@ tag. Go to **Actions > Release desktop app (Tauri) > Run workflow** and pick:
 | `version` | An exact version, e.g. `1.2.0`. Overrides `bump` when set. |
 | `dry_run` | Build the installers and attach them to the run as artifacts. No version bump, no tag, no release. |
 | `microsoft_store` | Also pack the Windows exe as an MSIX and submit it to the Microsoft Store. With `dry_run` the MSIX is attached to the run and not submitted. Needs version 1.0.0 or later and the setup in [Publishing from GitHub Actions](#publishing-from-github-actions). |
+| `update_channel`, `update_rollout`, `update_notes`, `update_critical` | How the release reaches copies already installed, through our update server. Only when in-app updates are set up; see [UPDATES.md](UPDATES.md#releasing). |
 
 A real run bumps the four files, commits that as `release: v<version>` on the
 default branch, tags it, builds Windows, macOS and Linux, and publishes a
@@ -116,6 +120,13 @@ changed anything that could affect the build.
 The bundles are unsigned, so users get a SmartScreen or Gatekeeper prompt on
 first launch (the release notes tell them how to get past it). See the store
 sections below for signing.
+
+Installed copies update themselves from our own update server, once that is
+set up: every release signs its update payloads, publishes them to the server
+after all three platforms built, and the app offers a restart into the new
+version. The portable zip only links to the download, and the two store
+builds leave updating to their store. [UPDATES.md](UPDATES.md) covers the
+setup, staged rollouts and pausing a bad release.
 
 ## Icons
 

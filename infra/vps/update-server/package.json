@@ -1,0 +1,14 @@
+{
+  "name": "openscreengen-updates",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Answers the desktop app's update check, serves the signed installers, and takes new releases from CI. No dependencies by design.",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

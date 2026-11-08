@@ -343,6 +343,11 @@ import { LocalFontNotice } from './LocalFontNotice';
 import { ProjectLoadOverlay } from './ProjectLoadOverlay';
 import packageJson from '../../../package.json';
 import { useToast } from '@/hooks/use-toast';
+import { listenUpdateFlush, reportEditsWritten } from '@/lib/updates/client';
+import { manualCheckToast } from '@/lib/updates/describe';
+import { useUpdateSchedule } from '@/lib/updates/store';
+import { AboutUpdateStatus } from './updates/AboutUpdateStatus';
+import { UpdateSidebarItem } from './updates/UpdateSidebarItem';
 import { ToastAction } from '@/components/ui/toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -1207,6 +1212,13 @@ export function OpenScreenshotGeneratorLayout() {
    */
   const [projectLoadStatus, setProjectLoadStatus] = useState<ProjectLoadStep | null>(null);
   const { toast } = useToast();
+  // Desktop updates (lib/updates). The main window asks the update server on a
+  // schedule and answers Help > Check for updates; the other editor windows
+  // only write their edits when an install asks them to (see below).
+  useUpdateSchedule(!isSecondaryWindow, (result) => {
+    const message = manualCheckToast(result);
+    if (message) toast(message);
+  });
   const artboardRefs = useRef<Record<string, any>>({});
   // Latest design-tool API for the desktop MCP server; assigned each render and
   // read per request by the bridge (see the block above the render return).
@@ -2310,6 +2322,33 @@ export function OpenScreenshotGeneratorLayout() {
   // Assigned in the tab block: the tab session, with the active tab's view,
   // and the agent chat.
   const beforeWindowCloseRef = useRef<() => Promise<unknown>>(() => Promise.resolve());
+  // Installing an update ends the process without the close hook below ever
+  // running, so Rust asks every editor window to write its edits first, and
+  // calls the install off when one cannot (src-tauri/src/updater.rs).
+  useEffect(() => {
+    if (!isTauri()) return;
+    let disposed = false;
+    let unlisten: () => void = () => {};
+    (async () => {
+      unlisten = await listenUpdateFlush(async (nonce) => {
+        let ok = true;
+        try {
+          await Promise.all([flushProjectSave(), beforeWindowCloseRef.current()]);
+        } catch (error) {
+          ok = false;
+          console.error('Could not write the edits before the update.', error);
+        }
+        await reportEditsWritten(nonce, ok).catch((error) =>
+          console.error('Could not answer the update install.', error)
+        );
+      });
+      if (disposed) unlisten();
+    })();
+    return () => {
+      disposed = true;
+      unlisten();
+    };
+  }, [flushProjectSave]);
   useEffect(() => {
     const flush = () => {
       void beforeWindowCloseRef.current();
@@ -11261,6 +11300,8 @@ const generateRandomProjectName = (): string => {
           <SidebarFooter className="group-data-[collapsible=icon]:justify-center">
              <SidebarGroup className="p-0">
               <SidebarMenu>
+                {/* Desktop: there only while an update is ready, out, or going in. */}
+                <UpdateSidebarItem />
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     tooltip={accountSession ? `Account, ${accountSession.account.name}` : 'Account'}
@@ -12326,6 +12367,8 @@ const generateRandomProjectName = (): string => {
                 </p>
                 <p>Projects are saved locally in your browser. Nothing is uploaded anywhere.</p>
               </div>
+              {/* Desktop: where updates stand, and the button that acts on it. */}
+              <AboutUpdateStatus />
               <DialogFooter className="gap-2 sm:justify-between">
                 <Button variant="outline" asChild>
                   <a

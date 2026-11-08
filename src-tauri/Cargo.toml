@@ -20,6 +20,9 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"
 tauri-plugin-opener = "2"
+# In-app updates from our own update server (updater.rs). Held on 2.12: every
+# 2.13 release needs tauri 2.12, and this app is on 2.11.
+tauri-plugin-updater = "~2.12"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Decoding the PNG the MCP export tools hand over for a file-path export, and
@@ -52,6 +55,9 @@ windows = { version = "0.61", features = [
   "Win32_Storage_Packaging_Appx",
   "Win32_System_Com",
   "Win32_UI_Shell",
+  # updater.rs: an MSIX install runs with a package identity, which tells the
+  # Microsoft Store build apart from the installers and the portable exe.
+  "Win32_Storage_Packaging_Appx",
   # devtools.rs: find the inspector window in our own process tree and WM_CLOSE
   # it, since WebView2 exposes no way to close or query it.
   "Win32_System_Diagnostics_ToolHelp",

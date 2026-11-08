@@ -28,6 +28,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Editing together, live | [src/lib/collab/](../src/lib/collab) (Yjs over WebRTC), signalling in [mcp-relay/src/collab.js](../infra/vps/mcp-relay/src/collab.js) |
 | Versions of a project | [src/lib/versions/store.ts](../src/lib/versions/store.ts) + the Dexie `projectVersions` table |
 | Dexie, 8 tables | [src/database.ts](../src/database.ts): `projects`, `media`, `operations`, `fonts`, `discoverPosts`, `cloudLinks`, `accountLinks`, `projectVersions` |
+| In-app updates (desktop), from our own update server | [src-tauri/src/updater.rs](../src-tauri/src/updater.rs) + [src/lib/updates/](../src/lib/updates/) + [UpdateSidebarItem.tsx](../src/components/open-screenshot-generator/updates/UpdateSidebarItem.tsx), the server in [infra/vps/update-server/](../infra/vps/update-server/), the release side in [scripts/updates/](../scripts/updates/), the whole story in [docs/UPDATES.md](../docs/UPDATES.md) |
 
 ## Rules
 
@@ -114,6 +115,11 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 38a. What the spawned `codex` may do is fixed in [codex.rs](../src-tauri/src/codex.rs), never by the page. It runs `codex app-server` with a Codex home of its own (`codex-agent/home` in the app's local data), whose `config.toml` Rust writes: web search off, the shell and every feature that brings a tool or loads the user's setup off (apps, plugins, hooks, memories, skills, browser and computer use), a read-only sandbox and approvals set to never. The design server is added per spawn with unquoted `-c` values and pre-approved with `default_tools_approval_mode=approve`; the token travels in `OSG_MCP_TOKEN`. Three things must never change: never run it on the user's own `~/.codex` (their MCP servers, plugins and skills come with it); never copy `auth.json` (`home/auth.json` is a link, so the token Codex refreshes lands in the user's file, and a copy would fork the refresh token and sign them out of their own Codex); and keep `code_mode_host` on (the current models reach every tool through `exec`, and without it the agent has none). Rust is the only JSON-RPC client: the page sends a turn as text and base64 pictures, Rust builds `turn/start`, answers every request Codex sends back (approvals declined), and puts U+2060 after any `$` that would name a skill Codex can see, because `$name` anywhere in a turn loads that skill. Every `OPENAI_`, `CODEX_`, `CLAUDE` and `ANTHROPIC_` variable bar `CODEX_CA_CERTIFICATE` is scrubbed: `OPENAI_API_KEY` alone moves the bill, and a `tauri dev` started from a Claude Code terminal would hand that session's messaging token on. A Codex chat has no code folders, and `agentReadsFolders` is false for its process.
 39. Cut a string that crosses the Tauri IPC bridge (a dock snapshot, a history label, anything sent to Rust) with `clipText` ([clipText.ts](../src/lib/clipText.ts)), never with a bare `slice`. `slice` counts UTF-16 units and can keep half an emoji, Rust's JSON parser refuses a lone surrogate, and the whole message is dropped: a selected layer whose name held one froze every detached panel window.
 
+**In-app updates**
+
+39a. Installing an update ends the process without any window's close hook, so `updater.rs` first asks every editor window to write its edits (`abs-update-flush`, answered with `abs_update_flushed`) and calls the install off when one cannot. Anything that must be written before a window goes away belongs in `beforeWindowCloseRef`, which both the close hook and that handshake run; a writer that only listens for the close is lost on every update. Child processes the app starts die in `stop_agents` there too, beside `RunEvent::Exit`.
+39b. What a build does about updates is decided in Rust (`detect` in `updater.rs`), never by the page: an installer build installs, the portable exe (no bundle-type mark) only links to the download, and the MSIX (package identity) and the Mac App Store build (sandbox) never check. The update server and the public key reach a build only through the overlay CI writes (`scripts/updates/configure-build.mjs`), so a local build and a fork have no updater; do not put either value in `tauri.conf.json`. The page can never call the updater plugin itself: no capability grants it, and the four `abs_update_*` commands answer `main` only.
+
 **Project tabs**
 
 40. Only the active tab's project is on the canvas. Leaving a tab parks its document and undo stack by reference in the parking lot ([parking.ts](../src/lib/tabs/parking.ts)), and coming back restores them without a read. `putProjectOnCanvas` is where the outgoing project is parked, so anything that puts a document on the canvas keeps going through it. Per-project canvas state that has to survive a switch goes into `ParkedProject` (memory only) or `TabView` (kept in the session) in the same commit, or it leaks from one tab into the next.
@@ -148,6 +154,7 @@ Two skills are mandatory here, not optional polish.
 | `npm run gen:ai-catalog` | after any template change |
 | `npm run build:assistant-agent` | after any web-adapter change |
 | `npm run tauri:dev` / `tauri:build` | desktop |
+| `npm run updates -- status` | what the update server offers each channel; also `rollout`, `pause`, `resume`, `promote` ([docs/UPDATES.md](../docs/UPDATES.md)) |
 | `npm run build` | `gen:ai-catalog` then `next build` into `out/` |
 | `npm start` | **not** a prod server, it just re-runs dev |
 | `npm run lint` | broken, do not run |

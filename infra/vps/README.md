@@ -17,6 +17,11 @@ browser. It has no database, no disk and no credential, and the services never
 talk to each other. Everything below is about PocketBase unless it says
 otherwise.
 
+The third container is the [update server](update-server/README.md), which
+hands the desktop app its updates. It keeps the published releases in a
+directory of its own, talks to neither of the others, and has its own section,
+[Desktop updates](#desktop-updates).
+
 **The editor does not need this box.** Templates, elements, fonts, the AI agent,
 translation and every export run in the browser, and the working copy of a
 project is always the one in IndexedDB — cloud projects are a copy, never the
@@ -74,6 +79,7 @@ whole design, so it is worth being explicit about what it rules out:
 | Google / GitHub OAuth client **secrets** | Not needed at all — see [Sign-in](#sign-in) |
 | A Caddy `basic_auth` bcrypt hash | On the box, in the Caddyfile there |
 | `pb-data/` | The box. It is gitignored, and it is the one thing here that cannot be recreated |
+| The update server's admin token | `UPDATES_ADMIN_TOKEN` in `/opt/openscreengen/.env` on the box, and the GitHub secret of the same name that the publishing CI jobs read |
 
 The neighbouring stack keeps its superuser password in its own README, which is
 correct *there* because that repository is private. Copying that habit here would
@@ -410,6 +416,12 @@ contributor with no OAuth app should see.
 The relay comes up with it. Add `NEXT_PUBLIC_MCP_RELAY_URL=http://127.0.0.1:8722`
 to `.env.local` and the dev editor grows an MCP pill you can connect from.
 
+So does the update server, on `127.0.0.1:8730`, handing out download URLs on
+that address. Its admin API stays off until `UPDATES_ADMIN_TOKEN` is set in
+`infra/vps/.env`. On Linux, run `mkdir -p updates-data && sudo chown 1000:1000 updates-data`
+first, or Docker creates the directory owned by root and the server cannot
+write to it.
+
 ---
 
 ## The MCP relay
@@ -443,6 +455,64 @@ What it means for this box:
   web build has no MCP feature at all. Stopping the container is also safe on its
   own; the editor shows the connection as offline and everything else is
   untouched.
+
+---
+
+## Desktop updates
+
+A third container, `openscreengen-updates`, is where the desktop app gets its
+updates. The Tauri updater asks it whether there is a newer version and
+downloads the signed installer from it. CI uploads each release through its
+admin API, then points a channel at it.
+
+```
+  desktop app ──GET /v1/desktop/<platform>/<version>──►  update server
+              ◄──── 204, or version, URL, signature ────
+              ──GET /v1/files/<version>/<file>────────►
+  CI          ──PUT /v1/admin/..., with the token─────►
+```
+
+The routes, the rollout rules and what it keeps on disk are in
+[update-server/README.md](update-server/README.md).
+
+What it means for this box:
+
+- **It has state.** Every published release, the two channel pointers and the
+  history of every pointer change live in `/opt/openscreengen/updates-data`, a
+  bind mount like `pb-data`. A published release never changes, and no deploy
+  step touches that directory.
+- **One secret**, `UPDATES_ADMIN_TOKEN`, in `/opt/openscreengen/.env` and in
+  the GitHub secret the publishing CI jobs read, never in this repo. Unset, or shorter
+  than 32 characters, and the admin routes answer 404: the box keeps serving
+  what is published and takes nothing new.
+- **Its own hostname**, `updates.openscrgen.app`, with its own explicit A record
+  like `pb` and `mcp`, and its own block in the neighbour's Caddyfile (in
+  `shared-caddy.Caddyfile`). That Caddy only proxies by container name, so the
+  container serves the installers itself.
+- **Stopping it stops updates and nothing else.** Installed copies keep running
+  the version they have.
+
+### Before the first deploy
+
+Once, on the box:
+
+```bash
+cd /opt/openscreengen
+mkdir -p updates-data && chown 1000:1000 updates-data
+printf 'UPDATES_ADMIN_TOKEN=%s\n' '<the token npm run updates:keygen printed>' >> .env && chmod 600 .env
+```
+
+The container runs as `node`, uid 1000. Skip the `chown` and Docker creates
+`updates-data` owned by root on the first `up`, the server cannot write to it,
+and it restarts in a loop, saying why in
+`docker compose logs openscreengen-updates`. The token in `.env` and the
+`UPDATES_ADMIN_TOKEN` secret in GitHub have to be the same value
+([docs/UPDATES.md](../../docs/UPDATES.md#one-time-setup)).
+
+Then add the `updates` A record (explicit, as in [First run](#first-run)), put
+the `updates.openscrgen.app` block from
+[`shared-caddy.Caddyfile`](shared-caddy.Caddyfile) into the neighbour's repo,
+and deploy with [its own loop](#the-update-server-is-a-different-loop-again).
 
 ---
 
@@ -714,6 +784,15 @@ curl -s -o /dev/null -w '%{http_code}\n' https://pb.openscrgen.app/api/openscree
 
 # the MCP relay is up, and how many editor tabs are connected right now
 curl -s https://mcp.openscrgen.app/healthz        # {"ok":true,"tabs":0}
+
+# the update server is up, and the version each channel points at
+curl -s https://updates.openscrgen.app/healthz    # {"ok":true,"channels":{"stable":"1.0.7","beta":null}}
+
+# an install on 0.0.1 is offered stable: 200, or 204 while no stable release is out to everybody
+curl -s -o /dev/null -w '%{http_code}\n' https://updates.openscrgen.app/v1/desktop/windows/x86_64/nsis/0.0.1
+
+# the admin API wants the token. 404 instead of 401 means UPDATES_ADMIN_TOKEN is not set on the box
+curl -s -o /dev/null -w '%{http_code}\n' https://updates.openscrgen.app/v1/admin/channels   # 401
 ```
 
 **Every route still registered.** A hook file with a syntax error does not stop
@@ -840,6 +919,29 @@ There is nothing to back up first and nothing to roll back to — the relay hold
 no state, so a bad deploy is fixed by deploying again. Connected tabs reconnect
 on their own within a few seconds; a call in flight during the restart fails with
 a timeout its client can retry.
+
+### The update server is a different loop again
+
+Its code is baked into its image like the relay's, so it is rebuilt rather than
+restarted:
+
+```bash
+tar -czf - -C infra/vps update-server | ssh -i "$KEY" "$BOX" 'tar -xzf - -C /opt/openscreengen'
+ssh -i "$KEY" "$BOX" 'cd /opt/openscreengen && docker compose -f docker-compose.yml -f docker-compose.shared-caddy.yml up -d --build openscreengen-updates'
+curl -s https://updates.openscrgen.app/healthz
+```
+
+The first time, the compose files on the box do not know the service yet, so
+send them before the `up`, keeping a copy of the ones they replace:
+
+```bash
+ssh -i "$KEY" "$BOX" 'cd /opt/openscreengen && for f in docker-compose.yml docker-compose.shared-caddy.yml; do cp -a "$f" "$f.bak-$(date +%Y%m%d-%H%M)"; done'
+tar -czf - -C infra/vps docker-compose.yml docker-compose.shared-caddy.yml | ssh -i "$KEY" "$BOX" 'tar -xzf - -C /opt/openscreengen'
+```
+
+The releases live in `updates-data`, outside the image, so a rebuild cannot
+lose one and a bad deploy is fixed by deploying again. A download in flight
+during the restart is cut off and has to start over.
 
 ### Rollback
 
@@ -971,6 +1073,15 @@ PocketBase also has its own scheduled backups in the dashboard under
 with respect to SQLite's write-ahead log and a naive `tar` of a live database is
 not.
 
+`updates-data` is the update server's whole state: every published installer,
+the channel pointers and the history of every pointer change. Each file in it
+is written whole and then renamed into place, so a `tar` of the live directory
+never holds half a manifest or half a pointer:
+
+```bash
+tar czf /root/osg-updates-$(date +%F).tgz -C /opt/openscreengen updates-data
+```
+
 ---
 
 ## Files
@@ -985,6 +1096,11 @@ not.
 | `pocketbase/Dockerfile` | pinned version **and its checksum** — bump them together |
 | `mcp-relay/src/server.js` | the whole relay. No dependencies, no state, no secret |
 | `mcp-relay/Dockerfile` | node + one file. Nothing is installed at build time |
+| `update-server/src/server.js` | the update server's routes: the updater's check, the downloads, the admin API |
+| `update-server/src/store.js` | what the update server keeps in `updates-data`, each file written in `tmp/` and renamed into place |
+| `update-server/src/resolve.js` | which release an install is offered. Pure: no disk, no HTTP |
+| `update-server/Dockerfile` | node plus the source, like the relay's. Runs as uid 1000 |
+| `updates-data/` | the published releases, the channel pointers and their history. On the box, never in this repo |
 | `pb-hooks/lib/openscreengen.js` | everything shared. **Not** `*.pb.js`, deliberately |
 | `pb-hooks/lib/dash.js` | the control dashboard's share of that, kept separate so it cannot inherit the feed's parsing rules. **Not** `*.pb.js` either |
 | `pb-hooks/040_auth.pb.js` | the two sign-in doors, the profile, account deletion |

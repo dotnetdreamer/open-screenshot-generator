@@ -10,7 +10,8 @@
 #
 # What this override does, and nothing else:
 #   - joins the neighbour's compose network, so their Caddy can resolve
-#     `openscreengen-pocketbase` and `openscreengen-mcp-relay` by name
+#     `openscreengen-pocketbase`, `openscreengen-mcp-relay` and
+#     `openscreengen-updates` by name
 #   - leaves `caddy` behind its profile, so no second process fights for :443
 #
 # The network is EXTERNAL: this file never creates it. If the neighbour's stack
@@ -26,6 +27,11 @@ services:
       - edge
 
   openscreengen-mcp-relay:
+    networks:
+      - default
+      - edge
+
+  openscreengen-updates:
     networks:
       - default
       - edge
