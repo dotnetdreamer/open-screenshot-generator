@@ -17,21 +17,21 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'What to do'
+        description: 'What to do. status: show what users get now. rollout: change how many users get the update. pause: stop giving out the update. resume: give it out again. promote: give an already released version to the users picked below, e.g. move a beta to everyone'
         type: choice
         options: [status, rollout, pause, resume, promote]
         default: status
       channel:
-        description: 'Which channel'
+        description: 'Which users. stable: everyone. beta: only people who turned on "Get beta versions" in the app settings'
         type: choice
         options: [stable, beta]
         default: stable
       percent:
-        description: 'rollout and promote: percent of installs offered the release'
+        description: 'For rollout and promote: percent of users who get it. 100 means everyone'
         type: number
         default: 100
       version:
-        description: 'promote: the published version to point the channel at, e.g. 1.2.0'
+        description: 'For promote only: the version to give them, like 1.2.0'
         type: string
         default: ''
 
