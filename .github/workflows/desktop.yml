@@ -64,7 +64,7 @@ on:
         type: string
         default: ''
       update_critical:
-        description: 'Urgent fix: the app shows the update message by itself, as soon as it is ready'
+        description: 'Urgent fix: instead of only a small "Restart to update" button, the app pops up the update message on its own and warns that it fixes a serious problem. People can still pick Later'
         type: boolean
         default: false
 
@@ -313,6 +313,14 @@ jobs:
           # so it stays live while the slower platforms are still uploading.
           releaseDraft: false
           prerelease: false
+          # The version job already pushed the tag, so this never decides where
+          # it points. It is here for GitHub's rule that the GITHUB_TOKEN may
+          # not create a release whose target commit has different workflow
+          # files from the default branch. The default target, the commit this
+          # run started on, breaks that rule as soon as a workflow change lands
+          # on the default branch mid-release; the branch never differs from
+          # itself.
+          releaseCommitish: ${{ github.event.repository.default_branch }}
           # The bundles are unsigned, so both OSes will warn on first launch.
           # Saying so here is cheaper than fielding the bug reports.
           releaseBody: |
