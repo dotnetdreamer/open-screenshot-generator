@@ -61,8 +61,8 @@ const KEYS: Record<EditorPreference, string> = {
  * their bandwidth and their permanent gist commit history are theirs, and
  * writing to them unattended is a thing to be asked for rather than assumed.
  *
- * The safe area guide is on: an iPhone shows only the middle of a header, and
- * the guide is the only place that says so while you design.
+ * The safe area guide is on: some devices show far less of a header than an
+ * iPhone does, and the guide is the only place that says so while you design.
  *
  * Asking before an edited tab closes is on. Nothing is lost when one closes,
  * but a click on the wrong cross should not end a working session unasked.

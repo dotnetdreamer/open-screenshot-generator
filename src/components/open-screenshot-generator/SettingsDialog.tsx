@@ -273,7 +273,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
             />
             <SettingsRow
               label="Show the safe area on header and search art"
-              description="Outlines the part of an App Store header or search artboard that every device shows. Never exported"
+              description="Outlines what every device shows of an App Store header or search artboard, and what an iPhone shows. Never exported"
               htmlFor="settings-creative-safe-area"
               control={
                 <Switch

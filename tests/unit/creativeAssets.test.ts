@@ -13,7 +13,8 @@ import {
   creativeSpecForPreset,
   creativeSummary,
   CREATIVE_ASSETS,
-  headerButtonClearance,
+  iphoneAreaFor,
+  iphoneCropFor,
   iphoneHeaderButtonsFor,
   minReadableGlyph,
   safeAreaFor,
@@ -21,8 +22,20 @@ import {
 } from '@/lib/creative/specs';
 import { hash32 } from '@/lib/i18n/hash';
 import { checkPng, isCreativeArt, rulesetFor } from '../../cli/src/verify/rules';
-import { buildCreativeBoard, CREATIVE_LOOKS, readProjectLook, suggestedAppName } from '@/lib/creative/layouts';
+import {
+  boardFacesMissing,
+  boardFacesPending,
+  buildCreativeBoard,
+  canRebuildCreativeBoard,
+  CREATIVE_LOOKS,
+  lookFacesPending,
+  readProjectLook,
+  rebuildCreativeBoard,
+  suggestedAppName,
+} from '@/lib/creative/layouts';
 import { checkCreativeBoard, checkCreativeView, countIssues } from '@/lib/creative/check';
+import { fitGlyph, roughWidth, type Face } from '@/lib/creative/typeFit';
+import { headerTopEdge } from '@/lib/creative/topEdge';
 import { decodeCreativeLookChoice, encodeCreativeLookChoice } from '@/lib/creative/paletteDrag';
 import { computeSpill, reachedArtboardIds, stripBoards } from '@/lib/spanArtboards';
 import { normalizeBackgroundImage } from '@/lib/artboardBackground';
@@ -33,7 +46,9 @@ import type {
   ArtboardState,
   CreativeAssetKind,
   DeviceFrameElementProps,
+  ImageElementProps,
   ProjectLocalization,
+  ShapeElementProps,
   TextElementProps,
 } from '@/types/artboard';
 
@@ -143,16 +158,66 @@ test("the sizes and safe areas are Apple's, and each safe area sits inside its c
   assert.deepEqual(creativeSpec('universal').safe, { x: 1921, y: 660, width: 1402, height: 962 });
   for (const spec of CREATIVE_ASSETS) {
     const canvas = { x: 0, y: 0, width: spec.width, height: spec.height };
+    const art = { creativeAsset: spec.kind, size: { width: spec.width, height: spec.height } };
     assert.ok(rectInside(spec.safe, canvas, 0), spec.kind);
     for (const placement of spec.placements) {
-      const crop = spec.iphone[placement]!;
-      assert.ok(rectInside(crop, canvas, 0), `${spec.kind} ${placement} crop`);
+      const crop = iphoneCropFor(art, placement)!;
+      assert.ok(rectInside(crop, canvas, 0.5), `${spec.kind} ${placement} crop`);
       // Whatever is inside the safe area shows on an iPhone.
       assert.ok(rectInside(spec.safe, crop, 1), `${spec.kind} ${placement}`);
     }
   }
   assert.deepEqual(creativeSpec('universal').imageFormats, ['PNG']);
   assert.equal(creativeSpec('universal').video, null);
+});
+
+test('an iPhone shows far more than the safe area: all of a header top to bottom, and search art from edge to edge', () => {
+  const header = { creativeAsset: 'header' as const, size: { width: 3840, height: 1646 } };
+  const search = { creativeAsset: 'search' as const, size: { width: 3840, height: 2560 } };
+  const universal = { creativeAsset: 'universal' as const, size: { width: 5244, height: 2950 } };
+
+  // A header keeps its full height and loses about 8% at each side.
+  const headerCrop = iphoneCropFor(header, 'header')!;
+  assert.equal(headerCrop.y, 0);
+  assert.equal(headerCrop.height, 1646);
+  assert.ok(headerCrop.width / 3840 > 0.82 && headerCrop.width / 3840 < 0.86, `${headerCrop.width}`);
+  assert.equal(Math.round(headerCrop.x * 2 + headerCrop.width), 3840);
+  // The safe area is about half as wide as that, and two fifths as tall.
+  assert.ok(safeAreaFor(header)!.width / headerCrop.width < 0.55);
+
+  // Search art keeps its whole width and its top, and loses a strip along the bottom.
+  const searchCrop = iphoneCropFor(search, 'search')!;
+  assert.deepEqual([searchCrop.x, searchCrop.y, searchCrop.width], [0, 0, 3840]);
+  assert.ok(searchCrop.height / 2560 > 0.82 && searchCrop.height / 2560 < 0.86, `${searchCrop.height}`);
+
+  // What App Store Connect's iPhone preview showed of the design in issue #46:
+  // the search card was 296 x 165 on screen, the copy began 75 pixels in and
+  // the phone 65 pixels down. The design looks like this editor's own, and is
+  // taken to have had no layer moved, which puts its copy at x 966 and its
+  // phone at y 844. The project itself was not to hand.
+  assert.ok(Math.abs(966 / searchCrop.width - 75 / 296) < 0.01);
+  assert.ok(Math.abs(844 / searchCrop.height - 65 / 165) < 0.01);
+
+  // A smaller search board is cropped the same way.
+  const half = iphoneCropFor({ creativeAsset: 'search', size: { width: 1920, height: 1280 } }, 'search')!;
+  assert.equal(half.width, 1920);
+  assert.equal(Math.round(half.height * 2), Math.round(searchCrop.height));
+
+  // A universal image is as wide as either window, so it keeps its width in
+  // both and its top; the header window is the shorter of the two.
+  const asHeader = iphoneCropFor(universal, 'header')!;
+  const asSearch = iphoneCropFor(universal, 'search')!;
+  assert.deepEqual([asHeader.x, asHeader.y, asHeader.width], [0, 0, 5244]);
+  assert.deepEqual([asSearch.x, asSearch.y, asSearch.width], [0, 0, 5244]);
+  assert.ok(asHeader.height < asSearch.height && asSearch.height < 2950);
+  assert.deepEqual(iphoneAreaFor(universal), asHeader);
+  assert.deepEqual(iphoneAreaFor(header), headerCrop);
+
+  // Art is only cropped for a placement it fills, and a screenshot never is.
+  assert.equal(iphoneCropFor(header, 'search'), null);
+  assert.equal(iphoneCropFor(search, 'header'), null);
+  assert.equal(iphoneCropFor({ size: { width: 1206, height: 2622 } }, 'header'), null);
+  assert.equal(iphoneAreaFor({ size: { width: 1206, height: 2622 } }), null);
 });
 
 test('search art takes any 3:2 size Apple lists; the header and universal sizes are exact', () => {
@@ -171,12 +236,19 @@ test('search art takes any 3:2 size Apple lists; the header and universal sizes 
   assert.equal(safeAreaFor({ size: { width: 1206, height: 2622 } }), null);
 });
 
-test('creative presets are the MCP way in, and the summary carries the safe area an agent cannot see', () => {
+test('creative presets are the MCP way in, and the summary carries the two areas an agent cannot see', () => {
   assert.equal(creativeSpecForPreset('appstore-header')?.kind, 'header');
   assert.equal(creativeSpecForPreset('ios-6-3'), undefined);
   assert.deepEqual(creativeSummary({ creativeAsset: 'header', size: { width: 3840, height: 1646 } }), {
     creativeAsset: 'header',
     safeArea: { x: 1097, y: 493, width: 1646, height: 661 },
+    iphoneArea: { x: 315, y: 0, width: 3210, height: 1646 },
+  });
+  assert.deepEqual(creativeSummary({ creativeAsset: 'search', size: { width: 3840, height: 2560 } }).iphoneArea, {
+    x: 0,
+    y: 0,
+    width: 3840,
+    height: 2145,
   });
   assert.deepEqual(creativeSummary({ size: { width: 1206, height: 2622 } }), {});
 });
@@ -259,7 +331,7 @@ test('a placement shows its own art first and falls back to a universal image', 
 
 const KINDS: CreativeAssetKind[] = ['header', 'search', 'universal'];
 
-test('every look lands at Apple size, tagged, with its text inside the safe area at a readable size', () => {
+test('every look lands at Apple size, its text inside the safe area at a size that reads, its screens inside what an iPhone shows', () => {
   const look = readProjectLook(screenshotsProject(), 'Habit Garden');
   for (const kind of KINDS) {
     for (const entry of CREATIVE_LOOKS[kind]) {
@@ -268,6 +340,7 @@ test('every look lands at Apple size, tagged, with its text inside the safe area
       assert.equal(made.creativeAsset, kind, label);
       assert.deepEqual(made.size, { width: creativeSpec(kind).width, height: creativeSpec(kind).height }, label);
       const safe = safeAreaFor(made)!;
+      const shown = iphoneAreaFor(made)!;
       const minGlyph = minReadableGlyph(made);
       const texts = made.elements.filter((el): el is TextElementProps => el.type === 'text');
       assert.ok(texts.length > 0, `${label} has copy`);
@@ -275,11 +348,453 @@ test('every look lands at Apple size, tagged, with its text inside the safe area
         assert.ok(inside(t, safe), `${label}: "${t.content}" inside the safe area`);
         assert.ok(t.fontSize / 0.3 >= minGlyph * 0.99, `${label}: "${t.content}" readable on an iPhone`);
       }
+      // A screen may run off the bottom, never off a side the phone shows.
+      for (const d of made.elements.filter((el) => el.type === 'device')) {
+        assert.ok(d.position.x >= shown.x - 1, `${label}: a screen is cut at the left on an iPhone`);
+        assert.ok(d.position.x + d.size.width <= shown.x + shown.width + 1, `${label}: a screen is cut at the right`);
+        assert.ok(d.position.y < shown.y + shown.height, `${label}: a screen is below what an iPhone shows`);
+      }
       const ids = made.elements.map((el) => el.id);
       assert.equal(new Set(ids).size, ids.length, `${label} ids are unique`);
       assert.ok(ids.every((id) => id.startsWith('cr-seed-')), label);
     }
   }
+});
+
+test('the type is sized for the phone that shows the art smallest, which is an iPhone at full width', () => {
+  // 11pt on an iPhone, in artboard pixels: a header shows 3210 of them across
+  // 393 points, a search card 3840 across 353, a universal image 5244 across 353.
+  assert.equal(Math.round(minReadableGlyph({ creativeAsset: 'header', size: { width: 3840, height: 1646 } })), 90);
+  assert.equal(Math.round(minReadableGlyph({ creativeAsset: 'search', size: { width: 3840, height: 2560 } })), 120);
+  assert.equal(Math.round(minReadableGlyph({ creativeAsset: 'universal', size: { width: 5244, height: 2950 } })), 163);
+  assert.equal(minReadableGlyph({ size: { width: 1206, height: 2622 } }), 0);
+});
+
+test('the screens sit beside the safe area, so the copy has all of it and the design fills the phone', () => {
+  const look = readProjectLook(screenshotsProject(), 'Habit Garden');
+  /** How much of the width an iPhone shows the design covers, from its first element to its last. */
+  const span = (made: ArtboardState) => {
+    const shown = iphoneAreaFor(made)!;
+    const left = Math.min(...made.elements.map((el) => el.position.x));
+    const right = Math.max(...made.elements.map((el) => el.position.x + el.size.width));
+    return (Math.min(right, shown.x + shown.width) - Math.max(left, shown.x)) / shown.width;
+  };
+  const devices = (made: ArtboardState) => made.elements.filter((el) => el.type === 'device');
+
+  const search = buildCreativeBoard('search', 'headline-phone', look, 'f');
+  const safe = safeAreaFor(search)!;
+  const headline = search.elements.find((el) => el.type === 'text' && el.name === 'Headline') as TextElementProps;
+  // The headline takes the width of the safe area, at about twice the least that reads.
+  assert.ok(headline.size.width > safe.width * 0.85);
+  assert.ok(headline.fontSize / 0.3 > minReadableGlyph(search) * 1.6, `${headline.fontSize / 0.3}`);
+  // A search result prints the app name right above the art, so the art does not repeat it.
+  assert.equal(search.elements.some((el) => el.name === 'App name'), false);
+  assert.ok(devices(search)[0].position.x >= safe.x + safe.width);
+  assert.ok(span(search) > 0.7, `${span(search)}`);
+
+  // A screen each side of the headline.
+  const pair = buildCreativeBoard('search', 'two-phones', look, 'f');
+  const [left, right] = devices(pair).sort((a, b) => a.position.x - b.position.x);
+  assert.ok(left.position.x + left.size.width <= safe.x && right.position.x >= safe.x + safe.width);
+  assert.ok(span(pair) > 0.9, `${span(pair)}`);
+
+  // A header's screen stays out from under the share button over its corner.
+  const header = buildCreativeBoard('header', 'name-phone', look, 'f');
+  const [, share] = iphoneHeaderButtonsFor(header);
+  const screen = devices(header)[0];
+  assert.ok(screen.position.x >= safeAreaFor(header)!.x + safeAreaFor(header)!.width);
+  assert.ok(screen.position.y >= share.y + share.height, `${screen.position.y} under the button at ${share.y + share.height}`);
+  assert.ok(span(header) > 0.65, `${span(header)}`);
+  assert.ok(span(buildCreativeBoard('header', 'showcase', look, 'f')) > 0.75);
+});
+
+test('a line with no room at a size that reads is left out, and the name takes its place', () => {
+  const look = readProjectLook(screenshotsProject(), 'Habit Garden');
+  // The universal safe area is about 94 points wide in a search result. A
+  // tagline does not fit there at 11pt, so the wordmark stands alone, on two
+  // lines because that sets it bigger.
+  const universal = buildCreativeBoard('universal', 'wordmark', look, 'u');
+  const texts = universal.elements.filter((el): el is TextElementProps => el.type === 'text');
+  assert.deepEqual(texts.map((t) => t.content), ['Habit\nGarden']);
+  // The same wordmark on search art has the room, and keeps its line.
+  const search = buildCreativeBoard('search', 'wordmark', look, 'u');
+  assert.deepEqual(
+    search.elements.filter((el) => el.type === 'text').map((el) => el.name),
+    ['App name', 'Subheadline']
+  );
+  // A header never has one: the page prints the name and subtitle right under it.
+  const header = buildCreativeBoard('header', 'wordmark', look, 'u');
+  assert.deepEqual(header.elements.map((el) => el.name), ['App name']);
+});
+
+// --- type that fits its box ------------------------------------------------------
+
+/**
+ * Arial Bold's own advance widths for these letters, in ems. They come to 9.72
+ * for "MOMMY MORNINGS", which is what a browser measures for it.
+ */
+const ARIAL_BOLD: Record<string, number> = {
+  M: 0.833,
+  O: 0.778,
+  Y: 0.667,
+  R: 0.722,
+  N: 0.722,
+  I: 0.278,
+  G: 0.778,
+  S: 0.667,
+  ' ': 0.278,
+};
+
+/** A project whose headline is set in Arial and is too long to sit under a name on the universal image. */
+function arialProject(): ArtboardState[] {
+  return [board('shot', [text('h1', 'Calm mornings for the whole family', 48, { fontFamily: 'Arial' }), phone('p1')])];
+}
+
+test("a name in capitals fits its box by Arial Bold's own widths, which an average letter falls short of", () => {
+  // Found reviewing the fix for issue #46: sized by one average letter,
+  // "MORNINGS" was taken to be narrower than Arial sets it, broke onto a line
+  // its box had no room for, and the box cut it off. Every design that sets
+  // the name is held to the real widths here.
+  const look = readProjectLook(arialProject(), 'MOMMY MORNINGS');
+  let named = 0;
+  for (const kind of KINDS) {
+    for (const entry of CREATIVE_LOOKS[kind]) {
+      const made = buildCreativeBoard(kind, entry.id, look, 'caps');
+      const name = made.elements.find((el) => el.name === 'App name') as TextElementProps | undefined;
+      if (!name) continue;
+      named += 1;
+      const label = `${kind}/${entry.id}`;
+      assert.equal(name.fontFamily, 'Arial', label);
+      const glyph = name.fontSize / 0.3;
+      const tracking = (name.letterSpacing ?? 0) / 0.3;
+      const lines = name.content.split('\n');
+      for (const line of lines) {
+        const width = [...line].reduce((sum, char) => sum + ARIAL_BOLD[char] * glyph + tracking, 0);
+        // The box's own padding is 2px each side.
+        assert.ok(width <= name.size.width - 4, `${label}: "${line}" is ${Math.round(width)}px in a ${name.size.width}px box`);
+      }
+      assert.ok(name.size.height >= lines.length * glyph * name.lineHeight! + 4, `${label}: the box holds its lines`);
+      assert.ok(glyph >= minReadableGlyph(made) * 0.99, `${label}: still a size that reads`);
+    }
+  }
+  // Wordmark, name and screen, and showcase on a header; the wordmark on search art; both universal designs.
+  assert.equal(named, 6);
+});
+
+test('a name with no room on two lines takes three, at a size that still reads', () => {
+  // The universal safe area is 94 points wide on a phone. "Open Screenshot" is
+  // too long for one line of it at 11pt, so the name goes a word to a line.
+  const look = readProjectLook(arialProject(), 'Open Screenshot Generator');
+  const made = buildCreativeBoard('universal', 'wordmark', look, 'three');
+  const [name] = made.elements.filter((el): el is TextElementProps => el.type === 'text');
+  assert.equal(name.content, 'Open\nScreenshot\nGenerator');
+  assert.ok(name.fontSize / 0.3 >= minReadableGlyph(made) * 0.99);
+  assert.ok(inside(name, safeAreaFor(made)!));
+  // In every language the name reads the same, broken the same way.
+  assert.deepEqual(checkCreativeView(made, null).filter((issue) => /^(clipped|small|safe):/.test(issue.key)), []);
+
+  // A header is wide enough for two lines, which set the name far bigger than
+  // three would in its shallow safe area.
+  const header = buildCreativeBoard('header', 'wordmark', look, 'three');
+  const wide = header.elements[0] as TextElementProps;
+  assert.equal(wide.content, 'Open Screenshot\nGenerator');
+  assert.ok(wide.fontSize / 0.3 > minReadableGlyph(header) * 1.5, `${wide.fontSize / 0.3}`);
+});
+
+test('a name with no room at a size that reads is set whole and smaller, never cut and never broken inside a word', () => {
+  // One word of twenty letters, in a safe area that holds about twelve at 11pt.
+  const look = readProjectLook(arialProject(), 'Supercalifragilistic');
+  const made = buildCreativeBoard('universal', 'wordmark', look, 'long');
+  const [name] = made.elements.filter((el): el is TextElementProps => el.type === 'text');
+  assert.equal(name.content, 'Supercalifragilistic');
+  const glyph = name.fontSize / 0.3;
+  const face: Face = { fontFamily: 'Arial', fontWeight: '700', lineHeight: name.lineHeight!, tracking: -0.02 };
+  // On one line, inside its box.
+  assert.ok(roughWidth(name.content, face) * glyph <= name.size.width - 4);
+  assert.ok(name.size.height >= glyph * name.lineHeight! + 4);
+  assert.ok(inside(name, safeAreaFor(made)!));
+  // Under the size that reads, by no more than half, and the check says so.
+  assert.ok(glyph < minReadableGlyph(made) && glyph >= minReadableGlyph(made) * 0.5, `${glyph}`);
+  const keys = checkCreativeView(made, null).map((issue) => issue.key.split(':')[0]);
+  assert.ok(keys.includes('small'));
+  assert.ok(!keys.includes('clipped'));
+
+  // The headline of search art is held to the same: one word far too long for
+  // its line comes out smaller, and the design still has its headline.
+  const wordy = [board('shot', [text('h1', 'Pneumonoultramicroscopicsilicovolcanoconiosis explained', 48), phone('p1')])];
+  const search = buildCreativeBoard('search', 'headline-phone', readProjectLook(wordy, 'Lexicon'), 'long');
+  const headline = search.elements.find((el) => el.name === 'Headline') as TextElementProps;
+  assert.ok(headline, 'the headline is never left out');
+  const copy: Face = { fontFamily: headline.fontFamily, fontWeight: '700', lineHeight: headline.lineHeight!, tracking: -0.015 };
+  assert.ok(roughWidth('Pneumonoultramicroscopicsilicovolcanoconiosis', copy) * (headline.fontSize / 0.3) <= headline.size.width - 4);
+});
+
+test('the fit never breaks a word to make it fit, and says when the smallest size is still too big', () => {
+  const face: Face = { fontFamily: 'Arial', fontWeight: '700', lineHeight: 1.1, tracking: 0 };
+  const box = { width: 1000, height: 600 };
+  // Two words that fit a line each: as big as the box's height takes two lines.
+  const two = fitGlyph('Habit Garden', box, { max: 400, min: 60, maxLines: 2, face });
+  assert.equal(two.fits, true);
+  assert.equal(two.lines, 2);
+  assert.ok(two.glyph * 1.1 * 2 + 4 <= box.height);
+  assert.ok(roughWidth('Garden', face) * two.glyph <= box.width - 4);
+  // The same copy held to one line comes out smaller, and never under `min`.
+  const one = fitGlyph('Habit Garden', box, { max: 400, min: 60, maxLines: 1, face });
+  assert.equal(one.lines, 1);
+  assert.ok(one.glyph < two.glyph && one.glyph >= 60);
+  // A word wider than the box at the smallest size is not made to fit by
+  // breaking it across the lines it is allowed.
+  const long = fitGlyph('Supercalifragilistic', box, { max: 400, min: 120, maxLines: 4, face });
+  assert.equal(long.fits, false);
+  assert.ok(Math.abs(long.glyph - 120) < 0.5);
+  // A size a text element can store, to one decimal of its fontSize.
+  for (const fit of [two, one, long]) assert.ok(Math.abs(fit.glyph * 3 - Math.round(fit.glyph * 3)) < 1e-6);
+  // Capitals are counted wider than lower case, and a CJK glyph as a full em.
+  assert.ok(roughWidth('MORNINGS', face) > roughWidth('mornings', face) * 1.1);
+  assert.ok(roughWidth('MORNINGS', face) >= 5.5, 'no narrower than Arial Bold sets it');
+  assert.equal(roughWidth('日本語', face), 3);
+});
+
+test('copy that several languages share is fitted to the base language as well as the longest one', () => {
+  // Longer by the letter, in short words.
+  const german = 'Kurz und gut ist es hier wohl';
+  // Shorter, with one word that needs a line to itself.
+  const english = 'Internationalization rocks';
+  const face: Face = { fontFamily: 'Arial', fontWeight: '700', lineHeight: 1.1, tracking: 0 };
+  const box = { width: 1000, height: 420 };
+  const word = roughWidth('Internationalization', face);
+  const germanOnly = fitGlyph(german, box, { max: 300, min: 40, maxLines: 3, face });
+  const both = fitGlyph([english, german], box, { max: 300, min: 40, maxLines: 3, face });
+  // Sized for the German alone, the English word is wider than its line.
+  assert.ok(word * germanOnly.glyph > box.width - 4);
+  assert.equal(both.fits, true);
+  assert.ok(word * both.glyph <= box.width - 4, `${both.glyph}`);
+
+  // A translation that runs long is shrunk to fit when it is drawn. The base
+  // language is not, so a design has to fit the base copy as it stands.
+  const project = [
+    board('shot', [text('h1', english, 60), phone('p1')], {
+      localization: LOCALIZATION,
+      localized: { 'de-DE': { h1: { content: german, origin: 'manual' } } },
+    }),
+  ];
+  const made = buildCreativeBoard('search', 'headline-phone', readProjectLook(project, 'Lexicon'), 'langs');
+  const headline = made.elements.find((el) => el.name === 'Headline') as TextElementProps;
+  assert.equal(headline.content, english);
+  assert.equal(made.localized?.['de-DE']?.[headline.id]?.content, german);
+  const set: Face = { fontFamily: headline.fontFamily, fontWeight: '700', lineHeight: headline.lineHeight!, tracking: -0.015 };
+  assert.ok(roughWidth('Internationalization', set) * (headline.fontSize / 0.3) <= headline.size.width - 4);
+});
+
+// --- art that is already in the project ----------------------------------------------
+
+/**
+ * Search art the way the first designs laid it out: an eyebrow with the app
+ * name, the headline, a line under it and the phone, all inside the safe area.
+ * The user has since changed the headline, translated it, swapped the screen
+ * and added a layer of their own.
+ */
+function firstDesignSearch(): ArtboardState {
+  return board(
+    'artboard_old1s_search',
+    [
+      text('cr-old1s-search-name', 'Habit Garden', 13.5, {
+        name: 'App name',
+        position: { x: 966, y: 880 },
+        size: { width: 1000, height: 60 },
+        color: '#C7D2FE',
+        fontWeight: '600',
+      }),
+      text('cr-old1s-search-headline', 'Plan every habit\nyour own way', 42, {
+        name: 'Headline',
+        position: { x: 966, y: 960 },
+        size: { width: 1100, height: 330 },
+        color: '#FDE68A',
+      }),
+      text('cr-old1s-search-subhead', 'Streaks that forgive a day off', 17, {
+        name: 'Subheadline',
+        position: { x: 966, y: 1320 },
+        size: { width: 1100, height: 80 },
+        color: '#A5B4FC',
+        fontWeight: '400',
+      }),
+      phone('cr-old1s-search-phone', {
+        name: 'Phone',
+        position: { x: 2250, y: 844 },
+        size: { width: 500, height: 1060 },
+        screenshotSrc: 'asset:mine',
+      }),
+      text('badge', 'Beta', 20, { name: 'Badge', position: { x: 3300, y: 200 }, size: { width: 300, height: 100 } }),
+    ],
+    {
+      name: 'Winter search',
+      creativeAsset: 'search',
+      size: { width: 3840, height: 2560 },
+      backgroundColor: '#1E1B4B',
+      localization: LOCALIZATION,
+      localized: {
+        'de-DE': {
+          'cr-old1s-search-name': { content: 'Habit Garden', origin: 'manual' },
+          'cr-old1s-search-headline': { content: 'Plane jede Gewohnheit\nauf deine Art', origin: 'manual' },
+          'cr-old1s-search-phone': { screenshotSrc: 'asset:mine-de' },
+          badge: { content: 'Beta', origin: 'manual' },
+        },
+      },
+    }
+  );
+}
+
+test('art made before the designs were sized for an iPhone is laid out again, with its own words, screens and translations', () => {
+  const old = firstDesignSearch();
+  const project = [old, ...screenshotsProject()];
+  // The check says what is wrong with it: type nobody can read, and screens that leave the phone bare.
+  const before = checkCreativeView(old, null).map((issue) => issue.key);
+  assert.ok(before.includes('small:cr-old1s-search-name'));
+  assert.ok(before.includes('screens'));
+  assert.equal(canRebuildCreativeBoard(old), true);
+
+  const rebuilt = rebuildCreativeBoard(old, project, { seed: 'fresh', appName: 'Habit Garden' })!;
+  const byId = (id: string) => rebuilt.elements.find((el) => el.id === id);
+  const safe = safeAreaFor(rebuilt)!;
+
+  // The artboard is still the user's: its id, its name, its ground, its size.
+  assert.equal(rebuilt.id, old.id);
+  assert.equal(rebuilt.name, 'Winter search');
+  assert.equal(rebuilt.backgroundColor, '#1E1B4B');
+  assert.deepEqual(rebuilt.size, old.size);
+
+  // The words as they were edited, in the colours they were given, on the same layers.
+  const headline = byId('cr-old1s-search-headline') as TextElementProps;
+  assert.equal(headline.content, 'Plan every habit\nyour own way');
+  assert.equal(headline.color, '#FDE68A');
+  assert.ok(headline.fontSize / 0.3 > minReadableGlyph(rebuilt) * 1.5, `${headline.fontSize / 0.3}`);
+  const line = byId('cr-old1s-search-subhead') as TextElementProps;
+  assert.equal(line.content, 'Streaks that forgive a day off');
+  assert.equal(line.color, '#A5B4FC');
+  assert.ok(line.fontSize / 0.3 >= minReadableGlyph(rebuilt) * 0.99);
+  // Search art no longer repeats the app name over its headline.
+  assert.equal(byId('cr-old1s-search-name'), undefined);
+
+  // The screen the user put in, now beside the safe area where an iPhone shows it.
+  const screen = byId('cr-old1s-search-phone') as DeviceFrameElementProps;
+  assert.equal(screen.screenshotSrc, 'asset:mine');
+  assert.ok(screen.position.x >= safe.x + safe.width);
+  assert.ok(screen.size.height > 1060 * 1.4, `${screen.size.height}`);
+
+  // Translations stay on their layers, the dropped layer's go with it, and the user's own layer is untouched.
+  assert.equal(rebuilt.localized?.['de-DE']?.['cr-old1s-search-headline']?.content, 'Plane jede Gewohnheit\nauf deine Art');
+  assert.equal(rebuilt.localized?.['de-DE']?.['cr-old1s-search-phone']?.screenshotSrc, 'asset:mine-de');
+  assert.equal(rebuilt.localized?.['de-DE']?.['cr-old1s-search-name'], undefined);
+  assert.deepEqual(rebuilt.localized?.['de-DE']?.badge, { content: 'Beta', origin: 'manual' });
+  assert.deepEqual(byId('badge'), old.elements[4]);
+  assert.equal(rebuilt.elements[rebuilt.elements.length - 1].id, 'badge');
+
+  // Nothing left for the check to say about the design's own layers.
+  const after = checkCreativeView(rebuilt, null)
+    .map((issue) => issue.key)
+    .filter((key) => !key.endsWith(':badge'));
+  assert.deepEqual(after, []);
+  // And doing it again changes nothing.
+  assert.deepEqual(rebuildCreativeBoard(rebuilt, [rebuilt, ...screenshotsProject()], { seed: 'again', appName: 'Habit Garden' }), rebuilt);
+});
+
+test('a duplicated design is rebuilt from the names of its layers, with each screen kept on its side', () => {
+  const project = screenshotsProject();
+  const look = readProjectLook(project, 'Habit Garden');
+  const made = buildCreativeBoard('search', 'two-phones', look, 'pair');
+  const sides = (from: ArtboardState) =>
+    from.elements
+      .filter((el): el is DeviceFrameElementProps => el.type === 'device')
+      .sort((a, b) => a.position.x - b.position.x)
+      .map((el) => el.screenshotSrc);
+  // Duplicating an artboard gives every layer a new id, and moves the
+  // translations onto the new ids.
+  const renamed = new Map(made.elements.map((el, index) => [el.id, `el_copy_${index}`]));
+  const copy: ArtboardState = {
+    ...made,
+    id: 'artboard_copy',
+    elements: made.elements.map((el) => ({ ...el, id: renamed.get(el.id)! }) as ArtboardElement),
+    localized: Object.fromEntries(
+      Object.entries(made.localized ?? {}).map(([locale, layers]) => [
+        locale,
+        Object.fromEntries(Object.entries(layers).map(([id, override]) => [renamed.get(id) ?? id, override])),
+      ])
+    ),
+  };
+  assert.equal(canRebuildCreativeBoard(copy), true);
+  const rebuilt = rebuildCreativeBoard(copy, [copy, ...project], { seed: 'dup', appName: 'Habit Garden' })!;
+  assert.deepEqual(sides(rebuilt), sides(made));
+  assert.ok(rebuilt.elements.every((el) => el.id.startsWith('cr-dup-search-')));
+  assert.deepEqual(
+    rebuilt.elements.map((el) => [el.name, el.position, el.size]),
+    made.elements.map((el) => [el.name, el.position, el.size])
+  );
+
+  // Art no design here made has nothing to lay out again.
+  const own = board('own', [text('title', 'Plan your week', 40, { name: 'Title' })], {
+    creativeAsset: 'header',
+    size: { width: 3840, height: 1646 },
+  });
+  assert.equal(canRebuildCreativeBoard(own), false);
+  assert.equal(rebuildCreativeBoard(own, [own, ...project], { seed: 'x', appName: 'Habit Garden' }), null);
+  assert.equal(canRebuildCreativeBoard(project[0]), false);
+});
+
+test('laying a design out again changes nothing that was right, and puts right type fitted in the wrong face', () => {
+  // A long line under the name, so the designs that carry one have to make room for it.
+  const wordy = screenshotsProject();
+  (wordy[0].elements[0] as TextElementProps).content = 'Internationalization made wonderfully simple';
+  for (const project of [screenshotsProject(), wordy]) {
+    for (const name of ['Habit Garden', 'MOMMY MORNINGS', 'Open Screenshot Generator']) {
+      const look = readProjectLook(project, name);
+      for (const kind of KINDS) {
+        for (const entry of CREATIVE_LOOKS[kind]) {
+          const label = `${name}: ${kind}/${entry.id}`;
+          const made = { ...buildCreativeBoard(kind, entry.id, look, 'same'), localization: LOCALIZATION };
+          // Pressing Rebuild design on art that is already right is not a change.
+          const again = rebuildCreativeBoard(made, [made, ...project], { seed: 'unused', appName: 'Other' })!;
+          assert.deepEqual(again.elements, made.elements, label);
+          assert.deepEqual(again.localized, made.localized, label);
+
+          // What the editor does once a face that was too slow arrives: the art
+          // went in with its type fitted in the fallback, here a third too big.
+          const misfit: ArtboardState = {
+            ...made,
+            elements: made.elements.map((el) => (el.type === 'text' ? { ...el, fontSize: el.fontSize * 1.3 } : el)),
+          };
+          const refit = rebuildCreativeBoard(misfit, [misfit, ...project], { seed: 'unused', appName: 'Other' })!;
+          assert.deepEqual(refit.elements, made.elements, label);
+        }
+      }
+    }
+  }
+  // With no page there are no faces to wait for or to be on their way.
+  const made = buildCreativeBoard('header', 'wordmark', readProjectLook(screenshotsProject(), 'Habit Garden'), 'late');
+  assert.equal(boardFacesPending(made), null);
+  assert.equal(boardFacesMissing(made), false);
+});
+
+test('search art at a smaller size Apple takes is built and rebuilt at that size', () => {
+  const project = screenshotsProject();
+  const look = readProjectLook(project, 'Habit Garden');
+  const half = { width: 1920, height: 1280 };
+  const made = buildCreativeBoard('search', 'headline-phone', look, 'half', { size: half });
+  assert.deepEqual(made.size, half);
+  const safe = safeAreaFor(made)!;
+  const full = buildCreativeBoard('search', 'headline-phone', look, 'half');
+  for (const [index, el] of made.elements.entries()) {
+    if (el.type === 'text') assert.ok(inside(el, safe), `"${el.name}" inside the safe area at half size`);
+    // Half the size, to the pixel or two that rounding moves it.
+    assert.ok(Math.abs(el.size.width * 2 - full.elements[index].size.width) <= 4, `${el.name}`);
+  }
+  assert.deepEqual(checkCreativeView(made, null).map((issue) => issue.key), []);
+  const rebuilt = rebuildCreativeBoard(made, [made, ...project], { seed: 'x', appName: 'Habit Garden' })!;
+  assert.deepEqual(rebuilt.size, half);
+  assert.deepEqual(rebuilt.elements.map((el) => [el.id, el.position, el.size]), made.elements.map((el) => [el.id, el.position, el.size]));
+});
+
+test('with no page to load fonts into, a design is built right away', () => {
+  assert.equal(lookFacesPending(readProjectLook(screenshotsProject(), 'Habit Garden')), null);
 });
 
 test('the copy and the screens keep every language the project has', () => {
@@ -296,9 +811,11 @@ test('the copy and the screens keep every language the project has', () => {
 
   // The app name reads the same everywhere, so it is not left counting as
   // untranslated in German and Japanese.
-  const name = made.elements.find((el) => el.type === 'text' && el.content === 'Habit Garden')!;
-  assert.equal(made.localized?.['de-DE']?.[name.id]?.content, 'Habit Garden');
-  assert.equal(made.localized?.['ja']?.[name.id]?.origin, 'manual');
+  const mark = buildCreativeBoard('search', 'wordmark', look, 's2');
+  const name = mark.elements.find((el) => el.name === 'App name') as TextElementProps;
+  assert.equal(name.content, 'Habit Garden');
+  assert.equal(mark.localized?.['de-DE']?.[name.id]?.content, 'Habit Garden');
+  assert.equal(mark.localized?.['ja']?.[name.id]?.origin, 'manual');
 
   // And the German projection really shows German.
   const german = projectArtboards([{ ...made, localization: LOCALIZATION }], 'de-DE')[0];
@@ -314,7 +831,7 @@ test('a design built from a project passes its own App Store check in every lang
       const checks = checkCreativeBoard([made, ...project], made.id);
       const blocking = checks.flatMap((check) =>
         check.issues
-          .filter((issue) => issue.level === 'error' || /^(safe|small|button|clipped):/.test(issue.key))
+          .filter((issue) => issue.level === 'error' || /^(safe|small|button|clipped|screens)(:|$)/.test(issue.key))
           .map((issue) => `${check.label}: ${issue.title} ${issue.detail ?? ''}`)
       );
       assert.deepEqual(blocking, [], `${kind}/${entry.id}`);
@@ -416,12 +933,14 @@ test('a wordmark keeps its own face, colour and weight, even when the app name i
     'Somnia'
   );
   assert.equal(mixed.fontFamily, 'Inter');
-  const search = buildCreativeBoard('search', 'headline-phone', mixed, 'm');
-  const name = search.elements.find((el) => el.type === 'text' && el.name === 'App name') as TextElementProps;
-  const headline = search.elements.find((el) => el.type === 'text' && el.name === 'Headline') as TextElementProps;
+  const header = buildCreativeBoard('header', 'name-phone', mixed, 'm');
+  const name = header.elements.find((el) => el.type === 'text' && el.name === 'App name') as TextElementProps;
+  const line = header.elements.find((el) => el.type === 'text' && el.name === 'Subheadline') as TextElementProps;
   assert.equal(name.fontFamily, 'Playfair Display');
   assert.equal(name.color, '#F4A261');
-  assert.equal(headline.fontFamily, 'Inter');
+  assert.equal(line.fontFamily, 'Inter');
+  const search = buildCreativeBoard('search', 'headline-phone', mixed, 'm');
+  assert.equal((search.elements.find((el) => el.name === 'Headline') as TextElementProps).fontFamily, 'Inter');
 });
 
 test('a headline the check would warn about is passed over for the next copy on the screenshot', () => {
@@ -456,10 +975,7 @@ function headerWith(...texts: TextElementProps[]): ArtboardState {
   return board('hdr', texts, { creativeAsset: 'header', size: { width: 3840, height: 1646 } });
 }
 
-/**
- * Copy in the middle of the header's safe area, clear of the buttons over its
- * top corners, in a box a short phrase fits.
- */
+/** Copy in the middle of the header's safe area, in a box a short phrase fits. */
 function inSafe(id: string, content: string): TextElementProps {
   return text(id, content, 30, { position: { x: 1400, y: 700 }, size: { width: 1000, height: 300 } });
 }
@@ -480,31 +996,103 @@ test('the rules App Review applies to creative art are caught, and ordinary copy
   assert.ok(titles('one two three four five six seven eight nine ten eleven').includes('Long for a header or search card'));
 });
 
-test("the header's back and share buttons sit over the safe area's top corners, and the copy has to clear them", () => {
+test("the header's back and share buttons sit over the top corners of what an iPhone shows, clear of the safe area", () => {
   const header = { creativeAsset: 'header' as const, size: { width: 3840, height: 1646 } };
   const [back, share] = iphoneHeaderButtonsFor(header);
   const safe = safeAreaFor(header)!;
-  // Both overlap the top of the safe area, one at each end.
-  assert.ok(back.x < safe.x + 400 && back.y < safe.y + safe.height / 2 && back.y + back.height > safe.y);
-  assert.ok(share.x + share.width > safe.x + safe.width - 400);
-  assert.equal(Math.round(headerButtonClearance(header)), 285);
-  assert.equal(Math.round(headerButtonClearance({ creativeAsset: 'universal', size: { width: 5244, height: 2950 } })), 214);
-  assert.equal(headerButtonClearance({ creativeAsset: 'search', size: { width: 3840, height: 2560 } }), 0);
+  const shown = iphoneCropFor(header, 'header')!;
+  // One in each top corner of the part the phone shows.
+  assert.ok(rectInside(back, shown) && rectInside(share, shown));
+  assert.ok(back.x - shown.x < shown.width * 0.05 && back.y < shown.height * 0.02);
+  assert.ok(shown.x + shown.width - (share.x + share.width) < shown.width * 0.05 && share.y < shown.height * 0.02);
+  // Neither reaches the safe area, so copy kept inside it is never covered.
+  assert.ok(back.x + back.width < safe.x && back.y + back.height < safe.y);
+  assert.ok(share.x > safe.x + safe.width && share.y + share.height < safe.y);
+  const universal = { creativeAsset: 'universal' as const, size: { width: 5244, height: 2950 } };
+  const universalSafe = safeAreaFor(universal)!;
+  const buttons = iphoneHeaderButtonsFor(universal);
+  assert.equal(buttons.length, 2);
+  assert.ok(buttons[0].x + buttons[0].width < universalSafe.x && buttons[1].x > universalSafe.x + universalSafe.width);
   assert.deepEqual(iphoneHeaderButtonsFor({ creativeAsset: 'search', size: { width: 3840, height: 2560 } }), []);
 
-  const corner = text('corner', 'Plan your week', 50, { position: { x: 1110, y: 500 }, size: { width: 500, height: 150 } });
+  // Text dragged out to a corner is reported for both reasons.
+  const corner = text('corner', 'Plan your week', 50, { position: { x: 500, y: 100 }, size: { width: 500, height: 150 } });
   const keys = checkCreativeView(headerWith(corner), null).map((issue) => issue.key);
   assert.ok(keys.includes('button:corner'));
-  assert.ok(!keys.includes('safe:corner'));
+  assert.ok(keys.includes('safe:corner'));
 });
 
-test('text the iPhone would crop, text too small to read and the wrong size are all reported', () => {
+test('the strip above a header takes the layers that reach its top edge, not only the ground', () => {
+  const header = (elements: ArtboardElement[]): ArtboardState =>
+    board('hdr', elements, { size: { width: 3840, height: 1646 }, creativeAsset: 'header', backgroundColor: '#FFFFFF' });
+  const layer = { rotation: 0, scale: 1 };
+  const picture: ImageElementProps = {
+    ...layer,
+    id: 'pic',
+    type: 'image',
+    position: { x: 0, y: 0 },
+    size: { width: 3840, height: 1646 },
+    imageSrc: 'asset:photo',
+  };
+  // The preview's strip is one screen pixel of the art deep: about 8 of its own.
+  const depth = 8;
+  const shown = iphoneCropFor(header([]), 'header')!;
+
+  // A picture laid over a white artboard is the top edge of that art. Cut from
+  // the ground alone, the strip came out white above it.
+  const covered = headerTopEdge(header([picture]), shown, depth);
+  assert.deepEqual(covered.board.elements.map((el) => el.id), ['pic']);
+  assert.equal(covered.cover, 'picture');
+
+  // Layers that start lower are not part of the edge, and the ground sets its colour.
+  const lower = headerTopEdge(header([{ ...picture, position: { x: 0, y: 200 } }, inSafe('t', 'Plan your week')]), shown, depth);
+  assert.deepEqual(lower.board.elements, []);
+  assert.equal(lower.cover, 'ground');
+
+  // A solid rectangle over the edge gives its own colour, which is what the status icons go by.
+  const band: ShapeElementProps = {
+    ...layer,
+    id: 'band',
+    type: 'shape',
+    shapeType: 'rectangle',
+    position: { x: 0, y: 0 },
+    size: { width: 3840, height: 400 },
+    fillColor: '#0B132B',
+    strokeColor: '#000000',
+    strokeWidth: 0,
+  };
+  assert.deepEqual(headerTopEdge(header([band]), shown, depth).cover, { fill: '#0B132B' });
+  // A logo in one corner reaches the edge and is drawn, without changing what the status bar sits on.
+  const logo = { ...picture, id: 'logo', position: { x: 400, y: 0 }, size: { width: 300, height: 300 } };
+  const cornered = headerTopEdge(header([band, logo]), shown, depth);
+  assert.deepEqual(cornered.board.elements.map((el) => el.id), ['band', 'logo']);
+  assert.deepEqual(cornered.cover, { fill: '#0B132B' });
+
+  // A 3D device costs a WebGL context to draw, so it is left out even when it reaches the edge.
+  const tilted = phone('tilt', { position: { x: 1500, y: -100 }, size: { width: 800, height: 1700 }, styleType: '3d-left' });
+  const flat = phone('flat', { position: { x: 1500, y: -100 }, size: { width: 800, height: 1700 } });
+  assert.deepEqual(headerTopEdge(header([tilted]), shown, depth).board.elements, []);
+  assert.deepEqual(headerTopEdge(header([flat]), shown, depth).board.elements.map((el) => el.id), ['flat']);
+});
+
+test('text outside the safe area, text too small to read and the wrong size are all reported', () => {
+  // Past the left edge of what an iPhone shows of a header.
   const outside = text('out', 'Plan your week', 60, { position: { x: 100, y: 100 }, size: { width: 900, height: 200 } });
+  // Under the safe area, where an iPhone still shows it.
+  const below = text('below', 'Plan your week', 60, { position: { x: 1400, y: 1300 }, size: { width: 900, height: 200 } });
   const tiny = text('tiny', 'Fine print', 9, { position: { x: 1200, y: 600 }, size: { width: 600, height: 100 } });
-  const issues = checkCreativeView(headerWith(outside, tiny), null);
-  assert.ok(issues.some((issue) => issue.key === 'safe:out'));
+  const issues = checkCreativeView(headerWith(outside, below, tiny), null);
+  assert.match(issues.find((issue) => issue.key === 'safe:out')!.detail!, /is cut off on an iPhone$/);
+  assert.match(issues.find((issue) => issue.key === 'safe:below')!.detail!, /shows on an iPhone, but other devices can cut it off$/);
   assert.ok(issues.some((issue) => issue.key === 'small:tiny'));
   assert.ok(!issues.some((issue) => issue.key === 'safe:tiny'));
+
+  // 80px type is under 10pt on a header, where an iPhone fits 3210 pixels
+  // into 393 points. 90px is 11pt.
+  const small = (fontSize: number) =>
+    checkCreativeView(headerWith({ ...inSafe('s', 'Plan your week'), fontSize }), null).some((issue) => issue.key === 'small:s');
+  assert.equal(small(24), true);
+  assert.equal(small(27), false);
 
   const wrong = { ...headerWith(inSafe('t', 'Plan your week')), size: { width: 1920, height: 823 } };
   assert.equal(checkCreativeView(wrong, null)[0].key, 'size');

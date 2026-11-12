@@ -8,9 +8,16 @@
  * carried onto the new ones, and the screens keep their per-language
  * screenshots the same way.
  *
- * Everything sits inside Apple's art safe area (specs.ts). Only the ground and
- * the lower part of a phone run past it, which is the "outer space is mood
- * only" rule from Apple's templates.
+ * The copy sits inside Apple's art safe area (specs.ts), the part every device
+ * shows, at the largest size that fits. The two lines a design can do without,
+ * the tagline under a name and the line under a headline, are left out when
+ * they have no room at a size that reads on a phone. The app name and the
+ * headline are always set, and set whole: with no room at that size they take
+ * more lines, and after that they go under it. The store check reports type
+ * that comes out under 10pt on an iPhone.
+ * The screens are sized for what an iPhone shows, which is far more than the
+ * safe area, so they run past it: a design drawn to fit the safe area alone
+ * sits small in the middle of a phone with empty space around it.
  *
  * Nothing here adds a filter: no blur, no glow, no drop shadow. These boards
  * are up to 5244px wide and WebKit (the desktop app is a WKWebView) filters a
@@ -21,9 +28,11 @@
  * from `.device-container` in globals.css (0 2px 5px). WebKit got through
  * that one in the e2e runs, but it is a filter, so the art is not filter free.
  *
- * Pure and DOM free like socialLayouts.ts, so the add dialog can rebuild every
- * card on each render. Text height is estimated, with generous boxes, for the
- * same reason that file gives.
+ * The add dialog rebuilds every card on each render, so nothing here waits or
+ * reads the project's files. One thing does read the page: the type is fitted
+ * by measuring it (typeFit.ts), because a line count guessed from an average
+ * letter is what cut "MOMMY MORNINGS" off in its box. A few cached
+ * measurements per design, and an estimate where there is no page.
  */
 
 import type {
@@ -33,6 +42,7 @@ import type {
   DeviceFrameElementProps,
   DeviceType,
   ElementLocaleOverride,
+  Size,
   TextElementProps,
 } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
@@ -42,12 +52,24 @@ import { isDark, mix, mutedOn, readableOn } from '@/lib/graphics/color';
 import { breaksStoreRules, isShortPhrase } from './check';
 import {
   creativeSpec,
-  headerButtonClearance,
+  iphoneAreaFor,
+  isCreativeAssetKind,
   minReadableGlyph,
   safeAreaFor,
   screenshotBoards,
   type PixelRect,
 } from './specs';
+import {
+  facesOnTheirWay,
+  facesPending,
+  fitGlyph,
+  linesHeight,
+  roughWidth,
+  storedFontSize,
+  storedTracking,
+  type Face,
+  type GlyphFit,
+} from './typeFit';
 
 // --- looks ------------------------------------------------------------------
 
@@ -71,7 +93,7 @@ export const CREATIVE_LOOKS: Record<CreativeAssetKind, CreativeLook[]> = {
   ],
   universal: [
     { id: 'wordmark', label: 'Wordmark', blurb: 'Your app name, for both placements' },
-    { id: 'name-phone', label: 'Name and screen', blurb: 'Name and tagline next to your first screen' },
+    { id: 'name-phone', label: 'Name and screen', blurb: 'Your app name over your first screen' },
   ],
 };
 
@@ -386,42 +408,6 @@ export function readProjectLook(artboards: ArtboardState[], appName: string): Pr
 
 // --- type -------------------------------------------------------------------
 
-/** Average advance of a glyph in ems. Bold display faces run wide; leave room. */
-const BOLD_ADVANCE = 0.62;
-const REGULAR_ADVANCE = 0.54;
-
-function lineCount(content: string, glyph: number, width: number, advance: number): number {
-  const perLine = Math.max(1, Math.floor(width / (glyph * advance)));
-  return content
-    .split('\n')
-    .reduce((total, line) => total + Math.max(1, Math.ceil(line.trim().length / perLine)), 0);
-}
-
-/**
- * The largest glyph, in artboard px, at which `content` fits the box in at most
- * `maxLines` lines. Never below `minGlyph`: a block that cannot fit is better
- * clipped at a readable size than shrunk to a smear.
- */
-function fitGlyph(
-  content: string,
-  box: { width: number; height: number },
-  opts: { max: number; min: number; lineHeight: number; advance: number; maxLines: number }
-): { glyph: number; lines: number } {
-  // A line break the writer typed is a line whatever the size, so the limit
-  // can never be below the number of them.
-  const maxLines = Math.max(opts.maxLines, content.split('\n').length);
-  let glyph = opts.max;
-  for (let step = 0; step < 60; step++) {
-    const lines = lineCount(content, glyph, box.width, opts.advance);
-    if (lines <= maxLines && lines * glyph * opts.lineHeight <= box.height) return { glyph, lines };
-    const next = glyph * 0.95;
-    if (next < opts.min) break;
-    glyph = next;
-  }
-  glyph = Math.max(opts.min, glyph);
-  return { glyph, lines: lineCount(content, glyph, box.width, opts.advance) };
-}
-
 /**
  * Copy with the line breaks taken out. A screenshot's headline is broken for
  * a phone-width column; set small beside a wordmark it reads better reflowed.
@@ -430,15 +416,26 @@ function reflow(content: string): string {
   return content.replace(/\s*\n\s*/g, ' ').trim();
 }
 
-/** A name long enough to want two lines is split at the space nearest its middle. */
-function wordmarkLines(name: string): string {
-  if (name.length <= 14 || !name.includes(' ')) return name;
-  const middle = name.length / 2;
-  let best = -1;
-  for (let i = 0; i < name.length; i++) {
-    if (name[i] === ' ' && (best < 0 || Math.abs(i - middle) < Math.abs(best - middle))) best = i;
+/**
+ * The name on one line, then broken over two lines and over three where it has
+ * the words for it, each time at the spaces that leave its longest line
+ * shortest.
+ */
+function nameBreaks(name: string, face: Face): string[] {
+  const words = name.split(' ').filter(Boolean);
+  const join = (from: number, to: number) => words.slice(from, to).join(' ');
+  const longest = (lines: string[]) => Math.max(...lines.map((line) => roughWidth(line, face)));
+  let two: string[] | null = null;
+  let three: string[] | null = null;
+  for (let i = 1; i < words.length; i++) {
+    const pair = [join(0, i), join(i, words.length)];
+    if (!two || longest(pair) < longest(two)) two = pair;
+    for (let j = i + 1; j < words.length; j++) {
+      const trio = [join(0, i), join(i, j), join(j, words.length)];
+      if (!three || longest(trio) < longest(three)) three = trio;
+    }
   }
-  return best < 0 ? name : `${name.slice(0, best)}\n${name.slice(best + 1)}`;
+  return [name, ...(two ? [two.join('\n')] : []), ...(three ? [three.join('\n')] : [])];
 }
 
 // --- element builders --------------------------------------------------------
@@ -452,6 +449,11 @@ interface Box {
 
 const round = Math.round;
 
+/**
+ * A text layer in the face it was fitted in. The size, the tracking and the
+ * box width are rounded here the way typeFit.ts rounds them to measure, so the
+ * canvas wraps the copy where the fit said it would.
+ */
 function textElement(args: {
   id: string;
   name: string;
@@ -459,31 +461,28 @@ function textElement(args: {
   content: string;
   glyph: number;
   color: string;
-  fontFamily: string;
-  weight: string;
-  fontStyle?: string;
+  face: Face;
   align: 'left' | 'center';
-  lineHeight: number;
-  tracking?: number;
 }): TextElementProps {
-  const fontSize = args.glyph * 0.3;
+  const { face } = args;
+  const fontSize = storedFontSize(args.glyph);
   return {
     id: args.id,
     type: 'text',
     name: args.name,
     position: { x: round(args.box.x), y: round(args.box.y) },
-    size: { width: round(args.box.w), height: round(args.box.h) },
+    size: { width: round(args.box.w), height: Math.ceil(args.box.h) },
     rotation: 0,
     scale: 1,
     content: args.content,
-    fontSize: Math.round(fontSize * 10) / 10,
+    fontSize,
     color: args.color,
-    fontFamily: args.fontFamily,
-    fontWeight: args.weight,
-    ...(args.fontStyle && args.fontStyle !== 'normal' ? { fontStyle: args.fontStyle } : {}),
+    fontFamily: face.fontFamily,
+    fontWeight: face.fontWeight,
+    ...(face.fontStyle && face.fontStyle !== 'normal' ? { fontStyle: face.fontStyle } : {}),
     textAlign: args.align,
-    lineHeight: args.lineHeight,
-    ...(args.tracking ? { letterSpacing: Math.round(fontSize * args.tracking * 100) / 100 } : {}),
+    lineHeight: face.lineHeight,
+    ...(face.tracking ? { letterSpacing: storedTracking(fontSize, face.tracking) } : {}),
   };
 }
 
@@ -537,53 +536,198 @@ interface Composed {
 interface Ctx {
   kind: CreativeAssetKind;
   look: ProjectLook;
+  /** Apple's art safe area, the part every device shows. */
+  area: PixelRect;
   /**
-   * Where the copy and the phones go: the art safe area, pulled in at the
-   * sides. On header art the sides clear the back and share buttons iOS draws
-   * over the safe area's top corners; on search art it is breathing room from
-   * the edge of the card, which shows little more than the safe area.
+   * Where the copy goes: the art safe area, pulled in a little so the type
+   * keeps a margin on a screen that shows no more than the safe area.
    */
   safe: PixelRect;
+  /** What an iPhone shows of the board. The screens are sized for this. */
+  shown: PixelRect;
   size: { width: number; height: number };
   /** Smallest glyph that still reads where this board shows smallest. */
   minGlyph: number;
+  /**
+   * Art that is being laid out again already has its lines. The name or the
+   * headline gives up size before a line under it is left out.
+   */
+  keepLines: boolean;
   id: (part: string) => string;
   out: Composed;
 }
 
-/** The app name, set big, centred or left-aligned in a column. */
-function addName(ctx: Ctx, column: Box, opts: { align: 'left' | 'center'; maxGlyph: number; minGlyph: number }): Box {
-  const content = wordmarkLines(ctx.look.appName);
-  const lines = content.split('\n').length;
-  const fit = fitGlyph(content, { width: column.w, height: column.h }, {
-    max: opts.maxGlyph,
-    min: opts.minGlyph,
-    lineHeight: 1.08,
-    advance: BOLD_ADVANCE,
-    maxLines: lines,
+const NAME_LINE_HEIGHT = 1.08;
+/** A text box is this much taller than its lines, so a face that runs tall is not cut. */
+const BOX_SLACK = 1.12;
+/** How much of its column's height the app name may take when it stands alone. */
+const NAME_ALONE_SHARE = 0.62;
+/**
+ * How far under the size that reads a name or a headline may go, as a share of
+ * it, when that is the only way to set it whole.
+ */
+const LAST_RESORT_SHARE = 0.5;
+
+/**
+ * The height of a text box for `lines` of type: a little taller than the lines
+ * while `room` allows, and never shorter than them, because the box cuts off
+ * whatever it does not hold.
+ */
+function boxHeight(lines: number, glyph: number, lineHeight: number, room: number): number {
+  return Math.max(linesHeight(lines, glyph, lineHeight), Math.min(room, lines * glyph * lineHeight * BOX_SLACK));
+}
+
+/** The face the app name is set in: the screenshots' own wordmark when they have one. */
+function nameFace(look: ProjectLook): Face {
+  const brand = look.nameStyle;
+  return {
+    fontFamily: brand?.fontFamily ?? look.fontFamily,
+    fontWeight: brand?.fontWeight ?? '700',
+    fontStyle: brand?.fontStyle,
+    lineHeight: NAME_LINE_HEIGHT,
+    tracking: -0.02,
+  };
+}
+
+interface NameFit {
+  content: string;
+  glyph: number;
+  /** The height of its text box. */
+  h: number;
+  /** False when the column has no room for the name at a size that reads. */
+  fits: boolean;
+}
+
+/**
+ * The app name at the largest size its column takes, on one line, two or
+ * three. More lines win only when they set the name clearly bigger, which a
+ * name of two or three words needs in a safe area as small as the universal
+ * one.
+ *
+ * The name is never left out and never cut. One with no room at a size that
+ * reads wraps over as many lines as `room` holds, and after that it gives up
+ * size, down to half of it. Under 10pt on an iPhone the store check says the
+ * name is small, and the user can shorten it or move it. A name cut off by its
+ * own box reads as a fault in the design.
+ */
+function fitName(ctx: Ctx, column: Box, maxGlyph: number, room = column.h): NameFit {
+  const face = nameFace(ctx.look);
+  const name = ctx.look.appName;
+  let best: (GlyphFit & { content: string }) | null = null;
+  for (const content of nameBreaks(name, face)) {
+    const fit = fitGlyph(content, { width: column.w, height: column.h }, {
+      max: maxGlyph,
+      min: ctx.minGlyph,
+      maxLines: content.split('\n').length,
+      face,
+    });
+    if (fit.fits && (!best || fit.glyph > best.glyph * 1.15)) best = { ...fit, content };
+  }
+  if (best) {
+    const h = best.lines * best.glyph * NAME_LINE_HEIGHT * BOX_SLACK;
+    return { content: best.content, glyph: best.glyph, h, fits: true };
+  }
+  const last = fitGlyph(name, { width: column.w, height: room }, {
+    max: ctx.minGlyph,
+    min: ctx.minGlyph * LAST_RESORT_SHARE,
+    maxLines: Infinity,
+    face,
   });
-  const h = fit.lines * fit.glyph * 1.08 * 1.12;
-  const box = { x: column.x, y: column.y, w: column.w, h };
+  return { content: name, glyph: last.glyph, h: boxHeight(last.lines, last.glyph, NAME_LINE_HEIGHT, room), fits: false };
+}
+
+/**
+ * The app name, set big, centred or left-aligned at the top of a column.
+ * `room` is the height it may wrap into when the column itself is too small.
+ */
+function addName(
+  ctx: Ctx,
+  column: Box,
+  opts: { align: 'left' | 'center'; maxGlyph: number; room?: number }
+): Box & { glyph: number } {
+  const fit = fitName(ctx, column, opts.maxGlyph, opts.room);
+  const box = { x: column.x, y: column.y, w: column.w, h: fit.h };
   const id = ctx.id('name');
-  const brand = ctx.look.nameStyle;
   ctx.out.elements.push(
     textElement({
       id,
       name: 'App name',
       box,
-      content,
+      content: fit.content,
       glyph: fit.glyph,
-      color: brand?.color ?? ctx.look.textColor,
-      fontFamily: brand?.fontFamily ?? ctx.look.fontFamily,
-      weight: brand?.fontWeight ?? '700',
-      fontStyle: brand?.fontStyle,
+      color: ctx.look.nameStyle?.color ?? ctx.look.textColor,
+      face: nameFace(ctx.look),
       align: opts.align,
-      lineHeight: 1.08,
-      tracking: -0.02,
     })
   );
   ctx.out.nameIds.push(id);
-  return box;
+  return { ...box, glyph: fit.glyph };
+}
+
+interface CopyOpts {
+  align: 'left' | 'center';
+  maxGlyph: number;
+  minGlyph: number;
+  maxLines: number;
+  weight: string;
+  muted?: boolean;
+  /** Take the source's line breaks out, in every language. */
+  reflowed?: boolean;
+  /**
+   * Never left out. Copy with no room at `minGlyph` takes more lines, and
+   * after that goes under it, the way the app name does.
+   */
+  required?: boolean;
+}
+
+/** The face the project's own copy is set in, bold for a headline and regular for the line under it. */
+function copyFace(look: ProjectLook, weight: string): Face {
+  const regular = weight === '400';
+  return {
+    fontFamily: look.fontFamily,
+    fontWeight: weight,
+    lineHeight: regular ? 1.3 : 1.1,
+    tracking: regular ? 0 : -0.015,
+  };
+}
+
+/** One line of the project's own copy, sized for a column, before it is added. */
+function fitCopy(ctx: Ctx, source: Sourced<TextElementProps>, column: Box, opts: CopyOpts) {
+  const face = copyFace(ctx.look, opts.weight);
+  const original = source.element.content;
+  const content = opts.reflowed ? reflow(original) : original;
+  const overrides = opts.reflowed ? reflowOverrides(source.overrides, original, content) : source.overrides;
+  // Every language shares the box. A translation that runs long is shrunk to
+  // fit it when it is drawn (resolveLocaleFontSize), and the base language is
+  // not, so the base copy has to fit as it stands. The longest language is
+  // fitted with it, so that a German line does not have to shrink far.
+  const longest = [content, ...Object.values(overrides).map((ov) => ov.content ?? '')].reduce(
+    (a, b) => (b.length > a.length ? b : a),
+    content
+  );
+  const fitted = longest === content ? content : [content, longest];
+  const box = { width: column.w, height: column.h };
+  let fit = fitGlyph(fitted, box, { max: opts.maxGlyph, min: opts.minGlyph, maxLines: opts.maxLines, face });
+  if (!fit.fits && opts.required) {
+    const last = fitGlyph(fitted, box, {
+      max: opts.minGlyph,
+      min: opts.minGlyph * LAST_RESORT_SHARE,
+      maxLines: Infinity,
+      face,
+    });
+    fit = { ...last, fits: false };
+  }
+  return { content, overrides, face, fit };
+}
+
+/**
+ * The least height a line of copy needs under a name or a headline: its box at
+ * the smallest size that reads. Null when it has no room at that size even
+ * with the column to itself.
+ */
+function leastRoom(ctx: Ctx, source: Sourced<TextElementProps>, column: Box, opts: CopyOpts): number | null {
+  const least = fitCopy(ctx, source, column, { ...opts, maxGlyph: opts.minGlyph });
+  return least.fit.fits ? boxHeight(least.fit.lines, least.fit.glyph, least.face.lineHeight, column.h) : null;
 }
 
 /**
@@ -595,37 +739,10 @@ function addCopy(
   source: Sourced<TextElementProps>,
   part: string,
   column: Box,
-  opts: {
-    align: 'left' | 'center';
-    maxGlyph: number;
-    minGlyph: number;
-    maxLines: number;
-    weight: string;
-    muted?: boolean;
-    /** Take the source's line breaks out, in every language. */
-    reflowed?: boolean;
-  }
-): Box {
-  const lineHeight = opts.weight === '400' ? 1.3 : 1.1;
-  const advance = opts.weight === '400' ? REGULAR_ADVANCE : BOLD_ADVANCE;
-  const original = source.element.content;
-  const content = opts.reflowed ? reflow(original) : original;
-  const overrides = opts.reflowed ? reflowOverrides(source.overrides, original, content) : source.overrides;
-  // Fitted against the longest language, so a German line is not the one that
-  // overflows: the box is shared by every language.
-  const longest = [content, ...Object.values(overrides).map((ov) => ov.content ?? '')].reduce(
-    (a, b) => (b.length > a.length ? b : a),
-    content
-  );
-  const fit = fitGlyph(longest, { width: column.w, height: column.h }, {
-    max: opts.maxGlyph,
-    min: opts.minGlyph,
-    lineHeight,
-    advance,
-    maxLines: opts.maxLines,
-  });
-  const h = Math.min(column.h, fit.lines * fit.glyph * lineHeight * 1.12);
-  const box = { x: column.x, y: column.y, w: column.w, h };
+  opts: CopyOpts
+): Box & { glyph: number } {
+  const { content, overrides, face, fit } = fitCopy(ctx, source, column, opts);
+  const box = { x: column.x, y: column.y, w: column.w, h: boxHeight(fit.lines, fit.glyph, face.lineHeight, column.h) };
   const id = ctx.id(part);
   ctx.out.elements.push(
     textElement({
@@ -635,15 +752,12 @@ function addCopy(
       content,
       glyph: fit.glyph,
       color: opts.muted ? ctx.look.mutedColor : ctx.look.textColor,
-      fontFamily: ctx.look.fontFamily,
-      weight: opts.weight,
+      face,
       align: opts.align,
-      lineHeight,
-      tracking: opts.weight === '400' ? undefined : -0.015,
     })
   );
   if (Object.keys(overrides).length > 0) ctx.out.inherited[id] = overrides;
-  return box;
+  return { ...box, glyph: fit.glyph };
 }
 
 /**
@@ -683,121 +797,155 @@ function shiftSince(ctx: Ctx, from: number, dy: number): void {
 }
 
 /**
- * App name plus, when the project has one, its headline under it, as one block
- * centred in `column`.
+ * App name plus, when the project has one and it fits, its headline under it,
+ * as one block centred in `column`. On a safe area too small for a second line
+ * at a size that reads, the name takes the column alone.
  */
 function nameStack(ctx: Ctx, column: Box, opts: { align: 'left' | 'center'; nameShare: number; tagline: boolean }): void {
   const from = ctx.out.elements.length;
-  const name = addName(ctx, { ...column, h: column.h * opts.nameShare }, {
-    align: opts.align,
-    maxGlyph: column.h * opts.nameShare * 0.92,
-    minGlyph: column.h * 0.12,
-  });
-  let bottom = name.y + name.h;
   const tagline = opts.tagline ? ctx.look.headline ?? ctx.look.subhead : null;
   if (tagline) {
-    const nameGlyph = (ctx.out.elements[from] as TextElementProps).fontSize / 0.3;
-    const gap = nameGlyph * 0.22;
-    const room = column.y + column.h - (bottom + gap);
-    const copy = addCopy(ctx, tagline, 'tagline', { x: column.x, y: bottom + gap, w: column.w, h: room }, {
+    const lineBase: CopyOpts = {
       align: opts.align,
-      maxGlyph: Math.max(nameGlyph * 0.36, ctx.minGlyph * 1.3),
+      maxGlyph: ctx.minGlyph,
       minGlyph: ctx.minGlyph,
       maxLines: 2,
       weight: '400',
       muted: true,
       reflowed: true,
-    });
-    bottom = copy.y + copy.h;
+    };
+    /** The name in `share` of the column with the line under it. False, with nothing added, when they do not both fit. */
+    const stack = (share: number): boolean => {
+      const nameColumn = { ...column, h: column.h * share };
+      const fitted = fitName(ctx, nameColumn, nameColumn.h * 0.92);
+      const top = column.y + fitted.h + fitted.glyph * 0.22;
+      const lineColumn = { x: column.x, y: top, w: column.w, h: column.y + column.h - top };
+      const lineOpts: CopyOpts = { ...lineBase, maxGlyph: Math.max(fitted.glyph * 0.4, ctx.minGlyph) };
+      // A name that needs more than its share of the column leaves the line no room.
+      if (!fitted.fits || lineColumn.h <= 0 || !fitCopy(ctx, tagline, lineColumn, lineOpts).fit.fits) return false;
+      addName(ctx, nameColumn, { align: opts.align, maxGlyph: nameColumn.h * 0.92 });
+      const copy = addCopy(ctx, tagline, 'tagline', lineColumn, lineOpts);
+      shiftSince(ctx, from, (column.h - (copy.y + copy.h - column.y)) / 2);
+      return true;
+    };
+    if (stack(opts.nameShare)) return;
+    if (ctx.keepLines) {
+      // The art already has this line. A name's box and the gap under it run
+      // to about 1.32 times the height the name is given, so this is the most
+      // the name can have and still leave the line its least room.
+      const room = leastRoom(ctx, tagline, column, lineBase);
+      const share = room === null ? 0 : (column.h - room) / 1.32 / column.h;
+      if (share > 0 && share < opts.nameShare && stack(share)) return;
+    }
   }
-  shiftSince(ctx, from, (column.h - (bottom - column.y)) / 2);
+  const alone = { ...column, h: column.h * NAME_ALONE_SHARE };
+  const name = addName(ctx, alone, { align: opts.align, maxGlyph: alone.h * 0.92, room: column.h });
+  shiftSince(ctx, from, (column.h - name.h) / 2);
 }
 
-/** Headline (with the app name over it) as a block centred in `column`. */
-function headlineStack(ctx: Ctx, column: Box, opts: { maxGlyph: number; subhead: boolean }): void {
+/**
+ * The headline, and the subheadline under it when it fits at a size that
+ * reads, as a block centred in `column`. The app name is left off: a search
+ * result prints the name right above this art, and the line it would take is
+ * a fifth of the safe area.
+ */
+function headlineStack(
+  ctx: Ctx,
+  column: Box,
+  opts: { align: 'left' | 'center'; maxGlyph: number; subhead: boolean }
+): void {
   const from = ctx.out.elements.length;
   const headline = ctx.look.headline;
   if (!headline) {
-    // No copy in the project yet: the app name is the headline, and it is set
-    // once, not again small over itself.
-    const name = addName(ctx, column, { align: 'left', maxGlyph: opts.maxGlyph, minGlyph: opts.maxGlyph * 0.5 });
+    // No copy in the project yet: the app name is the headline.
+    const name = addName(ctx, { ...column, h: column.h * NAME_ALONE_SHARE }, {
+      align: opts.align,
+      maxGlyph: opts.maxGlyph,
+      room: column.h,
+    });
     shiftSince(ctx, from, (column.h - name.h) / 2);
     return;
   }
 
-  const eyebrowFit = fitGlyph(ctx.look.appName, { width: column.w, height: column.h * 0.2 }, {
-    max: Math.max(ctx.minGlyph * 1.05, opts.maxGlyph * 0.42),
-    min: ctx.minGlyph,
-    lineHeight: 1.2,
-    advance: BOLD_ADVANCE,
-    maxLines: 1,
-  });
-  const eyebrowGlyph = eyebrowFit.glyph;
-  const eyebrowId = ctx.id('name');
-  const eyebrowBox = { x: column.x, y: column.y, w: column.w, h: eyebrowGlyph * 1.3 };
-  const brand = ctx.look.nameStyle;
-  ctx.out.elements.push(
-    textElement({
-      id: eyebrowId,
-      name: 'App name',
-      box: eyebrowBox,
-      content: ctx.look.appName,
-      glyph: eyebrowGlyph,
-      color: brand?.color ?? ctx.look.mutedColor,
-      fontFamily: brand?.fontFamily ?? ctx.look.fontFamily,
-      weight: brand?.fontWeight ?? '600',
-      fontStyle: brand?.fontStyle,
-      align: 'left',
-      lineHeight: 1.2,
-      tracking: 0.02,
-    })
-  );
-  ctx.out.nameIds.push(eyebrowId);
-  let cursor = eyebrowBox.y + eyebrowBox.h + eyebrowGlyph * 0.35;
-
-  const box = addCopy(ctx, headline, 'headline', { x: column.x, y: cursor, w: column.w, h: column.y + column.h - cursor }, {
-    align: 'left',
+  const headOpts: CopyOpts = {
+    align: opts.align,
     maxGlyph: opts.maxGlyph,
-    minGlyph: opts.maxGlyph * 0.55,
+    minGlyph: ctx.minGlyph,
     maxLines: 4,
     weight: '700',
-  });
-  cursor = box.y + box.h;
+    required: true,
+  };
   const sub = opts.subhead ? ctx.look.subhead : null;
+  const subBase: CopyOpts = {
+    align: opts.align,
+    maxGlyph: ctx.minGlyph,
+    minGlyph: ctx.minGlyph,
+    maxLines: 3,
+    weight: '400',
+    muted: true,
+    reflowed: true,
+  };
+  /** Where the line under a headline set in `headColumn` would go, and the type it would be set in. */
+  const under = (glyph: number, bottom: number) => {
+    const top = bottom + glyph * 0.3;
+    return {
+      column: { x: column.x, y: top, w: column.w, h: column.y + column.h - top },
+      opts: { ...subBase, maxGlyph: Math.max(glyph * 0.42, ctx.minGlyph) } as CopyOpts,
+    };
+  };
+  let headColumn = column;
+  if (sub && ctx.keepLines) {
+    // The art already has this line. When the headline at its full size
+    // leaves it no room, the headline is fitted into what is left once the
+    // line has its least room and the gap over it, as long as it still fits
+    // there at a size that reads.
+    const head = fitCopy(ctx, headline, column, headOpts);
+    const line = under(head.fit.glyph, column.y + boxHeight(head.fit.lines, head.fit.glyph, head.face.lineHeight, column.h));
+    if (line.column.h <= 0 || !fitCopy(ctx, sub, line.column, line.opts).fit.fits) {
+      const room = leastRoom(ctx, sub, column, subBase);
+      const left = room === null ? 0 : column.h - room - opts.maxGlyph * 0.3;
+      if (left > 0 && fitCopy(ctx, headline, { ...column, h: left }, headOpts).fit.fits) headColumn = { ...column, h: left };
+    }
+  }
+  const box = addCopy(ctx, headline, 'headline', headColumn, headOpts);
+  let cursor = box.y + box.h;
   if (sub) {
-    const glyph = (ctx.out.elements[ctx.out.elements.length - 1] as TextElementProps).fontSize / 0.3;
-    const top = cursor + glyph * 0.3;
-    const room = column.y + column.h - top;
-    if (room > Math.max(glyph * 0.9, ctx.minGlyph * 1.4)) {
-      const subBox = addCopy(ctx, sub, 'subhead', { x: column.x, y: top, w: column.w, h: room }, {
-        align: 'left',
-        maxGlyph: Math.max(glyph * 0.42, ctx.minGlyph * 1.05),
-        minGlyph: ctx.minGlyph,
-        maxLines: 3,
-        weight: '400',
-        muted: true,
-        reflowed: true,
-      });
+    const line = under(box.glyph, cursor);
+    if (line.column.h > 0 && fitCopy(ctx, sub, line.column, line.opts).fit.fits) {
+      const subBox = addCopy(ctx, sub, 'subhead', line.column, line.opts);
       cursor = subBox.y + subBox.h;
     }
   }
   shiftSince(ctx, from, (column.h - (cursor - column.y)) / 2);
 }
 
-/** A phone of the given height, its right edge at `right`, its top at `top`. */
 /**
- * A device of the given height, its right edge at `right`, its top at `top`,
- * and never wider than `maxWidth`: a MacBook or a watch is wide for its
- * height, and sized by height alone it would leave the copy no column at all.
+ * A device in the strip an iPhone shows beside the safe area, which leaves the
+ * copy the whole safe area and still fills the phone's screen. A device that
+ * shows only the safe area sees the copy on its own.
+ *
+ * With `rising` the device comes up from the bottom edge and runs off it,
+ * starting no higher than the copy, which keeps a header's screen out from
+ * under the back and share buttons. Without it the device floats in the
+ * middle of what the iPhone shows.
  */
-function phoneBox(ctx: Ctx, height: number, right: number, top: number, maxWidth = Infinity): Box {
+function sideDevice(ctx: Ctx, side: 'left' | 'right', opts: { maxHeight: number; rising: boolean }): Box {
+  const shown = ctx.shown;
+  const area = ctx.area;
+  const strip =
+    side === 'right'
+      ? { x: area.x + area.width, w: shown.x + shown.width - (area.x + area.width) }
+      : { x: shown.x, w: area.x - shown.x };
   const aspect = deviceAspect(ctx.look);
-  const w = Math.min(height * aspect, maxWidth);
+  const w = Math.min(strip.w * 0.84, opts.maxHeight * aspect);
   const h = w / aspect;
-  // A phone runs off the bottom on purpose. A device that came out shorter
-  // than the area would only look dropped at its top, so it is centred.
-  const y = h < ctx.safe.height ? Math.max(top, ctx.safe.y + (ctx.safe.height - h) / 2) : top;
-  return { x: right - w, y, w, h };
+  const x = strip.x + (strip.w - w) / 2;
+  // A MacBook or a watch comes out short for its width. Lined up with the
+  // copy it reads as part of the design; anywhere else it looks dropped.
+  if (h < ctx.safe.height) return { x, y: ctx.safe.y + (ctx.safe.height - h) / 2, w, h };
+  if (!opts.rising) return { x, y: shown.y + (shown.height - h) / 2, w, h };
+  const y = Math.max(shown.y + shown.height - h * 0.86, ctx.safe.y - ctx.safe.height * 0.1);
+  return { x, y, w, h };
 }
 
 const COMPOSERS: Record<string, (ctx: Ctx) => void> = {
@@ -806,38 +954,47 @@ const COMPOSERS: Record<string, (ctx: Ctx) => void> = {
   // header one stays a mark; search results show it cold, so it gets a line.
   wordmark(ctx) {
     const s = ctx.safe;
-    const tagline = ctx.kind !== 'header' && !!(ctx.look.headline ?? ctx.look.subhead);
-    // A header's area is already pulled in to clear the buttons, which leaves
-    // about the width Apple's own wordmarks take. A search card's is not, so
-    // the mark stays off its edges.
-    const share = ctx.kind === 'search' ? 0.7 : 1;
-    const column = { x: s.x + (s.width * (1 - share)) / 2, y: s.y, w: s.width * share, h: s.height };
-    nameStack(ctx, column, { align: 'center', nameShare: tagline ? 0.5 : 0.42, tagline });
+    nameStack(ctx, { x: s.x, y: s.y, w: s.width, h: s.height }, {
+      align: 'center',
+      nameShare: 0.5,
+      tagline: ctx.kind !== 'header',
+    });
   },
 
   'name-phone'(ctx) {
     const s = ctx.safe;
-    // The universal safe area is small, so its phone is too, or the name gets
-    // no room beside it.
-    const height = s.height * (ctx.kind === 'universal' ? 1.2 : 1.55);
-    const phone = phoneBox(ctx, height, s.x + s.width, s.y + s.height * 0.04, s.width * 0.45);
-    addDevice(ctx, 'phone', phone, 0);
-    const column = { x: s.x, y: s.y, w: phone.x - s.x - s.width * 0.06, h: s.height };
-    nameStack(ctx, column, { align: 'left', nameShare: ctx.look.headline ? 0.55 : 0.7, tagline: true });
+    if (ctx.kind === 'universal') {
+      // The universal safe area holds a name at a size that reads and little
+      // else, and it sits above the middle of the art. So the name takes all
+      // of it, and the screen rises underneath, where the art is otherwise bare.
+      const aspect = deviceAspect(ctx.look);
+      const w = Math.min(ctx.shown.height * 0.72 * aspect, s.width * 0.9);
+      addDevice(ctx, 'phone', { x: (ctx.size.width - w) / 2, y: s.y + s.height * 1.08, w, h: w / aspect }, 0);
+      nameStack(ctx, { x: s.x, y: s.y, w: s.width, h: s.height }, { align: 'center', nameShare: 0.5, tagline: true });
+      return;
+    }
+    addDevice(ctx, 'phone', sideDevice(ctx, 'right', { maxHeight: ctx.shown.height * 0.87, rising: true }), 0);
+    nameStack(ctx, { x: s.x, y: s.y, w: s.width, h: s.height }, { align: 'left', nameShare: 0.55, tagline: true });
   },
 
-  // Five screens across the full width. An iPhone sees the middle three, a
-  // wider screen sees the whole row.
+  // Five screens across what an iPhone shows, running off the bottom of the
+  // header. A screen that shows only the safe area sees the middle three.
   showcase(ctx) {
     const s = ctx.safe;
-    const nameH = s.height * 0.3;
-    addName(ctx, { x: s.x, y: s.y, w: s.width, h: nameH }, { align: 'center', maxGlyph: nameH * 0.9, minGlyph: nameH * 0.4 });
-    const top = s.y + nameH + s.height * 0.08;
+    const nameH = s.height * 0.34;
+    addName(ctx, { x: s.x, y: s.y, w: s.width, h: nameH }, { align: 'center', maxGlyph: nameH * 0.9 });
+    const top = s.y + nameH + s.height * 0.07;
     const aspect = deviceAspect(ctx.look);
-    // Five across has to fit the canvas, which is what sizes a row of laptops.
-    const w = Math.min(s.height * 1.32 * aspect, (ctx.size.width * 0.96) / (5 + 4 * 0.14));
+    const gapShare = 0.14;
+    // As tall as the room under the name plus a little that runs off, unless
+    // five that tall are wider than the phone shows, which is what sizes a row
+    // of laptops.
+    const w = Math.min(
+      (ctx.shown.y + ctx.shown.height - top) * 1.16 * aspect,
+      (ctx.shown.width * 0.9) / (5 + 4 * gapShare)
+    );
     const height = w / aspect;
-    const gap = w * 0.14;
+    const gap = w * gapShare;
     const center = ctx.size.width / 2;
     // Centre first in the source order, then alternately right and left, so
     // the first screenshot is the one in the middle.
@@ -853,24 +1010,45 @@ const COMPOSERS: Record<string, (ctx: Ctx) => void> = {
   // Apple's "Plan your hiking expedition" example: say what it does, show it.
   'headline-phone'(ctx) {
     const s = ctx.safe;
-    const phone = phoneBox(ctx, s.height * 1.42, s.x + s.width, s.y + s.height * 0.05, s.width * 0.45);
-    addDevice(ctx, 'phone', phone, 0);
-    const column = { x: s.x, y: s.y, w: phone.x - s.x - s.width * 0.06, h: s.height };
-    headlineStack(ctx, column, { maxGlyph: s.height * 0.16, subhead: true });
+    addDevice(ctx, 'phone', sideDevice(ctx, 'right', { maxHeight: ctx.shown.height * 0.72, rising: false }), 0);
+    headlineStack(ctx, { x: s.x, y: s.y, w: s.width, h: s.height }, {
+      align: 'left',
+      maxGlyph: s.height * 0.26,
+      subhead: true,
+    });
   },
 
+  // The headline between a screen on each side.
   'two-phones'(ctx) {
     const s = ctx.safe;
-    const back = phoneBox(ctx, s.height * 1.22, s.x + s.width, s.y + s.height * 0.16, s.width * 0.3);
-    const front = phoneBox(ctx, s.height * 1.42, back.x + back.w * 0.42, s.y + s.height * 0.04, s.width * 0.35);
-    addDevice(ctx, 'phone-2', back, 1);
-    addDevice(ctx, 'phone-1', front, 0);
-    const column = { x: s.x, y: s.y, w: front.x - s.x - s.width * 0.05, h: s.height };
-    headlineStack(ctx, column, { maxGlyph: s.height * 0.14, subhead: false });
+    const fit = { maxHeight: ctx.shown.height * 0.72, rising: false };
+    addDevice(ctx, 'phone-2', sideDevice(ctx, 'left', fit), 1);
+    addDevice(ctx, 'phone-1', sideDevice(ctx, 'right', fit), 0);
+    headlineStack(ctx, { x: s.x, y: s.y, w: s.width, h: s.height }, {
+      align: 'center',
+      maxGlyph: s.height * 0.26,
+      subhead: false,
+    });
   },
 };
 
 // --- boards -------------------------------------------------------------------
+
+/**
+ * Null when the page already has the faces a design from `look` is set in,
+ * else a promise that settles once it does. buildCreativeBoard fits its type
+ * by measuring it, so a board that is going into the project is built after
+ * this. The cards in the add dialog do not wait: they are built again when a
+ * face arrives.
+ */
+export function lookFacesPending(look: ProjectLook): Promise<void> | null {
+  const faces = [nameFace(look)];
+  // A headline is set bold on search art, and regular as the line under a name.
+  if (look.headline) faces.push(copyFace(look, '700'));
+  if (look.headline || look.subhead) faces.push(copyFace(look, '400'));
+  const copy = [look.appName, look.headline?.element.content, look.subhead?.element.content].filter(Boolean).join(' ');
+  return facesPending(faces, copy);
+}
 
 /**
  * One finished creative artboard.
@@ -879,30 +1057,39 @@ const COMPOSERS: Record<string, (ctx: Ctx) => void> = {
  * so a re-render keeps the same React keys; the boards that land in a project
  * get a fresh one, because element ids have to be unique across the project
  * for the language overrides to stay attached to the right layer.
+ *
+ * `size` is for art that is already another size Apple takes, such as search
+ * art at 1920 x 1280. Everything is laid out from the safe area and the iPhone
+ * area, and both scale with the board. `keepLines` is for art that is being
+ * laid out again (see Ctx).
  */
 export function buildCreativeBoard(
   kind: CreativeAssetKind,
   lookId: string,
   look: ProjectLook,
-  seed: string
+  seed: string,
+  opts: { size?: Size; keepLines?: boolean } = {}
 ): ArtboardState {
   const spec = creativeSpec(kind);
-  const size = { width: spec.width, height: spec.height };
-  const safe = safeAreaFor({ creativeAsset: kind, size })!;
-  const out: Composed = { elements: [], inherited: {}, nameIds: [] };
+  const size = opts.size ?? { width: spec.width, height: spec.height };
   const board = { creativeAsset: kind, size };
-  const sideInset = Math.max(headerButtonClearance(board), safe.width * 0.06);
+  const safe = safeAreaFor(board)!;
+  const out: Composed = { elements: [], inherited: {}, nameIds: [] };
+  const sideInset = safe.width * 0.06;
   const ctx: Ctx = {
     kind,
     look,
+    area: safe,
     safe: {
       x: safe.x + sideInset,
       y: safe.y + safe.height * 0.03,
       width: safe.width - sideInset * 2,
       height: safe.height * 0.94,
     },
+    shown: iphoneAreaFor(board)!,
     size,
     minGlyph: minReadableGlyph(board),
+    keepLines: opts.keepLines ?? false,
     id: (part) => `cr-${seed}-${kind}-${part}`,
     out,
   };
@@ -941,6 +1128,213 @@ export function buildCreativeBoard(
     ...look.ground,
     zoom: 1,
     creativeAsset: kind,
+    ...(Object.keys(localized).length > 0 ? { localized } : {}),
+  };
+}
+
+// --- art that is already in the project ---------------------------------------
+//
+// A design made before the art was sized for an iPhone sits small in the
+// middle of the phone (issue #46), and one fitted while its face was still
+// loading is fitted in the fallback. Both are put right by laying the same
+// design out again, from what is on the artboard now: its words as they were
+// edited, its translations, its screens, its type and its ground.
+
+/** The part of a design a layer is, as the layer's id names it. */
+const PART = /^cr-(.+)-(?:header|search|universal)-(name|tagline|headline|subhead|phone)(?:-(\d+))?$/;
+
+/** The layers of a creative artboard that a design put there. */
+interface DesignLayers {
+  name: TextElementProps | null;
+  headline: TextElementProps | null;
+  /** The line under the name or under the headline. */
+  line: TextElementProps | null;
+  /** In the order the design numbers its screens: the first screenshot first. */
+  devices: DeviceFrameElementProps[];
+  ids: Set<string>;
+  /** The seed in the layers' ids, while they still carry one. */
+  seed: string | null;
+}
+
+/**
+ * Where a screen that has lost its number stood in the design, by its place
+ * from the left. Two screens are numbered right then left, and a row of five
+ * from the middle outwards.
+ */
+function screenOrder(count: number): number[] {
+  if (count === 2) return [1, 0];
+  if (count === 5) return [4, 2, 0, 1, 3];
+  return Array.from({ length: count }, (_, index) => index);
+}
+
+function designLayers(board: ArtboardState): DesignLayers | null {
+  const made: DesignLayers = { name: null, headline: null, line: null, devices: [], ids: new Set(), seed: null };
+  const screens: { device: DeviceFrameElementProps; index: number | null }[] = [];
+  for (const el of board.elements) {
+    const match = PART.exec(el.id);
+    let part = match?.[2] ?? null;
+    // A duplicated artboard gets new ids. The names the designs give their
+    // layers are still on it.
+    if (!part && el.type === 'text') {
+      part = el.name === 'App name' ? 'name' : el.name === 'Headline' ? 'headline' : el.name === 'Subheadline' ? 'subhead' : null;
+    } else if (!part && el.type === 'device' && el.name === 'Phone') {
+      part = 'phone';
+    }
+    if (!part) continue;
+    if (part === 'phone') {
+      if (el.type !== 'device') continue;
+      screens.push({ device: el as DeviceFrameElementProps, index: match ? Number(match[3] ?? 1) - 1 : null });
+    } else {
+      if (el.type !== 'text') continue;
+      const text = el as TextElementProps;
+      if (part === 'name') made.name ??= text;
+      else if (part === 'headline') made.headline ??= text;
+      else made.line ??= text;
+    }
+    made.ids.add(el.id);
+    if (match && !made.seed) made.seed = match[1];
+  }
+  if (made.ids.size === 0) return null;
+
+  if (screens.every((screen) => screen.index !== null)) {
+    screens.sort((a, b) => a.index! - b.index!);
+  } else {
+    screens.sort((a, b) => a.device.position.x - b.device.position.x);
+    const order = screenOrder(screens.length);
+    screens.forEach((screen, rank) => (screen.index = order[rank]));
+    screens.sort((a, b) => a.index! - b.index!);
+  }
+  made.devices = screens.map((screen) => screen.device);
+  return made;
+}
+
+/** The look a design was built with, told from the screens it has. */
+function lookOf(kind: CreativeAssetKind, made: DesignLayers): string {
+  const screens = made.devices.length;
+  if (kind === 'header') return screens >= 3 ? 'showcase' : screens >= 1 ? 'name-phone' : 'wordmark';
+  if (kind === 'universal') return screens >= 1 ? 'name-phone' : 'wordmark';
+  if (screens >= 2) return 'two-phones';
+  // A headline with no name over it is a headline design, with or without its screen.
+  return screens === 1 || (made.headline && !made.name) ? 'headline-phone' : 'wordmark';
+}
+
+/** Copy as one line: a name that a design broke over two lines is still one name. */
+function oneLine(content: string): string {
+  return content.replace(/\s+/g, ' ').trim();
+}
+
+/** True for an App Store header or search artboard that one of these designs made. */
+export function canRebuildCreativeBoard(board: ArtboardState): boolean {
+  return isCreativeAssetKind(board.creativeAsset) && designLayers(board) !== null;
+}
+
+/**
+ * Null when the page has the faces a rebuild of this artboard sets its type
+ * in, else a promise that settles once it does: the name in the name's own
+ * face, a headline in bold and the line under it in regular.
+ */
+export function boardFacesPending(board: ArtboardState): Promise<void> | null {
+  const made = designLayers(board);
+  if (!made) return null;
+  const faces: Pick<Face, 'fontFamily' | 'fontWeight' | 'fontStyle'>[] = [];
+  if (made.name) {
+    faces.push({ fontFamily: made.name.fontFamily, fontWeight: made.name.fontWeight ?? '700', fontStyle: made.name.fontStyle });
+  }
+  const copyFamily = (made.headline ?? made.line ?? made.name)?.fontFamily ?? '';
+  if (made.headline) faces.push({ fontFamily: copyFamily, fontWeight: '700' });
+  if (made.line) faces.push({ fontFamily: copyFamily, fontWeight: '400' });
+  const copy = [made.name, made.headline, made.line].map((text) => text?.content ?? '').join(' ');
+  return facesPending(faces, copy);
+}
+
+/**
+ * True while a face this artboard's text was fitted in is still on its way.
+ * Art built in that state is fitted in the fallback, and is worth fitting
+ * again once this turns false.
+ */
+export function boardFacesMissing(board: ArtboardState): boolean {
+  const texts = board.elements.filter((el): el is TextElementProps => el.type === 'text');
+  return facesOnTheirWay(
+    texts.map((text) => ({ fontFamily: text.fontFamily, fontWeight: text.fontWeight ?? '400', fontStyle: text.fontStyle }))
+  );
+}
+
+/**
+ * An App Store header or search artboard laid out again, as the design it was
+ * made with. Null for art no design here made.
+ *
+ * It keeps what is on the artboard: the words as they were edited, their
+ * translations, the screens, the type and its colours, the ground, and every
+ * layer the user added. Only where things sit and how big they are is new. A
+ * line under the name or the headline stays whenever it can be set at a size
+ * that reads, with the name or the headline smaller to make the room. A design
+ * that has lost its screens gets the project's back, and one that has lost its
+ * name gets `appName`.
+ *
+ * The layers keep their ids while they still carry the design's seed, so a
+ * selection and a translation stay on the layer they were on. `seed` is for
+ * an artboard that was duplicated, whose ids are no longer the design's.
+ */
+export function rebuildCreativeBoard(
+  board: ArtboardState,
+  artboards: ArtboardState[],
+  opts: { seed: string; appName: string }
+): ArtboardState | null {
+  const kind = board.creativeAsset;
+  if (!isCreativeAssetKind(kind)) return null;
+  const made = designLayers(board);
+  if (!made) return null;
+
+  const named = made.name ? oneLine(made.name.content) : '';
+  const base = readProjectLook(artboards, named || opts.appName);
+  const sourced = <T extends ArtboardElement>(element: T): Sourced<T> => ({
+    element,
+    overrides: carriedOverrides(board, element.id),
+  });
+  const tone = groundTone(board);
+  const type = made.headline ?? made.line ?? made.name;
+  const look: ProjectLook = {
+    ...base,
+    darkGround: board.backgroundImage && type ? !isDark(type.color) : tone ? isDark(tone) : base.darkGround,
+    pictureGround: !!board.backgroundImage,
+    fontFamily: (made.headline ?? made.line ?? made.name)?.fontFamily || base.fontFamily,
+    textColor: made.headline?.color ?? made.name?.color ?? base.textColor,
+    mutedColor: made.line?.color ?? base.mutedColor,
+    nameStyle: made.name
+      ? {
+          fontFamily: made.name.fontFamily || base.fontFamily,
+          color: made.name.color,
+          ...(made.name.fontWeight ? { fontWeight: made.name.fontWeight } : {}),
+          ...(made.name.fontStyle ? { fontStyle: made.name.fontStyle } : {}),
+        }
+      : base.nameStyle,
+    headline: made.headline ? sourced(made.headline) : null,
+    subhead: made.line ? sourced(made.line) : null,
+    devices: made.devices.length > 0 ? made.devices.map(sourced) : base.devices,
+  };
+  const built = buildCreativeBoard(kind, lookOf(kind, made), look, made.seed ?? opts.seed, {
+    size: board.size,
+    keepLines: true,
+  });
+
+  // The user's own layers stay where they are, under or over the design's.
+  const first = board.elements.findIndex((el) => made.ids.has(el.id));
+  const under = board.elements.filter((el, index) => index < first && !made.ids.has(el.id));
+  const over = board.elements.filter((el, index) => index > first && !made.ids.has(el.id));
+
+  const localized: NonNullable<ArtboardState['localized']> = {};
+  for (const [locale, layers] of Object.entries(board.localized ?? {})) {
+    const kept = Object.fromEntries(Object.entries(layers ?? {}).filter(([id]) => !made.ids.has(id)));
+    if (Object.keys(kept).length > 0) localized[locale] = kept;
+  }
+  for (const [locale, layers] of Object.entries(built.localized ?? {})) {
+    localized[locale] = { ...localized[locale], ...layers };
+  }
+
+  const { localized: _before, ...rest } = board;
+  return {
+    ...rest,
+    elements: [...under, ...built.elements, ...over],
     ...(Object.keys(localized).length > 0 ? { localized } : {}),
   };
 }

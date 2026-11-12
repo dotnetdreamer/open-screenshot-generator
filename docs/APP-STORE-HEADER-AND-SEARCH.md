@@ -15,7 +15,7 @@ Both are optional. If you don't add them, the App Store shows your screenshots a
 1. Open the project with your App Store screenshots.
 2. In the toolbar, click the **+** button at the far left (or just rest your mouse on it), then pick **App Store header and search art**. While your project has no header or search art, the store listing preview has a button for it too.
 3. Check the **App name** box at the top. It's filled in from your project's name, so change it if your app is called something else on the App Store. If the box is empty, type your app's name.
-4. Pick a design for the header and one for the search result. Every design is made from your own project: its colours, fonts, headline and screenshots. Turn on **Show what an iPhone shows** to see how much of each design an iPhone cuts off. To make a single image for both places, click **One universal image** instead.
+4. Pick a design for the header and one for the search result. Every design is made from your own project: its colours, fonts, headline and screenshots. Turn on **Show what an iPhone shows** to see which part of each design an iPhone cuts off: a strip down each side of the header, and the bottom of the search art. To make a single image for both places, click **One universal image** instead.
 5. Click **Add 2 artboards** (or **Add 1 artboard** for a universal image).
 
 The art appears at the start of your canvas as new artboards (the frames you design on), already at the size Apple asks for. You can edit them like any other artboard: change the words, move things around, swap a screenshot. Changing the canvas size later changes only your screenshots. The art keeps Apple's size.
@@ -31,15 +31,34 @@ The **Header** tab in the left sidebar, next to **Previews**, shows all the desi
 
 The tab adds one design at a time. To add a header and a search result together, use the toolbar's **+** button instead.
 
-## Keep your words inside the green box
+## Keep your words inside the green box, and fill the blue one
 
-Different iPhones and iPads cut off different parts of the art. Only the middle shows on every device, and an iPhone held upright shows little more than that middle part of the header.
+Different iPhones and iPads cut off different parts of the art. Two guides on the canvas show what stays.
 
 - The **green dashed box** marks the part every device shows. Apple calls it the safe area. Keep your words and logo inside it.
-- Everything outside the box is shaded. Some devices show it and some cut it off, so use it for colour and pictures, not for words.
+- The **blue dashed line**, labelled **Shown on an iPhone**, marks what an iPhone shows. That is much more than the green box: the whole header from top to bottom and most of its width, and the search art from edge to edge, down to the line near its bottom.
+- Between the two, the art is lightly shaded. An iPhone shows it, but other devices can cut it off, so use it for your screens, colour and pictures, not for words.
+- Outside the blue line the art is shaded darker. An iPhone cuts that part off.
 - On the header, two **dashed circles** at the top corners mark where the iPhone puts its back and share buttons. Anything under them is covered.
 
+The green box is small. If everything sits inside it, your art looks small on an iPhone, with empty space all around. The designs the app makes put the words inside the green box, as large as they fit, and the screens beside it, so the art fills the phone.
+
+A long app name goes onto two or three lines. A second line under the name or the headline is left out when it has no room at a size you can read on a phone. Your app name and your headline are always there. If one of them can't fit at a readable size, the design makes it smaller. When that leaves it too small to read on a phone, the check tells you.
+
 These guides never show up in the exported art. To hide them, turn off **Show the safe area** in the check list (see below), or in **Settings**.
+
+## Art you made before
+
+The first designs kept everything inside the green box, so they look small on an iPhone, with empty space around them. If your project has art like that, its label says **to check**, and the list under it says **Looks small on an iPhone**.
+
+To fix it, click the label, then **Rebuild design**. The app sets the same design out again to fill the phone:
+
+- Your words stay as you wrote them, in your colours and fonts, in every language.
+- Your screens stay, and so does the background.
+- Anything you added yourself stays where it was.
+- Only the sizes and places change. If you don't like the result, **Undo** brings the old layout back.
+
+Search art made the old way had your app name in small letters above the headline. The rebuilt design leaves it out, because a search result already shows your app's name right above the art.
 
 ## Check it before you upload
 
@@ -57,7 +76,8 @@ Click the label to see the list. It looks for:
 - Apple's own awards, like "Editors' Choice" or "App of the Day"
 - other stores and platforms, like Google Play or Android
 - claims Apple can't check, like "#1", "the best app", "1M+ users" or star ratings
-- words outside the green box, under the iPhone's buttons, too small to read on a phone, or cut off by their own text box
+- words outside the green box, under the iPhone's buttons, too small to read on a phone, or cut off by their own text box. If it says your words are too small, click **Rebuild design** in the same list, or make them bigger yourself. If it says so about a long app name on a universal image, shorten the name there, or make a header and a search result in place of the universal image
+- screens that all sit inside the green box, which makes the art look small on an iPhone. **Rebuild design** fixes that too
 - more than about ten words, since Apple asks for a short phrase
 - a language that still shows your original words
 - the wrong size
@@ -68,9 +88,9 @@ The check only reads words, not pictures, and it can be wrong both ways: it can 
 
 Click the **Preview** button (the eye), then **Store listing**. You'll see your app's page the way an iPhone with iOS 27 shows it: your header at the top, your icon and name under it, then your screenshots. Click **Search results** to see the search result art, and **Light** or **Dark** to switch the phone's look.
 
-The preview is close, but not exact. Apple doesn't say how much of the art each device cuts off, so the app estimates it. When the preview and the green box disagree, trust the green box.
+The preview cuts the art the way the iPhone preview in App Store Connect (Apple's site for managing your app) does. Apple doesn't publish the exact numbers, so it can be a little off. The strip behind the clock, above the header, takes the colour of the top edge of your art. Over a photo it is only a rough guide.
 
-After you upload, App Store Connect (Apple's site for managing your app) has its own preview, with iPad and landscape too. The preview in this app shows iPhone only.
+After you upload, App Store Connect's own preview shows iPad and landscape too. The preview in this app shows iPhone only. Other devices, and a phone turned sideways, cut the art in their own way, which is why your words belong in the green box.
 
 ## More than one language
 

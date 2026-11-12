@@ -160,9 +160,20 @@ import {
   isCreativeBoard,
   screenshotBoards,
 } from '@/lib/creative/specs';
-import { buildCreativeBoard, CREATIVE_LOOKS, readProjectLook } from '@/lib/creative/layouts';
+import {
+  boardFacesMissing,
+  boardFacesPending,
+  buildCreativeBoard,
+  CREATIVE_LOOKS,
+  lookFacesPending,
+  readProjectLook,
+  rebuildCreativeBoard,
+  suggestedAppName,
+} from '@/lib/creative/layouts';
 import type { CreativeLookChoice } from '@/lib/creative/paletteDrag';
 import { CreativeAssetsDialog } from './creative/CreativeAssetsDialog';
+import { CreativeBoardActionsContext } from './creative/CreativeBoardBadge';
+import { onFontsSettled } from '@/lib/fontsSettled';
 import { StoreArtSourceContext, type StoreArtSource } from './creative/StoreArtPaletteTab';
 import { artboardBackground, normalizeBackgroundImage } from '@/lib/artboardBackground';
 import {
@@ -2787,14 +2798,12 @@ export function OpenScreenshotGeneratorLayout() {
   // so every finished load forgets the measurements and projects again.
   const [fontLoads, setFontLoads] = useState(0);
   useEffect(() => {
-    const fonts = typeof document === 'undefined' ? undefined : document.fonts;
-    if (!fonts?.addEventListener) return;
-    const refit = () => {
+    // onFontsSettled and not `loadingdone` alone, which WebKit, and so the
+    // desktop app, never fires.
+    return onFontsSettled(() => {
       clearLocaleFontSizeCache();
       setFontLoads((count) => count + 1);
-    };
-    fonts.addEventListener('loadingdone', refit);
-    return () => fonts.removeEventListener('loadingdone', refit);
+    });
   }, []);
 
   // A font imported in another window after this one started is not on this
@@ -4186,6 +4195,27 @@ export function OpenScreenshotGeneratorLayout() {
     return newArtboard;
   };
 
+  // Art fitted while its face was still on its way is fitted in the fallback,
+  // which wraps somewhere else once the real face draws. Each such artboard is
+  // kept here with its layers as they went in, and fitted again when the face
+  // arrives, as long as nobody has changed it by then.
+  const fallbackFitsRef = useRef(new Map<string, { layers: string; since: number }>());
+  const noteFallbackFits = (boards: ArtboardState[]) => {
+    const waiting = fallbackFitsRef.current;
+    for (const board of boards) {
+      if (boardFacesMissing(board)) waiting.set(board.id, { layers: JSON.stringify(board.elements), since: Date.now() });
+    }
+    // A face seen for the first time counts as on its way until the page has
+    // answered for it, which takes a moment even when it was there all along.
+    // Art fitted in such a face is not waiting for anything, and must not sit
+    // here to be laid out again by some other face arriving much later.
+    window.setTimeout(() => {
+      for (const board of boards) {
+        if (waiting.has(board.id) && !boardFacesMissing(board)) waiting.delete(board.id);
+      }
+    }, 1000);
+  };
+
   /**
    * App Store header and search art, as finished artboards from the dialog or
    * the palette's Header tab.
@@ -4208,6 +4238,7 @@ export function OpenScreenshotGeneratorLayout() {
       namedChange('Add App Store header and search', 'artboard', boards.map((board) => board.name).join(', '))
     );
     if (!landed) return;
+    noteFallbackFits(boards);
     setIsCreativeDialogOpen(false);
     setActiveArtboardId(boards[0].id);
     setSelectedElementIdOnActiveArtboard(null);
@@ -4218,7 +4249,7 @@ export function OpenScreenshotGeneratorLayout() {
     const where = anchorIndex >= 0 ? `after "${artboards[anchorIndex].name}"` : 'at the start of the canvas';
     toast({
       title: boards.length === 1 ? `${boards[0].name} added` : 'Header and search art added',
-      description: `${boards.length === 1 ? 'A new artboard' : `${boards.length} new artboards`} ${where}, at App Store Connect's exact size. The green outline is the part every device shows.`,
+      description: `${boards.length === 1 ? 'A new artboard' : `${boards.length} new artboards`} ${where}, at App Store Connect's exact size. The green outline is the part every device shows. The blue one is what an iPhone shows.`,
       action: backToStore ? undefined : (
         <ToastAction altText="See it in the store listing" onClick={() => openPreview('store')}>
           Preview
@@ -4287,16 +4318,105 @@ export function OpenScreenshotGeneratorLayout() {
    * canvas, where the header sits on the store; a drop names the artboard it
    * should follow.
    */
-  const handleAddCreativeLook = (choice: CreativeLookChoice, afterArtboardId?: string | null) => {
+  const handleAddCreativeLook = (choice: CreativeLookChoice, afterArtboardId?: string | null, fontsReady = false) => {
     if (!CREATIVE_LOOKS[choice.kind].some((entry) => entry.id === choice.lookId)) return;
+    const look = readProjectLook(artboards, choice.appName);
+    // The type is fitted by measuring it in the project's face. A face still
+    // on its way would have it fitted in the fallback, so wait for the face
+    // and come back through the ref, for the project as it is by then.
+    const pending = fontsReady ? null : lookFacesPending(look);
+    if (pending) {
+      void pending.then(() => addCreativeLookRef.current(choice, afterArtboardId, true));
+      return;
+    }
     const seed = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}${choice.kind[0]}`;
-    const board = buildCreativeBoard(choice.kind, choice.lookId, readProjectLook(artboards, choice.appName), seed);
-    handleAddCreativeBoards([board], afterArtboardId);
+    handleAddCreativeBoards([buildCreativeBoard(choice.kind, choice.lookId, look, seed)], afterArtboardId);
   };
 
   // Through a ref for the same reason as addPreviewSceneRef.
   const addCreativeLookRef = useRef(handleAddCreativeLook);
   addCreativeLookRef.current = handleAddCreativeLook;
+
+  /**
+   * Lay one App Store header or search artboard out again as the design it was
+   * made with (rebuildCreativeBoard). It is for art made before the designs
+   * were sized for an iPhone: the words, screens, type and ground stay, and
+   * only where they sit and how big they are is new. One history entry, so
+   * Undo brings the old layout back.
+   */
+  const handleRebuildCreativeBoard = (boardId: string, fontsReady = false) => {
+    const board = artboards.find((ab) => ab.id === boardId);
+    if (!board) return;
+    // Fitted by measuring, like a new design, so the faces have to be on the
+    // page first. Back through the ref, for the project as it is by then.
+    const pending = fontsReady ? null : boardFacesPending(board);
+    if (pending) {
+      void pending.then(() => rebuildCreativeBoardRef.current(boardId, true));
+      return;
+    }
+    const seed = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}${board.creativeAsset?.[0] ?? ''}`;
+    const rebuilt = rebuildCreativeBoard(board, artboards, { seed, appName: suggestedAppName(currentProjectName) });
+    if (!rebuilt) return;
+    const landed = handleArtboardsUpdate(
+      artboards.map((ab) => (ab.id === boardId ? rebuilt : ab)),
+      namedChange('Rebuild App Store art', 'artboard', board.name)
+    );
+    if (!landed) return;
+    noteFallbackFits([rebuilt]);
+    // A layer the new layout has no place for may have been the selected one.
+    setSelectedElementIdOnActiveArtboard(null);
+    toast({
+      title: `${board.name} rebuilt`,
+      description: 'Your words and screens are set out again to fill an iPhone. Undo brings the old layout back.',
+    });
+  };
+  const rebuildCreativeBoardRef = useRef(handleRebuildCreativeBoard);
+  rebuildCreativeBoardRef.current = handleRebuildCreativeBoard;
+  // What the check chip under a header or search artboard can do to it.
+  const creativeBoardActions = useMemo(
+    () => ({ rebuild: (boardId: string) => rebuildCreativeBoardRef.current(boardId) }),
+    []
+  );
+
+  // A face that was too slow has arrived. Art that went in without it is laid
+  // out again, the way Rebuild design does it, now that its type can be
+  // measured in the real face. Art someone has changed since is left alone:
+  // its chip says if it needs a look, and Rebuild design is there for it.
+  useEffect(() => {
+    const waiting = fallbackFitsRef.current;
+    if (waiting.size === 0) return;
+    let next = artboardsRef.current;
+    const settled: string[] = [];
+    const refitted: string[] = [];
+    for (const [boardId, { layers, since }] of waiting) {
+      const board = next.find((ab) => ab.id === boardId);
+      if (!board) {
+        // In a project that another tab has on the canvas now. It keeps for
+        // ten minutes, and is looked at again when its project comes back.
+        if (Date.now() - since > 10 * 60_000) settled.push(boardId);
+        continue;
+      }
+      if (JSON.stringify(board.elements) !== layers) {
+        settled.push(boardId);
+        continue;
+      }
+      if (boardFacesMissing(board)) continue;
+      settled.push(boardId);
+      const refit = rebuildCreativeBoard(board, next, {
+        seed: boardId,
+        appName: suggestedAppName(projectNameRef.current),
+      });
+      if (!refit || JSON.stringify(refit.elements) === layers) continue;
+      next = next.map((ab) => (ab.id === boardId ? refit : ab));
+      refitted.push(board.name);
+    }
+    const landed =
+      refitted.length === 0 ||
+      handleArtboardsUpdate(next, namedChange('Fit App Store art to its font', 'artboard', refitted.join(', ')));
+    // A refused commit (an export is running, say) leaves them for the next face.
+    if (landed) for (const boardId of settled) waiting.delete(boardId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fontLoads, activeProjectId]);
 
   const handlePaletteAddCreativeLook = useCallback((choice: CreativeLookChoice, point?: Point) => {
     if (point && !isOverCanvas(point)) return;
@@ -11515,6 +11635,7 @@ const generateRandomProjectName = (): string => {
           <div className="flex flex-1 overflow-hidden h-full">
             {/* Canvas area - takes remaining space */}
             <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden">
+              <CreativeBoardActionsContext.Provider value={creativeBoardActions}>
               <CanvasArea
                 artboards={viewArtboards}
                 onUpdateArtboards={commitView}
@@ -11546,6 +11667,7 @@ const generateRandomProjectName = (): string => {
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
+              </CreativeBoardActionsContext.Provider>
 
               {/* Says what the open is doing, over the canvas rather than in the
                   2px bar at the top of the editor. Held back a beat inside the

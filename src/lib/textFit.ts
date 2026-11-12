@@ -12,6 +12,8 @@
 // only thing that agrees with what the canvas will do.
 
 import type { TextElementProps } from '@/types/artboard';
+import { faceSpec, watchFace } from '@/lib/fontsSettled';
+import { cssFontFamily } from '@/services/fontService';
 
 /** Matches TextElement: text renders at fontSize / 0.3 and ignores scale. */
 const DISPLAY_SCALE_FACTOR = 0.3;
@@ -55,7 +57,14 @@ export function measureTextHeight(
 
   const node = probeNode();
   node.style.width = `${innerWidth}px`;
-  node.style.fontFamily = element.fontFamily || 'Arial';
+  // Quoted the way TextElement quotes it. A bare `Baloo 2` is not a legal
+  // value, the browser drops it, and the probe would go on measuring in
+  // whatever face it was last given.
+  const family = cssFontFamily(element.fontFamily) || 'Arial';
+  node.style.fontFamily = family;
+  // Measured in the fallback while the face is on its way. Whoever keeps this
+  // measurement hears when the face arrives (onFontsSettled) and measures again.
+  watchFace(faceSpec(element, family), content);
   node.style.fontSize = `${element.fontSize / DISPLAY_SCALE_FACTOR}px`;
   node.style.lineHeight = String(element.lineHeight || 1.2);
   node.style.letterSpacing =

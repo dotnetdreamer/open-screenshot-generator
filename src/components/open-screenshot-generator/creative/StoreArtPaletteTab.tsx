@@ -16,6 +16,7 @@ import {
 } from '@/lib/creative/layouts';
 import { creativeSpec } from '@/lib/creative/specs';
 import { CREATIVE_LOOK_DRAG_TYPE, encodeCreativeLookChoice, type CreativeLookChoice } from '@/lib/creative/paletteDrag';
+import { useFontsLoaded } from './CreativeBoardBadge';
 import { CreativeLookThumb } from './CreativeLookThumb';
 import type { PaletteTilePayload } from '../ElementPalette';
 
@@ -81,6 +82,9 @@ export function StoreArtPaletteTab({
   const artboards = useDeferredValue(source?.artboards ?? NO_BOARDS);
   const deferredName = useDeferredValue(appName);
   const look = useMemo(() => readProjectLook(artboards, deferredName), [artboards, deferredName]);
+  // The type is fitted by measuring it in the project's face, so a face that
+  // arrives after the designs were built has them built again.
+  const fontsLoaded = useFontsLoaded();
   const sections = useMemo(
     () =>
       KINDS.map((kind) => ({
@@ -92,7 +96,8 @@ export function StoreArtPaletteTab({
           board: buildCreativeBoard(kind, entry.id, look, `palette-${kind}-${entry.id}`),
         })),
       })),
-    [look]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [look, fontsLoaded]
   );
   const languageCount = 1 + look.locales.length;
 

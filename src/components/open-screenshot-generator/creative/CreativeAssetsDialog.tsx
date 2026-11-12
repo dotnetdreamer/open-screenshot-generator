@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { InfoIcon } from 'lucide-react';
 import type { ArtboardState, CreativeAssetKind } from '@/types/artboard';
 import {
@@ -16,11 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { useFontsLoaded } from './CreativeBoardBadge';
 import { CreativeLookThumb } from './CreativeLookThumb';
 import {
   buildCreativeBoard,
   CREATIVE_LOOKS,
   defaultLook,
+  lookFacesPending,
   readProjectLook,
   suggestedAppName,
   type CreativeLook,
@@ -47,9 +49,9 @@ interface CreativeAssetsDialogProps {
  *
  * Every card is a real artboard built from the project's own look (see
  * lib/creative/layouts.ts), so what is picked here is exactly what lands on
- * the canvas, translations included. The shade over each card is about what an
- * iPhone shows of it (measured, see specs.ts): most of a header never reaches
- * a phone, and this is the moment that is cheapest to learn.
+ * the canvas, translations included. The shade over each card is what an
+ * iPhone cuts off (measured, see specs.ts): a strip down each side of a header
+ * and the bottom of search art. The designs are sized for the part in between.
  */
 export function CreativeAssetsDialog({ isOpen, onOpenChange, artboards, projectName, onAdd }: CreativeAssetsDialogProps) {
   const [mode, setMode] = useState<Mode>('pair');
@@ -76,19 +78,42 @@ export function CreativeAssetsDialog({ isOpen, onOpenChange, artboards, projectN
   const languageCount = 1 + look.locales.length;
   const existing = useMemo(() => creativeBoards(artboards).length, [artboards]);
 
-  // Only built while open: each card is a whole artboard.
+  // Only built while open: each card is a whole artboard. The type is fitted by
+  // measuring it in the project's face, so a face that arrives after the cards
+  // were built has them built again.
+  const fontsLoaded = useFontsLoaded();
   const cards = useMemo(() => {
     if (!isOpen) return null;
     const build = (kind: CreativeAssetKind) =>
       CREATIVE_LOOKS[kind].map((entry) => ({ entry, board: buildCreativeBoard(kind, entry.id, look, 'preview') }));
     return { header: build('header'), search: build('search'), universal: build('universal') };
-  }, [isOpen, look]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, look, fontsLoaded]);
 
   const kinds: CreativeAssetKind[] = mode === 'pair' ? ['header', 'search'] : ['universal'];
 
+  // The type is fitted by measuring it in the project's face. A face still on
+  // its way would have the artboards fitted in the fallback, so Add waits for
+  // it. Through refs, because the project can change while it does.
+  const [waitingForFonts, setWaitingForFonts] = useState(false);
+  const live = useRef({ isOpen, onAdd });
+  live.current = { isOpen, onAdd };
   const add = () => {
-    const seed = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-    onAdd(kinds.map((kind) => buildCreativeBoard(kind, picked[kind], look, `${seed}${kind[0]}`)));
+    const build = () => {
+      const seed = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+      live.current.onAdd(kinds.map((kind) => buildCreativeBoard(kind, picked[kind], look, `${seed}${kind[0]}`)));
+    };
+    const pending = lookFacesPending(look);
+    if (!pending) {
+      build();
+      return;
+    }
+    setWaitingForFonts(true);
+    void pending.then(() => {
+      setWaitingForFonts(false);
+      // Cancelled while waiting: nothing is added.
+      if (live.current.isOpen) build();
+    });
   };
 
   return (
@@ -197,7 +222,9 @@ export function CreativeAssetsDialog({ isOpen, onOpenChange, artboards, projectN
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={add}>{kinds.length === 1 ? 'Add 1 artboard' : `Add ${kinds.length} artboards`}</Button>
+          <Button onClick={add} disabled={waitingForFonts}>
+            {kinds.length === 1 ? 'Add 1 artboard' : `Add ${kinds.length} artboards`}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

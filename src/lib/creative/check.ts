@@ -8,8 +8,9 @@
  * platforms or stores, no claims Apple cannot verify, and short text. Three more
  * come from the placement itself: keep text inside the art safe area, out from
  * under the back and share buttons iOS floats over a header, and big enough to
- * read at the size an iPhone shows it. The last is the canvas's own: every
- * line has to fit inside its text box.
+ * read at the size an iPhone shows it. Two more are the canvas's own: every
+ * line has to fit inside its text box, and screens that all sit inside the
+ * safe area make a design that looks small on a phone.
  *
  * Text is matched with patterns, so this is a lint and not a verdict: it can
  * miss a price written out in words, and "sale" in an app about garage sales
@@ -18,18 +19,22 @@
  *
  * Text that runs out of its box is measured the way textFit.ts measures it,
  * because TextElement clips at the box. Without a DOM (a unit test, a script)
- * the line count is estimated instead. Nothing else here reads the page, so a
- * board can be checked on every render.
+ * the line count is estimated instead, by typeFit.ts, the way the designs
+ * estimate theirs. Nothing else here reads the page, so a board can be checked
+ * on every render.
  */
 
-import type { ArtboardState, TextElementProps } from '@/types/artboard';
+import type { ArtboardElement, ArtboardState, TextElementProps } from '@/types/artboard';
 import { projectArtboards } from '@/lib/i18n/project';
 import { getBaseLocale, getProjectLocales, localizableTextElements } from '@/lib/i18n/localization';
 import { localeName } from '@/lib/i18n/locales';
+import { onFontsSettled } from '@/lib/fontsSettled';
 import { measureTextHeight } from '@/lib/textFit';
+import { estimatedHeight } from './typeFit';
 import {
   acceptsSize,
   creativeSpec,
+  iphoneAreaFor,
   iphoneHeaderButtonsFor,
   iphonePointsPerPixel,
   isCreativeAssetKind,
@@ -151,52 +156,44 @@ function overlaps(a: PixelRect, b: PixelRect): boolean {
   return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
+/** True when `inner` sits inside `outer`, with a little slack for rounding. */
+function within(inner: PixelRect, outer: PixelRect): boolean {
+  const slack = 2;
+  return (
+    inner.x >= outer.x - slack &&
+    inner.y >= outer.y - slack &&
+    inner.x + inner.width <= outer.x + outer.width + slack &&
+    inner.y + inner.height <= outer.y + outer.height + slack
+  );
+}
+
 /**
- * The rectangle a text box covers on the board once it is turned. The canvas
- * turns an element about its centre, so a box that sits inside the safe area
- * flat can reach outside it at 30 degrees.
+ * The rectangle a layer's box covers on the board once it is turned. The
+ * canvas turns an element about its centre, so a box that sits inside the safe
+ * area flat can reach outside it at 30 degrees.
  */
-function boundsOf(text: TextElementProps): PixelRect {
-  const scale = text.scale || 1;
-  const width = text.size.width * scale;
-  const height = text.size.height * scale;
-  const turn = ((text.rotation || 0) * Math.PI) / 180;
+export function boundsOf(layer: Pick<ArtboardElement, 'position' | 'size' | 'scale' | 'rotation'>): PixelRect {
+  const scale = layer.scale || 1;
+  const width = layer.size.width * scale;
+  const height = layer.size.height * scale;
+  const turn = ((layer.rotation || 0) * Math.PI) / 180;
   const cos = Math.abs(Math.cos(turn));
   const sin = Math.abs(Math.sin(turn));
   const turnedWidth = width * cos + height * sin;
   const turnedHeight = width * sin + height * cos;
   return {
-    x: text.position.x + (width - turnedWidth) / 2,
-    y: text.position.y + (height - turnedHeight) / 2,
+    x: layer.position.x + (width - turnedWidth) / 2,
+    y: layer.position.y + (height - turnedHeight) / 2,
     width: turnedWidth,
     height: turnedHeight,
   };
-}
-
-/**
- * The height, in board pixels, a text layer needs to show all of its lines. A
- * line count at an average glyph width when there is no DOM to measure in.
- */
-function estimatedHeight(text: TextElementProps): number {
-  const glyph = text.fontSize / 0.3;
-  // The box's 2px padding each side, as in textFit.ts.
-  const width = text.size.width * (text.scale || 1) - 4;
-  if (!(width > 0) || !(glyph > 0)) return 0;
-  const advance = Math.max(1, glyph * 0.5 + (text.letterSpacing ?? 0) / 0.3);
-  const perLine = Math.max(1, Math.floor(width / advance));
-  const lines = text.content
-    .split('\n')
-    .reduce((total, line) => total + Math.max(1, Math.ceil(line.length / perLine)), 0);
-  return lines * glyph * (text.lineHeight || 1.2) + 4;
 }
 
 const neededHeights = new Map<string, number>();
 
 // Measured against a fallback face, a line breaks somewhere else. Forget every
 // measurement once a font arrives; the chip checks again at the same moment.
-if (typeof document !== 'undefined' && document.fonts?.addEventListener) {
-  document.fonts.addEventListener('loadingdone', () => neededHeights.clear());
-}
+onFontsSettled(() => neededHeights.clear());
 
 function neededHeight(text: TextElementProps): number {
   const key = [
@@ -249,6 +246,7 @@ function checkProjected(board: ArtboardState, locale: string | null, baseLocale:
   }
 
   const safe = safeAreaFor(board);
+  const iphone = iphoneAreaFor(board);
   const buttons = iphoneHeaderButtonsFor(board);
   const pointsPerPixel = iphonePointsPerPixel(board);
   const texts = board.elements.filter(
@@ -278,23 +276,19 @@ function checkProjected(board: ArtboardState, locale: string | null, baseLocale:
     // The box rather than the glyphs, which is what the language overlay keeps
     // the text inside, turned the way the canvas turns it.
     const box = boundsOf(text);
-    if (safe) {
-      // A little slack for rounding.
-      const slack = 2;
-      const inside =
-        box.x >= safe.x - slack &&
-        box.y >= safe.y - slack &&
-        box.x + box.width <= safe.x + safe.width + slack &&
-        box.y + box.height <= safe.y + safe.height + slack;
-      if (!inside) {
-        issues.push({
-          key: `safe:${text.id}`,
-          level: 'warning',
-          title: 'Text outside the safe area',
-          detail: `${quoted} can be cut off on an iPhone`,
-          elementId: text.id,
-        });
-      }
+    if (safe && !within(box, safe)) {
+      // An iPhone shows far more than the safe area, so most text outside it
+      // is only at risk on other devices.
+      issues.push({
+        key: `safe:${text.id}`,
+        level: 'warning',
+        title: 'Text outside the safe area',
+        detail:
+          iphone && within(box, iphone)
+            ? `${quoted} shows on an iPhone, but other devices can cut it off`
+            : `${quoted} is cut off on an iPhone`,
+        elementId: text.id,
+      });
     }
 
     // TextElement clips at its box, so lines past it never show anywhere. A
@@ -310,8 +304,9 @@ function checkProjected(board: ArtboardState, locale: string | null, baseLocale:
       });
     }
 
-    // Inside the safe area is not enough on a header: iOS floats the back and
-    // share buttons over its top corners.
+    // iOS floats the back and share buttons over the top corners of what an
+    // iPhone shows of a header. Both are clear of the safe area, so this is
+    // about text that was moved out of it.
     if (buttons.some((button) => overlaps(box, button))) {
       issues.push({
         key: `button:${text.id}`,
@@ -333,6 +328,28 @@ function checkProjected(board: ArtboardState, locale: string | null, baseLocale:
           elementId: text.id,
         });
       }
+    }
+  }
+
+  // A design whose screens all sit inside the safe area leaves the rest of
+  // what an iPhone shows bare, which is how the first designs of this editor
+  // came out (issue #46). The newer ones stand their screens beside the safe
+  // area, or under it on a universal image, so they never match this.
+  const screens = board.elements.filter((el) => el.type === 'device' || el.type === 'video-device').map(boundsOf);
+  if (safe && screens.length > 0) {
+    const slack = 2;
+    const across = screens.every((box) => box.x >= safe.x - slack && box.x + box.width <= safe.x + safe.width + slack);
+    const startsInside = screens.some((box) => box.y >= safe.y - slack && box.y < safe.y + safe.height);
+    if (across && startsInside) {
+      issues.push({
+        key: 'screens',
+        level: 'warning',
+        title: 'Looks small on an iPhone',
+        detail:
+          screens.length === 1
+            ? 'The screen sits inside the safe area. An iPhone shows much more, so there is empty space around the design'
+            : 'Every screen sits inside the safe area. An iPhone shows much more, so there is empty space around the design',
+      });
     }
   }
 

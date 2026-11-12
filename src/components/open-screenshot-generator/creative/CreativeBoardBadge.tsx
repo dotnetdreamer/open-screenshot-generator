@@ -1,18 +1,30 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AlertTriangleIcon, CheckCircle2Icon, XCircleIcon } from 'lucide-react';
 import type { ArtboardState } from '@/types/artboard';
+import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { checkCreativeView } from '@/lib/creative/check';
+import { canRebuildCreativeBoard } from '@/lib/creative/layouts';
+import { onFontsSettled } from '@/lib/fontsSettled';
 import { creativeSpec, isCreativeAssetKind } from '@/lib/creative/specs';
 import { useEditorPreference } from '@/lib/editorPreferences';
 import { localeName } from '@/lib/i18n/locales';
 
 const BADGE_LABEL = { header: 'Header', search: 'Search', universal: 'Universal' } as const;
+
+/**
+ * What the chip can do to its artboard. The editor provides it around the
+ * canvas. Anywhere else there is none, and the chip only reports.
+ */
+export const CreativeBoardActionsContext = createContext<{
+  /** Lay the design out again, keeping its words, screens and type. */
+  rebuild: (boardId: string) => void;
+} | null>(null);
 
 /**
  * Goes up each time the page finishes loading a font. The check measures text
@@ -21,13 +33,7 @@ const BADGE_LABEL = { header: 'Header', search: 'Search', universal: 'Universal'
  */
 export function useFontsLoaded(): number {
   const [loaded, setLoaded] = useState(0);
-  useEffect(() => {
-    const fonts = typeof document !== 'undefined' ? document.fonts : undefined;
-    if (!fonts?.addEventListener) return;
-    const bump = () => setLoaded((count) => count + 1);
-    fonts.addEventListener('loadingdone', bump);
-    return () => fonts.removeEventListener('loadingdone', bump);
-  }, []);
+  useEffect(() => onFontsSettled(() => setLoaded((count) => count + 1)), []);
   return loaded;
 }
 
@@ -51,6 +57,8 @@ export function CreativeBoardBadge({
   const fontsLoaded = useFontsLoaded();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const issues = useMemo(() => checkCreativeView(board, locale), [board, locale, fontsLoaded]);
+  const actions = useContext(CreativeBoardActionsContext);
+  const canRebuild = useMemo(() => !!actions && canRebuildCreativeBoard(board), [actions, board]);
   if (!isCreativeAssetKind(board.creativeAsset)) return null;
   const spec = creativeSpec(board.creativeAsset);
   const errors = issues.filter((issue) => issue.level === 'error').length;
@@ -101,6 +109,25 @@ export function CreativeBoardBadge({
           </p>
         </div>
         <CreativeIssueList issues={issues} className="max-h-72 overflow-y-auto px-4 py-3" />
+        {canRebuild && actions && (
+          <div className="border-t px-4 py-2.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 w-full text-xs"
+              onClick={() => {
+                setOpen(false);
+                actions.rebuild(board.id);
+              }}
+            >
+              Rebuild design
+            </Button>
+            <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+              Sets your words and screens out again to fill an iPhone. Layers you added stay
+            </p>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-3 border-t px-4 py-2.5">
           <Label htmlFor={`safe-area-${board.id}`} className="text-xs font-normal">
             Show the safe area

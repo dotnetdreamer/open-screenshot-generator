@@ -1,21 +1,30 @@
 /**
- * App Store creative art (iOS 27): what each placement is, how big it is, and
- * which part of it is guaranteed to show.
+ * App Store creative art (iOS 27): what each placement is, how big it is,
+ * which part of it every device shows, and which part an iPhone shows.
  *
  * This is the ONLY registration site. The add dialog, the canvas overlay, the
  * store preview, the rules check, the export filenames and the MCP presets all
  * read this list, so an In-App Event card would be one more entry here.
  *
- * Sources, checked on 31 October 2026:
+ * Sources:
  *   - Sizes, formats and video limits: "Creative assets specifications" in the
- *     App Store Connect help.
+ *     App Store Connect help, checked on 31 October 2026.
  *   - `safe`: the "Art Safe Area" rectangle in Apple's own templates. The
- *     Sketch file and all three Photoshop files agree to the pixel.
- *   - `iphone`: measured off the device renders on Apple's "App Store asset
- *     best practices" page by matching them against the template art. Apple
- *     publishes no crop numbers, so these are approximate, and they are only
- *     used to draw the store preview. Anything that decides whether a design
- *     is safe uses `safe`.
+ *     Sketch file and all three Photoshop files agree to the pixel. It is the
+ *     part that survives on every device and orientation, which makes it far
+ *     smaller than what an iPhone shows.
+ *   - The iPhone windows (IPHONE_WINDOW_ASPECT, the header buttons): measured
+ *     off App Store Connect's own iPhone preview, in the screenshots posted to
+ *     issue #46 on 8 November 2026. The search art in them looks like one of
+ *     this editor's designs, so it was rebuilt and its layers placed against
+ *     what the preview showed of them. The project was not to hand, and
+ *     nothing says no layer had been moved, so where the layers sat is
+ *     inferred. Two other developers who measured the same preview report the
+ *     same header crop. Apple publishes no crop numbers and calls its preview
+ *     a reference, so these are close, not exact.
+ *     The device renders on Apple's "App Store asset best practices" page show
+ *     a far tighter crop, about the width of the safe area, which the preview
+ *     does not bear out.
  */
 
 import type { ArtboardState, CreativeAssetKind, Size } from '@/types/artboard';
@@ -40,13 +49,8 @@ export interface CreativeAssetSpec {
   sizeLabel: string;
   width: number;
   height: number;
-  /** Apple's art safe area at width x height. */
+  /** Apple's art safe area at width x height: the part every device shows. */
   safe: PixelRect;
-  /**
-   * What an iPhone in portrait shows of the art in each placement it fills,
-   * at width x height. Approximate, see the note at the top.
-   */
-  iphone: Partial<Record<CreativePlacement, PixelRect>>;
   placements: CreativePlacement[];
   /** Image formats App Store Connect takes for this kind. */
   imageFormats: ('PNG' | 'JPEG')[];
@@ -67,9 +71,6 @@ export const CREATIVE_ASSETS: readonly CreativeAssetSpec[] = [
     width: 3840,
     height: 1646,
     safe: { x: 1097, y: 493, width: 1646, height: 661 },
-    // Full width of the safe area, at the 393 x 254pt the header takes on an
-    // iPhone 16 Pro. It sits a little above the middle in Apple's renders.
-    iphone: { header: { x: 1097, y: 238, width: 1646, height: 1064 } },
     placements: ['header'],
     imageFormats: ['PNG', 'JPEG'],
     video: { width: 3840, height: 1646, minSeconds: 5, maxSeconds: 30, fps: [30, 60] },
@@ -84,9 +85,6 @@ export const CREATIVE_ASSETS: readonly CreativeAssetSpec[] = [
     width: 3840,
     height: 2560,
     safe: { x: 836, y: 765, width: 2168, height: 1030 },
-    // The search card is 3:2 like the art, but Apple's renders show it zoomed
-    // in to about the width of the safe area.
-    iphone: { search: { x: 836, y: 558, width: 2168, height: 1445 } },
     placements: ['search'],
     imageFormats: ['PNG', 'JPEG'],
     video: { width: 3840, height: 2560, minSeconds: 5, maxSeconds: 30, fps: [30, 60] },
@@ -102,10 +100,6 @@ export const CREATIVE_ASSETS: readonly CreativeAssetSpec[] = [
     height: 2950,
     // Apple's universal safe area sits above the middle of the canvas.
     safe: { x: 1921, y: 660, width: 1402, height: 962 },
-    iphone: {
-      header: { x: 1878, y: 660, width: 1488, height: 962 },
-      search: { x: 1900, y: 660, width: 1443, height: 962 },
-    },
     placements: ['header', 'search'],
     // The 16:9 size is PNG only, and there is no universal video size.
     imageFormats: ['PNG'],
@@ -199,36 +193,88 @@ export function safeAreaFor(board: Pick<ArtboardState, 'creativeAsset' | 'size'>
   return scaleRect(spec.safe, spec, board.size);
 }
 
+/**
+ * The window an iPhone shows each placement through, as width over height.
+ * The art fills the window. Art wider than the window loses its two sides
+ * evenly. Art taller than it loses its bottom, because the window keeps the
+ * top of the art: measured on the search card, and taken to hold for a
+ * universal image in the header.
+ *
+ * So an iPhone shows a header's full height and about 84% of its width, and
+ * the whole width of search art down to about 84% of its height. The header
+ * window starts under the status bar, and the page fills the strip above it
+ * with the colour of the art's top edge.
+ */
+export const IPHONE_WINDOW_ASPECT: Record<CreativePlacement, number> = { header: 1.95, search: 1.79 };
+
+/** The part of an artboard of `size` that an iPhone shows in one placement. */
+function iphoneWindow(size: Size, placement: CreativePlacement): PixelRect {
+  const aspect = IPHONE_WINDOW_ASPECT[placement];
+  if (size.width > size.height * aspect) {
+    const width = size.height * aspect;
+    return { x: (size.width - width) / 2, y: 0, width, height: size.height };
+  }
+  return { x: 0, y: 0, width: size.width, height: size.width / aspect };
+}
+
 /** What an iPhone shows of this artboard in one placement, or null if it does not fill it. */
 export function iphoneCropFor(
   board: Pick<ArtboardState, 'creativeAsset' | 'size'>,
   placement: CreativePlacement
 ): PixelRect | null {
   if (!isCreativeAssetKind(board.creativeAsset)) return null;
-  const spec = creativeSpec(board.creativeAsset);
-  const rect = spec.iphone[placement];
-  return rect ? scaleRect(rect, spec, board.size) : null;
+  if (!creativeSpec(board.creativeAsset).placements.includes(placement)) return null;
+  return iphoneWindow(board.size, placement);
 }
 
 /**
- * What the MCP tools say about a creative artboard on top of its size: its kind
- * and its safe area, because an agent cannot see the canvas guide. Empty for a
- * screenshot, so a screenshot's summary is unchanged.
+ * What an iPhone shows of this artboard wherever the art is used: the one
+ * window for header or search art, and for a universal image the part both
+ * windows keep. Null for a screenshot.
+ */
+export function iphoneAreaFor(board: Pick<ArtboardState, 'creativeAsset' | 'size'>): PixelRect | null {
+  if (!isCreativeAssetKind(board.creativeAsset)) return null;
+  let area: PixelRect | null = null;
+  for (const placement of creativeSpec(board.creativeAsset).placements) {
+    const crop = iphoneWindow(board.size, placement);
+    if (!area) {
+      area = crop;
+      continue;
+    }
+    const x = Math.max(area.x, crop.x);
+    const y = Math.max(area.y, crop.y);
+    area = {
+      x,
+      y,
+      width: Math.min(area.x + area.width, crop.x + crop.width) - x,
+      height: Math.min(area.y + area.height, crop.y + crop.height) - y,
+    };
+  }
+  return area;
+}
+
+function rounded(rect: PixelRect): PixelRect {
+  return {
+    x: Math.round(rect.x),
+    y: Math.round(rect.y),
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+  };
+}
+
+/**
+ * What the MCP tools say about a creative artboard on top of its size: its
+ * kind, its safe area and what an iPhone shows of it, because an agent cannot
+ * see the canvas guides. Empty for a screenshot, so a screenshot's summary is
+ * unchanged.
  */
 export function creativeSummary(
   board: Pick<ArtboardState, 'creativeAsset' | 'size'>
-): { creativeAsset?: CreativeAssetKind; safeArea?: PixelRect } {
+): { creativeAsset?: CreativeAssetKind; safeArea?: PixelRect; iphoneArea?: PixelRect } {
   const safe = safeAreaFor(board);
-  if (!safe || !isCreativeAssetKind(board.creativeAsset)) return {};
-  return {
-    creativeAsset: board.creativeAsset,
-    safeArea: {
-      x: Math.round(safe.x),
-      y: Math.round(safe.y),
-      width: Math.round(safe.width),
-      height: Math.round(safe.height),
-    },
-  };
+  const iphone = iphoneAreaFor(board);
+  if (!safe || !iphone || !isCreativeAssetKind(board.creativeAsset)) return {};
+  return { creativeAsset: board.creativeAsset, safeArea: rounded(safe), iphoneArea: rounded(iphone) };
 }
 
 /**
@@ -239,17 +285,14 @@ export function creativeSummary(
 export const IPHONE_PLACEMENT_POINTS: Record<CreativePlacement, number> = { header: 393, search: 353 };
 
 /**
- * The back and share buttons iOS 27 floats over the header, in points from the
- * header's top left on that phone, as Apple's renders place them. They cover
- * the top corners of the art safe area, which Apple's templates do not mark.
+ * The back and share buttons iOS 27 floats over the top corners of the header
+ * art, in points from the art's top left on that phone, as App Store Connect's
+ * preview draws them. Both sit well clear of the art safe area.
  */
 export const IPHONE_HEADER_BUTTONS_POINTS: readonly PixelRect[] = [
-  { x: 16, y: 60, width: 44, height: 44 },
-  { x: 333, y: 60, width: 44, height: 44 },
+  { x: 14, y: 1, width: 49, height: 49 },
+  { x: 330, y: 1, width: 49, height: 49 },
 ];
-
-/** Space kept between a header button and the art beside it, in points. */
-const BUTTON_CLEARANCE_POINTS = 8;
 
 /** The header buttons over this artboard, in artboard pixels. Empty when it is never a header. */
 export function iphoneHeaderButtonsFor(board: Pick<ArtboardState, 'creativeAsset' | 'size'>): PixelRect[] {
@@ -262,21 +305,6 @@ export function iphoneHeaderButtonsFor(board: Pick<ArtboardState, 'creativeAsset
     width: button.width * scale,
     height: button.height * scale,
   }));
-}
-
-/**
- * How far in from each side of the safe area the copy has to start so it
- * clears the header buttons on an iPhone, in artboard pixels. Zero for art
- * that is never a header.
- */
-export function headerButtonClearance(board: Pick<ArtboardState, 'creativeAsset' | 'size'>): number {
-  const safe = safeAreaFor(board);
-  const crop = iphoneCropFor(board, 'header');
-  if (!safe || !crop) return 0;
-  const scale = crop.width / IPHONE_PLACEMENT_POINTS.header;
-  const [left] = IPHONE_HEADER_BUTTONS_POINTS;
-  const innerEdge = crop.x + (left.x + left.width + BUTTON_CLEARANCE_POINTS) * scale;
-  return Math.max(0, innerEdge - safe.x);
 }
 
 /** Type smaller than this on an iPhone is hard to read at a glance. */

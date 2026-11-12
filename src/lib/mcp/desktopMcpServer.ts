@@ -95,6 +95,8 @@ export interface McpArtboardSummary {
   creativeAsset?: string;
   /** Apple's art safe area on that art, in artboard pixels: the part every device shows. */
   safeArea?: { x: number; y: number; width: number; height: number };
+  /** What an iPhone shows of that art, in artboard pixels: far more than the safe area. */
+  iphoneArea?: { x: number; y: number; width: number; height: number };
 }
 
 /** One template in the Start-a-New-Project gallery. */
@@ -1319,7 +1321,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'create_artboard',
-    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-3" for the required iPhone size, "ipad-13" for iPad). For the iOS 27 App Store creative art use "appstore-header" (3840x1646 product page header), "appstore-search" (3840x2560 search result) or "appstore-universal" (5244x2950, one image for both): those boards keep Apple\'s size, and the result carries safeArea, the rectangle every device shows. An iPhone shows little more than that rectangle, so put the copy and anything that must not be cropped inside it, and let only the background run past it. Returns the new artboard.',
+    description: 'Create a new artboard. Give either a width and height (pixels) or a size-preset id (e.g. "ios-6-3" for the required iPhone size, "ipad-13" for iPad). For the iOS 27 App Store creative art use "appstore-header" (3840x1646 product page header), "appstore-search" (3840x2560 search result) or "appstore-universal" (5244x2950, one image for both): those boards keep Apple\'s size, and the result carries two rectangles. safeArea is the part every device shows: keep the copy inside it. iphoneArea is the far larger part an iPhone shows: size the screens and the artwork for it, because a design that fits inside safeArea alone sits small in the middle of a phone with bare space around it. Returns the new artboard.',
     inputSchema: {
       type: 'object',
       properties: {

@@ -10,11 +10,14 @@ import {
   boardForPlacement,
   creativeSpec,
   iphoneCropFor,
+  iphoneHeaderButtonsFor,
   isCreativeAssetKind,
   screenshotBoards,
   type CreativePlacement,
+  type PixelRect,
 } from '@/lib/creative/specs';
 import { checkCreativeView } from '@/lib/creative/check';
+import { headerTopEdge } from '@/lib/creative/topEdge';
 import { CreativeIssueList, useFontsLoaded } from './creative/CreativeBoardBadge';
 import type { ArtboardState } from '@/types/artboard';
 
@@ -607,10 +610,16 @@ function AppStoreSearch({
 // --- App Store with creative art (iOS 27) ---------------------------------------
 //
 // From iOS 27 a listing can open with a header above the icon and name, and a
-// search result can show art of its own in place of three screenshots. These
-// two surfaces follow the device renders on Apple's asset best practices page,
-// and the part of the art they show comes from iphoneCropFor
-// (lib/creative/specs.ts), measured off the same renders.
+// search result can show art of its own in place of three screenshots. The
+// page around the art follows the device renders on Apple's asset best
+// practices page. How much of the art shows, and where the header's buttons
+// sit on it, comes from lib/creative/specs.ts, measured off App Store
+// Connect's own iPhone preview: the renders crop far tighter than the preview.
+
+/** The part of a creative artboard an iPhone shows in one placement, or all of it. */
+function cropOf(board: ArtboardState, placement: CreativePlacement): PixelRect {
+  return iphoneCropFor(board, placement) ?? { x: 0, y: 0, width: board.size.width, height: board.size.height };
+}
 
 /** Creative art the way a phone shows it in one placement. */
 function CreativeCrop({
@@ -624,10 +633,11 @@ function CreativeCrop({
   width: number;
   radius?: number;
 }) {
-  const crop = iphoneCropFor(board, placement) ?? { x: 0, y: 0, width: board.size.width, height: board.size.height };
+  const crop = cropOf(board, placement);
   const scale = width / crop.width;
   return (
     <div
+      data-creative-crop={placement}
       style={{
         position: 'relative',
         width: `${width}px`,
@@ -644,15 +654,66 @@ function CreativeCrop({
   );
 }
 
+/** How far down the page the header art starts on this phone: the height of its status bar. */
+const HEADER_STATUS_STRIP = 59;
+
+/**
+ * The strip of page above the header art, under the status bar. iOS fills it
+ * with the colour of the art's top edge, so this is the top row of the art,
+ * stretched. `edge` is the board with only the layers that reach that row
+ * (lib/creative/topEdge.ts): a picture laid over the ground is part of the
+ * edge, and a 3D device is not worth a second WebGL context for one row.
+ *
+ * A stretched row is right for a plain or graded edge. What iOS does with a
+ * busy one, such as a photo, has not been measured.
+ */
+function HeaderTopEdge({ edge, crop, width }: { edge: ArtboardState; crop: PixelRect; width: number }) {
+  const scale = width / crop.width;
+  return (
+    <div
+      style={{
+        position: 'relative',
+        // Over the art, and two pixels down onto it. The phone is drawn
+        // scaled, so the art's top row is part ground and part layer wherever
+        // a layer covers the ground there, which shows as a pale line under
+        // the strip. Those two pixels are the colour the strip already is.
+        zIndex: 1,
+        width: `${width}px`,
+        height: `${HEADER_STATUS_STRIP + 2}px`,
+        marginBottom: '-2px',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: `${width}px`,
+          height: '1px',
+          overflow: 'hidden',
+          // Stretched past the strip, so its soft lower edge is clipped away.
+          transform: `scaleY(${HEADER_STATUS_STRIP + 4})`,
+          transformOrigin: 'top left',
+        }}
+      >
+        <div style={{ position: 'absolute', left: `${-crop.x * scale}px`, top: `${-crop.y * scale}px` }}>
+          <StaticArtboard artboard={edge} scale={scale} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** The round see-through buttons iOS 27 floats over the header. */
-function GlassButton({ dark, children }: { dark: boolean; children: React.ReactNode }) {
+function GlassButton({ dark, size, children }: { dark: boolean; size: number; children: React.ReactNode }) {
   return (
     <div
       className="flex items-center justify-center"
       style={{
-        width: '44px',
-        height: '44px',
-        borderRadius: '22px',
+        width: `${size}px`,
+        height: `${size}px`,
+        borderRadius: `${size / 2}px`,
         background: dark ? 'rgba(28,28,30,0.45)' : 'rgba(255,255,255,0.45)',
         backdropFilter: 'blur(14px) saturate(1.6)',
         WebkitBackdropFilter: 'blur(14px) saturate(1.6)',
@@ -704,25 +765,55 @@ function AppStoreProduct27({
   observer,
   width,
 }: SurfaceProps & { header: ArtboardState; dark: boolean }) {
+  const crop = cropOf(header, 'header');
+  const scale = width / crop.width;
+  // The strip is one screen pixel of the art deep, which is this many of the art's own.
+  const edge = useMemo(
+    () => headerTopEdge(header, crop, 1 / scale),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [header, crop.x, crop.y, crop.width, crop.height, scale]
+  );
+  // Dark status icons over an edge that is plainly light, white otherwise,
+  // and white over a picture, whose colour is not known here.
+  const tone =
+    edge.cover === 'picture'
+      ? null
+      : edge.cover === 'ground'
+        ? header.backgroundImage
+          ? null
+          : artboardBackground(header).backgroundColor
+        : edge.cover.fill;
+  const light = tone === null ? null : hexLightness(tone);
+  const statusIcon = light !== null && light > 0.72 ? '#000000' : '#ffffff';
   return (
     <>
-      <div className="relative">
+      {/* Its own stacking context, so the layering below stays inside the header. */}
+      <div className="relative" style={{ isolation: 'isolate' }}>
+        <HeaderTopEdge edge={edge.board} crop={crop} width={width} />
         <CreativeCrop board={header} placement="header" width={width} />
-        {/* The page starts under the status bar, so the header does too. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0">
-          <StatusBar store="appstore" theme={{ ...theme, statusIcon: '#ffffff' }} />
+        {/* Both above the strip, which sits above the art. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0" style={{ zIndex: 2 }}>
+          <StatusBar store="appstore" theme={{ ...theme, statusIcon }} />
         </div>
-        <div
-          className="pointer-events-none absolute flex justify-between"
-          style={{ top: '60px', left: '16px', right: '16px' }}
-        >
-          <GlassButton dark={dark}>
-            <ChevronLeftIcon className="h-6 w-6" strokeWidth={2.2} />
-          </GlassButton>
-          <GlassButton dark={dark}>
-            <ShareIcon className="h-5 w-5" strokeWidth={2} />
-          </GlassButton>
-        </div>
+        {iphoneHeaderButtonsFor(header).map((button, index) => (
+          <div
+            key={index}
+            className="pointer-events-none absolute"
+            style={{
+              zIndex: 2,
+              left: `${(button.x - crop.x) * scale}px`,
+              top: `${HEADER_STATUS_STRIP + (button.y - crop.y) * scale}px`,
+            }}
+          >
+            <GlassButton dark={dark} size={button.width * scale}>
+              {index === 0 ? (
+                <ChevronLeftIcon className="h-6 w-6" strokeWidth={2.2} />
+              ) : (
+                <ShareIcon className="h-5 w-5" strokeWidth={2} />
+              )}
+            </GlassButton>
+          </div>
+        ))}
       </div>
 
       <div style={{ padding: `20px ${APPSTORE_PAD}px 0` }}>
@@ -958,8 +1049,7 @@ function StoreArtPanel({
         </button>
       )}
       <p className="px-1 text-[11px] leading-relaxed text-white/40">
-        The crop follows Apple&apos;s iPhone renders. App Store Connect&apos;s own preview also shows iPad and
-        landscape
+        The crop follows App Store Connect&apos;s iPhone preview, which also shows iPad and landscape
       </p>
     </div>
   );
@@ -1492,7 +1582,7 @@ export function StoreListingPreview({
           {scale > 0 && scale < 0.999 ? `, shown at ${Math.round(scale * 100)}%` : ''}
           {'. '}
           {showsHeader
-            ? 'The header crop is an estimate. Keep text in the safe area.'
+            ? 'An iPhone shows this much of the header. Other devices and orientations crop it differently, so keep text in the safe area.'
             : showsSearchArt
               ? 'Your search art takes the place of three screenshots here.'
               : surface === 'search'
